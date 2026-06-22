@@ -1,9 +1,7 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import {
   getMyEnrollments,
@@ -55,30 +53,46 @@ export default function MyCourses() {
           courses.map(
             (enrollment) => (
               <div
-                key={
-                  enrollment.id
-                }
+                key={enrollment.id}
                 className="
                   bg-slate-900
                   p-6
                   rounded-xl
+                  flex
+                  justify-between
+                  items-center
                 "
               >
-                <h2 className="text-2xl font-bold">
-                  {
-                    enrollment
-                      .course
-                      ?.title
-                  }
-                </h2>
+                <div>
+                  <h2 className="text-2xl font-bold">
+                    {
+                      enrollment
+                        .course?.title
+                    }
+                  </h2>
 
-                <p className="text-slate-400 mt-2">
-                  {
-                    enrollment
-                      .course
-                      ?.description
-                  }
-                </p>
+                  <p className="text-slate-400 mt-2">
+                    {
+                      enrollment
+                        .course?.description
+                    }
+                  </p>
+                </div>
+
+                <Link
+                  href={`/student/learn/${enrollment.course.id}`}
+                  className="
+                    bg-orange-600
+                    hover:bg-orange-700
+                    px-5
+                    py-3
+                    rounded-lg
+                    font-semibold
+                    transition
+                  "
+                >
+                  Start Learning
+                </Link>
               </div>
             )
           )

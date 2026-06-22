@@ -108,7 +108,12 @@ export default function CourseDetails() {
                   >
                     Edit
                   </Link>
-
+                  <Link
+                    href={`/instructor/quizzes/${course.id}`}
+                    className="bg-purple-600 px-5 py-3 rounded"
+                  >
+                    Quizzes
+                  </Link>
                   <button
                     onClick={() => handleDelete(module.id)}
                     className="bg-red-600 px-4 py-2 rounded text-white"
