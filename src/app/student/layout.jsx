@@ -1,17 +1,29 @@
+"use client";
+
+import { useState } from "react";
+
 import StudentSidebar from "../../components/layouts/StudentSidebar";
 import Navbar from "../../components/layouts/Navbar";
 
 export default function StudentLayout({
   children,
 }) {
+  const [open, setOpen] =
+    useState(false);
+
   return (
-    <div className="flex min-h-screen bg-slate-950">
-      <StudentSidebar />
+    <div className="flex">
+      <StudentSidebar
+        open={open}
+        setOpen={setOpen}
+      />
 
-      <div className="flex-1 flex flex-col">
-        <Navbar />
+      <div className="flex-1">
+        <Navbar
+          setOpen={setOpen}
+        />
 
-        <main className="p-6 flex-1">
+        <main className="p-4 md:p-8">
           {children}
         </main>
       </div>

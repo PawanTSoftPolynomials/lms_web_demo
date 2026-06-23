@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import useAuth from "@/hooks/useAuth";
-
+import Loader from "@/components/common/Loader";
 import AuthLayout from "@/components/auth/AuthLayout";
 import AuthInput from "@/components/auth/AuthInput";
 
@@ -12,7 +12,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   const { login } = useAuth();
-
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -28,23 +28,31 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setLoading(true);
+
     try {
       const user = await login(formData);
 
       if (user.role === "ADMIN") {
-        router.push("/admin/dashboard");
+        router.replace("/admin/dashboard");
       } else if (user.role === "INSTRUCTOR") {
-        router.push("/instructor/dashboard");
+        router.replace("/instructor/dashboard");
       } else {
-        router.push("/student/dashboard");
+        router.replace("/student/dashboard");
       }
     } catch (error) {
-      console.error(error);
+      setLoading(false);
 
-      alert(error?.response?.data?.message || "Login failed");
+      alert(error.response?.data?.message || "Login failed");
     }
   };
-
+  if (loading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-slate-950">
+        <Loader />
+      </div>
+    );
+  }
   return (
     <AuthLayout title="Login" subtitle="Access your learning dashboard">
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -61,25 +69,21 @@ export default function LoginPage() {
           placeholder="Enter your password"
           onChange={handleChange}
         />
-        <div className="text-right">
-          <a href="/forgot-password" className="text-orange-500 text-sm">
-            Forgot Password?
-          </a>
-        </div>
+        
         <button
           type="submit"
+          disabled={loading}
           className="
-            w-full
-            rounded-lg
-            bg-orange-600
-            py-3
-            font-semibold
-            text-white
-            hover:bg-orange-700
-            transition
-          "
+    w-full
+    rounded-lg
+    bg-orange-600
+    py-3
+    font-semibold
+    text-white
+    disabled:opacity-50
+  "
         >
-          Login
+          {loading ? <Loader /> : "Login"}
         </button>
 
         <p className="text-center text-slate-400 text-sm">
