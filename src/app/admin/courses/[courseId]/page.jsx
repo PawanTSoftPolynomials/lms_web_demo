@@ -14,6 +14,12 @@ import {
   updateCourseStatus,
 } from "@/services/course.service";
 
+import Loader from "@/components/common/Loader";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import PageHeader from "@/components/layouts/PageHeader";
+
+import StatusBadge from "@/components/courses/StatusBadge";
 import CourseStatusSelector from "@/components/courses/CourseStatusSelector";
 
 export default function CourseDetails() {
@@ -68,6 +74,7 @@ export default function CourseDetails() {
         );
       } catch (error) {
         console.error(error);
+
         alert(
           "Failed to update status"
         );
@@ -76,83 +83,85 @@ export default function CourseDetails() {
 
   if (!course) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        Loading...
+      <div className="flex justify-center items-center py-20">
+        <Loader />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-6">
-      <div className="max-w-4xl mx-auto bg-slate-900 rounded-2xl p-8 shadow-lg">
-        <h1 className="text-4xl font-bold mb-4">
-          {course.title}
-        </h1>
+    <div className="space-y-6">
+      <PageHeader
+        title={course.title}
+        subtitle="Course Details"
+      />
 
-        <p className="text-slate-300 mb-6">
+      <Card>
+        <p className="text-slate-300">
           {course.description}
         </p>
+      </Card>
 
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-slate-800 p-4 rounded-xl">
-            <p className="text-slate-400 text-sm">
-              Category
-            </p>
+      <div className="grid md:grid-cols-3 gap-6">
+        <Card>
+          <p className="text-slate-400 text-sm mb-2">
+            Category
+          </p>
 
-            <p className="font-semibold">
-              {course.category ||
-                "N/A"}
-            </p>
-          </div>
+          <p className="font-semibold">
+            {course.category ||
+              "N/A"}
+          </p>
+        </Card>
 
-          <div className="bg-slate-800 p-4 rounded-xl">
-            <p className="text-slate-400 text-sm">
-              Level
-            </p>
+        <Card>
+          <p className="text-slate-400 text-sm mb-2">
+            Level
+          </p>
 
-            <p className="font-semibold">
-              {course.level ||
-                "N/A"}
-            </p>
-          </div>
+          <p className="font-semibold">
+            {course.level ||
+              "N/A"}
+          </p>
+        </Card>
 
-          <div className="bg-slate-800 p-4 rounded-xl">
-            <p className="text-slate-400 text-sm">
-              Status
-            </p>
+        <Card>
+          <p className="text-slate-400 text-sm mb-2">
+            Status
+          </p>
 
-            <p className="font-semibold">
-              {course.status}
-            </p>
-          </div>
-        </div>
-
-        <div className="border-t border-slate-700 pt-6">
-          <h2 className="text-2xl font-semibold mb-4">
-            Update Course Status
-          </h2>
-
-          <div className="flex gap-4 items-center">
-            <CourseStatusSelector
-              value={status}
-              onChange={(e) =>
-                setStatus(
-                  e.target.value
-                )
-              }
-            />
-
-            <button
-              onClick={
-                handleStatusUpdate
-              }
-              className="bg-orange-600 hover:bg-orange-700 px-5 py-3 rounded-lg font-semibold"
-            >
-              Update Status
-            </button>
-          </div>
-        </div>
+          <StatusBadge
+            status={
+              course.status
+            }
+          />
+        </Card>
       </div>
+
+      <Card>
+        <h2 className="text-xl font-semibold mb-4">
+          Update Course Status
+        </h2>
+
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+          <CourseStatusSelector
+            value={status}
+            onChange={(e) =>
+              setStatus(
+                e.target.value
+              )
+            }
+          />
+
+          <Button
+            onClick={
+              handleStatusUpdate
+            }
+          >
+            Update Status
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import {
 import useAuth from "@/hooks/useAuth";
 
 export default function Navbar({
+  title = "Dashboard",
   setOpen,
 }) {
   const router = useRouter();
@@ -26,28 +27,36 @@ export default function Navbar({
       bg-slate-900
       border-b
       border-slate-800
-      p-4
+      px-4
+      py-4
       flex
       items-center
       justify-between
     ">
-      {/* Mobile Hamburger */}
-      <button
-        onClick={() => setOpen(true)}
-        className="
-          md:hidden
-          text-white
-          text-xl
-        "
-      >
-        <FaBars />
-      </button>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => setOpen?.(true)}
+          className="
+            md:hidden
+            text-xl
+            text-white
+          "
+        >
+          <FaBars />
+        </button>
 
-      <div className="flex gap-3 ml-auto">
+        <h1 className="text-lg font-semibold">
+          {title}
+        </h1>
+      </div>
+
+      <div className="flex gap-3">
         <button
           onClick={() => router.back()}
           className="
             bg-slate-800
+            hover:bg-slate-700
+            transition
             p-3
             rounded-lg
           "
@@ -59,6 +68,8 @@ export default function Navbar({
           onClick={handleLogout}
           className="
             bg-red-600
+            hover:bg-red-700
+            transition
             p-3
             rounded-lg
           "

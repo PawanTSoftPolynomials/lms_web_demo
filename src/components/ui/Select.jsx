@@ -1,3 +1,5 @@
+"use client";
+
 import Select from "@/components/ui/Select";
 
 export default function CourseStatusSelector({

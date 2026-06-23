@@ -7,33 +7,17 @@ import {
   createCourse,
 } from "@/services/course.service";
 
+import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
+import PageHeader from "@/components/layouts/PageHeader";
+
 export default function CreateCourse() {
   const router = useRouter();
-  const handleDelete =
-  async (courseId) => {
-    const confirmed =
-      confirm(
-        "Delete this course?"
-      );
 
-    if (!confirmed) return;
+  const [loading, setLoading] =
+    useState(false);
 
-    try {
-      await deleteCourse(
-        courseId
-      );
-
-      setCourses(
-        courses.filter(
-          (course) =>
-            course.id !==
-            courseId
-        )
-      );
-    } catch (error) {
-      console.error(error);
-    }
-  };
   const [formData, setFormData] =
     useState({
       title: "",
@@ -42,9 +26,6 @@ export default function CreateCourse() {
       level: "",
       thumbnailUrl: "",
     });
-
-  const [loading, setLoading] =
-    useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -70,6 +51,7 @@ export default function CreateCourse() {
         );
       } catch (error) {
         console.error(error);
+
         alert(
           "Failed to create course"
         );
@@ -79,37 +61,29 @@ export default function CreateCourse() {
     };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6">
-      <div className="w-full max-w-2xl bg-slate-900 rounded-2xl p-8 shadow-lg">
-        <h1 className="text-3xl font-bold mb-6">
-          Create Course
-        </h1>
+    <div className="space-y-6">
+      <PageHeader
+        title="Create Course"
+        subtitle="Add a new course to the platform"
+      />
 
+      <Card>
         <form
           onSubmit={handleSubmit}
           className="space-y-5"
         >
-          <div>
-            <label className="block mb-2">
-              Title
-            </label>
-
-            <input
-              type="text"
-              name="title"
-              value={
-                formData.title
-              }
-              onChange={
-                handleChange
-              }
-              className="w-full p-3 rounded-lg bg-slate-800 border border-slate-700"
-              required
-            />
-          </div>
+          <Input
+            label="Title"
+            name="title"
+            value={formData.title}
+            onChange={
+              handleChange
+            }
+            required
+          />
 
           <div>
-            <label className="block mb-2">
+            <label className="block mb-2 text-sm font-medium">
               Description
             </label>
 
@@ -121,31 +95,34 @@ export default function CreateCourse() {
               onChange={
                 handleChange
               }
-              rows="4"
-              className="w-full p-3 rounded-lg bg-slate-800 border border-slate-700"
+              rows={4}
+              className="
+                w-full
+                p-3
+                rounded-lg
+                bg-slate-800
+                border
+                border-slate-700
+                focus:outline-none
+                focus:ring-2
+                focus:ring-orange-500
+              "
             />
           </div>
 
-          <div>
-            <label className="block mb-2">
-              Category
-            </label>
-
-            <input
-              type="text"
-              name="category"
-              value={
-                formData.category
-              }
-              onChange={
-                handleChange
-              }
-              className="w-full p-3 rounded-lg bg-slate-800 border border-slate-700"
-            />
-          </div>
+          <Input
+            label="Category"
+            name="category"
+            value={
+              formData.category
+            }
+            onChange={
+              handleChange
+            }
+          />
 
           <div>
-            <label className="block mb-2">
+            <label className="block mb-2 text-sm font-medium">
               Level
             </label>
 
@@ -157,7 +134,17 @@ export default function CreateCourse() {
               onChange={
                 handleChange
               }
-              className="w-full p-3 rounded-lg bg-slate-800 border border-slate-700"
+              className="
+                w-full
+                p-3
+                rounded-lg
+                bg-slate-800
+                border
+                border-slate-700
+                focus:outline-none
+                focus:ring-2
+                focus:ring-orange-500
+              "
             >
               <option value="">
                 Select Level
@@ -177,35 +164,28 @@ export default function CreateCourse() {
             </select>
           </div>
 
-          <div>
-            <label className="block mb-2">
-              Thumbnail URL
-            </label>
+          <Input
+            label="Thumbnail URL"
+            name="thumbnailUrl"
+            value={
+              formData.thumbnailUrl
+            }
+            onChange={
+              handleChange
+            }
+          />
 
-            <input
-              type="text"
-              name="thumbnailUrl"
-              value={
-                formData.thumbnailUrl
-              }
-              onChange={
-                handleChange
-              }
-              className="w-full p-3 rounded-lg bg-slate-800 border border-slate-700"
-            />
-          </div>
-
-          <button
+          <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 transition py-3 rounded-lg font-semibold"
+            className="w-full"
           >
             {loading
               ? "Creating..."
               : "Create Course"}
-          </button>
+          </Button>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

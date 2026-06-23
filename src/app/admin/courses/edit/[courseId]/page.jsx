@@ -15,12 +15,24 @@ import {
   updateCourse,
 } from "@/services/course.service";
 
+import Loader from "@/components/common/Loader";
+import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
+import PageHeader from "@/components/layouts/PageHeader";
+
 export default function EditCourse() {
   const { courseId } =
     useParams();
 
   const router =
     useRouter();
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
 
   const [formData, setFormData] =
     useState({
@@ -34,14 +46,31 @@ export default function EditCourse() {
   useEffect(() => {
     const loadCourse =
       async () => {
-        const response =
-          await getCourseById(
-            courseId
-          );
+        try {
+          const response =
+            await getCourseById(
+              courseId
+            );
 
-        setFormData(
-          response
-        );
+          setFormData({
+            title:
+              response.title || "",
+            description:
+              response.description ||
+              "",
+            category:
+              response.category || "",
+            level:
+              response.level || "",
+            thumbnailUrl:
+              response.thumbnailUrl ||
+              "",
+          });
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setLoading(false);
+        }
       };
 
     if (courseId) {
@@ -49,11 +78,23 @@ export default function EditCourse() {
     }
   }, [courseId]);
 
+  const handleChange = (
+    e
+  ) => {
+    setFormData({
+      ...formData,
+      [e.target.name]:
+        e.target.value,
+    });
+  };
+
   const handleSubmit =
     async (e) => {
       e.preventDefault();
 
       try {
+        setSaving(true);
+
         await updateCourse(
           courseId,
           formData
@@ -64,96 +105,152 @@ export default function EditCourse() {
         );
       } catch (error) {
         console.error(error);
+
+        alert(
+          "Failed to update course"
+        );
+      } finally {
+        setSaving(false);
       }
     };
 
-  return (
-    <div className="min-h-screen bg-slate-950 flex justify-center items-center p-6">
-      <div className="bg-slate-900 p-8 rounded-xl w-full max-w-2xl">
-        <h1 className="text-3xl text-white font-bold mb-6">
-          Edit Course
-        </h1>
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader />
+      </div>
+    );
+  }
 
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Edit Course"
+        subtitle="Update course information"
+      />
+
+      <Card>
         <form
           onSubmit={handleSubmit}
-          className="space-y-4"
+          className="space-y-5"
         >
-          <input
-            type="text"
+          <Input
+            label="Title"
+            name="title"
             value={
-              formData.title ||
-              ""
+              formData.title
             }
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                title:
-                  e.target
-                    .value,
-              })
+            onChange={
+              handleChange
             }
-            placeholder="Title"
-            className="w-full p-3 bg-slate-800 text-white rounded"
           />
 
-          <textarea
+          <div>
+            <label className="block mb-2 text-sm font-medium">
+              Description
+            </label>
+
+            <textarea
+              name="description"
+              value={
+                formData.description
+              }
+              onChange={
+                handleChange
+              }
+              rows={4}
+              className="
+                w-full
+                p-3
+                rounded-lg
+                bg-slate-800
+                border
+                border-slate-700
+                text-white
+                focus:outline-none
+                focus:ring-2
+                focus:ring-orange-500
+              "
+            />
+          </div>
+
+          <Input
+            label="Category"
+            name="category"
             value={
-              formData.description ||
-              ""
+              formData.category
             }
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                description:
-                  e.target
-                    .value,
-              })
+            onChange={
+              handleChange
             }
-            placeholder="Description"
-            className="w-full p-3 bg-slate-800 text-white rounded"
           />
 
-          <input
-            type="text"
+          <div>
+            <label className="block mb-2 text-sm font-medium">
+              Level
+            </label>
+
+            <select
+              name="level"
+              value={
+                formData.level
+              }
+              onChange={
+                handleChange
+              }
+              className="
+                w-full
+                p-3
+                rounded-lg
+                bg-slate-800
+                border
+                border-slate-700
+                text-white
+                focus:outline-none
+                focus:ring-2
+                focus:ring-orange-500
+              "
+            >
+              <option value="">
+                Select Level
+              </option>
+
+              <option value="Beginner">
+                Beginner
+              </option>
+
+              <option value="Intermediate">
+                Intermediate
+              </option>
+
+              <option value="Advanced">
+                Advanced
+              </option>
+            </select>
+          </div>
+
+          <Input
+            label="Thumbnail URL"
+            name="thumbnailUrl"
             value={
-              formData.category ||
-              ""
+              formData.thumbnailUrl
             }
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                category:
-                  e.target
-                    .value,
-              })
+            onChange={
+              handleChange
             }
-            placeholder="Category"
-            className="w-full p-3 bg-slate-800 text-white rounded"
           />
 
-          <input
-            type="text"
-            value={
-              formData.level ||
-              ""
-            }
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                level:
-                  e.target
-                    .value,
-              })
-            }
-            placeholder="Level"
-            className="w-full p-3 bg-slate-800 text-white rounded"
-          />
-
-          <button className="w-full bg-orange-600 py-3 rounded">
-            Update Course
-          </button>
+          <Button
+            type="submit"
+            disabled={saving}
+            className="w-full"
+          >
+            {saving
+              ? "Updating..."
+              : "Update Course"}
+          </Button>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

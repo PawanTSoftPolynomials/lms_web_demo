@@ -1,30 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
 
-import AdminSidebar from "../../components/layouts/AdminSidebar";
-import Navbar from "../../components/layouts/Navbar";
-
-export default function AdminLayout({
+export default function Layout({
   children,
 }) {
-  const [open, setOpen] =
-    useState(false);
-
   return (
-    <div className="flex">
-      <AdminSidebar
-        open={open}
-        setOpen={setOpen}
-      />
-
-      <div className="flex-1">
-        <Navbar setOpen={setOpen} />
-
-        <main className="p-4 md:p-8">
-          {children}
-        </main>
-      </div>
-    </div>
+    <DashboardLayout
+      role="ADMIN"
+      title="Admin Dashboard"
+    >
+      {children}
+    </DashboardLayout>
   );
 }

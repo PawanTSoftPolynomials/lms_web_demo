@@ -1,34 +1,43 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import useAuth from "@/hooks/useAuth";
+
 import Loader from "@/components/common/Loader";
 import AuthLayout from "@/components/auth/AuthLayout";
-import AuthInput from "@/components/auth/AuthInput";
+import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
 
 export default function RegisterPage() {
   const router = useRouter();
-
   const { register } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phoneNumber: "",
-    address: "",
-    password: "",
-    confirmPassword: "",
-    role: "STUDENT",
-  });
 
-  const [error, setError] = useState("");
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  const [formData, setFormData] =
+    useState({
+      name: "",
+      email: "",
+      phoneNumber: "",
+      address: "",
+      password: "",
+      confirmPassword: "",
+      role: "STUDENT",
+    });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]:
+        e.target.value,
     });
   };
 
@@ -37,9 +46,13 @@ export default function RegisterPage() {
 
     setError("");
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-
+    if (
+      formData.password !==
+      formData.confirmPassword
+    ) {
+      setError(
+        "Passwords do not match"
+      );
       return;
     }
 
@@ -49,9 +62,11 @@ export default function RegisterPage() {
       await register({
         name: formData.name,
         email: formData.email,
-        phoneNumber: formData.phoneNumber,
+        phoneNumber:
+          formData.phoneNumber,
         address: formData.address,
-        password: formData.password,
+        password:
+          formData.password,
         role: formData.role,
       });
 
@@ -59,102 +74,108 @@ export default function RegisterPage() {
     } catch (error) {
       setLoading(false);
 
-      setError(error.response?.data?.message || "Registration failed");
+      setError(
+        error.response?.data
+          ?.message ||
+          "Registration failed"
+      );
     }
   };
+
   if (loading) {
     return (
-      <div
-        className="
-      min-h-screen
-      flex
-      items-center
-      justify-center
-      bg-slate-950
-    "
-      >
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
         <Loader />
       </div>
     );
   }
+
   return (
-    <AuthLayout title="Register" subtitle="Create your account">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <div className="bg-red-600 text-white p-3 rounded-lg">{error}</div>
-        )}
-
-        <AuthInput
-          type="text"
-          name="name"
-          placeholder="Full Name"
-          value={formData.name}
-          onChange={handleChange}
-        />
-
-        <AuthInput
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-        />
-
-        <AuthInput
-          type="text"
-          name="phoneNumber"
-          placeholder="Phone Number"
-          value={formData.phoneNumber}
-          onChange={handleChange}
-        />
-
-        <AuthInput
-          type="text"
-          name="address"
-          placeholder="Address"
-          value={formData.address}
-          onChange={handleChange}
-        />
-
-        <AuthInput
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
-        />
-
-        <AuthInput
-          type="password"
-          name="confirmPassword"
-          placeholder="Confirm Password"
-          value={formData.confirmPassword}
-          onChange={handleChange}
-        />
-
-        <button
-          type="submit"
-          className="
-            w-full
-            rounded-lg
-            bg-orange-600
-            py-3
-            font-semibold
-            text-white
-            hover:bg-orange-700
-            transition
-          "
-        >
+    <AuthLayout>
+      <Card className="w-full max-w-md">
+        <h1 className="text-3xl font-bold mb-2">
           Register
-        </button>
+        </h1>
 
-        <p className="text-center text-slate-400 text-sm">
-          Already have an account?{" "}
-          <a href="/login" className="text-orange-500">
-            Login
-          </a>
+        <p className="text-slate-400 mb-6">
+          Create your account
         </p>
-      </form>
+
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4"
+        >
+          {error && (
+            <div className="bg-red-500/20 border border-red-500 text-red-300 p-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          <Input
+            label="Full Name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+          />
+
+          <Input
+            label="Email"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+          />
+
+          <Input
+            label="Phone Number"
+            name="phoneNumber"
+            value={formData.phoneNumber}
+            onChange={handleChange}
+          />
+
+          <Input
+            label="Address"
+            name="address"
+            value={formData.address}
+            onChange={handleChange}
+          />
+
+          <Input
+            label="Password"
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+          />
+
+          <Input
+            label="Confirm Password"
+            type="password"
+            name="confirmPassword"
+            value={
+              formData.confirmPassword
+            }
+            onChange={handleChange}
+          />
+
+          <Button
+            type="submit"
+            className="w-full"
+          >
+            Register
+          </Button>
+
+          <p className="text-center text-sm text-slate-400">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="text-orange-500"
+            >
+              Login
+            </Link>
+          </p>
+        </form>
+      </Card>
     </AuthLayout>
   );
 }
