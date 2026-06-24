@@ -5,17 +5,24 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import {
+  getLessonById,
+  deleteLesson,
+} from "@/services/lesson.service";
+
+import {
   getContents,
-  deleteContent,
 } from "@/services/content.service";
 
-import ActionMenu from "@/components/menus/ActionMenu";
 import Loader from "@/components/common/Loader";
+import ActionMenu from "@/components/menus/ActionMenu";
 
-export default function LessonContentsPage() {
+export default function LessonDetailsPage() {
   const { lessonId } = useParams();
 
   const router = useRouter();
+
+  const [lesson, setLesson] =
+    useState(null);
 
   const [contents, setContents] =
     useState([]);
@@ -24,52 +31,54 @@ export default function LessonContentsPage() {
     useState(true);
 
   useEffect(() => {
+    const loadData =
+      async () => {
+        try {
+          const lessonResponse =
+            await getLessonById(
+              lessonId
+            );
+
+          setLesson(
+            lessonResponse
+          );
+
+          const contentResponse =
+            await getContents(
+              lessonId
+            );
+
+          setContents(
+            contentResponse
+          );
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
     if (lessonId) {
-      loadContents();
+      loadData();
     }
   }, [lessonId]);
 
-  const loadContents =
-    async () => {
-      try {
-        const response =
-          await getContents(
-            lessonId
-          );
-
-        setContents(
-          response.data ||
-            response
-        );
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
   const handleDelete =
-    async (contentId) => {
+    async () => {
       if (
         !confirm(
-          "Delete this content?"
+          "Delete this lesson?"
         )
       ) {
         return;
       }
 
       try {
-        await deleteContent(
-          contentId
+        await deleteLesson(
+          lessonId
         );
 
-        setContents(
-          contents.filter(
-            (content) =>
-              content.id !==
-              contentId
-          )
-        );
+        router.back();
       } catch (error) {
         console.error(error);
       }
@@ -85,14 +94,49 @@ export default function LessonContentsPage() {
 
   return (
     <div className="space-y-8">
+      {/* Lesson Card */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-4">
+              {lesson.title}
+            </h1>
+
+            <p className="text-slate-400">
+              {lesson.description}
+            </p>
+          </div>
+
+          <ActionMenu
+            items={[
+              {
+                label:
+                  "Edit",
+                onClick:
+                  () =>
+                    router.push(
+                      `/instructor/lessons/edit/${lesson.id}`
+                    ),
+              },
+              {
+                label:
+                  "Delete",
+                onClick:
+                  handleDelete,
+              },
+            ]}
+          />
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-bold text-white">
+          <h2 className="text-3xl font-bold text-white">
             Contents
-          </h1>
+          </h2>
 
-          <p className="text-slate-400 mt-2">
+          <p className="text-slate-400">
             Manage lesson contents.
           </p>
         </div>
@@ -106,18 +150,21 @@ export default function LessonContentsPage() {
             py-3
             rounded-xl
             text-white
-            transition
           "
         >
           Add Content
         </Link>
       </div>
 
-      {/* Empty State */}
+      {/* Content List */}
       {contents.length === 0 ? (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center">
+          <h3 className="text-xl text-white mb-2">
+            No Contents Found
+          </h3>
+
           <p className="text-slate-400">
-            No content found.
+            Add your first content.
           </p>
         </div>
       ) : (
@@ -135,24 +182,16 @@ export default function LessonContentsPage() {
                   flex
                   justify-between
                   items-center
-                  hover:border-orange-500
-                  transition
                 "
               >
                 <div>
-                  <h2 className="text-2xl font-semibold text-white">
+                  <h3 className="text-xl font-semibold text-white">
                     {content.title}
-                  </h2>
+                  </h3>
 
                   <p className="text-slate-400 mt-2">
                     {content.type}
                   </p>
-
-                  {content.url && (
-                    <p className="text-slate-500 mt-1 truncate max-w-xl">
-                      {content.url}
-                    </p>
-                  )}
                 </div>
 
                 <ActionMenu
@@ -171,8 +210,8 @@ export default function LessonContentsPage() {
                         "Delete",
                       onClick:
                         () =>
-                          handleDelete(
-                            content.id
+                          console.log(
+                            "Delete content"
                           ),
                     },
                   ]}

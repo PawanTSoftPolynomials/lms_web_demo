@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import {
   useParams,
   useRouter,
@@ -11,6 +15,9 @@ import {
   updateContent,
 } from "@/services/content.service";
 
+import ContentForm from "@/components/contents/ContentForm";
+import Loader from "@/components/common/Loader";
+
 export default function EditContentPage() {
   const { contentId } =
     useParams();
@@ -18,12 +25,21 @@ export default function EditContentPage() {
   const router =
     useRouter();
 
-  const [formData,
-    setFormData] =
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [formData, setFormData] =
     useState({
       title: "",
       type: "VIDEO",
-      url: "",
+      videoUrl: "",
+      fileUrl: "",
+      htmlContent: "",
+      externalUrl: "",
+      duration: "",
       order: 1,
     });
 
@@ -31,17 +47,54 @@ export default function EditContentPage() {
     const loadContent =
       async () => {
         try {
-          const response =
+          const content =
             await getContentById(
               contentId
             );
 
-          setFormData(
-            response.data ||
-              response
-          );
+          const data =
+            content.data ||
+            content;
+
+          setFormData({
+            title:
+              data.title || "",
+
+            type:
+              data.type ||
+              "VIDEO",
+
+            videoUrl:
+              data.videoUrl ||
+              "",
+
+            fileUrl:
+              data.fileUrl ||
+              "",
+
+            htmlContent:
+              data.htmlContent ||
+              "",
+
+            externalUrl:
+              data.externalUrl ||
+              "",
+
+            duration:
+              data.duration ||
+              "",
+
+            order:
+              data.order || 1,
+          });
         } catch (error) {
-          console.error(error);
+          console.error(
+            error
+          );
+        } finally {
+          setLoading(
+            false
+          );
         }
       };
 
@@ -50,127 +103,96 @@ export default function EditContentPage() {
     }
   }, [contentId]);
 
-  const handleChange =
-    (e) => {
-      setFormData({
-        ...formData,
-        [e.target.name]:
-          e.target.value,
-      });
-    };
-
   const handleSubmit =
     async (e) => {
       e.preventDefault();
 
+      setSaving(true);
+
       try {
+        const data = {
+          title:
+            formData.title,
+
+          type:
+            formData.type,
+
+          order:
+            Number(
+              formData.order
+            ),
+        };
+
+        if (
+          formData.type ===
+          "VIDEO"
+        ) {
+          data.videoUrl =
+            formData.videoUrl;
+
+          data.duration =
+            Number(
+              formData.duration
+            );
+        }
+
+        if (
+          formData.type ===
+          "DOCUMENT"
+        ) {
+          data.fileUrl =
+            formData.fileUrl;
+        }
+
+        if (
+          formData.type ===
+          "TEXT"
+        ) {
+          data.htmlContent =
+            formData.htmlContent;
+        }
+
+        if (
+          formData.type ===
+          "LINK"
+        ) {
+          data.externalUrl =
+            formData.externalUrl;
+        }
+
         await updateContent(
           contentId,
-          formData
+          data
         );
 
         router.back();
       } catch (error) {
-        console.error(error);
+        console.error(
+          error
+        );
+      } finally {
+        setSaving(
+          false
+        );
       }
     };
 
-  return (
-    <div className="min-h-screen bg-slate-950 p-8 text-white">
-      <div className="max-w-3xl mx-auto bg-slate-900 rounded-xl p-8">
-        <h1 className="text-4xl font-bold mb-8">
-          Edit Content
-        </h1>
-
-        <form
-          onSubmit={
-            handleSubmit
-          }
-          className="space-y-5"
-        >
-          <input
-            type="text"
-            name="title"
-            value={
-              formData.title
-            }
-            onChange={
-              handleChange
-            }
-            placeholder="Title"
-            className="w-full p-3 rounded bg-slate-800"
-          />
-
-          <select
-            name="type"
-            value={
-              formData.type
-            }
-            onChange={
-              handleChange
-            }
-            className="w-full p-3 rounded bg-slate-800"
-          >
-            <option value="VIDEO">
-              VIDEO
-            </option>
-
-            <option value="DOCUMENT">
-              DOCUMENT
-            </option>
-
-            <option value="TEXT">
-              TEXT
-            </option>
-
-            <option value="LINK">
-              LINK
-            </option>
-
-            <option value="PRESENTATION">
-              PRESENTATION
-            </option>
-          </select>
-
-          <input
-            type="text"
-            name="url"
-            value={
-              formData.url
-            }
-            onChange={
-              handleChange
-            }
-            placeholder="Content URL"
-            className="w-full p-3 rounded bg-slate-800"
-          />
-
-          <input
-            type="number"
-            name="order"
-            value={
-              formData.order
-            }
-            onChange={
-              handleChange
-            }
-            placeholder="Order"
-            className="w-full p-3 rounded bg-slate-800"
-          />
-
-          <button
-            className="
-              bg-orange-600
-              hover:bg-orange-700
-              px-6
-              py-3
-              rounded-lg
-            "
-          >
-            Update Content
-          </button>
-        </form>
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader />
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <ContentForm
+      title="Edit Content"
+      buttonText="Update Content"
+      formData={formData}
+      setFormData={setFormData}
+      onSubmit={handleSubmit}
+      loading={saving}
+    />
   );
 }

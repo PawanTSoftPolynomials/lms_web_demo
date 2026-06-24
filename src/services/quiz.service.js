@@ -11,16 +11,18 @@ export const createQuiz =
     return response.data.data;
   };
 
-export const getQuizzes =
-  async (courseId) => {
-    const response =
-      await api.get(
-        `/quizzes?courseId=${courseId}`
-      );
+export const getQuizzes = async (
+  courseId
+) => {
+  const url = courseId
+    ? `/quizzes?courseId=${courseId}`
+    : "/quizzes";
 
-    return response.data.data;
-  };
+  const response =
+    await api.get(url);
 
+  return response.data.data;
+};
 export const getQuizById =
   async (quizId) => {
     const response =

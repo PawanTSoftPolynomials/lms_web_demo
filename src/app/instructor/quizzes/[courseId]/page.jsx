@@ -1,113 +1,208 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import {
+  useParams,
+  useRouter,
+} from "next/navigation";
+
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import {
   getQuizzes,
   deleteQuiz,
 } from "@/services/quiz.service";
 
+import ActionMenu from "@/components/menus/ActionMenu";
+import Loader from "@/components/common/Loader";
+
 export default function QuizList() {
   const { courseId } =
     useParams();
+
+  const router =
+    useRouter();
 
   const [quizzes,
     setQuizzes] =
     useState([]);
 
+  const [loading,
+    setLoading] =
+    useState(true);
+
   useEffect(() => {
-    loadQuizzes();
-  }, []);
+    if (courseId) {
+      loadQuizzes();
+    }
+  }, [courseId]);
 
   const loadQuizzes =
     async () => {
-      const data =
-        await getQuizzes(
-          courseId
-        );
+      try {
+        const data =
+          await getQuizzes(
+            courseId
+          );
 
-      setQuizzes(data);
+        setQuizzes(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
     };
 
   const handleDelete =
     async (quizId) => {
-      await deleteQuiz(
-        quizId
-      );
+      if (
+        !confirm(
+          "Delete this quiz?"
+        )
+      ) {
+        return;
+      }
 
-      loadQuizzes();
+      try {
+        await deleteQuiz(
+          quizId
+        );
+
+        setQuizzes(
+          quizzes.filter(
+            (quiz) =>
+              quiz.id !==
+              quizId
+          )
+        );
+      } catch (error) {
+        console.error(error);
+      }
     };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <div className="flex justify-between mb-8">
-        <h1 className="text-4xl font-bold">
-          Quizzes
-        </h1>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-4xl font-bold text-white">
+            Quizzes
+          </h1>
+
+          <p className="text-slate-400 mt-2">
+            Manage quizzes and questions.
+          </p>
+        </div>
 
         <Link
           href={`/instructor/quizzes/create/${courseId}`}
-          className="bg-orange-600 px-5 py-3 rounded"
+          className="
+            bg-orange-600
+            hover:bg-orange-700
+            px-5
+            py-3
+            rounded-xl
+            text-white
+            transition
+          "
         >
           Add Quiz
         </Link>
       </div>
 
-      <div className="space-y-4">
-        {quizzes.map(
-          (quiz) => (
-            <div
-              key={quiz.id}
-              className="bg-slate-900 p-6 rounded-xl flex justify-between"
-            >
-              <div>
-                <h2 className="text-2xl font-bold">
-                  {quiz.title}
-                </h2>
+      {/* Empty State */}
+      {quizzes.length === 0 ? (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center">
+          <p className="text-slate-400">
+            No quizzes found.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {quizzes.map(
+            (quiz) => (
+              <div
+                key={quiz.id}
+                className="
+                  bg-slate-900
+                  border
+                  border-slate-800
+                  rounded-2xl
+                  p-6
+                  flex
+                  justify-between
+                  items-center
+                  hover:border-orange-500
+                  transition
+                "
+              >
+                <div>
+                  <h2 className="text-2xl font-semibold text-white">
+                    {quiz.title}
+                  </h2>
 
-                <p>
-                  Passing:
-                  {quiz.passingScore}%
-                </p>
+                  <p className="text-slate-400 mt-2">
+                    Passing Score:
+                    {" "}
+                    {quiz.passingScore}%
+                  </p>
 
-                <p>
-                  Time:
-                  {quiz.timeLimit} min
-                </p>
+                  <p className="text-slate-500">
+                    Time Limit:
+                    {" "}
+                    {quiz.timeLimit}
+                    {" "}
+                    min
+                  </p>
+                </div>
+
+                <ActionMenu
+                  items={[
+                    {
+                      label:
+                        "Questions",
+                      onClick:
+                        () =>
+                          router.push(
+                            `/instructor/questions/${quiz.id}`
+                          ),
+                    },
+                    {
+                      label:
+                        "Edit",
+                      onClick:
+                        () =>
+                          router.push(
+                            `/instructor/quizzes/edit/${quiz.id}`
+                          ),
+                    },
+                    {
+                      label:
+                        "Delete",
+                      onClick:
+                        () =>
+                          handleDelete(
+                            quiz.id
+                          ),
+                    },
+                  ]}
+                />
               </div>
-
-              <div className="space-x-3">
-                <Link
-                  href={`/instructor/questions/${quiz.id}`}
-                  className="bg-green-600 px-4 py-2 rounded"
-                >
-                  Questions
-                </Link>
-
-                <Link
-                  href={`/instructor/quizzes/edit/${quiz.id}`}
-                  className="bg-blue-600 px-4 py-2 rounded"
-                >
-                  Edit
-                </Link>
-
-                <button
-                  onClick={() =>
-                    handleDelete(
-                      quiz.id
-                    )
-                  }
-                  className="bg-red-600 px-4 py-2 rounded"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          )
-        )}
-      </div>
+            )
+          )}
+        </div>
+      )}
     </div>
   );
 }

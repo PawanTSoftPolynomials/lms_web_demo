@@ -5,6 +5,7 @@ import {
   FaClipboardList,
   FaGraduationCap,
 } from "react-icons/fa";
+import { FcGraduationCap } from "react-icons/fc";
 
 export const SIDEBAR_ITEMS = {
   ADMIN: [
@@ -22,6 +23,11 @@ export const SIDEBAR_ITEMS = {
       title: "Courses",
       icon: FaBook,
       href: "/admin/courses",
+    },
+     {
+      title: "Enrollments",
+    href: "/admin/enrollments",
+    icon: FcGraduationCap,
     },
   ],
 

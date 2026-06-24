@@ -1,15 +1,22 @@
-    "use client";
+"use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-import {
-  getCourses,
-} from "@/services/course.service";
+import Card from "@/components/ui/Card";
+import Loader from "@/components/common/Loader";
+import StatusBadge from "@/components/courses/StatusBadge";
 
-export default function InstructorCourses() {
+import { getCourses } from "@/services/course.service";
+
+export default function InstructorCoursesPage() {
+  const router = useRouter();
+
   const [courses, setCourses] =
     useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
 
   useEffect(() => {
     const loadCourses =
@@ -18,87 +25,115 @@ export default function InstructorCourses() {
           const response =
             await getCourses();
 
-          setCourses(
-            response
-          );
+          setCourses(response);
         } catch (error) {
-          console.error(
-            error
-          );
+          console.error(error);
+        } finally {
+          setLoading(false);
         }
       };
 
     loadCourses();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader />
+      </div>
+    );
+  }
+
+  if (!courses.length) {
+    return (
+      <Card>
+        <div className="py-16 text-center">
+          <h2 className="text-2xl font-semibold">
+            No Courses Found
+          </h2>
+
+          <p className="text-slate-400 mt-2">
+            Create your first course.
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
   return (
-    <div>
-      <h1 className="text-4xl font-bold text-white mb-8">
-        My Courses
-      </h1>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-4xl font-bold text-white">
+          My Courses
+        </h1>
 
-      <div className="bg-slate-900 rounded-xl overflow-hidden">
-        <table className="w-full text-white">
-          <thead className="bg-slate-800">
-            <tr>
-              <th className="p-4 text-left">
-                Title
-              </th>
+        <p className="text-slate-400 mt-2">
+          Manage your courses and content.
+        </p>
+      </div>
 
-              <th className="p-4 text-left">
-                Category
-              </th>
+      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {courses.map((course) => (
+          <Card
+            key={course.id}
+            className="
+              hover:border-orange-500
+              transition
+            "
+          >
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-2xl font-bold">
+                  {course.title}
+                </h2>
 
-              <th className="p-4 text-left">
-                Status
-              </th>
+                <p className="text-slate-400 mt-2">
+                  {course.description}
+                </p>
+              </div>
 
-              <th className="p-4 text-left">
-                Action
-              </th>
-            </tr>
-          </thead>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-slate-400">
+                    Category:
+                  </span>{" "}
+                  {course.category}
+                </div>
 
-          <tbody>
-            {courses.map(
-              (course) => (
-                <tr
-                  key={
-                    course.id
-                  }
-                  className="border-t border-slate-800"
-                >
-                  <td className="p-4">
-                    {
-                      course.title
-                    }
-                  </td>
+                <div>
+                  <span className="text-slate-400">
+                    Level:
+                  </span>{" "}
+                  {course.level}
+                </div>
+              </div>
 
-                  <td className="p-4">
-                    {
-                      course.category
-                    }
-                  </td>
+              <StatusBadge
+                status={course.status}
+              />
 
-                  <td className="p-4">
-                    {
-                      course.status
-                    }
-                  </td>
-
-                  <td className="p-4">
-                    <Link
-                      href={`/instructor/courses/${course.id}`}
-                      className="bg-orange-600 px-4 py-2 rounded text-white"
-                    >
-                      Manage
-                    </Link>
-                  </td>
-                </tr>
-              )
-            )}
-          </tbody>
-        </table>
+              <button
+                onClick={() =>
+                  router.push(
+                    `/instructor/courses/${course.id}`
+                  )
+                }
+                className="
+                  w-full
+                  mt-4
+                  bg-orange-500
+                  hover:bg-orange-600
+                  rounded-lg
+                  py-3
+                  font-medium
+                  transition
+                "
+              >
+                Manage Course
+              </button>
+            </div>
+          </Card>
+        ))}
       </div>
     </div>
   );

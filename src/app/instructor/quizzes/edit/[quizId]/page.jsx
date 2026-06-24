@@ -1,122 +1,102 @@
 "use client";
 
-import { useParams }
-  from "next/navigation";
-
-import { useRouter }
-  from "next/navigation";
+import { useEffect, useState } from "react";
 
 import {
-  useEffect,
-  useState,
-} from "react";
+  useParams,
+  useRouter,
+} from "next/navigation";
+
+import QuizForm from "@/components/quizzes/QuizForm";
 
 import {
   getQuizById,
   updateQuiz,
 } from "@/services/quiz.service";
 
-export default function EditQuiz() {
+import Loader from "@/components/common/Loader";
+
+export default function EditQuizPage() {
   const { quizId } =
     useParams();
 
   const router =
     useRouter();
 
-  const [formData,
-    setFormData] =
-    useState({
-      title: "",
-      description: "",
-      passingScore: 70,
-      timeLimit: 30,
-    });
+  const [quiz, setQuiz] =
+    useState(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
 
   useEffect(() => {
-    loadQuiz();
-  }, []);
+    const loadQuiz =
+      async () => {
+        try {
+          const response =
+            await getQuizById(
+              quizId
+            );
 
-  const loadQuiz =
-    async () => {
-      const quiz =
-        await getQuizById(
-          quizId
-        );
+          setQuiz(
+            response.data ||
+              response
+          );
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-      setFormData(quiz);
-    };
-
-  const handleChange =
-    (e) => {
-      setFormData({
-        ...formData,
-        [e.target.name]:
-          e.target.value,
-      });
-    };
+    if (quizId) {
+      loadQuiz();
+    }
+  }, [quizId]);
 
   const handleSubmit =
-    async (e) => {
-      e.preventDefault();
+    async (data) => {
+      try {
+        setSaving(true);
 
-      await updateQuiz(
-        quizId,
-        formData
-      );
+        await updateQuiz(
+          quizId,
+          data
+        );
 
-      router.back();
+        router.back();
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setSaving(false);
+      }
     };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-slate-900 p-8 rounded-xl">
-      <h1 className="text-4xl font-bold mb-6">
-        Edit Quiz
-      </h1>
+    <div className="max-w-3xl mx-auto">
+      <div className="bg-slate-900 p-10 rounded-2xl">
+        <h1 className="text-4xl font-bold text-white mb-8">
+          Edit Quiz
+        </h1>
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4"
-      >
-        <input
-          name="title"
-          value={formData.title}
-          onChange={handleChange}
-          className="w-full p-4 rounded bg-slate-800"
+        <QuizForm
+          initialData={quiz}
+          onSubmit={handleSubmit}
+          submitText="Update Quiz"
+          loading={saving}
         />
-
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          className="w-full p-4 rounded bg-slate-800"
-        />
-
-        <input
-          type="number"
-          name="passingScore"
-          value={
-            formData.passingScore
-          }
-          onChange={handleChange}
-          className="w-full p-4 rounded bg-slate-800"
-        />
-
-        <input
-          type="number"
-          name="timeLimit"
-          value={
-            formData.timeLimit
-          }
-          onChange={handleChange}
-          className="w-full p-4 rounded bg-slate-800"
-        />
-
-        <button
-          className="bg-orange-600 px-6 py-3 rounded"
-        >
-          Update Quiz
-        </button>
-      </form>
+      </div>
     </div>
   );
 }

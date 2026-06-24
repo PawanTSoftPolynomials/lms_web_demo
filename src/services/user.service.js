@@ -1,12 +1,14 @@
 import api from "@/lib/axios";
 
+
 export const getUsers =
   async () => {
     const response =
       await api.get("/users");
 
-    return response.data;
+    return response.data.data;
   };
+
 
 export const getUserById =
   async (userId) => {
@@ -15,7 +17,7 @@ export const getUserById =
         `/users/${userId}`
       );
 
-    return response.data;
+    return response.data.data;
   };
 
 export const updateUser =

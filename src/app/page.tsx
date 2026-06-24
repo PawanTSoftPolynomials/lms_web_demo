@@ -2,6 +2,7 @@ import LandingNavbar from "@/components/layouts/LandingNavbar";
 import Hero from "@/components/home/Hero";
 import Stats from "@/components/home/Stats";
 import Features from "@/components/home/Features";
+import FeaturedCourses from "@/components/home/FeaturedCourses";
 import Footer from "@/components/layouts/Footer";
 
 export default function Home() {
@@ -13,6 +14,8 @@ export default function Home() {
         <Hero />
 
         <Stats />
+
+        <FeaturedCourses />
 
         <Features />
       </div>

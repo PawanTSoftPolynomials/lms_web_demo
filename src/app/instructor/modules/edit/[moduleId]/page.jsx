@@ -1,71 +1,105 @@
 "use client";
 
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  useParams,
+  useRouter,
+} from "next/navigation";
 
 import {
   getModuleById,
+  updateModule,
 } from "@/services/module.service";
 
-import {
-  getLessons,
-  deleteLesson,
-} from "@/services/lesson.service";
-
-export default function ModuleDetails() {
+export default function EditModule() {
   const { moduleId } =
     useParams();
 
-  const [module, setModule] =
-    useState(null);
+  const router =
+    useRouter();
 
-  const [lessons, setLessons] =
-    useState([]);
+  const [title, setTitle] =
+    useState("");
+
+  const [
+    description,
+    setDescription,
+  ] = useState("");
+
+  const [order, setOrder] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(true);
 
   useEffect(() => {
-    const loadData =
+    const loadModule =
       async () => {
-        const moduleData =
-          await getModuleById(
-            moduleId
+        try {
+          const data =
+            await getModuleById(
+              moduleId
+            );
+
+          setTitle(
+            data.title
           );
 
-        setModule(
-          moduleData
-        );
-
-        const lessonData =
-          await getLessons(
-            moduleId
+          setDescription(
+            data.description
           );
 
-        setLessons(
-          lessonData
-        );
+          setOrder(
+            data.order
+          );
+        } catch (error) {
+          console.error(
+            error
+          );
+        } finally {
+          setLoading(
+            false
+          );
+        }
       };
 
     if (moduleId) {
-      loadData();
+      loadModule();
     }
   }, [moduleId]);
 
-  const handleDelete =
-    async (lessonId) => {
-      await deleteLesson(
-        lessonId
-      );
+  const handleSubmit =
+    async (e) => {
+      e.preventDefault();
 
-      setLessons(
-        lessons.filter(
-          (lesson) =>
-            lesson.id !==
-            lessonId
-        )
-      );
+      try {
+        await updateModule(
+          moduleId,
+          {
+            title,
+            description,
+            order:
+              Number(
+                order
+              ),
+          }
+        );
+
+        router.push(
+          `/instructor/modules/${moduleId}`
+        );
+      } catch (error) {
+        console.error(
+          error
+        );
+      }
     };
 
-  if (!module) {
+  if (loading) {
     return (
       <div className="text-white">
         Loading...
@@ -74,79 +108,106 @@ export default function ModuleDetails() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="bg-slate-900 p-6 rounded-xl">
-        <h1 className="text-3xl text-white font-bold">
-          {module.title}
+    <div className="max-w-3xl mx-auto">
+      <div className="bg-slate-900 p-8 rounded-xl">
+        <h1 className="text-3xl font-bold text-white mb-6">
+          Edit Module
         </h1>
 
-        <p className="text-slate-400 mt-2">
-          {
-            module.description
+        <form
+          onSubmit={
+            handleSubmit
           }
-        </p>
-      </div>
-
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl text-white font-bold">
-          Lessons
-        </h2>
-
-        <Link
-          href={`/instructor/lessons/create/${moduleId}`}
-          className="bg-orange-600 px-5 py-2 rounded text-white"
+          className="space-y-5"
         >
-          Add Lesson
-        </Link>
-      </div>
+          <div>
+            <label className="text-slate-400">
+              Title
+            </label>
 
-      {lessons.map(
-        (lesson) => (
-          <div
-            key={lesson.id}
-            className="bg-slate-900 p-5 rounded-xl flex justify-between"
-          >
-            <div>
-              <h3 className="text-white text-xl">
-                {lesson.title}
-              </h3>
-
-              <p className="text-slate-400">
-                {
-                  lesson.description
-                }
-              </p>
-            </div>
-
-            <div className="flex gap-2">
-              <Link
-                href={`/instructor/lessons/${lesson.id}`}
-                className="bg-green-600 px-4 py-2 rounded text-white"
-              >
-                Contents
-              </Link>
-
-              <Link
-                href={`/instructor/lessons/edit/${lesson.id}`}
-                className="bg-blue-600 px-4 py-2 rounded text-white"
-              >
-                Edit
-              </Link>
-
-              <button
-                onClick={() =>
-                  handleDelete(
-                    lesson.id
-                  )
-                }
-                className="bg-red-600 px-4 py-2 rounded text-white"
-              >
-                Delete
-              </button>
-            </div>
+            <input
+              value={title}
+              onChange={(e) =>
+                setTitle(
+                  e.target.value
+                )
+              }
+              className="
+                w-full
+                mt-2
+                p-3
+                rounded-lg
+                bg-slate-800
+                text-white
+              "
+            />
           </div>
-        )
-      )}
+
+          <div>
+            <label className="text-slate-400">
+              Description
+            </label>
+
+            <textarea
+              rows="4"
+              value={
+                description
+              }
+              onChange={(e) =>
+                setDescription(
+                  e.target.value
+                )
+              }
+              className="
+                w-full
+                mt-2
+                p-3
+                rounded-lg
+                bg-slate-800
+                text-white
+              "
+            />
+          </div>
+
+          <div>
+            <label className="text-slate-400">
+              Order
+            </label>
+
+            <input
+              type="number"
+              value={order}
+              onChange={(e) =>
+                setOrder(
+                  e.target.value
+                )
+              }
+              className="
+                w-full
+                mt-2
+                p-3
+                rounded-lg
+                bg-slate-800
+                text-white
+              "
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="
+              bg-orange-600
+              hover:bg-orange-700
+              px-6
+              py-3
+              rounded-lg
+              text-white
+            "
+          >
+            Update Module
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

@@ -1,14 +1,17 @@
 import api from "@/lib/axios";
 
-export const getQuestions =
-  async (quizId) => {
-    const response =
-      await api.get(
-        `/questions?quizId=${quizId}`
-      );
+export const getQuestions = async (
+  quizId
+) => {
+  const url = quizId
+    ? `/questions?quizId=${quizId}`
+    : "/questions";
 
-    return response.data.data;
-  };
+  const response =
+    await api.get(url);
+
+  return response.data.data;
+};
 
 export const getQuestionById =
   async (questionId) => {
