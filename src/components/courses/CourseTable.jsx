@@ -1,15 +1,17 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
 import StatusBadge from "@/components/courses/StatusBadge";
+import ActionMenu from "@/components/menus/ActionMenu";
 
 export default function CourseTable({
   courses,
   onDelete,
 }) {
+  const router = useRouter();
+
   if (!courses.length) {
     return (
       <Card>
@@ -27,8 +29,8 @@ export default function CourseTable({
   }
 
   return (
-    <Card>
-      <div className="overflow-x-auto">
+    <Card className="overflow-visible">
+      <div className="overflow-x-auto overflow-y-visible">
         <table className="w-full">
           <thead>
             <tr className="border-b border-slate-800 text-left text-slate-400">
@@ -84,41 +86,38 @@ export default function CourseTable({
                     />
                   </td>
 
-                  <td className="p-4">
-                    <div className="flex flex-wrap gap-2">
-                      <Link
-                        href={`/admin/courses/${course.id}`}
-                      >
-                        <Button
-                          size="sm"
-                        >
-                          View
-                        </Button>
-                      </Link>
-
-                      <Link
-                        href={`/admin/courses/edit/${course.id}`}
-                      >
-                        <Button
-                          variant="outline"
-                          size="sm"
-                        >
-                          Edit
-                        </Button>
-                      </Link>
-
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() =>
-                          onDelete(
-                            course.id
-                          )
-                        }
-                      >
-                        Delete
-                      </Button>
-                    </div>
+                  <td className="p-4 relative overflow-visible">
+                    <ActionMenu
+                      items={[
+                        {
+                          label:
+                            "View",
+                          onClick:
+                            () =>
+                              router.push(
+                                `/admin/courses/${course.id}`
+                              ),
+                        },
+                        {
+                          label:
+                            "Edit",
+                          onClick:
+                            () => 
+                              router.push(
+                                `/admin/courses/edit/${course.id}`
+                              ),
+                        },
+                        {
+                          label:
+                            "Delete",
+                          onClick:
+                            () =>
+                              onDelete(
+                                course.id
+                              ),
+                        },
+                      ]}
+                    />
                   </td>
                 </tr>
               )

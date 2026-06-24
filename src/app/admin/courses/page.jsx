@@ -14,12 +14,11 @@ import {
 } from "react-icons/fa";
 
 import CourseTable from "@/components/courses/CourseTable";
-
 import Loader from "@/components/common/Loader";
 
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/layouts/PageHeader";
-import StatCard from "@/components/dashboard/StatCard";
+import DashboardStatCard from "@/components/dashboard/DashboardStatCard";
 
 import {
   getCourses,
@@ -115,26 +114,27 @@ export default function CoursesPage() {
       </PageHeader>
 
       <div className="grid md:grid-cols-3 gap-6">
-        <StatCard
+        <DashboardStatCard
           title="Total Courses"
-          value={
-            courses.length
-          }
+          value={courses.length}
           icon={FaBook}
+          href="/admin/courses"
         />
 
-        <StatCard
+        <DashboardStatCard
           title="Published"
           value={published}
           icon={
             FaCheckCircle
           }
+          href="/admin/courses"
         />
 
-        <StatCard
+        <DashboardStatCard
           title="Draft"
           value={draft}
           icon={FaClock}
+          href="/admin/courses"
         />
       </div>
 

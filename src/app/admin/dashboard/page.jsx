@@ -1,134 +1,103 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
 import {
-  getUsers,
-} from "@/services/user.service";
+  FaUsers,
+  FaBook,
+  FaUserGraduate,
+  FaChalkboardTeacher,
+} from "react-icons/fa";
 
-import {
-  getCourses,
-} from "@/services/course.service";
+import { getUsers } from "@/services/user.service";
+
+import { getCourses } from "@/services/course.service";
+
+import Loader from "@/components/common/Loader";
+import PageHeader from "@/components/layouts/PageHeader";
+import DashboardStatCard from "@/components/dashboard/DashboardStatCard";
 
 export default function AdminDashboard() {
-  const [stats, setStats] =
-    useState({
-      users: 0,
-      courses: 0,
-      students: 0,
-      instructors: 0,
-    });
+  const [loading, setLoading] = useState(true);
+
+  const [stats, setStats] = useState({
+    users: 0,
+    courses: 0,
+    students: 0,
+    instructors: 0,
+  });
 
   useEffect(() => {
-    const loadStats =
-      async () => {
-        try {
-          const usersResponse =
-            await getUsers();
+    const loadStats = async () => {
+      try {
+        const usersResponse = await getUsers();
 
-          const coursesResponse =
-            await getCourses();
+        const coursesResponse = await getCourses();
 
-          const users =
-            usersResponse.data ||
-            [];
+        const users = usersResponse.data || [];
 
-          const courses =
-            coursesResponse.data ||
-            [];
+        const courses = coursesResponse.data || [];
 
-          setStats({
-            users:
-              users.length,
+        setStats({
+          users: users.length,
 
-            courses:
-              courses.length,
+          courses: courses.length,
 
-            students:
-              users.filter(
-                (
-                  user
-                ) =>
-                  user.role ===
-                  "STUDENT"
-              ).length,
+          students: users.filter((user) => user.role === "STUDENT").length,
 
-            instructors:
-              users.filter(
-                (
-                  user
-                ) =>
-                  user.role ===
-                  "INSTRUCTOR"
-              ).length,
-          });
-        } catch (error) {
-          console.error(
-            error
-          );
-        }
-      };
+          instructors: users.filter((user) => user.role === "INSTRUCTOR")
+            .length,
+        });
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     loadStats();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <h1 className="text-4xl font-bold text-white mb-8">
-        Admin Dashboard
-      </h1>
+    <div className="space-y-6">
+      <PageHeader title="Admin Dashboard" subtitle="Manage your LMS platform" />
 
-      <div className="grid md:grid-cols-4 gap-6">
-        <div className="bg-slate-900 p-6 rounded-xl">
-          <h3 className="text-slate-400">
-            Total Users
-          </h3>
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <DashboardStatCard
+          title="Total Users"
+          value={stats.users}
+          icon={FaUsers}
+          href="/admin/users"
+        />
 
-          <p className="text-4xl font-bold text-white mt-2">
-            {
-              stats.users
-            }
-          </p>
-        </div>
+        <DashboardStatCard
+          title="Courses"
+          value={stats.courses}
+          icon={FaBook}
+          href="/admin/courses"
+        />
 
-        <div className="bg-slate-900 p-6 rounded-xl">
-          <h3 className="text-slate-400">
-            Total Courses
-          </h3>
+        <DashboardStatCard
+          title="Students"
+          value={stats.students}
+          icon={FaUserGraduate}
+          href="/admin/students"
+        />
 
-          <p className="text-4xl font-bold text-white mt-2">
-            {
-              stats.courses
-            }
-          </p>
-        </div>
-
-        <div className="bg-slate-900 p-6 rounded-xl">
-          <h3 className="text-slate-400">
-            Students
-          </h3>
-
-          <p className="text-4xl font-bold text-white mt-2">
-            {
-              stats.students
-            }
-          </p>
-        </div>
-
-        <div className="bg-slate-900 p-6 rounded-xl">
-          <h3 className="text-slate-400">
-            Instructors
-          </h3>
-
-          <p className="text-4xl font-bold text-white mt-2">
-            {
-              stats.instructors
-            }
-          </p>
-        </div>
+        <DashboardStatCard
+          title="Instructors"
+          value={stats.instructors}
+          icon={FaChalkboardTeacher}
+          href="/admin/instructors"
+        />
       </div>
     </div>
   );

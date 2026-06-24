@@ -7,22 +7,26 @@ const api = axios.create({
   },
 });
 
-api.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
+api.interceptors.request.use(
+  (config) => {
+    console.log(
+      "API Request:",
+      config.method?.toUpperCase(),
+      config.url
+    );
+
     const token =
-      localStorage.getItem(
-        "accessToken"
-      );
+      typeof window !== "undefined"
+        ? localStorage.getItem("accessToken")
+        : null;
 
     if (token) {
       config.headers.Authorization =
-        `Bearer ${ token }`;
+        `Bearer ${token}`;
     }
-  }
 
-  return config;
-
-},
+    return config;
+  },
   (error) => Promise.reject(error)
 );
 
