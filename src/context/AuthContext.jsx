@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 
+import Cookies from "js-cookie";
+
 import { loginUser, registerUser } from "@/services/auth.service";
 
 const AuthContext = createContext();
@@ -12,9 +14,11 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const token = Cookies.get("accessToken");
+
     const storedUser = localStorage.getItem("user");
 
-    if (storedUser) {
+    if (token && storedUser) {
       setUser(JSON.parse(storedUser));
     }
 
@@ -25,40 +29,36 @@ export const AuthProvider = ({ children }) => {
     return await registerUser(data);
   };
 
-const login = async (credentials) => {
-  const response =
-    await loginUser(credentials);
+  const login = async (credentials) => {
+    const response = await loginUser(credentials);
 
-  const {
-    accessToken,
-    refreshToken,
-    user,
-  } = response.data;
+    const { accessToken, refreshToken, user } = response.data;
 
-  localStorage.setItem(
-    "accessToken",
-    accessToken
-  );
+    Cookies.set("accessToken", accessToken, {
+      expires: 1,
+    });
 
-  localStorage.setItem(
-    "refreshToken",
-    refreshToken
-  );
+    Cookies.set("refreshToken", refreshToken, {
+      expires: 7,
+    });
 
-  localStorage.setItem(
-    "user",
-    JSON.stringify(user)
-  );
+    Cookies.set("role", user.role, {
+      expires: 1,
+    });
 
-  setUser(user);
+    localStorage.setItem("user", JSON.stringify(user));
 
-  return user;
-};
+    setUser(user);
+
+    return user;
+  };
 
   const logout = () => {
-    localStorage.removeItem("accessToken");
+    Cookies.remove("accessToken");
 
-    localStorage.removeItem("refreshToken");
+    Cookies.remove("refreshToken");
+
+    Cookies.remove("role");
 
     localStorage.removeItem("user");
 
