@@ -121,66 +121,95 @@ export default function LessonContentsPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {contents.map(
-            (content) => (
-              <div
-                key={content.id}
-                className="
-                  bg-slate-900
-                  border
-                  border-slate-800
-                  rounded-2xl
-                  p-6
-                  flex
-                  justify-between
-                  items-center
-                  hover:border-orange-500
-                  transition
-                "
-              >
-                <div>
-                  <h2 className="text-2xl font-semibold text-white">
-                    {content.title}
-                  </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+  {contents.map((content) => (
+    <div
+      key={content.id}
+      className="
+        bg-slate-900
+        border
+        border-slate-800
+        rounded-2xl
+        p-5
+        flex
+        flex-col
+        justify-between
+        min-h-[180px]
+        hover:border-orange-500
+        transition
+      "
+    >
+      <div>
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h2 className="text-xl font-semibold text-white">
+              {content.title}
+            </h2>
 
-                  <p className="text-slate-400 mt-2">
-                    {content.type}
-                  </p>
+            <span
+              className="
+                inline-block
+                mt-2
+                px-3
+                py-1
+                rounded-full
+                text-sm
+                bg-orange-500/20
+                text-orange-400
+              "
+            >
+              {content.type}
+            </span>
+          </div>
 
-                  {content.url && (
-                    <p className="text-slate-500 mt-1 truncate max-w-xl">
-                      {content.url}
-                    </p>
-                  )}
-                </div>
-
-                <ActionMenu
-                  items={[
-                    {
-                      label:
-                        "Edit",
-                      onClick:
-                        () =>
-                          router.push(
-                            `/instructor/contents/edit/${content.id}`
-                          ),
-                    },
-                    {
-                      label:
-                        "Delete",
-                      onClick:
-                        () =>
-                          handleDelete(
-                            content.id
-                          ),
-                    },
-                  ]}
-                />
-              </div>
-            )
-          )}
+          <ActionMenu
+            items={[
+              {
+                label: "Edit",
+                onClick: () =>
+                  router.push(
+                    `/instructor/contents/edit/${content.id}`
+                  ),
+              },
+              {
+                label: "Delete",
+                onClick: () =>
+                  handleDelete(content.id),
+              },
+            ]}
+          />
         </div>
+
+        {content.url && (
+          <p className="text-sm text-slate-400 break-all">
+            {content.url}
+          </p>
+        )}
+      </div>
+
+      <div className="mt-5">
+        <button
+          onClick={() =>
+            router.push(
+              `/instructor/contents/${content.id}`
+            )
+          }
+          className="
+            bg-orange-500
+            hover:bg-orange-600
+            px-4
+            py-2
+            rounded-lg
+            text-sm
+            transition
+          "
+        >
+          View Content
+        </button>
+      </div>
+    </div>
+  ))}
+</div>
       )}
     </div>
   );

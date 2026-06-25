@@ -100,90 +100,113 @@ export default function ModuleDetailsPage() {
       </div>
 
       {/* Empty State */}
-      {lessons.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center">
-          <p className="text-slate-400">No lessons found.</p>
+     
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    {lessons.map((lesson) => (
+      <div
+        key={lesson.id}
+        onClick={() =>
+          router.push(
+            `/instructor/lessons/${lesson.id}`
+          )
+        }
+        className="
+          bg-slate-900
+          border
+          border-slate-800
+          rounded-2xl
+          p-5
+          flex
+          flex-col
+          justify-between
+          min-h-[180px]
+          hover:border-orange-500
+          transition
+          cursor-pointer
+        "
+      >
+        <div>
+          <div className="flex justify-between items-start mb-4">
+            <h3 className="text-2xl font-semibold text-white">
+              {lesson.title}
+            </h3>
+
+            <div
+              onClick={(e) =>
+                e.stopPropagation()
+              }
+            >
+              <ActionMenu
+                items={[
+                  {
+                    label: "View",
+                    onClick: () =>
+                      router.push(
+                        `/instructor/lessons/${lesson.id}`
+                      ),
+                  },
+                  {
+                    label: "Edit",
+                    onClick: () =>
+                      router.push(
+                        `/instructor/lessons/edit/${lesson.id}`
+                      ),
+                  },
+                  {
+                    label: "Delete",
+                    onClick: () =>
+                      handleDelete(
+                        lesson.id
+                      ),
+                  },
+                ]}
+              />
+            </div>
+          </div>
+
+          <p className="text-slate-400 text-sm line-clamp-3">
+            {lesson.description}
+          </p>
         </div>
-      ) : (
-        <div className="space-y-4">
-          {lessons.map((lesson) => (
-  <div
-    key={lesson.id}
-    onClick={() =>
-      router.push(
-        `/instructor/lessons/${lesson.id}`
-      )
-    }
-    className="
-      bg-slate-900
-      border
-      border-slate-800
-      rounded-2xl
-      p-6
-      flex
-      justify-between
-      items-center
-      hover:border-orange-500
-      hover:bg-slate-900/80
-      cursor-pointer
-      transition
-    "
-  >
-    <div className="space-y-3">
-      <h3 className="text-2xl font-semibold text-white">
-        {lesson.title}
-      </h3>
 
-      <p className="text-slate-400">
-        {lesson.description}
-      </p>
+        <div className="mt-5 flex justify-between items-center">
+          <span
+            className="
+              px-3
+              py-1
+              rounded-full
+              text-sm
+              bg-orange-500/20
+              text-orange-400
+            "
+          >
+            Lesson
+          </span>
 
-      <div className="flex gap-3">
-        <span className="px-3 py-1 text-sm rounded-full bg-slate-800 text-slate-300">
-          Lesson
-        </span>
-
-        <span className="px-3 py-1 text-sm rounded-full bg-orange-500/20 text-orange-400">
-          View Details
-        </span>
-      </div>
-    </div>
-
-    <div
-      onClick={(e) =>
-        e.stopPropagation()
-      }
-    >
-      <ActionMenu
-        items={[
-          {
-            label: "View",
-            onClick: () =>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
               router.push(
                 `/instructor/lessons/${lesson.id}`
-              ),
-          },
-          {
-            label: "Edit",
-            onClick: () =>
-              router.push(
-                `/instructor/lessons/edit/${lesson.id}`
-              ),
-          },
-          {
-            label: "Delete",
-            onClick: () =>
-              handleDelete(
-                lesson.id
-              ),
-          },
-        ]}
-      />
-    </div>
-  </div>
-))}
+              );
+            }}
+            className="
+              bg-orange-500
+              hover:bg-orange-600
+              px-4
+              py-2
+              rounded-lg
+              text-sm
+              transition
+            "
+          >
+            View
+          </button>
         </div>
-      )}
+      </div>
+    ))}
+  </div>
+
     </div>
   );
 }

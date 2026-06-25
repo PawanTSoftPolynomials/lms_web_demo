@@ -73,68 +73,72 @@ export default function InstructorCoursesPage() {
       </div>
 
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {courses.map((course) => (
-          <Card
-            key={course.id}
-            className="
-              hover:border-orange-500
-              transition
-            "
-          >
-            <div className="space-y-4">
-              <div>
-                <h2 className="text-2xl font-bold">
-                  {course.title}
-                </h2>
+  {courses.map((course) => (
+    <Card
+      key={course.id}
+      className="
+        flex
+        flex-col
+        hover:border-orange-500
+        transition
+      "
+    >
+      <div className="flex flex-col h-full">
+        <div className="flex-1 space-y-4">
+          <div>
+            <h2 className="text-2xl font-bold">
+              {course.title}
+            </h2>
 
-                <p className="text-slate-400 mt-2">
-                  {course.description}
-                </p>
-              </div>
+            <p className="text-slate-400 mt-2 line-clamp-4">
+              {course.description}
+            </p>
+          </div>
 
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="text-slate-400">
-                    Category:
-                  </span>{" "}
-                  {course.category}
-                </div>
-
-                <div>
-                  <span className="text-slate-400">
-                    Level:
-                  </span>{" "}
-                  {course.level}
-                </div>
-              </div>
-
-              <StatusBadge
-                status={course.status}
-              />
-
-              <button
-                onClick={() =>
-                  router.push(
-                    `/instructor/courses/${course.id}`
-                  )
-                }
-                className="
-                  w-full
-                  mt-4
-                  bg-orange-500
-                  hover:bg-orange-600
-                  rounded-lg
-                  py-3
-                  font-medium
-                  transition
-                "
-              >
-                Manage Course
-              </button>
+          <div className="space-y-2 text-sm">
+            <div>
+              <span className="text-slate-400">
+                Category:
+              </span>{" "}
+              {course.category}
             </div>
-          </Card>
-        ))}
+
+            <div>
+              <span className="text-slate-400">
+                Level:
+              </span>{" "}
+              {course.level}
+            </div>
+          </div>
+
+          <StatusBadge
+            status={course.status}
+          />
+        </div>
+
+        <button
+          onClick={() =>
+            router.push(
+              `/instructor/courses/${course.id}`
+            )
+          }
+          className="
+            w-full
+            mt-6
+            bg-orange-500
+            hover:bg-orange-600
+            rounded-lg
+            py-3
+            font-medium
+            transition
+          "
+        >
+          Manage Course
+        </button>
       </div>
+    </Card>
+  ))}
+</div>
     </div>
   );
 }

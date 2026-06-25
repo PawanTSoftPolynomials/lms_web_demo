@@ -49,7 +49,7 @@ export default function Sidebar({
       >
         <div className="p-6">
           <h1 className="text-xl font-bold text-orange-500">
-            Orange LMS
+            Orange Tree LMS
           </h1>
         </div>
 

@@ -437,54 +437,65 @@ export default function AdminCoursePage() {
           </div>
         )}
 
-        {activeTab ===
-          "lessons" && (
-          <div className="space-y-4">
+        {activeTab === "lessons" && (
+  <div className="space-y-5">
 
-            <h2 className="text-2xl font-semibold">
-              Lessons
-            </h2>
+    <h2 className="text-2xl font-semibold">
+      Lessons
+    </h2>
 
-            {course.modules?.flatMap(
-              (
-                module
-              ) =>
-                module.lessons?.map(
-                  (
-                    lesson
-                  ) => (
-                    <div
-                      key={
-                        lesson.id
-                      }
-                      className="bg-slate-800 rounded-xl p-4"
-                    >
-                      <h3 className="font-semibold">
-                        {
-                          lesson.title
-                        }
-                      </h3>
+    {course.modules?.flatMap((module) =>
+      module.lessons?.map((lesson) => (
+        <div
+          key={lesson.id}
+          className="bg-slate-800 rounded-xl p-5"
+        >
+          <h3 className="text-lg font-semibold">
+            {lesson.title}
+          </h3>
 
-                      <p className="text-slate-400 text-sm mt-1">
-                        {
-                          lesson.description
-                        }
-                      </p>
+          <p className="text-slate-400 text-sm mt-1">
+            {lesson.description}
+          </p>
 
-                      <p className="text-xs text-orange-400 mt-2">
-                        Module:{" "}
-                        {
-                          module.title
-                        }
-                      </p>
-                    </div>
-                  )
-                )
+          <p className="text-xs text-orange-400 mt-2">
+            Module: {module.title}
+          </p>
+
+          {/* Contents */}
+          <div className="mt-4 space-y-2">
+            <h4 className="text-sm font-medium text-slate-300">
+              Contents
+            </h4>
+
+            {lesson.contents?.length > 0 ? (
+              lesson.contents.map((content) => (
+                <div
+                  key={content.id}
+                  className="bg-slate-700 rounded-lg p-3 flex justify-between items-center"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {content.title}
+                    </p>
+
+                    <p className="text-xs text-slate-400">
+                      {content.type}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-slate-500">
+                No content available.
+              </p>
             )}
-
           </div>
-        )}
-
+        </div>
+      ))
+    )}
+  </div>
+)}
         {activeTab ===
           "settings" && (
           <div className="space-y-4 max-w-2xl">
