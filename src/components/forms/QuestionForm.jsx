@@ -20,8 +20,7 @@ export default function QuestionForm({
     index,
     value
   ) => {
-    const updated =
-      [...formData.options];
+    const updated = [...formData.options];
 
     updated[index] = value;
 
@@ -40,103 +39,169 @@ export default function QuestionForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-5"
+      className="space-y-6"
     >
-      <textarea
-        placeholder="Question"
-        value={formData.question}
-        onChange={(e) =>
-          setFormData({
-            ...formData,
-            question:
-              e.target.value,
-          })
-        }
-        rows={3}
-        className="
-          w-full
-          p-4
-          rounded-xl
-          bg-slate-800
-          border
-          border-slate-700
-          text-white
-        "
-      />
+      {/* Question */}
+      <div className="space-y-2">
+        <label className="text-white font-medium">
+          Question
+        </label>
 
-      {formData.options.map(
-        (option, index) => (
-          <input
-            key={index}
-            type="text"
-            placeholder={`Option ${
-              index + 1
-            }`}
-            value={option}
-            onChange={(e) =>
-              handleOptionChange(
-                index,
+        <p className="text-sm text-slate-400">
+          Enter the question that students will answer.
+        </p>
+
+        <textarea
+          rows={3}
+          placeholder="Example: What is the full form of OOP?"
+          value={formData.question}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              question: e.target.value,
+            })
+          }
+          required
+          className="
+            w-full
+            p-4
+            rounded-xl
+            bg-slate-800
+            border
+            border-slate-700
+            text-white
+            outline-none
+            focus:border-orange-500
+          "
+        />
+      </div>
+
+      {/* Options */}
+      <div className="space-y-3">
+        <label className="text-white font-medium">
+          Answer Options
+        </label>
+
+        <p className="text-sm text-slate-400">
+          Enter four possible answers.
+        </p>
+
+        {formData.options.map(
+          (option, index) => (
+            <input
+              key={index}
+              type="text"
+              placeholder={`Option ${index + 1}`}
+              value={option}
+              onChange={(e) =>
+                handleOptionChange(
+                  index,
+                  e.target.value
+                )
+              }
+              required
+              className="
+                w-full
+                p-4
+                rounded-xl
+                bg-slate-800
+                border
+                border-slate-700
+                text-white
+                outline-none
+                focus:border-orange-500
+              "
+            />
+          )
+        )}
+      </div>
+
+      {/* Correct Answer */}
+      <div className="space-y-2">
+        <label className="text-white font-medium">
+          Correct Answer
+        </label>
+
+        <p className="text-sm text-slate-400">
+          Enter exactly one of the options above.
+        </p>
+
+        <input
+          type="text"
+          placeholder="Example: Object Oriented Programming"
+          value={formData.correctAnswer}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              correctAnswer:
+                e.target.value,
+            })
+          }
+          required
+          className="
+            w-full
+            p-4
+            rounded-xl
+            bg-slate-800
+            border
+            border-slate-700
+            text-white
+            outline-none
+            focus:border-orange-500
+          "
+        />
+      </div>
+
+      {/* Marks */}
+      <div className="space-y-2">
+        <label className="text-white font-medium">
+          Marks
+        </label>
+
+        <p className="text-sm text-slate-400">
+          Assign marks for this question.
+        </p>
+
+        <input
+          type="number"
+          min="1"
+          value={formData.marks}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              marks: Number(
                 e.target.value
-              )
-            }
-            className="
-              w-full
-              p-4
-              rounded-xl
-              bg-slate-800
-              border
-              border-slate-700
-              text-white
-            "
-          />
-        )
-      )}
+              ),
+            })
+          }
+          required
+          className="
+            w-full
+            p-4
+            rounded-xl
+            bg-slate-800
+            border
+            border-slate-700
+            text-white
+            outline-none
+            focus:border-orange-500
+          "
+        />
+      </div>
 
-      <input
-        type="text"
-        placeholder="Correct Answer"
-        value={
-          formData.correctAnswer
-        }
-        onChange={(e) =>
-          setFormData({
-            ...formData,
-            correctAnswer:
-              e.target.value,
-          })
-        }
-        className="
-          w-full
-          p-4
-          rounded-xl
-          bg-slate-800
-          border
-          border-slate-700
-          text-white
-        "
-      />
+      {/* Guidelines */}
+      <div className="rounded-xl border border-orange-500/30 bg-orange-500/10 p-4">
+        <h3 className="text-orange-400 font-medium mb-2">
+          Question Guidelines
+        </h3>
 
-      <input
-        type="number"
-        value={formData.marks}
-        onChange={(e) =>
-          setFormData({
-            ...formData,
-            marks: Number(
-              e.target.value
-            ),
-          })
-        }
-        className="
-          w-full
-          p-4
-          rounded-xl
-          bg-slate-800
-          border
-          border-slate-700
-          text-white
-        "
-      />
+        <ul className="text-sm text-slate-300 space-y-1 list-disc ml-5">
+          <li>Provide four answer options.</li>
+          <li>The correct answer must match one option exactly.</li>
+          <li>Keep questions clear and concise.</li>
+          <li>Assign marks according to difficulty.</li>
+        </ul>
+      </div>
 
       <button
         type="submit"
@@ -148,6 +213,8 @@ export default function QuestionForm({
           py-3
           rounded-xl
           text-white
+          font-medium
+          transition
         "
       >
         {loading
