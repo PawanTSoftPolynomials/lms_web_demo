@@ -7,7 +7,7 @@ import {
   useRouter,
 } from "next/navigation";
 
-import QuizForm from "@/components/quizzes/QuizForm";
+import QuizForm from "@/components/forms/QuizForm";
 
 import {
   getQuizById,
