@@ -1,103 +1,58 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import {
-  getMyEnrollments,
-} from "@/services/enrollment.service";
+import { getMyEnrollments } from "@/services/enrollment.service";
+
+import Loader from "@/components/common/Loader";
+import MyCourseCard from "@/components/student/MyCourseCard";
 
 export default function MyCourses() {
-  const [courses, setCourses] =
-    useState([]);
+  const [courses, setCourses] = useState([]);
+
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadData =
-      async () => {
-        try {
-          const user =
-            JSON.parse(
-              localStorage.getItem(
-                "user"
-              )
-            );
+    const loadData = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
 
-          const response =
-            await getMyEnrollments(
-              user.id
-            );
+        const response = await getMyEnrollments(user.id);
 
-          setCourses(
-            response.data
-          );
-        } catch (error) {
-          console.error(error);
-        }
-      };
+        setCourses(response);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     loadData();
   }, []);
 
+  if (loading) {
+    return <Loader />;
+  }
+
   return (
-    <div>
-      <h1 className="text-4xl font-bold mb-8">
-        My Courses
-      </h1>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-4xl font-bold text-white">My Courses</h1>
 
-      <div className="grid gap-6">
-        {courses.length === 0 ? (
-          <div className="text-slate-400">
-            No enrolled courses found.
-          </div>
-        ) : (
-          courses.map(
-            (enrollment) => (
-              <div
-                key={enrollment.id}
-                className="
-                  bg-slate-900
-                  p-6
-                  rounded-xl
-                  flex
-                  justify-between
-                  items-center
-                "
-              >
-                <div>
-                  <h2 className="text-2xl font-bold">
-                    {
-                      enrollment
-                        .course?.title
-                    }
-                  </h2>
-
-                  <p className="text-slate-400 mt-2">
-                    {
-                      enrollment
-                        .course?.description
-                    }
-                  </p>
-                </div>
-
-                <Link
-                  href={`/student/learn/${enrollment.course.id}`}
-                  className="
-                    bg-orange-600
-                    hover:bg-orange-700
-                    px-5
-                    py-3
-                    rounded-lg
-                    font-semibold
-                    transition
-                  "
-                >
-                  Start Learning
-                </Link>
-              </div>
-            )
-          )
-        )}
+        <p className="text-slate-400 mt-2">Continue your enrolled courses.</p>
       </div>
+
+      {courses.length === 0 ? (
+        <div className="bg-slate-900 p-8 rounded-xl text-center">
+          No enrolled courses found.
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-6">
+          {courses.map((enrollment) => (
+            <MyCourseCard key={enrollment.id} enrollment={enrollment} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

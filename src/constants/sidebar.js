@@ -4,6 +4,8 @@ import {
   FaBook,
   FaClipboardList,
   FaGraduationCap,
+  FaSearch,
+  FaUser,
 } from "react-icons/fa";
 import { FcGraduationCap } from "react-icons/fc";
 
@@ -50,20 +52,30 @@ export const SIDEBAR_ITEMS = {
   ],
 
   STUDENT: [
-    {
-      title: "Dashboard",
-      icon: FaTachometerAlt,
-      href: "/student/dashboard",
-    },
-    {
-      title: "My Courses",
-      icon: FaBook,
-      href: "/student/courses",
-    },
-    {
-      title: "Progress",
-      icon: FaGraduationCap,
-      href: "/student/progress",
-    },
-  ],
+  {
+    title: "Dashboard",
+    icon: FaTachometerAlt,
+    href: "/student/dashboard",
+  },
+  {
+    title: "Browse Courses",
+    icon: FaSearch,
+    href: "/student/courses",
+  },
+  {
+    title: "My Courses",
+    icon: FaBook,
+    href: "/student/my-courses",
+  },
+  {
+    title: "Progress",
+    icon: FaGraduationCap,
+    href: "/student/progress",
+  },
+  {
+    title: "Profile",
+    icon: FaUser,
+    href: "/student/profile",
+  },
+],
 };
