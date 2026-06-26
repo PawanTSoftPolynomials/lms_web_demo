@@ -1,34 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { HiOutlineKey } from "react-icons/hi2";
+import { HiOutlineShieldCheck } from "react-icons/hi2";
 
-import { resetPassword } from "@/services/auth.service";
+import {
+  verifyOtp,
+  resendVerificationOtp,
+} from "@/services/auth.service";
 
 import AuthLayout from "@/components/auth/AuthLayout";
 import AuthCard from "@/components/auth/AuthCard";
 import AuthHeader from "@/components/auth/AuthHeader";
 import AuthAlert from "@/components/auth/AuthAlert";
 import AuthInput from "@/components/auth/AuthInput";
-import PasswordFields from "@/components/auth/PasswordFields";
+import Countdown from "@/components/auth/Countdown";
 import AuthButton from "@/components/auth/AuthButton";
 import AuthFooter from "@/components/auth/AuthFooter";
 
-export default function ResetPasswordPage() {
+export default function VerifyOtpPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const email = searchParams.get("email") || "";
 
   const [otp, setOtp] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] =
-    useState("");
-
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const [countdown, setCountdown] = useState(60);
+
+  useEffect(() => {
+    if (!email) {
+      router.replace("/register");
+    }
+  }, [email, router]);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,40 +55,21 @@ export default function ResetPasswordPage() {
     setError("");
     setSuccess("");
 
-    if (!email) {
-      setError(
-        "Invalid password reset session. Please request a new OTP."
-      );
-      return;
-    }
-
     if (otp.trim().length !== 6) {
-      setError("Please enter the 6-digit OTP.");
-      return;
-    }
-
-    if (!newPassword.trim()) {
-      setError("Please enter a new password.");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError("Please enter the 6-digit verification code.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await resetPassword({
+      const response = await verifyOtp({
         email,
         otp: otp.trim(),
-        newPassword,
       });
 
       setSuccess(
-        response.message ||
-          "Password reset successfully."
+        response.message || "Email verified successfully."
       );
 
       setTimeout(() => {
@@ -78,10 +78,34 @@ export default function ResetPasswordPage() {
     } catch (error) {
       setError(
         error.response?.data?.message ||
-          "Password reset failed."
+          "OTP verification failed."
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setError("");
+    setSuccess("");
+
+    setResending(true);
+
+    try {
+      const response = await resendVerificationOtp(email);
+
+      setSuccess(
+        response.message || "OTP sent successfully."
+      );
+
+      setCountdown(60);
+    } catch (error) {
+      setError(
+        error.response?.data?.message ||
+          "Unable to resend OTP. Please try again."
+      );
+    } finally {
+      setResending(false);
     }
   };
 
@@ -90,10 +114,10 @@ export default function ResetPasswordPage() {
       <AuthCard>
         <AuthHeader
           icon={
-            <HiOutlineKey className="text-4xl text-orange-500" />
+            <HiOutlineShieldCheck className="text-4xl text-orange-500" />
           }
-          title="Reset Password"
-          description="Enter the verification code sent to your email and create a new password."
+          title="Verify Your Email"
+          description="Enter the verification code sent to your email address."
         />
 
         {email && (
@@ -124,7 +148,7 @@ export default function ResetPasswordPage() {
             label="Verification Code"
             type="text"
             name="otp"
-            placeholder="Enter the 6-digit OTP"
+            placeholder="Enter the 6-digit verification code"
             value={otp}
             onChange={(e) =>
               setOtp(
@@ -135,33 +159,23 @@ export default function ResetPasswordPage() {
             required
           />
 
-          <PasswordFields
-            password={newPassword}
-            confirmPassword={confirmPassword}
-            onPasswordChange={(e) =>
-              setNewPassword(e.target.value)
-            }
-            onConfirmPasswordChange={(e) =>
-              setConfirmPassword(
-                e.target.value
-              )
-            }
-            passwordLabel="New Password"
-            passwordPlaceholder="Enter new password"
-            confirmPasswordLabel="Confirm Password"
-            confirmPasswordPlaceholder="Confirm new password"
+          <Countdown
+            countdown={countdown}
+            loading={resending}
+            onResend={handleResendOtp}
           />
 
           <AuthButton
             type="submit"
             loading={loading}
-            loadingText="Resetting..."
+            loadingText="Verifying..."
+            disabled={otp.length !== 6}
           >
-            Reset Password
+            Verify Email
           </AuthButton>
 
           <AuthFooter
-            question="Remember your password?"
+            question="Already verified?"
             actionHref="/login"
             actionText="Login"
           />

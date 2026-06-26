@@ -1,29 +1,50 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-
 import Cookies from "js-cookie";
 
-import { loginUser, registerUser } from "@/services/auth.service";
+import {
+  registerUser,
+  loginUser,
+  logoutUser,
+  getProfile,
+} from "@/services/auth.service";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    initializeAuth();
+  }, []);
+
+  const initializeAuth = async () => {
     const token = Cookies.get("accessToken");
 
-    const storedUser = localStorage.getItem("user");
-
-    if (token && storedUser) {
-      setUser(JSON.parse(storedUser));
+    if (!token) {
+      setLoading(false);
+      return;
     }
 
-    setLoading(false);
-  }, []);
+    try {
+      const response = await getProfile();
+
+      setUser(response.data);
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify(response.data)
+      );
+    } catch (error) {
+      console.error("Authentication initialization failed:", error);
+
+      logoutLocal();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const register = async (data) => {
     return await registerUser(data);
@@ -46,23 +67,34 @@ export const AuthProvider = ({ children }) => {
       expires: 1,
     });
 
-    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem(
+      "user",
+      JSON.stringify(user)
+    );
 
     setUser(user);
 
     return user;
   };
 
-  const logout = () => {
+  const logoutLocal = () => {
     Cookies.remove("accessToken");
-
     Cookies.remove("refreshToken");
-
     Cookies.remove("role");
 
     localStorage.removeItem("user");
 
     setUser(null);
+  };
+
+  const logout = async () => {
+    try {
+      await logoutUser();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      logoutLocal();
+    }
   };
 
   return (

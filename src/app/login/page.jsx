@@ -3,77 +3,86 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { HiOutlineLockClosed } from "react-icons/hi2";
 
 import useAuth from "@/hooks/useAuth";
 
 import Loader from "@/components/common/Loader";
+
 import AuthLayout from "@/components/auth/AuthLayout";
-import Card from "@/components/ui/Card";
-import Input from "@/components/ui/Input";
+import AuthCard from "@/components/auth/AuthCard";
+import AuthHeader from "@/components/auth/AuthHeader";
+import AuthAlert from "@/components/auth/AuthAlert";
+import AuthInput from "@/components/auth/AuthInput";
+import AuthFooter from "@/components/auth/AuthFooter";
+
 import Button from "@/components/ui/Button";
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
 
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const [formData, setFormData] =
-    useState({
-      email: "",
-      password: "",
-    });
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]:
-        e.target.value,
-    });
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     setLoading(true);
+    setError("");
 
     try {
-      const user =
-        await login(formData);
+      const user = await login({
+        email: formData.email.trim(),
+        password: formData.password,
+      });
 
       switch (user.role) {
         case "ADMIN":
-          router.replace(
-            "/admin/dashboard"
-          );
+          router.replace("/admin/dashboard");
           break;
 
         case "INSTRUCTOR":
-          router.replace(
-            "/instructor/dashboard"
-          );
+          router.replace("/instructor/dashboard");
           break;
 
         default:
-          router.replace(
-            "/student/dashboard"
-          );
+          router.replace("/student/dashboard");
       }
     } catch (error) {
-      setLoading(false);
+      const message =
+        error.response?.data?.message || "Login failed";
 
-      alert(
-        error.response?.data
-          ?.message ||
-          "Login failed"
-      );
+      if (message === "Verify email first") {
+        router.replace(
+          `/verify-otp?email=${encodeURIComponent(
+            formData.email.trim()
+          )}`
+        );
+        return;
+      }
+
+      setError(message);
+    } finally {
+      setLoading(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+      <div className="flex min-h-screen items-center justify-center bg-slate-950">
         <Loader />
       </div>
     );
@@ -81,55 +90,70 @@ export default function LoginPage() {
 
   return (
     <AuthLayout>
-      <Card className="w-full max-w-md">
-        <h1 className="text-3xl font-bold mb-2">
-          Login
-        </h1>
-
-        <p className="text-slate-400 mb-6">
-          Access your learning dashboard
-        </p>
+      <AuthCard>
+        <AuthHeader
+          icon={
+            <HiOutlineLockClosed className="text-4xl text-orange-500" />
+          }
+          title="Welcome Back"
+          description="Sign in to continue your learning journey."
+        />
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-4"
+          className="mt-8 space-y-5"
         >
-          <Input
+          <AuthAlert
+            type="error"
+            message={error}
+          />
+
+          <AuthInput
             label="Email"
             type="email"
             name="email"
             placeholder="Enter your email"
             value={formData.email}
             onChange={handleChange}
+            required
           />
 
-          <Input
+          <AuthInput
             label="Password"
             type="password"
             name="password"
             placeholder="Enter your password"
             value={formData.password}
             onChange={handleChange}
+            required
           />
+
+          <div className="flex justify-end">
+            <Link
+              href="/forgot-password"
+              className="text-sm font-medium text-orange-500 hover:text-orange-400"
+            >
+              Forgot Password?
+            </Link>
+          </div>
 
           <Button
             type="submit"
             className="w-full"
+            disabled={loading}
           >
-            Login
+            {loading
+              ? "Signing In..."
+              : "Login"}
           </Button>
 
-          <p className="text-center text-sm text-slate-400">
-            Don't have an account?{" "}
-            <Link
-              href="/register"
-              className="text-orange-500"
-            >
-              Register
-            </Link>
-          </p>
+          <AuthFooter
+            question="Don't have an account?"
+            actionHref="/register"
+            actionText="Register"
+          />
         </form>
-      </Card>
+      </AuthCard>
     </AuthLayout>
   );
 }
