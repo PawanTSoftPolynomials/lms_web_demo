@@ -1,23 +1,31 @@
+import clsx from "clsx";
+
 export default function PageHeader({
   title,
   subtitle,
   children,
+  className = "",
 }) {
   return (
-    <div className="flex items-center justify-between mb-6">
+    <div
+      className={clsx(
+        "mb-8",
+        "flex flex-col gap-5",
+        "md:flex-row md:items-center md:justify-between",
+        className,
+      )}
+    >
       <div>
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-3xl font-bold tracking-tight text-white">
           {title}
         </h1>
 
         {subtitle && (
-          <p className="text-gray-500">
-            {subtitle}
-          </p>
+          <p className="mt-2 max-w-2xl text-sm text-slate-400">{subtitle}</p>
         )}
       </div>
 
-      {children}
+      {children && <div className="flex flex-wrap gap-3">{children}</div>}
     </div>
   );
 }

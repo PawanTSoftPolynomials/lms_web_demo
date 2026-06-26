@@ -4,8 +4,6 @@ import {
   FaBook,
   FaClipboardList,
   FaGraduationCap,
-  FaSearch,
-  FaUser,
 } from "react-icons/fa";
 import { FcGraduationCap } from "react-icons/fc";
 
@@ -22,14 +20,28 @@ export const SIDEBAR_ITEMS = {
       href: "/admin/users",
     },
     {
+      title: "Students",
+      icon: FaUsers,
+      href: "/admin/students",
+    },
+    {
+      title: "Instructor",
+      icon: FaUsers,
+      href: "/admin/instructors",
+    },
+    {
       title: "Courses",
       icon: FaBook,
       href: "/admin/courses",
     },
-     {
+    {
       title: "Enrollments",
-    href: "/admin/enrollments",
-    icon: FcGraduationCap,
+      href: "/admin/enrollments",
+      icon: FcGraduationCap,
+    }, {
+      title: "certificates",
+      href: "/admin/certificates",
+      icon: FcGraduationCap,
     },
   ],
 
@@ -52,30 +64,20 @@ export const SIDEBAR_ITEMS = {
   ],
 
   STUDENT: [
-  {
-    title: "Dashboard",
-    icon: FaTachometerAlt,
-    href: "/student/dashboard",
-  },
-  {
-    title: "Browse Courses",
-    icon: FaSearch,
-    href: "/student/courses",
-  },
-  {
-    title: "My Courses",
-    icon: FaBook,
-    href: "/student/my-courses",
-  },
-  {
-    title: "Progress",
-    icon: FaGraduationCap,
-    href: "/student/progress",
-  },
-  {
-    title: "Profile",
-    icon: FaUser,
-    href: "/student/profile",
-  },
-],
+    {
+      title: "Dashboard",
+      icon: FaTachometerAlt,
+      href: "/student/dashboard",
+    },
+    {
+      title: "My Courses",
+      icon: FaBook,
+      href: "/student/courses",
+    },
+    {
+      title: "Progress",
+      icon: FaGraduationCap,
+      href: "/student/progress",
+    },
+  ],
 };

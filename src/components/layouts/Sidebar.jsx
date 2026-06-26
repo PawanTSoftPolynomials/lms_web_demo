@@ -5,23 +5,16 @@ import { usePathname } from "next/navigation";
 
 import { SIDEBAR_ITEMS } from "@/constants/sidebar";
 
-export default function Sidebar({
-  role,
-  open,
-  setOpen,
-}) {
+export default function Sidebar({ role, open, setOpen }) {
   const pathname = usePathname();
 
-  const menus =
-    SIDEBAR_ITEMS[role] || [];
+  const menus = SIDEBAR_ITEMS[role] || [];
 
   return (
     <>
       {open && (
         <div
-          onClick={() =>
-            setOpen(false)
-          }
+          onClick={() => setOpen(false)}
           className="
             fixed inset-0
             bg-black/50
@@ -40,17 +33,11 @@ export default function Sidebar({
           border-r border-slate-800
           z-50
           transition-transform
-          ${
-            open
-              ? "translate-x-0"
-              : "-translate-x-full md:translate-x-0"
-          }
+          ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
         <div className="p-6">
-          <h1 className="text-xl font-bold text-orange-500">
-            Orange Tree LMS
-          </h1>
+          <h1 className="text-xl font-bold text-orange-500">Orange Tree LMS</h1>
         </div>
 
         <nav className="px-4 space-y-2">
@@ -61,9 +48,7 @@ export default function Sidebar({
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() =>
-                  setOpen(false)
-                }
+                onClick={() => setOpen(false)}
                 className={`
                   flex items-center gap-3
                   p-3 rounded-lg

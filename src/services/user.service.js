@@ -1,73 +1,77 @@
 import api from "@/lib/axios";
 
+/**
+ * Get All Users
+ */
+export const getUsers = async () => {
+  const { data } = await api.get("/users");
 
-export const getUsers =
-  async () => {
-    const response =
-      await api.get("/users");
+  return data.data;
+};
 
-    return response.data.data;
-  };
+/**
+ * Get User By ID
+ */
+export const getUserById = async (userId) => {
+  const { data } = await api.get(`/users/${ userId }`);
 
+  return data.data;
+};
 
-export const getUserById =
-  async (userId) => {
-    const response =
-      await api.get(
-        `/users/${userId}`
-      );
+/**
+ * Update User
+ */
+export const updateUser = async (
+  userId,
+  userData
+) => {
+  const { data } = await api.put(
+    `/users/${ userId }`,
+    userData
+  );
 
-    return response.data.data;
-  };
+  return data;
+};
 
-export const updateUser =
-  async (
-    userId,
-    data
-  ) => {
-    const response =
-      await api.put(
-        `/users/${userId}`,
-        data
-      );
+/**
+ * Update User Role
+ */
+export const updateUserRole = async (
+  userId,
+  role
+) => {
+  const { data } = await api.patch(
+    `/users/${ userId }/role`,
+    { role }
+  );
 
-    return response.data;
-  };
+  return data;
+};
 
-export const deleteUser =
-  async (userId) => {
-    const response =
-      await api.delete(
-        `/users/${userId}`
-      );
+/**
+ * Update User Status
+ */
+export const updateUserStatus = async (
+  userId,
+  status
+) => {
+  const { data } = await api.patch(
+    `/users/${ userId }/status`,
+    { status }
+  );
 
-    return response.data;
-  };
+  return data;
+};
 
-export const updateUserRole =
-  async (
-    userId,
-    role
-  ) => {
-    const response =
-      await api.patch(
-        `/users/${userId}/role`,
-        { role }
-      );
+/**
+ * Delete User
+ */
+export const deleteUser = async (
+  userId
+) => {
+  const { data } = await api.delete(
+    `/users/${ userId }`
+  );
 
-    return response.data;
-  };
-
-export const updateUserStatus =
-  async (
-    userId,
-    status
-  ) => {
-    const response =
-      await api.patch(
-        `/users/${userId}/status`,
-        { status }
-      );
-
-    return response.data;
-  };
+  return data;
+};
