@@ -4,10 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import {
-  getContents,
-  deleteContent,
-} from "@/services/content.service";
+import { getContents, deleteContent } from "@/services/content.service";
 
 import ActionMenu from "@/components/menus/ActionMenu";
 import Loader from "@/components/common/Loader";
@@ -17,11 +14,9 @@ export default function LessonContentsPage() {
 
   const router = useRouter();
 
-  const [contents, setContents] =
-    useState([]);
+  const [contents, setContents] = useState([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (lessonId) {
@@ -29,51 +24,31 @@ export default function LessonContentsPage() {
     }
   }, [lessonId]);
 
-  const loadContents =
-    async () => {
-      try {
-        const response =
-          await getContents(
-            lessonId
-          );
+  const loadContents = async () => {
+    try {
+      const response = await getContents(lessonId);
 
-        setContents(
-          response.data ||
-            response
-        );
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setContents(response.data || response);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleDelete =
-    async (contentId) => {
-      if (
-        !confirm(
-          "Delete this content?"
-        )
-      ) {
-        return;
-      }
+  const handleDelete = async (contentId) => {
+    if (!confirm("Delete this content?")) {
+      return;
+    }
 
-      try {
-        await deleteContent(
-          contentId
-        );
+    try {
+      await deleteContent(contentId);
 
-        setContents(
-          contents.filter(
-            (content) =>
-              content.id !==
-              contentId
-          )
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    };
+      setContents(contents.filter((content) => content.id !== contentId));
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   if (loading) {
     return (
@@ -88,13 +63,9 @@ export default function LessonContentsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-bold text-white">
-            Contents
-          </h1>
+          <h1 className="text-4xl font-bold text-white">Contents</h1>
 
-          <p className="text-slate-400 mt-2">
-            Manage lesson contents.
-          </p>
+          <p className="text-slate-400 mt-2">Manage lesson contents.</p>
         </div>
 
         <Link
@@ -116,16 +87,14 @@ export default function LessonContentsPage() {
       {/* Empty State */}
       {contents.length === 0 ? (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center">
-          <p className="text-slate-400">
-            No content found.
-          </p>
+          <p className="text-slate-400">No content found.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-  {contents.map((content) => (
-    <div
-      key={content.id}
-      className="
+          {contents.map((content) => (
+            <div
+              key={content.id}
+              className="
         bg-slate-900
         border
         border-slate-800
@@ -138,16 +107,16 @@ export default function LessonContentsPage() {
         hover:border-orange-500
         transition
       "
-    >
-      <div>
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h2 className="text-xl font-semibold text-white">
-              {content.title}
-            </h2>
+            >
+              <div>
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">
+                      {content.title}
+                    </h2>
 
-            <span
-              className="
+                    <span
+                      className="
                 inline-block
                 mt-2
                 px-3
@@ -157,44 +126,41 @@ export default function LessonContentsPage() {
                 bg-orange-500/20
                 text-orange-400
               "
-            >
-              {content.type}
-            </span>
-          </div>
+                    >
+                      {content.type}
+                    </span>
+                  </div>
 
-          <ActionMenu
-            items={[
-              {
-                label: "Edit",
-                onClick: () =>
-                  router.push(
-                    `/instructor/contents/edit/${content.id}`
-                  ),
-              },
-              {
-                label: "Delete",
-                onClick: () =>
-                  handleDelete(content.id),
-              },
-            ]}
-          />
-        </div>
+                  <ActionMenu
+                    items={[
+                      {
+                        label: "Edit",
+                        onClick: () =>
+                          router.push(
+                            `/instructor/contents/edit/${content.id}`,
+                          ),
+                      },
+                      {
+                        label: "Delete",
+                        onClick: () => handleDelete(content.id),
+                      },
+                    ]}
+                  />
+                </div>
 
-        {content.url && (
-          <p className="text-sm text-slate-400 break-all">
-            {content.url}
-          </p>
-        )}
-      </div>
+                {content.url && (
+                  <p className="text-sm text-slate-400 break-all">
+                    {content.url}
+                  </p>
+                )}
+              </div>
 
-      <div className="mt-5">
-        <button
-          onClick={() =>
-            router.push(
-              `/instructor/contents/${content.id}`
-            )
-          }
-          className="
+              <div className="mt-5">
+                <button
+                  onClick={() =>
+                    router.push(`/instructor/contents/${content.id}`)
+                  }
+                  className="
             bg-orange-500
             hover:bg-orange-600
             px-4
@@ -203,13 +169,13 @@ export default function LessonContentsPage() {
             text-sm
             transition
           "
-        >
-          View Content
-        </button>
-      </div>
-    </div>
-  ))}
-</div>
+                >
+                  View Content
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

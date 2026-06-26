@@ -60,7 +60,6 @@ export default function CourseDetails() {
 
   return (
     <div className="space-y-6">
-     
       {/* Course Header */}
       <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800">
         <div className="flex items-center gap-3 mb-3">

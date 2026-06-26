@@ -1,181 +1,111 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
-import {
-  useParams,
-  useRouter,
-} from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
-import {
-  getContentById,
-  updateContent,
-} from "@/services/content.service";
+import { getContentById, updateContent } from "@/services/content.service";
 
 import ContentForm from "@/components/contents/ContentForm";
 import Loader from "@/components/common/Loader";
 
 export default function EditContentPage() {
-  const { contentId } =
-    useParams();
+  const { contentId } = useParams();
 
-  const router =
-    useRouter();
+  const router = useRouter();
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [saving, setSaving] =
-    useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const [formData, setFormData] =
-    useState({
-      title: "",
-      type: "VIDEO",
-      videoUrl: "",
-      fileUrl: "",
-      htmlContent: "",
-      externalUrl: "",
-      duration: "",
-      order: 1,
-    });
+  const [formData, setFormData] = useState({
+    title: "",
+    type: "VIDEO",
+    videoUrl: "",
+    fileUrl: "",
+    htmlContent: "",
+    externalUrl: "",
+    duration: "",
+    order: 1,
+  });
 
   useEffect(() => {
-    const loadContent =
-      async () => {
-        try {
-          const content =
-            await getContentById(
-              contentId
-            );
+    const loadContent = async () => {
+      try {
+        const content = await getContentById(contentId);
 
-          const data =
-            content.data ||
-            content;
+        const data = content.data || content;
 
-          setFormData({
-            title:
-              data.title || "",
+        setFormData({
+          title: data.title || "",
 
-            type:
-              data.type ||
-              "VIDEO",
+          type: data.type || "VIDEO",
 
-            videoUrl:
-              data.videoUrl ||
-              "",
+          videoUrl: data.videoUrl || "",
 
-            fileUrl:
-              data.fileUrl ||
-              "",
+          fileUrl: data.fileUrl || "",
 
-            htmlContent:
-              data.htmlContent ||
-              "",
+          htmlContent: data.htmlContent || "",
 
-            externalUrl:
-              data.externalUrl ||
-              "",
+          externalUrl: data.externalUrl || "",
 
-            duration:
-              data.duration ||
-              "",
+          duration: data.duration || "",
 
-            order:
-              data.order || 1,
-          });
-        } catch (error) {
-          console.error(
-            error
-          );
-        } finally {
-          setLoading(
-            false
-          );
-        }
-      };
+          order: data.order || 1,
+        });
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     if (contentId) {
       loadContent();
     }
   }, [contentId]);
 
-  const handleSubmit =
-    async (e) => {
-      e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-      setSaving(true);
+    setSaving(true);
 
-      try {
-        const data = {
-          title:
-            formData.title,
+    try {
+      const data = {
+        title: formData.title,
 
-          type:
-            formData.type,
+        type: formData.type,
 
-          order:
-            Number(
-              formData.order
-            ),
-        };
+        order: Number(formData.order),
+      };
 
-        if (
-          formData.type ===
-          "VIDEO"
-        ) {
-          data.videoUrl =
-            formData.videoUrl;
+      if (formData.type === "VIDEO") {
+        data.videoUrl = formData.videoUrl;
 
-          data.duration =
-            Number(
-              formData.duration
-            );
-        }
-
-        if (
-          formData.type ===
-          "DOCUMENT"
-        ) {
-          data.fileUrl =
-            formData.fileUrl;
-        }
-
-        if (
-          formData.type ===
-          "TEXT"
-        ) {
-          data.htmlContent =
-            formData.htmlContent;
-        }
-
-        if (
-          formData.type ===
-          "LINK"
-        ) {
-          data.externalUrl =
-            formData.externalUrl;
-        }
-
-        await updateContent(
-          contentId,
-          data
-        );
-
-        router.back();
-      } catch (error) {
-        console.error(
-          error
-        );
-      } finally {
-        setSaving(
-          false
-        );
+        data.duration = Number(formData.duration);
       }
-    };
+
+      if (formData.type === "DOCUMENT") {
+        data.fileUrl = formData.fileUrl;
+      }
+
+      if (formData.type === "TEXT") {
+        data.htmlContent = formData.htmlContent;
+      }
+
+      if (formData.type === "LINK") {
+        data.externalUrl = formData.externalUrl;
+      }
+
+      await updateContent(contentId, data);
+
+      router.back();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (loading) {
     return (

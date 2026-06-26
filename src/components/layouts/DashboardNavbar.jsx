@@ -1,18 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  FaArrowLeft,
-  FaSignOutAlt,
-  FaBars,
-} from "react-icons/fa";
+import { FaArrowLeft, FaSignOutAlt, FaBars } from "react-icons/fa";
 
 import useAuth from "@/hooks/useAuth";
 
-export default function Navbar({
-  title = "Dashboard",
-  setOpen,
-}) {
+export default function Navbar({ title = "Dashboard", setOpen }) {
   const router = useRouter();
 
   const { logout } = useAuth();
@@ -23,7 +16,8 @@ export default function Navbar({
   };
 
   return (
-    <header className="
+    <header
+      className="
       bg-slate-900
       border-b
       border-slate-800
@@ -32,7 +26,8 @@ export default function Navbar({
       flex
       items-center
       justify-between
-    ">
+    "
+    >
       <div className="flex items-center gap-4">
         <button
           onClick={() => setOpen?.(true)}
@@ -44,13 +39,6 @@ export default function Navbar({
         >
           <FaBars />
         </button>
-
-        <h1 className="text-lg font-semibold">
-          {title}
-        </h1>
-      </div>
-
-      <div className="flex gap-3">
         <button
           onClick={() => router.back()}
           className="
@@ -63,7 +51,10 @@ export default function Navbar({
         >
           <FaArrowLeft />
         </button>
+        <h1 className="text-lg font-semibold">{title}</h1>
+      </div>
 
+      <div className="flex gap-3">
         <button
           onClick={handleLogout}
           className="
