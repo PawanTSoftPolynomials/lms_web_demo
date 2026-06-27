@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { HiOutlineUserPlus } from "react-icons/hi2";
 
 import useAuth from "@/hooks/useAuth";
 
@@ -12,53 +13,135 @@ import AuthAlert from "@/components/auth/AuthAlert";
 import AuthInput from "@/components/auth/AuthInput";
 import PasswordFields from "@/components/auth/PasswordFields";
 import AuthFooter from "@/components/auth/AuthFooter";
-import Button from "@/components/ui/Button";
+import AuthButton from "@/components/auth/AuthButton";
 
 export default function RegisterPage() {
-  // state & handlers...
+  const router = useRouter();
+  const { register } = useAuth();
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phoneNumber: "",
+    address: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setError("");
+
+    if (
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      !formData.phoneNumber.trim() ||
+      !formData.address.trim() ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await register({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phoneNumber: formData.phoneNumber.trim(),
+        address: formData.address.trim(),
+        password: formData.password,
+      });
+
+      router.replace(
+        `/verify-otp?email=${encodeURIComponent(
+          formData.email.trim()
+        )}`
+      );
+    } catch (error) {
+      setError(
+        error.response?.data?.message ||
+          "Registration failed."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <AuthLayout>
       <AuthCard>
         <AuthHeader
+          icon={
+            <HiOutlineUserPlus className="text-4xl text-orange-500" />
+          }
           title="Create Account"
           description="Create your Orange Tree LMS account."
         />
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <AuthAlert type="error" message={error} />
+        <form
+          onSubmit={handleSubmit}
+          className="mt-8 space-y-5"
+        >
+          <AuthAlert
+            type="error"
+            message={error}
+          />
 
           <AuthInput
             label="Full Name"
             name="name"
+            placeholder="Enter your full name"
             value={formData.name}
             onChange={handleChange}
-            placeholder="Enter your full name"
+            required
           />
 
           <AuthInput
             label="Email"
             type="email"
             name="email"
+            placeholder="Enter your email"
             value={formData.email}
             onChange={handleChange}
-            placeholder="Enter your email"
+            required
           />
 
           <AuthInput
             label="Phone Number"
+            type="tel"
             name="phoneNumber"
+            placeholder="Enter your phone number"
             value={formData.phoneNumber}
             onChange={handleChange}
-            placeholder="Enter your phone number"
+            required
           />
 
           <AuthInput
             label="Address"
             name="address"
+            placeholder="Enter your address"
             value={formData.address}
             onChange={handleChange}
-            placeholder="Enter your address"
+            required
           />
 
           <PasswordFields
@@ -81,20 +164,18 @@ export default function RegisterPage() {
               })
             }
             passwordLabel="Password"
-            confirmPasswordLabel="Confirm Password"
             passwordPlaceholder="Enter your password"
+            confirmPasswordLabel="Confirm Password"
             confirmPasswordPlaceholder="Confirm your password"
           />
 
-          <Button
+          <AuthButton
             type="submit"
-            className="w-full"
-            disabled={loading}
+            loading={loading}
+            loadingText="Creating Account..."
           >
-            {loading
-              ? "Creating Account..."
-              : "Register"}
-          </Button>
+            Register
+          </AuthButton>
 
           <AuthFooter
             question="Already have an account?"

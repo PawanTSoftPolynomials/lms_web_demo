@@ -1,15 +1,22 @@
-import DashboardStatCard from './DashboardStatCard';
+import DashboardStatCard from "@/components/dashboard/common/DashboardStatCard";
 
-export default function StatsGrid({ stats }) {
+export default function StatsGrid({ stats = [] }) {
+  if (!stats.length) return null;
+
   return (
-    <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-      <DashboardStatCard title="Courses" value={stats.courses} />
-
-      <DashboardStatCard title="Modules" value={stats.modules} />
-
-      <DashboardStatCard title="Quizzes" value={stats.quizzes} />
-
-      <DashboardStatCard title="Questions" value={stats.questions} />
-    </div>
+    <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+      {stats.map((stat) => (
+        <DashboardStatCard
+          key={stat.title}
+          title={stat.title}
+          value={stat.value}
+          icon={stat.icon}
+          iconBgClass={stat.iconBgClass}
+          trend={stat.trend}
+          trendLabel={stat.trendLabel}
+          onClick={stat.onClick}
+        />
+      ))}
+    </section>
   );
 }
