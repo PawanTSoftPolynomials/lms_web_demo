@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 
 import LoadingOverlay from "@/components/common/LoadingOverlay";
 
-import WelcomeSection from "@/components/dashboard/WelcomeSection";
-import DashboardSection from "@/components/dashboard/DashboardSection";
-import DashboardStatCard from "@/components/dashboard/DashboardStatCard";
-import QuickActions from "@/components/dashboard/QuickActions";
-import RecentActivity from "@/components/dashboard/RecentActivity";
-import RecentList from "@/components/dashboard/RecentList";
+import WelcomeSection from "../../../components/dashboard/instructor/WelcomeSection";
+import DashboardSection from "../../../components/dashboard/instructor/DashboardSection";
+import DashboardStatCard from "../../../components/dashboard/DashboardStatCard";
+import QuickActions from "../../../components/dashboard/instructor/QuickActions";
+import RecentActivity from "../../../components/dashboard/instructor/RecentActivity";
+import RecentList from "../../../components/dashboard/instructor/RecentList";
 
 import {
   FaBook,
