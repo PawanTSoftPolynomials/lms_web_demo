@@ -9,7 +9,7 @@ import {
   FaEnvelope,
 } from "react-icons/fa";
 
-import DashboardStatCard from "@/components/dashboard/DashboardStatCard";
+import DashboardStatCard from "@/components/dashboard/common/DashboardStatCard";
 
 import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";

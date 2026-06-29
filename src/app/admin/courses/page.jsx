@@ -18,7 +18,7 @@ import Loader from "@/components/common/Loader";
 
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/layouts/PageHeader";
-import DashboardStatCard from "@/components/dashboard/DashboardStatCard";
+import DashboardStatCard from "@/components/dashboard/common/DashboardStatCard";
 
 import {
   getCourses,

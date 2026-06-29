@@ -138,10 +138,7 @@ export default function InstructorDashboard() {
 
   return (
     <div className="space-y-8">
-      <DashboardHeader
-        title="Instructor Dashboard"
-        subtitle="Manage your courses, students and learning content"
-      />
+      <DashboardHeader name="Instructor" />
 
       <WelcomeSection
         name={welcomeData.name}
