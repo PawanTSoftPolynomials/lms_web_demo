@@ -18,9 +18,7 @@ export default function ChartEmptyState({
         <Icon size={32} />
       </div>
 
-      <h3 className="text-lg font-semibold text-white">
-        {title}
-      </h3>
+      <h3 className="text-lg font-semibold text-white">{title}</h3>
 
       <p className="mt-2 max-w-xs text-sm leading-6 text-slate-400">
         {description}

@@ -27,20 +27,13 @@ export default function DashboardStatCard({
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-400">
-            {title}
-          </p>
+          <p className="text-sm font-medium text-slate-400">{title}</p>
 
-          <h3 className="mt-3 text-3xl font-bold text-white">
-            {value}
-          </h3>
+          <h3 className="mt-3 text-3xl font-bold text-white">{value}</h3>
 
           {typeof trend === "number" && (
             <div className="mt-4">
-              <TrendBadge
-                value={trend}
-                label={trendLabel}
-              />
+              <TrendBadge value={trend} label={trendLabel} />
             </div>
           )}
         </div>
@@ -52,9 +45,7 @@ export default function DashboardStatCard({
             ${iconBgClass}
           `}
         >
-          <div className="text-2xl text-white">
-            {icon}
-          </div>
+          <div className="text-2xl text-white">{icon}</div>
         </div>
       </div>
     </Card>

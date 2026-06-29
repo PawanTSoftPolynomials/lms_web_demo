@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import {
   FaUsers,
   FaBook,
@@ -16,8 +15,8 @@ import { getCertificates } from "@/services/certificate.service";
 
 import Loader from "@/components/common/Loader";
 
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import DashboardStatCard from "@/components/dashboard/DashboardStatCard";
+import DashboardHeader from "@/components/dashboard/common/DashboardHeader";
+import DashboardStatCard from "@/components/dashboard/common/DashboardStatCard";
 import AnalyticsChart from "@/components/dashboard/AnalyticsChart";
 import CourseStatusChart from "@/components/dashboard/CourseStatusChart";
 import QuickActions from "@/components/dashboard/QuickActions";
@@ -99,41 +98,41 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      <DashboardHeader />
+      <DashboardHeader name="Admin" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
         <DashboardStatCard
           title="Total Users"
           value={stats.users}
-          icon={FaUsers}
+          icon={<FaUsers />}
           href="/admin/users"
         />
 
         <DashboardStatCard
           title="Courses"
           value={stats.courses}
-          icon={FaBook}
+          icon={<FaBook />}
           href="/admin/courses"
         />
 
         <DashboardStatCard
           title="Students"
           value={stats.students}
-          icon={FaUserGraduate}
+          icon={<FaUserGraduate />}
           href="/admin/students"
         />
 
         <DashboardStatCard
           title="Instructors"
           value={stats.instructors}
-          icon={FaChalkboardTeacher}
+          icon={<FaChalkboardTeacher />}
           href="/admin/instructors"
         />
 
         <DashboardStatCard
           title="Certificates"
           value={stats.certificates}
-          icon={FaCertificate}
+          icon={<FaCertificate />}
           href="/admin/certificates"
         />
       </div>

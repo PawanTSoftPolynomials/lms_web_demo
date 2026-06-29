@@ -1,7 +1,7 @@
 "use client";
 
 export default function DashboardHeader({
-  name = "Admin",
+  name,
 }) {
   const hour = new Date().getHours();
 
@@ -15,7 +15,6 @@ export default function DashboardHeader({
 
   return (
     <div className="rounded-2xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 p-8 shadow-xl">
-
       <p className="text-sm uppercase tracking-[0.25em] text-orange-100">
         Orange LMS
       </p>
@@ -29,7 +28,6 @@ export default function DashboardHeader({
         Monitor courses, users, enrollments and platform
         activity from one place.
       </p>
-
     </div>
   );
 }
