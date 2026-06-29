@@ -70,9 +70,14 @@ export const SIDEBAR_ITEMS = {
       href: "/student/dashboard",
     },
     {
+      title: "Courses",
+      icon: FaBook,
+      href: "/student/courses", // Browse all available courses
+    },
+    {
       title: "My Courses",
       icon: FaBook,
-      href: "/student/courses",
+      href: "/student/my-courses", // Only enrolled courses
     },
     {
       title: "Progress",

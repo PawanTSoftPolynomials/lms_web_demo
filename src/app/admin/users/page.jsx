@@ -118,28 +118,28 @@ export default function AdminUsersPage() {
         <DashboardStatCard
           title="Total Users"
           value={totalUsers}
-          icon={FaUsers}
+          icon={<FaUsers/>}
           color="blue"
         />
 
         <DashboardStatCard
           title="Students"
           value={students}
-          icon={FaUserGraduate}
+          icon={<FaUserGraduate/>}
           color="green"
         />
 
         <DashboardStatCard
           title="Instructors"
           value={instructors}
-          icon={FaChalkboardTeacher}
+          icon={<FaChalkboardTeacher/>}
           color="purple"
         />
 
         <DashboardStatCard
           title="Admins"
           value={admins}
-          icon={FaUserShield}
+          icon={<FaUserShield/>}
           color="orange"
         />
       </div>

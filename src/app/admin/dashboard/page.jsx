@@ -14,6 +14,7 @@ import { getCourses } from "@/services/course.service";
 import { getCertificates } from "@/services/certificate.service";
 
 import Loader from "@/components/common/Loader";
+import { useRouter } from "next/navigation";
 
 import DashboardHeader from "@/components/dashboard/common/DashboardHeader";
 import DashboardStatCard from "@/components/dashboard/common/DashboardStatCard";
@@ -24,6 +25,8 @@ import LatestCourses from "@/components/dashboard/LatestCourses";
 import RecentActivity from "@/components/dashboard/RecentActivity";
 
 export default function AdminDashboard() {
+  const router = useRouter();
+
   const [loading, setLoading] = useState(true);
 
   const [courses, setCourses] = useState([]);
@@ -105,35 +108,37 @@ export default function AdminDashboard() {
           title="Total Users"
           value={stats.users}
           icon={<FaUsers />}
-          href="/admin/users"
+          onClick={() => router.push("/admin/users")}
         />
 
         <DashboardStatCard
           title="Courses"
           value={stats.courses}
           icon={<FaBook />}
-          href="/admin/courses"
+          onClick={() => router.push("/admin/courses")}
+
+          // href="/admin/courses"
         />
 
         <DashboardStatCard
           title="Students"
           value={stats.students}
           icon={<FaUserGraduate />}
-          href="/admin/students"
+          onClick={() => router.push("/admin/students")}
         />
 
         <DashboardStatCard
           title="Instructors"
           value={stats.instructors}
           icon={<FaChalkboardTeacher />}
-          href="/admin/instructors"
+          onClick={() => router.push("/admin/instructors")}
         />
 
         <DashboardStatCard
           title="Certificates"
           value={stats.certificates}
           icon={<FaCertificate />}
-          href="/admin/certificates"
+          onClick={() => router.push("/admin/certificates")}
         />
       </div>
 

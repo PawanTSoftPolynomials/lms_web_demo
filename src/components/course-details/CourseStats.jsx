@@ -21,28 +21,28 @@ export default function CourseStats({
       <DashboardStatCard
         title="Modules"
         value={modules}
-        icon={FaBook}
+        icon={<FaBook/>}
         color="orange"
       />
 
       <DashboardStatCard
         title="Lessons"
         value={lessons}
-        icon={FaBookOpen}
+        icon={<FaBookOpen/>}
         color="blue"
       />
 
       <DashboardStatCard
         title="Quizzes"
         value={quizzes}
-        icon={FaClipboardList}
+        icon={<FaClipboardList/>}
         color="purple"
       />
 
       <DashboardStatCard
         title="Status"
         value={status}
-        icon={FaCheckCircle}
+        icon={<FaCheckCircle/>}
         color={
           status === "PUBLISHED"
             ? "green"

@@ -1,39 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-import { getCourses } from "@/services/course.service";
-
 import Loader from "@/components/common/Loader";
 import EmptyState from "@/components/student/EmptyState";
 import CourseCard from "@/components/student/CourseCard";
 
+import useCourses from "@/hooks/queries/student/useCourses";
+
 export default function StudentCourses() {
-  const [courses, setCourses] = useState([]);
+  const { data: courses = [], isLoading, error } = useCourses();
 
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadCourses = async () => {
-      try {
-        const data = await getCourses();
-
-        setCourses(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadCourses();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center py-20">
         <Loader />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <EmptyState
+        title="Something went wrong"
+        description="Unable to load courses."
+      />
     );
   }
 

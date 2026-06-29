@@ -1,7 +1,11 @@
 import StatCard from "./StatCard";
 
 export default function DashboardStats({
-  stats,
+  stats = {
+    enrolled: 0,
+    completed: 0,
+    progress: 0,
+  },
 }) {
   return (
     <div className="grid md:grid-cols-3 gap-6">

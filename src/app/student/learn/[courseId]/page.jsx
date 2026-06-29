@@ -7,39 +7,28 @@ import LearnHeader from "@/components/student/learn/LearnHeader";
 import LearnSidebar from "@/components/student/learn/LearnSidebar";
 import ContentViewer from "@/components/student/learn/ContentViewer";
 
-import { getCourseById } from "@/services/course.service";
+import useCourse from "@/hooks/queries/student/useCourse";
 
 export default function LearnPage() {
   const { courseId } = useParams();
 
-  const [course, setCourse] = useState(null);
   const [activeLesson, setActiveLesson] = useState(null);
-  const [loading, setLoading] = useState(true);
+
+  const {
+    data: course,
+    isLoading,
+    error,
+  } = useCourse(courseId);
 
   useEffect(() => {
-    fetchCourse();
-  }, [courseId]);
+    if (!course) return;
 
-  const fetchCourse = async () => {
-    try {
-      setLoading(true);
+    setActiveLesson(
+      course.modules?.[0]?.lessons?.[0] ?? null
+    );
+  }, [course]);
 
-      const response = await getCourseById(courseId);
-
-      setCourse(response);
-
-      const firstLesson =
-        response?.modules?.[0]?.lessons?.[0];
-
-      setActiveLesson(firstLesson);
-    } catch (error) {
-      console.error("Course loading failed:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-zinc-950 text-white">
         Loading course...
@@ -47,7 +36,7 @@ export default function LearnPage() {
     );
   }
 
-  if (!course) {
+  if (error || !course) {
     return (
       <div className="h-screen flex items-center justify-center bg-zinc-950 text-red-400">
         Course not found.

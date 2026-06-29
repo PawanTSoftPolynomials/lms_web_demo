@@ -49,27 +49,43 @@ export default function LoginPage() {
         password: formData.password,
       });
 
+      console.log("=================================");
+      console.log("Logged in User:", user);
+      console.log("User Role:", user?.role);
+      console.log("Current URL:", window.location.pathname);
+      console.log("=================================");
+
       switch (user.role) {
         case "ADMIN":
+          console.log("Navigating to /admin/dashboard");
           router.replace("/admin/dashboard");
           break;
 
         case "INSTRUCTOR":
+          console.log("Navigating to /instructor/dashboard");
           router.replace("/instructor/dashboard");
           break;
 
-        default:
+        case "STUDENT":
+          console.log("Navigating to /student/dashboard");
           router.replace("/student/dashboard");
+          break;
+
+        default:
+          console.error("Unknown role:", user.role);
+          setError(`Unknown role: ${user.role}`);
+          return;
       }
+
+      console.log("router.replace() executed");
     } catch (error) {
-      const message =
-        error.response?.data?.message || "Login failed";
+      console.error("Login Error:", error);
+
+      const message = error.response?.data?.message || "Login failed";
 
       if (message === "Verify email first") {
         router.replace(
-          `/verify-otp?email=${encodeURIComponent(
-            formData.email.trim()
-          )}`
+          `/verify-otp?email=${encodeURIComponent(formData.email.trim())}`,
         );
         return;
       }
@@ -79,7 +95,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950">
@@ -92,21 +107,13 @@ export default function LoginPage() {
     <AuthLayout>
       <AuthCard>
         <AuthHeader
-          icon={
-            <HiOutlineLockClosed className="text-4xl text-orange-500" />
-          }
+          icon={<HiOutlineLockClosed className="text-4xl text-orange-500" />}
           title="Welcome Back"
           description="Sign in to continue your learning journey."
         />
 
-        <form
-          onSubmit={handleSubmit}
-          className="mt-8 space-y-5"
-        >
-          <AuthAlert
-            type="error"
-            message={error}
-          />
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          <AuthAlert type="error" message={error} />
 
           <AuthInput
             label="Email"
@@ -137,14 +144,8 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-          >
-            {loading
-              ? "Signing In..."
-              : "Login"}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Signing In..." : "Login"}
           </Button>
 
           <AuthFooter

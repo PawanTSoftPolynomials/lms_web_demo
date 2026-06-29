@@ -1,6 +1,8 @@
 export default function Button({
   children,
   className = "",
+  loading = false,
+  disabled = false,
   ...props
 }) {
   return (
@@ -17,9 +19,10 @@ export default function Button({
         disabled:cursor-not-allowed
         ${className}
       `}
+      disabled={disabled || loading}
       {...props}
     >
-      {children}
+      {loading ? "Loading..." : children}
     </button>
   );
 }

@@ -72,28 +72,28 @@ export default function StudentsPage() {
         <DashboardStatCard
           title="Students"
           value={totalStudents}
-          icon={FaUserGraduate}
+          icon={<FaUserGraduate/>}
           color="blue"
         />
 
         <DashboardStatCard
           title="Active"
           value={activeStudents}
-          icon={FaUserCheck}
+          icon={<FaUserCheck/>}
           color="green"
         />
 
         <DashboardStatCard
           title="Inactive"
           value={inactiveStudents}
-          icon={FaUserClock}
+          icon={<FaUserClock/>}
           color="red"
         />
 
         <DashboardStatCard
           title="Emails"
           value={students.length}
-          icon={FaEnvelope}
+          icon={<FaEnvelope/>}
           color="purple"
         />
       </div>

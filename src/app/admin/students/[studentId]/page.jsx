@@ -62,7 +62,6 @@ export default function StudentProfilePage() {
     <div className="space-y-8">
       <Button variant="ghost" onClick={() => router.back()}>
         <FaArrowLeft className="mr-2" />
-        Back
       </Button>
 
       {/* Hero */}
