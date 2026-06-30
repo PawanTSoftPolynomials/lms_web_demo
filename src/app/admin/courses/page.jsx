@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import Link from "next/link";
 
 import { FaBook, FaCheckCircle, FaClock } from "react-icons/fa";
@@ -17,13 +16,11 @@ import { getCourses, deleteCourse } from "@/services/course.service";
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState([]);
-
   const [loading, setLoading] = useState(true);
 
   const loadCourses = async () => {
     try {
       const response = await getCourses();
-
       setCourses(response);
     } catch (error) {
       console.error(error);
@@ -44,7 +41,7 @@ export default function CoursesPage() {
     try {
       await deleteCourse(courseId);
 
-      setCourses(courses.filter((course) => course.id !== courseId));
+      setCourses((prev) => prev.filter((course) => course.id !== courseId));
     } catch (error) {
       console.error(error);
     }
@@ -67,12 +64,12 @@ export default function CoursesPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Courses" subtitle="Manage all platform courses">
-        <Link href="/admin/courses/create">
-          <Button>Create Course</Button>
+        <Link href="/admin/courses/create" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">Create Course</Button>
         </Link>
       </PageHeader>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <DashboardStatCard
           title="Total Courses"
           value={courses.length}
@@ -90,7 +87,7 @@ export default function CoursesPage() {
         <DashboardStatCard
           title="Draft"
           value={draft}
-          icon={<FaClock/>}
+          icon={<FaClock />}
           href="/admin/courses"
         />
       </div>
