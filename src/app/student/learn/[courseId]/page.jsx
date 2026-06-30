@@ -7,7 +7,7 @@ import LearnHeader from "@/components/student/learn/LearnHeader";
 import LearnSidebar from "@/components/student/learn/LearnSidebar";
 import ContentViewer from "@/components/student/learn/ContentViewer";
 
-import useCourse from "@/hooks/queries/student/useCourse";
+import useCourse from "@/hooks/queries/students/useCourse";
 
 export default function LearnPage() {
     const {courseId} = useParams();

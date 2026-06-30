@@ -4,7 +4,7 @@ import Loader from "@/components/common/Loader";
 import DashboardHeader from "@/components/student/DashboardHeader";
 import DashboardStats from "@/components/student/DashboardStats";
 import useAuth from "@/hooks/useAuth";
-import useDashboard from "@/hooks/queries/student/useDashboard";
+import useDashboard from "@/hooks/queries/students/useDashboard";
 
 export default function StudentDashboard() {
   const { user } = useAuth();

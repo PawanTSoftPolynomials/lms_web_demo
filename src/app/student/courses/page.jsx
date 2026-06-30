@@ -4,7 +4,7 @@ import Loader from "@/components/common/Loader";
 import EmptyState from "@/components/student/EmptyState";
 import CourseCard from "@/components/student/CourseCard";
 
-import useCourses from "@/hooks/queries/student/useCourses";
+import useCourses from "@/hooks/queries/students/useCourses";
 
 export default function StudentCourses() {
   const { data: courses = [], isLoading, error } = useCourses();
