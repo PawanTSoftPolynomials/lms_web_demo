@@ -1,37 +1,50 @@
 import api from "@/lib/axios";
 
+/**
+ * Get All Students
+ */
 export const getStudents = async () => {
-  const response = await api.get("/students");
-  return response.data;
+    const {data} = await api.get("/students");
+
+    return data.data;
 };
 
+/**
+ * Get Student By ID
+ */
 export const getStudentById = async (
-  studentId
+    studentId
 ) => {
-  const response = await api.get(
-    `/students/${studentId}`
-  );
-
-  return response.data;
-};
-
-export const updateStudent = async (
-  studentId,
-  data
-) => {
-  const response = await api.put(
-    `/students/${studentId}`,
-    data
-  );
-
-  return response.data;
-};
-
-export const getStudentProgress =
-  async (studentId) => {
-    const response = await api.get(
-      `/students/${studentId}/progress`
+    const {data} = await api.get(
+        `/students/${studentId}`
     );
 
-    return response.data;
-  };
+    return data.data;
+};
+
+/**
+ * Update Student
+ */
+export const updateStudent = async (
+    studentId,
+    studentData
+) => {
+    const {data} = await api.put(
+        `/students/${studentId}`,
+        studentData
+    );
+
+    return data;
+};
+
+/**
+ * Get Student Progress
+ */
+export const getStudentProgress =
+    async (studentId) => {
+        const {data} = await api.get(
+            `/students/${studentId}/progress`
+        );
+
+        return data.data;
+    };

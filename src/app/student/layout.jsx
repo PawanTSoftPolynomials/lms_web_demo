@@ -10,7 +10,7 @@ export default function Layout({
   const pathname = usePathname();
 
   const isLearningPage =
-    pathname.startsWith("/student/learn/");
+    pathname.startsWith("/students/learn/");
 
   if (isLearningPage) {
     return children;

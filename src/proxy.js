@@ -47,7 +47,7 @@ export function proxy(request) {
 
   if (
     path.startsWith(
-      "/student"
+      "/students"
     )
   ) {
     if (
@@ -70,6 +70,6 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/instructor/:path*",
-    "/student/:path*",
+    "/students/:path*",
   ],
 };

@@ -67,22 +67,22 @@ export const SIDEBAR_ITEMS = {
     {
       title: "Dashboard",
       icon: FaTachometerAlt,
-      href: "/student/dashboard",
+      href: "/students/dashboard",
     },
     {
       title: "Courses",
       icon: FaBook,
-      href: "/student/courses", // Browse all available courses
+      href: "/students/courses", // Browse all available courses
     },
     {
       title: "My Courses",
       icon: FaBook,
-      href: "/student/my-courses", // Only enrolled courses
+      href: "/students/my-courses", // Only enrolled courses
     },
     {
       title: "Progress",
       icon: FaGraduationCap,
-      href: "/student/progress",
+      href: "/students/progress",
     },
   ],
 };

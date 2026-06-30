@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
-import LearnHeader from "@/components/student/learn/LearnHeader";
-import LearnSidebar from "@/components/student/learn/LearnSidebar";
-import ContentViewer from "@/components/student/learn/ContentViewer";
+import LearnHeader from "@/components/students/learn/LearnHeader";
+import LearnSidebar from "@/components/students/learn/LearnSidebar";
+import ContentViewer from "@/components/students/learn/ContentViewer";
 
-import useCourse from "@/hooks/queries/student/useCourse";
+import useCourse from "@/hooks/queries/students/useCourse";
 
 export default function LearnPage() {
   const { courseId } = useParams();

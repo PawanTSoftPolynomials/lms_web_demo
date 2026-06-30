@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { getCourseById } from "@/services/course.service";
 import { enrollCourse } from "@/services/enrollment.service";
 
-import CourseModal from "@/components/student/CourseModal";
+import CourseModal from "@/components/students/CourseModal";
 
 export default function CourseDetails() {
   const { courseId } = useParams();

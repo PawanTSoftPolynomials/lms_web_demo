@@ -67,7 +67,7 @@ export default function LoginPage() {
           break;
 
         case "STUDENT":
-          console.log("Navigating to /student/dashboard");
+          console.log("Navigating to /students/dashboard");
           router.replace("/student/dashboard");
           break;
 
