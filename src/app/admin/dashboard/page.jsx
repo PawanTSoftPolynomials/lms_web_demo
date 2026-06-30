@@ -1,97 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   FaUsers,
   FaBook,
   FaUserGraduate,
   FaChalkboardTeacher,
-  FaCertificate,
 } from "react-icons/fa";
 
-import { getUsers } from "@/services/user.service";
-import { getCourses } from "@/services/course.service";
-import { getCertificates } from "@/services/certificate.service";
+import { useDashboard } from "@/hooks/queries/admin/useDashboard";
 
 import Loader from "@/components/common/Loader";
-import { useRouter } from "next/navigation";
 
 import DashboardHeader from "@/components/dashboard/common/DashboardHeader";
 import DashboardStatCard from "@/components/dashboard/common/DashboardStatCard";
 import AnalyticsChart from "@/components/dashboard/AnalyticsChart";
 import CourseStatusChart from "@/components/dashboard/CourseStatusChart";
 import QuickActions from "@/components/dashboard/QuickActions";
-import LatestCourses from "@/components/dashboard/LatestCourses";
-import RecentActivity from "@/components/dashboard/RecentActivity";
+import RecentUsers from "@/components/dashboard/RecentUsers";
 
 export default function AdminDashboard() {
   const router = useRouter();
 
-  const [loading, setLoading] = useState(true);
+  const { data: dashboard, isLoading, isError } = useDashboard();
 
-  const [courses, setCourses] = useState([]);
-
-  const [stats, setStats] = useState({
-    users: 0,
-    courses: 0,
-    students: 0,
-    instructors: 0,
-    certificates: 0,
-  });
-
-  useEffect(() => {
-    const loadDashboard = async () => {
-      try {
-        const [usersData, coursesData, certificatesData] = await Promise.all([
-          getUsers(),
-          getCourses(),
-          getCertificates(),
-        ]);
-
-        setCourses(coursesData);
-
-        setStats({
-          users: usersData.length,
-
-          courses: coursesData.length,
-
-          students: usersData.filter((user) => user.role === "STUDENT").length,
-
-          instructors: usersData.filter((user) => user.role === "INSTRUCTOR")
-            .length,
-
-          certificates: certificatesData.length,
-        });
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadDashboard();
-  }, []);
-
-  const analyticsData = [
-    {
-      name: "Users",
-      value: stats.users,
-    },
-    {
-      name: "Courses",
-      value: stats.courses,
-    },
-    {
-      name: "Students",
-      value: stats.students,
-    },
-    {
-      name: "Teachers",
-      value: stats.instructors,
-    },
-  ];
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center py-24">
         <Loader />
@@ -99,63 +32,94 @@ export default function AdminDashboard() {
     );
   }
 
+  if (isError || !dashboard) {
+    return (
+      <div className="py-24 text-center text-red-500">
+        Failed to load dashboard.
+      </div>
+    );
+  }
+
+  const analyticsData = [
+    {
+      name: "Users",
+      value: dashboard.totalUsers,
+    },
+    {
+      name: "Students",
+      value: dashboard.totalStudents,
+    },
+    {
+      name: "Instructors",
+      value: dashboard.totalInstructors,
+    },
+    {
+      name: "Courses",
+      value: dashboard.totalCourses,
+    },
+    {
+      name: "Enrollments",
+      value: dashboard.totalEnrollments,
+    },
+  ];
+
   return (
     <div className="space-y-8">
       <DashboardHeader name="Admin" />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-5">
         <DashboardStatCard
           title="Total Users"
-          value={stats.users}
+          value={dashboard.totalUsers}
           icon={<FaUsers />}
           onClick={() => router.push("/admin/users")}
         />
 
         <DashboardStatCard
           title="Courses"
-          value={stats.courses}
+          value={dashboard.totalCourses}
           icon={<FaBook />}
           onClick={() => router.push("/admin/courses")}
-
-          // href="/admin/courses"
         />
 
         <DashboardStatCard
           title="Students"
-          value={stats.students}
+          value={dashboard.totalStudents}
           icon={<FaUserGraduate />}
           onClick={() => router.push("/admin/students")}
         />
 
         <DashboardStatCard
           title="Instructors"
-          value={stats.instructors}
+          value={dashboard.totalInstructors}
           icon={<FaChalkboardTeacher />}
           onClick={() => router.push("/admin/instructors")}
         />
 
         <DashboardStatCard
-          title="Certificates"
-          value={stats.certificates}
-          icon={<FaCertificate />}
-          onClick={() => router.push("/admin/certificates")}
+          title="Enrollments"
+          value={dashboard.totalEnrollments}
+          icon={<FaUsers />}
+          onClick={() => router.push("/admin/enrollments")}
         />
       </div>
 
-      <div className="grid xl:grid-cols-2 gap-6">
+      <div className="grid gap-6 xl:grid-cols-2">
         <AnalyticsChart title="Platform Overview" data={analyticsData} />
 
-        <CourseStatusChart courses={courses} />
+        <CourseStatusChart
+          publishedCourses={dashboard.publishedCourses}
+          draftCourses={dashboard.draftCourses}
+        />
       </div>
-      <div className="grid lg:grid-cols-3 gap-6">
+
+      <div className="grid gap-6 lg:grid-cols-3">
         <QuickActions />
 
         <div className="lg:col-span-2">
-          <LatestCourses courses={courses} />
+          <RecentUsers users={dashboard.recentUsers} />
         </div>
       </div>
-
-      <RecentActivity users={[...Array(stats.users)]} courses={courses} />
     </div>
   );
 }
