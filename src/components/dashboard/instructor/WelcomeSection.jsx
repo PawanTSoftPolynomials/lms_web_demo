@@ -1,12 +1,6 @@
-import {
-  HiOutlineBookOpen,
-  HiOutlineUsers,
-  HiOutlineAcademicCap,
-} from "react-icons/hi";
-import { FaArrowTrendUp, FaPlus } from "react-icons/fa6";
+import { FaClipboardCheck } from "react-icons/fa6";
 
 import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
 
 export default function WelcomeSection({
   name = "Instructor",
@@ -14,7 +8,6 @@ export default function WelcomeSection({
   studentCount = 0,
   quizCount = 0,
   completionRate = 0,
-  onCreateCourse,
 }) {
   const hour = new Date().getHours();
 
@@ -35,49 +28,44 @@ export default function WelcomeSection({
       <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-orange-500/10 blur-3xl" />
       <div className="absolute bottom-0 left-0 h-48 w-48 rounded-full bg-violet-500/10 blur-3xl" />
 
-      <div className="relative flex flex-col gap-10 xl:flex-row xl:items-center xl:justify-between">
-        {/* Left */}
-        <div className="flex-1">
-          <p className="text-sm font-medium text-orange-400">{today}</p>
+      <div className="relative">
+        <p className="text-sm font-medium text-orange-400">
+          {today}
+        </p>
 
-          <h1 className="mt-2 text-4xl font-bold text-white">
-            {greeting}, {name} 👋
-          </h1>
+        <h1 className="mt-2 text-4xl font-bold text-white">
+          {greeting}, {name} 👋
+        </h1>
 
-          <p className="mt-4 max-w-2xl text-slate-400 leading-7">
-            Welcome back. Keep your courses updated, engage with your students,
-            and monitor your teaching performance from one place.
-          </p>
-
+        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-400">
+          <FaClipboardCheck className="text-xs" />
+          Everything looks good today
         </div>
 
-        {/* Right */}
-        <div className="grid w-full max-w-lg grid-cols-2 gap-4">
-          <StatChip
-            icon={<HiOutlineBookOpen size={22} />}
-            color="bg-violet-500/20 text-violet-400"
-            label="Courses"
+        <p className="mt-5 max-w-3xl text-slate-400 leading-7">
+          Welcome back! Here's a quick overview of your classroom. Continue
+          creating engaging learning experiences and monitor your students'
+          progress from one place.
+        </p>
+
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <SummaryItem
+            label="Active Courses"
             value={courseCount}
           />
 
-          <StatChip
-            icon={<HiOutlineUsers size={22} />}
-            color="bg-blue-500/20 text-blue-400"
+          <SummaryItem
             label="Students"
             value={studentCount}
           />
 
-          <StatChip
-            icon={<HiOutlineAcademicCap size={22} />}
-            color="bg-emerald-500/20 text-emerald-400"
-            label="Quizzes"
+          <SummaryItem
+            label="Published Quizzes"
             value={quizCount}
           />
 
-          <StatChip
-            icon={<FaArrowTrendUp size={18} />}
-            color="bg-orange-500/20 text-orange-400"
-            label="Completion"
+          <SummaryItem
+            label="Completion Rate"
             value={`${completionRate}%`}
           />
         </div>
@@ -86,18 +74,16 @@ export default function WelcomeSection({
   );
 }
 
-function StatChip({ icon, color, label, value }) {
+function SummaryItem({ label, value }) {
   return (
-    <div className="rounded-2xl border border-slate-700/50 bg-slate-800/60 p-5 transition-all duration-300 hover:border-orange-500/40">
-      <div
-        className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl ${color}`}
-      >
-        {icon}
-      </div>
+    <div className="rounded-xl border border-slate-700/50 bg-slate-800/50 p-4">
+      <p className="text-2xl font-bold text-white">
+        {value}
+      </p>
 
-      <p className="text-sm text-slate-400">{label}</p>
-
-      <p className="mt-1 text-2xl font-bold text-white">{value}</p>
+      <p className="mt-1 text-sm text-slate-400">
+        {label}
+      </p>
     </div>
   );
 }
