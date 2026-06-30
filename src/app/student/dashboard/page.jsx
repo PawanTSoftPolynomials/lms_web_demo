@@ -1,14 +1,10 @@
 "use client";
 
-
-import { getMyEnrollments } from "@/services/enrollment.service";
-import { getProgress } from "@/services/progress.service";
-
 import Loader from "@/components/common/Loader";
-import DashboardHeader from "@/components/students/DashboardHeader";
-import DashboardStats from "@/components/students/DashboardStats";
+import DashboardHeader from "@/components/student/DashboardHeader";
+import DashboardStats from "@/components/student/DashboardStats";
 import useAuth from "@/hooks/useAuth";
-import useDashboard from "@/hooks/queries/students/useDashboard";
+import useDashboard from "@/hooks/queries/student/useDashboard";
 
 export default function StudentDashboard() {
   const { user } = useAuth();
