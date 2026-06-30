@@ -8,7 +8,7 @@ import {
     getStudents,
     getStudentById,
     updateStudent,
-} from "@/services/student.service";
+} from "@/services/students.service";
 
 import {QUERY_KEYS} from "@/constants/queryKeys";
 import {defaultQueryOptions} from "@/lib/queryOptions";

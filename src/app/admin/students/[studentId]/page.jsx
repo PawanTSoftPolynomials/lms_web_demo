@@ -58,7 +58,7 @@ export default function StudentDetailsPage() {
         <Button
           onClick={() =>
             router.push(
-              `/admin/students/edit/${student.id}`
+              `/admin/students/edit/${students.id}`
             )
           }
         >
