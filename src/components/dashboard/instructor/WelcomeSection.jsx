@@ -49,14 +49,6 @@ export default function WelcomeSection({
             and monitor your teaching performance from one place.
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-4">
-            <Button onClick={onCreateCourse}>
-              <FaPlus className="mr-2" />
-              Create Course
-            </Button>
-
-            <Button variant="outline">View Analytics</Button>
-          </div>
         </div>
 
         {/* Right */}
