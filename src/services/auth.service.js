@@ -1,5 +1,4 @@
 import api from "@/lib/axios";
-
 /* ---------------- Register ---------------- */
 
 export const registerUser = async (userData) => {

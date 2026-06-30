@@ -1,71 +1,62 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
-export default function QuizResult() {
-  const [result,
-    setResult] =
-    useState(null);
+export default function ResultPage() {
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
-    const stored =
-      localStorage.getItem(
-        "quizResult"
-      );
+    const storedResult =
+      localStorage.getItem("quizResult");
 
-    if (stored) {
-      setResult(
-        JSON.parse(stored)
-      );
+    if (storedResult) {
+      setResult(JSON.parse(storedResult));
     }
   }, []);
 
   if (!result) {
     return (
-      <div>
-        Loading...
+      <div className="flex justify-center items-center h-[70vh]">
+        <p className="text-white">
+          No result found
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl">
-      <div className="bg-slate-900 p-8 rounded-xl">
-        <h1 className="text-4xl font-bold mb-8">
+    <div className="flex justify-center items-center h-[70vh]">
+      <div className="bg-slate-900 p-10 rounded-xl text-center min-w-[400px]">
+        <h1 className="text-4xl font-bold">
           Quiz Result
         </h1>
 
-        <div className="space-y-4 text-xl">
-          <p>
-            Score:
-            {result.score}
-          </p>
+        <p className="text-2xl text-orange-500 mt-5">
+          Score: {result.score} /{" "}
+          {result.totalMarks}
+        </p>
 
-          <p>
-            Total:
-            {result.totalMarks}
-          </p>
+        <p className="text-xl mt-3">
+          Percentage: {result.percentage}%
+        </p>
 
-          <p>
-            Percentage:
-            {result.percentage}%
-          </p>
+        <p
+          className={`mt-4 text-lg font-semibold ${
+            result.passed
+              ? "text-green-500"
+              : "text-red-500"
+          }`}
+        >
+          {result.passed
+            ? "Passed 🎉"
+            : "Failed"}
+        </p>
 
-          <p
-            className={
-              result.passed
-                ? "text-green-500"
-                : "text-red-500"
-            }
-          >
-            {result.passed
-              ? "PASS"
-              : "FAIL"}
-          </p>
-        </div>
+        <p className="text-gray-400 mt-3">
+          {result.passed
+            ? "Great job!"
+            : "Try again."}
+        </p>
       </div>
     </div>
   );

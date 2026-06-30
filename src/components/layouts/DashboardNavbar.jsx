@@ -5,15 +5,19 @@ import { FaArrowLeft, FaSignOutAlt, FaBars } from "react-icons/fa";
 
 import useAuth from "@/hooks/useAuth";
 
-export default function Navbar({ title = "Dashboard", setOpen }) {
+export default function DashboardNavbar({ title = "Dashboard", setOpen }) {
   const router = useRouter();
 
   const { logout } = useAuth();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+  try {
+    await logout();
     router.push("/login");
-  };
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   return (
     <header

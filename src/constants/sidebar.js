@@ -1,3 +1,4 @@
+import { FaBookAtlas } from "react-icons/fa6";
 import {
   FaTachometerAlt,
   FaUsers,
@@ -63,21 +64,36 @@ export const SIDEBAR_ITEMS = {
     },
   ],
 
-  STUDENT: [
-    {
-      title: "Dashboard",
-      icon: FaTachometerAlt,
-      href: "/student/dashboard",
-    },
-    {
-      title: "My Courses",
-      icon: FaBook,
-      href: "/student/courses",
-    },
-    {
-      title: "Progress",
-      icon: FaGraduationCap,
-      href: "/student/progress",
-    },
-  ],
+ STUDENT: [
+  {
+    title: "Dashboard",
+    icon: FaTachometerAlt,
+    href: "/student/dashboard",
+  },
+  {
+    title: "My Courses",
+    icon: FaBook,
+    href: "/student/my-courses",
+  },
+  {
+    title: "All Courses",
+    icon: FaBookAtlas ,
+    href: "/student/courses",
+  },
+  {
+    title: "Quizzes",
+    icon: FaClipboardList,
+    href: "/student/quizzes",
+  },
+  {
+    title: "Progress",
+    icon: FaGraduationCap,
+    href: "/student/progress",
+  },
+  {
+    title: "Profile",
+    icon: FaUsers,
+    href: "/student/profile",
+  },
+],
 };
