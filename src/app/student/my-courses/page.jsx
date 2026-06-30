@@ -4,7 +4,7 @@ import Loader from "@/components/common/Loader";
 import MyCourseCard from "@/components/student/MyCourseCard";
 
 import useAuth from "@/hooks/useAuth";
-import useMyCourses from "@/hooks/queries/student/useMyCourses";
+import useMyCourses from "@/hooks/queries/students/useMyCourses";
 
 export default function MyCourses() {
   const { user, loading: authLoading } = useAuth();
