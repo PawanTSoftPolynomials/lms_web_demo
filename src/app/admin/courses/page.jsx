@@ -10,8 +10,7 @@ import CourseToolbar from "@/components/admin/courses/CourseToolbar";
 import CourseTable from "@/components/admin/courses/CourseTable";
 
 import {
-    useCourses,
-    useDeleteCourse,
+    useCourses, useDeleteCourse,
 } from "@/hooks/queries/admin/useCourses";
 import Button from "@/components/ui/Button";
 
@@ -19,113 +18,66 @@ export default function AdminCoursesPage() {
     const router = useRouter();
 
     const {
-        data: courses = [],
-        isLoading,
-        isError,
-        refetch,
+        data: courses = [], isLoading, isError, refetch,
     } = useCourses();
 
-    const deleteCourseMutation =
-        useDeleteCourse();
+    const deleteCourseMutation = useDeleteCourse();
 
-    const [search, setSearch] =
-        useState("");
+    const [search, setSearch] = useState("");
 
-    const [status, setStatus] =
-        useState("");
+    const [status, setStatus] = useState("");
 
-    const [level, setLevel] =
-        useState("");
+    const [level, setLevel] = useState("");
 
-    const filteredCourses =
-        useMemo(() => {
-            return courses.filter(
-                (course) => {
-                    const matchesSearch =
-                        course.title
-                            .toLowerCase()
-                            .includes(
-                                search.toLowerCase()
-                            ) ||
-                        course.category
-                            .toLowerCase()
-                            .includes(
-                                search.toLowerCase()
-                            ) ||
-                        course.creator?.name
-                            ?.toLowerCase()
-                            .includes(
-                                search.toLowerCase()
-                            );
+    const filteredCourses = useMemo(() => {
+        return courses.filter((course) => {
+            const matchesSearch = course.title
+                .toLowerCase()
+                .includes(search.toLowerCase()) || course.category
+                .toLowerCase()
+                .includes(search.toLowerCase()) || course.creator?.name
+                ?.toLowerCase()
+                .includes(search.toLowerCase());
 
-                    const matchesStatus =
-                        !status ||
-                        course.status ===
-                        status;
+            const matchesStatus = !status || course.status === status;
 
-                    const matchesLevel =
-                        !level ||
-                        course.level ===
-                        level;
+            const matchesLevel = !level || course.level === level;
 
-                    return (
-                        matchesSearch &&
-                        matchesStatus &&
-                        matchesLevel
-                    );
-                }
-            );
-        }, [
-            courses,
-            search,
-            status,
-            level,
-        ]);
+            return (matchesSearch && matchesStatus && matchesLevel);
+        });
+    }, [courses, search, status, level,]);
 
-    const handleDelete =
-        async (course) => {
-            const confirmed =
-                window.confirm(
-                    `Delete "${course.title}"?`
-                );
+    const handleDelete = async (course) => {
+        const confirmed = window.confirm(`Delete "${course.title}"?`);
 
-            if (!confirmed) return;
+        if (!confirmed) return;
 
-            try {
-                await deleteCourseMutation.mutateAsync(
-                    course.id
-                );
-            } catch (error) {
-                console.error(error);
-            }
-        };
+        try {
+            await deleteCourseMutation.mutateAsync(course.id);
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     if (isLoading) {
-        return (
-            <div className="flex justify-center py-24">
+        return (<div className="flex justify-center py-24">
                 <Loader/>
-            </div>
-        );
+            </div>);
     }
 
     if (isError) {
-        return (
-            <div className="py-24 text-center text-red-500">
+        return (<div className="py-24 text-center text-red-500">
                 Failed to load courses.
-            </div>
-        );
+            </div>);
     }
 
-    return (
-        <div className="space-y-8">
+    return (<div className="space-y-8">
             <PageHeader
                 title="Courses"
                 subtitle="Manage all courses."
             >
                 <Button
-                    onClick={() =>
-                        router.push("/admin/courses/create")
-                    }
+                    onClick={() => router.push("/admin/courses/create")}
                 >
                     Create Course
                 </Button>
@@ -138,43 +90,20 @@ export default function AdminCoursesPage() {
             <Card>
                 <CourseToolbar
                     search={search}
-                    onSearchChange={
-                        setSearch
-                    }
+                    onSearchChange={setSearch}
                     status={status}
-                    onStatusChange={
-                        setStatus
-                    }
+                    onStatusChange={setStatus}
                     level={level}
-                    onLevelChange={
-                        setLevel
-                    }
+                    onLevelChange={setLevel}
                     onRefresh={refetch}
                 />
 
                 <CourseTable
-                    courses={
-                        filteredCourses
-                    }
-                    onView={(
-                        course
-                    ) =>
-                        router.push(
-                            `/admin/courses/${course.id}`
-                        )
-                    }
-                    onEdit={(
-                        course
-                    ) =>
-                        router.push(
-                            `/admin/courses/edit/${course.id}`
-                        )
-                    }
-                    onDelete={
-                        handleDelete
-                    }
+                    courses={filteredCourses}
+                    onView={(course) => router.push(`/admin/courses/${course.id}`)}
+                    onEdit={(course) => router.push(`/admin/courses/edit/${course.id}`)}
+                    onDelete={handleDelete}
                 />
             </Card>
-        </div>
-    );
+        </div>);
 }

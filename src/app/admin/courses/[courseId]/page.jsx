@@ -91,7 +91,7 @@ export default function AdminCoursePage() {
     } catch (error) {
       console.error(error);
 
-      alert("Failed to save module.");
+      alert("Failed to save modules.");
     } finally {
       setModuleLoading(false);
     }
@@ -101,7 +101,7 @@ export default function AdminCoursePage() {
     setModuleModalOpen(true);
   };
   const handleDeleteModule = async (moduleId) => {
-    const confirmed = window.confirm("Delete this module?");
+    const confirmed = window.confirm("Delete this modules?");
 
     if (!confirmed) return;
 
@@ -114,7 +114,7 @@ export default function AdminCoursePage() {
     } catch (error) {
       console.error(error);
 
-      alert("Failed to delete module.");
+      alert("Failed to delete modules.");
     }
   };
   useEffect(() => {

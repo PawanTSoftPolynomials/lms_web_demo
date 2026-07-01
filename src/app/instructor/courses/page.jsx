@@ -1,120 +1,90 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-
 import Card from "@/components/ui/Card";
 import Loader from "@/components/common/Loader";
-import StatusBadge from "@/components/courses/StatusBadge";
-
-import { getCourses } from "@/services/course.service";
+import CourseCard from "@/components/home/CourseCard";
+import Link from "next/link";
+import {useInstructorCourses} from "@/hooks/queries/instructor/useInstructorCourses";
 
 export default function InstructorCoursesPage() {
-  const router = useRouter();
+    const {
+        data: courses = [], isLoading, isError,
+    } = useInstructorCourses();
 
-  const [courses, setCourses] = useState([]);
+    if (isLoading) {
+        return (<div className="flex justify-center py-20">
+                <Loader/>
+            </div>);
+    }
 
-  const [loading, setLoading] = useState(true);
+    if (isError) {
+        return (<Card>
+                <div className="py-16 text-center">
+                    <h2 className="text-2xl font-semibold">
+                        Failed to Load Courses
+                    </h2>
 
-  useEffect(() => {
-    const loadCourses = async () => {
-      try {
-        const response = await getCourses();
+                    <p className="mt-2 text-slate-400">
+                        Please try again later.
+                    </p>
+                </div>
+            </Card>);
+    }
 
-        setCourses(response);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!courses.length) {
+        return (<Card>
+                <div className="py-16 text-center">
+                    <h2 className="text-2xl font-semibold">
+                        No Courses Found
+                    </h2>
 
-    loadCourses();
-  }, []);
+                    <p className="mt-2 text-slate-400">
+                        Create your first course.
+                    </p>
+                </div>
+            </Card>);
+    }
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <Loader />
-      </div>
-    );
-  }
-
-  if (!courses.length) {
-    return (
-      <Card>
-        <div className="py-16 text-center">
-          <h2 className="text-2xl font-semibold">No Courses Found</h2>
-
-          <p className="text-slate-400 mt-2">Create your first course.</p>
-        </div>
-      </Card>
-    );
-  }
-
-  return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold text-white">My Courses</h1>
-
-        <p className="text-slate-400 mt-2">Manage your courses and content.</p>
-      </div>
-
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {courses.map((course) => (
-          <Card
-            key={course.id}
-            className="
-        flex
-        flex-col
-        hover:border-orange-500
-        transition
-      "
-          >
-            <div className="flex flex-col h-full">
-              <div className="flex-1 space-y-4">
+    return (<div className="space-y-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold">{course.title}</h2>
+                    <h1 className="text-4xl font-bold text-white">
+                        My Courses
+                    </h1>
 
-                  <p className="text-slate-400 mt-2 line-clamp-4">
-                    {course.description}
-                  </p>
+                    <p className="mt-2 text-slate-400">
+                        Manage your courses and content.
+                    </p>
                 </div>
 
-                <div className="space-y-2 text-sm">
-                  <div>
-                    <span className="text-slate-400">Category:</span>{" "}
-                    {course.category}
-                  </div>
-
-                  <div>
-                    <span className="text-slate-400">Level:</span>{" "}
-                    {course.level}
-                  </div>
-                </div>
-
-                <StatusBadge status={course.status} />
-              </div>
-
-              <button
-                onClick={() => router.push(`/instructor/courses/${course.id}`)}
-                className="
-            w-full
-            mt-6
-            bg-orange-500
-            hover:bg-orange-600
+                <Link
+                    href="/instructor/courses/create"
+                    className="
+            inline-flex
+            items-center
+            justify-center
             rounded-lg
+            bg-orange-500
+            px-5
             py-3
             font-medium
+            text-white
             transition
-          "
-              >
-                Manage Course
-              </button>
+            hover:bg-orange-600
+        "
+                >
+                    Create Course
+                </Link>
             </div>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
+
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                {courses.map((course) => (<CourseCard
+                        key={course.id}
+                        course={course}
+                        action={{
+                            label: "Manage Course", href: `/instructor/courses/${course.id}`,
+                        }}
+                    />))}
+            </div>
+        </div>);
 }

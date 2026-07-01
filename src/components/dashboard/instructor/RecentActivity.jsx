@@ -16,7 +16,7 @@ export default function RecentActivity() {
     },
     {
       title: 'Module Added',
-      description: 'A module was created.',
+      description: 'A modules was created.',
       icon: FaLayerGroup,
     },
     {

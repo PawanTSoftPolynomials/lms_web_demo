@@ -36,7 +36,7 @@ export default function RecentActivity({
     {
       id: 4,
       icon: FaCertificate,
-      title: "Certificates module online",
+      title: "Certificates modules online",
       time: "Ready",
       color: "text-purple-400",
     },
