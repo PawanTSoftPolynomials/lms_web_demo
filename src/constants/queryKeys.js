@@ -13,11 +13,13 @@ export const QUERY_KEYS = {
     ADMIN_STUDENTS: "admin-students",
     ADMIN_STUDENT: "admin-students",
     ADMIN_INSTRUCTORS: "admin-instructors",
+    ADMIN_INSTRUCTOR: "admin-instructor",
     ADMIN_COURSES: "admin-courses",
+    ADMIN_COURSE: "admin-course",
     ADMIN_ENROLLMENTS: "admin-enrollments",
+    ADMIN_ENROLLMENT: "admin-enrollment",
     ADMIN_CERTIFICATES: "admin-certificates",
-    ADMIN_PROFILE: "admin-profile",
-
+    PROFILE: "profile",
     // Instructor
     INSTRUCTOR_DASHBOARD: "instructor-dashboard",
     INSTRUCTOR_COURSES: "instructor-courses",

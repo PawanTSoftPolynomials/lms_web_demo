@@ -75,3 +75,4 @@ export const deleteUser = async (
 
   return data;
 };
+

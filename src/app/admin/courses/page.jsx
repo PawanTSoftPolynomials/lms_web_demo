@@ -1,98 +1,180 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-
-import { FaBook, FaCheckCircle, FaClock } from "react-icons/fa";
-
-import CourseTable from "@/components/courses/CourseTable";
-import Loader from "@/components/common/Loader";
-
-import Button from "@/components/ui/Button";
+import {useMemo, useState} from "react";
+import {useRouter} from "next/navigation";
 import PageHeader from "@/components/layouts/PageHeader";
-import DashboardStatCard from "@/components/dashboard/common/DashboardStatCard";
+import Card from "@/components/ui/Card";
+import Loader from "@/components/common/Loader";
+import CourseStats from "@/components/admin/courses/CourseStats";
+import CourseToolbar from "@/components/admin/courses/CourseToolbar";
+import CourseTable from "@/components/admin/courses/CourseTable";
 
-import { getCourses, deleteCourse } from "@/services/course.service";
+import {
+    useCourses,
+    useDeleteCourse,
+} from "@/hooks/queries/admin/useCourses";
+import Button from "@/components/ui/Button";
 
-export default function CoursesPage() {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function AdminCoursesPage() {
+    const router = useRouter();
 
-  const loadCourses = async () => {
-    try {
-      const response = await getCourses();
-      setCourses(response);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+    const {
+        data: courses = [],
+        isLoading,
+        isError,
+        refetch,
+    } = useCourses();
+
+    const deleteCourseMutation =
+        useDeleteCourse();
+
+    const [search, setSearch] =
+        useState("");
+
+    const [status, setStatus] =
+        useState("");
+
+    const [level, setLevel] =
+        useState("");
+
+    const filteredCourses =
+        useMemo(() => {
+            return courses.filter(
+                (course) => {
+                    const matchesSearch =
+                        course.title
+                            .toLowerCase()
+                            .includes(
+                                search.toLowerCase()
+                            ) ||
+                        course.category
+                            .toLowerCase()
+                            .includes(
+                                search.toLowerCase()
+                            ) ||
+                        course.creator?.name
+                            ?.toLowerCase()
+                            .includes(
+                                search.toLowerCase()
+                            );
+
+                    const matchesStatus =
+                        !status ||
+                        course.status ===
+                        status;
+
+                    const matchesLevel =
+                        !level ||
+                        course.level ===
+                        level;
+
+                    return (
+                        matchesSearch &&
+                        matchesStatus &&
+                        matchesLevel
+                    );
+                }
+            );
+        }, [
+            courses,
+            search,
+            status,
+            level,
+        ]);
+
+    const handleDelete =
+        async (course) => {
+            const confirmed =
+                window.confirm(
+                    `Delete "${course.title}"?`
+                );
+
+            if (!confirmed) return;
+
+            try {
+                await deleteCourseMutation.mutateAsync(
+                    course.id
+                );
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-24">
+                <Loader/>
+            </div>
+        );
     }
-  };
 
-  useEffect(() => {
-    loadCourses();
-  }, []);
-
-  const handleDelete = async (courseId) => {
-    const confirmed = confirm("Delete this course?");
-
-    if (!confirmed) return;
-
-    try {
-      await deleteCourse(courseId);
-
-      setCourses((prev) => prev.filter((course) => course.id !== courseId));
-    } catch (error) {
-      console.error(error);
+    if (isError) {
+        return (
+            <div className="py-24 text-center text-red-500">
+                Failed to load courses.
+            </div>
+        );
     }
-  };
 
-  if (loading) {
     return (
-      <div className="flex justify-center py-20">
-        <Loader />
-      </div>
+        <div className="space-y-8">
+            <PageHeader
+                title="Courses"
+                subtitle="Manage all courses."
+            >
+                <Button
+                    onClick={() =>
+                        router.push("/admin/courses/create")
+                    }
+                >
+                    Create Course
+                </Button>
+            </PageHeader>
+
+            <CourseStats
+                courses={courses}
+            />
+
+            <Card>
+                <CourseToolbar
+                    search={search}
+                    onSearchChange={
+                        setSearch
+                    }
+                    status={status}
+                    onStatusChange={
+                        setStatus
+                    }
+                    level={level}
+                    onLevelChange={
+                        setLevel
+                    }
+                    onRefresh={refetch}
+                />
+
+                <CourseTable
+                    courses={
+                        filteredCourses
+                    }
+                    onView={(
+                        course
+                    ) =>
+                        router.push(
+                            `/admin/courses/${course.id}`
+                        )
+                    }
+                    onEdit={(
+                        course
+                    ) =>
+                        router.push(
+                            `/admin/courses/edit/${course.id}`
+                        )
+                    }
+                    onDelete={
+                        handleDelete
+                    }
+                />
+            </Card>
+        </div>
     );
-  }
-
-  const published = courses.filter(
-    (course) => course.status === "PUBLISHED",
-  ).length;
-
-  const draft = courses.filter((course) => course.status === "DRAFT").length;
-
-  return (
-    <div className="space-y-6">
-      <PageHeader title="Courses" subtitle="Manage all platform courses">
-        <Link href="/admin/courses/create" className="w-full sm:w-auto">
-          <Button className="w-full sm:w-auto">Create Course</Button>
-        </Link>
-      </PageHeader>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <DashboardStatCard
-          title="Total Courses"
-          value={courses.length}
-          icon={<FaBook />}
-          href="/admin/courses"
-        />
-
-        <DashboardStatCard
-          title="Published"
-          value={published}
-          icon={<FaCheckCircle />}
-          href="/admin/courses"
-        />
-
-        <DashboardStatCard
-          title="Draft"
-          value={draft}
-          icon={<FaClock />}
-          href="/admin/courses"
-        />
-      </div>
-
-      <CourseTable courses={courses} onDelete={handleDelete} />
-    </div>
-  );
 }

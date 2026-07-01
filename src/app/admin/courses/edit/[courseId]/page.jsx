@@ -1,256 +1,76 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-
-import {
-  useParams,
-  useRouter,
-} from "next/navigation";
-
-import {
-  getCourseById,
-  updateCourse,
-} from "@/services/course.service";
+import {useRouter, useParams} from "next/navigation";
 
 import Loader from "@/components/common/Loader";
-import Card from "@/components/ui/Card";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
 import PageHeader from "@/components/layouts/PageHeader";
+import CourseForm from "@/components/admin/courses/CourseForm";
 
-export default function EditCourse() {
-  const { courseId } =
-    useParams();
+import {
+    useCourse,
+    useUpdateCourse,
+} from "@/hooks/queries/admin/useCourses";
 
-  const router =
-    useRouter();
+export default function EditCoursePage() {
+    const router = useRouter();
+    const {courseId} = useParams();
 
-  const [loading, setLoading] =
-    useState(true);
+    const {
+        data: course,
+        isLoading,
+        isError,
+    } = useCourse(courseId);
 
-  const [saving, setSaving] =
-    useState(false);
+    const updateCourseMutation =
+        useUpdateCourse();
 
-  const [formData, setFormData] =
-    useState({
-      title: "",
-      description: "",
-      category: "",
-      level: "",
-      thumbnailUrl: "",
-    });
-
-  useEffect(() => {
-    const loadCourse =
-      async () => {
+    const handleSubmit = async (
+        courseData
+    ) => {
         try {
-          const response =
-            await getCourseById(
-              courseId
+            await updateCourseMutation.mutateAsync({
+                courseId,
+                courseData,
+            });
+
+            router.push(
+                "/admin/courses"
             );
-
-          setFormData({
-            title:
-              response.title || "",
-            description:
-              response.description ||
-              "",
-            category:
-              response.category || "",
-            level:
-              response.level || "",
-            thumbnailUrl:
-              response.thumbnailUrl ||
-              "",
-          });
         } catch (error) {
-          console.error(error);
-        } finally {
-          setLoading(false);
+            console.error(error);
         }
-      };
-
-    if (courseId) {
-      loadCourse();
-    }
-  }, [courseId]);
-
-  const handleChange = (
-    e
-  ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]:
-        e.target.value,
-    });
-  };
-
-  const handleSubmit =
-    async (e) => {
-      e.preventDefault();
-
-      try {
-        setSaving(true);
-
-        await updateCourse(
-          courseId,
-          formData
-        );
-
-        router.push(
-          "/admin/courses"
-        );
-      } catch (error) {
-        console.error(error);
-
-        alert(
-          "Failed to update course"
-        );
-      } finally {
-        setSaving(false);
-      }
     };
 
-  if (loading) {
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-24">
+                <Loader/>
+            </div>
+        );
+    }
+
+    if (isError || !course) {
+        return (
+            <div className="py-24 text-center text-red-500">
+                Failed to load course.
+            </div>
+        );
+    }
+
     return (
-      <div className="flex justify-center py-20">
-        <Loader />
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Edit Course"
-        subtitle="Update course information"
-      />
-
-      <Card>
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-5"
-        >
-          <Input
-            label="Title"
-            name="title"
-            value={
-              formData.title
-            }
-            onChange={
-              handleChange
-            }
-          />
-
-          <div>
-            <label className="block mb-2 text-sm font-medium">
-              Description
-            </label>
-
-            <textarea
-              name="description"
-              value={
-                formData.description
-              }
-              onChange={
-                handleChange
-              }
-              rows={4}
-              className="
-                w-full
-                p-3
-                rounded-lg
-                bg-slate-800
-                border
-                border-slate-700
-                text-white
-                focus:outline-none
-                focus:ring-2
-                focus:ring-orange-500
-              "
+        <div className="space-y-8">
+            <PageHeader
+                title="Edit Course"
+                subtitle="Update course information."
             />
-          </div>
 
-          <Input
-            label="Category"
-            name="category"
-            value={
-              formData.category
-            }
-            onChange={
-              handleChange
-            }
-          />
-
-          <div>
-            <label className="block mb-2 text-sm font-medium">
-              Level
-            </label>
-
-            <select
-              name="level"
-              value={
-                formData.level
-              }
-              onChange={
-                handleChange
-              }
-              className="
-                w-full
-                p-3
-                rounded-lg
-                bg-slate-800
-                border
-                border-slate-700
-                text-white
-                focus:outline-none
-                focus:ring-2
-                focus:ring-orange-500
-              "
-            >
-              <option value="">
-                Select Level
-              </option>
-
-              <option value="Beginner">
-                Beginner
-              </option>
-
-              <option value="Intermediate">
-                Intermediate
-              </option>
-
-              <option value="Advanced">
-                Advanced
-              </option>
-            </select>
-          </div>
-
-          <Input
-            label="Thumbnail URL"
-            name="thumbnailUrl"
-            value={
-              formData.thumbnailUrl
-            }
-            onChange={
-              handleChange
-            }
-          />
-
-          <Button
-            type="submit"
-            disabled={saving}
-            className="w-full"
-          >
-            {saving
-              ? "Updating..."
-              : "Update Course"}
-          </Button>
-        </form>
-      </Card>
-    </div>
-  );
+            <CourseForm
+                initialValues={course}
+                onSubmit={handleSubmit}
+                isSubmitting={
+                    updateCourseMutation.isPending
+                }
+            />
+        </div>
+    );
 }

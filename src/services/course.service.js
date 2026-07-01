@@ -1,47 +1,80 @@
 import api from "@/lib/axios";
 
-/* ---------------- Get All Courses ---------------- */
-
+/**
+ * Get All Courses
+ */
 export const getCourses = async () => {
-  const response = await api.get("/courses");
-  return response.data.data;
+    const {data} = await api.get("/courses");
+
+    return data.data;
 };
 
-/* ---------------- Get Course By ID ---------------- */
+/**
+ * Get Course By ID
+ */
+export const getCourseById = async (
+    courseId
+) => {
+    const {data} = await api.get(
+        `/courses/${courseId}`
+    );
 
-export const getCourseById = async (courseId) => {
-  const response = await api.get(`/courses/${courseId}`);
-  return response.data;
+    return data;
 };
 
-/* ---------------- Create Course ---------------- */
+/**
+ * Create Course
+ */
+export const createCourse = async (
+    courseData
+) => {
+    const {data} = await api.post(
+        "/courses",
+        courseData
+    );
 
-export const createCourse = async (data) => {
-  const response = await api.post("/courses", data);
-  return response.data.data;
+    return data;
 };
 
-/* ---------------- Update Course ---------------- */
+/**
+ * Update Course
+ */
+export const updateCourse = async (
+    courseId,
+    courseData
+) => {
+    const {data} = await api.put(
+        `/courses/${courseId}`,
+        courseData
+    );
 
-export const updateCourse = async (courseId, data) => {
-  const response = await api.put(`/courses/${courseId}`, data);
-  return response.data.data;
+    return data;
 };
 
-/* ---------------- Delete Course ---------------- */
+/**
+ * Delete Course
+ */
+export const deleteCourse = async (
+    courseId
+) => {
+    const {data} = await api.delete(
+        `/courses/${courseId}`
+    );
 
-export const deleteCourse = async (courseId) => {
-  const response = await api.delete(`/courses/${courseId}`);
-  return response.data.data;
+    return data;
 };
 
-/* ---------------- Update Course Status ---------------- */
+/**
+ * Update Course Status
+ */
+export const updateCourseStatus = async (
+    courseId,
+    status
+) => {
+    const {data} = await api.patch(
+        `/courses/${courseId}/status`,
+        {status}
+    );
 
-export const updateCourseStatus = async (courseId, status) => {
-  const response = await api.patch(
-    `/courses/${courseId}/status`,
-    { status }
-  );
-
-  return response.data.data;
+    return data;
 };

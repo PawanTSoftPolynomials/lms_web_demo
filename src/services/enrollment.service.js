@@ -1,86 +1,93 @@
 import api from "@/lib/axios";
 
-export const enrollCourse =
-  async (courseId) => {
-    const response =
-      await api.post(
-        "/enrollments",
-        {
-          courseId,
-        }
-      );
+/**
+ * Enroll Course
+ */
+export const enrollCourse = async (
+    courseId
+) => {
+  const { data } = await api.post(
+      "/enrollments",
+      {
+        courseId,
+      }
+  );
 
-    return response.data;
-  };
+  return data;
+};
 
-export const getEnrollments =
-  async (
+/**
+ * Get All Enrollments
+ */
+export const getEnrollments = async (
     userId,
     courseId
-  ) => {
-    let url =
-      "/enrollments";
+) => {
+  let url = "/enrollments";
 
-    const params =
+  const params =
       new URLSearchParams();
 
-    if (userId) {
-      params.append(
+  if (userId) {
+    params.append(
         "userId",
         userId
-      );
-    }
+    );
+  }
 
-    if (courseId) {
-      params.append(
+  if (courseId) {
+    params.append(
         "courseId",
         courseId
-      );
-    }
+    );
+  }
 
-    if (
-      params.toString()
-    ) {
-      url +=
-        `?${params.toString()}`;
-    }
+  if (params.toString()) {
+    url += `?${params.toString()}`;
+  }
 
-    const response =
-      await api.get(url);
+  const { data } = await api.get(
+      url
+  );
 
-    return response.data.data;
-  };
+  return data.data;
+};
 
+/**
+ * Get My Enrollments
+ */
 export const getMyEnrollments =
-  async (userId) => {
-    const response =
-      await api.get(
-        `/enrollments?userId=${userId}`
-      );
+    async (userId) => {
+      const { data } =
+          await api.get(
+              `/enrollments?userId=${userId}`
+          );
 
-    return response.data.data;
-  };
+      return data.data;
+    };
 
+/**
+ * Unenroll Course
+ */
 export const unenrollCourse =
-  async (
-    enrollmentId
-  ) => {
-    const response =
-      await api.delete(
-        `/enrollments/${enrollmentId}`
-      );
+    async (enrollmentId) => {
+      const { data } =
+          await api.delete(
+              `/enrollments/${enrollmentId}`
+          );
 
-    return response.data;
-  };
+      return data;
+    };
 
+/**
+ * Delete Enrollment
+ */
 export const deleteEnrollment =
-  async (
-    enrollmentId
-  ) => {
-    const response =
-      await api.delete(
-        `/enrollments/${enrollmentId}`
-      );
+    async (enrollmentId) => {
+      const { data } =
+          await api.delete(
+              `/enrollments/${enrollmentId}`
+          );
 
-    return response.data;
-  };
+      return data;
+    };

@@ -1,173 +1,146 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import {
-  FaChalkboardTeacher,
-  FaUserCheck,
-  FaUserClock,
-  FaEnvelope,
-} from "react-icons/fa";
-
-import DashboardStatCard from "@/components/dashboard/common/DashboardStatCard";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
-import Input from "@/components/ui/Input";
 import Loader from "@/components/common/Loader";
-import Button from "@/components/ui/Button";
 
-import { getUsers } from "@/services/user.service";
+import InstructorStats from "@/components/admin/instructors/InstructorStats";
+import InstructorToolbar from "@/components/admin/instructors/InstructorToolbar";
+import InstructorTable from "@/components/admin/instructors/InstructorTable";
 
-export default function InstructorsPage() {
-  const [instructors, setInstructors] =
-    useState([]);
+import { useInstructors } from "@/hooks/queries/admin/useInstructors";
 
-  const [loading, setLoading] =
-    useState(true);
+export default function AdminInstructorsPage() {
+    const router = useRouter();
 
-  const [search, setSearch] =
-    useState("");
+    const {
+        data: instructors = [],
+        isLoading,
+        isError,
+        refetch,
+    } = useInstructors();
 
-  const loadInstructors =
-    async () => {
-      try {
-        setLoading(true);
+    const [search, setSearch] =
+        useState("");
 
-        const users =
-          await getUsers();
+    const [status, setStatus] =
+        useState("");
 
-        setInstructors(
-          users.filter(
-            (user) =>
-              user.role ===
-              "INSTRUCTOR"
-          )
+    const filteredInstructors =
+        useMemo(() => {
+            return instructors.filter(
+                (instructor) => {
+                    const matchesSearch =
+                        instructor.user.name
+                            .toLowerCase()
+                            .includes(
+                                search.toLowerCase()
+                            ) ||
+                        instructor.user.email
+                            .toLowerCase()
+                            .includes(
+                                search.toLowerCase()
+                            ) ||
+                        instructor.specialization
+                            ?.toLowerCase()
+                            .includes(
+                                search.toLowerCase()
+                            ) ||
+                        instructor.qualification
+                            ?.toLowerCase()
+                            .includes(
+                                search.toLowerCase()
+                            );
+
+                    const matchesStatus =
+                        !status ||
+                        instructor.user.status ===
+                        status;
+
+                    return (
+                        matchesSearch &&
+                        matchesStatus
+                    );
+                }
+            );
+        }, [
+            instructors,
+            search,
+            status,
+        ]);
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-24">
+                <Loader />
+            </div>
         );
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    }
 
-  useEffect(() => {
-    loadInstructors();
-  }, []);
+    if (isError) {
+        return (
+            <div className="py-24 text-center text-red-500">
+                Failed to load instructors.
+            </div>
+        );
+    }
 
-  const filteredInstructors =
-    useMemo(() => {
-      return instructors.filter(
-        (instructor) =>
-          `${instructor.name} ${instructor.email}`
-            .toLowerCase()
-            .includes(
-              search.toLowerCase()
-            )
-      );
-    }, [instructors, search]);
-
-  if (loading) {
     return (
-      <div className="flex justify-center py-20">
-        <Loader />
-      </div>
-    );
-  }
+        <div className="space-y-8">
+            <PageHeader
+                title="Instructors"
+                subtitle="Manage all instructors."
+            />
 
-  return (
-    <div className="space-y-6">
+            <InstructorStats
+                instructors={instructors}
+            />
 
-      <PageHeader
-        title="Instructors"
-        subtitle="Manage all instructors"
-      />
+            <Card>
+                <InstructorToolbar
+                    search={search}
+                    onSearchChange={
+                        setSearch
+                    }
+                    status={status}
+                    onStatusChange={
+                        setStatus
+                    }
+                    onRefresh={refetch}
+                />
 
-      <Card>
-
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-
-          <Input
-            placeholder="Search instructors..."
-            value={search}
-            onChange={(e) =>
-              setSearch(
-                e.target.value
-              )
-            }
-            className="md:max-w-sm"
-          />
-
-          <div className="text-sm text-slate-400">
-            Total Instructors
-            <span className="ml-2 font-semibold text-white">
-              {
-                filteredInstructors.length
-              }
-            </span>
-          </div>
-
+                <InstructorTable
+                    instructors={
+                        filteredInstructors
+                    }
+                    onView={(
+                        instructor
+                    ) =>
+                        router.push(
+                            `/admin/instructors/${instructor.id}`
+                        )
+                    }
+                    onEdit={(
+                        instructor
+                    ) =>
+                        console.log(
+                            "Edit Instructor:",
+                            instructor
+                        )
+                    }
+                    onDelete={(
+                        instructor
+                    ) =>
+                        console.log(
+                            "Delete Instructor:",
+                            instructor
+                        )
+                    }
+                />
+            </Card>
         </div>
-
-        {filteredInstructors.length ===
-        0 ? (
-
-          <div className="py-12 text-center text-slate-400">
-            No instructors found.
-          </div>
-
-        ) : (
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-
-            {filteredInstructors.map(
-              (
-                instructor
-              ) => (
-
-                <Card
-                  key={
-                    instructor.id
-                  }
-                  hover
-                  className="border border-slate-800"
-                >
-
-                  <h2 className="text-xl font-semibold">
-                    {
-                      instructor.name
-                    }
-                  </h2>
-
-                  <p className="mt-2 text-slate-400">
-                    {
-                      instructor.email
-                    }
-                  </p>
-
-                  <div className="mt-6">
-
-                    <Link
-                      href={`/admin/users/${instructor.id}`}
-                    >
-                      <Button size="sm">
-                        View Profile
-                      </Button>
-                    </Link>
-
-                  </div>
-
-                </Card>
-
-              )
-            )}
-
-          </div>
-
-        )}
-
-      </Card>
-
-    </div>
-  );
+    );
 }
