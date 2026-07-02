@@ -1,80 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import {useParams, useRouter} from "next/navigation";
 
-import { useParams, useRouter } from "next/navigation";
+import Loader from "@/components/common/Loader";
+import ContentForm from "@/components/instructor/contents/ContentForm";
 
-import { createContent } from "@/services/content.service";
+import {useContents} from "@/hooks/queries/instructor/useContents";
+import {useCreateContent} from "@/hooks/queries/instructor/useCreateContent";
 
-import ContentForm from "@/components/contents/ContentForm";
+export default function CreateContentPage() {
+    const {lessonId} = useParams();
 
-export default function CreateContent() {
-  const { lessonId } = useParams();
+    const router = useRouter();
 
-  const router = useRouter();
+    const createContentMutation =
+        useCreateContent();
 
-  const [loading, setLoading] = useState(false);
+    const {
+        data: contents = [],
+        isLoading,
+    } = useContents(lessonId);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    type: "VIDEO",
-    videoUrl: "",
-    fileUrl: "",
-    htmlContent: "",
-    externalUrl: "",
-    duration: "",
-    order: 1,
-  });
+    const handleSubmit = async (
+        values
+    ) => {
+        const nextOrder =
+            contents.length > 0
+                ? Math.max(
+                ...contents.map(
+                    (content) =>
+                        content.order || 0
+                )
+            ) + 1
+                : 1;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+        try {
+            await createContentMutation.mutateAsync({
+                ...values,
+                lessonId,
+                order: nextOrder,
 
-    setLoading(true);
+                ...(values.type ===
+                    "VIDEO" && {
+                        duration: Number(
+                            values.duration || 0
+                        ),
+                    }),
+            });
 
-    try {
-      const data = {
-        title: formData.title,
-        type: formData.type,
-        order: Number(formData.order),
-        lessonId,
-      };
+            router.push(
+                `/instructor/lessons/${lessonId}`
+            );
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
-      if (formData.type === "VIDEO") {
-        data.videoUrl = formData.videoUrl;
-
-        data.duration = Number(formData.duration);
-      }
-
-      if (formData.type === "DOCUMENT") {
-        data.fileUrl = formData.fileUrl;
-      }
-
-      if (formData.type === "TEXT") {
-        data.htmlContent = formData.htmlContent;
-      }
-
-      if (formData.type === "LINK") {
-        data.externalUrl = formData.externalUrl;
-      }
-
-      await createContent(data);
-
-      router.push(`/instructor/contents/${lessonId}`);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-20">
+                <Loader/>
+            </div>
+        );
     }
-  };
 
-  return (
-    <ContentForm
-      title="Create Content"
-      buttonText="Create Content"
-      formData={formData}
-      setFormData={setFormData}
-      onSubmit={handleSubmit}
-      loading={loading}
-    />
-  );
+    return (
+        <ContentForm
+            mode="create"
+            loading={
+                createContentMutation.isPending
+            }
+            onSubmit={handleSubmit}
+        />
+    );
 }

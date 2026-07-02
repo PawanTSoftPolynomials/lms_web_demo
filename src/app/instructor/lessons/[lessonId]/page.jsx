@@ -1,208 +1,215 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-
-import { getLessonById, deleteLesson } from "@/services/lesson.service";
-
-import { getContents } from "@/services/content.service";
+import {useParams, useRouter} from "next/navigation";
 
 import Loader from "@/components/common/Loader";
+import Card from "@/components/ui/Card";
+
+import LessonHeader from "@/components/instructor/lessons/LessonHeader";
+
+import {useLesson} from "@/hooks/queries/instructor/useLesson";
+import {useDeleteLesson} from "@/hooks/queries/instructor/useDeleteLesson";
+
+import {useContents} from "@/hooks/queries/instructor/useContents";
+
 import ActionMenu from "@/components/menus/ActionMenu";
 
 export default function LessonDetailsPage() {
-  const { lessonId } = useParams();
+    const {lessonId} = useParams();
 
-  const router = useRouter();
+    const router = useRouter();
 
-  const [lesson, setLesson] = useState(null);
+    const {
+        data: lesson,
+        isLoading: lessonLoading,
+        isError: lessonError,
+    } = useLesson(lessonId);
 
-  const [contents, setContents] = useState([]);
+    const {
+        data: contents = [],
+        isLoading: contentLoading,
+        isError: contentError,
+    } = useContents(lessonId);
 
-  const [loading, setLoading] = useState(true);
+    const deleteLessonMutation =
+        useDeleteLesson();
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const lessonResponse = await getLessonById(lessonId);
+    const handleDelete = async () => {
+        if (!confirm("Delete this lesson?")) {
+            return;
+        }
 
-        setLesson(lessonResponse);
+        try {
+            await deleteLessonMutation.mutateAsync({
+                lessonId,
+                moduleId: lesson.moduleId,
+            });
 
-        const contentResponse = await getContents(lessonId);
-
-        setContents(contentResponse);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
+            router.push(
+                `/instructor/modules/${lesson.moduleId}`
+            );
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-    if (lessonId) {
-      loadData();
-    }
-  }, [lessonId]);
-
-  const handleDelete = async () => {
-    if (!confirm("Delete this lesson?")) {
-      return;
+    if (lessonLoading || contentLoading) {
+        return (
+            <div className="flex justify-center py-20">
+                <Loader/>
+            </div>
+        );
     }
 
-    try {
-      await deleteLesson(lessonId);
+    if (
+        lessonError ||
+        contentError ||
+        !lesson
+    ) {
+        return (
+            <Card>
+                <div className="py-16 text-center">
+                    <h2 className="text-2xl font-semibold">
+                        Failed to load lesson
+                    </h2>
 
-      router.back();
-    } catch (error) {
-      console.error(error);
+                    <p className="mt-2 text-slate-400">
+                        Please try again later.
+                    </p>
+                </div>
+            </Card>
+        );
     }
-  };
 
-  if (loading) {
     return (
-      <div className="flex justify-center py-20">
-        <Loader />
-      </div>
-    );
-  }
+        <div className="space-y-8">
+            <LessonHeader lesson={lesson}/>
 
-  return (
-    <div className="space-y-8">
-      {/* Lesson Card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-4xl font-bold text-white mb-4">
-              {lesson.title}
-            </h1>
-
-            <p className="text-slate-400">{lesson.description}</p>
-          </div>
-
-          <ActionMenu
-            items={[
-              {
-                label: "Edit",
-                onClick: () =>
-                  router.push(`/instructor/lessons/edit/${lesson.id}`),
-              },
-              {
-                label: "Delete",
-                onClick: handleDelete,
-              },
-            ]}
-          />
-        </div>
-      </div>
-
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold text-white">Contents</h2>
-
-          <p className="text-slate-400">Manage lesson contents.</p>
-        </div>
-
-        <Link
-          href={`/instructor/contents/create/${lessonId}`}
-          className="
-            bg-orange-600
-            hover:bg-orange-700
-            px-5
-            py-3
-            rounded-xl
-            text-white
-          "
-        >
-          Add Content
-        </Link>
-      </div>
-      {/* Content List */}
-      {contents.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center">
-          <h3 className="text-xl text-white mb-2">No Contents Found</h3>
-
-          <p className="text-slate-400">Add your first content.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {contents.map((content) => (
-            <div
-              key={content.id}
-              className="
-    bg-slate-900
-    border
-    border-slate-800
-    rounded-2xl
-    p-5
-    flex
-    flex-col
-    justify-between
-    min-h-[120px]
-    hover:border-orange-500
-    transition
-  "
-            >
-              <div className="flex justify-between items-start">
+            <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold text-white">
-                    {content.title}
-                  </h3>
+                    <h2 className="text-3xl font-bold">
+                        Contents
+                    </h2>
 
-                  <span
-                    className="
-          inline-block
-          mt-2
-          px-3
-          py-1
-          rounded-full
-          text-sm
-          bg-orange-500/20
-          text-orange-400
-        "
-                  >
-                    {content.type}
-                  </span>
+                    <p className="mt-1 text-slate-400">
+                        Manage lesson contents.
+                    </p>
                 </div>
 
-                <ActionMenu
-                  items={[
-                    {
-                      label: "Edit",
-                      onClick: () =>
-                        router.push(`/instructor/contents/edit/${content.id}`),
-                    },
-                    {
-                      label: "Delete",
-                      onClick: () => console.log("Delete content"),
-                    },
-                  ]}
-                />
-              </div>
-
-              <div className="mt-4">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    router.push(`/instructor/contents/${content.id}`);
-                  }}
-                  className="
-        bg-orange-500
-        hover:bg-orange-600
-        px-4
-        py-2
-        rounded-lg
-        text-sm
-        transition
-      "
+                <Link
+                    href={`/instructor/contents/create/${lessonId}`}
+                    className="
+            rounded-xl
+            bg-orange-600
+            px-5
+            py-3
+            text-white
+            transition
+            hover:bg-orange-700
+          "
                 >
-                  View
-                </button>
-              </div>
+                    Add Content
+                </Link>
             </div>
-          ))}
+
+            {!contents.length ? (
+                <Card>
+                    <div className="py-16 text-center">
+                        <h3 className="text-2xl font-semibold">
+                            No Contents Found
+                        </h3>
+
+                        <p className="mt-2 text-slate-400">
+                            Add your first content.
+                        </p>
+                    </div>
+                </Card>
+            ) : (
+                <div className="grid gap-5 lg:grid-cols-2">
+                    {contents.map((content) => (
+                        <Card
+                            key={content.id}
+                            className="
+          transition
+          hover:border-orange-500
+        "
+                        >
+                            <div className="flex flex-col gap-5">
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <h3 className="text-xl font-semibold">
+                                            {content.title}
+                                        </h3>
+
+                                        <span
+                                            className="
+                  mt-3
+                  inline-block
+                  rounded-full
+                  bg-orange-500/15
+                  px-3
+                  py-1
+                  text-sm
+                  text-orange-400
+                "
+                                        >
+                {content.type}
+              </span>
+                                    </div>
+
+                                    <ActionMenu
+                                        items={[
+                                            {
+                                                label: "View",
+                                                onClick: () =>
+                                                    router.push(
+                                                        `/instructor/contents/view/${content.id}`
+                                                    ),
+                                            },
+                                            {
+                                                label: "Edit",
+                                                onClick: () =>
+                                                    router.push(
+                                                        `/instructor/contents/edit/${content.id}`
+                                                    ),
+                                            },
+                                            {
+                                                label: "Delete",
+                                                onClick: () =>
+                                                    console.log("Delete Content"),
+                                            },
+                                        ]}
+                                    />
+                                </div>
+
+                                <div className="flex justify-between border-t border-slate-800 pt-4">
+                                    <button
+                                        onClick={() =>
+                                            router.push(
+                                                `/instructor/contents/view/${content.id}`
+                                            )
+                                        }
+                                        className="
+                rounded-lg
+                bg-orange-600
+                px-4
+                py-2
+                text-sm
+                font-medium
+                text-white
+                transition
+                hover:bg-orange-700
+              "
+                                    >
+                                        View Content
+                                    </button>
+                                </div>
+                            </div>
+                        </Card>
+                    ))}
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 }

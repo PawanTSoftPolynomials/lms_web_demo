@@ -1,102 +1,81 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-import {
-  useParams,
-  useRouter,
-} from "next/navigation";
-
-import QuizForm from "@/components/forms/QuizForm";
-
-import {
-  getQuizById,
-  updateQuiz,
-} from "@/services/quiz.service";
+import { useParams, useRouter } from "next/navigation";
 
 import Loader from "@/components/common/Loader";
+import Card from "@/components/ui/Card";
+
+import QuizForm from "@/components/instructor/quizzes/QuizForm";
+
+import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
+import { useUpdateQuiz } from "@/hooks/queries/instructor/useUpdateQuiz";
 
 export default function EditQuizPage() {
-  const { quizId } =
-    useParams();
+    const { quizId } = useParams();
 
-  const router =
-    useRouter();
+    const router = useRouter();
 
-  const [quiz, setQuiz] =
-    useState(null);
+    const {
+        data: quiz,
+        isLoading,
+        isError,
+    } = useQuiz(quizId);
 
-  const [loading, setLoading] =
-    useState(true);
+    const updateQuizMutation =
+        useUpdateQuiz();
 
-  const [saving, setSaving] =
-    useState(false);
-
-  useEffect(() => {
-    const loadQuiz =
-      async () => {
+    const handleSubmit = async (
+        values
+    ) => {
         try {
-          const response =
-            await getQuizById(
-              quizId
+            await updateQuizMutation.mutateAsync({
+                quizId,
+                quizData: {
+                    ...values,
+                    courseId: quiz.courseId,
+                },
+            });
+
+            router.push(
+                `/instructor/quizzes/view/${quizId}`
             );
-
-          setQuiz(
-            response.data ||
-              response
-          );
         } catch (error) {
-          console.error(error);
-        } finally {
-          setLoading(false);
+            console.error(error);
         }
-      };
-
-    if (quizId) {
-      loadQuiz();
-    }
-  }, [quizId]);
-
-  const handleSubmit =
-    async (data) => {
-      try {
-        setSaving(true);
-
-        await updateQuiz(
-          quizId,
-          data
-        );
-
-        router.back();
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setSaving(false);
-      }
     };
 
-  if (loading) {
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-20">
+                <Loader />
+            </div>
+        );
+    }
+
+    if (isError || !quiz) {
+        return (
+            <Card>
+                <div className="py-16 text-center">
+                    <h2 className="text-2xl font-semibold">
+                        Quiz Not Found
+                    </h2>
+
+                    <p className="mt-2 text-slate-400">
+                        Unable to load the quiz.
+                    </p>
+                </div>
+            </Card>
+        );
+    }
+
     return (
-      <div className="flex justify-center py-20">
-        <Loader />
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-3xl mx-auto">
-      <div className="bg-slate-900 p-10 rounded-2xl">
-        <h1 className="text-4xl font-bold text-white mb-8">
-          Edit Quiz
-        </h1>
-
         <QuizForm
-          initialData={quiz}
-          onSubmit={handleSubmit}
-          submitText="Update Quiz"
-          loading={saving}
+            mode="edit"
+            initialValues={quiz}
+            loading={
+                updateQuizMutation.isPending
+            }
+            onSubmit={handleSubmit}
         />
-      </div>
-    </div>
-  );
+    );
 }

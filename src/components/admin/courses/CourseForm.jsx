@@ -1,12 +1,10 @@
 "use client";
 
-import { useState} from "react";
-
+import {useState} from "react";
+import Image from "next/image";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-
-
 
 
 const getInitialFormData = (values = {}) => ({
@@ -158,12 +156,11 @@ export default function CourseForm({
 
                 {formData.thumbnailUrl && (
                     <div className="overflow-hidden rounded-xl border border-white/10">
-                        <img
-                            src={
-                                formData.thumbnailUrl
-                            }
-                            alt="Thumbnail Preview"
-                            className="h-48 w-full object-cover"
+                        <Image
+                            src={course.thumbnailUrl}
+                            alt={course.title}
+                            fill
+                            className="object-cover"
                         />
                     </div>
                 )}

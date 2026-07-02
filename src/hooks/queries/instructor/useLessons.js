@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getModuleById } from "@/services/module.service";
+import { getLessons } from "@/services/lesson.service";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { defaultQueryOptions } from "@/lib/queryOptions";
 
-export function useModule(moduleId) {
+export function useLessons(moduleId) {
     return useQuery({
-        queryKey: [QUERY_KEYS.MODULE, moduleId],
-        queryFn: () => getModuleById(moduleId),
+        queryKey: [QUERY_KEYS.LESSONS, moduleId],
+        queryFn: () => getLessons(moduleId),
         enabled: !!moduleId,
         ...defaultQueryOptions,
     });

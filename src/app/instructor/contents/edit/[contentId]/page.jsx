@@ -1,128 +1,82 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {useParams, useRouter} from "next/navigation";
 
-import { useParams, useRouter } from "next/navigation";
-
-import { getContentById, updateContent } from "@/services/content.service";
-
-import ContentForm from "@/components/contents/ContentForm";
+import Card from "@/components/ui/Card";
 import Loader from "@/components/common/Loader";
 
+import ContentForm from "@/components/instructor/contents/ContentForm";
+
+import {useContent} from "@/hooks/queries/instructor/useContent";
+import {useUpdateContent} from "@/hooks/queries/instructor/useUpdateContent";
+
 export default function EditContentPage() {
-  const { contentId } = useParams();
+    const {contentId} = useParams();
 
-  const router = useRouter();
+    const router = useRouter();
 
-  const [loading, setLoading] = useState(true);
+    const {
+        data: content,
+        isLoading,
+        isError,
+    } = useContent(contentId);
 
-  const [saving, setSaving] = useState(false);
+    const updateContentMutation =
+        useUpdateContent();
 
-  const [formData, setFormData] = useState({
-    title: "",
-    type: "VIDEO",
-    videoUrl: "",
-    fileUrl: "",
-    htmlContent: "",
-    externalUrl: "",
-    duration: "",
-    order: 1,
-  });
+    const handleSubmit = async (values) => {
+        try {
+            await updateContentMutation.mutateAsync({
+                contentId,
+                contentData: {
+                    ...values,
+                    lessonId: content.lessonId,
+                    order: content.order,
 
-  useEffect(() => {
-    const loadContent = async () => {
-      try {
-        const content = await getContentById(contentId);
+                    ...(values.type === "VIDEO" && {
+                        duration: Number(values.duration || 0),
+                    }),
+                },
+            });
 
-        const data = content.data || content;
-
-        setFormData({
-          title: data.title || "",
-
-          type: data.type || "VIDEO",
-
-          videoUrl: data.videoUrl || "",
-
-          fileUrl: data.fileUrl || "",
-
-          htmlContent: data.htmlContent || "",
-
-          externalUrl: data.externalUrl || "",
-
-          duration: data.duration || "",
-
-          order: data.order || 1,
-        });
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
+            router.push(
+                `/instructor/contents/${contentId}`
+            );
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-    if (contentId) {
-      loadContent();
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-20">
+                <Loader/>
+            </div>
+        );
     }
-  }, [contentId]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (isError || !content) {
+        return (
+            <Card>
+                <div className="py-16 text-center">
+                    <h2 className="text-2xl font-semibold">
+                        Content Not Found
+                    </h2>
 
-    setSaving(true);
-
-    try {
-      const data = {
-        title: formData.title,
-
-        type: formData.type,
-
-        order: Number(formData.order),
-      };
-
-      if (formData.type === "VIDEO") {
-        data.videoUrl = formData.videoUrl;
-
-        data.duration = Number(formData.duration);
-      }
-
-      if (formData.type === "DOCUMENT") {
-        data.fileUrl = formData.fileUrl;
-      }
-
-      if (formData.type === "TEXT") {
-        data.htmlContent = formData.htmlContent;
-      }
-
-      if (formData.type === "LINK") {
-        data.externalUrl = formData.externalUrl;
-      }
-
-      await updateContent(contentId, data);
-
-      router.back();
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setSaving(false);
+                    <p className="mt-2 text-slate-400">
+                        Unable to load content.
+                    </p>
+                </div>
+            </Card>
+        );
     }
-  };
 
-  if (loading) {
     return (
-      <div className="flex justify-center py-20">
-        <Loader />
-      </div>
+        <ContentForm
+            mode="edit"
+            initialValues={content}
+            loading={updateContentMutation.isPending}
+            onSubmit={handleSubmit}
+        />
     );
-  }
-
-  return (
-    <ContentForm
-      title="Edit Content"
-      buttonText="Update Content"
-      formData={formData}
-      setFormData={setFormData}
-      onSubmit={handleSubmit}
-      loading={saving}
-    />
-  );
 }

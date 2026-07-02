@@ -1,100 +1,44 @@
 "use client";
 
-import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 
-import {
-  createModule,
-} from "@/services/module.service";
+import ModuleForm from "@/components/instructor/modules/ModuleForm";
 
-export default function CreateModule() {
-  const { courseId } =
-    useParams();
+import {useCreateModule} from "@/hooks/queries/instructor/useCreateModule";
+import {useModules} from "@/hooks/queries/instructor/useModules";
 
-  const router =
-    useRouter();
+export default function CreateModulePage() {
+    const {courseId} = useParams();
+    const router = useRouter();
 
-  const [formData, setFormData] =
-    useState({
-      title: "",
-      description: "",
-      order: 1,
-    });
+    const createModuleMutation = useCreateModule();
 
-  const handleSubmit =
-    async (e) => {
-      e.preventDefault();
+    const {data: modules = []} = useModules(courseId);
 
-      try {
-        await createModule({
-          ...formData,
-          courseId,
-        });
+    const handleSubmit = async (values) => {
+        const nextOrder =
+            modules.length > 0
+                ? Math.max(...modules.map((m) => m.order), 0) + 1
+                : 1;
 
-        router.push(
-          `/instructor/courses/${courseId}`
-        );
-      } catch (error) {
-        console.error(
-          error
-        );
-      }
+        try {
+            await createModuleMutation.mutateAsync({
+                ...values,
+                courseId,
+                order: nextOrder,
+            });
+
+            router.push(`/instructor/courses/${courseId}`);
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-  return (
-    <div className="max-w-2xl mx-auto bg-slate-900 p-8 rounded-xl">
-      <h1 className="text-3xl text-white font-bold mb-6">
-        Create Module
-      </h1>
-
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4"
-      >
-        <input
-          type="text"
-          placeholder="Module Title"
-          className="w-full p-3 rounded bg-slate-800 text-white"
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              title:
-                e.target.value,
-            })
-          }
+    return (
+        <ModuleForm
+            mode="create"
+            loading={createModuleMutation.isPending}
+            onSubmit={handleSubmit}
         />
-
-        <textarea
-          placeholder="Description"
-          className="w-full p-3 rounded bg-slate-800 text-white"
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              description:
-                e.target.value,
-            })
-          }
-        />
-
-        <input
-          type="number"
-          placeholder="Order"
-          className="w-full p-3 rounded bg-slate-800 text-white"
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              order:
-                Number(
-                  e.target.value
-                ),
-            })
-          }
-        />
-
-        <button className="bg-orange-600 px-6 py-3 rounded text-white">
-          Create Module
-        </button>
-      </form>
-    </div>
-  );
+    );
 }

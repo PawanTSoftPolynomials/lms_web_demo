@@ -1,14 +1,16 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
 
-import { getModuleById } from "@/services/module.service";
+import { getQuizById } from "@/services/quiz.service";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { defaultQueryOptions } from "@/lib/queryOptions";
 
-export function useModule(moduleId) {
+export function useQuiz(quizId) {
     return useQuery({
-        queryKey: [QUERY_KEYS.MODULE, moduleId],
-        queryFn: () => getModuleById(moduleId),
-        enabled: !!moduleId,
+        queryKey: [QUERY_KEYS.QUIZ, quizId],
+        queryFn: () => getQuizById(quizId),
+        enabled: !!quizId,
         ...defaultQueryOptions,
     });
 }

@@ -1,53 +1,58 @@
 "use client";
 
-import { useState } from "react";
-import {
-  useParams,
-  useRouter,
-} from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 
-import LessonForm from "@/components/lessons/LessonForm";
+import Loader from "@/components/common/Loader";
+import LessonForm from "@/components/instructor/lessons/LessonForm";
 
-import {
-  createLesson,
-} from "@/services/lesson.service";
+import {useLessons} from "@/hooks/queries/instructor/useLessons";
+import {useCreateLesson} from "@/hooks/queries/instructor/useCreateLesson";
 
-export default function CreateLesson() {
-  const { moduleId } =
-    useParams();
+export default function CreateLessonPage() {
+    const {moduleId} = useParams();
+    const router = useRouter();
 
-  const router =
-    useRouter();
+    const createLessonMutation = useCreateLesson();
 
-  const [formData,
-    setFormData] =
-    useState({
-      title: "",
-      description: "",
-      order: 1,
-    });
+    const {
+        data: lessons = [],
+        isLoading,
+    } = useLessons(moduleId);
 
-  const handleSubmit =
-    async (e) => {
-      e.preventDefault();
+    const handleSubmit = async (values) => {
+        const nextOrder =
+            lessons.length > 0
+                ? Math.max(...lessons.map((lesson) => lesson.order), 0) + 1
+                : 1;
 
-      await createLesson({
-        ...formData,
-        moduleId,
-      });
+        try {
+            await createLessonMutation.mutateAsync({
+                ...values,
+                moduleId,
+                order: nextOrder,
+            });
 
-      router.push(
-        `/instructor/modules/${moduleId}`
-      );
+            router.push(
+                `/instructor/modules/${moduleId}`
+            );
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-  return (
-    <LessonForm
-      title="Create Lesson"
-      buttonText="Create Lesson"
-      formData={formData}
-      setFormData={setFormData}
-      onSubmit={handleSubmit}
-    />
-  );
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-20">
+                <Loader/>
+            </div>
+        );
+    }
+
+    return (
+        <LessonForm
+            mode="create"
+            loading={createLessonMutation.isPending}
+            onSubmit={handleSubmit}
+        />
+    );
 }

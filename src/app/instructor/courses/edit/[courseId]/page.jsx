@@ -9,11 +9,10 @@ import CourseForm from "@/components/courses/CourseForm";
 import {useInstructorCourse} from "@/hooks/queries/instructor/useInstructorCourse";
 import {useUpdateCourse} from "@/hooks/queries/instructor/useUpdateCourse";
 
-export default function EditCoursePage(){
-    const { courseId } = useParams();
+export default function EditCoursePage() {
+    const {courseId} = useParams();
 
     const router = useRouter();
-
 
     const {
         data: course,
@@ -30,7 +29,10 @@ export default function EditCoursePage(){
         try {
             await updateCourseMutation.mutateAsync({
                 courseId,
-                courseData: values,
+                courseData: {
+                    ...values,
+                    status: values.status,
+                },
             });
 
             router.push(
@@ -68,8 +70,14 @@ export default function EditCoursePage(){
     return (
         <CourseForm
             mode="edit"
-            initialValues={course}
-            loading={updateCourseMutation.isPending}
+            initialValues={{
+                ...course,
+                status:
+                    course.status || "DRAFT",
+            }}
+            loading={
+                updateCourseMutation.isPending
+            }
             onSubmit={handleSubmit}
         />
     );

@@ -1,81 +1,82 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import {useParams, useRouter} from "next/navigation";
 
-import {
-  useParams,
-  useRouter,
-} from "next/navigation";
+import Card from "@/components/ui/Card";
+import Loader from "@/components/common/Loader";
 
-import LessonForm from "@/components/lessons/LessonForm";
+import LessonForm from "@/components/instructor/lessons/LessonForm";
 
-import {
-  getLessonById,
-  updateLesson,
-} from "@/services/lesson.service";
+import {useLesson} from "@/hooks/queries/instructor/useLesson";
+import {useUpdateLesson} from "@/hooks/queries/instructor/useUpdateLesson";
 
-export default function EditLesson() {
-  const { lessonId } =
-    useParams();
+export default function EditLessonPage() {
+    const {lessonId} = useParams();
 
-  const router =
-    useRouter();
+    const router = useRouter();
 
-  const [formData,
-    setFormData] =
-    useState({
-      title: "",
-      description: "",
-      order: 1,
-    });
+    const {
+        data: lesson,
+        isLoading,
+        isError,
+    } = useLesson(lessonId);
 
-  useEffect(() => {
-    const loadLesson =
-      async () => {
-        const lesson =
-          await getLessonById(
-            lessonId
-          );
+    const updateLessonMutation =
+        useUpdateLesson();
 
-        setFormData({
-          title:
-            lesson.title,
-          description:
-            lesson.description,
-          order:
-            lesson.order,
-        });
-      };
+    const handleSubmit = async (
+        values
+    ) => {
+        try {
+            await updateLessonMutation.mutateAsync({
+                lessonId,
+                lessonData: {
+                    ...values,
+                    moduleId: lesson.moduleId,
+                    order: lesson.order,
+                },
+            });
 
-    if (lessonId) {
-      loadLesson();
-    }
-  }, [lessonId]);
-
-  const handleSubmit =
-    async (e) => {
-      e.preventDefault();
-
-      await updateLesson(
-        lessonId,
-        formData
-      );
-
-      router.push(
-        `/instructor/lessons/${lessonId}`
-      );
+            router.push(
+                `/instructor/lessons/${lessonId}`
+            );
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-  return (
-    <LessonForm
-      title="Edit Lesson"
-      buttonText="Update Lesson"
-      formData={formData}
-      setFormData={setFormData}
-      onSubmit={handleSubmit}
-    />
-  );
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-20">
+                <Loader/>
+            </div>
+        );
+    }
+
+    if (isError || !lesson) {
+        return (
+            <Card>
+                <div className="py-16 text-center">
+                    <h2 className="text-2xl font-semibold">
+                        Lesson Not Found
+                    </h2>
+
+                    <p className="mt-2 text-slate-400">
+                        Unable to load lesson.
+                    </p>
+                </div>
+            </Card>
+        );
+    }
+
+    return (
+        <LessonForm
+            mode="edit"
+            initialValues={lesson}
+            loading={
+                updateLessonMutation.isPending
+            }
+            onSubmit={handleSubmit}
+        />
+    );
 }

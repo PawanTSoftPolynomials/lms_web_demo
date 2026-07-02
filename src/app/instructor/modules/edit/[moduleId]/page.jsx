@@ -1,213 +1,63 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import {useParams, useRouter} from "next/navigation";
 
-import {
-  useParams,
-  useRouter,
-} from "next/navigation";
+import Card from "@/components/ui/Card";
+import Loader from "@/components/common/Loader";
 
-import {
-  getModuleById,
-  updateModule,
-} from "@/services/module.service";
+import ModuleForm from "@/components/instructor/modules/ModuleForm";
 
-export default function EditModule() {
-  const { moduleId } =
-    useParams();
+import {useModule} from "@/hooks/queries/instructor/useModule";
+import {useUpdateModule} from "@/hooks/queries/instructor/useUpdateModule";
 
-  const router =
-    useRouter();
+export default function EditModulePage() {
+    const {moduleId} = useParams();
+    const router = useRouter();
 
-  const [title, setTitle] =
-    useState("");
+    const {
+        data: module, isLoading, isError,
+    } = useModule(moduleId);
 
-  const [
-    description,
-    setDescription,
-  ] = useState("");
+    const updateModuleMutation = useUpdateModule();
 
-  const [order, setOrder] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(true);
-
-  useEffect(() => {
-    const loadModule =
-      async () => {
+    const handleSubmit = async (values) => {
         try {
-          const data =
-            await getModuleById(
-              moduleId
-            );
+            await updateModuleMutation.mutateAsync({
+                moduleId, moduleData: {
+                    ...values, courseId: module.courseId, order: module.order,
+                },
+            });
 
-          setTitle(
-            data.title
-          );
-
-          setDescription(
-            data.description
-          );
-
-          setOrder(
-            data.order
-          );
+            router.push(`/instructor/modules/${moduleId}`);
         } catch (error) {
-          console.error(
-            error
-          );
-        } finally {
-          setLoading(
-            false
-          );
+            console.error(error);
         }
-      };
-
-    if (moduleId) {
-      loadModule();
-    }
-  }, [moduleId]);
-
-  const handleSubmit =
-    async (e) => {
-      e.preventDefault();
-
-      try {
-        await updateModule(
-          moduleId,
-          {
-            title,
-            description,
-            order:
-              Number(
-                order
-              ),
-          }
-        );
-
-        router.push(
-          `/instructor/modules/${moduleId}`
-        );
-      } catch (error) {
-        console.error(
-          error
-        );
-      }
     };
 
-  if (loading) {
-    return (
-      <div className="text-white">
-        Loading...
-      </div>
-    );
-  }
+    if (isLoading) {
+        return (<div className="flex justify-center py-20">
+            <Loader/>
+        </div>);
+    }
 
-  return (
-    <div className="max-w-3xl mx-auto">
-      <div className="bg-slate-900 p-8 rounded-xl">
-        <h1 className="text-3xl font-bold text-white mb-6">
-          Edit Module
-        </h1>
+    if (isError || !module) {
+        return (<Card>
+            <div className="py-16 text-center">
+                <h2 className="text-2xl font-semibold">
+                    Module Not Found
+                </h2>
 
-        <form
-          onSubmit={
-            handleSubmit
-          }
-          className="space-y-5"
-        >
-          <div>
-            <label className="text-slate-400">
-              Title
-            </label>
+                <p className="mt-2 text-slate-400">
+                    Unable to load module.
+                </p>
+            </div>
+        </Card>);
+    }
 
-            <input
-              value={title}
-              onChange={(e) =>
-                setTitle(
-                  e.target.value
-                )
-              }
-              className="
-                w-full
-                mt-2
-                p-3
-                rounded-lg
-                bg-slate-800
-                text-white
-              "
-            />
-          </div>
-
-          <div>
-            <label className="text-slate-400">
-              Description
-            </label>
-
-            <textarea
-              rows="4"
-              value={
-                description
-              }
-              onChange={(e) =>
-                setDescription(
-                  e.target.value
-                )
-              }
-              className="
-                w-full
-                mt-2
-                p-3
-                rounded-lg
-                bg-slate-800
-                text-white
-              "
-            />
-          </div>
-
-          <div>
-            <label className="text-slate-400">
-              Order
-            </label>
-
-            <input
-              type="number"
-              value={order}
-              onChange={(e) =>
-                setOrder(
-                  e.target.value
-                )
-              }
-              className="
-                w-full
-                mt-2
-                p-3
-                rounded-lg
-                bg-slate-800
-                text-white
-              "
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="
-              bg-orange-600
-              hover:bg-orange-700
-              px-6
-              py-3
-              rounded-lg
-              text-white
-            "
-          >
-            Update Module
-          </button>
-        </form>
-      </div>
-    </div>
-  );
+    return (<ModuleForm
+        mode="edit"
+        initialValues={module}
+        loading={updateModuleMutation.isPending}
+        onSubmit={handleSubmit}
+    />);
 }

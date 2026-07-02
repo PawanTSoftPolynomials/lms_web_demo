@@ -6,6 +6,10 @@ const nextConfig = {
         remotePatterns: [
             {
                 protocol: "https",
+                hostname: "miro.medium.com",
+            },
+            {
+                protocol: "https",
                 hostname: "www.devprojournal.com",
             },
             {
@@ -14,11 +18,11 @@ const nextConfig = {
             },
             {
                 protocol: "https",
-                hostname: "www.cnet.com",
+                hostname: "wildlearner.com",
             },
             {
                 protocol: "https",
-                hostname: "wildlearner.com",
+                hostname: "www.cnet.com",
             },
         ],
     },
