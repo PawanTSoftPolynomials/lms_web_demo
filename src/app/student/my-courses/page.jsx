@@ -3,9 +3,9 @@
 import PageHeader from "@/components/layouts/PageHeader";
 import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
-import CourseCard from "@/components/students/CourseCard";
+import CourseCard from "@/components/student/courses/CourseCard";
 
-import useDashboard from "@/hooks/queries/students/useDashboard";
+import useDashboard from "@/hooks/queries/student/useDashboard";
 
 export default function MyCoursesPage() {
   const { data, isLoading, isError } = useDashboard();

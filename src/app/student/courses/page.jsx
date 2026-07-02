@@ -1,77 +1,114 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {useMemo, useState} from "react";
 
+import Loader from "@/components/common/Loader";
 import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
-import Input from "@/components/ui/Input";
-import Loader from "@/components/common/Loader";
-import MarketplaceCard from "@/components/students/MarketplaceCard";
 
-import useCourses from "@/hooks/queries/students/useCourses";
-import useEnrollCourse from "@/hooks/queries/students/useEnrollCourse";
+import CourseFilters from "@/components/student/courses/CourseFilters";
+import CourseGrid from "@/components/student/courses/CourseGrid";
+import CourseStats from "@/components/student/courses/CourseStats";
+import CourseToolbar from "@/components/student/courses/CourseToolbar";
 
-export default function CoursesPage() {
-  const [search, setSearch] = useState("");
-  const { data, isLoading, isError } = useCourses();
-  const enrollCourseMutation = useEnrollCourse();
+import useCourses from "@/hooks/queries/student/useCourses";
 
-  const courses = useMemo(() => {
-    const items = Array.isArray(data) ? data : [];
+export default function StudentCoursesPage() {
+    const {data: courses = [], isLoading, isError} = useCourses();
 
-    return items.map((course) => ({
-      id: course.id,
-      title: course.title,
-      instructor: course.creator?.name || course.instructor || "Unknown",
-      category: course.category || "General",
-      level: course.level || "Beginner",
-      enrolled: Boolean(course.enrolled || course.isEnrolled),
-      description: course.description || "",
-    }));
-  }, [data]);
+    const [search, setSearch] = useState("");
+    const [category, setCategory] = useState("");
+    const [level, setLevel] = useState("");
 
-  const filteredCourses = useMemo(() => {
-    return courses.filter((course) =>
-      course.title.toLowerCase().includes(search.toLowerCase())
+    const categories = useMemo(() => {
+        return [...new Set(courses.map((course) => course.category).filter(Boolean))];
+    }, [courses]);
+
+    const levels = useMemo(() => {
+        return [...new Set(courses.map((course) => course.level).filter(Boolean))];
+    }, [courses]);
+    const filteredCourses = useMemo(() => {
+        return courses.filter((course) => {
+            const matchesSearch =
+                course.title
+                    .toLowerCase()
+                    .includes(search.toLowerCase()) ||
+                course.description
+                    .toLowerCase()
+                    .includes(search.toLowerCase());
+
+            const matchesCategory =
+                !category || course.category === category;
+
+            const matchesLevel =
+                !level || course.level === level;
+
+            return (
+                matchesSearch &&
+                matchesCategory &&
+                matchesLevel
+            );
+        });
+    }, [courses, search, category, level]);
+    console.log(filteredCourses);
+
+    const activeFilters = [
+        search,
+        category,
+        level,
+    ].filter(Boolean).length;
+
+    const handleResetFilters = () => {
+        setSearch("");
+        setCategory("");
+        setLevel("");
+    };
+
+    if (isLoading) {
+        return <Loader/>;
+    }
+
+    if (isError) {
+        return (
+            <Card className="p-8 text-center">
+                <h2 className="text-xl font-semibold text-white">
+                    Unable to load courses
+                </h2>
+
+                <p className="mt-2 text-slate-400">
+                    Please try again later.
+                </p>
+            </Card>
+        );
+    }
+
+    return (
+        <div className="space-y-8">
+            <PageHeader
+                title="Browse Courses"
+                subtitle="Discover courses and start learning."
+            />
+
+            <CourseStats courses={courses}/>
+
+            <CourseToolbar
+                totalCourses={filteredCourses.length}
+                activeFilters={activeFilters}
+                onResetFilters={handleResetFilters}
+            />
+
+            <CourseFilters
+                search={search}
+                onSearchChange={setSearch}
+                category={category}
+                onCategoryChange={setCategory}
+                level={level}
+                onLevelChange={setLevel}
+                categories={categories}
+                levels={levels}
+            />
+
+            <CourseGrid courses={filteredCourses}/>
+        </div>
     );
-  }, [courses, search]);
-
-  const handleEnroll = async (courseId) => {
-    enrollCourseMutation.mutate(courseId);
-  };
-
-  if (isLoading) {
-    return <Loader />;
-  }
-
-  if (isError) {
-    return <Card className="text-slate-300">Unable to load courses right now.</Card>;
-  }
-
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="All Courses"
-        subtitle="Explore and enroll in new courses."
-      />
-
-      <div className="max-w-xl">
-        <Input
-          placeholder="Search courses..."
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-      </div>
-
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
-        {filteredCourses.length > 0 ? (
-          filteredCourses.map((course) => (
-            <MarketplaceCard key={course.id} course={course} onEnroll={handleEnroll} />
-          ))
-        ) : (
-          <p className="text-slate-400">No courses found.</p>
-        )}
-      </div>
-    </div>
-  );
 }

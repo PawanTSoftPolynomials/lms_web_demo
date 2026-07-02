@@ -1,54 +1,131 @@
 "use client";
 
+import {
+    BookOpen,
+    GraduationCap,
+    Award,
+    TrendingUp,
+} from "lucide-react";
+
+import Loader from "@/components/common/Loader";
 import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
-import Loader from "@/components/common/Loader";
-import StatCard from "@/components/students/StatCard";
-import CourseCard from "@/components/students/CourseCard";
 
-import useDashboard from "@/hooks/queries/students/useDashboard";
+import StatCard from "@/components/student/dashboard/StatCard";
+import CourseCard from "@/components/student/courses/CourseCard";
 
-export default function StudentDashboard() {
-  const { data, isLoading, isError } = useDashboard();
+import useDashboard from "@/hooks/queries/student/useDashboard";
 
-  const stats = data?.stats || {};
-  const courses = data?.courses || [];
+export default function StudentDashboardPage() {
+    const {
+        data,
+        isLoading,
+        isError,
+    } = useDashboard();
 
-  if (isLoading) {
-    return <Loader />;
-  }
+    if (isLoading) {
+        return <Loader />;
+    }
 
-  if (isError) {
-    return <Card className="text-slate-300">Unable to load dashboard right now.</Card>;
-  }
+    if (isError) {
+        return (
+            <Card className="p-8 text-center">
+                <h2 className="text-xl font-semibold text-white">
+                    Unable to load dashboard
+                </h2>
 
-  return (
-    <div className="space-y-8">
-      <PageHeader
-        title="Welcome back"
-        subtitle="Continue your learning journey."
-      />
+                <p className="mt-2 text-slate-400">
+                    Please try again later.
+                </p>
+            </Card>
+        );
+    }
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-        <StatCard title="Enrolled Courses" value={stats?.enrolledCourses || 0} />
-        <StatCard title="Completed Lessons" value={stats?.completedLessons || 0} />
-        <StatCard title="Certificates" value={stats?.certificates || 0} />
-        <StatCard title="Completion Rate" value={`${stats?.completionRate || 0}%`} />
-      </div>
+    const stats = data?.stats ?? {};
+    const enrolledCourses =
+        data?.enrolledCoursesList ?? [];
 
-      <Card className="p-0 border-0 bg-transparent shadow-none">
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-white">Continue Learning</h2>
+    return (
+        <div className="space-y-8">
+            <PageHeader
+                title="Student Dashboard"
+                subtitle="Track your learning progress and continue your enrolled courses."
+            />
+
+            <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                <StatCard
+                    title="Enrolled Courses"
+                    value={stats.enrolledCourses ?? 0}
+                    icon={
+                        <BookOpen className="h-6 w-6" />
+                    }
+                />
+
+                <StatCard
+                    title="Completed Lessons"
+                    value={
+                        stats.completedLessons ?? 0
+                    }
+                    icon={
+                        <GraduationCap className="h-6 w-6" />
+                    }
+                />
+
+                <StatCard
+                    title="Certificates"
+                    value={stats.certificates ?? 0}
+                    icon={
+                        <Award className="h-6 w-6" />
+                    }
+                />
+
+                <StatCard
+                    title="Completion Rate"
+                    value={`${
+                        stats.completionRate ?? 0
+                    }%`}
+                    icon={
+                        <TrendingUp className="h-6 w-6" />
+                    }
+                />
+            </section>
+
+            <section className="space-y-5">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-2xl font-semibold text-white">
+                            Continue Learning
+                        </h2>
+
+                        <p className="text-sm text-slate-400">
+                            Resume your enrolled courses.
+                        </p>
+                    </div>
+                </div>
+
+                {enrolledCourses.length > 0 ? (
+                    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                        {enrolledCourses.map(
+                            (enrollment) => (
+                                <CourseCard
+                                    key={enrollment.id}
+                                    enrollment={enrollment}
+                                />
+                            )
+                        )}
+                    </div>
+                ) : (
+                    <Card className="p-10 text-center">
+                        <h3 className="text-lg font-semibold text-white">
+                            No enrolled courses
+                        </h3>
+
+                        <p className="mt-2 text-slate-400">
+                            Browse available courses and start learning.
+                        </p>
+                    </Card>
+                )}
+            </section>
         </div>
-
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {courses.length > 0 ? (
-            courses.map((course) => <CourseCard key={course.id} course={course} />)
-          ) : (
-            <p className="text-slate-400">No enrolled courses found.</p>
-          )}
-        </div>
-      </Card>
-    </div>
-  );
+    );
 }

@@ -5,7 +5,7 @@ import {useParams, useRouter} from "next/navigation";
 import Loader from "@/components/common/Loader";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/layouts/PageHeader";
-import StudentDetails from "@/components/admin/students/StudentDetails";
+import StudentDetails from "@/components/admin/student/StudentDetails";
 
 import {useStudent} from "@/hooks/queries/admin/useStudents";
 
@@ -58,7 +58,7 @@ export default function StudentDetailsPage() {
         <Button
           onClick={() =>
             router.push(
-              `/admin/students/edit/${students.id}`
+              `/admin/student/edit/${student.id}`
             )
           }
         >

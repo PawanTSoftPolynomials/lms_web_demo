@@ -3,10 +3,10 @@
 import PageHeader from "@/components/layouts/PageHeader";
 import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
-import ProfileCard from "@/components/students/ProfileCard";
+import ProfileCard from "@/components/student/ProfileCard";
 
-import useProfile from "@/hooks/queries/students/useProfile";
-import useDashboard from "@/hooks/queries/students/useDashboard";
+import useProfile from "@/hooks/queries/student/useProfile";
+import useDashboard from "@/hooks/queries/student/useDashboard";
 
 export default function ProfilePage() {
   const { data: profile, isLoading: profileLoading, isError: profileError } = useProfile();

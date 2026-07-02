@@ -7,10 +7,10 @@ import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Loader from "@/components/common/Loader";
-import LessonSidebar from "@/components/students/LessonSidebar";
+import LessonSidebar from "@/components/student/LessonSidebar";
 
-import useCourse from "@/hooks/queries/students/useCourse";
-import useCompleteLesson from "@/hooks/queries/students/useCompleteLesson";
+import useCourse from "@/hooks/queries/student/useCourse";
+import useCompleteLesson from "@/hooks/queries/student/useCompleteLesson";
 
 export default function LearnPage() {
   const { courseId } = useParams();

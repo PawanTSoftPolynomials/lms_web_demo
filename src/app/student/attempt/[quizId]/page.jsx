@@ -8,8 +8,8 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Loader from "@/components/common/Loader";
 
-import useQuizQuestions from "@/hooks/queries/students/useQuizQuestions";
-import useSubmitQuiz from "@/hooks/queries/students/useSubmitQuiz";
+import useQuizQuestions from "@/hooks/queries/student/useQuizQuestions";
+import useSubmitQuiz from "@/hooks/queries/student/useSubmitQuiz";
 
 export default function AttemptQuiz() {
   const router = useRouter();

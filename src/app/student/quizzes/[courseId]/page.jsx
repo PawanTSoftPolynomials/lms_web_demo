@@ -5,9 +5,9 @@ import { useParams } from "next/navigation";
 import PageHeader from "@/components/layouts/PageHeader";
 import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
-import QuizCard from "@/components/students/QuizCard";
+import QuizCard from "@/components/student/QuizCard";
 
-import useQuizzes from "@/hooks/queries/students/useQuizzes";
+import useQuizzes from "@/hooks/queries/student/useQuizzes";
 
 export default function StudentQuizzesPage() {
   const { courseId } = useParams();

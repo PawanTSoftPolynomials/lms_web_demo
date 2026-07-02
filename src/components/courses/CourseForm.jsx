@@ -77,7 +77,7 @@ export default function CourseForm({
 
                 <p className="text-slate-400 mt-2">
                     {mode === "create"
-                        ? "Create a new course for your students."
+                        ? "Create a new course for your student."
                         : "Update your course information."}
                 </p>
             </div>

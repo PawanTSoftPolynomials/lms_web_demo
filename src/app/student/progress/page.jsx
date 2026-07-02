@@ -3,9 +3,9 @@
 import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
 import Loader from "@/components/common/Loader";
-import ProgressCard from "@/components/students/ProgressCard";
+import ProgressCard from "@/components/student/progress/ProgressCard";
 
-import useProgress from "@/hooks/queries/students/useProgress";
+import useProgress from "@/hooks/queries/student/useProgress";
 
 export default function ProgressPage() {
   const { data, isLoading, isError } = useProgress();

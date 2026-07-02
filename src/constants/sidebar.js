@@ -24,7 +24,7 @@ export const SIDEBAR_ITEMS = {
         {
             title: "Students",
             icon: FaUsers,
-            href: "/admin/students",
+            href: "/admin/student",
         },
         {
             title: "Instructor",

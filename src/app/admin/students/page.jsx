@@ -7,9 +7,9 @@ import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
 import Loader from "@/components/common/Loader";
 
-import StudentStats from "@/components/admin/students/StudentStats";
-import StudentToolbar from "@/components/admin/students/StudentToolbar";
-import StudentTable from "@/components/admin/students/StudentTable";
+import StudentStats from "@/components/admin/student/StudentStats";
+import StudentToolbar from "@/components/admin/student/StudentToolbar";
+import StudentTable from "@/components/admin/student/StudentTable";
 
 import {
     useStudents,
