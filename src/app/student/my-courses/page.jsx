@@ -1,58 +1,76 @@
 "use client";
 
-import Loader from "@/components/common/Loader";
-import MyCourseCard from "@/components/student/MyCourseCard";
+import { useEffect, useState } from "react";
 
-import useAuth from "@/hooks/useAuth";
-import useMyCourses from "@/hooks/queries/students/useMyCourses";
+import CourseCard from "@/components/students/CourseCard";
+import { getStudentDashboard } from "@/services/dashboard.service";
 
-export default function MyCourses() {
-  const { user, loading: authLoading } = useAuth();
+export default function MyCoursesPage() {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const {
-    data: courses = [],
-    isLoading,
-    error,
-  } = useMyCourses(user?.id);
+  useEffect(() => {
+    const fetchMyCourses = async () => {
+      try {
+        const response = await getStudentDashboard();
+        const data = response.data;
 
-  if (authLoading || isLoading) {
-    return <Loader />;
-  }
+        const formattedCourses =
+          data.enrolledCoursesList.map((item) => ({
+            id: item.course.id,
+            title: item.course.title,
+            instructor: item.course.instructor,
+            category: item.course.category,
+            progress: item.progress,
+            completedLessons: item.completedLessons,
+            lessons: item.course.lessons,
+          }));
 
-  if (error) {
+        setCourses(formattedCourses);
+      } catch (error) {
+        console.error("My courses fetch failed:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMyCourses();
+  }, []);
+
+  if (loading) {
     return (
-      <div className="bg-red-500/10 border border-red-500 rounded-xl p-6 text-red-400">
-        Failed to load your courses.
+      <div className="text-white">
+        Loading my courses...
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-4xl font-bold text-white">
+        <h1 className="text-3xl font-bold text-white">
           My Courses
         </h1>
 
-        <p className="text-slate-400 mt-2">
-          Continue your enrolled courses.
+        <p className="text-gray-400 mt-2">
+          Continue where you left off.
         </p>
       </div>
 
-      {courses.length === 0 ? (
-        <div className="bg-slate-900 p-8 rounded-xl text-center">
-          No enrolled courses found.
-        </div>
-      ) : (
-        <div className="grid md:grid-cols-2 gap-6">
-          {courses.map((enrollment) => (
-            <MyCourseCard
-              key={enrollment.id}
-              enrollment={enrollment}
+      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {courses.length > 0 ? (
+          courses.map((course) => (
+            <CourseCard
+              key={course.id}
+              course={course}
             />
-          ))}
-        </div>
-      )}
+          ))
+        ) : (
+          <p className="text-gray-400">
+            No enrolled courses found.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

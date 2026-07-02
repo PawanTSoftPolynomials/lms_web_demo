@@ -11,19 +11,12 @@ export default function ContentForm({
   return (
     <div className="max-w-3xl mx-auto">
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
-        <h1 className="text-3xl font-bold text-white mb-8">
-          {title}
-        </h1>
+        <h1 className="text-3xl font-bold text-white mb-8">{title}</h1>
 
-        <form
-          onSubmit={onSubmit}
-          className="space-y-6"
-        >
+        <form onSubmit={onSubmit} className="space-y-6">
           {/* Title */}
           <div>
-            <label className="block text-slate-400 mb-2">
-              Content Title
-            </label>
+            <label className="block text-slate-400 mb-2">Content Title</label>
 
             <input
               type="text"
@@ -51,9 +44,7 @@ export default function ContentForm({
 
           {/* Type */}
           <div>
-            <label className="block text-slate-400 mb-2">
-              Content Type
-            </label>
+            <label className="block text-slate-400 mb-2">Content Type</label>
 
             <select
               value={formData.type}
@@ -75,33 +66,21 @@ export default function ContentForm({
                 focus:border-orange-500
               "
             >
-              <option value="VIDEO">
-                Video
-              </option>
+              <option value="VIDEO">Video</option>
 
-              <option value="DOCUMENT">
-                Document
-              </option>
+              <option value="DOCUMENT">Document</option>
 
-              <option value="TEXT">
-                Text
-              </option>
+              <option value="TEXT">Text</option>
 
-              <option value="LINK">
-                Link
-              </option>
+              <option value="LINK">Link</option>
 
-              <option value="PRESENTATION">
-                Presentation
-              </option>
+              <option value="PRESENTATION">Presentation</option>
             </select>
           </div>
 
           {/* URL */}
           <div>
-            <label className="block text-slate-400 mb-2">
-              Content URL
-            </label>
+            <label className="block text-slate-400 mb-2">Content URL</label>
 
             <input
               type="text"
@@ -129,9 +108,7 @@ export default function ContentForm({
 
           {/* Description */}
           <div>
-            <label className="block text-slate-400 mb-2">
-              Description
-            </label>
+            <label className="block text-slate-400 mb-2">Description</label>
 
             <textarea
               rows="4"
@@ -159,9 +136,7 @@ export default function ContentForm({
 
           {/* Order */}
           <div>
-            <label className="block text-slate-400 mb-2">
-              Order
-            </label>
+            <label className="block text-slate-400 mb-2">Order</label>
 
             <input
               type="number"
@@ -169,9 +144,7 @@ export default function ContentForm({
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  order: Number(
-                    e.target.value
-                  ),
+                  order: Number(e.target.value),
                 })
               }
               className="
@@ -202,9 +175,7 @@ export default function ContentForm({
               disabled:opacity-50
             "
           >
-            {loading
-              ? "Saving..."
-              : buttonText}
+            {loading ? "Saving..." : buttonText}
           </button>
         </form>
       </div>

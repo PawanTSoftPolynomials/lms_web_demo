@@ -1,69 +1,138 @@
 "use client";
 
-import {useState} from "react";
-import {useParams} from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
-import LearnHeader from "@/components/student/learn/LearnHeader";
-import LearnSidebar from "@/components/student/learn/LearnSidebar";
-import ContentViewer from "@/components/student/learn/ContentViewer";
-
-import useCourse from "@/hooks/queries/students/useCourse";
+import api from "@/lib/axios";
+import LessonSidebar from "@/components/students/LessonSidebar";
 
 export default function LearnPage() {
-    const {courseId} = useParams();
+  const { courseId } = useParams();
 
-    // const [activeLesson, setActiveLesson] = useState(null);
+  const [course, setCourse] = useState(null);
+  const [lessons, setLessons] = useState([]);
+  const [selectedLesson, setSelectedLesson] =
+    useState(null);
+  const [loading, setLoading] = useState(true);
 
-    const {
-        data: course,
-        isLoading,
-        error,
-    } = useCourse(courseId);
+  useEffect(() => {
+    const fetchCourse = async () => {
+      try {
+        const response = await api.get(
+          `/courses/${courseId}`
+        );
 
-    const [activeLesson, setActiveLesson] = useState(null);
+        const courseData =
+          response.data.data || response.data;
 
-    if (!activeLesson && course) {
-        const lesson =
-            course.modules?.[0]?.lessons?.[0] ?? null;
+        setCourse(courseData);
 
-        if (lesson) {
-            setActiveLesson(lesson);
+        const flatLessons =
+          courseData.modules.flatMap((module) =>
+            module.lessons.map((lesson) => ({
+              id: lesson.id,
+              title: lesson.title,
+              description:
+                lesson.description,
+              duration: "N/A",
+            }))
+          );
+
+        setLessons(flatLessons);
+
+        if (flatLessons.length > 0) {
+          setSelectedLesson(flatLessons[0]);
         }
-    }
-    if (isLoading) {
-        return (
-            <div className="h-screen flex items-center justify-center bg-zinc-950 text-white">
-                Loading course...
-            </div>
+      } catch (error) {
+        console.error(
+          "Course fetch failed:",
+          error
         );
-    }
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (error || !course) {
-        return (
-            <div className="h-screen flex items-center justify-center bg-zinc-950 text-red-400">
-                Course not found.
-            </div>
-        );
+    if (courseId) {
+      fetchCourse();
     }
+  }, [courseId]);
 
+  const markComplete = async () => {
+    try {
+      await api.patch("/progress/complete", {
+        lessonId: selectedLesson.id,
+      });
+
+      alert("Lesson marked complete");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  if (loading) {
     return (
-        <div className="h-screen bg-zinc-950 flex overflow-hidden">
-            <LearnSidebar
-                course={course}
-                activeLesson={activeLesson}
-                setActiveLesson={setActiveLesson}
-            />
-
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <LearnHeader
-                    course={course}
-                    activeLesson={activeLesson}
-                />
-
-                <ContentViewer
-                    lesson={activeLesson}
-                />
-            </div>
-        </div>
+      <div className="text-white">
+        Loading course...
+      </div>
     );
+  }
+
+  if (!course) {
+    return (
+      <div className="text-white">
+        Course not found
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">
+          {course.title}
+        </h1>
+
+        <p className="text-gray-400 mt-2">
+          {course.description}
+        </p>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          <div className="bg-slate-900 rounded-xl h-96 flex items-center justify-center">
+            <p className="text-gray-400 text-lg">
+              Video Player Placeholder
+            </p>
+          </div>
+
+          {selectedLesson && (
+            <div className="bg-slate-900 rounded-xl p-5">
+              <h2 className="text-xl font-bold">
+                {selectedLesson.title}
+              </h2>
+
+              <p className="text-gray-400 mt-2">
+                Duration:{" "}
+                {selectedLesson.duration}
+              </p>
+
+              <button
+                onClick={markComplete}
+                className="mt-5 bg-orange-500 hover:bg-orange-600 px-5 py-3 rounded-lg"
+              >
+                Mark Complete
+              </button>
+            </div>
+          )}
+        </div>
+
+        <LessonSidebar
+          lessons={lessons}
+          selectedLesson={selectedLesson}
+          setSelectedLesson={setSelectedLesson}
+        />
+      </div>
+    </div>
+  );
 }

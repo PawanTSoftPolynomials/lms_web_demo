@@ -26,11 +26,7 @@ export const getInstructorDashboard =
 /**
  * Get Student Dashboard
  */
-export const getStudentDashboard =
-  async () => {
-    const { data } = await api.get(
-      "/dashboard/student"
-    );
-
-    return data.data;
-  };
+export const getStudentDashboard = async () => {
+  const response = await api.get("/dashboard/student");
+  return response.data;
+};
