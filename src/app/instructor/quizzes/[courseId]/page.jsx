@@ -18,7 +18,6 @@ export default function QuizListPage() {
         isLoading,
         isError,
     } = useQuizzes(courseId);
-
     const deleteQuizMutation =
         useDeleteQuiz();
 

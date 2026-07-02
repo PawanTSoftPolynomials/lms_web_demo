@@ -1,120 +1,62 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-
-import {
-  useParams,
-  useRouter,
-} from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 
 import Loader from "@/components/common/Loader";
+import Card from "@/components/ui/Card";
 
 import QuestionForm from "@/components/forms/QuestionForm";
 
-import {
-  getQuestionById,
-  updateQuestion,
-} from "@/services/question.service";
+import {useQuestion} from "@/hooks/queries/instructor/useQuestion";
+import {useUpdateQuestion} from "@/hooks/queries/instructor/useUpdateQuestion";
 
 export default function EditQuestionPage() {
-  const { questionId } =
-    useParams();
+    const {questionId} = useParams();
 
-  const router =
-    useRouter();
+    const router = useRouter();
 
-  const [question,
-    setQuestion] =
-    useState(null);
+    const {
+        data: question, isLoading, isError,
+    } = useQuestion(questionId);
 
-  const [loading,
-    setLoading] =
-    useState(true);
+    const updateQuestionMutation = useUpdateQuestion();
 
-  const [saving,
-    setSaving] =
-    useState(false);
-
-  useEffect(() => {
-    const loadQuestion =
-      async () => {
+    const handleSubmit = async (questionData) => {
         try {
-          const response =
-            await getQuestionById(
-              questionId
-            );
+            await updateQuestionMutation.mutateAsync({
+                questionId, quizId: question.quizId, questionData,
+            });
 
-          setQuestion(
-            response.data ||
-              response
-          );
+            router.push(`/instructor/questions/view/${questionId}`);
         } catch (error) {
-          console.error(error);
-        } finally {
-          setLoading(false);
+            console.error(error);
         }
-      };
-
-    if (questionId) {
-      loadQuestion();
-    }
-  }, [questionId]);
-
-  const handleSubmit =
-    async (data) => {
-      try {
-        setSaving(true);
-
-        await updateQuestion(
-          questionId,
-          data
-        );
-
-        router.back();
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setSaving(false);
-      }
     };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <Loader />
-      </div>
-    );
-  }
+    if (isLoading) {
+        return (<div className="flex justify-center py-20">
+            <Loader/>
+        </div>);
+    }
 
-  return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-slate-900 p-10 rounded-2xl">
-        <h1 className="text-4xl font-bold text-white mb-8">
-          Edit Question
-        </h1>
+    if (isError || !question) {
+        return (<Card>
+            <div className="py-16 text-center">
+                <h2 className="text-2xl font-semibold">
+                    Failed to Load Question
+                </h2>
 
-        <QuestionForm
-          initialData={{
-            question:
-              question.question,
-            options:
-              question.options ||
-              ["", "", "", ""],
-            correctAnswer:
-              question.correctAnswer,
-            marks:
-              question.marks,
-          }}
-          onSubmit={
-            handleSubmit
-          }
-          submitText="Update Question"
-          loading={saving}
-        />
-      </div>
-    </div>
-  );
+                <p className="mt-2 text-slate-400">
+                    Please try again later.
+                </p>
+            </div>
+        </Card>);
+    }
+
+    return (<QuestionForm
+        mode="edit"
+        initialValues={question}
+        loading={updateQuestionMutation.isPending}
+        onSubmit={handleSubmit}
+    />);
 }

@@ -1,226 +1,267 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
+
+const INITIAL_FORM = {
+  question: "",
+  options: ["", "", "", ""],
+  correctAnswer: "",
+  marks: 1,
+};
 
 export default function QuestionForm({
-  initialData = {
-    question: "",
-    options: ["", "", "", ""],
-    correctAnswer: "",
-    marks: 1,
-  },
-  onSubmit,
-  submitText = "Save Question",
-  loading = false,
-}) {
+                                       mode = "create",
+                                       initialValues = null,
+                                       loading = false,
+                                       onSubmit,
+                                     }) {
   const [formData, setFormData] =
-    useState(initialData);
+      useState(INITIAL_FORM);
+
+  useEffect(() => {
+    if (initialValues) {
+      setFormData({
+        question:
+            initialValues.question ?? "",
+        options:
+            Array.isArray(
+                initialValues.options
+            ) &&
+            initialValues.options.length
+                ? initialValues.options
+                : ["", "", "", ""],
+        correctAnswer:
+            initialValues.correctAnswer ??
+            "",
+        marks:
+            initialValues.marks ?? 1,
+      });
+    }
+  }, [initialValues]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]:
+          name === "marks"
+              ? Number(value)
+              : value,
+    }));
+  };
 
   const handleOptionChange = (
-    index,
-    value
+      index,
+      value
   ) => {
-    const updated = [...formData.options];
+    const updatedOptions = [
+      ...formData.options,
+    ];
 
-    updated[index] = value;
+    updatedOptions[index] = value;
 
-    setFormData({
-      ...formData,
-      options: updated,
-    });
+    setFormData((prev) => ({
+      ...prev,
+      options: updatedOptions,
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    onSubmit(formData);
+    onSubmit?.(formData);
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6"
-    >
-      {/* Question */}
-      <div className="space-y-2">
-        <label className="text-white font-medium">
-          Question
-        </label>
+      <Card className="mx-auto max-w-5xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">
+            {mode === "create"
+                ? "Create Question"
+                : "Edit Question"}
+          </h1>
 
-        <p className="text-sm text-slate-400">
-          Enter the question that students will answer.
-        </p>
+          <p className="mt-2 text-slate-400">
+            Add a multiple-choice
+            question to this quiz.
+          </p>
+        </div>
 
-        <textarea
-          rows={3}
-          placeholder="Example: What is the full form of OOP?"
-          value={formData.question}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              question: e.target.value,
-            })
-          }
-          required
-          className="
-            w-full
-            p-4
-            rounded-xl
-            bg-slate-800
-            border
-            border-slate-700
-            text-white
-            outline-none
-            focus:border-orange-500
-          "
-        />
-      </div>
-
-      {/* Options */}
-      <div className="space-y-3">
-        <label className="text-white font-medium">
-          Answer Options
-        </label>
-
-        <p className="text-sm text-slate-400">
-          Enter four possible answers.
-        </p>
-
-        {formData.options.map(
-          (option, index) => (
-            <input
-              key={index}
-              type="text"
-              placeholder={`Option ${index + 1}`}
-              value={option}
-              onChange={(e) =>
-                handleOptionChange(
-                  index,
-                  e.target.value
-                )
-              }
+        <form
+            onSubmit={handleSubmit}
+            className="space-y-8"
+        >
+          <Input
+              label="Question"
+              name="question"
+              value={formData.question}
+              onChange={handleChange}
+              placeholder="What is JVM?"
               required
-              className="
+          />
+
+          <div className="space-y-5">
+            <h2 className="text-lg font-semibold">
+              Answer Options
+            </h2>
+
+            {formData.options.map(
+                (option, index) => (
+                    <Input
+                        key={index}
+                        label={`Option ${
+                            index + 1
+                        }`}
+                        value={option}
+                        onChange={(e) =>
+                            handleOptionChange(
+                                index,
+                                e.target.value
+                            )
+                        }
+                        placeholder={`Enter option ${
+                            index + 1
+                        }`}
+                        required
+                    />
+                )
+            )}
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-white">
+                Correct Answer
+              </label>
+
+              <select
+                  name="correctAnswer"
+                  value={
+                    formData.correctAnswer
+                  }
+                  onChange={
+                    handleChange
+                  }
+                  required
+                  className="
                 w-full
-                p-4
                 rounded-xl
-                bg-slate-800
                 border
                 border-slate-700
+                bg-slate-900
+                px-4
+                py-3
                 text-white
                 outline-none
+                transition
                 focus:border-orange-500
               "
+              >
+                <option value="">
+                  Select Correct
+                  Answer
+                </option>
+
+                {formData.options.map(
+                    (
+                        option,
+                        index
+                    ) => (
+                        <option
+                            key={
+                              index
+                            }
+                            value={
+                              option
+                            }
+                            disabled={
+                              !option
+                            }
+                        >
+                          Option{" "}
+                          {index +
+                              1}
+                          {option
+                              ? ` - ${option}`
+                              : ""}
+                        </option>
+                    )
+                )}
+              </select>
+            </div>
+
+            <Input
+                label="Marks"
+                type="number"
+                name="marks"
+                min={1}
+                value={formData.marks}
+                onChange={
+                  handleChange
+                }
+                required
             />
-          )
-        )}
-      </div>
+          </div>
 
-      {/* Correct Answer */}
-      <div className="space-y-2">
-        <label className="text-white font-medium">
-          Correct Answer
-        </label>
-
-        <p className="text-sm text-slate-400">
-          Enter exactly one of the options above.
-        </p>
-
-        <input
-          type="text"
-          placeholder="Example: Object Oriented Programming"
-          value={formData.correctAnswer}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              correctAnswer:
-                e.target.value,
-            })
-          }
-          required
-          className="
-            w-full
-            p-4
+          <div
+              className="
             rounded-xl
-            bg-slate-800
             border
-            border-slate-700
-            text-white
-            outline-none
-            focus:border-orange-500
+            border-orange-500/20
+            bg-orange-500/5
+            p-5
           "
-        />
-      </div>
+          >
+            <h3 className="font-semibold text-orange-400">
+              Guidelines
+            </h3>
 
-      {/* Marks */}
-      <div className="space-y-2">
-        <label className="text-white font-medium">
-          Marks
-        </label>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-300">
+              <li>
+                Write one clear
+                question.
+              </li>
 
-        <p className="text-sm text-slate-400">
-          Assign marks for this question.
-        </p>
+              <li>
+                Provide four answer
+                options.
+              </li>
 
-        <input
-          type="number"
-          min="1"
-          value={formData.marks}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              marks: Number(
-                e.target.value
-              ),
-            })
-          }
-          required
-          className="
-            w-full
-            p-4
-            rounded-xl
-            bg-slate-800
-            border
-            border-slate-700
-            text-white
-            outline-none
-            focus:border-orange-500
-          "
-        />
-      </div>
+              <li>
+                Select the correct
+                answer before
+                saving.
+              </li>
 
-      {/* Guidelines */}
-      <div className="rounded-xl border border-orange-500/30 bg-orange-500/10 p-4">
-        <h3 className="text-orange-400 font-medium mb-2">
-          Question Guidelines
-        </h3>
+              <li>
+                Marks should be a
+                positive number.
+              </li>
+            </ul>
+          </div>
 
-        <ul className="text-sm text-slate-300 space-y-1 list-disc ml-5">
-          <li>Provide four answer options.</li>
-          <li>The correct answer must match one option exactly.</li>
-          <li>Keep questions clear and concise.</li>
-          <li>Assign marks according to difficulty.</li>
-        </ul>
-      </div>
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="
-          bg-orange-600
-          hover:bg-orange-700
-          px-8
-          py-3
-          rounded-xl
-          text-white
-          font-medium
-          transition
-        "
-      >
-        {loading
-          ? "Saving..."
-          : submitText}
-      </button>
-    </form>
+          <div className="flex justify-end">
+            <Button
+                type="submit"
+                disabled={loading}
+            >
+              {loading
+                  ? mode ===
+                  "create"
+                      ? "Creating..."
+                      : "Updating..."
+                  : mode ===
+                  "create"
+                      ? "Create Question"
+                      : "Update Question"}
+            </Button>
+          </div>
+        </form>
+      </Card>
   );
 }

@@ -12,28 +12,21 @@ export function useUpdateQuiz() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({
-                         quizId,
-                         quizData,
-                     }) =>
-            updateQuiz(
-                quizId,
-                quizData
-            ),
+        mutationFn: ({ quizId, quizData }) =>
+            updateQuiz(quizId, {
+                title: quizData.title,
+                description: quizData.description,
+                passingScore: quizData.passingScore,
+                timeLimit: quizData.timeLimit,
+            }),
 
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({
-                queryKey: [
-                    QUERY_KEYS.QUIZ,
-                    variables.quizId,
-                ],
+                queryKey: [QUERY_KEYS.QUIZ, variables.quizId],
             });
 
             queryClient.invalidateQueries({
-                queryKey: [
-                    QUERY_KEYS.QUIZZES,
-                    variables.quizData.courseId,
-                ],
+                queryKey: [QUERY_KEYS.QUIZZES, variables.courseId],
             });
         },
     });
