@@ -58,12 +58,13 @@ export const getEnrollments = async (
  */
 export const getMyEnrollments =
     async (userId) => {
-      const { data } =
-          await api.get(
-              `/enrollments?userId=${userId}`
-          );
+      const url = userId
+        ? `/enrollments?userId=${userId}`
+        : "/enrollments";
 
-      return data.data;
+      const { data } = await api.get(url);
+
+      return data.data ?? data;
     };
 
 /**

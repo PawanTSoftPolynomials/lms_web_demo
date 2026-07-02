@@ -5,6 +5,12 @@ export const QUERY_KEYS = {
     COURSES: "courses",
     COURSE: "course",
     MY_COURSES: "my-courses",
+    STUDENT_DASHBOARD: "student-dashboard",
+    STUDENT_PROFILE: "student-profile",
+    STUDENT_PROGRESS: "student-progress",
+    STUDENT_CERTIFICATES: "student-certificates",
+    STUDENT_QUIZZES: "student-quizzes",
+    STUDENT_QUESTIONS: "student-questions",
     DASHBOARD: "dashboard",
     PROGRESS: "progress",
 

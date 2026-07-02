@@ -7,9 +7,8 @@ import { defaultQueryOptions } from "@/lib/queryOptions";
 
 export default function useMyCourses(userId) {
   return useQuery({
-    queryKey: [QUERY_KEYS.MY_COURSES, userId],
+    queryKey: [QUERY_KEYS.MY_COURSES, userId || "current"],
     queryFn: () => getMyEnrollments(userId),
-    enabled: !!userId,
     ...defaultQueryOptions,
   });
 }

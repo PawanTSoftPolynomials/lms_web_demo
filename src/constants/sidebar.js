@@ -91,5 +91,15 @@ export const SIDEBAR_ITEMS = {
             icon: FaGraduationCap,
             href: "/student/progress",
         },
+        {
+            title: "Quizzes",
+            icon: FaClipboardList,
+            href: "/student/quizzes/",
+        },
+        {
+            title: "Certificates",
+            icon: FaCertificate,
+            href: "/student/certificates",
+        },
     ],
 };

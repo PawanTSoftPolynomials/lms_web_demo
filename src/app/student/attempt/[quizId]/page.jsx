@@ -1,89 +1,63 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import api from "@/lib/axios";
+
+import PageHeader from "@/components/layouts/PageHeader";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import Loader from "@/components/common/Loader";
+
+import useQuizQuestions from "@/hooks/queries/students/useQuizQuestions";
+import useSubmitQuiz from "@/hooks/queries/students/useSubmitQuiz";
 
 export default function AttemptQuiz() {
   const router = useRouter();
   const { quizId } = useParams();
+  const { data, isLoading, isError } = useQuizQuestions(quizId);
+  const submitQuizMutation = useSubmitQuiz();
 
-  const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(true);
-
+  const questions = useMemo(() => Array.isArray(data) ? data : [], [data]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-
   const [answers, setAnswers] = useState({});
 
-  useEffect(() => {
-    const fetchQuestions = async () => {
-      try {
-        const response = await api.get(`/questions/${quizId}`);
-
-        const data = response.data.data || response.data;
-        console.log(response);
-        console.log(response.data);
-        console.log(quizId);
-
-        setQuestions(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (quizId) {
-      fetchQuestions();
-    }
-  }, [quizId]);
-
-  if (loading) {
-    return <div className="text-white">Loading quiz...</div>;
+  if (isLoading) {
+    return <Loader />;
   }
 
-  if (!questions.length) {
-    return <div className="text-white">No questions found</div>;
+  if (isError || !questions.length) {
+    return <Card className="text-slate-300">No questions found for this quiz.</Card>;
   }
 
   const question = questions[currentQuestion];
 
   const handleOptionSelect = (option) => {
-    setAnswers({
-      ...answers,
-      [question.id]: option,
-    });
+    setAnswers((prev) => ({ ...prev, [question.id]: option }));
   };
 
   const nextQuestion = () => {
     if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
+      setCurrentQuestion((prev) => prev + 1);
     }
   };
 
   const prevQuestion = () => {
     if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
+      setCurrentQuestion((prev) => prev - 1);
     }
   };
 
   const submitQuiz = async () => {
+    const payload = {
+      answers: Object.entries(answers).map(([questionId, selectedOption]) => ({
+        questionId,
+        selectedOption,
+      })),
+    };
+
     try {
-      const payload = {
-        answers: Object.entries(answers).map(
-          ([questionId, selectedOption]) => ({
-            questionId,
-            selectedOption,
-          }),
-        ),
-      };
-
-      const response = await api.post(`/quizzes/${quizId}/submit`, payload);
-
-      const result = response.data.data || response.data;
-
+      const result = await submitQuizMutation.mutateAsync({ quizId, payload });
       localStorage.setItem("quizResult", JSON.stringify(result));
-
       router.push(`/student/result/${quizId}`);
     } catch (error) {
       console.error("Quiz submission failed", error);
@@ -91,28 +65,18 @@ export default function AttemptQuiz() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Quiz</h1>
+    <div className="mx-auto max-w-4xl space-y-6">
+      <PageHeader title="Quiz Attempt" subtitle="Answer each question and submit your quiz when you are done." />
 
-        <span className="text-orange-500 font-bold">
-          Question {currentQuestion + 1}/{questions.length}
-        </span>
-      </div>
-
-      <div className="bg-slate-900 rounded-xl p-6">
-        <h2 className="text-xl font-semibold mb-5">{question.question}</h2>
+      <Card className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-white">{question.question}</h2>
+          <span className="font-semibold text-orange-500">Question {currentQuestion + 1}/{questions.length}</span>
+        </div>
 
         <div className="space-y-3">
-          {question.options.map((option) => (
-            <label
-              key={option}
-              className="
-                block p-4 rounded-lg
-                bg-slate-800
-                cursor-pointer
-              "
-            >
+          {(question.options || []).map((option) => (
+            <label key={option} className="block cursor-pointer rounded-lg border border-slate-800 bg-slate-900 p-4">
               <input
                 type="radio"
                 name={`question-${question.id}`}
@@ -125,43 +89,23 @@ export default function AttemptQuiz() {
             </label>
           ))}
         </div>
-      </div>
 
-      <div className="flex justify-between">
-        <button
-          onClick={prevQuestion}
-          disabled={currentQuestion === 0}
-          className="
-            px-5 py-2 rounded-lg
-            bg-slate-700
-            disabled:opacity-50
-          "
-        >
-          Previous
-        </button>
+        <div className="flex flex-wrap justify-between gap-3">
+          <Button onClick={prevQuestion} disabled={currentQuestion === 0} className="bg-slate-700 hover:bg-slate-600">
+            Previous
+          </Button>
 
-        {currentQuestion === questions.length - 1 ? (
-          <button
-            onClick={submitQuiz}
-            className="
-              px-5 py-2 rounded-lg
-              bg-green-600
-            "
-          >
-            Submit Quiz
-          </button>
-        ) : (
-          <button
-            onClick={nextQuestion}
-            className="
-              px-5 py-2 rounded-lg
-              bg-orange-500
-            "
-          >
-            Next
-          </button>
-        )}
-      </div>
+          {currentQuestion === questions.length - 1 ? (
+            <Button onClick={submitQuiz} loading={submitQuizMutation.isPending} className="bg-green-600 hover:bg-green-700">
+              Submit Quiz
+            </Button>
+          ) : (
+            <Button onClick={nextQuestion} className="bg-orange-500 hover:bg-orange-600">
+              Next
+            </Button>
+          )}
+        </div>
+      </Card>
     </div>
   );
 }

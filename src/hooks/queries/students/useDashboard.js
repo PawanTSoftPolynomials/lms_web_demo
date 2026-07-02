@@ -1,43 +1,36 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getMyEnrollments } from "@/services/enrollment.service";
-import { getProgress } from "@/services/progress.service";
+import { getStudentDashboard } from "@/services/student.service";
 
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { defaultQueryOptions } from "@/lib/queryOptions";
 
-export default function useDashboard(userId) {
+export default function useDashboard() {
   return useQuery({
-    queryKey: [QUERY_KEYS.STUDENT_DASHBOARD, userId],
-    enabled: !!userId,
-
+    queryKey: [QUERY_KEYS.STUDENT_DASHBOARD],
     queryFn: async () => {
-      const enrollments = await getMyEnrollments(userId);
-
-      const progressResponses = await Promise.all(
-        enrollments.map((enrollment) =>
-          getProgress(enrollment.courseId)
-        )
-      );
-
-      let completed = 0;
-      let totalLessons = 0;
-
-      progressResponses.forEach((response) => {
-        completed += response.data.completedLessons;
-        totalLessons += response.data.totalLessons;
-      });
+      const response = await getStudentDashboard();
+      const payload = response?.data || response;
+      const stats = payload?.stats || payload;
+      const courses = payload?.enrolledCoursesList || payload?.courses || payload?.enrolledCourses || [];
 
       return {
-        enrolled: enrollments.length,
-        completed,
-        progress:
-          totalLessons > 0
-            ? Math.round((completed / totalLessons) * 100)
-            : 0,
+        stats: stats || {},
+        courses: courses.map((courseItem) => {
+          const course = courseItem?.course || courseItem;
+          return {
+            id: course?.id || courseItem?.courseId || courseItem?.id,
+            title: course?.title || "Untitled course",
+            instructor: course?.instructor || course?.creator?.name || "N/A",
+            category: course?.category || "General",
+            progress: courseItem?.progress ?? course?.progress ?? 0,
+            completedLessons: courseItem?.completedLessons ?? 0,
+            totalLessons: course?.lessons ?? course?.totalLessons ?? 0,
+            description: course?.description || "",
+          };
+        }),
       };
     },
-
     ...defaultQueryOptions,
   });
 }

@@ -1,69 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
+import PageHeader from "@/components/layouts/PageHeader";
+import Loader from "@/components/common/Loader";
+import Card from "@/components/ui/Card";
 import QuizCard from "@/components/students/QuizCard";
-import { getQuizzes } from "@/services/quiz.service";
 
-export default function QuizzesPage() {
-  const [quizzes, setQuizzes] = useState([]);
-  const [loading, setLoading] = useState(true);
+import useQuizzes from "@/hooks/queries/students/useQuizzes";
 
-  useEffect(() => {
-    const fetchQuizzes = async () => {
-      try {
-        const response = await getQuizzes();
-        const data = response.data || response;
+export default function StudentQuizzesPage() {
+  const { courseId } = useParams();
+  const { data, isLoading, isError } = useQuizzes(courseId);
 
-        const formattedQuizzes = data.map(
-          (quiz) => ({
-            id: quiz.id,
-            title: quiz.title,
-            duration: quiz.timeLimit || 0,
-            questions: "N/A",
-          })
-        );
+  const quizzes = Array.isArray(data) ? data : [];
 
-        setQuizzes(formattedQuizzes);
-      } catch (error) {
-        console.error(
-          "Quiz fetch failed:",
-          error
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
+  if (isLoading) {
+    return <Loader />;
+  }
 
-    fetchQuizzes();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="text-white">
-        Loading quizzes...
-      </div>
-    );
+  if (isError) {
+    return <Card className="text-slate-300">Unable to load quizzes right now.</Card>;
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">
-        Quizzes
-      </h1>
+      <PageHeader title="Quizzes" subtitle="Attempt quizzes for your enrolled courses." />
 
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {quizzes.length > 0 ? (
-          quizzes.map((quiz) => (
-            <QuizCard
-              key={quiz.id}
-              quiz={quiz}
-            />
-          ))
+          quizzes.map((quiz) => <QuizCard key={quiz.id} quiz={quiz} />)
         ) : (
-          <p className="text-gray-400">
-            No quizzes available.
-          </p>
+          <Card className="text-slate-300">No quizzes available for this course yet.</Card>
         )}
       </div>
     </div>
