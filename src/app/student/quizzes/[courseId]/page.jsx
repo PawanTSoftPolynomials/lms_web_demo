@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import QuizCard from "@/components/students/QuizCard";
-import { getQuizzes } from "../../../services/quiz.service";
+import { getQuizzes } from "@/services/quiz.service";
 
 export default function QuizzesPage() {
   const [quizzes, setQuizzes] = useState([]);

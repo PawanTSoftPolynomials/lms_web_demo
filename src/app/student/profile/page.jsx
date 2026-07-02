@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import ProfileCard from "@/components/students/ProfileCard";
 import { getProfile } from "../../../services/auth.service";
-import { getStudentDashboard } from "@/services/dashboardService";
+import { getStudentDashboard } from "@/services/dashboard.service";
 
 export default function ProfilePage() {
   const [student, setStudent] = useState(null);
