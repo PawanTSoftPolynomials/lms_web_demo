@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-
 import ActionMenu from "@/components/menus/ActionMenu";
 
 import CourseRow from "./CourseRow";
@@ -87,15 +85,7 @@ export default function CourseTable({
                         <div className="flex items-start justify-between gap-3">
                             <div className="flex gap-3">
                                 <div className="relative h-16 w-24 overflow-hidden rounded-lg border border-white/10">
-                                    <Image
-                                        src={
-                                            course.thumbnailUrl
-                                        }
-                                        alt={course.title}
-                                        fill
-                                        sizes="100x"
-                                        className="object-contain bg-slate-800 p-1"
-                                    />
+
                                 </div>
 
                                 <div>

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 
 import ActionMenu from "@/components/menus/ActionMenu";
 
@@ -28,17 +27,7 @@ export default function CourseRow({
             {/* Course */}
             <td className="px-6 py-4">
                 <div className="flex items-center gap-4">
-                    <div className="relative h-14 w-20 overflow-hidden rounded-lg border border-white/10">
-                        <Image
-                            src={
-                                course.thumbnailUrl
-                            }
-                            alt={course.title}
-                            fill
-                            sizes="100px"
-                            className="object-cover"
-                        />
-                    </div>
+
 
                     <div className="max-w-xs">
                         <p className="line-clamp-1 font-semibold text-white">
