@@ -36,7 +36,7 @@ export default function CourseRow({
                             alt={course.title}
                             fill
                             sizes="80px"
-                            className="object-cover"
+                            className="object-cover bg-slate-800"
                         />
                     </div>
 

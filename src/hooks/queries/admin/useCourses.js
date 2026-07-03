@@ -135,16 +135,15 @@ export function useUpdateCourseStatus() {
                 status
             ),
 
-        onSuccess: () => {
+        onSuccess: (_, variables) => {
             queryClient.invalidateQueries({
-                queryKey: [
-                    QUERY_KEYS.ADMIN_COURSES,
-                ],
+                queryKey: [QUERY_KEYS.ADMIN_COURSES],
             });
 
             queryClient.invalidateQueries({
                 queryKey: [
                     QUERY_KEYS.ADMIN_COURSE,
+                    variables.courseId,
                 ],
             });
         },
