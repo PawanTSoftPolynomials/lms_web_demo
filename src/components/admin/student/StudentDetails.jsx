@@ -2,7 +2,7 @@
 
 import Card from "@/components/ui/Card";
 import UserAvatar from "@/components/admin/users/UserAvatar";
-
+import InfoItem from "./InfoItem";
 import {
     Mail,
     Phone,
@@ -17,27 +17,6 @@ export default function StudentDetails({
                                        }) {
     if (!student) return null;
 
-    const InfoItem = ({
-                          icon,
-                          label,
-                          value,
-                      }) => (
-        <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="mt-1 text-orange-500">
-                {icon}
-            </div>
-
-            <div>
-                <p className="text-xs uppercase tracking-wide text-gray-400">
-                    {label}
-                </p>
-
-                <p className="mt-1 text-white">
-                    {value || "-"}
-                </p>
-            </div>
-        </div>
-    );
 
     return (
         <Card className="space-y-8">

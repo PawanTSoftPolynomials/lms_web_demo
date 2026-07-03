@@ -8,7 +8,6 @@ import StudentRow from "./StudentRow";
 export default function StudentTable({
                                          students = [],
                                          onView,
-                                         onEdit,
                                          onDelete,
                                      }) {
     if (!students.length) {

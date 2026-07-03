@@ -6,7 +6,6 @@ import ActionMenu from "@/components/menus/ActionMenu";
 export default function StudentRow({
                                        student,
                                        onView,
-                                       onEdit,
                                        onDelete,
                                    }) {
     const createdAt = new Date(
