@@ -2,8 +2,14 @@ import CourseCard from "./CourseCard";
 
 export default function CourseGrid({
                                        courses = [],
+                                       enrollments = [],
                                    }) {
-    if (!courses.length) {
+    const items =
+        enrollments.length > 0
+            ? enrollments
+            : courses;
+
+    if (!items.length) {
         return (
             <div className="rounded-xl border border-dashed border-slate-700 p-12 text-center">
                 <h3 className="text-lg font-semibold text-white">
@@ -19,10 +25,13 @@ export default function CourseGrid({
 
     return (
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {courses.map((course) => (
+            {items.map((item) => (
                 <CourseCard
-                    key={course.id}
-                    course={course}
+                    key={item.id}
+                    course={courses.length ? item : undefined}
+                    enrollment={
+                        enrollments.length ? item : undefined
+                    }
                 />
             ))}
         </div>

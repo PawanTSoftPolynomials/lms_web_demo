@@ -43,13 +43,19 @@ export default function CourseCard({
         <Card
             className="overflow-hidden p-0 transition-all duration-300 hover:-translate-y-1 hover:border-orange-500/40">
             <div className="relative h-48 w-full">
-                <Image
-                    src={thumbnailUrl}
-                    alt={title}
-                    fill
-                    unoptimized
-                    className="object-cover"
-                />
+                {thumbnailUrl ? (
+                    <Image
+                        src={thumbnailUrl}
+                        alt={title}
+                        fill
+                        unoptimized
+                        className="object-cover"
+                    />
+                ) : (
+                    <div className="flex h-full items-center justify-center bg-slate-800">
+                        <span className="text-5xl">📚</span>
+                    </div>
+                )}
             </div>
 
             <div className="space-y-5 p-5">

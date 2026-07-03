@@ -60,4 +60,6 @@ export const QUERY_KEYS = {
 
     QUESTIONS: "questions",
     QUESTION: "question",
+    QUIZ_RESULT: "quiz-result",
+
 };
