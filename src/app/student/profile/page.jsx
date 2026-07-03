@@ -3,7 +3,7 @@
 import PageHeader from "@/components/layouts/PageHeader";
 import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
-import ProfileCard from "@/components/student/ProfileCard";
+import ProfileCard from "@/components/student/profile/ProfileCard";
 
 import useProfile from "@/hooks/queries/student/useProfile";
 import useDashboard from "@/hooks/queries/student/useDashboard";
