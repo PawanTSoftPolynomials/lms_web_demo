@@ -93,7 +93,7 @@ export default function CourseTable({
                                         }
                                         alt={course.title}
                                         fill
-                                        sizes="80x"
+                                        sizes="100x"
                                         className="object-contain bg-slate-800 p-1"
                                     />
                                 </div>
