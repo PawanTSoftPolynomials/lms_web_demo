@@ -79,12 +79,12 @@ export const SIDEBAR_ITEMS = {
         {
             title: "Courses",
             icon: FaBook,
-            href: "/student/courses", // Browse all available courses
+            href: "/student/courses",
         },
         {
             title: "My Courses",
             icon: FaBook,
-            href: "/student/my-courses", // Only enrolled courses
+            href: "/student/my-courses",
         },
         {
             title: "Progress",
@@ -94,7 +94,12 @@ export const SIDEBAR_ITEMS = {
         {
             title: "Quizzes",
             icon: FaClipboardList,
-            href: "/student/quizzes/",
+            href: "/student/quizzes",
+        },
+        {
+            title: "Profile",
+            icon: FaUserCircle,
+            href: "/student/profile",
         },
         {
             title: "Certificates",
