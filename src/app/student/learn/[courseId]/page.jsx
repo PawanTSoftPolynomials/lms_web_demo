@@ -8,10 +8,10 @@ import VideoPlayer from "@/components/student/learning/VideoPlayer";
 import CourseSidebar from "@/components/student/learning/CourseSidebar";
 import LessonTabs from "@/components/student/learning/LessonTabs";
 import LessonNavigation from "@/components/student/learning/LessonNavigation";
-import useCompleteLesson from "../../../../hooks/queries/student/useCompleteLesson";
-import {useCourse} from "../../../../hooks/queries/student";
-import Loader from "../../../../components/common/Loader";
-import Card from "../../../../components/ui/Card";
+import useCompleteLesson from "@/hooks/queries/student/useCompleteLesson";
+import {useCourse} from "@/hooks/queries/student";
+import Loader from "@/components/common/Loader";
+import Card from "@/components/ui/Card";
 
 export default function LearnPage() {
     const {courseId} = useParams();

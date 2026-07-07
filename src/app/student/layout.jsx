@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
-import { getProfile } from "../../services/auth.service";
+import { getProfile } from "@/services/auth.service";
 
 export default function Layout({ children }) {
   const router = useRouter();

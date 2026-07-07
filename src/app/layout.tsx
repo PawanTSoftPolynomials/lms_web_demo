@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/context/AuthContext";
 import { Geist, Geist_Mono } from "next/font/google";
-import QueryProvider from "../providers/QueryProvider";
+import QueryProvider from "@/providers/QueryProvider";
 import "./globals.css";
+import { ChatProvider } from "@/context/ChatContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           <QueryProvider>
-            {children}
+           <ChatProvider>
+              {children}
+            </ChatProvider>
           </QueryProvider>
         </AuthProvider>
       </body>

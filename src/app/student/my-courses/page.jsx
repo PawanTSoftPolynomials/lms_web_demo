@@ -9,7 +9,7 @@ import MyCourseStats from "@/components/student/my-courses/MyCourseStats";
 import MyCourseToolbar from "@/components/student/my-courses/MyCourseToolbar";
 import ContinueLearningCard from "@/components/student/my-courses/ContinueLearningCard";
 import useMyCourses from "@/hooks/queries/student/useMyCourses";
-import MyCourseCard from "../../../components/student/my-courses/MyCourseCard";
+import MyCourseCard from "@/components/student/my-courses/MyCourseCard";
 
 export default function MyCoursesPage() {
     const {
