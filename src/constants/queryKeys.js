@@ -11,6 +11,7 @@ export const QUERY_KEYS = {
     STUDENT_CERTIFICATES: "student-certificates",
     STUDENT_QUIZZES: "student-quizzes",
     STUDENT_QUESTIONS: "student-questions",
+    STICKY_NOTES: "sticky-notes",
     DASHBOARD: "dashboard",
     PROGRESS: "progress",
 

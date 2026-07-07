@@ -6,8 +6,30 @@ import {
     PlayCircle,
 } from "lucide-react";
 
+const isYoutubeUrl = (url) =>
+    Boolean(
+        url?.match(
+            /(?:youtu\.be\/|youtube\.com\/watch\?v=|youtube\.com\/embed\/)/
+        )
+    );
+
+const getYoutubeEmbedUrl = (url) => {
+    if (!url) return "";
+
+    const regExp =
+        /^.*(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+
+    if (!match || !match[1]) {
+        return url;
+    }
+
+    return `https://www.youtube.com/embed/${match[1]}`;
+};
+
 export default function VideoPlayer({
                                         content,
+                                        onTimeUpdate,
                                     }) {
     if (!content) {
         return (
@@ -49,16 +71,26 @@ export default function VideoPlayer({
             <div className="min-h-[520px]">
                 {/* VIDEO */}
                 {type === "VIDEO" && (
-                    <iframe
-                        src={
-                            videoUrl
-                                ?.replace("youtu.be/", "www.youtube.com/embed/")
-                                ?.replace("watch?v=", "embed/")
-                                ?.split("&")[0]
-                        }
-                        className="h-[520px] w-full"
-                        allowFullScreen
-                    />
+                    isYoutubeUrl(videoUrl) ? (
+                        <iframe
+                            src={getYoutubeEmbedUrl(videoUrl)}
+                            className="h-[520px] w-full"
+                            allowFullScreen
+                        />
+                    ) : (
+                        <video
+                            controls
+                            src={videoUrl}
+                            onTimeUpdate={(event) =>
+                                onTimeUpdate?.(
+                                    Math.floor(
+                                        event.currentTarget.currentTime
+                                    )
+                                )
+                            }
+                            className="h-[520px] w-full"
+                        />
+                    )
                 )}
 
                 {/* FILE */}
@@ -92,7 +124,7 @@ export default function VideoPlayer({
                 )}
 
                 {/* EXTERNAL LINK */}
-                {type === "EXTERNAL" && (
+                {(type === "EXTERNAL" || type === "LINK") && (
                     <div className="flex h-[520px] flex-col items-center justify-center gap-6">
                         <ExternalLink className="h-20 w-20 text-orange-500" />
 

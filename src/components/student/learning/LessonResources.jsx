@@ -84,6 +84,7 @@ export default function LessonResources({
                 return content.fileUrl;
 
             case "EXTERNAL":
+            case "LINK":
                 return content.externalUrl;
 
             default:
