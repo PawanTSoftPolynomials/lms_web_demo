@@ -1,13 +1,14 @@
-'use client';
+"use client";
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { FaBars } from 'react-icons/fa';
 
 import { SIDEBAR_ITEMS } from '@/constants/sidebar';
-import { GiOrange } from 'react-icons/gi';
 import { PiOrangeDuotone } from 'react-icons/pi';
+
 export default function Sidebar({
   role,
   open,
@@ -16,8 +17,56 @@ export default function Sidebar({
   setCollapsed,
 }) {
   const pathname = usePathname();
+  const [hoveredMenu, setHoveredMenu] = useState(null);
 
   const menus = SIDEBAR_ITEMS[role] || [];
+
+  // Define sub-fields dynamic configuration for hover selection
+  const getSubmenus = (title) => {
+    if (role === "INSTRUCTOR") {
+      if (title === "Courses") {
+        return [
+          { title: "My Courses List", href: "/instructor/courses" },
+          { title: "Create New Course", href: "/instructor/courses/create" },
+        ];
+      }
+      if (title === "Quizzes") {
+        return [
+          { title: "My Quizzes List", href: "/instructor/quizzes" },
+          { title: "Create New Quiz", href: "/instructor/quizzes/create" },
+        ];
+      }
+    }
+    if (role === "STUDENT") {
+      if (title === "Courses") {
+        return [
+          { title: "All Available Courses", href: "/student/courses" },
+          { title: "My Enrolled Courses", href: "/student/my-courses" },
+        ];
+      }
+      if (title === "Quizzes") {
+        return [
+          { title: "My Quiz Center", href: "/student/quizzes" },
+        ];
+      }
+    }
+    if (role === "ADMIN") {
+      if (title === "Users") {
+        return [
+          { title: "Manage All Users", href: "/admin/users" },
+          { title: "Student Directory", href: "/admin/students" },
+          { title: "Instructor Directory", href: "/admin/instructors" },
+        ];
+      }
+      if (title === "Courses") {
+        return [
+          { title: "Manage Course Catalog", href: "/admin/courses" },
+          { title: "View Course Enrollments", href: "/admin/enrollments" },
+        ];
+      }
+    }
+    return null;
+  };
 
   return (
     <>
@@ -80,32 +129,74 @@ export default function Sidebar({
         </div>
 
         {/* Navigation */}
-        <nav className="px-3 space-y-2">
+        <nav className="pr-3 pl-1 space-y-2 relative">
           {menus.map((item) => {
             const Icon = item.icon;
+            const isActive = pathname === item.href || 
+              (item.href !== '/student/dashboard' && item.href !== '/instructor/dashboard' && item.href !== '/admin/dashboard' && pathname.startsWith(item.href));
+            const subItems = getSubmenus(item.title);
 
             return (
-              <Link
+              <div
                 key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={`
-                  flex items-center
-                  ${collapsed ? 'justify-center' : 'gap-3'}
-                  p-3
-                  rounded-lg
-                  transition
-                  ${
-                    pathname === item.href
-                      ? 'bg-orange-600 text-white'
-                      : 'hover:bg-slate-800 text-slate-300'
-                  }
-                `}
+                className="relative"
+                onMouseEnter={() => setHoveredMenu(item.title)}
+                onMouseLeave={() => setHoveredMenu(null)}
               >
-                <Icon className="text-lg" />
+                <Link
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={`
+                    flex items-center
+                    ${collapsed ? 'justify-center' : 'gap-3'}
+                    p-3
+                    rounded-r-xl
+                    transition-all
+                    duration-350
+                    ${
+                      isActive
+                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-[0_4px_15px_rgba(249,115,22,0.18)] border-l-4 border-white font-semibold'
+                        : 'border-l-4 border-transparent text-slate-400 hover:text-white hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-pink-500/5 hover:translate-x-1.5 hover:border-orange-500'
+                    }
+                  `}
+                >
+                  <Icon className="text-lg" />
 
-                {!collapsed && <span>{item.title}</span>}
-              </Link>
+                  {!collapsed && <span>{item.title}</span>}
+                </Link>
+
+                {/* Submenu selection flyout container */}
+                {subItems && hoveredMenu === item.title && (
+                  <div className="absolute left-full top-0 ml-1.5 z-[100] w-52 rounded-xl border border-slate-800 bg-slate-950/95 backdrop-blur-md p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] border-l-2 border-l-orange-500 animate-in fade-in slide-in-from-left-2 duration-150">
+                    <div className="text-[10px] text-slate-500 font-extrabold px-2.5 py-1.5 uppercase tracking-wider border-b border-slate-900/60 mb-1">
+                      {item.title} Options
+                    </div>
+                    {subItems.map((sub) => {
+                      const isSubActive = pathname === sub.href;
+                      return (
+                        <Link
+                          key={sub.href}
+                          href={sub.href}
+                          onClick={() => {
+                            setOpen(false);
+                            setHoveredMenu(null);
+                          }}
+                          className={`
+                            block px-3 py-2 text-xs rounded-lg transition-all duration-200
+                            ${
+                              isSubActive
+                                ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold'
+                                : 'text-slate-400 hover:text-white hover:bg-slate-900 hover:translate-x-1'
+                            }
+                          `}
+                        >
+                          {sub.title}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>

@@ -15,7 +15,7 @@ export default function ChatWidget() {
 
   useEffect(() => {
     loadConversations();
-  }, []);
+  }, [loadConversations]);
 
   return (
     <>

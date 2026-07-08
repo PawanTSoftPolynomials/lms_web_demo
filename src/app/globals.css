@@ -1,70 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
+  /* Slate shades mapped to luxury dark emerald elements */
   --color-slate-50: #fdfdfd;
-  --color-slate-100: #f1f1f5;
-  --color-slate-200: #e2e2ec;
-  --color-slate-300: #d1d1df;
-  --color-slate-400: #a3a3c2;
-  --color-slate-500: #737399;
-  --color-slate-600: #52527a;
-  --color-slate-700: #3a3a5c;
-  --color-slate-800: #1e1e2f;
-  --color-slate-900: #131321;
-  --color-slate-950: #0a0a0f;
+  --color-slate-100: #f1f5f4;
+  --color-slate-200: #e2ecea;
+  --color-slate-300: #d1dfdb;
+  --color-slate-400: #a3c2ba;
+  --color-slate-500: #788f8c; /* Muted text emerald/slate base */
+  --color-slate-600: rgba(16, 185, 129, 0.15); /* Antique Emerald border line */
+  --color-slate-700: #0f211f; /* Medium Satin active highlights */
+  --color-slate-800: #0b1716; /* Dark Obsidian surface */
+  --color-slate-900: #060f0e; /* Matte Black-Teal canvas base */
+  --color-slate-950: #020505; /* Deep night highlights */
 
-  --color-orange-400: #ffa14a;
-  --color-orange-500: #ff7a00;
-  --color-orange-600: #e06000;
-  --color-orange-700: #b34a00;
+  /* Orange/Pink gradients mapped to Emerald/Teal metals */
+  --color-orange-400: #eaf5f3; /* Cashmere Off-white Mint */
+  --color-orange-500: #10b981; /* Vibrant Emerald primary */
+  --color-orange-600: #059669; /* Polished Emerald secondary */
+  --color-orange-700: #047857; /* Deep Forest accent */
 
-  --color-pink-400: #ff6bb5;
-  --color-pink-500: #ff2e93;
-  --color-pink-600: #d61c72;
-  --color-pink-700: #a80e55;
+  --color-pink-400: #06b6d4; /* Vibrant Cyan matching */
+  --color-pink-500: #14b8a6; /* Brilliant Teal matching */
+  --color-pink-600: #0d9488; /* Polished Teal matching */
+  --color-pink-700: #115e59; /* Deep Teal depth */
+
+  /* Custom Luxury Box Shadows with Teal Glow */
+  --shadow-luxury-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow-luxury-md: 0 10px 30px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(20, 184, 166, 0.08);
+  --shadow-luxury-lg: 0 30px 70px rgba(0, 0, 0, 0.9), inset 0 1px 1px rgba(20, 184, 166, 0.12);
+  --shadow-luxury-glow: 0 0 30px rgba(20, 184, 166, 0.05);
 }
 
 :root {
-  --background: #fdfdfd;
-  --foreground: #131321;
+  --background: #060f0e;
+  --foreground: #eaf5f3;
+  --font-serif-family: 'Outfit', sans-serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0f;
-    --foreground: #f1f1f5;
-  }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #060f0e !important;
+  color: #eaf5f3 !important;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.01em;
 }
 
-/* Custom scrollbars for a futuristic look */
+/* Force headers to use premium serif styling */
+h1, h2, h3, .font-serif {
+  font-family: var(--font-serif-family) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.015em !important;
+}
+
+/* Custom premium scrollbar retheming */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #020505;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(20, 184, 166, 0.18);
   border-radius: 9999px;
-  transition: all 0.3s ease;
+  border: 1px solid rgba(20, 184, 166, 0.05);
+  transition: all 0.4s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #f97316, #ec4899);
+  background: linear-gradient(180deg, #10b981, #14b8a6);
 }

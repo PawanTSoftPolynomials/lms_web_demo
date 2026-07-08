@@ -28,9 +28,9 @@ export default function StudentEngagement({
       subtitle="Current course activity"
       data={data}
       colors={[
-        "#22c55e", // Green
-        "#3b82f6", // Blue
-        "#f97316", // Orange
+        "#DFBA73", // Champagne Gold (Active)
+        "#C5A059", // Polished Brass (Completed)
+        "#1D1D21", // Satin Charcoal (Inactive)
       ]}
     />
   );

@@ -67,9 +67,9 @@ export default function CourseTable({ courses = [] }) {
                   </span>
                 </td>
 
-                <td>{course.modules.length}</td>
+                <td>{course.modules?.length || 0}</td>
 
-                <td>{course.students}</td>
+                <td>{Array.isArray(course.students) ? course.students.length : (course.students || 0)}</td>
 
                 <td className="text-right">
                   <Link

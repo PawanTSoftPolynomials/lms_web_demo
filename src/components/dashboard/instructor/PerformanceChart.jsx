@@ -31,7 +31,7 @@ export default function PerformanceChart({ data = [] }) {
         }}
       >
         <CartesianGrid
-          stroke="#334155"
+          stroke="rgba(140, 111, 61, 0.12)"
           strokeDasharray="3 3"
           vertical={false}
         />
@@ -39,7 +39,7 @@ export default function PerformanceChart({ data = [] }) {
         <XAxis
           dataKey="month"
           tick={{
-            fill: "#94a3b8",
+            fill: "#66625B",
             fontSize: 12,
           }}
           axisLine={false}
@@ -48,7 +48,7 @@ export default function PerformanceChart({ data = [] }) {
 
         <YAxis
           tick={{
-            fill: "#94a3b8",
+            fill: "#66625B",
             fontSize: 12,
           }}
           axisLine={false}
@@ -61,7 +61,7 @@ export default function PerformanceChart({ data = [] }) {
           verticalAlign="top"
           align="right"
           wrapperStyle={{
-            color: "#cbd5e1",
+            color: "#F4EFE6",
             paddingBottom: 20,
           }}
         />
@@ -70,12 +70,12 @@ export default function PerformanceChart({ data = [] }) {
           type="monotone"
           dataKey="students"
           name="Students"
-          stroke="#f97316"
+          stroke="#DFBA73"
           strokeWidth={3}
           animationDuration={1200}
           dot={{
             r: 4,
-            fill: "#f97316",
+            fill: "#DFBA73",
           }}
           activeDot={{
             r: 6,
@@ -86,12 +86,12 @@ export default function PerformanceChart({ data = [] }) {
           type="monotone"
           dataKey="quizzes"
           name="Quizzes"
-          stroke="#3b82f6"
+          stroke="#C5A059"
           strokeWidth={3}
           animationDuration={1200}
           dot={{
             r: 4,
-            fill: "#3b82f6",
+            fill: "#C5A059",
           }}
           activeDot={{
             r: 6,

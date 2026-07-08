@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 import useChat from "@/hooks/useChat";
 
@@ -13,7 +13,7 @@ export default function useConversation() {
     setConversations,
   } = useChat();
 
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -47,11 +47,11 @@ export default function useConversation() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setLoading, setConversations]);
 
   useEffect(() => {
     loadConversations();
-  }, []);
+  }, [loadConversations]);
 
   useEffect(() => {
     const handleStorage = (e) => {
@@ -63,7 +63,7 @@ export default function useConversation() {
     return () => {
       window.removeEventListener("storage", handleStorage);
     };
-  }, []);
+  }, [loadConversations]);
 
   return {
     loadConversations,

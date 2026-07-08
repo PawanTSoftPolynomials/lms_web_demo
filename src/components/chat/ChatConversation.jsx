@@ -31,7 +31,7 @@ export default function ChatConversation() {
       loadMessages(activeConversation.id);
     }
     setShowMenu(false); // Reset menu when changing conversation
-  }, [activeConversation]);
+  }, [activeConversation, loadMessages]);
 
   if (!activeConversation) {
     return <EmptyConversation />;
