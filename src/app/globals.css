@@ -1,8 +1,34 @@
 @import "tailwindcss";
 
+@theme {
+  --color-slate-50: #fdfdfd;
+  --color-slate-100: #f1f1f5;
+  --color-slate-200: #e2e2ec;
+  --color-slate-300: #d1d1df;
+  --color-slate-400: #a3a3c2;
+  --color-slate-500: #737399;
+  --color-slate-600: #52527a;
+  --color-slate-700: #3a3a5c;
+  --color-slate-800: #1e1e2f;
+  --color-slate-900: #131321;
+  --color-slate-950: #0a0a0f;
+
+  --color-orange-400: #ffa14a;
+  --color-orange-500: #ff7a00;
+  --color-orange-600: #e06000;
+  --color-orange-700: #b34a00;
+
+  --color-pink-400: #ff6bb5;
+  --color-pink-500: #ff2e93;
+  --color-pink-600: #d61c72;
+  --color-pink-700: #a80e55;
+}
+
 :root {
   --background: #0f0b3d;
   --foreground: #ffffff;
+  --background: #fdfdfd;
+  --foreground: #131321;
 }
 
 @theme inline {
@@ -10,8 +36,11 @@
   --color-foreground: var(--foreground);
 }
 
-html {
-  scroll-behavior: smooth;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0f;
+    --foreground: #f1f1f5;
+  }
 }
 
 body {
@@ -21,62 +50,22 @@ body {
   font-family: "Poppins", sans-serif;
 }
 
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-
-  50% {
-    transform: translateY(-12px);
-  }
-}
-
-.float-card {
-  animation: float 5s ease-in-out infinite;
-}
-
-@keyframes shine {
-  0% {
-    background-position: -200%;
-  }
-
-  100% {
-    background-position: 200%;
-  }
-}
-
-.shine-text {
-  background: linear-gradient(
-    90deg,
-    #ffb347,
-    #ff4d8d,
-    #ffb347
-  );
-
-  background-size: 200%;
-  -webkit-background-clip: text;
-  color: transparent;
-  animation: shine 4s linear infinite;
-}
-
-::selection {
-  background: #ff4d8d;
-  color: white;
-}
-
+/* Custom scrollbars for a futuristic look */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1b145c;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    #ffb347,
-    #ff4d8d
-  );
-  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #f97316, #ec4899);
 }

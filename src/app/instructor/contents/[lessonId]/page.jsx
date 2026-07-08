@@ -1,132 +1,108 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import {useParams} from "next/navigation";
 
-import {
-  getContents,
-  deleteContent,
-} from "@/services/content.service";
+import Loader from "@/components/common/Loader";
+import Card from "@/components/ui/Card";
+
+import ContentGrid from "@/components/instructor/contents/ContentGrid";
+
+import {useContents} from "@/hooks/queries/instructor/useContents";
+import {useDeleteContent} from "@/hooks/queries/instructor/useDeleteContent";
 
 export default function LessonContentsPage() {
-  const { lessonId } = useParams();
+    const {lessonId} = useParams();
 
-  const [contents, setContents] =
-    useState([]);
+    const {
+        data: contents = [],
+        isLoading,
+        isError,
+    } = useContents(lessonId);
 
-  useEffect(() => {
-    loadContents();
-  }, [lessonId]);
+    const deleteContentMutation =
+        useDeleteContent();
 
-  const loadContents = async () => {
-    try {
-      const response =
-        await getContents(
-          lessonId
-        );
-
-      setContents(
-        response.data ||
-          response
-      );
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleDelete =
-    async (contentId) => {
-      if (
-        !confirm(
-          "Delete this content?"
-        )
-      ) {
-        return;
-      }
-
-      await deleteContent(
+    const handleDelete = async (
         contentId
-      );
+    ) => {
+        if (
+            !confirm(
+                "Delete this content?"
+            )
+        ) {
+            return;
+        }
 
-      setContents(
-        contents.filter(
-          (content) =>
-            content.id !==
-            contentId
-        )
-      );
+        try {
+            await deleteContentMutation.mutateAsync({
+                contentId,
+                lessonId,
+            });
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-  return (
-    <div className="min-h-screen bg-slate-950 p-8 text-white">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold">
-          Lesson Contents
-        </h1>
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-20">
+                <Loader/>
+            </div>
+        );
+    }
 
-        <Link
-          href={`/instructor/contents/create/${lessonId}`}
-          className="bg-orange-600 px-5 py-3 rounded-lg"
-        >
-          Add Content
-        </Link>
-      </div>
+    if (isError) {
+        return (
+            <Card>
+                <div className="py-16 text-center">
+                    <h2 className="text-2xl font-semibold">
+                        Failed to Load Contents
+                    </h2>
 
-      <div className="space-y-4">
-        {contents.length === 0 ? (
-          <div className="bg-slate-900 p-6 rounded-xl">
-            No content found.
-          </div>
-        ) : (
-          contents.map(
-            (content) => (
-              <div
-                key={content.id}
-                className="bg-slate-900 rounded-xl p-6 flex justify-between items-center"
-              >
+                    <p className="mt-2 text-slate-400">
+                        Please try again later.
+                    </p>
+                </div>
+            </Card>
+        );
+    }
+
+    return (
+        <div className="space-y-8">
+            {/* Header */}
+            <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-semibold">
-                    {content.title}
-                  </h2>
+                    <h1 className="text-4xl font-bold">
+                        Contents
+                    </h1>
 
-                  <p className="text-slate-400 mt-2">
-                    {
-                      content.type
-                    }
-                  </p>
-
-                  <p className="text-slate-500 mt-1">
-                    {
-                      content.url
-                    }
-                  </p>
+                    <p className="mt-2 text-slate-400">
+                        Manage lesson contents.
+                    </p>
                 </div>
 
-                <div className="flex gap-3">
-                  <Link
-                    href={`/instructor/contents/edit/${content.id}`}
-                    className="bg-blue-600 px-4 py-2 rounded"
-                  >
-                    Edit
-                  </Link>
+                <Link
+                    href={`/instructor/contents/create/${lessonId}`}
+                    className="
+            rounded-xl
+            bg-orange-600
+            px-5
+            py-3
+            text-white
+            transition
+            hover:bg-orange-700
+          "
+                >
+                    Add Content
+                </Link>
+            </div>
 
-                  <button
-                    onClick={() =>
-                      handleDelete(
-                        content.id
-                      )
-                    }
-                    className="bg-red-600 px-4 py-2 rounded"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            )
-          )
-        )}
-      </div>
-    </div>
-  );
+            <ContentGrid
+                contents={contents}
+                lessonId={lessonId}
+                onDelete={handleDelete}
+            />
+        </div>
+    );
 }

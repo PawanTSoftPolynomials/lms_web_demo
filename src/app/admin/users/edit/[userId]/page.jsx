@@ -1,143 +1,53 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useParams, useRouter } from "next/navigation";
 
-import {
-  useRouter,
-  useParams,
-} from "next/navigation";
+import Loader from "@/components/common/Loader";
+import PageHeader from "@/components/layouts/PageHeader";
+import UserForm from "@/components/admin/users/UserForm";
 
-import {
-  getUserById,
-  updateUser,
-} from "@/services/user.service";
+import { useUser, useUpdateUser } from "@/hooks/queries/admin/useUsers";
 
-export default function EditUser() {
-  const router =
-    useRouter();
+export default function EditUserPage() {
+  const router = useRouter();
+  const { userId } = useParams();
 
-  const { userId } =
-    useParams();
+  const { data: user, isLoading, isError } = useUser(userId);
 
-  const [formData, setFormData] =
-    useState({
-      name: "",
-      email: "",
-    });
+  const updateUserMutation = useUpdateUser();
 
-  useEffect(() => {
-    const loadUser =
-      async () => {
-        try {
-          const response =
-            await getUserById(
-              userId
-            );
+  const handleSubmit = async (formData) => {
+    try {
+      await updateUserMutation.mutateAsync({
+        userId,
+        userData: formData,
+      });
 
-          setFormData(
-            response.data ||
-              response
-          );
-        } catch (error) {
-          console.error(error);
-        }
-      };
-
-    if (userId) {
-      loadUser();
+      router.push("/admin/users");
+    } catch (error) {
+      console.error(error);
     }
-  }, [userId]);
+  };
 
-  const handleSubmit =
-    async (e) => {
-      e.preventDefault();
+  if (isLoading) {
+    return <Loader />;
+  }
 
-      try {
-        await updateUser(
-          userId,
-          formData
-        );
-
-        router.push(
-          "/admin/users"
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
+  if (isError || !user) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
-        <div className="w-full max-w-xl bg-slate-900 rounded-2xl shadow-xl p-8">
-          <h1 className="text-3xl font-bold text-white mb-6">
-            Edit User
-          </h1>
-    
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-5"
-          >
-            <div>
-              <label className="block text-slate-300 mb-2">
-                Name
-              </label>
-    
-              <input
-                type="text"
-                value={formData.name || ""}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    name: e.target.value,
-                  })
-                }
-                className="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
-            </div>
-    
-            <div>
-              <label className="block text-slate-300 mb-2">
-                Email
-              </label>
-    
-              <input
-                type="email"
-                value={formData.email || ""}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    email: e.target.value,
-                  })
-                }
-                className="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
-            </div>
-    
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                className="flex-1 bg-orange-600 hover:bg-orange-700 transition py-3 rounded-lg text-white font-semibold"
-              >
-                Update User
-              </button>
-    
-              <button
-                type="button"
-                onClick={() =>
-                  router.push(
-                    "/admin/users"
-                  )
-                }
-                className="flex-1 bg-slate-700 hover:bg-slate-600 transition py-3 rounded-lg text-white font-semibold"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+      <div className="py-24 text-center text-red-500">Failed to load user.</div>
     );
+  }
+
+  return (
+    <div className="space-y-8">
+      <PageHeader title="Edit User" subtitle="Update user information." />
+
+      <UserForm
+        initialValues={user}
+        onSubmit={handleSubmit}
+        isSubmitting={updateUserMutation.isPending}
+      />
+    </div>
+  );
 }

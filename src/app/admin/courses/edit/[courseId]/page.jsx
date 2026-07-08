@@ -1,159 +1,76 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import {useRouter, useParams} from "next/navigation";
+
+import Loader from "@/components/common/Loader";
+import PageHeader from "@/components/layouts/PageHeader";
+import CourseForm from "@/components/admin/courses/CourseForm";
 
 import {
-  useParams,
-  useRouter,
-} from "next/navigation";
+    useCourse,
+    useUpdateCourse,
+} from "@/hooks/queries/admin/useCourses";
 
-import {
-  getCourseById,
-  updateCourse,
-} from "@/services/course.service";
+export default function EditCoursePage() {
+    const router = useRouter();
+    const {courseId} = useParams();
 
-export default function EditCourse() {
-  const { courseId } =
-    useParams();
+    const {
+        data: course,
+        isLoading,
+        isError,
+    } = useCourse(courseId);
 
-  const router =
-    useRouter();
+    const updateCourseMutation =
+        useUpdateCourse();
 
-  const [formData, setFormData] =
-    useState({
-      title: "",
-      description: "",
-      category: "",
-      level: "",
-      thumbnailUrl: "",
-    });
+    const handleSubmit = async (
+        courseData
+    ) => {
+        try {
+            await updateCourseMutation.mutateAsync({
+                courseId,
+                courseData,
+            });
 
-  useEffect(() => {
-    const loadCourse =
-      async () => {
-        const response =
-          await getCourseById(
-            courseId
-          );
-
-        setFormData(
-          response
-        );
-      };
-
-    if (courseId) {
-      loadCourse();
-    }
-  }, [courseId]);
-
-  const handleSubmit =
-    async (e) => {
-      e.preventDefault();
-
-      try {
-        await updateCourse(
-          courseId,
-          formData
-        );
-
-        router.push(
-          "/admin/courses"
-        );
-      } catch (error) {
-        console.error(error);
-      }
+            router.push(
+                "/admin/courses"
+            );
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-  return (
-    <div className="min-h-screen bg-slate-950 flex justify-center items-center p-6">
-      <div className="bg-slate-900 p-8 rounded-xl w-full max-w-2xl">
-        <h1 className="text-3xl text-white font-bold mb-6">
-          Edit Course
-        </h1>
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-24">
+                <Loader/>
+            </div>
+        );
+    }
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
-          <input
-            type="text"
-            value={
-              formData.title ||
-              ""
-            }
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                title:
-                  e.target
-                    .value,
-              })
-            }
-            placeholder="Title"
-            className="w-full p-3 bg-slate-800 text-white rounded"
-          />
+    if (isError || !course) {
+        return (
+            <div className="py-24 text-center text-red-500">
+                Failed to load course.
+            </div>
+        );
+    }
 
-          <textarea
-            value={
-              formData.description ||
-              ""
-            }
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                description:
-                  e.target
-                    .value,
-              })
-            }
-            placeholder="Description"
-            className="w-full p-3 bg-slate-800 text-white rounded"
-          />
+    return (
+        <div className="space-y-8">
+            <PageHeader
+                title="Edit Course"
+                subtitle="Update course information."
+            />
 
-          <input
-            type="text"
-            value={
-              formData.category ||
-              ""
-            }
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                category:
-                  e.target
-                    .value,
-              })
-            }
-            placeholder="Category"
-            className="w-full p-3 bg-slate-800 text-white rounded"
-          />
-
-          <input
-            type="text"
-            value={
-              formData.level ||
-              ""
-            }
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                level:
-                  e.target
-                    .value,
-              })
-            }
-            placeholder="Level"
-            className="w-full p-3 bg-slate-800 text-white rounded"
-          />
-
-          <button className="w-full bg-orange-600 py-3 rounded">
-            Update Course
-          </button>
-        </form>
-      </div>
-    </div>
-  );
+            <CourseForm
+                initialValues={course}
+                onSubmit={handleSubmit}
+                isSubmitting={
+                    updateCourseMutation.isPending
+                }
+            />
+        </div>
+    );
 }

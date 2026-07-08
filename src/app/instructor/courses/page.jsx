@@ -1,105 +1,90 @@
-    "use client";
+"use client";
 
+import Card from "@/components/ui/Card";
+import Loader from "@/components/common/Loader";
+import CourseCard from "@/components/home/CourseCard";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import {useInstructorCourses} from "@/hooks/queries/instructor/useInstructorCourses";
 
-import {
-  getCourses,
-} from "@/services/course.service";
+export default function InstructorCoursesPage() {
+    const {
+        data: courses = [], isLoading, isError,
+    } = useInstructorCourses();
 
-export default function InstructorCourses() {
-  const [courses, setCourses] =
-    useState([]);
+    if (isLoading) {
+        return (<div className="flex justify-center py-20">
+                <Loader/>
+            </div>);
+    }
 
-  useEffect(() => {
-    const loadCourses =
-      async () => {
-        try {
-          const response =
-            await getCourses();
+    if (isError) {
+        return (<Card>
+                <div className="py-16 text-center">
+                    <h2 className="text-2xl font-semibold">
+                        Failed to Load Courses
+                    </h2>
 
-          setCourses(
-            response
-          );
-        } catch (error) {
-          console.error(
-            error
-          );
-        }
-      };
+                    <p className="mt-2 text-slate-400">
+                        Please try again later.
+                    </p>
+                </div>
+            </Card>);
+    }
 
-    loadCourses();
-  }, []);
+    if (!courses.length) {
+        return (<Card>
+                <div className="py-16 text-center">
+                    <h2 className="text-2xl font-semibold">
+                        No Courses Found
+                    </h2>
 
-  return (
-    <div>
-      <h1 className="text-4xl font-bold text-white mb-8">
-        My Courses
-      </h1>
+                    <p className="mt-2 text-slate-400">
+                        Create your first course.
+                    </p>
+                </div>
+            </Card>);
+    }
 
-      <div className="bg-slate-900 rounded-xl overflow-hidden">
-        <table className="w-full text-white">
-          <thead className="bg-slate-800">
-            <tr>
-              <th className="p-4 text-left">
-                Title
-              </th>
+    return (<div className="space-y-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 className="text-4xl font-bold text-white">
+                        My Courses
+                    </h1>
 
-              <th className="p-4 text-left">
-                Category
-              </th>
+                    <p className="mt-2 text-slate-400">
+                        Manage your courses and content.
+                    </p>
+                </div>
 
-              <th className="p-4 text-left">
-                Status
-              </th>
-
-              <th className="p-4 text-left">
-                Action
-              </th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {courses.map(
-              (course) => (
-                <tr
-                  key={
-                    course.id
-                  }
-                  className="border-t border-slate-800"
+                <Link
+                    href="/instructor/courses/create"
+                    className="
+            inline-flex
+            items-center
+            justify-center
+            rounded-lg
+            bg-orange-500
+            px-5
+            py-3
+            font-medium
+            text-white
+            transition
+            hover:bg-orange-600
+        "
                 >
-                  <td className="p-4">
-                    {
-                      course.title
-                    }
-                  </td>
+                    Create Course
+                </Link>
+            </div>
 
-                  <td className="p-4">
-                    {
-                      course.category
-                    }
-                  </td>
-
-                  <td className="p-4">
-                    {
-                      course.status
-                    }
-                  </td>
-
-                  <td className="p-4">
-                    <Link
-                      href={`/instructor/courses/${course.id}`}
-                      className="bg-orange-600 px-4 py-2 rounded text-white"
-                    >
-                      Manage
-                    </Link>
-                  </td>
-                </tr>
-              )
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                {courses.map((course) => (<CourseCard
+                        key={course.id}
+                        course={course}
+                        action={{
+                            label: "Manage Course", href: `/instructor/courses/${course.id}`,
+                        }}
+                    />))}
+            </div>
+        </div>);
 }

@@ -1,270 +1,76 @@
 "use client";
 
-import { useState } from "react";
-import {
-  useParams,
-  useRouter,
-} from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 
-import {
-  createContent,
-} from "@/services/content.service";
+import Loader from "@/components/common/Loader";
+import ContentForm from "@/components/instructor/contents/ContentForm";
 
-export default function CreateContent() {
-  const { lessonId } =
-    useParams();
+import {useContents} from "@/hooks/queries/instructor/useContents";
+import {useCreateContent} from "@/hooks/queries/instructor/useCreateContent";
 
-  const router =
-    useRouter();
+export default function CreateContentPage() {
+    const {lessonId} = useParams();
 
-  const [formData, setFormData] =
-    useState({
-      title: "",
-      type: "VIDEO",
-      videoUrl: "",
-      fileUrl: "",
-      htmlContent: "",
-      externalUrl: "",
-      duration: "",
-      order: 1,
-    });
+    const router = useRouter();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]:
-        e.target.value,
-    });
-  };
+    const createContentMutation =
+        useCreateContent();
 
-  const handleSubmit =
-    async (e) => {
-      e.preventDefault();
+    const {
+        data: contents = [],
+        isLoading,
+    } = useContents(lessonId);
 
-      const data = {
-        title:
-          formData.title,
-        type:
-          formData.type,
-        order: Number(
-          formData.order
-        ),
-        lessonId,
-      };
+    const handleSubmit = async (
+        values
+    ) => {
+        const nextOrder =
+            contents.length > 0
+                ? Math.max(
+                ...contents.map(
+                    (content) =>
+                        content.order || 0
+                )
+            ) + 1
+                : 1;
 
-      if (
-        formData.type ===
-        "VIDEO"
-      ) {
-        data.videoUrl =
-          formData.videoUrl;
+        try {
+            await createContentMutation.mutateAsync({
+                ...values,
+                lessonId,
+                order: nextOrder,
 
-        data.duration =
-          Number(
-            formData.duration
-          );
-      }
+                ...(values.type ===
+                    "VIDEO" && {
+                        duration: Number(
+                            values.duration || 0
+                        ),
+                    }),
+            });
 
-      if (
-        formData.type ===
-        "DOCUMENT"
-      ) {
-        data.fileUrl =
-          formData.fileUrl;
-      }
-
-      if (
-        formData.type ===
-        "TEXT"
-      ) {
-        data.htmlContent =
-          formData.htmlContent;
-      }
-
-      if (
-        formData.type ===
-        "LINK"
-      ) {
-        data.externalUrl =
-          formData.externalUrl;
-      }
-
-      try {
-        await createContent(
-          data
-        );
-
-        router.push(
-          `/instructor/contents/${lessonId}`
-        );
-      } catch (error) {
-        console.error(error);
-      }
+            router.push(
+                `/instructor/lessons/${lessonId}`
+            );
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-  return (
-    <div className="min-h-screen bg-slate-950 p-8 text-white">
-      <div className="max-w-3xl mx-auto bg-slate-900 rounded-xl p-8">
-        <h1 className="text-4xl font-bold mb-8">
-          Create Content
-        </h1>
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-20">
+                <Loader/>
+            </div>
+        );
+    }
 
-        <form
-          onSubmit={
-            handleSubmit
-          }
-          className="space-y-5"
-        >
-          <input
-            type="text"
-            name="title"
-            placeholder="Title"
-            value={
-              formData.title
+    return (
+        <ContentForm
+            mode="create"
+            loading={
+                createContentMutation.isPending
             }
-            onChange={
-              handleChange
-            }
-            className="w-full p-3 rounded bg-slate-800"
-          />
-
-          <select
-            name="type"
-            value={
-              formData.type
-            }
-            onChange={
-              handleChange
-            }
-            className="w-full p-3 rounded bg-slate-800"
-          >
-            <option value="VIDEO">
-              VIDEO
-            </option>
-
-            <option value="DOCUMENT">
-              DOCUMENT
-            </option>
-
-            <option value="TEXT">
-              TEXT
-            </option>
-
-            <option value="LINK">
-              LINK
-            </option>
-
-            <option value="PRESENTATION">
-              PRESENTATION
-            </option>
-          </select>
-
-          {formData.type ===
-            "VIDEO" && (
-            <>
-              <input
-                type="text"
-                name="videoUrl"
-                placeholder="Video URL"
-                value={
-                  formData.videoUrl
-                }
-                onChange={
-                  handleChange
-                }
-                className="w-full p-3 rounded bg-slate-800"
-              />
-
-              <input
-                type="number"
-                name="duration"
-                placeholder="Duration (minutes)"
-                value={
-                  formData.duration
-                }
-                onChange={
-                  handleChange
-                }
-                className="w-full p-3 rounded bg-slate-800"
-              />
-            </>
-          )}
-
-          {formData.type ===
-            "DOCUMENT" && (
-            <input
-              type="text"
-              name="fileUrl"
-              placeholder="File URL"
-              value={
-                formData.fileUrl
-              }
-              onChange={
-                handleChange
-              }
-              className="w-full p-3 rounded bg-slate-800"
-            />
-          )}
-
-          {formData.type ===
-            "TEXT" && (
-            <textarea
-              name="htmlContent"
-              placeholder="Text Content"
-              value={
-                formData.htmlContent
-              }
-              onChange={
-                handleChange
-              }
-              rows={5}
-              className="w-full p-3 rounded bg-slate-800"
-            />
-          )}
-
-          {formData.type ===
-            "LINK" && (
-            <input
-              type="text"
-              name="externalUrl"
-              placeholder="External URL"
-              value={
-                formData.externalUrl
-              }
-              onChange={
-                handleChange
-              }
-              className="w-full p-3 rounded bg-slate-800"
-            />
-          )}
-
-          <input
-            type="number"
-            name="order"
-            placeholder="Order"
-            value={
-              formData.order
-            }
-            onChange={
-              handleChange
-            }
-            className="w-full p-3 rounded bg-slate-800"
-          />
-
-          <button
-            type="submit"
-            className="
-              bg-orange-600
-              hover:bg-orange-700
-              px-6
-              py-3
-              rounded-lg
-            "
-          >
-            Create Content
-          </button>
-        </form>
-      </div>
-    </div>
-  );
+            onSubmit={handleSubmit}
+        />
+    );
 }

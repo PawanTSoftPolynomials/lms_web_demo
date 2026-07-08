@@ -2,96 +2,107 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
 
-import {
-  getQuestions,
-  deleteQuestion,
-} from "@/services/question.service";
+import Loader from "@/components/common/Loader";
+import Card from "@/components/ui/Card";
 
-export default function QuestionList() {
+import QuestionGrid from "@/components/instructor/questions/QuestionGrid";
+
+import { useQuestions } from "@/hooks/queries/instructor/useQuestions";
+import { useDeleteQuestion } from "@/hooks/queries/instructor/useDeleteQuestion";
+
+export default function QuestionListPage() {
   const { quizId } = useParams();
 
-  const [questions, setQuestions] =
-    useState([]);
+  const {
+    data: questions = [],
+    isLoading,
+    isError,
+  } = useQuestions(quizId);
 
-  useEffect(() => {
-    loadQuestions();
-  }, []);
+  const deleteQuestionMutation =
+      useDeleteQuestion();
 
-  const loadQuestions =
-    async () => {
-      const data =
-        await getQuestions(
-          quizId
-        );
+  const handleDelete = async (
+      questionId
+  ) => {
+    if (
+        !window.confirm(
+            "Delete this question?"
+        )
+    ) {
+      return;
+    }
 
-      setQuestions(data);
-    };
+    try {
+      await deleteQuestionMutation.mutateAsync({
+        questionId,
+        quizId,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  const handleDelete =
-    async (questionId) => {
-      await deleteQuestion(
-        questionId
-      );
+  if (isLoading) {
+    return (
+        <div className="flex justify-center py-20">
+          <Loader />
+        </div>
+    );
+  }
 
-      loadQuestions();
-    };
+  if (isError) {
+    return (
+        <Card>
+          <div className="py-16 text-center">
+            <h2 className="text-2xl font-semibold">
+              Failed to Load Questions
+            </h2>
+
+            <p className="mt-2 text-slate-400">
+              Please try again later.
+            </p>
+          </div>
+        </Card>
+    );
+  }
 
   return (
-    <div>
-      <div className="flex justify-between mb-8">
-        <h1 className="text-4xl font-bold">
-          Questions
-        </h1>
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold">
+              Questions
+            </h1>
 
-        <Link
-          href={`/instructor/questions/create/${quizId}`}
-          className="bg-orange-600 px-5 py-3 rounded"
-        >
-          Add Question
-        </Link>
+            <p className="mt-2 text-slate-400">
+              Manage quiz questions.
+            </p>
+          </div>
+
+          <Link
+              href={`/instructor/questions/create/${quizId}`}
+              className="
+                        rounded-xl
+                        bg-orange-600
+                        px-5
+                        py-3
+                        text-white
+                        transition
+                        hover:bg-orange-700
+                    "
+          >
+            Add Question
+          </Link>
+        </div>
+
+        <QuestionGrid
+            questions={questions}
+            quizId={quizId}
+            onDelete={handleDelete}
+        />
       </div>
-
-      <div className="space-y-4">
-        {questions.map(
-          (question) => (
-            <div
-              key={question.id}
-              className="bg-slate-900 p-6 rounded-xl"
-            >
-              <h2 className="text-xl font-bold">
-                {question.question}
-              </h2>
-
-              <p>
-                Marks:
-                {question.marks}
-              </p>
-
-              <div className="mt-4 flex gap-3">
-                <Link
-                  href={`/instructor/questions/edit/${question.id}`}
-                  className="bg-blue-600 px-4 py-2 rounded"
-                >
-                  Edit
-                </Link>
-
-                <button
-                  onClick={() =>
-                    handleDelete(
-                      question.id
-                    )
-                  }
-                  className="bg-red-600 px-4 py-2 rounded"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          )
-        )}
-      </div>
-    </div>
   );
 }

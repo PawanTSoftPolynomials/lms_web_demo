@@ -1,133 +1,123 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
-  useEffect,
-  useState,
-} from "react";
+  FaUsers,
+  FaBook,
+  FaUserGraduate,
+  FaChalkboardTeacher,
+} from "react-icons/fa";
 
-import {
-  getUsers,
-} from "@/services/user.service";
+import { useDashboard } from "@/hooks/queries/admin/useDashboard";
 
-import {
-  getCourses,
-} from "@/services/course.service";
+import Loader from "@/components/common/Loader";
+
+import DashboardHeader from "@/components/dashboard/common/DashboardHeader";
+import DashboardStatCard from "@/components/dashboard/common/DashboardStatCard";
+import AnalyticsChart from "@/components/dashboard/AnalyticsChart";
+import CourseStatusChart from "@/components/dashboard/CourseStatusChart";
+import QuickActions from "@/components/dashboard/QuickActions";
+import RecentUsers from "@/components/dashboard/RecentUsers";
 
 export default function AdminDashboard() {
-  const [stats, setStats] =
-    useState({
-      users: 0,
-      courses: 0,
-      students: 0,
-      instructors: 0,
-    });
+  const router = useRouter();
 
-  useEffect(() => {
-    const loadStats =
-      async () => {
-        try {
-          const usersResponse =
-            await getUsers();
+  const { data: dashboard, isLoading, isError } = useDashboard();
 
-          const coursesResponse =
-            await getCourses();
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-24">
+        <Loader />
+      </div>
+    );
+  }
 
-          const users =
-            usersResponse.data ||
-            [];
+  if (isError || !dashboard) {
+    return (
+      <div className="py-24 text-center text-red-500">
+        Failed to load dashboard.
+      </div>
+    );
+  }
 
-          const courses =
-            coursesResponse.data ||
-            [];
-
-          setStats({
-            users:
-              users.length,
-
-            courses:
-              courses.length,
-
-            students:
-              users.filter(
-                (
-                  user
-                ) =>
-                  user.role ===
-                  "STUDENT"
-              ).length,
-
-            instructors:
-              users.filter(
-                (
-                  user
-                ) =>
-                  user.role ===
-                  "INSTRUCTOR"
-              ).length,
-          });
-        } catch (error) {
-          console.error(
-            error
-          );
-        }
-      };
-
-    loadStats();
-  }, []);
+  const analyticsData = [
+    {
+      name: "Users",
+      value: dashboard.totalUsers,
+    },
+    {
+      name: "Students",
+      value: dashboard.totalStudents,
+    },
+    {
+      name: "Instructors",
+      value: dashboard.totalInstructors,
+    },
+    {
+      name: "Courses",
+      value: dashboard.totalCourses,
+    },
+    {
+      name: "Enrollments",
+      value: dashboard.totalEnrollments,
+    },
+  ];
 
   return (
-    <div>
-      <h1 className="text-4xl font-bold text-white mb-8">
-        Admin Dashboard
-      </h1>
+    <div className="space-y-8">
+      <DashboardHeader name="Admin" />
 
-      <div className="grid md:grid-cols-4 gap-6">
-        <div className="bg-slate-900 p-6 rounded-xl">
-          <h3 className="text-slate-400">
-            Total Users
-          </h3>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-5">
+        <DashboardStatCard
+          title="Total Users"
+          value={dashboard.totalUsers}
+          icon={<FaUsers />}
+          onClick={() => router.push("/admin/users")}
+        />
 
-          <p className="text-4xl font-bold text-white mt-2">
-            {
-              stats.users
-            }
-          </p>
-        </div>
+        <DashboardStatCard
+          title="Courses"
+          value={dashboard.totalCourses}
+          icon={<FaBook />}
+          onClick={() => router.push("/admin/courses")}
+        />
 
-        <div className="bg-slate-900 p-6 rounded-xl">
-          <h3 className="text-slate-400">
-            Total Courses
-          </h3>
+        <DashboardStatCard
+          title="Students"
+          value={dashboard.totalStudents}
+          icon={<FaUserGraduate />}
+          onClick={() => router.push("/admin/students")}
+        />
 
-          <p className="text-4xl font-bold text-white mt-2">
-            {
-              stats.courses
-            }
-          </p>
-        </div>
+        <DashboardStatCard
+          title="Instructors"
+          value={dashboard.totalInstructors}
+          icon={<FaChalkboardTeacher />}
+          onClick={() => router.push("/admin/instructors")}
+        />
 
-        <div className="bg-slate-900 p-6 rounded-xl">
-          <h3 className="text-slate-400">
-            Students
-          </h3>
+        <DashboardStatCard
+          title="Enrollments"
+          value={dashboard.totalEnrollments}
+          icon={<FaUsers />}
+          onClick={() => router.push("/admin/enrollments")}
+        />
+      </div>
 
-          <p className="text-4xl font-bold text-white mt-2">
-            {
-              stats.students
-            }
-          </p>
-        </div>
+      <div className="grid gap-6 xl:grid-cols-2">
+        <AnalyticsChart title="Platform Overview" data={analyticsData} />
 
-        <div className="bg-slate-900 p-6 rounded-xl">
-          <h3 className="text-slate-400">
-            Instructors
-          </h3>
+        <CourseStatusChart
+          publishedCourses={dashboard.publishedCourses}
+          draftCourses={dashboard.draftCourses}
+        />
+      </div>
 
-          <p className="text-4xl font-bold text-white mt-2">
-            {
-              stats.instructors
-            }
-          </p>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <QuickActions />
+
+        <div className="lg:col-span-2">
+          <RecentUsers users={dashboard.recentUsers} />
         </div>
       </div>
     </div>

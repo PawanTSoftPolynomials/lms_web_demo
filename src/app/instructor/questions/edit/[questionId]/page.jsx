@@ -1,120 +1,62 @@
 "use client";
 
-import {
-  useParams,
-  useRouter,
-} from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import Loader from "@/components/common/Loader";
+import Card from "@/components/ui/Card";
 
-import {
-  getQuestionById,
-  updateQuestion,
-} from "@/services/question.service";
+import QuestionForm from "@/components/forms/QuestionForm";
 
-export default function EditQuestion() {
-  const { questionId } =
-    useParams();
+import {useQuestion} from "@/hooks/queries/instructor/useQuestion";
+import {useUpdateQuestion} from "@/hooks/queries/instructor/useUpdateQuestion";
 
-  const router =
-    useRouter();
+export default function EditQuestionPage() {
+    const {questionId} = useParams();
 
-  const [formData,
-    setFormData] =
-    useState({
-      question: "",
-      correctAnswer: "",
-      marks: 1,
-    });
+    const router = useRouter();
 
-  useEffect(() => {
-    loadQuestion();
-  }, []);
+    const {
+        data: question, isLoading, isError,
+    } = useQuestion(questionId);
 
-  const loadQuestion =
-    async () => {
-      const data =
-        await getQuestionById(
-          questionId
-        );
+    const updateQuestionMutation = useUpdateQuestion();
 
-      setFormData(data);
+    const handleSubmit = async (questionData) => {
+        try {
+            await updateQuestionMutation.mutateAsync({
+                questionId, quizId: question.quizId, questionData,
+            });
+
+            router.push(`/instructor/questions/view/${questionId}`);
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-  const handleChange =
-    (e) => {
-      setFormData({
-        ...formData,
-        [e.target.name]:
-          e.target.value,
-      });
-    };
+    if (isLoading) {
+        return (<div className="flex justify-center py-20">
+            <Loader/>
+        </div>);
+    }
 
-  const handleSubmit =
-    async (e) => {
-      e.preventDefault();
+    if (isError || !question) {
+        return (<Card>
+            <div className="py-16 text-center">
+                <h2 className="text-2xl font-semibold">
+                    Failed to Load Question
+                </h2>
 
-      await updateQuestion(
-        questionId,
-        formData
-      );
+                <p className="mt-2 text-slate-400">
+                    Please try again later.
+                </p>
+            </div>
+        </Card>);
+    }
 
-      router.back();
-    };
-
-  return (
-    <div className="bg-slate-900 p-8 rounded-xl">
-      <h1 className="text-4xl font-bold mb-8">
-        Edit Question
-      </h1>
-
-      <form
+    return (<QuestionForm
+        mode="edit"
+        initialValues={question}
+        loading={updateQuestionMutation.isPending}
         onSubmit={handleSubmit}
-        className="space-y-4"
-      >
-        <textarea
-          name="question"
-          value={
-            formData.question
-          }
-          onChange={
-            handleChange
-          }
-          className="w-full p-4 rounded bg-slate-800"
-        />
-
-        <input
-          name="correctAnswer"
-          value={
-            formData.correctAnswer
-          }
-          onChange={
-            handleChange
-          }
-          className="w-full p-4 rounded bg-slate-800"
-        />
-
-        <input
-          type="number"
-          name="marks"
-          value={
-            formData.marks
-          }
-          onChange={
-            handleChange
-          }
-          className="w-full p-4 rounded bg-slate-800"
-        />
-
-        <button
-          className="bg-orange-600 px-6 py-3 rounded"
-        >
-          Update Question
-        </button>
-      </form>
-    </div>
-  );
+    />);
 }

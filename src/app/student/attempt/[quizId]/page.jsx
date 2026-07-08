@@ -1,135 +1,187 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useParams } from "next/navigation";
+import {useMemo, useState} from "react";
+import {useParams, useRouter} from "next/navigation";
 
-import { getQuizById } from "@/services/quiz.service";
+import Loader from "@/components/common/Loader";
+import QuizHeader from "@/components/student/attempt/QuizHeader";
+import QuizTimer from "@/components/student/attempt/QuizTimer";
+import QuestionCard from "@/components/student/attempt/QuestionCard";
+import QuizNavigation from "@/components/student/attempt/QuizNavigation";
+import QuizSubmitModal from "@/components/student/attempt/QuizSubmitModal";
+import useQuiz from "@/hooks/queries/student/useQuiz";
+import useSubmitQuiz from "@/hooks/queries/student/useSubmitQuiz";
 
-export default function AttemptQuiz() {
-  const { quizId } = useParams();
+export default function QuizAttemptPage() {
+    const {quizId} = useParams();
+    const router = useRouter();
 
-  const [quiz, setQuiz] = useState(null);
+    const {
+        data,
+        isLoading,
+        isError,
+    } = useQuiz(quizId);
 
-  const [answers, setAnswers] = useState({});
+    const quiz = data?.data || data;
 
-  useEffect(() => {
-    loadQuiz();
-  }, []);
+    const questions = useMemo(
+        () => quiz?.questions || [],
+        [quiz]
+    );
+    //console.log("Quiz Response:", data);
+    //console.log("Quiz:", quiz);
+    // Current Question
+    const [currentQuestionIndex, setCurrentQuestionIndex] =
+        useState(0);
 
-  const loadQuiz = async () => {
-    const response = await getQuizById(quizId);
+    // Selected Answers
+    const [answers, setAnswers] = useState({});
 
-    setQuiz(response);
-  };
+    // Submit Modal
+    const [showSubmitModal, setShowSubmitModal] =
+        useState(false);
 
-  const handleSelect = (questionId, option) => {
-    setAnswers({
-      ...answers,
-      [questionId]: option,
-    });
-  };
+    // Current Question
+    const currentQuestion =
+        questions[currentQuestionIndex];
+    //console.log("Current Question:", currentQuestion);
+    // Answer Count
+    const answeredQuestions =
+        Object.keys(answers).length;
 
-  if (!quiz) return <div>Loading...</div>;
-const router =
-  useRouter();
-  const handleSubmit = () => {
-  let score = 0;
+    // Navigation
+    const handlePrevious = () => {
+        if (currentQuestionIndex > 0) {
+            setCurrentQuestionIndex(
+                (prev) => prev - 1
+            );
+        }
+    };
 
-  quiz.questions.forEach(
-    (question) => {
-      if (
-        answers[question.id] ===
-        question.correctAnswer
-      ) {
-        score += question.marks;
-      }
+
+    const handleNext = () => {
+        if (
+            currentQuestionIndex <
+            questions.length - 1
+        ) {
+            setCurrentQuestionIndex(
+                (prev) => prev + 1
+            );
+        }
+    };
+
+    // Save Answer
+    const handleSelectAnswer = (
+        answer
+    ) => {
+        setAnswers((prev) => ({
+            ...prev,
+            [currentQuestion.id]: answer,
+        }));
+    };
+
+    // Timer Finished
+    const handleTimeUp = () => {
+        setShowSubmitModal(true);
+    };
+
+    const submitQuizMutation =
+        useSubmitQuiz();
+    // Submit Quiz
+    const handleSubmitQuiz = () => {
+        submitQuizMutation.mutate(
+            {
+                quizId,
+                answers: Object.entries(
+                    answers
+                ).map(
+                    ([questionId, selectedOption]) => ({
+                        questionId,
+                        selectedOption,
+                    })
+                ),
+            },
+            {
+                onSuccess: () => {
+                    setShowSubmitModal(false);
+
+                    router.push(
+                        `/student/result/${quizId}`
+                    );
+                },
+
+                onError: (error) => {
+                    console.error(
+                        "Quiz submission failed",
+                        error
+                    );
+                },
+            }
+        );
+    };
+    if (isLoading) {
+        return <Loader/>;
     }
-  );
 
-  const totalMarks =
-    quiz.questions.reduce(
-      (total, question) =>
-        total + question.marks,
-      0
-    );
+    if (isError || !quiz) {
+        return (
+            <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-8 text-center">
+                <h2 className="text-xl font-semibold text-white">
+                    Quiz not found
+                </h2>
 
-  const percentage =
-    Math.round(
-      (score / totalMarks) * 100
-    );
-
-  const result = {
-    score,
-    totalMarks,
-    percentage,
-    passed:
-      percentage >=
-      quiz.passingScore,
-  };
-
-  localStorage.setItem(
-    "quizResult",
-    JSON.stringify(result)
-  );
-
-  router.push(
-    `/student/result/${quiz.id}`
-  );
-};
-  return (
-    <div>
-      <h1 className="text-4xl font-bold mb-8">{quiz.title}</h1>
-
-      <div className="space-y-6">
-        {quiz.questions.map((question, index) => (
-          <div
-            key={question.id}
-            className="
-                bg-slate-900
-                p-6
-                rounded-xl
-              "
-          >
-            <h2 className="text-xl font-bold">
-              {index + 1}.{question.question}
-            </h2>
-
-            <div className="mt-4 space-y-2">
-              {question.options.map((option) => (
-                <label
-                  key={option}
-                  className="
-                        block
-                      "
-                >
-                  <input
-                    type="radio"
-                    name={question.id}
-                    value={option}
-                    onChange={() => handleSelect(question.id, option)}
-                  />
-
-                  <span className="ml-3">{option}</span>
-                </label>
-              ))}
+                <p className="mt-2 text-slate-400">
+                    Unable to load this quiz.
+                </p>
             </div>
-            <button
-              onClick={handleSubmit}
-              className="
-    mt-8
-    bg-orange-600
-    px-6
-    py-3
-    rounded-lg
-    font-semibold
-  "
-            >
-              Submit Quiz
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+        );
+    }
+
+    return (
+        <>
+            <div className="space-y-6">
+                {/* Header */}
+                <QuizHeader quiz={quiz}/>
+
+                {/* Timer */}
+                <QuizTimer
+                    duration={quiz.timeLimit}
+                    onTimeUp={handleTimeUp}
+                />
+
+                {/* Question */}
+                <QuestionCard
+                    question={currentQuestion}
+                    currentQuestion={currentQuestionIndex + 1}
+                    totalQuestions={questions.length}
+                    selectedAnswer={answers[currentQuestion?.id]}
+                    onSelectAnswer={handleSelectAnswer}
+                />
+
+                {/* Navigation */}
+                <QuizNavigation
+                    currentQuestion={currentQuestionIndex + 1}
+                    totalQuestions={questions.length}
+                    canGoPrevious={currentQuestionIndex > 0}
+                    canGoNext={currentQuestionIndex < questions.length - 1}
+                    onPrevious={handlePrevious}
+                    onNext={handleNext}
+                    onSubmit={() => setShowSubmitModal(true)}
+                />
+            </div>
+
+            <QuizSubmitModal
+                isOpen={showSubmitModal}
+                onClose={() =>
+                    setShowSubmitModal(false)
+                }
+                onConfirm={handleSubmitQuiz}
+                totalQuestions={questions.length}
+                answeredQuestions={answeredQuestions}
+                isSubmitting={
+                    submitQuizMutation.isPending
+                }
+            />
+        </>
+    );
 }

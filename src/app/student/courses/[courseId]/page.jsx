@@ -1,68 +1,60 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { enrollCourse } from "@/services/enrollment.service";
-import { getCourseById } from "@/services/course.service";
+import {use} from "react";
 
-export default function CourseDetails() {
-  const { courseId } = useParams();
+import Loader from "@/components/common/Loader";
+import PageHeader from "@/components/layouts/PageHeader";
+import Card from "@/components/ui/Card";
 
-  const [course, setCourse] = useState(null);
+import CourseHeader from "@/components/student/course-details/CourseHeader";
+import CourseOverview from "@/components/student/course-details/CourseOverview";
+import ModuleAccordion from "@/components/student/course-details/ModuleAccordion";
 
-  useEffect(() => {
-    const loadCourse = async () => {
-      const data = await getCourseById(courseId);
+import useCourse from "@/hooks/queries/student/useCourse";
 
-      setCourse(data);
-    };
+export default function CourseDetailsPage({
+                                              params,
+                                          }) {
+    const {courseId} = use(params);
 
-    if (courseId) {
-      loadCourse();
+    const {
+        data: course,
+        isLoading,
+        isError,
+    } = useCourse(courseId);
+
+    if (isLoading) {
+        return <Loader/>;
     }
-  }, [courseId]);
 
-  if (!course) {
-    return <div>Loading...</div>;
-  }
+    if (isError || !course) {
+        return (
+            <Card className="p-8 text-center">
+                <h2 className="text-xl font-semibold text-white">
+                    Course not found
+                </h2>
 
-  const handleEnroll = async () => {
-    try {
-      await enrollCourse(courseId);
-
-      alert("Course enrolled successfully");
-    } catch (error) {
-      console.error(error);
+                <p className="mt-2 text-slate-400">
+                    The requested course could not be loaded.
+                </p>
+            </Card>
+        );
     }
-  };
-  return (
-    <div className="bg-slate-900 p-8 rounded-xl">
-      <h1 className="text-4xl font-bold mb-4">{course.title}</h1>
 
-      <p className="text-slate-300 mb-6">{course.description}</p>
+    return (
+        <div className="space-y-8">
+            <PageHeader
+                title="Course Details"
+                subtitle="Explore the course curriculum before you start learning."
+            />
 
-      <p>
-        Category:
-        {course.category}
-      </p>
+            <CourseHeader course={course}/>
 
-      <p>
-        Level:
-        {course.level}
-      </p>
+            <CourseOverview course={course}/>
 
-      <button
-  onClick={handleEnroll}
-  className="
-    mt-8
-    bg-orange-600
-    px-6
-    py-3
-    rounded-lg
-  "
->
-  Enroll Now
-</button>
-    </div>
-  );
+            <ModuleAccordion
+                modules={course.modules}
+            />
+        </div>
+    );
 }

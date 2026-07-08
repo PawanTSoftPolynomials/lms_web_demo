@@ -1,165 +1,97 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import Link from "next/link";
-import { getCourseById } from "@/services/course.service";
+import {useEffect, useMemo, useState} from "react";
+import {useParams} from "next/navigation";
 
-export default function LearnCourse() {
-  const { courseId } = useParams();
+import LearnHeader from "@/components/student/learning/LearnHeader";
+import VideoPlayer from "@/components/student/learning/VideoPlayer";
+import CourseSidebar from "@/components/student/learning/CourseSidebar";
+import LessonTabs from "@/components/student/learning/LessonTabs";
+import LessonNavigation from "@/components/student/learning/LessonNavigation";
+import useCompleteLesson from "@/hooks/queries/student/useCompleteLesson";
+import {useCourse} from "@/hooks/queries/student";
+import Loader from "@/components/common/Loader";
+import Card from "@/components/ui/Card";
 
-  const [course, setCourse] = useState(null);
+export default function LearnPage() {
+    const {courseId} = useParams();
+    const {data, isLoading, isError} = useCourse(courseId);
+    const completeLessonMutation = useCompleteLesson();
 
-  const [loading, setLoading] = useState(true);
+    const course = data?.data || data;
 
-  useEffect(() => {
-    const loadCourse = async () => {
-      try {
-        const response = await getCourseById(courseId);
+    const lessons = useMemo(() => {
+        const modules = course?.modules || [];
 
-        setCourse(response);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
+        return modules.flatMap((module) =>
+            (module.lessons || []).map((lesson) => ({
+                id: lesson.id,
+                title: lesson.title,
+                description: lesson.description,
+                duration: lesson.duration || "N/A",
+            }))
+        );
+    }, [course]);
+
+    const [selectedLesson, setSelectedLesson] = useState(null);
+
+    useEffect(() => {
+        if (!selectedLesson && lessons.length > 0) {
+            setSelectedLesson(lessons[0]);
+        }
+    }, [lessons, selectedLesson]);
+
+    const markComplete = async () => {
+        if (!selectedLesson?.id) return;
+        completeLessonMutation.mutate(selectedLesson.id);
     };
 
-    if (courseId) {
-      loadCourse();
+    if (isLoading) {
+        return <Loader/>;
     }
-  }, [courseId]);
 
-  if (loading) {
-    return <div className="text-white">Loading...</div>;
-  }
+    if (isError || !course) {
+        return <Card className="text-slate-300">Course not found.</Card>;
+    }
 
-  if (!course) {
-    return <div className="text-red-500">Course not found.</div>;
-  }
+    return (
+        <div className="space-y-6">
+            <LearnHeader
+                course={course}
+                progress={0}
+            />
 
-  return (
-    <div className="space-y-8">
-      {/* Course Header */}
-      <div className="bg-slate-900 p-6 rounded-xl">
-        <h1 className="text-4xl font-bold">{course.title}</h1>
+            <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
+                <VideoPlayer
+                    content={selectedLesson?.contents?.[0]}
+                />
 
-        <p className="text-slate-400 mt-3">{course.description}</p>
-      </div>
-      <Link
-        href={`/student/quizzes/${course.id}`}
-        className="
-    inline-block
-    mt-4
-    bg-orange-600
-    px-5
-    py-3
-    rounded-lg
-  "
-      >
-        Take Quiz
-      </Link>
-      {/* Modules */}
-      {course.modules?.map((module, moduleIndex) => (
-        <div
-          key={module.id}
-          className="
-              bg-slate-900
-              rounded-xl
-              p-6
-            "
-        >
-          <h2 className="text-2xl font-bold mb-4">
-            Module {moduleIndex + 1}: {module.title}
-          </h2>
+                <CourseSidebar
+                    modules={course.modules || []}
+                    activeLesson={selectedLesson}
+                    setActiveLesson={setSelectedLesson}
+                    completedLessons={[]}
+                />
+            </div>
 
-          <p className="text-slate-400 mb-6">{module.description}</p>
+            <LessonTabs
+                lesson={selectedLesson}
+                course={course}
+            />
 
-          {/* Lessons */}
-          <div className="space-y-4">
-            {module.lessons?.map((lesson, lessonIndex) => (
-              <div
-                key={lesson.id}
-                className="
-                      bg-slate-800
-                      rounded-lg
-                      p-4
-                    "
-              >
-                <h3 className="text-xl font-semibold">
-                  Lesson {lessonIndex + 1}: {lesson.title}
-                </h3>
-
-                <p className="text-slate-400 mt-2">{lesson.description}</p>
-
-                {/* Contents */}
-                <div className="mt-4 space-y-3">
-                  {lesson.contents?.map((content) => (
-                    <div
-                      key={content.id}
-                      className="
-                              bg-slate-700
-                              p-3
-                              rounded
-                            "
-                    >
-                      <h4 className="font-semibold">{content.title}</h4>
-
-                      {content.videoUrl && (
-                        <a
-                          href={content.videoUrl}
-                          target="_blank"
-                          className="
-                                  text-orange-500
-                                  block
-                                  mt-2
-                                "
-                        >
-                          Watch Video
-                        </a>
-                      )}
-
-                      {content.fileUrl && (
-                        <a
-                          href={content.fileUrl}
-                          target="_blank"
-                          className="
-                                  text-blue-400
-                                  block
-                                  mt-2
-                                "
-                        >
-                          Download File
-                        </a>
-                      )}
-
-                      {content.externalUrl && (
-                        <a
-                          href={content.externalUrl}
-                          target="_blank"
-                          className="
-                                  text-green-400
-                                  block
-                                  mt-2
-                                "
-                        >
-                          Open Link
-                        </a>
-                      )}
-
-                      {content.htmlContent && (
-                        <div className="mt-3 text-slate-300">
-                          {content.htmlContent}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+            <LessonNavigation
+                activeLesson={selectedLesson}
+                previousLesson={null}
+                nextLesson={null}
+                onPrevious={() => {
+                }}
+                onNext={() => {
+                }}
+                onComplete={markComplete}
+                isCompleting={
+                    completeLessonMutation.isPending
+                }
+            />
         </div>
-      ))}
-    </div>
-  );
+    );
 }

@@ -1,85 +1,88 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useMemo, useState } from "react";
 
-import UserTable from "@/components/users/UserTable";
+import PageHeader from "@/components/layouts/PageHeader";
+import Card from "@/components/ui/Card";
+import Loader from "@/components/common/Loader";
+import { useRouter } from "next/navigation";
 
-import {
-  getUsers,
-  deleteUser,
-} from "@/services/user.service";
+import UserStats from "@/components/admin/users/UserStats";
+import UserToolbar from "@/components/admin/users/UserToolbar";
+import UserTable from "@/components/admin/users/UserTable";
 
-export default function UsersPage() {
-  const [users, setUsers] =
-    useState([]);
+import { useUsers, useDeleteUser } from "@/hooks/queries/admin/useUsers";
 
-  const [loading, setLoading] =
-    useState(true);
+export default function AdminUsersPage() {
+  const router = useRouter();
 
-  const loadUsers =
-    async () => {
-      try {
-        const response =
-          await getUsers();
+  const { data: users = [], isLoading, isError, refetch } = useUsers();
 
-        setUsers(
-          response.data
-        );
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const deleteUserMutation = useDeleteUser();
 
-    console.log(users);
-  useEffect(() => {
-    loadUsers();
-  }, []);
+  const [search, setSearch] = useState("");
 
-  const handleDelete =
-    async (userId) => {
-      const confirmed =
-        confirm(
-          "Delete this user?"
-        );
+  const [role, setRole] = useState("");
 
-      if (!confirmed) return;
+  const [status, setStatus] = useState("");
 
-      try {
-        await deleteUser(
-          userId
-        );
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      const matchesSearch =
+        user.name.toLowerCase().includes(search.toLowerCase()) ||
+        user.email.toLowerCase().includes(search.toLowerCase());
 
-        loadUsers();
-      } catch (error) {
-        console.error(error);
-      }
-    };
+      const matchesRole = !role || user.role === role;
 
-  if (loading) {
-    return (
-      <div className="text-white p-6">
-        Loading...
-      </div>
-    );
+      const matchesStatus = !status || user.status === status;
+
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [users, search, role, status]);
+
+  const handleDelete = async (user) => {
+    const confirmed = window.confirm(`Delete ${user.name}?`);
+
+    if (!confirmed) return;
+
+    await deleteUserMutation.mutateAsync(user.id);
+  };
+
+  if (isLoading) {
+    return <Loader />;
+  }
+
+  if (isError) {
+    return <div className="text-red-500">Failed to load users.</div>;
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-6">
-      <h1 className="text-3xl font-bold mb-6">
-        User Management
-      </h1>
-
-      <UserTable
-        users={users}
-        onDelete={
-          handleDelete
-        }
+    <div className="space-y-8">
+      <PageHeader
+        title="Users"
+        subtitle="Manage all users across the platform."
       />
+
+      <UserStats users={users} />
+
+      <Card>
+        <UserToolbar
+          search={search}
+          onSearchChange={setSearch}
+          role={role}
+          onRoleChange={setRole}
+          status={status}
+          onStatusChange={setStatus}
+          onRefresh={refetch}
+        />
+
+        <UserTable
+          users={filteredUsers}
+          onEdit={(user) => router.push(`/admin/users/edit/${user.id}`)}
+          onView={(user) => router.push(`/admin/users/${user.id}`)}
+          onDelete={handleDelete}
+        />
+      </Card>
     </div>
   );
 }

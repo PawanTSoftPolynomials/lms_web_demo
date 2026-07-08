@@ -1,92 +1,127 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import {useMemo, useState} from "react";
+import {useRouter} from "next/navigation";
+
+import PageHeader from "@/components/layouts/PageHeader";
+import Card from "@/components/ui/Card";
+import Loader from "@/components/common/Loader";
+
+import StudentStats from "@/components/admin/student/StudentStats";
+import StudentToolbar from "@/components/admin/student/StudentToolbar";
+import StudentTable from "@/components/admin/student/StudentTable";
 
 import {
-  getUsers,
-} from "@/services/user.service";
+    useStudents,
+} from "@/hooks/queries/admin/useStudents";
 
-export default function StudentsPage() {
-  const [students,
-    setStudents] =
-    useState([]);
+export default function AdminStudentsPage() {
+    const router = useRouter();
 
-  useEffect(() => {
-    const loadUsers =
-      async () => {
-        try {
-          const response =
-            await getUsers();
+    const {
+        data: students = [],
+        isLoading,
+        isError,
+        refetch,
+    } = useStudents();
 
-          const users =
-            response.data ||
-            response;
+    const [search, setSearch] =
+        useState("");
 
-          const studentUsers =
-            users.filter(
-              (user) =>
-                user.role ===
-                "STUDENT"
+    const [status, setStatus] =
+        useState("");
+
+    const filteredStudents =
+        useMemo(() => {
+            return students.filter(
+                (student) => {
+                    const matchesSearch =
+                        student.user.name
+                            .toLowerCase()
+                            .includes(
+                                search.toLowerCase()
+                            ) ||
+                        student.user.email
+                            .toLowerCase()
+                            .includes(
+                                search.toLowerCase()
+                            );
+
+                    const matchesStatus =
+                        !status ||
+                        student.user.status ===
+                        status;
+
+                    return (
+                        matchesSearch &&
+                        matchesStatus
+                    );
+                }
             );
+        }, [
+            students,
+            search,
+            status,
+        ]);
 
-          setStudents(
-            studentUsers
-          );
-        } catch (error) {
-          console.error(error);
-        }
-      };
-
-    loadUsers();
-  }, []);
-
-  return (
-    <div>
-      <h1 className="text-4xl font-bold text-white mb-8">
-        Students
-      </h1>
-
-      <div className="grid gap-4">
-        {students.map(
-          (student) => (
-            <div
-              key={
-                student.id
-              }
-              className="bg-slate-900 rounded-xl p-6"
-            >
-              <h2 className="text-2xl font-semibold text-white">
-                {
-                  student.name
-                }
-              </h2>
-
-              <p className="text-slate-400 mt-2">
-                {
-                  student.email
-                }
-              </p>
-
-              <div className="mt-4">
-                <Link
-                  href={`/admin/users/${student.id}`}
-                  className="bg-orange-600 px-4 py-2 rounded text-white"
-                >
-                  View
-                </Link>
-              </div>
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-24">
+                <Loader/>
             </div>
-          )
-        )}
+        );
+    }
 
-        {students.length ===
-          0 && (
-          <div className="bg-slate-900 p-6 rounded-xl text-slate-400">
-            No students found.
-          </div>
-        )}
-      </div>
-    </div>
-  );
+    if (isError) {
+        return (
+            <div className="py-24 text-center text-red-500">
+                Failed to load students.
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-8">
+            <PageHeader
+                title="Students"
+                subtitle="Manage all registered students."
+            />
+
+            <StudentStats
+                students={students}
+            />
+
+            <Card>
+                <StudentToolbar
+                    search={search}
+                    onSearchChange={
+                        setSearch
+                    }
+                    status={status}
+                    onStatusChange={
+                        setStatus
+                    }
+                    onRefresh={refetch}
+                />
+
+                <StudentTable
+                    students={
+                        filteredStudents
+                    }
+                    onView={(student) =>
+                        router.push(
+                            `/admin/students/${student.id}`
+                        )
+                    }
+
+                    onDelete={(student) =>
+                        console.log(
+                            "Delete Student:",
+                            student
+                        )
+                    }
+                />
+            </Card>
+        </div>
+    );
 }

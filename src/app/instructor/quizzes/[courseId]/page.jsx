@@ -1,113 +1,107 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import {useParams} from "next/navigation";
 
-import {
-  getQuizzes,
-  deleteQuiz,
-} from "@/services/quiz.service";
+import Loader from "@/components/common/Loader";
+import Card from "@/components/ui/Card";
+import QuizGrid from "@/components/instructor/quizzes/QuizGrid";
 
-export default function QuizList() {
-  const { courseId } =
-    useParams();
+import {useQuizzes} from "@/hooks/queries/instructor/useQuizzes";
+import {useDeleteQuiz} from "@/hooks/queries/instructor/useDeleteQuiz";
 
-  const [quizzes,
-    setQuizzes] =
-    useState([]);
+export default function QuizListPage() {
+    const {courseId} = useParams();
 
-  useEffect(() => {
-    loadQuizzes();
-  }, []);
+    const {
+        data: quizzes = [],
+        isLoading,
+        isError,
+    } = useQuizzes(courseId);
+    const deleteQuizMutation =
+        useDeleteQuiz();
 
-  const loadQuizzes =
-    async () => {
-      const data =
-        await getQuizzes(
-          courseId
-        );
-
-      setQuizzes(data);
-    };
-
-  const handleDelete =
-    async (quizId) => {
-      await deleteQuiz(
+    const handleDelete = async (
         quizId
-      );
+    ) => {
+        if (
+            !window.confirm(
+                "Delete this quiz?"
+            )
+        ) {
+            return;
+        }
 
-      loadQuizzes();
+        try {
+            await deleteQuizMutation.mutateAsync({
+                quizId,
+                courseId,
+            });
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-  return (
-    <div>
-      <div className="flex justify-between mb-8">
-        <h1 className="text-4xl font-bold">
-          Quizzes
-        </h1>
-
-        <Link
-          href={`/instructor/quizzes/create/${courseId}`}
-          className="bg-orange-600 px-5 py-3 rounded"
-        >
-          Add Quiz
-        </Link>
-      </div>
-
-      <div className="space-y-4">
-        {quizzes.map(
-          (quiz) => (
-            <div
-              key={quiz.id}
-              className="bg-slate-900 p-6 rounded-xl flex justify-between"
-            >
-              <div>
-                <h2 className="text-2xl font-bold">
-                  {quiz.title}
-                </h2>
-
-                <p>
-                  Passing:
-                  {quiz.passingScore}%
-                </p>
-
-                <p>
-                  Time:
-                  {quiz.timeLimit} min
-                </p>
-              </div>
-
-              <div className="space-x-3">
-                <Link
-                  href={`/instructor/questions/${quiz.id}`}
-                  className="bg-green-600 px-4 py-2 rounded"
-                >
-                  Questions
-                </Link>
-
-                <Link
-                  href={`/instructor/quizzes/edit/${quiz.id}`}
-                  className="bg-blue-600 px-4 py-2 rounded"
-                >
-                  Edit
-                </Link>
-
-                <button
-                  onClick={() =>
-                    handleDelete(
-                      quiz.id
-                    )
-                  }
-                  className="bg-red-600 px-4 py-2 rounded"
-                >
-                  Delete
-                </button>
-              </div>
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-20">
+                <Loader/>
             </div>
-          )
-        )}
-      </div>
-    </div>
-  );
+        );
+    }
+
+    if (isError) {
+        return (
+            <Card>
+                <div className="py-16 text-center">
+                    <h2 className="text-2xl font-semibold">
+                        Failed to Load Quizzes
+                    </h2>
+
+                    <p className="mt-2 text-slate-400">
+                        Please try again later.
+                    </p>
+                </div>
+            </Card>
+        );
+    }
+
+    return (
+        <div className="space-y-8">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-4xl font-bold">
+                        Quizzes
+                    </h1>
+
+                    <p className="mt-2 text-slate-400">
+                        Manage quizzes and their
+                        questions.
+                    </p>
+                </div>
+
+                <Link
+                    href={`/instructor/quizzes/create/${courseId}`}
+                    className="
+            rounded-xl
+            bg-orange-600
+            px-5
+            py-3
+            text-white
+            transition
+            hover:bg-orange-700
+          "
+                >
+                    Add Quiz
+                </Link>
+            </div>
+
+            <QuizGrid
+                quizzes={quizzes}
+                courseId={courseId}
+                onDelete={handleDelete}
+            />
+        </div>
+    );
 }

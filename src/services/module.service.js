@@ -3,14 +3,15 @@ import api from "@/lib/axios";
 export const getModules = async (
   courseId
 ) => {
+  const url = courseId
+    ? `/modules?courseId=${courseId}`
+    : "/modules";
+
   const response =
-    await api.get(
-      `/modules?courseId=${courseId}`
-    );
+    await api.get(url);
 
   return response.data;
 };
-
 export const getModuleById =
   async (moduleId) => {
     const response =

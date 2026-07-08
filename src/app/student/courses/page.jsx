@@ -1,57 +1,114 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import {useMemo, useState} from "react";
 
-import { getCourses } from "@/services/course.service";
+import Loader from "@/components/common/Loader";
+import PageHeader from "@/components/layouts/PageHeader";
+import Card from "@/components/ui/Card";
 
-export default function StudentCourses() {
-  const [courses, setCourses] =
-    useState([]);
+import CourseFilters from "@/components/student/courses/CourseFilters";
+import CourseGrid from "@/components/student/courses/CourseGrid";
+import CourseStats from "@/components/student/courses/CourseStats";
+import CourseToolbar from "@/components/student/courses/CourseToolbar";
 
-  useEffect(() => {
-    const loadCourses =
-      async () => {
-        const data =
-          await getCourses();
+import useCourses from "@/hooks/queries/student/useCourses";
 
-        setCourses(data);
-      };
+export default function StudentCoursesPage() {
+    const {data: courses = [], isLoading, isError} = useCourses();
 
-    loadCourses();
-  }, []);
+    const [search, setSearch] = useState("");
+    const [category, setCategory] = useState("");
+    const [level, setLevel] = useState("");
 
-  return (
-    <div>
-      <h1 className="text-4xl font-bold mb-8">
-        Browse Courses
-      </h1>
+    const categories = useMemo(() => {
+        return [...new Set(courses.map((course) => course.category).filter(Boolean))];
+    }, [courses]);
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {courses.map(
-          (course) => (
-            <div
-              key={course.id}
-              className="bg-slate-900 p-6 rounded-xl"
-            >
-              <h2 className="text-2xl font-bold mb-3">
-                {course.title}
-              </h2>
+    const levels = useMemo(() => {
+        return [...new Set(courses.map((course) => course.level).filter(Boolean))];
+    }, [courses]);
+    const filteredCourses = useMemo(() => {
+        return courses.filter((course) => {
+            const matchesSearch =
+                course.title
+                    .toLowerCase()
+                    .includes(search.toLowerCase()) ||
+                course.description
+                    .toLowerCase()
+                    .includes(search.toLowerCase());
 
-              <p className="text-slate-400 mb-4">
-                {course.description}
-              </p>
+            const matchesCategory =
+                !category || course.category === category;
 
-              <Link
-                href={`/student/courses/${course.id}`}
-                className="bg-orange-600 px-4 py-2 rounded"
-              >
-                View Course
-              </Link>
-            </div>
-          )
-        )}
-      </div>
-    </div>
-  );
+            const matchesLevel =
+                !level || course.level === level;
+
+            return (
+                matchesSearch &&
+                matchesCategory &&
+                matchesLevel
+            );
+        });
+    }, [courses, search, category, level]);
+    console.log(filteredCourses);
+
+    const activeFilters = [
+        search,
+        category,
+        level,
+    ].filter(Boolean).length;
+
+    const handleResetFilters = () => {
+        setSearch("");
+        setCategory("");
+        setLevel("");
+    };
+
+    if (isLoading) {
+        return <Loader/>;
+    }
+
+    if (isError) {
+        return (
+            <Card className="p-8 text-center">
+                <h2 className="text-xl font-semibold text-white">
+                    Unable to load courses
+                </h2>
+
+                <p className="mt-2 text-slate-400">
+                    Please try again later.
+                </p>
+            </Card>
+        );
+    }
+
+    return (
+        <div className="space-y-8">
+            <PageHeader
+                title="Browse Courses"
+                subtitle="Discover courses and start learning."
+            />
+
+            <CourseStats courses={courses}/>
+
+            <CourseToolbar
+                totalCourses={filteredCourses.length}
+                activeFilters={activeFilters}
+                onResetFilters={handleResetFilters}
+            />
+
+            <CourseFilters
+                search={search}
+                onSearchChange={setSearch}
+                category={category}
+                onCategoryChange={setCategory}
+                level={level}
+                onLevelChange={setLevel}
+                categories={categories}
+                levels={levels}
+            />
+
+            <CourseGrid courses={filteredCourses}/>
+        </div>
+    );
 }

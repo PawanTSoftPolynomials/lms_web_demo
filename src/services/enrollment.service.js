@@ -1,33 +1,91 @@
 import api from "@/lib/axios";
 
-export const enrollCourse =
-  async (courseId) => {
-    const response =
-      await api.post(
+/**
+ * Enroll Course
+ */
+export const enrollCourse = async (
+    courseId
+) => {
+    const {data} = await api.post(
         "/enrollments",
         {
-          courseId,
+            courseId,
         }
-      );
+    );
 
-    return response.data;
-  };
+    return data;
+};
 
-  export const getMyEnrollments =
-  async (userId) => {
-    const response =
-      await api.get(
-        `/enrollments?userId=${userId}`
-      );
+/**
+ * Get All Enrollments
+ */
+export const getEnrollments = async (
+    userId,
+    courseId
+) => {
+    let url = "/enrollments";
 
-    return response.data;
-  };
+    const params =
+        new URLSearchParams();
+
+    if (userId) {
+        params.append(
+            "userId",
+            userId
+        );
+    }
+
+    if (courseId) {
+        params.append(
+            "courseId",
+            courseId
+        );
+    }
+
+    if (params.toString()) {
+        url += `?${params.toString()}`;
+    }
+
+    const {data} = await api.get(
+        url
+    );
+
+    return data.data;
+};
+
+/**
+ * Get My Enrollments
+ */
+/**
+ * Get My Enrollments
+ */
+export const getMyEnrollments = async () => {
+    const {data} = await api.get("/enrollments");
+
+    return data.data ?? data;
+};
+/**
+ * Unenroll Course
+ */
 export const unenrollCourse =
-  async (enrollmentId) => {
-    const response =
-      await api.delete(
-        `/enrollments/${enrollmentId}`
-      );
+    async (enrollmentId) => {
+        const {data} =
+            await api.delete(
+                `/enrollments/${enrollmentId}`
+            );
 
-    return response.data;
-  };
+        return data;
+    };
+
+/**
+ * Delete Enrollment
+ */
+export const deleteEnrollment =
+    async (enrollmentId) => {
+        const {data} =
+            await api.delete(
+                `/enrollments/${enrollmentId}`
+            );
+
+        return data;
+    };

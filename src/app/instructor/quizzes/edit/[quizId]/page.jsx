@@ -1,122 +1,81 @@
 "use client";
 
-import { useParams }
-  from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
-import { useRouter }
-  from "next/navigation";
+import Loader from "@/components/common/Loader";
+import Card from "@/components/ui/Card";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import QuizForm from "@/components/instructor/quizzes/QuizForm";
 
-import {
-  getQuizById,
-  updateQuiz,
-} from "@/services/quiz.service";
+import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
+import { useUpdateQuiz } from "@/hooks/queries/instructor/useUpdateQuiz";
 
-export default function EditQuiz() {
-  const { quizId } =
-    useParams();
+export default function EditQuizPage() {
+    const { quizId } = useParams();
 
-  const router =
-    useRouter();
+    const router = useRouter();
 
-  const [formData,
-    setFormData] =
-    useState({
-      title: "",
-      description: "",
-      passingScore: 70,
-      timeLimit: 30,
-    });
+    const {
+        data: quiz,
+        isLoading,
+        isError,
+    } = useQuiz(quizId);
 
-  useEffect(() => {
-    loadQuiz();
-  }, []);
+    const updateQuizMutation =
+        useUpdateQuiz();
 
-  const loadQuiz =
-    async () => {
-      const quiz =
-        await getQuizById(
-          quizId
+    const handleSubmit = async (
+        values
+    ) => {
+        try {
+            await updateQuizMutation.mutateAsync({
+                quizId,
+                quizData: {
+                    ...values,
+                    courseId: quiz.courseId,
+                },
+            });
+
+            router.push(
+                `/instructor/quizzes/view/${quizId}`
+            );
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-20">
+                <Loader />
+            </div>
         );
+    }
 
-      setFormData(quiz);
-    };
+    if (isError || !quiz) {
+        return (
+            <Card>
+                <div className="py-16 text-center">
+                    <h2 className="text-2xl font-semibold">
+                        Quiz Not Found
+                    </h2>
 
-  const handleChange =
-    (e) => {
-      setFormData({
-        ...formData,
-        [e.target.name]:
-          e.target.value,
-      });
-    };
+                    <p className="mt-2 text-slate-400">
+                        Unable to load the quiz.
+                    </p>
+                </div>
+            </Card>
+        );
+    }
 
-  const handleSubmit =
-    async (e) => {
-      e.preventDefault();
-
-      await updateQuiz(
-        quizId,
-        formData
-      );
-
-      router.back();
-    };
-
-  return (
-    <div className="bg-slate-900 p-8 rounded-xl">
-      <h1 className="text-4xl font-bold mb-6">
-        Edit Quiz
-      </h1>
-
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4"
-      >
-        <input
-          name="title"
-          value={formData.title}
-          onChange={handleChange}
-          className="w-full p-4 rounded bg-slate-800"
+    return (
+        <QuizForm
+            mode="edit"
+            initialValues={quiz}
+            loading={
+                updateQuizMutation.isPending
+            }
+            onSubmit={handleSubmit}
         />
-
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          className="w-full p-4 rounded bg-slate-800"
-        />
-
-        <input
-          type="number"
-          name="passingScore"
-          value={
-            formData.passingScore
-          }
-          onChange={handleChange}
-          className="w-full p-4 rounded bg-slate-800"
-        />
-
-        <input
-          type="number"
-          name="timeLimit"
-          value={
-            formData.timeLimit
-          }
-          onChange={handleChange}
-          className="w-full p-4 rounded bg-slate-800"
-        />
-
-        <button
-          className="bg-orange-600 px-6 py-3 rounded"
-        >
-          Update Quiz
-        </button>
-      </form>
-    </div>
-  );
+    );
 }

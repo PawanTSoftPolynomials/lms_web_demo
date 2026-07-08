@@ -1,20 +1,16 @@
-import AdminSidebar from "../../components/layouts/AdminSidebar";
-import Navbar from "../../components/layouts/Navbar";
+"use client";
 
-export default function AdminLayout({
+import DashboardLayout from "@/components/layouts/DashboardLayout";
+
+export default function Layout({
   children,
 }) {
   return (
-    <div className="flex min-h-screen bg-slate-950">
-      <AdminSidebar />
-
-      <div className="flex-1 flex flex-col">
-        <Navbar />
-
-        <main className="p-6 flex-1">
-          {children}
-        </main>
-      </div>
-    </div>
+    <DashboardLayout
+      role="ADMIN"
+      title="Admin Dashboard"
+    >
+      {children}
+    </DashboardLayout>
   );
 }

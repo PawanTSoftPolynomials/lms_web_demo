@@ -1,91 +1,109 @@
 "use client";
 
+import {useMemo, useState} from "react";
+import {useRouter} from "next/navigation";
+import PageHeader from "@/components/layouts/PageHeader";
+import Card from "@/components/ui/Card";
+import Loader from "@/components/common/Loader";
+import CourseStats from "@/components/admin/courses/CourseStats";
+import CourseToolbar from "@/components/admin/courses/CourseToolbar";
+import CourseTable from "@/components/admin/courses/CourseTable";
+
 import {
-  useEffect,
-  useState,
-} from "react";
+    useCourses, useDeleteCourse,
+} from "@/hooks/queries/admin/useCourses";
+import Button from "@/components/ui/Button";
 
-import Link from "next/link";
+export default function AdminCoursesPage() {
+    const router = useRouter();
 
-import CourseTable from "@/components/courses/CourseTable";
+    const {
+        data: courses = [], isLoading, isError, refetch,
+    } = useCourses();
 
-import {
-  getCourses,
-  deleteCourse,
-} from "@/services/course.service";
+    const deleteCourseMutation = useDeleteCourse();
 
-export default function CoursesPage() {
-  const [courses, setCourses] =
-    useState([]);
+    const [search, setSearch] = useState("");
 
-  const [loading, setLoading] =
-    useState(true);
+    const [status, setStatus] = useState("");
 
-  const loadCourses =
-    async () => {
-      try {
-        const response =
-          await getCourses();
+    const [level, setLevel] = useState("");
 
-        setCourses(
-          response
-        );
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const filteredCourses = useMemo(() => {
+        return courses.filter((course) => {
+            const matchesSearch = course.title
+                .toLowerCase()
+                .includes(search.toLowerCase()) || course.category
+                .toLowerCase()
+                .includes(search.toLowerCase()) || course.creator?.name
+                ?.toLowerCase()
+                .includes(search.toLowerCase());
 
-  useEffect(() => {
-    loadCourses();
-  }, []);
+            const matchesStatus = !status || course.status === status;
 
-  const handleDelete =
-    async (courseId) => {
-      const confirmed =
-        confirm(
-          "Delete course?"
-        );
+            const matchesLevel = !level || course.level === level;
 
-      if (!confirmed) return;
+            return (matchesSearch && matchesStatus && matchesLevel);
+        });
+    }, [courses, search, status, level,]);
 
-      await deleteCourse(
-        courseId
-      );
+    const handleDelete = async (course) => {
+        const confirmed = window.confirm(`Delete "${course.title}"?`);
 
-      loadCourses();
-    };
+        if (!confirmed) return;
 
-  if (loading) {
-    return (
-      <div className="p-6 text-white">
-        Loading...
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-slate-950 text-white p-6">
-      <div className="flex justify-between mb-6">
-        <h1 className="text-3xl font-bold">
-          Courses
-        </h1>
-
-        <Link
-          href="/admin/courses/create"
-          className="bg-orange-600 px-4 py-2 rounded"
-        >
-          Create Course
-        </Link>
-      </div>
-
-      <CourseTable
-        courses={courses}
-        onDelete={
-          handleDelete
+        try {
+            await deleteCourseMutation.mutateAsync(course.id);
+        } catch (error) {
+            console.error(error);
         }
-      />
-    </div>
-  );
+    };
+
+    if (isLoading) {
+        return (<div className="flex justify-center py-24">
+                <Loader/>
+            </div>);
+    }
+
+    if (isError) {
+        return (<div className="py-24 text-center text-red-500">
+                Failed to load courses.
+            </div>);
+    }
+
+    return (<div className="space-y-8">
+            <PageHeader
+                title="Courses"
+                subtitle="Manage all courses."
+            >
+                <Button
+                    onClick={() => router.push("/admin/courses/create")}
+                >
+                    Create Course
+                </Button>
+            </PageHeader>
+
+            <CourseStats
+                courses={courses}
+            />
+
+            <Card>
+                <CourseToolbar
+                    search={search}
+                    onSearchChange={setSearch}
+                    status={status}
+                    onStatusChange={setStatus}
+                    level={level}
+                    onLevelChange={setLevel}
+                    onRefresh={refetch}
+                />
+
+                <CourseTable
+                    courses={filteredCourses}
+                    onView={(course) => router.push(`/admin/courses/${course.id}`)}
+                    onEdit={(course) => router.push(`/admin/courses/edit/${course.id}`)}
+                    onDelete={handleDelete}
+                />
+            </Card>
+        </div>);
 }

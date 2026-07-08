@@ -1,20 +1,16 @@
-import InstructorSidebar from "../../components/layouts/InstructorSidebar";
-import Navbar from "../../components/layouts/Navbar";
+"use client";
 
-export default function InstructorLayout({
+import DashboardLayout from "@/components/layouts/DashboardLayout";
+
+export default function Layout({
   children,
 }) {
   return (
-    <div className="flex min-h-screen bg-slate-950">
-      <InstructorSidebar />
-
-      <div className="flex-1 flex flex-col">
-        <Navbar />
-
-        <main className="p-6 flex-1">
-          {children}
-        </main>
-      </div>
-    </div>
+    <DashboardLayout
+      role="INSTRUCTOR"
+      title="Instructor Dashboard"
+    >
+      {children}
+    </DashboardLayout>
   );
 }

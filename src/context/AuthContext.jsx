@@ -1,116 +1,115 @@
 "use client";
 
-import {
-createContext,
-useContext,
-useEffect,
-useState,
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import Cookies from "js-cookie";
 
 import {
-loginUser,
-registerUser,
+  registerUser,
+  loginUser,
+  logoutUser,
+  getProfile,
 } from "@/services/auth.service";
 
-const AuthContext =
-createContext();
+const AuthContext = createContext();
 
-export const AuthProvider = ({
-children,
-}) => {
-const [user, setUser] =
-useState(null);
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-const [loading, setLoading] =
-useState(true);
+  const logoutLocal = () => {
+    Cookies.remove("accessToken");
+    Cookies.remove("refreshToken");
+    Cookies.remove("role");
 
-useEffect(() => {
-const storedUser =
-localStorage.getItem("user");
+    localStorage.removeItem("user");
 
-if (storedUser) {
-  setUser(
-    JSON.parse(storedUser)
+    setUser(null);
+  };
+
+  const initializeAuth = async () => {
+    const token = Cookies.get("accessToken");
+
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await getProfile();
+
+      setUser(response.data);
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify(response.data)
+      );
+    } catch (error) {
+      console.error("Authentication initialization failed:", error);
+
+      logoutLocal();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    initializeAuth();
+  }, []);
+
+  const register = async (data) => {
+    return await registerUser(data);
+  };
+
+  const login = async (credentials) => {
+    const response = await loginUser(credentials);
+
+    const { accessToken, refreshToken, user } = response.data;
+
+    Cookies.set("accessToken", accessToken, {
+      expires: 1,
+    });
+
+    Cookies.set("refreshToken", refreshToken, {
+      expires: 7,
+    });
+
+    Cookies.set("role", user.role, {
+      expires: 1,
+    });
+
+    localStorage.setItem(
+      "user",
+      JSON.stringify(user)
+    );
+
+    setUser(user);
+
+    return user;
+  };
+
+  const logout = async () => {
+    try {
+      await logoutUser();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      logoutLocal();
+    }
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        register,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
-}
-
-setLoading(false);
-
-}, []);
-
-const register = async (
-data
-) => {
-return await registerUser(data);
 };
 
-const login = async (
-credentials
-) => {
-const response =
-await loginUser(
-credentials
-);
-
-const {
-  accessToken,
-  refreshToken,
-  user,
-} = response.data;
-
-localStorage.setItem(
-  "accessToken",
-  accessToken
-);
-
-localStorage.setItem(
-  "refreshToken",
-  refreshToken
-);
-
-localStorage.setItem(
-  "user",
-  JSON.stringify(user)
-);
-
-setUser(user);
-
-return user;
-
-};
-
-const logout = () => {
-localStorage.removeItem(
-"accessToken"
-);
-
-localStorage.removeItem(
-  "refreshToken"
-);
-
-localStorage.removeItem(
-  "user"
-);
-
-setUser(null);
-
-
-};
-
-return (
-<AuthContext.Provider
-value={{
-user,
-loading,
-login,
-register,
-logout,
-}}
->
-{children}
-</AuthContext.Provider>
-);
-};
-
-export const useAuth =
-() => useContext(AuthContext);
+export const useAuth = () => useContext(AuthContext);

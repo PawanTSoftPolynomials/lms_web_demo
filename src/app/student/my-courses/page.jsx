@@ -1,103 +1,122 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import {useMemo, useState} from "react";
 
-import {
-  getMyEnrollments,
-} from "@/services/enrollment.service";
+import Loader from "@/components/common/Loader";
+import PageHeader from "@/components/layouts/PageHeader";
+import Card from "@/components/ui/Card";
+import MyCourseStats from "@/components/student/my-courses/MyCourseStats";
+import MyCourseToolbar from "@/components/student/my-courses/MyCourseToolbar";
+import ContinueLearningCard from "@/components/student/my-courses/ContinueLearningCard";
+import useMyCourses from "@/hooks/queries/student/useMyCourses";
+import MyCourseCard from "@/components/student/my-courses/MyCourseCard";
 
-export default function MyCourses() {
-  const [courses, setCourses] =
-    useState([]);
+export default function MyCoursesPage() {
+    const {
+        data: enrollments = [],
+        isLoading,
+        isError,
+    } = useMyCourses();
 
-  useEffect(() => {
-    const loadData =
-      async () => {
-        try {
-          const user =
-            JSON.parse(
-              localStorage.getItem(
-                "user"
-              )
-            );
+    const [search, setSearch] = useState("");
+    const [sortBy, setSortBy] =
+        useState("latest");
 
-          const response =
-            await getMyEnrollments(
-              user.id
-            );
+    const filteredEnrollments = useMemo(() => {
+        const filtered = enrollments.filter(
+            (enrollment) =>
+                enrollment.course?.title
+                    ?.toLowerCase()
+                    .includes(search.toLowerCase())
+        );
 
-          setCourses(
-            response.data
-          );
-        } catch (error) {
-          console.error(error);
+        switch (sortBy) {
+            case "oldest":
+                filtered.sort(
+                    (a, b) =>
+                        new Date(a.enrolledAt) -
+                        new Date(b.enrolledAt)
+                );
+                break;
+
+            case "name-asc":
+                filtered.sort((a, b) =>
+                    a.course.title.localeCompare(
+                        b.course.title
+                    )
+                );
+                break;
+
+            case "name-desc":
+                filtered.sort((a, b) =>
+                    b.course.title.localeCompare(
+                        a.course.title
+                    )
+                );
+                break;
+
+            case "latest":
+            default:
+                filtered.sort(
+                    (a, b) =>
+                        new Date(b.enrolledAt) -
+                        new Date(a.enrolledAt)
+                );
         }
-      };
 
-    loadData();
-  }, []);
+        return filtered;
+    }, [enrollments, search, sortBy]);
 
-  return (
-    <div>
-      <h1 className="text-4xl font-bold mb-8">
-        My Courses
-      </h1>
+    if (isLoading) {
+        return <Loader/>;
+    }
 
-      <div className="grid gap-6">
-        {courses.length === 0 ? (
-          <div className="text-slate-400">
-            No enrolled courses found.
-          </div>
-        ) : (
-          courses.map(
-            (enrollment) => (
-              <div
-                key={enrollment.id}
-                className="
-                  bg-slate-900
-                  p-6
-                  rounded-xl
-                  flex
-                  justify-between
-                  items-center
-                "
-              >
-                <div>
-                  <h2 className="text-2xl font-bold">
-                    {
-                      enrollment
-                        .course?.title
-                    }
-                  </h2>
+    if (isError) {
+        return (
+            <Card className="p-8 text-center">
+                <h2 className="text-xl font-semibold text-white">
+                    Unable to load your courses
+                </h2>
 
-                  <p className="text-slate-400 mt-2">
-                    {
-                      enrollment
-                        .course?.description
-                    }
-                  </p>
-                </div>
+                <p className="mt-2 text-slate-400">
+                    Please try again later.
+                </p>
+            </Card>
+        );
+    }
 
-                <Link
-                  href={`/student/learn/${enrollment.course.id}`}
-                  className="
-                    bg-orange-600
-                    hover:bg-orange-700
-                    px-5
-                    py-3
-                    rounded-lg
-                    font-semibold
-                    transition
-                  "
-                >
-                  Start Learning
-                </Link>
-              </div>
-            )
-          )
-        )}
-      </div>
-    </div>
-  );
+    return (
+        <div className="space-y-8">
+            <PageHeader
+                title="My Courses"
+                subtitle="Manage and continue your enrolled courses."
+            />
+
+            <MyCourseStats
+                enrollments={enrollments}
+            />
+
+            <MyCourseToolbar
+                search={search}
+                setSearch={setSearch}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+            />
+
+            {filteredEnrollments.length > 0 && (
+                <ContinueLearningCard
+                    enrollment={filteredEnrollments[0]}
+                />
+            )}
+
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {filteredEnrollments.map((enrollment) => (
+                    <MyCourseCard
+                        key={enrollment.id}
+                        enrollment={enrollment}
+                    />
+                ))}
+            </div>
+        </div>
+    );
 }

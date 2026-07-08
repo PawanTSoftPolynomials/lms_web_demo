@@ -1,92 +1,146 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
-import {
-  getUsers,
-} from "@/services/user.service";
+import PageHeader from "@/components/layouts/PageHeader";
+import Card from "@/components/ui/Card";
+import Loader from "@/components/common/Loader";
 
-export default function InstructorsPage() {
-  const [instructors,
-    setInstructors] =
-    useState([]);
+import InstructorStats from "@/components/admin/instructors/InstructorStats";
+import InstructorToolbar from "@/components/admin/instructors/InstructorToolbar";
+import InstructorTable from "@/components/admin/instructors/InstructorTable";
 
-  useEffect(() => {
-    const loadUsers =
-      async () => {
-        try {
-          const response =
-            await getUsers();
+import { useInstructors } from "@/hooks/queries/admin/useInstructors";
 
-          const users =
-            response.data ||
-            response;
+export default function AdminInstructorsPage() {
+    const router = useRouter();
 
-          const instructorUsers =
-            users.filter(
-              (user) =>
-                user.role ===
-                "INSTRUCTOR"
+    const {
+        data: instructors = [],
+        isLoading,
+        isError,
+        refetch,
+    } = useInstructors();
+
+    const [search, setSearch] =
+        useState("");
+
+    const [status, setStatus] =
+        useState("");
+
+    const filteredInstructors =
+        useMemo(() => {
+            return instructors.filter(
+                (instructor) => {
+                    const matchesSearch =
+                        instructor.user.name
+                            .toLowerCase()
+                            .includes(
+                                search.toLowerCase()
+                            ) ||
+                        instructor.user.email
+                            .toLowerCase()
+                            .includes(
+                                search.toLowerCase()
+                            ) ||
+                        instructor.specialization
+                            ?.toLowerCase()
+                            .includes(
+                                search.toLowerCase()
+                            ) ||
+                        instructor.qualification
+                            ?.toLowerCase()
+                            .includes(
+                                search.toLowerCase()
+                            );
+
+                    const matchesStatus =
+                        !status ||
+                        instructor.user.status ===
+                        status;
+
+                    return (
+                        matchesSearch &&
+                        matchesStatus
+                    );
+                }
             );
+        }, [
+            instructors,
+            search,
+            status,
+        ]);
 
-          setInstructors(
-            instructorUsers
-          );
-        } catch (error) {
-          console.error(error);
-        }
-      };
-
-    loadUsers();
-  }, []);
-
-  return (
-    <div>
-      <h1 className="text-4xl font-bold text-white mb-8">
-        Instructors
-      </h1>
-
-      <div className="grid gap-4">
-        {instructors.map(
-          (instructor) => (
-            <div
-              key={
-                instructor.id
-              }
-              className="bg-slate-900 rounded-xl p-6"
-            >
-              <h2 className="text-2xl font-semibold text-white">
-                {
-                  instructor.name
-                }
-              </h2>
-
-              <p className="text-slate-400 mt-2">
-                {
-                  instructor.email
-                }
-              </p>
-
-              <div className="mt-4">
-                <Link
-                  href={`/admin/users/${instructor.id}`}
-                  className="bg-orange-600 px-4 py-2 rounded text-white"
-                >
-                  View
-                </Link>
-              </div>
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-24">
+                <Loader />
             </div>
-          )
-        )}
+        );
+    }
 
-        {instructors.length ===
-          0 && (
-          <div className="bg-slate-900 p-6 rounded-xl text-slate-400">
-            No instructors found.
-          </div>
-        )}
-      </div>
-    </div>
-  );
+    if (isError) {
+        return (
+            <div className="py-24 text-center text-red-500">
+                Failed to load instructors.
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-8">
+            <PageHeader
+                title="Instructors"
+                subtitle="Manage all instructors."
+            />
+
+            <InstructorStats
+                instructors={instructors}
+            />
+
+            <Card>
+                <InstructorToolbar
+                    search={search}
+                    onSearchChange={
+                        setSearch
+                    }
+                    status={status}
+                    onStatusChange={
+                        setStatus
+                    }
+                    onRefresh={refetch}
+                />
+
+                <InstructorTable
+                    instructors={
+                        filteredInstructors
+                    }
+                    onView={(
+                        instructor
+                    ) =>
+                        router.push(
+                            `/admin/instructors/${instructor.id}`
+                        )
+                    }
+                    onEdit={(
+                        instructor
+                    ) =>
+                        console.log(
+                            "Edit Instructor:",
+                            instructor
+                        )
+                    }
+                    onDelete={(
+                        instructor
+                    ) =>
+                        console.log(
+                            "Delete Instructor:",
+                            instructor
+                        )
+                    }
+                />
+            </Card>
+        </div>
+    );
 }

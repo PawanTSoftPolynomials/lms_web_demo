@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/context/AuthContext";
 import { Geist, Geist_Mono } from "next/font/google";
+import QueryProvider from "@/providers/QueryProvider";
 import "./globals.css";
 import "@fontsource/poppins/400.css";
 import "@fontsource/poppins/500.css";
 import "@fontsource/poppins/700.css";
 import "@fontsource/playfair-display/700.css";
 import "./globals.css";
+import { ChatProvider } from "@/context/ChatContext";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -34,7 +37,11 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          {children}
+          <QueryProvider>
+           <ChatProvider>
+              {children}
+            </ChatProvider>
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>
