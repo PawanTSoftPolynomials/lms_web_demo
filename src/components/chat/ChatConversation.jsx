@@ -31,16 +31,19 @@ export default function ChatConversation() {
       loadMessages(activeConversation.id);
     }
     setShowMenu(false); // Reset menu when changing conversation
-  }, [activeConversation]);
+  }, [activeConversation, loadMessages]);
 
   if (!activeConversation) {
     return <EmptyConversation />;
   }
 
-  const recipient = activeConversation?.participants?.find(
-    (p) => p && p.id !== currentUser?.id && p.email !== currentUser?.email
-  );
-  const role = recipient?.role || activeConversation?.role || (activeConversation?.isGroup ? "GROUP" : "STUDENT");
+  const recipient = activeConversation?.participants?.find((p) => {
+    const pId = p?.userId || p?.user?.id || p?.id;
+    const pEmail = p?.user?.email || p?.email;
+    const currentUserId = currentUser?.id || currentUser?._id;
+    return p && pId !== currentUserId && pEmail !== currentUser?.email;
+  });
+  const role = recipient?.role || recipient?.user?.role || activeConversation?.role || (activeConversation?.isGroup ? "GROUP" : "STUDENT");
 
   const getRoleBadgeStyle = (userRole) => {
     const formatted = (userRole || "").toUpperCase();

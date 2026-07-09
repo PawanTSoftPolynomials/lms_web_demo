@@ -50,6 +50,7 @@ export default function ChatHeader() {
         </button>
 
         <button
+          onClick={toggleChat}
           className="
           flex
           h-8

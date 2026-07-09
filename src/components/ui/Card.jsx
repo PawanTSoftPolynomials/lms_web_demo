@@ -9,10 +9,10 @@ export default function Card({
       className={`
         rounded-2xl
         border
-        border-white/10
-        bg-white/5
+        border-slate-800/80
+        bg-slate-900/50
         backdrop-blur-md
-        shadow-lg
+        shadow-luxury-md
         p-6
         ${onClick ? "cursor-pointer" : ""}
         ${className}

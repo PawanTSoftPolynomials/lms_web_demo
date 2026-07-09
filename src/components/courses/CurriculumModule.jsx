@@ -45,6 +45,12 @@ export default function CurriculumModule({
                                              index,
                                              onEdit,
                                              onDelete,
+                                             onAddLesson,
+                                             onAddContent,
+                                             onEditLesson,
+                                             onDeleteLesson,
+                                             onEditContent,
+                                             onDeleteContent,
                                          }) {
     const [open, setOpen] =
         useState(true);
@@ -148,24 +154,14 @@ export default function CurriculumModule({
 
                     </div>
 
-                    <ActionMenu
-                        items={[
-                            {
-                                label: "Add Lesson",
-                                onClick: () => {
-                                    // TODO
-                                },
-                            },
-                            {
-                                label: "Edit Module",
-                                onClick: () => onEdit(module),
-                            },
-                            {
-                                label: "Delete Module",
-                                onClick: () => onDelete(module.id),
-                            },
-                        ]}
-                    />
+                    {(() => {
+                        const items = [
+                            onAddLesson && { label: "Add Lesson", onClick: () => onAddLesson(module.id) },
+                            onEdit && { label: "Edit Module", onClick: () => onEdit(module) },
+                            onDelete && { label: "Delete Module", onClick: () => onDelete(module.id) },
+                        ].filter(Boolean);
+                        return items.length > 0 ? <ActionMenu items={items} /> : null;
+                    })()}
 
                 </div>
             </div>
@@ -251,28 +247,14 @@ export default function CurriculumModule({
 
                                             </div>
 
-                                            <ActionMenu
-                                                items={[
-                                                    {
-                                                        label: "Add Content",
-                                                        onClick: () => {
-                                                            // TODO
-                                                        },
-                                                    },
-                                                    {
-                                                        label: "Edit Lesson",
-                                                        onClick: () => {
-                                                            // TODO
-                                                        },
-                                                    },
-                                                    {
-                                                        label: "Delete Lesson",
-                                                        onClick: () => {
-                                                            // TODO
-                                                        },
-                                                    },
-                                                ]}
-                                            />
+                                            {(() => {
+                                                const items = [
+                                                    onAddContent && { label: "Add Content", onClick: () => onAddContent(lesson.id) },
+                                                    onEditLesson && { label: "Edit Lesson", onClick: () => onEditLesson(lesson) },
+                                                    onDeleteLesson && { label: "Delete Lesson", onClick: () => onDeleteLesson(lesson.id) },
+                                                ].filter(Boolean);
+                                                return items.length > 0 ? <ActionMenu items={items} /> : null;
+                                            })()}
 
                                         </div>
 
@@ -335,22 +317,13 @@ export default function CurriculumModule({
                                                         </div>
 
                                                         <div className="flex items-center gap-3">
-                                                            <ActionMenu
-                                                                items={[
-                                                                    {
-                                                                        label: "Edit Content",
-                                                                        onClick: () => {
-                                                                            // TODO
-                                                                        },
-                                                                    },
-                                                                    {
-                                                                        label: "Delete Content",
-                                                                        onClick: () => {
-                                                                            // TODO
-                                                                        },
-                                                                    },
-                                                                ]}
-                                                            />
+                                                            {(() => {
+                                                                const items = [
+                                                                    onEditContent && { label: "Edit Content", onClick: () => onEditContent(content) },
+                                                                    onDeleteContent && { label: "Delete Content", onClick: () => onDeleteContent(content.id) },
+                                                                ].filter(Boolean);
+                                                                return items.length > 0 ? <ActionMenu items={items} /> : null;
+                                                            })()}
 
                                                         </div>
 

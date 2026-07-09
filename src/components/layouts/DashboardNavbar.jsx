@@ -8,10 +8,52 @@ import { Bell, BookOpen, Award, CheckCheck, MessageSquare } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
 
+// Self-contained high-end chime player using HTML5 AudioContext
+const playNotificationChime = () => {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Tone 1: High soft bell note
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.connect(gain1);
+    gain1.connect(audioCtx.destination);
+    osc1.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+    gain1.gain.setValueAtTime(0.06, audioCtx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+    osc1.start();
+    osc1.stop(audioCtx.currentTime + 0.15);
+    
+    // Tone 2: Harmonious resonance
+    setTimeout(() => {
+      try {
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+        gain2.gain.setValueAtTime(0.06, audioCtx.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+        osc2.start();
+        osc2.stop(audioCtx.currentTime + 0.25);
+      } catch (e) {}
+    }, 85);
+  } catch (e) {
+    console.warn("Chime playback bypassed:", e);
+  }
+};
+
 export default function Navbar({ title = "Dashboard", setOpen }) {
   const router = useRouter();
   const { logout, user: currentUser } = useAuth();
-  const { conversations = [], messages = [] } = useChat();
+  const { 
+    conversations = [], 
+    messages = [], 
+    isOpen, 
+    setIsOpen, 
+    activeConversation, 
+    setActiveConversation 
+  } = useChat();
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -65,6 +107,10 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
         const lastMsgText = conv.lastMessage;
         const notifId = `conv_${conv.id}_${lastMsgText.substring(0, 10)}`;
         
+        // Don't show notification if we are actively focused on this conversation
+        const isFocused = isOpen && activeConversation && activeConversation.id === conv.id;
+        if (isFocused) return;
+        
         setNotifications((prev) => {
           if (prev.some((n) => n.id === notifId)) return prev;
           
@@ -74,15 +120,19 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
             message: lastMsgText,
             type: "chat",
             time: "Just now",
-            read: false
+            read: false,
+            conversationId: conv.id
           };
           const updated = [newNotif, ...prev];
           localStorage.setItem("lms_notifications", JSON.stringify(updated));
+          
+          // Play micro chime!
+          playNotificationChime();
           return updated;
         });
       }
     });
-  }, [conversations, isMounted]);
+  }, [conversations, isMounted, isOpen, activeConversation]);
 
   // Listen to new messages in the currently active conversation
   useEffect(() => {
@@ -93,7 +143,10 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
     const msgSenderId = lastMsg.senderId || lastMsg.sender?._id || lastMsg.sender?.id;
     const isMine = lastMsg.sender === "me" || lastMsg.senderId === "me" || (currentUserId && msgSenderId && msgSenderId === currentUserId);
     
-    if (lastMsg && !isMine) {
+    // Don't show notification if the chat widget is open and focused on this conversation
+    const isFocused = isOpen && activeConversation && (activeConversation.id === lastMsg.conversationId || lastMsg.conversationId === undefined);
+    
+    if (lastMsg && !isMine && !isFocused) {
       const notifId = `msg_${lastMsg.id || lastMsg._id || Date.now()}`;
       
       setNotifications((prev) => {
@@ -105,14 +158,18 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
           message: lastMsg.text || lastMsg.content || "Sent a message.",
           type: "chat",
           time: "Just now",
-          read: false
+          read: false,
+          conversationId: lastMsg.conversationId || activeConversation?.id
         };
         const updated = [newNotif, ...prev];
         localStorage.setItem("lms_notifications", JSON.stringify(updated));
+        
+        // Play micro chime!
+        playNotificationChime();
         return updated;
       });
     }
-  }, [messages, currentUser, isMounted]);
+  }, [messages, currentUser, isMounted, isOpen, activeConversation]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -136,6 +193,30 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
     const updated = notifications.map((n) => (n.id === id ? { ...n, read: true } : n));
     setNotifications(updated);
     localStorage.setItem("lms_notifications", JSON.stringify(updated));
+  };
+
+  // Process notifications clicks: route to relevant page or open chat instantly
+  const handleNotificationClick = (n) => {
+    handleToggleRead(n.id);
+    setShowNotifications(false);
+
+    if (n.type === "chat") {
+      const targetConvId = n.conversationId;
+      if (targetConvId) {
+        const found = conversations.find((c) => c.id === targetConvId);
+        if (found) {
+          setActiveConversation(found);
+        } else {
+          // If not in standard list, set a baseline conversation structure
+          setActiveConversation({ id: targetConvId, name: n.title.replace("New message from ", "") });
+        }
+      }
+      setIsOpen(true);
+    } else if (n.type === "quiz") {
+      router.push(currentUser?.role === "INSTRUCTOR" ? "/instructor/quizzes" : "/student/quizzes");
+    } else if (n.type === "course") {
+      router.push(currentUser?.role === "INSTRUCTOR" ? "/instructor/courses" : "/student/courses");
+    }
   };
 
   return (
@@ -263,7 +344,7 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
                     notifications.map((n) => (
                       <div
                         key={n.id}
-                        onClick={() => handleToggleRead(n.id)}
+                        onClick={() => handleNotificationClick(n)}
                         className={`
                           flex
                           gap-3

@@ -87,7 +87,10 @@ export default function CourseChat({ course, courseId }) {
 
     const existing = conversations.find((c) => {
       if (c.isGroup) return false;
-      const otherParticipant = c.participants?.find((p) => p.id === targetUser.id);
+      const otherParticipant = c.participants?.find((p) => {
+        const pId = p.userId || p.user?.id || p.id;
+        return pId === targetUser.id;
+      });
       return !!otherParticipant;
     });
 
@@ -104,7 +107,12 @@ export default function CourseChat({ course, courseId }) {
         const response = await createConversation(payload);
         const newConv = response.data || response;
         
-        setConversations((prev) => [newConv, ...prev]);
+        setConversations((prev) => {
+          if (prev.some((c) => c.id === newConv.id)) {
+            return prev;
+          }
+          return [newConv, ...prev];
+        });
         setActiveConversation(newConv);
       } catch (err) {
         console.error("Failed to start direct conversation:", err);
@@ -259,7 +267,7 @@ export default function CourseChat({ course, courseId }) {
               whileTap={{ scale: 0.98 }}
               onClick={() => handleSelectUser(course.creator)}
               className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition duration-300 border ${
-                activeConversation && !activeConversation.isGroup && activeConversation.participants?.some(p => p.id === course.creator.id)
+                activeConversation && !activeConversation.isGroup && activeConversation.participants?.some(p => (p.userId || p.user?.id || p.id) === course.creator.id)
                   ? "bg-gradient-to-r from-orange-500/20 to-pink-500/10 text-orange-400 border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.15)]"
                   : "text-slate-400 hover:bg-slate-900/70 hover:text-slate-200 border-slate-900/30"
               }`}
@@ -313,7 +321,7 @@ export default function CourseChat({ course, courseId }) {
               </p>
             ) : (
               filteredClassmates.map((student) => {
-                const isSelected = activeConversation && !activeConversation.isGroup && activeConversation.participants?.some(p => p.id === student.id);
+                const isSelected = activeConversation && !activeConversation.isGroup && activeConversation.participants?.some(p => (p.userId || p.user?.id || p.id) === student.id);
                 return (
                   <motion.button
                     key={student.id}

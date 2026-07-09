@@ -252,7 +252,11 @@ export default function ChatSidebar() {
       const existing = conversations.find(
         (c) =>
           !c.isGroup &&
-          c.participants?.some((p) => p.id === selectedUser.id || p.email === selectedUser.email)
+          c.participants?.some((p) => {
+            const pId = p.userId || p.user?.id || p.id;
+            const pEmail = p.user?.email || p.email;
+            return pId === selectedUser.id || pEmail === selectedUser.email;
+          })
       );
 
       if (existing) {
@@ -270,7 +274,12 @@ export default function ChatSidebar() {
       });
 
       const newConv = response.data || response;
-      setConversations((prev) => [newConv, ...prev]);
+      setConversations((prev) => {
+        if (prev.some((c) => c.id === newConv.id)) {
+          return prev;
+        }
+        return [newConv, ...prev];
+      });
       setActiveConversation(newConv);
       setSidebarMode("chats");
       setSearch("");

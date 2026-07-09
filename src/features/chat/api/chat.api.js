@@ -60,10 +60,20 @@ export const getConversation = async (conversationId) => {
 };
 
 export const createConversation = async (payload) => {
+  const type = payload.type || (payload.isGroup ? "GROUP" : "DIRECT");
+  const backendPayload = {
+    type,
+    participantIds: payload.participantIds || payload.participants || [],
+  };
+
+  if (type === "GROUP") {
+    backendPayload.name = payload.name;
+  }
+
   try {
     const { data } = await api.post(
       "/conversations",
-      payload
+      backendPayload
     );
     return data;
   } catch (error) {

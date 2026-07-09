@@ -6,7 +6,7 @@ import api from "@/lib/axios";
 export const getCourses = async () => {
     const {data} = await api.get("/courses");
 
-    return data.data;
+    return data.data ?? data;
 };
 
 /**

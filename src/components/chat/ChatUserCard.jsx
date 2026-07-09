@@ -9,10 +9,13 @@ export default function ChatUserCard({ conversation, active, onClick }) {
   const name = conversation?.name || "Unknown User";
   
   // Find other participant (recipient)
-  const recipient = conversation?.participants?.find(
-    (p) => p && p.id !== currentUser?.id && p.email !== currentUser?.email
-  );
-  const role = recipient?.role || conversation?.role || (conversation?.isGroup ? "GROUP" : "STUDENT");
+  const recipient = conversation?.participants?.find((p) => {
+    const pId = p?.userId || p?.user?.id || p?.id;
+    const pEmail = p?.user?.email || p?.email;
+    const currentUserId = currentUser?.id || currentUser?._id;
+    return p && pId !== currentUserId && pEmail !== currentUser?.email;
+  });
+  const role = recipient?.role || recipient?.user?.role || conversation?.role || (conversation?.isGroup ? "GROUP" : "STUDENT");
 
   // Format last message text
   const lastMessage = conversation?.lastMessage || 
