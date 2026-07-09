@@ -33,6 +33,7 @@ import useAuth from "@/hooks/useAuth";
 import { useInstructorDashboard } from "@/hooks/queries/instructor/useInstructorDashboard";
 import { getCourses } from "@/services/course.service";
 import { getQuizzes } from "@/services/quiz.service";
+import MiniCalendar from "@/components/dashboard/MiniCalendar";
 
 export default function InstructorDashboard() {
   const { user } = useAuth();
@@ -255,50 +256,58 @@ export default function InstructorDashboard() {
 
   return (
     <div className="space-y-8">
-      <WelcomeSection
-        name={welcomeData.name}
-        courseCount={welcomeData.courseCount}
-        studentCount={welcomeData.studentCount}
-        quizCount={welcomeData.quizCount}
-        completionRate={welcomeData.completionRate}
-      />
+      {/* Top Grid: Welcome Section, KPI Stats & MiniCalendar */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        <div className="lg:col-span-2 flex flex-col justify-between gap-5">
+          <WelcomeSection
+            name={welcomeData.name}
+            courseCount={welcomeData.courseCount}
+            studentCount={welcomeData.studentCount}
+            quizCount={welcomeData.quizCount}
+            completionRate={welcomeData.completionRate}
+          />
 
-      {/* KPI Stats Scorecards Grid */}
-      <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, idx) => {
-          const Icon = stat.icon;
-          const colorStyles = 
-            stat.color === "orange" ? "text-orange-500 bg-orange-500/10 border-orange-500/25" :
-            stat.color === "blue" ? "text-blue-500 bg-blue-500/10 border-blue-500/25" :
-            stat.color === "purple" ? "text-purple-500 bg-purple-500/10 border-purple-500/25" :
-            "text-emerald-500 bg-emerald-500/10 border-emerald-500/25";
-          
-          return (
-            <Card key={idx} className="relative overflow-hidden group hover:border-orange-500/20 hover:shadow-lg transition-all duration-300">
-              <div className="flex justify-between items-start gap-4">
-                <div className="space-y-2">
-                  <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">
-                    {stat.title}
-                  </span>
-                  <div className="text-2xl font-extrabold text-white tracking-tight">
-                    {stat.value}
+          {/* KPI Stats Scorecards Grid (aligned inside the Left Column container) */}
+          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {stats.map((stat, idx) => {
+              const Icon = stat.icon;
+              const colorStyles = 
+                stat.color === "orange" ? "text-orange-500 bg-orange-500/10 border-orange-500/25" :
+                stat.color === "blue" ? "text-blue-500 bg-blue-500/10 border-blue-500/25" :
+                stat.color === "purple" ? "text-purple-500 bg-purple-500/10 border-purple-500/25" :
+                "text-emerald-500 bg-emerald-500/10 border-emerald-500/25";
+              
+              return (
+                <Card key={idx} className="relative overflow-hidden group hover:border-orange-500/20 hover:shadow-lg transition-all duration-300">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="space-y-2">
+                      <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">
+                        {stat.title}
+                      </span>
+                      <div className="text-2xl font-extrabold text-white tracking-tight">
+                        {stat.value}
+                      </div>
+                      <span className={`text-[10px] font-semibold flex items-center gap-1 ${
+                        stat.subtitle.includes("sales") || stat.subtitle.includes("active") ? "text-emerald-400" : "text-slate-400"
+                      }`}>
+                        <HiOutlineTrendingUp className="text-emerald-400" />
+                        {stat.subtitle}
+                      </span>
+                    </div>
+                    
+                    <div className={`p-3 rounded-2xl border ${colorStyles}`}>
+                      <Icon size={22} />
+                    </div>
                   </div>
-                  <span className={`text-[10px] font-semibold flex items-center gap-1 ${
-                    stat.subtitle.includes("sales") || stat.subtitle.includes("active") ? "text-emerald-400" : "text-slate-400"
-                  }`}>
-                    <HiOutlineTrendingUp className="text-emerald-400" />
-                    {stat.subtitle}
-                  </span>
-                </div>
-                
-                <div className={`p-3 rounded-2xl border ${colorStyles}`}>
-                  <Icon size={22} />
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-      </section>
+                </Card>
+              );
+            })}
+          </section>
+        </div>
+        <div className="lg:col-span-1">
+          <MiniCalendar role="INSTRUCTOR" />
+        </div>
+      </div>
 
       <QuickActions actions={quickActions} />
 

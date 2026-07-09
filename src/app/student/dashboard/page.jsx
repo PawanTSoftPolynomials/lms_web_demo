@@ -33,6 +33,7 @@ import StatCard from "@/components/student/dashboard/StatCard";
 import CourseCard from "@/components/student/courses/CourseCard";
 import useDashboard from "@/hooks/queries/student/useDashboard";
 import { useAuth } from "@/context/AuthContext";
+import MiniCalendar from "@/components/dashboard/MiniCalendar";
 
 export default function StudentDashboardPage() {
   const { user } = useAuth();
@@ -124,51 +125,61 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Dashboard Top Banner */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <PageHeader
-          title={`Welcome back, ${user?.name || "Student"}`}
-          subtitle="Ready to continue your learning journey? Here is your study performance at a glance."
-        />
-        
-        {/* Streak Indicator widget */}
-        <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 px-4 py-2.5 rounded-2xl shadow-lg">
-          <div className="p-2 rounded-xl bg-orange-500/10 text-orange-500">
-            <Flame size={20} className="animate-bounce" />
+      {/* Top Layout Grid (Welcome Section + Stats + MiniCalendar at the top) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        <div className="lg:col-span-2 flex flex-col justify-between gap-5">
+          {/* Dashboard Top Banner */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <PageHeader
+              title={`Welcome back, ${user?.name || "Student"}`}
+              subtitle="Ready to continue your learning journey? Here is your study performance at a glance."
+            />
+            
+            {/* Streak Indicator widget */}
+            <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 px-4 py-2.5 rounded-2xl shadow-lg flex-shrink-0">
+              <div className="p-2 rounded-xl bg-orange-500/10 text-orange-500">
+                <Flame size={20} className="animate-bounce" />
+              </div>
+              <div>
+                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Daily Streak</div>
+                <div className="text-sm font-bold text-white">{activeStreakDays} Days Active</div>
+              </div>
+            </div>
           </div>
-          <div>
-            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Daily Streak</div>
-            <div className="text-sm font-bold text-white">{activeStreakDays} Days Active</div>
-          </div>
+
+          {/* KPI Stats Counters */}
+          <section className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <StatCard
+              title="Enrolled Courses"
+              value={stats.enrolledCourses ?? 0}
+              icon={<BookOpen className="h-5 w-5 text-orange-500" />}
+            />
+
+            <StatCard
+              title="Completed Lessons"
+              value={stats.completedLessons ?? 0}
+              icon={<GraduationCap className="h-5 w-5 text-pink-500" />}
+            />
+
+            <StatCard
+              title="Certificates"
+              value={stats.certificates ?? 0}
+              icon={<Award className="h-5 w-5 text-purple-500" />}
+            />
+
+            <StatCard
+              title="Completion Rate"
+              value={`${stats.completionRate ?? 0}%`}
+              icon={<TrendingUp className="h-5 w-5 text-emerald-500" />}
+            />
+          </section>
+        </div>
+
+        {/* Top-Right: Mini Calendar */}
+        <div className="lg:col-span-1">
+          <MiniCalendar role="STUDENT" />
         </div>
       </div>
-
-      {/* KPI Stats Counters */}
-      <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          title="Enrolled Courses"
-          value={stats.enrolledCourses ?? 0}
-          icon={<BookOpen className="h-5 w-5 text-orange-500" />}
-        />
-
-        <StatCard
-          title="Completed Lessons"
-          value={stats.completedLessons ?? 0}
-          icon={<GraduationCap className="h-5 w-5 text-pink-500" />}
-        />
-
-        <StatCard
-          title="Certificates"
-          value={stats.certificates ?? 0}
-          icon={<Award className="h-5 w-5 text-purple-500" />}
-        />
-
-        <StatCard
-          title="Completion Rate"
-          value={`${stats.completionRate ?? 0}%`}
-          icon={<TrendingUp className="h-5 w-5 text-emerald-500" />}
-        />
-      </section>
 
       {/* KPI Charts Section */}
       {isMounted && (
