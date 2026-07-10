@@ -1,0 +1,61 @@
+"use client";
+
+import { useState } from "react";
+import ModuleItem from "./ModuleItem";
+
+export default function LearnSidebar({
+  course,
+  activeLesson,
+  setActiveLesson,
+}) {
+  const [expandedModules, setExpandedModules] =
+    useState(
+      course.modules?.map(
+        (module) => module.id
+      ) || []
+    );
+
+  const toggleModule = (moduleId) => {
+    if (
+      expandedModules.includes(moduleId)
+    ) {
+      setExpandedModules(
+        expandedModules.filter(
+          (id) => id !== moduleId
+        )
+      );
+    } else {
+      setExpandedModules([
+        ...expandedModules,
+        moduleId,
+      ]);
+    }
+  };
+
+  return (
+    <aside className="w-80 bg-zinc-900 border-r border-zinc-800 overflow-y-auto">
+      <div className="p-5 border-b border-zinc-800">
+        <h2 className="text-lg font-semibold text-white">
+          Course Content
+        </h2>
+      </div>
+
+      <div className="py-2">
+        {course.modules?.map((module) => (
+          <ModuleItem
+            key={module.id}
+            module={module}
+            expanded={expandedModules.includes(
+              module.id
+            )}
+            toggleModule={toggleModule}
+            activeLesson={activeLesson}
+            setActiveLesson={
+              setActiveLesson
+            }
+          />
+        ))}
+      </div>
+    </aside>
+  );
+}
