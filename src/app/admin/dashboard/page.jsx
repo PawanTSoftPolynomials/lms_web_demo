@@ -18,6 +18,7 @@ import AnalyticsChart from "@/components/dashboard/AnalyticsChart";
 import CourseStatusChart from "@/components/dashboard/CourseStatusChart";
 import QuickActions from "@/components/dashboard/QuickActions";
 import RecentUsers from "@/components/dashboard/RecentUsers";
+import MiniCalendar from "@/components/dashboard/MiniCalendar";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -65,9 +66,18 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      <DashboardHeader name="Admin" />
+      {/* Top Section: DashboardHeader & MiniCalendar side-by-side */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
+        <div className="lg:col-span-3">
+          <DashboardHeader name="Admin" />
+        </div>
+        <div className="lg:col-span-1">
+          <MiniCalendar role="ADMIN" />
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-5">
+      {/* KPI Stats Counters (perfectly aligned in 5 columns) */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         <DashboardStatCard
           title="Total Users"
           value={dashboard.totalUsers}

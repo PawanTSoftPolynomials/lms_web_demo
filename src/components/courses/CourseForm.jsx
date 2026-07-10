@@ -175,25 +175,18 @@ export default function CourseForm({
                 />
 
                 {formData.thumbnailUrl && (
-                    <div>
-                        <label className="block mb-2 text-sm font-medium">
+                    <div className="mt-3">
+                        <label className="block mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
                             Thumbnail Preview
                         </label>
 
-                        <img
-                            src={
-                                formData.thumbnailUrl
-                            }
-                            alt="Thumbnail Preview"
-                            className="
-                h-52
-                w-full
-                rounded-xl
-                object-cover
-                border
-                border-slate-700
-              "
-                        />
+                        <div className="aspect-video h-48 w-auto max-w-md bg-slate-950 rounded-xl overflow-hidden border border-slate-700/60 shadow-luxury-md">
+                            <img
+                                src={formData.thumbnailUrl}
+                                alt="Thumbnail Preview"
+                                className="h-full w-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
+                            />
+                        </div>
                     </div>
                 )}
 

@@ -4,7 +4,8 @@ import {
     FaBook,
     FaClipboardList,
     FaGraduationCap,
-    FaUserCircle
+    FaUserCircle,
+    FaCalendarAlt
 } from "react-icons/fa";
 import {FcGraduationCap} from "react-icons/fc";
 import {FaCertificate} from "react-icons/fa6";
@@ -46,6 +47,11 @@ export const SIDEBAR_ITEMS = {
             icon: FaCertificate,
         },
         {
+            title: "Calendar",
+            icon: FaCalendarAlt,
+            href: "/admin/calendar",
+        },
+        {
             title: "Profile",
             icon: FaUserCircle,
             href: "/admin/profile",
@@ -67,6 +73,11 @@ export const SIDEBAR_ITEMS = {
             title: "Quizzes",
             icon: FaClipboardList,
             href: "/instructor/quizzes",
+        },
+        {
+            title: "Calendar",
+            icon: FaCalendarAlt,
+            href: "/instructor/calendar",
         },
     ],
 
@@ -100,6 +111,11 @@ export const SIDEBAR_ITEMS = {
             title: "Quizzes",
             icon: FaClipboardList,
             href: "/student/quizzes",
+        },
+        {
+            title: "Calendar",
+            icon: FaCalendarAlt,
+            href: "/student/calendar",
         },
         {
             title: "Profile",

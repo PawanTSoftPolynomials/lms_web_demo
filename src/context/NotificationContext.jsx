@@ -1,0 +1,386 @@
+"use client";
+
+import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { useToast } from "@/components/ui/ToastProvider";
+import { getCalendarEvents } from "@/services/calendar.service";
+import Cookies from "js-cookie";
+import { useAuth } from "@/context/AuthContext";
+import socketService from "@/services/socket.service";
+import {
+  getNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+} from "@/services/notification.service";
+
+const NotificationContext = createContext();
+
+// Self-contained chime player using HTML5 AudioContext
+export const playNotificationChime = () => {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Tone 1: High soft bell note
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.connect(gain1);
+    gain1.connect(audioCtx.destination);
+    osc1.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+    gain1.gain.setValueAtTime(0.06, audioCtx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+    osc1.start();
+    osc1.stop(audioCtx.currentTime + 0.15);
+    
+    // Tone 2: Harmonious resonance
+    setTimeout(() => {
+      try {
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+        gain2.gain.setValueAtTime(0.06, audioCtx.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+        osc2.start();
+        osc2.stop(audioCtx.currentTime + 0.25);
+      } catch (e) {}
+    }, 85);
+  } catch (e) {
+    console.warn("Chime playback bypassed:", e);
+  }
+};
+
+export function NotificationProvider({ children }) {
+  const [notifications, setNotifications] = useState([]);
+  const { showToast } = useToast();
+  const seenEventIdsRef = useRef(new Set());
+  const isMountedRef = useRef(false);
+  const { user } = useAuth();
+
+  // State for login hover card
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginUnreadCount, setLoginUnreadCount] = useState(0);
+  const [loginUnreadNotifications, setLoginUnreadNotifications] = useState([]);
+
+  // Load notifications from the backend if authenticated, otherwise use defaults
+  useEffect(() => {
+    isMountedRef.current = true;
+    
+    const loadNotifications = async () => {
+      if (!user) {
+        setNotifications([]);
+        return;
+      }
+      try {
+        const data = await getNotifications();
+        const formatted = data.map(n => {
+          let displayType = "system";
+          const backendType = n.type.toUpperCase();
+          if (backendType === "ENROLLMENT" || backendType === "COURSE_STATUS" || backendType === "COURSE_REVIEW" || backendType === "LESSON_PUBLISHED") {
+            displayType = "course";
+          } else if (backendType === "QUIZ_SUBMISSION" || backendType === "CERTIFICATE") {
+            displayType = "quiz";
+          } else if (backendType === "CHAT") {
+            displayType = "chat";
+          }
+          return {
+            id: n.id,
+            title: n.title,
+            message: n.message,
+            type: displayType,
+            time: new Date(n.createdAt).toLocaleDateString(),
+            read: n.isRead,
+            link: n.link || ""
+          };
+        });
+        setNotifications(formatted);
+
+        // Alert user of unread notifications after fresh login with a beautiful card modal
+        if (typeof window !== "undefined") {
+          const isFreshLogin = sessionStorage.getItem("fresh_login");
+          if (isFreshLogin === "true") {
+            sessionStorage.removeItem("fresh_login");
+            const unreadList = formatted.filter(n => !n.read);
+            if (unreadList.length > 0) {
+              setLoginUnreadCount(unreadList.length);
+              setLoginUnreadNotifications(unreadList.slice(0, 3));
+              setShowLoginModal(true);
+              // Play audio chime
+              playNotificationChime();
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load notifications from backend:", error);
+      }
+    };
+
+    loadNotifications();
+
+    // Initialize seen calendar event IDs to avoid alerting for old existing events
+    const initSeenEvents = async () => {
+      try {
+        const events = await getCalendarEvents();
+        events.forEach(e => {
+          const id = e.id || e._id;
+          if (id) seenEventIdsRef.current.add(id);
+        });
+      } catch (err) {
+        console.error("Error loading initial calendar events for observer", err);
+      }
+    };
+    initSeenEvents();
+  }, [user]);
+
+  const addNotification = (title, message, type = "system", link = "") => {
+    const newNotif = {
+      id: "notif_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+      title,
+      message,
+      type,
+      time: "Just now",
+      read: false,
+      link
+    };
+
+    setNotifications(prev => {
+      const updated = [newNotif, ...prev];
+      localStorage.setItem("lms_notifications", JSON.stringify(updated));
+      return updated;
+    });
+
+    // Play chime sound
+    playNotificationChime();
+    
+    // Trigger screen toast
+    showToast(title, type === "quiz" ? "warning" : type === "class" ? "success" : "default");
+  };
+
+  const markAllRead = async () => {
+    try {
+      if (user) {
+        await markAllNotificationsAsRead();
+      }
+      setNotifications(prev => {
+        const updated = prev.map(n => ({ ...n, read: true }));
+        localStorage.setItem("lms_notifications", JSON.stringify(updated));
+        return updated;
+      });
+    } catch (err) {
+      console.error("Failed to mark all notifications as read on backend:", err);
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    }
+  };
+
+  const clearAll = () => {
+    setNotifications([]);
+    localStorage.setItem("lms_notifications", JSON.stringify([]));
+  };
+
+  const markAsRead = async (id) => {
+    try {
+      if (user && !id.startsWith("notif_")) {
+        await markNotificationAsRead(id);
+      }
+      setNotifications(prev => {
+        const updated = prev.map(n => n.id === id ? { ...n, read: true } : n);
+        localStorage.setItem("lms_notifications", JSON.stringify(updated));
+        return updated;
+      });
+    } catch (err) {
+      console.error("Failed to mark notification as read on backend:", err);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    }
+  };
+
+  // Socket Observer for Real-Time Backend Notifications
+  useEffect(() => {
+    const token = Cookies.get("accessToken");
+    if (!token || !user) return;
+
+    // Idempotent socket connect
+    socketService.connect(token);
+
+    const handleNewNotification = (notification) => {
+      let displayType = "system";
+      const backendType = notification.type.toUpperCase();
+      if (backendType === "ENROLLMENT" || backendType === "COURSE_STATUS" || backendType === "COURSE_REVIEW" || backendType === "LESSON_PUBLISHED") {
+        displayType = "course";
+      } else if (backendType === "QUIZ_SUBMISSION" || backendType === "CERTIFICATE") {
+        displayType = "quiz";
+      } else if (backendType === "CHAT") {
+        displayType = "chat";
+      }
+
+      const formatted = {
+        id: notification.id,
+        title: notification.title,
+        message: notification.message,
+        type: displayType,
+        time: "Just now",
+        read: notification.isRead,
+        link: notification.link || ""
+      };
+
+      setNotifications(prev => [formatted, ...prev]);
+
+      // Play chime sound
+      playNotificationChime();
+
+      // Trigger screen toast
+      showToast(
+        notification.title,
+        displayType === "quiz" ? "warning" : displayType === "course" ? "success" : "default"
+      );
+    };
+
+    socketService.on("new_notification", handleNewNotification);
+
+    return () => {
+      socketService.off("new_notification", handleNewNotification);
+    };
+  }, [user]);
+
+  // Schedule Observer: check for newly added calendar events periodically
+  useEffect(() => {
+    const checkNewEvents = async () => {
+      if (!isMountedRef.current) return;
+      try {
+        const events = await getCalendarEvents();
+        
+        events.forEach(e => {
+          const id = e.id || e._id;
+          if (id && !seenEventIdsRef.current.has(id)) {
+            seenEventIdsRef.current.add(id);
+            
+            // Generate notification for this new event
+            let displayType = "system";
+            let actionType = "update";
+            
+            if (e.type === "class") {
+              displayType = "course";
+              actionType = "Live Lecture Scheduled";
+            } else if (e.type === "quiz") {
+              displayType = "quiz";
+              actionType = "Quiz Session Scheduled";
+            } else if (e.type === "assignment") {
+              displayType = "assignment";
+              actionType = "Assignment Deadline Added";
+            }
+
+            addNotification(
+              `${actionType}: ${e.title}`,
+              `Course: ${e.courseName} • Date: ${e.date} at ${e.startTime} ${e.instructorName ? `by ${e.instructorName}` : ""}`,
+              displayType,
+              e.type === "class" ? "/student/calendar" : e.type === "quiz" ? "/student/quizzes" : "/student/my-courses"
+            );
+          }
+        });
+      } catch (err) {
+        console.error("Error fetching events in observer", err);
+      }
+    };
+
+    // Poll every 5 seconds to detect new calendar additions (real-time cross-tab updates)
+    const interval = setInterval(checkNewEvents, 5000);
+
+    // Listen to storage events from other tabs for instant triggers
+    const handleStorageChange = (e) => {
+      if (e.key === "calendar_events") {
+        checkNewEvents();
+      } else if (e.key === "lms_notifications" && e.newValue) {
+        setNotifications(JSON.parse(e.newValue));
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
+  const markEventAsSeen = (eventId) => {
+    if (eventId) seenEventIdsRef.current.add(eventId);
+  };
+
+  return (
+    <NotificationContext.Provider
+      value={{
+        notifications,
+        addNotification,
+        markAllRead,
+        clearAll,
+        markAsRead,
+        markEventAsSeen,
+      }}
+    >
+      {children}
+      {showLoginModal && (
+        <LoginNotificationCard 
+          onClose={() => setShowLoginModal(false)} 
+          unreadCount={loginUnreadCount} 
+          recentNotifications={loginUnreadNotifications}
+        />
+      )}
+    </NotificationContext.Provider>
+  );
+}
+
+function LoginNotificationCard({ onClose, unreadCount, recentNotifications }) {
+  return (
+    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 w-full max-w-md shadow-2xl relative overflow-hidden flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-200">
+        
+        {/* Glow effect */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-orange-500/10 blur-3xl pointer-events-none" />
+
+        {/* Pulsing Bell Icon */}
+        <div className="h-16 w-16 bg-orange-500/10 rounded-full flex items-center justify-center border border-orange-500/20 shadow-[0_0_20px_rgba(249,115,22,0.15)] animate-pulse mb-5">
+          <svg className="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+        </div>
+
+        <h2 className="text-2xl font-extrabold text-white leading-tight">Welcome Back!</h2>
+        <p className="text-sm text-slate-400 mt-2 leading-relaxed">
+          You have <span className="text-orange-400 font-bold">{unreadCount} unread notification{unreadCount > 1 ? 's' : ''}</span> waiting.
+        </p>
+
+        {/* Previews List */}
+        <div className="w-full mt-6 space-y-3 max-h-60 overflow-y-auto pr-1">
+          {recentNotifications.map(n => (
+            <div key={n.id} className="bg-slate-950/40 border border-slate-800/60 rounded-2xl p-4 text-left flex gap-3 items-start">
+              <div className="p-2 rounded-xl bg-orange-500/10 text-orange-400 mt-0.5 flex-shrink-0">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-bold text-xs text-white truncate">{n.title}</h4>
+                <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed break-words">{n.message}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="w-full mt-8 flex flex-col gap-3">
+          <button 
+            onClick={onClose} 
+            className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg hover:shadow-orange-500/10 active:scale-98 transition duration-150 cursor-pointer text-sm"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export const useNotification = () => {
+  const context = useContext(NotificationContext);
+  if (!context) {
+    throw new Error("useNotification must be used inside a NotificationProvider");
+  }
+  return context;
+};

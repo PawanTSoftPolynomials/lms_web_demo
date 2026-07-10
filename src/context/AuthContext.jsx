@@ -16,9 +16,15 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    initializeAuth();
-  }, []);
+  const logoutLocal = () => {
+    Cookies.remove("accessToken");
+    Cookies.remove("refreshToken");
+    Cookies.remove("role");
+
+    localStorage.removeItem("user");
+
+    setUser(null);
+  };
 
   const initializeAuth = async () => {
     const token = Cookies.get("accessToken");
@@ -46,6 +52,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  useEffect(() => {
+    initializeAuth();
+  }, []);
+
   const register = async (data) => {
     return await registerUser(data);
   };
@@ -72,19 +82,13 @@ export const AuthProvider = ({ children }) => {
       JSON.stringify(user)
     );
 
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("fresh_login", "true");
+    }
+
     setUser(user);
 
     return user;
-  };
-
-  const logoutLocal = () => {
-    Cookies.remove("accessToken");
-    Cookies.remove("refreshToken");
-    Cookies.remove("role");
-
-    localStorage.removeItem("user");
-
-    setUser(null);
   };
 
   const logout = async () => {

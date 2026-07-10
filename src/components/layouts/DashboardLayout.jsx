@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
+import { ChatWidget } from "@/components/chat";
 import Sidebar from "@/components/layouts/Sidebar";
 import DashboardNavbar from "@/components/layouts/DashboardNavbar";
 
@@ -38,6 +38,8 @@ export default function DashboardLayout({ children, role, title }) {
 
         <main className="p-6 flex-1">{children}</main>
       </div>
+      <ChatWidget />
     </div>
+    
   );
 }
