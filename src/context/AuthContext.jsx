@@ -82,6 +82,10 @@ export const AuthProvider = ({ children }) => {
       JSON.stringify(user)
     );
 
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("fresh_login", "true");
+    }
+
     setUser(user);
 
     return user;

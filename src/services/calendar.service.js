@@ -123,54 +123,40 @@ const initializeLocalStorage = () => {
 };
 
 /**
- * Get all calendar events
+ * Get all calendar events (purely from localStorage mock data)
  */
 export const getCalendarEvents = async () => {
-  try {
-    const response = await api.get("/schedules");
-    return response.data.data ?? response.data;
-  } catch (error) {
-    initializeLocalStorage();
-    const local = localStorage.getItem("calendar_events");
-    return local ? JSON.parse(local) : [];
-  }
+  initializeLocalStorage();
+  const local = localStorage.getItem("calendar_events");
+  return local ? JSON.parse(local) : [];
 };
 
 /**
- * Create a calendar event
+ * Create a calendar event (purely inside localStorage mock data)
  */
 export const createCalendarEvent = async (eventData) => {
-  try {
-    const response = await api.post("/schedules", eventData);
-    return response.data.data ?? response.data;
-  } catch (error) {
-    initializeLocalStorage();
-    const local = localStorage.getItem("calendar_events");
-    const events = local ? JSON.parse(local) : [];
-    const newEvent = {
-      id: "event-" + Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      ...eventData,
-    };
-    events.push(newEvent);
-    localStorage.setItem("calendar_events", JSON.stringify(events));
-    return newEvent;
-  }
+  initializeLocalStorage();
+  const local = localStorage.getItem("calendar_events");
+  const events = local ? JSON.parse(local) : [];
+  const newEvent = {
+    id: "event-" + Date.now().toString(),
+    createdAt: new Date().toISOString(),
+    ...eventData,
+  };
+  events.push(newEvent);
+  localStorage.setItem("calendar_events", JSON.stringify(events));
+  return newEvent;
 };
 
 /**
- * Delete a calendar event
+ * Delete a calendar event (purely inside localStorage mock data)
  */
 export const deleteCalendarEvent = async (eventId) => {
-  try {
-    await api.delete(`/schedules/${eventId}`);
-  } catch (error) {
-    initializeLocalStorage();
-    const local = localStorage.getItem("calendar_events");
-    if (local) {
-      const events = JSON.parse(local);
-      const filtered = events.filter((e) => e.id !== eventId);
-      localStorage.setItem("calendar_events", JSON.stringify(filtered));
-    }
+  initializeLocalStorage();
+  const local = localStorage.getItem("calendar_events");
+  if (local) {
+    const events = JSON.parse(local);
+    const filtered = events.filter((e) => e.id !== eventId);
+    localStorage.setItem("calendar_events", JSON.stringify(filtered));
   }
 };

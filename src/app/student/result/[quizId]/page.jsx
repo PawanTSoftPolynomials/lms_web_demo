@@ -36,8 +36,7 @@ export default function QuizResultPage() {
         return [];
       }
     }
-    return Array.isArray(submission.answers) ? submission.answers : [];
-  }, [submission?.answers]);
+  }, [submission]);
 
   if (isLoading) {
     return <Loader />;

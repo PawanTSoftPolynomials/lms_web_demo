@@ -7,6 +7,7 @@ import { Bell, BookOpen, Award, CheckCheck, MessageSquare } from "lucide-react";
 
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
+import { useNotification } from "@/context/NotificationContext";
 
 // Self-contained high-end chime player using HTML5 AudioContext
 const playNotificationChime = () => {
@@ -56,46 +57,12 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
   } = useChat();
 
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState([]);
+  const { notifications, markAllRead, clearAll, markAsRead, addNotification } = useNotification();
   const [isMounted, setIsMounted] = useState(false);
 
   // Client-side initialization to prevent hydration mismatch
   useEffect(() => {
     setIsMounted(true);
-    const stored = localStorage.getItem("lms_notifications");
-    if (stored) {
-      setNotifications(JSON.parse(stored));
-    } else {
-      // Default initial notifications
-      const defaults = [
-        {
-          id: "notif_1",
-          title: "New Lecture Uploaded",
-          message: "Professor Alan added a new video lecture on 'OOP Concepts' in Java Batch.",
-          type: "course",
-          time: "2 hours ago",
-          read: false
-        },
-        {
-          id: "notif_2",
-          title: "Quiz Graded Successfully",
-          message: "Your submission for 'Java Basics Quiz' has been graded. Score: 95%.",
-          type: "quiz",
-          time: "1 day ago",
-          read: false
-        },
-        {
-          id: "notif_3",
-          title: "Welcome to Orange Tree LMS",
-          message: "Explore your dashboard, complete course milestones, and chat with classmate groups.",
-          type: "system",
-          time: "3 days ago",
-          read: true
-        }
-      ];
-      localStorage.setItem("lms_notifications", JSON.stringify(defaults));
-      setNotifications(defaults);
-    }
   }, []);
 
   // Listen to new messages in all background conversations
@@ -111,25 +78,15 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
         const isFocused = isOpen && activeConversation && activeConversation.id === conv.id;
         if (isFocused) return;
         
-        setNotifications((prev) => {
-          if (prev.some((n) => n.id === notifId)) return prev;
-          
-          const newNotif = {
-            id: notifId,
-            title: `New message from ${conv.name || "User"}`,
-            message: lastMsgText,
-            type: "chat",
-            time: "Just now",
-            read: false,
-            conversationId: conv.id
-          };
-          const updated = [newNotif, ...prev];
-          localStorage.setItem("lms_notifications", JSON.stringify(updated));
-          
-          // Play micro chime!
-          playNotificationChime();
-          return updated;
-        });
+        const alreadyExists = notifications.some((n) => n.id === notifId);
+        if (!alreadyExists) {
+          addNotification(
+            `New message from ${conv.name || "User"}`,
+            lastMsgText,
+            "chat",
+            ""
+          );
+        }
       }
     });
   }, [conversations, isMounted, isOpen, activeConversation]);
@@ -148,26 +105,16 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
     
     if (lastMsg && !isMine && !isFocused) {
       const notifId = `msg_${lastMsg.id || lastMsg._id || Date.now()}`;
+      const alreadyExists = notifications.some((n) => n.id === notifId);
       
-      setNotifications((prev) => {
-        if (prev.some((n) => n.id === notifId)) return prev;
-        
-        const newNotif = {
-          id: notifId,
-          title: `New message from ${lastMsg.sender?.name || "User"}`,
-          message: lastMsg.text || lastMsg.content || "Sent a message.",
-          type: "chat",
-          time: "Just now",
-          read: false,
-          conversationId: lastMsg.conversationId || activeConversation?.id
-        };
-        const updated = [newNotif, ...prev];
-        localStorage.setItem("lms_notifications", JSON.stringify(updated));
-        
-        // Play micro chime!
-        playNotificationChime();
-        return updated;
-      });
+      if (!alreadyExists) {
+        addNotification(
+          `New message from ${lastMsg.sender?.name || "User"}`,
+          lastMsg.text || lastMsg.content || "Sent a message.",
+          "chat",
+          ""
+        );
+      }
     }
   }, [messages, currentUser, isMounted, isOpen, activeConversation]);
 
@@ -179,20 +126,15 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
   };
 
   const handleMarkAllRead = () => {
-    const updated = notifications.map((n) => ({ ...n, read: true }));
-    setNotifications(updated);
-    localStorage.setItem("lms_notifications", JSON.stringify(updated));
+    markAllRead();
   };
 
   const handleClearAll = () => {
-    setNotifications([]);
-    localStorage.setItem("lms_notifications", JSON.stringify([]));
+    clearAll();
   };
 
   const handleToggleRead = (id) => {
-    const updated = notifications.map((n) => (n.id === id ? { ...n, read: true } : n));
-    setNotifications(updated);
-    localStorage.setItem("lms_notifications", JSON.stringify(updated));
+    markAsRead(id);
   };
 
   // Process notifications clicks: route to relevant page or open chat instantly
@@ -305,13 +247,13 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
                 right-0
                 top-14
                 z-50
-                w-80
-                rounded-2xl
+                w-96
+                rounded-3xl
                 border
                 border-slate-800/80
                 bg-slate-950/95
                 backdrop-blur-md
-                p-4
+                p-5
                 shadow-2xl
                 text-slate-200
                 animate-in
@@ -319,25 +261,25 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
                 slide-in-from-top-2
                 duration-150
               ">
-                <div className="flex items-center justify-between pb-2.5 border-b border-slate-800/60">
-                  <h3 className="font-bold text-sm text-white flex items-center gap-1.5">
-                    <Bell size={14} className="text-orange-500" />
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800/60">
+                  <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                    <Bell size={16} className="text-orange-500" />
                     Notifications
                   </h3>
                   {unreadCount > 0 && (
                     <button
                       onClick={handleMarkAllRead}
-                      className="text-[10px] text-orange-400 hover:text-orange-300 font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+                      className="text-xs text-orange-400 hover:text-orange-300 font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
                     >
-                      <CheckCheck size={12} />
+                      <CheckCheck size={14} />
                       Mark all read
                     </button>
                   )}
                 </div>
 
-                <div className="max-h-64 overflow-y-auto mt-2 space-y-2 pr-1 scrollbar-thin">
+                <div className="max-h-96 overflow-y-auto mt-3.5 space-y-3 pr-1 scrollbar-thin">
                   {notifications.length === 0 ? (
-                    <div className="py-8 text-center text-xs text-slate-500">
+                    <div className="py-12 text-center text-xs text-slate-500">
                       No notifications yet
                     </div>
                   ) : (
@@ -347,9 +289,9 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
                         onClick={() => handleNotificationClick(n)}
                         className={`
                           flex
-                          gap-3
-                          p-2.5
-                          rounded-xl
+                          gap-4
+                          p-3.5
+                          rounded-2xl
                           transition-all
                           cursor-pointer
                           border
@@ -360,7 +302,7 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
                           }
                         `}
                       >
-                        <div className={`p-2 rounded-xl flex-shrink-0 flex items-center justify-center ${
+                        <div className={`p-2.5 rounded-xl flex-shrink-0 flex items-center justify-center ${
                           n.type === "course"
                             ? "bg-orange-500/15 text-orange-400"
                             : n.type === "quiz"
@@ -370,30 +312,30 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
                             : "bg-emerald-500/15 text-emerald-400"
                         }`}>
                           {n.type === "course" ? (
-                            <BookOpen size={14} />
+                            <BookOpen size={16} />
                           ) : n.type === "quiz" ? (
-                            <Award size={14} />
+                            <Award size={16} />
                           ) : n.type === "chat" ? (
-                            <MessageSquare size={14} />
+                            <MessageSquare size={16} />
                           ) : (
-                            <Bell size={14} />
+                            <Bell size={16} />
                           )}
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-semibold text-xs text-white truncate">
+                          <h4 className="font-bold text-sm text-white truncate">
                             {n.title}
                           </h4>
-                          <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed break-words">
+                          <p className="text-xs text-slate-400 mt-1 leading-relaxed break-words">
                             {n.message}
                           </p>
-                          <span className="text-[9px] text-slate-500 mt-1 block">
+                          <span className="text-[10px] text-slate-500 mt-1.5 block">
                             {n.time}
                           </span>
                         </div>
 
                         {!n.read && (
-                          <div className="h-2 w-2 rounded-full bg-orange-500 self-center flex-shrink-0" />
+                          <div className="h-2.5 w-2.5 rounded-full bg-orange-500 self-center flex-shrink-0" />
                         )}
                       </div>
                     ))

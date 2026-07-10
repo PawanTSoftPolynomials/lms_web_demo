@@ -9,6 +9,8 @@ import "@fontsource/poppins/700.css";
 import "@fontsource/playfair-display/700.css";
 import "./globals.css";
 import { ChatProvider } from "@/context/ChatContext";
+import { ToastProvider } from "@/components/ui/ToastProvider";
+import { NotificationProvider } from "@/context/NotificationContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,9 +40,13 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           <QueryProvider>
-           <ChatProvider>
-              {children}
-            </ChatProvider>
+            <ToastProvider>
+              <NotificationProvider>
+                <ChatProvider>
+                  {children}
+                </ChatProvider>
+              </NotificationProvider>
+            </ToastProvider>
           </QueryProvider>
         </AuthProvider>
       </body>

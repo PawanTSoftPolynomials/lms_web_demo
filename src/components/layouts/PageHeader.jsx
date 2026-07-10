@@ -15,7 +15,7 @@ export default function PageHeader({
         className,
       )}
     >
-      <div>
+      <div className="select-none">
         <h1 className="text-3xl font-bold tracking-tight text-white">
           {title}
         </h1>

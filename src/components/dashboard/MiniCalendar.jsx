@@ -44,6 +44,14 @@ export default function MiniCalendar({ role }) {
 
   useEffect(() => {
     loadData();
+
+    const handleStorageChange = (e) => {
+      if (e.key === "calendar_events") {
+        loadData();
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [loadData]);
 
   const year = currentDate.getFullYear();

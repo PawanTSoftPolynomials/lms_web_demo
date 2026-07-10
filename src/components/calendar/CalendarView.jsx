@@ -67,6 +67,14 @@ export default function CalendarView({ role }) {
 
   useEffect(() => {
     loadEvents();
+
+    const handleStorageChange = (e) => {
+      if (e.key === "calendar_events") {
+        loadEvents();
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [loadEvents]);
 
   // Calendar calculations
@@ -205,7 +213,7 @@ export default function CalendarView({ role }) {
   return (
     <div className="space-y-6">
       {/* Calendar Header Controls */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/60 p-6 rounded-2xl border border-slate-800 backdrop-blur-sm">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/60 p-6 rounded-2xl border border-slate-800 backdrop-blur-sm select-none">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-gradient-to-tr from-orange-500/10 to-pink-500/10 rounded-xl border border-orange-500/20">
             <FaCalendarAlt className="text-2xl text-orange-500" />
@@ -341,7 +349,7 @@ export default function CalendarView({ role }) {
         /* Calendar Month Grid View */
         <Card className="p-0 overflow-hidden border border-slate-800 bg-slate-900/20 backdrop-blur-md">
           {/* Weekday Labels Header */}
-          <div className="grid grid-cols-7 border-b border-slate-800 bg-slate-900/80">
+          <div className="grid grid-cols-7 border-b border-slate-800 bg-slate-900/80 select-none">
             {WEEKDAYS.map((day) => (
               <div
                 key={day}

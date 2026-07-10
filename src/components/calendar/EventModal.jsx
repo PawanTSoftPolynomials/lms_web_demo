@@ -9,6 +9,7 @@ import { getCourses } from "@/services/course.service";
 import { getInstructors } from "@/services/instructor.service";
 import { createCalendarEvent, deleteCalendarEvent } from "@/services/calendar.service";
 import { FaTrash, FaVideo, FaClipboardList, FaBookOpen, FaClock, FaMapMarkerAlt, FaUsers } from "react-icons/fa";
+import { useNotification } from "@/context/NotificationContext";
 
 export default function EventModal({
   open,
@@ -18,6 +19,7 @@ export default function EventModal({
   onSave,
   role,
 }) {
+  const { addNotification, markEventAsSeen } = useNotification();
   const [courses, setCourses] = useState([]);
   const [instructors, setInstructors] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -86,6 +88,8 @@ export default function EventModal({
     const courseName = selectedCourse ? selectedCourse.title : "General";
 
     let instructorName = "";
+    let instructorId = formData.instructorId;
+
     if (role === "ADMIN" && formData.instructorId) {
       const selectedTeacher = instructors.find(t => t.id === formData.instructorId || t._id === formData.instructorId);
       instructorName = selectedTeacher ? selectedTeacher.name : "";
@@ -95,7 +99,7 @@ export default function EventModal({
         if (storedUser) {
           const user = JSON.parse(storedUser);
           instructorName = user.name;
-          formData.instructorId = user.id || user._id || "inst-current";
+          instructorId = user.id || user._id || "inst-current";
         }
       }
     }
@@ -111,12 +115,37 @@ export default function EventModal({
       description: formData.description,
       link: formData.link,
       maxMarks: formData.maxMarks ? Number(formData.maxMarks) : undefined,
-      instructorId: formData.instructorId,
+      instructorId,
       instructorName,
     };
 
     try {
-      await createCalendarEvent(newEvent);
+      const created = await createCalendarEvent(newEvent);
+      const eventId = created?.id || created?._id || "event-" + Date.now();
+      
+      // Mark as seen locally to prevent the observer from triggering a duplicate toast
+      markEventAsSeen(eventId);
+
+      let actionType = "Activity Scheduled";
+      let displayType = "system";
+      if (newEvent.type === "class") {
+        actionType = "New Live Class";
+        displayType = "course";
+      } else if (newEvent.type === "quiz") {
+        actionType = "New Quiz Uploaded";
+        displayType = "quiz";
+      } else if (newEvent.type === "assignment") {
+        actionType = "New Assignment Added";
+        displayType = "course";
+      }
+
+      addNotification(
+        `${actionType}: ${newEvent.title}`,
+        `Course: ${newEvent.courseName} • Date: ${newEvent.date} at ${newEvent.startTime}`,
+        displayType,
+        newEvent.type === "class" ? "/student/calendar" : newEvent.type === "quiz" ? "/student/quizzes" : "/student/my-courses"
+      );
+
       onSave();
       onClose();
     } catch (err) {
