@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Check, CheckCheck, Pencil, Trash2 } from "lucide-react";
+import { Check, CheckCheck, Pencil, Trash2, Star, Paperclip, Video, Mic } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import useChat from "@/hooks/useChat";
-import { deleteMessage, updateMessage } from "@/features/chat/api/chat.api";
+import { deleteMessage, updateMessage, toggleStarMessage } from "@/features/chat/api/chat.api";
 import ChatAvatar from "./ChatAvatar";
 
 export default function ChatMessage({ message }) {
@@ -62,6 +62,35 @@ export default function ChatMessage({ message }) {
     }
   };
 
+  const handleToggleStar = async () => {
+    try {
+      const response = await toggleStarMessage(message.id);
+      const updatedStarred = response.data?.isStarred ?? !message.isStarred;
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === message.id
+            ? { ...m, isStarred: updatedStarred }
+            : m
+        )
+      );
+    } catch (err) {
+      console.error("Failed to toggle star message:", err);
+    }
+  };
+
+  // Get attachments array
+  const attachments = message.messageAttachments || message.attachments || [];
+  const hasText = !!(message.text || message.content);
+  const hasAttachments = attachments.length > 0;
+  const isOnlyAttachments = hasAttachments && !hasText;
+
+  // Decide the wrapper bubble classes
+  const bubbleClass = isOnlyAttachments
+    ? "relative w-full"
+    : isMine
+      ? "rounded-2xl rounded-tr-none bg-gradient-to-br from-orange-500 via-orange-600 to-pink-600 text-white shadow-[0_4px_15px_rgba(249,115,22,0.2)] px-4.5 py-3"
+      : "rounded-2xl rounded-tl-none border border-slate-800/80 bg-slate-900/60 backdrop-blur-sm text-slate-100 shadow-[0_4px_15px_rgba(0,0,0,0.1)] px-4.5 py-3";
+
   return (
     <motion.div
       initial={{
@@ -101,11 +130,11 @@ export default function ChatMessage({ message }) {
         {/* Bubble & Hover Actions Row */}
         <div className="relative flex items-center group">
           
-          {/* Action icons on hover (only visible for own messages and when not editing) */}
+          {/* Action icons on hover for own messages */}
           {isMine && !isEditing && (
             <div className="
               absolute
-              left-[-62px]
+              left-[-85px]
               flex
               items-center
               gap-1
@@ -121,6 +150,13 @@ export default function ChatMessage({ message }) {
               shadow-md
               z-10
             ">
+              <button
+                onClick={handleToggleStar}
+                className={`transition-colors p-1 ${message.isStarred ? "text-amber-500 hover:text-amber-600" : "text-slate-400 hover:text-amber-500"}`}
+                title={message.isStarred ? "Unstar message" : "Star message"}
+              >
+                <Star size={11} className={message.isStarred ? "fill-current" : ""} />
+              </button>
               <button
                 onClick={() => setIsEditing(true)}
                 className="text-slate-400 hover:text-orange-500 transition-colors p-1"
@@ -138,22 +174,121 @@ export default function ChatMessage({ message }) {
             </div>
           )}
 
-          <div
-            className={`
-              relative
-              px-4.5
-              py-3
-              shadow-md
+          {/* Action icons on hover for incoming messages */}
+          {!isMine && !isEditing && (
+            <div className="
+              absolute
+              right-[-36px]
+              flex
+              items-center
+              opacity-0
+              group-hover:opacity-100
               transition-all
-              duration-300
+              duration-200
+              bg-slate-900/90
+              border
+              border-slate-800/80
+              rounded-xl
+              p-1
+              shadow-md
+              z-10
+            ">
+              <button
+                onClick={handleToggleStar}
+                className={`transition-colors p-1 ${message.isStarred ? "text-amber-500 hover:text-amber-600" : "text-slate-400 hover:text-amber-500"}`}
+                title={message.isStarred ? "Unstar message" : "Star message"}
+              >
+                <Star size={11} className={message.isStarred ? "fill-current" : ""} />
+              </button>
+            </div>
+          )}
 
-              ${
-                isMine
-                  ? "rounded-2xl rounded-tr-none bg-gradient-to-br from-orange-500 via-orange-600 to-pink-600 text-white shadow-[0_4px_15px_rgba(249,115,22,0.2)]"
-                  : "rounded-2xl rounded-tl-none border border-slate-800/80 bg-slate-900/60 backdrop-blur-sm text-slate-100 shadow-[0_4px_15px_rgba(0,0,0,0.1)]"
-              }
-            `}
-          >
+          <div className={`${bubbleClass}`}>
+            {/* Render Attachments */}
+            {attachments.length > 0 && (
+              <div className="flex flex-col gap-2 w-full max-w-[280px]">
+                {attachments.map((att) => {
+                  const isImg = att.type === "IMAGE" || att.mimeType?.startsWith("image/");
+                  const fileUrlWithBase = att.fileUrl.startsWith("http")
+                    ? att.fileUrl
+                    : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${att.fileUrl}`;
+                  
+                  if (isImg) {
+                    return (
+                      <div key={att.id} className="relative rounded-2xl overflow-hidden border border-slate-800/40 bg-slate-950/20 max-w-[280px] shadow-lg group/img">
+                        <img
+                          src={fileUrlWithBase}
+                          alt={att.fileName}
+                          className="object-cover max-h-64 w-full hover:scale-[1.02] transition-transform duration-300 cursor-pointer"
+                          onClick={() => window.open(fileUrlWithBase, "_blank")}
+                        />
+                        {/* Overlay for time and status when only an image */}
+                        {isOnlyAttachments && (
+                          <div className="absolute bottom-2 right-2 bg-slate-950/70 backdrop-blur-sm px-2 py-0.5 rounded-full flex items-center gap-1 text-[9px] font-semibold text-slate-200">
+                            <span>{message.time}</span>
+                            {message.isStarred && <Star size={9} className="fill-current text-amber-400" />}
+                            {isMine && (
+                              message.read ? (
+                                <CheckCheck size={10} className="text-sky-300" />
+                              ) : (
+                                <Check size={10} className="text-slate-300" />
+                              )
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div key={att.id} className="flex flex-col gap-1 w-full max-w-[280px]">
+                      <a
+                        href={fileUrlWithBase}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all text-xs font-semibold leading-tight ${
+                          isMine
+                            ? "border-orange-400/30 bg-orange-950/20 text-orange-100 hover:bg-orange-950/45"
+                            : "border-slate-800 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60"
+                        }`}
+                      >
+                        <div className={`p-2 rounded-lg ${isMine ? "bg-orange-500/20 text-orange-200" : "bg-slate-800 text-slate-400"}`}>
+                          {att.type === "VIDEO" ? (
+                            <Video size={16} />
+                          ) : att.type === "AUDIO" ? (
+                            <Mic size={16} />
+                          ) : (
+                            <Paperclip size={16} />
+                          )}
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                          <p className="truncate text-left">{att.fileName}</p>
+                          <span className={`text-[10px] font-normal ${isMine ? "text-orange-200/60" : "text-slate-500"}`}>
+                            {att.size ? `${(att.size / 1024).toFixed(1)} KB` : ""}
+                          </span>
+                        </div>
+                      </a>
+                      
+                      {/* Document Card time and status below it when only document */}
+                      {isOnlyAttachments && (
+                        <div className={`flex items-center gap-1.5 text-[9px] font-bold text-slate-500 mt-0.5 px-1 ${isMine ? "justify-end" : "justify-start"}`}>
+                          <span>{message.time}</span>
+                          {message.isStarred && <Star size={9} className="fill-current text-amber-500" />}
+                          {isMine && (
+                            message.read ? (
+                              <CheckCheck size={11} className="text-sky-400" />
+                            ) : (
+                              <Check size={11} className="text-slate-500" />
+                            )
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             {isEditing ? (
               <div className="flex flex-col gap-2 min-w-[200px]">
                 <textarea
@@ -182,12 +317,14 @@ export default function ChatMessage({ message }) {
                 </div>
               </div>
             ) : (
-              <p className="text-[14px] leading-relaxed break-words font-medium tracking-wide">
-                {message.text || message.content}
-              </p>
+              (message.text || message.content) && (
+                <p className="text-[14px] leading-relaxed break-words font-medium tracking-wide">
+                  {message.text || message.content}
+                </p>
+              )
             )}
 
-            {!isEditing && (
+            {!isEditing && !isOnlyAttachments && (
               <div
                 className={`
                   mt-2
@@ -206,10 +343,20 @@ export default function ChatMessage({ message }) {
                   }
                 `}
               >
-                <span>
-                  {message.time}
-                  {(message.edited || message.isEdited) && (
-                    <span className="text-[8px] font-normal italic ml-1 opacity-80">(edited)</span>
+                <span className="flex items-center gap-1">
+                  <span>
+                    {message.time}
+                    {(message.edited || message.isEdited) && (
+                      <span className="text-[8px] font-normal italic ml-1 opacity-80">(edited)</span>
+                    )}
+                  </span>
+                  {message.isStarred && (
+                    <Star
+                      size={10}
+                      className={`fill-current ${
+                        isMine ? "text-orange-200" : "text-amber-500"
+                      }`}
+                    />
                   )}
                 </span>
 

@@ -249,6 +249,7 @@ export const sendMessage = async (
       conversationId,
       text: payload.text,
       content: payload.text,
+      attachments: payload.attachments || [],
     };
     const { data } = await api.post(
       `/messages`,
@@ -336,4 +337,27 @@ export const updateMessage = async (
     }
     throw error;
   }
+};
+
+export const toggleStarMessage = async (messageId) => {
+  try {
+    const { data } = await api.patch(`/messages/${messageId}/star`);
+    return data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      return { data: { success: true } };
+    }
+    throw error;
+  }
+};
+
+export const uploadAttachment = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const { data } = await api.post("/messages/upload", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return data;
 };

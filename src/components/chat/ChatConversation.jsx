@@ -28,10 +28,11 @@ export default function ChatConversation() {
 
   useEffect(() => {
     if (activeConversation?.id) {
+      setMessages([]); // Clear previous messages instantly
       loadMessages(activeConversation.id);
     }
     setShowMenu(false); // Reset menu when changing conversation
-  }, [activeConversation, loadMessages]);
+  }, [activeConversation, loadMessages, setMessages]);
 
   if (!activeConversation) {
     return <EmptyConversation />;
