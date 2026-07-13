@@ -98,6 +98,11 @@ export const SIDEBAR_ITEMS = {
             href: "/student/my-courses",
         },
         {
+            title: "Assignments",
+            icon: FaClipboardList,
+            href: "/student/assignments",
+        },
+        {
             title: "Progress",
             icon: FaGraduationCap,
             href: "/student/progress",

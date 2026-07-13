@@ -2,7 +2,7 @@
 
 import {useEffect, useMemo, useState} from "react";
 import {useParams} from "next/navigation";
-
+import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel";
 import LearnHeader from "@/components/student/learning/LearnHeader";
 import VideoPlayer from "@/components/student/learning/VideoPlayer";
 import CourseSidebar from "@/components/student/learning/CourseSidebar";
@@ -21,20 +21,20 @@ export default function LearnPage() {
     const course = data?.data || data;
 
     const lessons = useMemo(() => {
-        const modules = course?.modules || [];
+    const modules = course?.modules || [];
 
-        return modules.flatMap((module) =>
-            (module.lessons || []).map((lesson) => ({
-                id: lesson.id,
-                title: lesson.title,
-                description: lesson.description,
-                duration: lesson.duration || "N/A",
-            }))
-        );
-    }, [course]);
+    return modules.flatMap((module) =>
+        (module.lessons || []).map((lesson) => ({
+            ...lesson,
+            duration:
+                lesson.duration || "N/A",
+        }))
+    );
+}, [course]);
 
     const [selectedLesson, setSelectedLesson] = useState(null);
-
+    const [currentTimestamp, setCurrentTimestamp] =
+    useState(0);
     useEffect(() => {
         if (!selectedLesson && lessons.length > 0) {
             setSelectedLesson(lessons[0]);
@@ -63,8 +63,13 @@ export default function LearnPage() {
 
             <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
                 <VideoPlayer
-                    content={selectedLesson?.contents?.[0]}
-                />
+                   content={selectedLesson?.contents?.[0]}
+                   onTimeUpdate={setCurrentTimestamp}
+                  />
+                   <StickyNotesPanel
+        lessonId={selectedLesson?.id}
+        currentTimestamp={currentTimestamp}
+    />
 
                 <CourseSidebar
                     modules={course.modules || []}
