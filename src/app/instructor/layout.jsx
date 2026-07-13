@@ -8,7 +8,7 @@ export default function Layout({
   return (
     <DashboardLayout
       role="INSTRUCTOR"
-      title="Instructor Dashboard"
+      title="Executive Summary"
     >
       {children}
     </DashboardLayout>
