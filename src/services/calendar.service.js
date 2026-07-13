@@ -113,50 +113,26 @@ const seedEvents = [
   }
 ];
 
-const initializeLocalStorage = () => {
-  if (typeof window !== "undefined") {
-    const existing = localStorage.getItem("calendar_events");
-    if (!existing) {
-      localStorage.setItem("calendar_events", JSON.stringify(seedEvents));
-    }
-  }
-};
-
 /**
- * Get all calendar events (purely from localStorage mock data)
+ * Get all calendar events (real API)
  */
 export const getCalendarEvents = async () => {
-  initializeLocalStorage();
-  const local = localStorage.getItem("calendar_events");
-  return local ? JSON.parse(local) : [];
+  const { data } = await api.get("/calendar");
+  return data.data ?? data;
 };
 
 /**
- * Create a calendar event (purely inside localStorage mock data)
+ * Create a calendar event (real API)
  */
 export const createCalendarEvent = async (eventData) => {
-  initializeLocalStorage();
-  const local = localStorage.getItem("calendar_events");
-  const events = local ? JSON.parse(local) : [];
-  const newEvent = {
-    id: "event-" + Date.now().toString(),
-    createdAt: new Date().toISOString(),
-    ...eventData,
-  };
-  events.push(newEvent);
-  localStorage.setItem("calendar_events", JSON.stringify(events));
-  return newEvent;
+  const { data } = await api.post("/calendar", eventData);
+  return data.data ?? data;
 };
 
 /**
- * Delete a calendar event (purely inside localStorage mock data)
+ * Delete a calendar event (real API)
  */
 export const deleteCalendarEvent = async (eventId) => {
-  initializeLocalStorage();
-  const local = localStorage.getItem("calendar_events");
-  if (local) {
-    const events = JSON.parse(local);
-    const filtered = events.filter((e) => e.id !== eventId);
-    localStorage.setItem("calendar_events", JSON.stringify(filtered));
-  }
+  await api.delete(`/calendar/${eventId}`);
 };
+
