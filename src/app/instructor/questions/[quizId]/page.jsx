@@ -106,6 +106,7 @@ export default function QuestionListPage() {
         <QuestionGrid
             questions={questions}
             quizId={quizId}
+            courseId={courseId}
             onDelete={handleDelete}
         />
       </div>

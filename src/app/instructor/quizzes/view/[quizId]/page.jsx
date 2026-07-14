@@ -9,6 +9,7 @@ import ActionMenu from "@/components/menus/ActionMenu";
 
 import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
 import { useDeleteQuiz } from "@/hooks/queries/instructor/useDeleteQuiz";
+import { useDeleteQuestion } from "@/hooks/queries/instructor/useDeleteQuestion";
 
 export default function QuizDetailsPage() {
     const { quizId } = useParams();
@@ -21,6 +22,7 @@ export default function QuizDetailsPage() {
     } = useQuiz(quizId);
 
     const deleteQuizMutation = useDeleteQuiz();
+    const deleteQuestionMutation = useDeleteQuestion();
 
     const handleDelete = async () => {
         const confirmed = window.confirm(`Delete "${quiz.title}"?`);
@@ -33,7 +35,22 @@ export default function QuizDetailsPage() {
                 courseId: quiz.courseId,
             });
 
-            router.push(`/instructor/quizzes/${quiz.courseId}`);
+            router.push(`/instructor/courses/${quiz.courseId}/quizzes`);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const handleDeleteQuestion = async (questionId) => {
+        if (!window.confirm("Delete this question?")) {
+            return;
+        }
+
+        try {
+            await deleteQuestionMutation.mutateAsync({
+                questionId,
+                quizId,
+            });
         } catch (error) {
             console.error(error);
         }
@@ -68,20 +85,22 @@ export default function QuizDetailsPage() {
         <div className="space-y-6">
             {/* Header */}
             <Card className="p-6">
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-6">
                     <div className="flex-1">
                         <button
                             onClick={() =>
-                                router.push(`/instructor/quizzes/${quiz.courseId}`)
+                                router.push(`/instructor/courses/${quiz.courseId}/quizzes`)
                             }
-                            className="mb-6 flex items-center gap-2 text-sm text-slate-400 transition hover:text-orange-400"
+                            className="mb-6 flex items-center gap-2 text-sm text-slate-400 transition hover:text-orange-400 font-bold uppercase tracking-wider"
                         >
-                            ← Back
+                            ← Back to Quizzes
                         </button>
 
-                        <span className="inline-flex rounded-full bg-orange-500/15 px-3 py-1 text-sm font-medium text-orange-400">
-                            Quiz
-                        </span>
+                        <div className="flex items-center gap-3">
+                            <span className="inline-flex rounded-full bg-orange-500/15 px-3 py-1 text-sm font-medium text-orange-400">
+                                Quiz
+                            </span>
+                        </div>
 
                         <h1 className="mt-4 text-3xl font-bold text-white">
                             {quiz.title}
@@ -94,24 +113,30 @@ export default function QuizDetailsPage() {
                         )}
                     </div>
 
-                    <ActionMenu
-                        items={[
-                            {
-                                label: "Manage Questions",
-                                onClick: () =>
-                                    router.push(`/instructor/questions/${quiz.id}`),
-                            },
-                            {
-                                label: "Edit Quiz",
-                                onClick: () =>
-                                    router.push(`/instructor/quizzes/edit/${quiz.id}`),
-                            },
-                            {
-                                label: "Delete Quiz",
-                                onClick: handleDelete,
-                            },
-                        ]}
-                    />
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() =>
+                                router.push(`/instructor/courses/${quiz.courseId}/quizzes/${quiz.id}/questions`)
+                            }
+                            className="rounded-xl bg-orange-600 px-4 py-2.5 text-xs font-black uppercase tracking-wider text-white transition hover:bg-orange-700 shrink-0"
+                        >
+                            Manage Questions
+                        </button>
+
+                        <ActionMenu
+                            items={[
+                                {
+                                    label: "Edit Quiz",
+                                    onClick: () =>
+                                        router.push(`/instructor/courses/${quiz.courseId}/quizzes/edit/${quiz.id}`),
+                                },
+                                {
+                                    label: "Delete Quiz",
+                                    onClick: handleDelete,
+                                },
+                            ]}
+                        />
+                    </div>
                 </div>
             </Card>
 
@@ -185,12 +210,12 @@ export default function QuizDetailsPage() {
                                             label: "Edit",
                                             onClick: () =>
                                                 router.push(
-                                                    `/instructor/questions/edit/${question.id}`
+                                                    `/instructor/courses/${quiz.courseId}/quizzes/${quiz.id}/questions/edit/${question.id}`
                                                 ),
                                         },
                                         {
                                             label: "Delete",
-                                            onClick: () => console.log("Delete Question"),
+                                            onClick: () => handleDeleteQuestion(question.id),
                                         },
                                     ]}
                                 />
@@ -249,7 +274,7 @@ export default function QuizDetailsPage() {
                                 <button
                                     onClick={() =>
                                         router.push(
-                                            `/instructor/questions/edit/${question.id}`
+                                            `/instructor/courses/${quiz.courseId}/quizzes/${quiz.id}/questions/edit/${question.id}`
                                         )
                                     }
                                     className="font-medium text-orange-400 transition hover:text-orange-300"
@@ -257,7 +282,7 @@ export default function QuizDetailsPage() {
                                     Edit
                                 </button>
                                 <button
-                                    onClick={() => console.log("Delete Question")}
+                                    onClick={() => handleDeleteQuestion(question.id)}
                                     className="font-medium text-red-400 transition hover:text-red-300"
                                 >
                                     Delete

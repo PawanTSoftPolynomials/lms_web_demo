@@ -365,9 +365,12 @@ export default function CourseDetailsPage() {
                                 >
                                   {modExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                                 </button>
-                                <span className="font-extrabold text-white">
+                                <button
+                                  onClick={() => router.push(`/instructor/courses/${courseId}/modules/${mod.id}`)}
+                                  className="font-extrabold text-white hover:text-orange-400 text-left transition"
+                                >
                                   Module {idx + 1}: {mod.title}
-                                </span>
+                                </button>
                               </div>
                             </td>
                             <td className="py-3.5 text-center">
@@ -401,12 +404,6 @@ export default function CourseDetailsPage() {
                               {/* Dropdown Menu */}
                               {activeDropdown === mod.id && (
                                 <div className="absolute right-3 mt-1.5 w-32 rounded-xl border border-slate-800 bg-slate-955 p-1.5 shadow-xl z-20 text-left">
-                                  <button
-                                    onClick={() => router.push(`/instructor/courses/${courseId}/modules/${mod.id}`)}
-                                    className="w-full text-[10px] font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-slate-800 px-2.5 py-1.5 rounded-lg transition"
-                                  >
-                                    Lessons
-                                  </button>
                                   <button
                                     onClick={() => router.push(`/instructor/courses/${courseId}/quizzes`)}
                                     className="w-full text-[10px] font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-slate-800 px-2.5 py-1.5 rounded-lg transition"
@@ -462,9 +459,12 @@ export default function CourseDetailsPage() {
                                                 {lessonExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                                               </button>
                                               <FileText size={13} className="text-slate-400 shrink-0" />
-                                              <span className="font-semibold text-slate-300">
+                                              <button
+                                                onClick={() => router.push(`/instructor/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}`)}
+                                                className="font-semibold text-slate-300 hover:text-orange-400 text-left transition"
+                                              >
                                                 Lesson {lIdx + 1}: {lesson.title}
-                                              </span>
+                                              </button>
                                             </div>
 
                                             {/* Lesson Metadata columns mapped to headers */}
@@ -496,12 +496,6 @@ export default function CourseDetailsPage() {
                                                 {/* Lesson Dropdown */}
                                                 {activeDropdown === lesson.id && (
                                                   <div className="absolute right-3 mt-1.5 w-32 rounded-xl border border-slate-800 bg-slate-955 p-1.5 shadow-xl z-20 text-left">
-                                                    <button
-                                                      onClick={() => router.push(`/instructor/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}`)}
-                                                      className="w-full text-[10px] font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-slate-800 px-2.5 py-1.5 rounded-lg transition"
-                                                    >
-                                                      View
-                                                    </button>
                                                     <button
                                                       onClick={() => router.push(`/instructor/courses/${courseId}/modules/${mod.id}/lessons/edit/${lesson.id}`)}
                                                       className="w-full text-[10px] font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-slate-800 px-2.5 py-1.5 rounded-lg transition"
@@ -548,12 +542,16 @@ export default function CourseDetailsPage() {
                                                 const cleanTitle = content.title.replace(/^(content|quiz|assignment):\s*/i, "");
                                                 
                                                 return (
-                                                  <div key={content.id} className="flex items-center gap-2.5 py-1 text-slate-400 hover:text-slate-200 transition">
+                                                  <button
+                                                    key={content.id}
+                                                    onClick={() => router.push(`/instructor/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}/contents/${content.id}`)}
+                                                    className="flex items-center gap-2.5 py-1 text-slate-400 hover:text-orange-400 text-left transition cursor-pointer"
+                                                  >
                                                     {icon}
                                                     <span className="text-[10px] font-semibold uppercase tracking-wider">
                                                       {labelPrefix}: {cleanTitle}
                                                     </span>
-                                                  </div>
+                                                  </button>
                                                 );
                                               })}
                                             </div>
