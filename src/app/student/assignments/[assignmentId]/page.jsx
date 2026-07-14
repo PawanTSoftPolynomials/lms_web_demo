@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
@@ -13,7 +13,7 @@ import useAssignment from "@/hooks/queries/student/useAssignment";
 import { submitAssignment } from "@/services/assignment.service";
 
 export default function AssignmentDetailPage({ params }) {
-  const { assignmentId } = params;
+  const { assignmentId } = use(params);
   const router = useRouter();
   const [notes, setNotes] = useState("");
 

@@ -37,6 +37,8 @@ import Loader from "@/components/common/Loader";
 import useDashboard from "@/hooks/queries/student/useDashboard";
 import useAssignments from "@/hooks/queries/student/useAssignments";
 import { useAuth } from "@/context/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { getUpcomingTasks } from "@/services/upcomingTasks.service";
 
 // Helper for formatting learning times (e.g. "28h 45m" or "45 mins")
 const formatTime = (minutes) => {
@@ -91,6 +93,11 @@ export default function StudentDashboardPage() {
   const { user } = useAuth();
   const { data, isLoading, isError } = useDashboard();
   const { data: assignments = [] } = useAssignments();
+  const { data: upcomingTasks = [] } = useQuery({
+    queryKey: ["upcoming-tasks"],
+    queryFn: getUpcomingTasks,
+    staleTime: 1000 * 60 * 5,
+  });
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -101,7 +108,6 @@ export default function StudentDashboardPage() {
   const enrolledCourses = data?.enrolledCoursesList ?? [];
   const skillsList = data?.skills ?? [];
   const recommendations = data?.recommendations ?? [];
-  const upcomingTasks = data?.upcomingTasks ?? [];
 
   const totalAssignments = assignments.length;
   const completedAssignments = assignments.filter(a => a.status === "Submitted" || a.status === "Graded").length;
