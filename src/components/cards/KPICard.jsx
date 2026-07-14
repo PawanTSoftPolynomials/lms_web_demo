@@ -18,43 +18,45 @@ export default function KPICard({
     typeof value === 'number' ? <CountUp end={value} duration={1.2} /> : value;
 
   return (
-    <div className="group rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-orange-400 hover:shadow-xl hover:shadow-slate-950/40">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-slate-400">{title}</p>
-          <h2 className="mt-4 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+    <div className="group rounded-2xl border border-slate-800/80 bg-slate-900/60 p-8 shadow-sm transition-all duration-350 hover:-translate-y-1 hover:border-orange-500/50 hover:shadow-xl hover:shadow-slate-950/50 min-h-[240px] flex flex-col justify-between">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 space-y-3">
+          <p className="text-xs font-bold tracking-wider text-slate-500 uppercase">{title}</p>
+          <h2 className="text-5xl font-extrabold tracking-tight text-white sm:text-6xl leading-none">
             {displayValue}
           </h2>
         </div>
 
-        <div className={`rounded-2xl p-3 ${iconBg}`}>
-          <Icon size={22} className={iconColor} />
+        <div className={`rounded-xl p-4 shrink-0 transition-transform group-hover:scale-105 duration-300 ${iconBg}`}>
+          <Icon size={26} className={iconColor} />
         </div>
       </div>
 
-      <div className="mt-5 flex items-center gap-2 rounded-full border border-slate-800 bg-slate-950/60 px-3 py-2">
-        {positive ? (
-          <ArrowUpRight size={16} className="text-emerald-400" />
-        ) : (
-          <ArrowDownRight size={16} className="text-red-400" />
-        )}
+      <div className="space-y-4 pt-4">
+        <div className="inline-flex items-center gap-2 rounded-full border border-slate-800/60 bg-slate-950/70 px-3 py-1.5 text-xs font-semibold">
+          {positive ? (
+            <ArrowUpRight size={15} className="text-emerald-400" />
+          ) : (
+            <ArrowDownRight size={15} className="text-red-400" />
+          )}
 
-        <span
-          className={`font-semibold ${positive ? 'text-emerald-400' : 'text-red-400'}`}
-        >
-          {positive ? '+' : ''}
-          {trend}%
-        </span>
-        <span className="text-sm text-slate-500">{trendLabel}</span>
-      </div>
-
-      <div className="mt-4 flex items-center justify-between border-t border-slate-800 pt-4">
-        <p className="text-sm text-slate-400">{status}</p>
-        {title === 'Courses Authored' && (
-          <span className="text-xs font-medium text-orange-400">
-            Context ready
+          <span
+            className={`${positive ? 'text-emerald-400' : 'text-red-400'}`}
+          >
+            {positive ? '+' : ''}
+            {trend}%
           </span>
-        )}
+          <span className="text-slate-500 font-normal">{trendLabel}</span>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-slate-800/80 pt-3.5 text-xs text-slate-400 font-medium">
+          <p className="tracking-wide">{status}</p>
+          {title === 'Courses Authored' && (
+            <span className="font-semibold text-orange-400 animate-pulse">
+              Context ready
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

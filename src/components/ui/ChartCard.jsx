@@ -10,7 +10,7 @@ export default function ChartCard({
   children,
 }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-sm">
+    <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 backdrop-blur-md shadow-sm transition-all duration-300 hover:border-slate-700/60">
       {/* Header */}
 
       <div className="flex items-start justify-between border-b border-slate-800 px-6 py-5">

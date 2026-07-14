@@ -32,7 +32,7 @@ export default function PerformanceAnalytics({ role, data }) {
 
   return (
     <ChartCard title={title} subtitle={subtitle} filter="This Quarter">
-      <div className="h-80">
+      <div className="h-96">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}
@@ -48,7 +48,10 @@ export default function PerformanceAnalytics({ role, data }) {
               axisLine={false}
               tickLine={false}
               interval={0}
-              tick={{ fill: '#94a3b8', fontSize: 12 }}
+              tick={{ fill: '#94a3b8', fontSize: 10 }}
+              angle={-25}
+              textAnchor="end"
+              height={70}
             />
             <YAxis
               domain={[0, 100]}

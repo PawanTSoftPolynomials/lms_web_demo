@@ -7,6 +7,31 @@ import HealthBadge from '@/components/ui/HealthBadge';
 import ProgressBar from '@/components/ui/ProgressBar';
 
 export default function ConceptMastery({ role, data }) {
+  if (!data || data.length === 0) {
+    return (
+      <ChartCard
+        title={role === 'course-author' ? 'Course Health' : 'Concept Mastery'}
+        subtitle={
+          role === 'course-author'
+            ? 'Health signals across your authored content portfolio'
+            : 'Student mastery across key learning concepts'
+        }
+      >
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800/80 text-slate-400 border border-slate-700/60 mb-3">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h4 className="font-bold text-white text-sm">No Concept Data</h4>
+          <p className="mt-1.5 text-xs text-slate-400 max-w-[240px] leading-relaxed">
+            There are no lessons or progress statistics available to assess concept mastery.
+          </p>
+        </div>
+      </ChartCard>
+    );
+  }
+
   const isAuthor = role === 'course-author';
   const title = isAuthor ? 'Course Health' : 'Concept Mastery';
   const subtitle = isAuthor

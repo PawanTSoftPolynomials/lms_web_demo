@@ -28,7 +28,7 @@ export default function StudentEngagement({ role, data }) {
       }
       filter="Last 6 Months"
     >
-      <div className="h-80">
+      <div className="h-96">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={enrollmentData}

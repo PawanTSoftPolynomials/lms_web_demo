@@ -10,13 +10,15 @@ import LessonHeader from "@/components/instructor/lessons/LessonHeader";
 
 import {useLesson} from "@/hooks/queries/instructor/useLesson";
 import {useDeleteLesson} from "@/hooks/queries/instructor/useDeleteLesson";
+import {useModule} from "@/hooks/queries/instructor/useModule";
 
 import {useContents} from "@/hooks/queries/instructor/useContents";
 
 import ActionMenu from "@/components/menus/ActionMenu";
 
 export default function LessonDetailsPage() {
-    const {lessonId} = useParams();
+    const params = useParams();
+    const lessonId = params.lessonId;
 
     const router = useRouter();
 
@@ -25,6 +27,11 @@ export default function LessonDetailsPage() {
         isLoading: lessonLoading,
         isError: lessonError,
     } = useLesson(lessonId);
+
+    const { data: moduleData } = useModule(lesson?.moduleId, { enabled: !!lesson?.moduleId });
+
+    const moduleId = params.moduleId || lesson?.moduleId;
+    const courseId = params.courseId || moduleData?.courseId;
 
     const {
         data: contents = [],
@@ -47,7 +54,7 @@ export default function LessonDetailsPage() {
             });
 
             router.push(
-                `/instructor/modules/${lesson.moduleId}`
+                `/instructor/courses/${courseId}/modules/${moduleId}`
             );
         } catch (error) {
             console.error(error);
@@ -98,7 +105,7 @@ export default function LessonDetailsPage() {
                 </div>
 
                 <Link
-                    href={`/instructor/contents/create/${lessonId}`}
+                    href={`/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/create`}
                     className="
             rounded-xl
             bg-orange-600
@@ -164,14 +171,14 @@ export default function LessonDetailsPage() {
                                                 label: "View",
                                                 onClick: () =>
                                                     router.push(
-                                                        `/instructor/contents/view/${content.id}`
+                                                        `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/${content.id}`
                                                     ),
                                             },
                                             {
                                                 label: "Edit",
                                                 onClick: () =>
                                                     router.push(
-                                                        `/instructor/contents/edit/${content.id}`
+                                                        `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/edit/${content.id}`
                                                     ),
                                             },
                                             {
@@ -187,7 +194,7 @@ export default function LessonDetailsPage() {
                                     <button
                                         onClick={() =>
                                             router.push(
-                                                `/instructor/contents/view/${content.id}`
+                                                `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/${content.id}`
                                             )
                                         }
                                         className="

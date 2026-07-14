@@ -10,9 +10,14 @@ import QuestionGrid from "@/components/instructor/questions/QuestionGrid";
 
 import { useQuestions } from "@/hooks/queries/instructor/useQuestions";
 import { useDeleteQuestion } from "@/hooks/queries/instructor/useDeleteQuestion";
+import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
 
 export default function QuestionListPage() {
-  const { quizId } = useParams();
+  const params = useParams();
+  const quizId = params.quizId;
+
+  const { data: quizData } = useQuiz(quizId, { enabled: !!quizId });
+  const courseId = params.courseId || quizData?.courseId;
 
   const {
     data: questions = [],
@@ -83,7 +88,7 @@ export default function QuestionListPage() {
           </div>
 
           <Link
-              href={`/instructor/questions/create/${quizId}`}
+              href={`/instructor/courses/${courseId}/quizzes/${quizId}/questions/create`}
               className="
                         rounded-xl
                         bg-orange-600

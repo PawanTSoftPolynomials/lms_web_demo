@@ -85,9 +85,10 @@ export default function Sidebar({
 
       <aside
         className={`
-          fixed md:static
+          fixed md:sticky
           top-0 left-0
-          min-h-screen
+          h-screen
+          overflow-y-auto
           bg-slate-900
           border-r border-slate-800
           z-50
@@ -155,8 +156,8 @@ export default function Sidebar({
                     duration-350
                     ${
                       isActive
-                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-[0_4px_15px_rgba(249,115,22,0.18)] border-l-4 border-white font-semibold'
-                        : 'border-l-4 border-transparent text-slate-400 hover:text-white hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-pink-500/5 hover:translate-x-1.5 hover:border-orange-500'
+                        ? 'bg-slate-800/80 text-white border-l-4 border-orange-500 font-semibold shadow-inner'
+                        : 'border-l-4 border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 hover:translate-x-1 hover:border-slate-700/50'
                     }
                   `}
                 >

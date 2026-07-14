@@ -11,9 +11,12 @@ import ContentPreview from "@/components/instructor/contents/ContentPreview";
 
 import {useContent} from "@/hooks/queries/instructor/useContent";
 import {useDeleteContent} from "@/hooks/queries/instructor/useDeleteContent";
+import {useLesson} from "@/hooks/queries/instructor/useLesson";
+import {useModule} from "@/hooks/queries/instructor/useModule";
 
 export default function ContentDetailsPage() {
-    const {contentId} = useParams();
+    const params = useParams();
+    const contentId = params.contentId;
 
     const router = useRouter();
 
@@ -22,6 +25,13 @@ export default function ContentDetailsPage() {
         isLoading,
         isError,
     } = useContent(contentId);
+
+    const { data: lesson } = useLesson(content?.lessonId, { enabled: !!content?.lessonId });
+    const { data: moduleData } = useModule(lesson?.moduleId, { enabled: !!lesson?.moduleId });
+
+    const lessonId = params.lessonId || content?.lessonId;
+    const moduleId = params.moduleId || lesson?.moduleId;
+    const courseId = params.courseId || moduleData?.courseId;
     console.log(content);
     const deleteContentMutation =
         useDeleteContent();
@@ -40,7 +50,7 @@ export default function ContentDetailsPage() {
             });
 
             router.push(
-                `/instructor/contents/${content.lessonId}`
+                `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`
             );
         } catch (error) {
             console.error(error);
@@ -108,7 +118,7 @@ export default function ContentDetailsPage() {
                                 label: "Edit",
                                 onClick: () =>
                                     router.push(
-                                        `/instructor/contents/edit/${content.id}`
+                                        `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/edit/${content.id}`
                                     ),
                             },
                             {
@@ -132,7 +142,7 @@ export default function ContentDetailsPage() {
             {/* Footer */}
             <div className="flex justify-between">
                 <Link
-                    href={`/instructor/contents/${content.lessonId}`}
+                    href={`/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`}
                     className="
             rounded-xl
             border
@@ -148,7 +158,7 @@ export default function ContentDetailsPage() {
                 </Link>
 
                 <Link
-                    href={`/instructor/contents/edit/${content.id}`}
+                    href={`/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/edit/${content.id}`}
                     className="
             rounded-xl
             bg-orange-600
