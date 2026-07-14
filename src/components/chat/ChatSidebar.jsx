@@ -313,7 +313,12 @@ export default function ChatSidebar() {
         saveLocalConvs([mockConv, ...localConvs]);
       }
 
-      setConversations((prev) => [mockConv, ...prev]);
+      setConversations((prev) => {
+        if (prev.some((c) => c.id === mockConv.id)) {
+          return prev;
+        }
+        return [mockConv, ...prev];
+      });
       setActiveConversation(mockConv);
       setSidebarMode("chats");
       setSearch("");
