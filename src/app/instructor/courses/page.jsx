@@ -2,7 +2,7 @@
 
 import Card from "@/components/ui/Card";
 import Loader from "@/components/common/Loader";
-import CourseCard from "@/components/home/CourseCard";
+import InstructorCourseCard from "@/components/courses/InstructorCourseCard";
 import Link from "next/link";
 import {useInstructorCourses} from "@/hooks/queries/instructor/useInstructorCourses";
 
@@ -78,13 +78,12 @@ export default function InstructorCoursesPage() {
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                {courses.map((course) => (<CourseCard
+                {courses.map((course) => (
+                    <InstructorCourseCard
                         key={course.id}
                         course={course}
-                        action={{
-                            label: "Manage Course", href: `/instructor/courses/${course.id}`,
-                        }}
-                    />))}
+                    />
+                ))}
             </div>
         </div>);
 }
