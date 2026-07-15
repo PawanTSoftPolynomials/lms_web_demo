@@ -188,7 +188,7 @@ export default function SettingsPage() {
                         type="text"
                         value={form.name}
                         onChange={(e) => setForm({ ...form, name: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition"
                         required
                       />
                     </div>
@@ -209,7 +209,7 @@ export default function SettingsPage() {
                         type="text"
                         value={form.phoneNumber}
                         onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition"
                       />
                     </div>
 
@@ -219,7 +219,7 @@ export default function SettingsPage() {
                         type="date"
                         value={form.dob}
                         onChange={(e) => setForm({ ...form, dob: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition cursor-pointer"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition cursor-pointer"
                       />
                     </div>
 
@@ -230,7 +230,7 @@ export default function SettingsPage() {
                         value={form.education}
                         onChange={(e) => setForm({ ...form, education: e.target.value })}
                         placeholder="Bachelor's, High School, etc."
-                        className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition"
                       />
                     </div>
 
@@ -240,7 +240,7 @@ export default function SettingsPage() {
                         type="text"
                         value={form.address}
                         onChange={(e) => setForm({ ...form, address: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition"
                       />
                     </div>
                   </div>
@@ -251,7 +251,7 @@ export default function SettingsPage() {
                       type="text"
                       value={form.guardianName}
                       onChange={(e) => setForm({ ...form, guardianName: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition"
                     />
                   </div>
                 </div>
@@ -280,7 +280,7 @@ export default function SettingsPage() {
                       value={form.focusTopics}
                       placeholder="e.g. Science, Maths"
                       onChange={(e) => setForm({ ...form, focusTopics: e.target.value })}
-                      className="bg-slate-950 text-orange-450 border border-slate-800 rounded px-2.5 py-0.5 text-[11px] font-semibold outline-none w-32 text-right"
+                      className="bg-slate-950 text-orange-500 border border-slate-800 rounded px-2.5 py-0.5 text-[11px] font-semibold outline-none w-32 text-right"
                     />
                   </div>
                   <div className="flex justify-between items-center text-xs font-semibold p-1 hover:bg-slate-800/55 rounded-lg transition">
@@ -290,7 +290,7 @@ export default function SettingsPage() {
                       value={form.interests}
                       placeholder="e.g. Code, Physics"
                       onChange={(e) => setForm({ ...form, interests: e.target.value })}
-                      className="bg-slate-950 text-orange-455 border border-slate-800 rounded px-2.5 py-0.5 text-[11px] font-semibold outline-none w-32 text-right"
+                      className="bg-slate-950 text-orange-500 border border-slate-800 rounded px-2.5 py-0.5 text-[11px] font-semibold outline-none w-32 text-right"
                     />
                   </div>
                   <div className="flex justify-between items-center text-xs font-semibold p-1 hover:bg-slate-800/55 rounded-lg transition">
@@ -300,7 +300,7 @@ export default function SettingsPage() {
                       value={form.learningGoals}
                       placeholder="e.g. Graduation"
                       onChange={(e) => setForm({ ...form, learningGoals: e.target.value })}
-                      className="bg-slate-950 text-orange-460 border border-slate-800 rounded px-2.5 py-0.5 text-[11px] font-semibold outline-none w-32 text-right"
+                      className="bg-slate-950 text-orange-500 border border-slate-800 rounded px-2.5 py-0.5 text-[11px] font-semibold outline-none w-32 text-right"
                     />
                   </div>
                 </div>
@@ -385,7 +385,7 @@ export default function SettingsPage() {
               <div className="border-t border-slate-800/80 pt-4 space-y-3 text-xs text-slate-400">
                 <div className="flex justify-between"><span>Billing Cycle:</span><span className="text-white font-bold">Monthly</span></div>
                 <div className="flex justify-between"><span>Next Payment Due:</span><span className="text-white font-bold">August 12, 2026</span></div>
-                <div className="flex justify-between"><span>Account Status:</span><span className="text-emerald-450 font-bold">Active</span></div>
+                <div className="flex justify-between"><span>Account Status:</span><span className="text-emerald-500 font-bold">Active</span></div>
               </div>
             </div>
           )}
@@ -398,7 +398,7 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-4">
-                <label className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-slate-850/50 transition">
+                <label className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-slate-800/50 transition">
                   <input type="checkbox" defaultChecked className="accent-orange-500 h-4 w-4 rounded border-slate-800" />
                   <div>
                     <span className="text-xs font-bold text-white block">Email Notifications</span>
@@ -406,7 +406,7 @@ export default function SettingsPage() {
                   </div>
                 </label>
 
-                <label className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-slate-850/50 transition">
+                <label className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-slate-800/50 transition">
                   <input type="checkbox" defaultChecked className="accent-orange-500 h-4 w-4 rounded border-slate-800" />
                   <div>
                     <span className="text-xs font-bold text-white block">Push Notifications</span>
@@ -414,7 +414,7 @@ export default function SettingsPage() {
                   </div>
                 </label>
 
-                <label className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-slate-850/50 transition">
+                <label className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-slate-800/50 transition">
                   <input type="checkbox" className="accent-orange-500 h-4 w-4 rounded border-slate-800" />
                   <div>
                     <span className="text-xs font-bold text-white block">SMS Notifications</span>
@@ -434,7 +434,7 @@ export default function SettingsPage() {
 
               <div className="space-y-4">
                 <div className="flex justify-between items-center text-xs font-semibold p-1 hover:bg-slate-800/55 rounded-lg transition">
-                  <span className="text-slate-350">Milestones visibility</span>
+                  <span className="text-slate-300">Milestones visibility</span>
                   <select className="bg-slate-950 text-orange-400 border border-slate-800 rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer">
                     <option>Show to Instructors only</option>
                     <option>Publicly Visible</option>
@@ -443,7 +443,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="flex justify-between items-center text-xs font-semibold p-1 hover:bg-slate-800/55 rounded-lg transition">
-                  <span className="text-slate-350">Allow direct messaging</span>
+                  <span className="text-slate-300">Allow direct messaging</span>
                   <select className="bg-slate-950 text-orange-400 border border-slate-800 rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer">
                     <option>Everyone</option>
                     <option>Instructors Only</option>
@@ -464,11 +464,11 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Current Password</label>
-                  <input type="password" placeholder="••••••••" className="w-full bg-slate-955 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition" />
+                  <input type="password" placeholder="••••••••" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">New Password</label>
-                  <input type="password" placeholder="••••••••" className="w-full bg-slate-955 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition" />
+                  <input type="password" placeholder="••••••••" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-orange-500 transition" />
                 </div>
               </div>
             </div>
@@ -482,11 +482,11 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-2 hover:bg-slate-850/50 rounded-xl transition">
+                <div className="flex items-center justify-between p-2 hover:bg-slate-800/50 rounded-xl transition">
                   <span className="text-xs font-bold text-white">Google</span>
                   <button type="button" className="text-xs font-bold text-orange-400 hover:text-orange-500 cursor-pointer">Disconnect</button>
                 </div>
-                <div className="flex items-center justify-between p-2 hover:bg-slate-850/50 rounded-xl transition">
+                <div className="flex items-center justify-between p-2 hover:bg-slate-800/50 rounded-xl transition">
                   <span className="text-xs font-bold text-white">Github</span>
                   <button type="button" className="text-xs font-bold text-slate-400 hover:text-white cursor-pointer">Connect Account</button>
                 </div>
@@ -505,7 +505,7 @@ export default function SettingsPage() {
               Save All Settings
             </button>
             {saved && (
-              <span className="text-xs text-emerald-450 font-bold animate-pulse">Changes saved successfully! ✓</span>
+              <span className="text-xs text-emerald-500 font-bold animate-pulse">Changes saved successfully! ✓</span>
             )}
             {errorMsg && (
               <span className="text-xs text-red-500 font-bold flex items-center gap-1"><AlertCircle size={12} /> {errorMsg}</span>
@@ -582,8 +582,8 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-2">
                   <div className="p-1.5 bg-orange-500/10 text-orange-400 rounded"><Laptop size={14} /></div>
                   <div>
-                    <span className="text-[10px] font-bold text-slate-350 block">Windows • Chrome</span>
-                    <span className="text-[8px] text-emerald-450 font-bold">Current Session • Pune</span>
+                    <span className="text-[10px] font-bold text-slate-300 block">Windows • Chrome</span>
+                    <span className="text-[8px] text-emerald-500 font-bold">Current Session • Pune</span>
                   </div>
                 </div>
               </div>
@@ -592,7 +592,7 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-2">
                   <div className="p-1.5 bg-slate-800 text-slate-400 rounded"><Smartphone size={14} /></div>
                   <div>
-                    <span className="text-[10px] font-bold text-slate-350 block">Android • Mobile App</span>
+                    <span className="text-[10px] font-bold text-slate-300 block">Android • Mobile App</span>
                     <span className="text-[8px] text-slate-500 font-semibold">Active 2 hrs ago • Mumbai</span>
                   </div>
                 </div>
@@ -603,7 +603,7 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-2">
                   <div className="p-1.5 bg-slate-800 text-slate-400 rounded"><Laptop size={14} /></div>
                   <div>
-                    <span className="text-[10px] font-bold text-slate-350 block">MacOS • Safari</span>
+                    <span className="text-[10px] font-bold text-slate-300 block">MacOS • Safari</span>
                     <span className="text-[8px] text-slate-500 font-semibold">Active 1 day ago • Bengaluru</span>
                   </div>
                 </div>

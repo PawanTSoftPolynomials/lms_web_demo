@@ -238,7 +238,7 @@ export default function StudentCertificatesPage() {
           {/* Close Backdrop click */}
           <div className="absolute inset-0 cursor-default" onClick={() => setSelectedCert(null)} />
 
-          <div className="relative w-full max-w-3xl bg-slate-900 border border-slate-850 rounded-2xl p-8 shadow-2xl z-10 flex flex-col gap-6 animate-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl z-10 flex flex-col gap-6 animate-in zoom-in-95 duration-200">
             
             {/* Modal Actions */}
             <div className="flex justify-between items-center pb-4 border-b border-slate-800/60 print:hidden">
@@ -320,7 +320,7 @@ export default function StudentCertificatesPage() {
               </div>
 
               {/* Footer signatures & dates */}
-              <div className="flex justify-between items-end border-t border-slate-850 print:border-slate-200 pt-6 max-w-xl mx-auto w-full text-left text-[10px]">
+              <div className="flex justify-between items-end border-t border-slate-800 print:border-slate-200 pt-6 max-w-xl mx-auto w-full text-left text-[10px]">
                 <div className="flex flex-col gap-1">
                   <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Credential ID</span>
                   <span className="font-mono text-slate-300 print:text-black font-semibold">{selectedCert.certificateNo}</span>

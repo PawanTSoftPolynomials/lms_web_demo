@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FaArrowLeft, FaSignOutAlt, FaBars } from "react-icons/fa";
-import { Bell, BookOpen, Award, CheckCheck, MessageSquare } from "lucide-react";
+import { Bell, BookOpen, Award, CheckCheck, MessageSquare, Calendar } from "lucide-react";
 
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
 import { useNotification } from "@/context/NotificationContext";
+import Modal from "@/components/ui/Modal";
+import MiniCalendar from "@/components/dashboard/MiniCalendar";
 
 // Self-contained high-end chime player using HTML5 AudioContext
 const playNotificationChime = () => {
@@ -59,6 +61,7 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const { notifications, markAllRead, clearAll, markAsRead, addNotification } = useNotification();
   const [isMounted, setIsMounted] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   // Client-side initialization to prevent hydration mismatch
   useEffect(() => {
@@ -207,6 +210,27 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
 
       <div className="flex gap-3 items-center relative">
         
+        {/* Calendar Button */}
+        <button
+          onClick={() => setCalendarOpen(true)}
+          className="
+            p-3
+            rounded-lg
+            transition-all
+            bg-slate-800
+            hover:bg-slate-700
+            text-slate-300
+            hover:text-white
+            flex
+            items-center
+            justify-center
+            cursor-pointer
+          "
+          title="Open Calendar"
+        >
+          <Calendar size={18} />
+        </button>
+
         {/* Notifications Icon & Panel */}
         <div className="relative">
           <button
@@ -381,6 +405,17 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
         </button>
 
       </div>
+      {/* Calendar Modal Popup */}
+      <Modal
+        open={calendarOpen}
+        onClose={() => setCalendarOpen(false)}
+        title="Schedule Calendar"
+        size="md"
+      >
+        <div className="text-white">
+          <MiniCalendar role={currentUser?.role} />
+        </div>
+      </Modal>
     </header>
   );
 }

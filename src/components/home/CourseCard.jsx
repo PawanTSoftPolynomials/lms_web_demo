@@ -41,7 +41,7 @@ export default function CourseCard({
                     {course.description}
                 </p>
 
-                <div className="mt-4 flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest border-t border-slate-850 pt-4">
+                <div className="mt-4 flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest border-t border-slate-800 pt-4">
                     <span>{course.level}</span>
 
                     <span>

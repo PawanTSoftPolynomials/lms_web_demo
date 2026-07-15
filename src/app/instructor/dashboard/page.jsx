@@ -335,7 +335,7 @@ export default function InstructorDashboard() {
           </div>
 
           {/* Chart 3: Revenue Stream */}
-          <Card className="lg:col-span-3 border-slate-850 bg-slate-900/40 p-6 relative overflow-hidden flex flex-col justify-between">
+          <Card className="lg:col-span-3 border-slate-800 bg-slate-900/40 p-6 relative overflow-hidden flex flex-col justify-between">
             <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-orange-500/5 blur-3xl pointer-events-none" />
             <div className="flex justify-between items-center mb-6">
               <div>
@@ -345,7 +345,7 @@ export default function InstructorDashboard() {
                 </h3>
                 <p className="text-xs text-slate-400">Monthly course acquisition revenue analysis</p>
               </div>
-              <span className="text-xs bg-slate-850 px-2.5 py-1 rounded-lg border border-slate-850 text-slate-300 font-semibold">
+              <span className="text-xs bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-300 font-semibold">
                 Gross Earnings
               </span>
             </div>

@@ -97,7 +97,7 @@ export default function UpcomingSchedules({ role }) {
   }
 
   return (
-    <Card className="border border-slate-850 bg-slate-900/40 p-6 relative overflow-hidden flex flex-col justify-between h-full">
+    <Card className="border border-slate-800 bg-slate-900/40 p-6 relative overflow-hidden flex flex-col justify-between h-full">
       <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-orange-500/5 blur-2xl pointer-events-none" />
       
       <div className="flex justify-between items-center mb-5">

@@ -23,7 +23,10 @@ export default function CourseRow({
     };
 
     return (
-        <tr className="border-b border-white/5 transition hover:bg-white/5">
+        <tr
+            onClick={() => onView?.(course)}
+            className="border-b border-white/5 transition hover:bg-white/5 cursor-pointer"
+        >
             {/* Course */}
             <td className="px-6 py-4">
                 <div className="flex items-center gap-4">
@@ -94,7 +97,7 @@ export default function CourseRow({
             </td>
 
             {/* Actions */}
-            <td className="px-6 py-4 text-right">
+            <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                 <ActionMenu
                     items={[
                         {

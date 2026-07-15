@@ -195,7 +195,7 @@ export default function QuizResultPage() {
             }
 
             return (
-              <Card key={question.id} className="p-6 border-slate-850 bg-slate-900/30">
+              <Card key={question.id} className="p-6 border-slate-800 bg-slate-900/30">
                 <div className="flex items-start gap-4">
                   {/* Number Badge */}
                   <span className="flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800 text-xs font-bold text-slate-300 border border-slate-700/50">
@@ -208,7 +208,7 @@ export default function QuizResultPage() {
                       <h4 className="text-sm font-semibold text-slate-100 leading-relaxed">
                         {question.text}
                       </h4>
-                      <span className="flex-shrink-0 text-[10px] bg-slate-850 px-2 py-0.5 rounded border border-slate-850 text-slate-400 font-bold uppercase">
+                      <span className="flex-shrink-0 text-[10px] bg-slate-800 px-2 py-0.5 rounded border border-slate-800 text-slate-400 font-bold uppercase">
                         {question.marks || 1} {question.marks === 1 ? "Mark" : "Marks"}
                       </span>
                     </div>
