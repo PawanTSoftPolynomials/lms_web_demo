@@ -5,7 +5,14 @@ import {
     FaClipboardList,
     FaGraduationCap,
     FaUserCircle,
-    FaCalendarAlt
+    FaCalendarAlt,
+    FaVideo,
+    FaQuestionCircle,
+    FaFileAlt,
+    FaBookmark,
+    FaTrophy,
+    FaEnvelope,
+    FaCog
 } from "react-icons/fa";
 import {FcGraduationCap} from "react-icons/fc";
 import {FaCertificate} from "react-icons/fa6";
@@ -88,14 +95,19 @@ export const SIDEBAR_ITEMS = {
             href: "/student/dashboard",
         },
         {
+            title: "My Learning",
+            icon: FaGraduationCap,
+            href: "/student/my-courses",
+        },
+        {
             title: "Courses",
             icon: FaBook,
             href: "/student/courses",
         },
         {
-            title: "My Courses",
-            icon: FaBook,
-            href: "/student/my-courses",
+            title: "Live Classes",
+            icon: FaVideo,
+            href: "/student/live-classes",
         },
         {
             title: "Assignments",
@@ -103,29 +115,34 @@ export const SIDEBAR_ITEMS = {
             href: "/student/assignments",
         },
         {
-            title: "Progress",
-            icon: FaGraduationCap,
-            href: "/student/progress",
-        },
-        {
             title: "Quizzes",
-            icon: FaClipboardList,
+            icon: FaQuestionCircle,
             href: "/student/quizzes",
         },
         {
-            title: "Calendar",
-            icon: FaCalendarAlt,
-            href: "/student/calendar",
+            title: "Notes",
+            icon: FaFileAlt,
+            href: "/student/notes",
         },
         {
-            title: "Profile",
-            icon: FaUserCircle,
-            href: "/student/profile",
+            title: "Bookmarks",
+            icon: FaBookmark,
+            href: "/student/bookmarks",
         },
         {
-            title: "Certificates",
-            icon: FaCertificate,
-            href: "/student/certificates",
+            title: "Achievements",
+            icon: FaTrophy,
+            href: "/student/achievements",
+        },
+        {
+            title: "Messages",
+            icon: FaEnvelope,
+            href: "/student/messages",
+        },
+        {
+            title: "Settings",
+            icon: FaCog,
+            href: "/student/settings",
         },
     ],
 };

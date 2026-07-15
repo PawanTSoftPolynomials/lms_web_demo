@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import {
     FileText,
     ExternalLink,
@@ -31,6 +32,85 @@ export default function VideoPlayer({
                                         content,
                                         onTimeUpdate,
                                     }) {
+    const containerRef = useRef(null);
+    const playerRef = useRef(null);
+
+    const type = content?.type;
+    const videoUrl = content?.videoUrl;
+    const isYoutube = type === "VIDEO" && isYoutubeUrl(videoUrl);
+
+    useEffect(() => {
+        if (!isYoutube || !videoUrl) return;
+
+        const regExp = /^.*(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#&?]*).*/;
+        const match = videoUrl.match(regExp);
+        const videoId = match && match[1];
+        if (!videoId) return;
+
+        let player;
+        let intervalId;
+
+        const onPlayerStateChange = (event) => {
+            // YT.PlayerState.PLAYING is 1
+            if (event.data === window.YT.PlayerState.PLAYING) {
+                intervalId = setInterval(() => {
+                    if (player && typeof player.getCurrentTime === "function") {
+                        onTimeUpdate?.(Math.floor(player.getCurrentTime()));
+                    }
+                }, 500);
+            } else {
+                clearInterval(intervalId);
+            }
+        };
+
+        const initializePlayer = () => {
+            if (!containerRef.current) return;
+            containerRef.current.innerHTML = "<div id='yt-player-el'></div>";
+            player = new window.YT.Player("yt-player-el", {
+                height: "520",
+                width: "100%",
+                videoId: videoId,
+                events: {
+                    onStateChange: onPlayerStateChange,
+                },
+            });
+            playerRef.current = player;
+        };
+
+        if (window.YT && window.YT.Player) {
+            initializePlayer();
+        } else {
+            if (!document.getElementById("youtube-iframe-api")) {
+                const tag = document.createElement("script");
+                tag.id = "youtube-iframe-api";
+                tag.src = "https://www.youtube.com/iframe_api";
+                document.body.appendChild(tag);
+            }
+
+            const checkTimer = setInterval(() => {
+                if (window.YT && window.YT.Player) {
+                    clearInterval(checkTimer);
+                    initializePlayer();
+                }
+            }, 100);
+
+            return () => {
+                clearInterval(checkTimer);
+                clearInterval(intervalId);
+                if (playerRef.current && typeof playerRef.current.destroy === "function") {
+                    playerRef.current.destroy();
+                }
+            };
+        }
+
+        return () => {
+            clearInterval(intervalId);
+            if (playerRef.current && typeof playerRef.current.destroy === "function") {
+                playerRef.current.destroy();
+            }
+        };
+    }, [videoUrl, isYoutube, onTimeUpdate]);
+
     if (!content) {
         return (
             <div className="flex h-[520px] items-center justify-center rounded-2xl border border-slate-800 bg-slate-900">
@@ -50,9 +130,7 @@ export default function VideoPlayer({
     }
 
     const {
-        type,
         title,
-        videoUrl,
         fileUrl,
         htmlContent,
         externalUrl,
@@ -71,12 +149,8 @@ export default function VideoPlayer({
             <div className="min-h-[520px]">
                 {/* VIDEO */}
                 {type === "VIDEO" && (
-                    isYoutubeUrl(videoUrl) ? (
-                        <iframe
-                            src={getYoutubeEmbedUrl(videoUrl)}
-                            className="h-[520px] w-full"
-                            allowFullScreen
-                        />
+                    isYoutube ? (
+                        <div ref={containerRef} className="h-[520px] w-full bg-black" />
                     ) : (
                         <video
                             controls
