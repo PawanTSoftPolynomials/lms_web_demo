@@ -6,6 +6,7 @@ export const QUERY_KEYS = {
     COURSE: "course",
     MY_COURSES: "my-courses",
     STUDENT_DASHBOARD: "student-dashboard",
+    UPCOMING_TASKS: "upcoming-tasks",
     STUDENT_PROFILE: "student-profile",
     STUDENT_PROGRESS: "student-progress",
     STUDENT_CERTIFICATES: "student-certificates",
