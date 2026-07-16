@@ -18,6 +18,7 @@ import AuthFooter from "@/components/auth/AuthFooter";
 export default function VerifyOtpContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const email = searchParams?.get("email") || "";
 
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);

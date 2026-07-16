@@ -18,7 +18,7 @@ export default function QuizCard({
 
     const openQuiz = () => {
         router.push(
-            `/instructor/quizzes/view/${quiz.id}`
+            `/instructor/courses/${quiz.courseId}/quizzes/${quiz.id}`
         );
     };
 
@@ -79,14 +79,10 @@ export default function QuizCard({
                             <ActionMenu
                                 items={[
                                     {
-                                        label: "View",
-                                        onClick: openQuiz,
-                                    },
-                                    {
                                         label: "Edit",
                                         onClick: () =>
                                             router.push(
-                                                `/instructor/quizzes/edit/${quiz.id}`
+                                                `/instructor/courses/${quiz.courseId}/quizzes/edit/${quiz.id}`
                                             ),
                                     },
                                     {

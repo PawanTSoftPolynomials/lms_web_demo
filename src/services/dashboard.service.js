@@ -15,10 +15,11 @@ export const getAdminDashboard = async () => {
  * Get Instructor Dashboard
  */
 export const getInstructorDashboard =
-    async () => {
-        const {data} = await api.get(
-            "/dashboard/instructor"
-        );
+    async (courseId) => {
+        const url = courseId && courseId !== 'all'
+            ? `/dashboard/instructor?courseId=${courseId}`
+            : "/dashboard/instructor";
+        const {data} = await api.get(url);
 
         return data.data;
     };

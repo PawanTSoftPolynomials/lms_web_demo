@@ -1,15 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { FaArrowLeft, FaSignOutAlt, FaBars } from "react-icons/fa";
-import { Bell, BookOpen, Award, CheckCheck, MessageSquare, Calendar } from "lucide-react";
+import { Bell, BookOpen, Award, CheckCheck, MessageSquare, Calendar,ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
 import { useNotification } from "@/context/NotificationContext";
 import Modal from "@/components/ui/Modal";
 import MiniCalendar from "@/components/dashboard/MiniCalendar";
+import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
+import { useModule } from "@/hooks/queries/instructor/useModule";
+import { useLesson } from "@/hooks/queries/instructor/useLesson";
+import { useContent } from "@/hooks/queries/instructor/useContent";
+import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
 
 // Self-contained high-end chime player using HTML5 AudioContext
 const playNotificationChime = () => {
@@ -49,6 +55,136 @@ const playNotificationChime = () => {
 export default function Navbar({ title = "Dashboard", setOpen }) {
   const router = useRouter();
   const { logout, user: currentUser } = useAuth();
+
+  const pathname = usePathname();
+  
+  // Dynamic IDs scanner
+  const getIdsFromPathname = () => {
+    if (!pathname) return {};
+    const segments = pathname.split("/").filter(Boolean);
+    const result = {
+      courseId: null,
+      moduleId: null,
+      lessonId: null,
+      contentId: null,
+      quizId: null,
+    };
+    
+    for (let i = 0; i < segments.length; i++) {
+      const seg = segments[i];
+      if (seg === "courses" && segments[i + 1] && segments[i + 1] !== "create" && segments[i + 1] !== "edit") {
+        result.courseId = segments[i + 1];
+      }
+      if (seg === "modules" && segments[i + 1] && segments[i + 1] !== "create" && segments[i + 1] !== "edit") {
+        result.moduleId = segments[i + 1];
+      }
+      if (seg === "lessons" && segments[i + 1] && segments[i + 1] !== "create" && segments[i + 1] !== "edit") {
+        result.lessonId = segments[i + 1];
+      }
+      if (seg === "contents" && segments[i + 1] && segments[i + 1] !== "create" && segments[i + 1] !== "edit") {
+        result.contentId = segments[i + 1];
+      }
+      if (seg === "quizzes" && segments[i + 1] && segments[i + 1] !== "create" && segments[i + 1] !== "edit") {
+        result.quizId = segments[i + 1];
+      }
+    }
+    return result;
+  };
+
+  const parsedIds = getIdsFromPathname();
+  
+  // Queries with React Query dynamic enabling
+  const { data: moduleData } = useModule(parsedIds.moduleId, { enabled: !!parsedIds.moduleId });
+  const { data: lessonData } = useLesson(parsedIds.lessonId, { enabled: !!parsedIds.lessonId });
+  const { data: contentData } = useContent(parsedIds.contentId, { enabled: !!parsedIds.contentId });
+  const { data: quizData } = useQuiz(parsedIds.quizId, { enabled: !!parsedIds.quizId });
+  
+  const courseId = parsedIds.courseId || moduleData?.courseId || lessonData?.module?.courseId || quizData?.courseId;
+  const { data: course } = useInstructorCourse(courseId, { enabled: !!courseId });
+
+  // Generate breadcrumb objects dynamically
+  const getBreadcrumbs = () => {
+    if (!pathname) return [];
+    const segments = pathname.split("/").filter(Boolean);
+    if (segments.length <= 1) {
+      return [{ label: "DASHBOARD", href: null }];
+    }
+
+    const role = segments[0]; // "instructor", "student", "admin"
+    const breadcrumbs = [];
+
+    // Root link
+    breadcrumbs.push({ label: "DASHBOARD", href: `/${role}/dashboard` });
+
+    const hasCourses = segments.includes("courses");
+    const hasModules = segments.includes("modules");
+    const hasLessons = segments.includes("lessons");
+    const hasContents = segments.includes("contents");
+    const hasQuizzes = segments.includes("quizzes");
+    const hasQuestions = segments.includes("questions");
+
+    // Add Course parent
+    if (hasCourses || hasModules || hasLessons || hasContents || hasQuizzes || hasQuestions) {
+      breadcrumbs.push({ label: "COURSES", href: `/${role}/courses` });
+      
+      if (course) {
+        breadcrumbs.push({ label: course.title, href: `/${role}/courses/${course.id}` });
+      }
+    }
+
+    // Add Modules parent and Module details
+    if (hasModules || hasLessons || hasContents) {
+      if (moduleData) {
+        breadcrumbs.push({ label: moduleData.title, href: `/${role}/courses/${courseId}/modules/${moduleData.id}` });
+      }
+    }
+
+    // Add Lessons parent and Lesson details
+    if (hasLessons || hasContents) {
+      if (lessonData) {
+        breadcrumbs.push({ label: lessonData.title, href: `/${role}/courses/${courseId}/modules/${lessonData.moduleId}/lessons/${lessonData.id}` });
+      }
+    }
+
+    // Add Content leaf node
+    if (hasContents) {
+      if (contentData) {
+        breadcrumbs.push({ label: contentData.title, href: null });
+      }
+    }
+
+    // Add Quiz parent and Quiz details
+    if (hasQuizzes || hasQuestions) {
+      if (quizData) {
+        breadcrumbs.push({ label: quizData.title, href: `/${role}/courses/${courseId}/quizzes/${quizData.id}` });
+      } else {
+        breadcrumbs.push({ label: "QUIZZES", href: `/${role}/courses/${courseId}/quizzes` });
+      }
+    }
+
+    // Add Questions leaf node
+    if (hasQuestions) {
+      breadcrumbs.push({ label: "QUESTIONS", href: null });
+    }
+
+    // Handle Standalone sections
+    const section = segments[1];
+    if (["calendar", "profile"].includes(section)) {
+      breadcrumbs.push({ label: section.toUpperCase(), href: null });
+    }
+
+    // Handle Create/Edit static operations
+    if (segments.includes("create")) {
+      breadcrumbs.push({ label: "CREATE", href: null });
+    }
+    if (segments.includes("edit")) {
+      breadcrumbs.push({ label: "EDIT", href: null });
+    }
+
+    return breadcrumbs;
+  };
+
+  const breadcrumbs = getBreadcrumbs();
   const { 
     conversations = [], 
     messages = [], 
@@ -188,24 +324,29 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
         >
           <FaBars />
         </button>
-        <button
-          onClick={() => router.back()}
-          className="
-            bg-slate-800
-            hover:bg-slate-700
-            transition
-            p-3
-            rounded-lg
-            text-slate-300
-            hover:text-white
-            flex
-            items-center
-            justify-center
-          "
-        >
-          <FaArrowLeft />
-        </button>
-        <h1 className="text-lg font-semibold">{title}</h1>
+        {breadcrumbs.length > 0 ? (
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest pl-1">
+            {breadcrumbs.map((b, idx) => {
+              const isLast = idx === breadcrumbs.length - 1;
+              return (
+                <div key={idx} className="flex items-center gap-2">
+                  {idx > 0 && <ChevronRight size={12} className="text-slate-700 stroke-[3]" />}
+                  {b.href && !isLast ? (
+                    <Link href={b.href} className="text-slate-400 hover:text-slate-200 transition">
+                      {b.label}
+                    </Link>
+                  ) : (
+                    <span className={isLast && idx > 0 ? "text-sky-400 font-black tracking-widest" : "text-slate-300"}>
+                      {b.label}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <h1 className="text-lg font-semibold">{title}</h1>
+        )}
       </div>
 
       <div className="flex gap-3 items-center relative">

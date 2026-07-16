@@ -12,7 +12,8 @@ import {useLessons} from "@/hooks/queries/instructor/useLessons";
 import {useDeleteLesson} from "@/hooks/queries/instructor/useDeleteLesson";
 
 export default function ModuleDetailsPage() {
-    const {moduleId} = useParams();
+    const params = useParams();
+    const moduleId = params.moduleId;
     const router = useRouter();
 
     const {
@@ -20,6 +21,8 @@ export default function ModuleDetailsPage() {
         isLoading: moduleLoading,
         isError: moduleError,
     } = useModule(moduleId);
+
+    const courseId = params.courseId || module?.courseId;
 
     const {
         data: lessons = [],
@@ -92,7 +95,7 @@ export default function ModuleDetailsPage() {
                 </div>
 
                 <Link
-                    href={`/instructor/lessons/create/${moduleId}`}
+                    href={`/instructor/courses/${courseId}/modules/${moduleId}/lessons/create`}
                     className="rounded-xl bg-orange-600 px-5 py-3 text-white transition hover:bg-orange-700"
                 >
                     Add Lesson
@@ -118,7 +121,7 @@ export default function ModuleDetailsPage() {
                             key={lesson.id}
                             onClick={() =>
                                 router.push(
-                                    `/instructor/lessons/${lesson.id}`
+                                    `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lesson.id}`
                                 )
                             }
                             className="
@@ -146,14 +149,14 @@ export default function ModuleDetailsPage() {
                                                         label: "View",
                                                         onClick: () =>
                                                             router.push(
-                                                                `/instructor/lessons/${lesson.id}`
+                                                                `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lesson.id}`
                                                             ),
                                                     },
                                                     {
                                                         label: "Edit",
                                                         onClick: () =>
                                                             router.push(
-                                                                `/instructor/lessons/edit/${lesson.id}`
+                                                                `/instructor/courses/${courseId}/modules/${moduleId}/lessons/edit/${lesson.id}`
                                                             ),
                                                     },
                                                     {
@@ -183,7 +186,7 @@ export default function ModuleDetailsPage() {
                                             e.stopPropagation();
 
                                             router.push(
-                                                `/instructor/lessons/${lesson.id}`
+                                                `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lesson.id}`
                                             );
                                         }}
                                         className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium transition hover:bg-orange-700"

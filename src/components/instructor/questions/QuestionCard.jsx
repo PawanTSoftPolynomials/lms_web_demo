@@ -12,13 +12,14 @@ import ActionMenu from "@/components/menus/ActionMenu";
 
 export default function QuestionCard({
                                          question,
+                                         courseId,
                                          onDelete,
                                      }) {
     const router = useRouter();
 
     const openQuestion = () => {
         router.push(
-            `/instructor/questions/view/${question.id}`
+            `/instructor/courses/${courseId}/quizzes/${question.quizId}/questions/view/${question.id}`
         );
     };
 
@@ -80,14 +81,10 @@ export default function QuestionCard({
                             <ActionMenu
                                 items={[
                                     {
-                                        label: "View",
-                                        onClick: openQuestion,
-                                    },
-                                    {
                                         label: "Edit",
                                         onClick: () =>
                                             router.push(
-                                                `/instructor/questions/edit/${question.id}`
+                                                `/instructor/courses/${courseId}/quizzes/${question.quizId}/questions/edit/${question.id}`
                                             ),
                                     },
                                     {
