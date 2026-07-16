@@ -14,17 +14,16 @@ export default function QuestionCard({
   selectedAnswer,
   onSelectAnswer,
 }) {
-  if (!question) return null;
-
-  const type = question.type || "MCQ_SINGLE";
+  const type = question?.type || "MCQ_SINGLE";
 
   // Deterministic shuffle helper for single option, multioption, and arrange tokens
   const shuffledOptions = useMemo(() => {
+    if (!question?.options) return [];
     let opts = question.options;
     if (typeof opts === "string") {
       try {
         opts = JSON.parse(opts);
-      } catch (e) {
+      } catch {
         opts = [];
       }
     }
@@ -41,11 +40,11 @@ export default function QuestionCard({
     };
 
     return [...opts].sort((a, b) => getHash(a) - getHash(b));
-  }, [question.id, question.options]);
+  }, [question?.id, question?.options]);
 
   // Deterministic shuffle for Match Pairs column B (Right side options)
   const shuffledMatchOptions = useMemo(() => {
-    if (type !== "MATCH_PAIRS" || !question.options) return {};
+    if (type !== "MATCH_PAIRS" || !question?.options) return {};
 
     const colA = question.options.columnA || question.options.left || [];
     const colB = question.options.columnB || question.options.right || [];
@@ -64,7 +63,9 @@ export default function QuestionCard({
       columnA: colA,
       columnB: [...colB].sort((a, b) => getHash(a) - getHash(b)),
     };
-  }, [question.id, question.options, type]);
+  }, [question?.id, question?.options, type]);
+
+  if (!question) return null;
 
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
