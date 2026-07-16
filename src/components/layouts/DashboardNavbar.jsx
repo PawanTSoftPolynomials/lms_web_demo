@@ -14,6 +14,7 @@ import { useModule } from "@/hooks/queries/instructor/useModule";
 import { useLesson } from "@/hooks/queries/instructor/useLesson";
 import { useContent } from "@/hooks/queries/instructor/useContent";
 import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
+import { useQuestion } from "@/hooks/queries/instructor/useQuestion";
 
 // Self-contained high-end chime player using HTML5 AudioContext
 const playNotificationChime = () => {
@@ -60,30 +61,55 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
   const getIdsFromPathname = () => {
     if (!pathname) return {};
     const segments = pathname.split("/").filter(Boolean);
+    const hasCoursesInPath = segments.includes("courses");
     const result = {
       courseId: null,
       moduleId: null,
       lessonId: null,
       contentId: null,
       quizId: null,
+      questionId: null,
     };
     
     for (let i = 0; i < segments.length; i++) {
       const seg = segments[i];
-      if (seg === "courses" && segments[i + 1] && segments[i + 1] !== "create" && segments[i + 1] !== "edit") {
+      if (seg === "courses" && segments[i + 1] && !["create", "edit"].includes(segments[i + 1])) {
         result.courseId = segments[i + 1];
       }
-      if (seg === "modules" && segments[i + 1] && segments[i + 1] !== "create" && segments[i + 1] !== "edit") {
+      if (seg === "modules" && segments[i + 1] && !["create", "edit"].includes(segments[i + 1])) {
         result.moduleId = segments[i + 1];
       }
-      if (seg === "lessons" && segments[i + 1] && segments[i + 1] !== "create" && segments[i + 1] !== "edit") {
+      if (seg === "lessons" && segments[i + 1] && !["create", "edit"].includes(segments[i + 1])) {
         result.lessonId = segments[i + 1];
       }
-      if (seg === "contents" && segments[i + 1] && segments[i + 1] !== "create" && segments[i + 1] !== "edit") {
+      if (seg === "contents" && segments[i + 1] && !["create", "edit", "view"].includes(segments[i + 1])) {
         result.contentId = segments[i + 1];
       }
-      if (seg === "quizzes" && segments[i + 1] && segments[i + 1] !== "create" && segments[i + 1] !== "edit") {
-        result.quizId = segments[i + 1];
+      if (seg === "quizzes") {
+        if (segments[i + 1]) {
+          if (["view", "edit"].includes(segments[i + 1])) {
+            result.quizId = segments[i + 2];
+          } else if (segments[i + 1] === "create") {
+            result.courseId = segments[i + 2];
+          } else {
+            if (hasCoursesInPath) {
+              result.quizId = segments[i + 1];
+            } else {
+              result.courseId = segments[i + 1];
+            }
+          }
+        }
+      }
+      if (seg === "questions") {
+        if (segments[i + 1]) {
+          if (["view", "edit"].includes(segments[i + 1])) {
+            result.questionId = segments[i + 2];
+          } else if (segments[i + 1] === "create") {
+            result.quizId = segments[i + 2];
+          } else {
+            result.quizId = segments[i + 1];
+          }
+        }
       }
     }
     return result;
@@ -95,7 +121,10 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
   const { data: moduleData } = useModule(parsedIds.moduleId, { enabled: !!parsedIds.moduleId });
   const { data: lessonData } = useLesson(parsedIds.lessonId, { enabled: !!parsedIds.lessonId });
   const { data: contentData } = useContent(parsedIds.contentId, { enabled: !!parsedIds.contentId });
-  const { data: quizData } = useQuiz(parsedIds.quizId, { enabled: !!parsedIds.quizId });
+  const { data: questionData } = useQuestion(parsedIds.questionId, { enabled: !!parsedIds.questionId });
+  
+  const quizId = parsedIds.quizId || questionData?.quizId;
+  const { data: quizData } = useQuiz(quizId, { enabled: !!quizId });
   
   const courseId = parsedIds.courseId || moduleData?.courseId || lessonData?.module?.courseId || quizData?.courseId;
   const { data: course } = useInstructorCourse(courseId, { enabled: !!courseId });
@@ -153,16 +182,18 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
 
     // Add Quiz parent and Quiz details
     if (hasQuizzes || hasQuestions) {
+      const quizzesHref = courseId ? `/${role}/courses/${courseId}/quizzes` : `/${role}/quizzes`;
+      breadcrumbs.push({ label: "QUIZZES", href: quizzesHref });
       if (quizData) {
-        breadcrumbs.push({ label: quizData.title, href: `/${role}/courses/${courseId}/quizzes/${quizData.id}` });
-      } else {
-        breadcrumbs.push({ label: "QUIZZES", href: `/${role}/courses/${courseId}/quizzes` });
+        const quizHref = courseId ? `/${role}/courses/${courseId}/quizzes/${quizData.id}` : `/${role}/quizzes/view/${quizData.id}`;
+        breadcrumbs.push({ label: quizData.title, href: quizHref });
       }
     }
 
     // Add Questions leaf node
     if (hasQuestions) {
-      breadcrumbs.push({ label: "QUESTIONS", href: null });
+      const questionsHref = quizId ? `/${role}/questions/${quizId}` : null;
+      breadcrumbs.push({ label: "QUESTIONS", href: questionsHref });
     }
 
     // Handle Standalone sections

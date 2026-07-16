@@ -15,17 +15,24 @@ export default function CreateQuizPage() {
         useCreateQuiz();
 
     const handleSubmit = async (
-        values
+        values,
+        action
     ) => {
         try {
-            await createQuizMutation.mutateAsync({
+            const payload = {
                 ...values,
                 courseId,
-            });
+                status: action === "draft" ? "DRAFT" : "ACTIVE",
+                isPublished: action !== "draft"
+            };
 
-            router.push(
-                `/instructor/quizzes/${courseId}`
-            );
+            const newQuiz = await createQuizMutation.mutateAsync(payload);
+
+            if (action === "questions") {
+                router.push(`/instructor/questions/${newQuiz.id}`);
+            } else {
+                router.push(`/instructor/quizzes/${courseId}`);
+            }
         } catch (error) {
             console.error(error);
         }

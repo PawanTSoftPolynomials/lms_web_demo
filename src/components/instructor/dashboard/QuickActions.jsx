@@ -18,7 +18,7 @@ const actions = [
   },
   {
     title: 'Create Quiz',
-    href: '/instructor/quizzes',
+    href: '/instructor/quizzes/create',
     icon: CheckSquare,
     colorClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20',
   },

@@ -15,6 +15,8 @@ export default function QuizForm({
                                  }) {
     const [formData, setFormData] = useState(INITIAL_FORM);
 
+    const [submitAction, setSubmitAction] = useState("draft");
+
     useEffect(() => {
         if (initialValues) {
             setFormData({
@@ -23,6 +25,7 @@ export default function QuizForm({
             });
         }
     }, [initialValues]);
+
     const handleChange = (e) => {
         const {name, value} = e.target;
 
@@ -33,7 +36,7 @@ export default function QuizForm({
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSubmit?.(formData);
+        onSubmit?.(formData, submitAction);
     };
 
     return (<Card className="mx-auto max-w-4xl">
@@ -103,13 +106,34 @@ export default function QuizForm({
                 />
             </div>
 
-            <div className="flex justify-end">
-                <Button
-                    type="submit"
-                    disabled={loading}
-                >
-                    {loading ? mode === "create" ? "Creating..." : "Updating..." : mode === "create" ? "Create Quiz" : "Update Quiz"}
-                </Button>
+            <div className="flex justify-end gap-3 pt-3">
+                {mode === "create" ? (
+                    <>
+                        <button
+                            type="submit"
+                            onClick={() => setSubmitAction("draft")}
+                            disabled={loading}
+                            className="rounded-xl border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 text-xs font-extrabold px-5 py-3.5 transition"
+                        >
+                            {loading && submitAction === "draft" ? "Saving..." : "Save as Draft"}
+                        </button>
+                        <button
+                            type="submit"
+                            onClick={() => setSubmitAction("questions")}
+                            disabled={loading}
+                            className="rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 text-xs font-extrabold px-6 py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95"
+                        >
+                            {loading && submitAction === "questions" ? "Creating..." : "Add Questions"}
+                        </button>
+                    </>
+                ) : (
+                    <Button
+                        type="submit"
+                        disabled={loading}
+                    >
+                        {loading ? "Updating..." : "Update Quiz"}
+                    </Button>
+                )}
             </div>
         </form>
     </Card>);

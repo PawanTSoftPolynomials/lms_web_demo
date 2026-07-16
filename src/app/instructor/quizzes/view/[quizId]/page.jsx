@@ -171,37 +171,50 @@ export default function QuizDetailsPage() {
                 </Card>
             </div>
 
-            {/* Added optional chaining below just in case questions is undefined */}
             {quiz.questions?.map((question, index) => {
-                const options = [
-                    question.optionA,
-                    question.optionB,
-                    question.optionC,
-                    question.optionD,
-                ].filter(Boolean);
-
-                const labels = ["A", "B", "C", "D"];
+                const type = question.type || "MCQ_SINGLE";
 
                 return (
                     <Card
                         key={question.id}
-                        className="border border-slate-800 transition hover:border-orange-500"
+                        className="border border-slate-800 transition hover:border-orange-500 p-6 space-y-6"
                     >
-                        {/* Top */}
+                        {/* Top / Header */}
                         <div className="flex items-start justify-between gap-6">
-                            <div>
-                                <h3 className="text-lg font-bold text-white">
-                                    Question {index + 1}
-                                </h3>
-                                <p className="mt-4 text-lg text-slate-100">
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-3">
+                                    <h3 className="text-lg font-bold text-white">
+                                        Question {index + 1}
+                                    </h3>
+                                    <span
+                                        className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
+                                            type === "MCQ_SINGLE"
+                                                ? "bg-green-500/10 text-green-400 border-green-500/20"
+                                                : type === "MCQ_MULTI"
+                                                ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                                                : type === "ARRANGE_TOKENS"
+                                                ? "bg-orange-500/10 text-orange-400 border-orange-500/20"
+                                                : type === "MATCH_PAIRS"
+                                                ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+                                                : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                        }`}
+                                    >
+                                        {type.replace("_", " ")}
+                                    </span>
+                                </div>
+                                <p className="text-lg text-slate-100 leading-relaxed font-medium">
                                     {question.question || question.title}
                                 </p>
+                                {question.concept && (
+                                    <span className="inline-block text-[9px] text-purple-400 font-extrabold uppercase bg-purple-500/5 px-2 py-0.5 rounded border border-purple-500/10">
+                                        {question.concept}
+                                    </span>
+                                )}
                             </div>
 
-                            <div className="flex items-center gap-4">
-                                <div className="rounded-full bg-orange-500/15 px-4 py-2 text-sm font-semibold text-orange-400">
-                                    ⭐ {question.marks || 1}{" "}
-                                    {question.marks === 1 ? "Mark" : "Marks"}
+                            <div className="flex items-center gap-4 shrink-0">
+                                <div className="rounded-full bg-orange-500/10 border border-orange-500/20 px-4 py-2 text-xs font-bold text-orange-400">
+                                    ⭐ {question.marks || 1} {question.marks === 1 ? "Mark" : "Marks"}
                                 </div>
 
                                 <ActionMenu
@@ -222,68 +235,124 @@ export default function QuizDetailsPage() {
                             </div>
                         </div>
 
-                        {/* Options */}
-                        {options.length > 0 && (
-                            <div className="mt-8 space-y-4">
-                                {options.map((option, i) => {
-                                    const isCorrect = option === question.correctAnswer;
+                        {/* Options / Dynamic Previews */}
+                        <div className="space-y-4">
+                            {/* MCQ_SINGLE / MCQ_MULTI */}
+                            {(type === "MCQ_SINGLE" || type === "MCQ_MULTI") &&
+                                Array.isArray(question.options) && (
+                                    <div className="grid gap-3">
+                                        {question.options.map((option, i) => {
+                                            const isCorrect = type === "MCQ_SINGLE"
+                                                ? option === question.correctAnswer
+                                                : Array.isArray(question.correctAnswer) && question.correctAnswer.includes(option);
 
-                                    return (
+                                            return (
+                                                <div
+                                                    key={i}
+                                                    className={`flex items-center justify-between rounded-xl border p-4 text-sm transition ${
+                                                        isCorrect
+                                                            ? "border-green-500/30 bg-green-500/5 text-slate-200"
+                                                            : "border-slate-800 bg-slate-950/40 text-slate-300"
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <span
+                                                            className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+                                                                isCorrect
+                                                                    ? "bg-green-500 text-slate-950"
+                                                                    : "bg-slate-800 text-slate-400"
+                                                            }`}
+                                                        >
+                                                            {String.fromCharCode(65 + i)}
+                                                        </span>
+                                                        <span>{option}</span>
+                                                    </div>
+
+                                                    {isCorrect && (
+                                                        <span className="text-xs font-bold text-green-400 flex items-center gap-1 bg-green-500/10 px-2 py-1 rounded">
+                                                            ✓ Correct Choice
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                            {/* ARRANGE_TOKENS */}
+                            {type === "ARRANGE_TOKENS" && Array.isArray(question.options) && (
+                                <div className="flex flex-wrap gap-2.5 bg-slate-950/40 p-4 rounded-xl border border-slate-850">
+                                    {question.options.map((token, i) => (
+                                        <span
+                                            key={i}
+                                            className="bg-orange-500/10 text-orange-400 border border-orange-500/20 px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5"
+                                        >
+                                            <span className="text-[10px] bg-orange-500/20 px-1 rounded">{i + 1}</span>
+                                            {token}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* MATCH_PAIRS */}
+                            {type === "MATCH_PAIRS" && question.correctAnswer && (
+                                <div className="grid gap-2.5 bg-slate-950/40 p-4 rounded-xl border border-slate-850">
+                                    {Object.entries(question.correctAnswer).map(([leftItem, rightItem], i) => (
                                         <div
                                             key={i}
-                                            className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900 px-5 py-4"
+                                            className="flex items-center justify-between rounded-lg border border-slate-800/80 bg-slate-950 px-4 py-3 text-xs text-slate-300"
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-slate-500">○</span>
-                                                <span className="text-slate-200">
-                                                    <span className="mr-1 font-semibold">
-                                                        {labels[i]}.
-                                                    </span>
-                                                    {option}
-                                                </span>
-                                            </div>
-
-                                            {isCorrect && (
-                                                <span className="font-medium text-green-400">
-                                                    ✅ Correct
-                                                </span>
-                                            )}
+                                            <span className="font-semibold text-white">{leftItem}</span>
+                                            <span className="text-slate-600 font-bold font-mono">⟷</span>
+                                            <span className="text-emerald-400 font-bold">{rightItem}</span>
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        )}
+                                    ))}
+                                </div>
+                            )}
 
-                        {/* Bottom */}
-                        <div className="mt-8 flex items-center justify-between border-t border-slate-800 pt-5">
-                            <p className="text-sm text-slate-500">
+                            {/* SELF_ASSESSMENT */}
+                            {type === "SELF_ASSESSMENT" && (
+                                <div className="bg-slate-950/40 p-5 rounded-xl border border-slate-800 space-y-2">
+                                    <span className="text-[10px] font-bold text-orange-400 uppercase tracking-widest block">
+                                        Grading Rubric
+                                    </span>
+                                    <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
+                                        {question.correctAnswer}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Bottom Info / Actions Row */}
+                        <div className="flex items-center justify-between border-t border-slate-800/80 pt-4 text-xs">
+                            <p className="text-slate-500">
                                 Created:{" "}
                                 {question.createdAt
                                     ? new Date(question.createdAt).toLocaleDateString(
-                                        "en-GB",
-                                        {
-                                            day: "2-digit",
-                                            month: "short",
-                                            year: "numeric",
-                                        }
-                                    )
+                                          "en-US",
+                                          {
+                                              day: "2-digit",
+                                              month: "short",
+                                              year: "numeric",
+                                          }
+                                      )
                                     : "-"}
                             </p>
 
-                            <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-4">
                                 <button
                                     onClick={() =>
                                         router.push(
                                             `/instructor/courses/${quiz.courseId}/quizzes/${quiz.id}/questions/edit/${question.id}`
                                         )
                                     }
-                                    className="font-medium text-orange-400 transition hover:text-orange-300"
+                                    className="font-bold text-orange-400 transition hover:text-orange-300"
                                 >
                                     Edit
                                 </button>
                                 <button
                                     onClick={() => handleDeleteQuestion(question.id)}
-                                    className="font-medium text-red-400 transition hover:text-red-300"
+                                    className="font-bold text-red-400 transition hover:text-red-300"
                                 >
                                     Delete
                                 </button>
