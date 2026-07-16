@@ -21,15 +21,17 @@ export default function EditQuestionPage() {
 
     const updateQuestionMutation = useUpdateQuestion();
 
-    const handleSubmit = async (questionData) => {
+    const handleSubmit = async (questionData, action) => {
         try {
             await updateQuestionMutation.mutateAsync({
                 questionId, quizId: question.quizId, questionData,
             });
 
-            router.push(`/instructor/questions/view/${questionId}`);
+            router.push(`/instructor/quizzes`);
+            return true;
         } catch (error) {
             console.error(error);
+            return false;
         }
     };
 

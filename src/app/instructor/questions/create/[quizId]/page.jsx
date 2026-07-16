@@ -15,7 +15,8 @@ export default function CreateQuestionPage() {
         useCreateQuestion();
 
     const handleSubmit = async (
-        questionData
+        questionData,
+        action
     ) => {
         try {
             await createQuestionMutation.mutateAsync({
@@ -23,11 +24,15 @@ export default function CreateQuestionPage() {
                 quizId,
             });
 
-            router.push(
-                `/instructor/questions/${quizId}`
-            );
+            if (action === "another") {
+                return true;
+            }
+
+            router.push(`/instructor/quizzes`);
+            return true;
         } catch (error) {
             console.error(error);
+            return false;
         }
     };
 

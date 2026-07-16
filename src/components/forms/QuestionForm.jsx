@@ -1,19 +1,37 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import {
+  Plus,
+  Trash2,
+  HelpCircle,
+  CheckSquare,
+  Eye,
+  Lightbulb,
+  X,
+  PlusCircle,
+  ArrowRight,
+  GripVertical
+} from "lucide-react";
 
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+
+import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
+import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
 
 const INITIAL_FORM = {
   type: "MCQ_SINGLE",
   question: "",
   options: ["", "", "", ""],
   correctAnswer: "",
-  marks: 1,
+  marks: 5,
   concept: "",
+  difficulty: "Medium",
+  explanation: "",
+  shuffleOptions: false
 };
 
 export default function QuestionForm({
@@ -22,9 +40,24 @@ export default function QuestionForm({
                                        loading = false,
                                        onSubmit,
                                      }) {
+  const params = useParams();
+  const router = useRouter();
+  
+  const quizId = params.quizId || initialValues?.quizId;
+  const courseId = params.courseId || initialValues?.quiz?.courseId;
+
+  // Queries for dynamic breadcrumbs & title headers
+  const { data: quiz } = useQuiz(quizId, { enabled: !!quizId });
+  const finalCourseId = courseId || quiz?.courseId;
+  const { data: course } = useInstructorCourse(finalCourseId, { enabled: !!finalCourseId });
+
+  // Form State
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [pairs, setPairs] = useState([{ left: "", right: "" }, { left: "", right: "" }]);
   const [tokens, setTokens] = useState(["", "", ""]);
+  
+  // Submit tracking to clear form in "Save & Add Another"
+  const [submitAction, setSubmitAction] = useState("save");
 
   useEffect(() => {
     if (initialValues) {
@@ -35,8 +68,11 @@ export default function QuestionForm({
         question: initialValues.question ?? "",
         options: initialValues.options ?? ["", "", "", ""],
         correctAnswer: initialValues.correctAnswer ?? "",
-        marks: initialValues.marks ?? 1,
+        marks: initialValues.marks ?? 5,
         concept: initialValues.concept ?? "",
+        difficulty: initialValues.difficulty ?? "Medium",
+        explanation: initialValues.explanation ?? "",
+        shuffleOptions: initialValues.shuffleOptions ?? false
       });
 
       if (type === "MATCH_PAIRS" && initialValues.correctAnswer) {
@@ -52,10 +88,10 @@ export default function QuestionForm({
   }, [initialValues]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "marks" ? Number(value) : value,
+      [name]: type === "checkbox" ? checked : name === "marks" ? Number(value) : value,
     }));
   };
 
@@ -87,13 +123,39 @@ export default function QuestionForm({
     }));
   };
 
-  // MCQ_SINGLE option change
+  // MCQ options change
   const handleOptionChange = (index, value) => {
     const updatedOptions = [...formData.options];
     updatedOptions[index] = value;
     setFormData((prev) => ({
       ...prev,
       options: updatedOptions,
+    }));
+  };
+
+  const addOption = () => {
+    setFormData((prev) => ({
+      ...prev,
+      options: [...prev.options, ""],
+    }));
+  };
+
+  const removeOption = (index) => {
+    if (formData.options.length <= 2) return;
+    const updatedOptions = formData.options.filter((_, i) => i !== index);
+    
+    // Clean correct answer if removed
+    let newCorrect = formData.correctAnswer;
+    if (formData.type === "MCQ_SINGLE" && formData.correctAnswer === formData.options[index]) {
+      newCorrect = "";
+    } else if (formData.type === "MCQ_MULTI" && Array.isArray(formData.correctAnswer)) {
+      newCorrect = formData.correctAnswer.filter((val) => val !== formData.options[index]);
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      options: updatedOptions,
+      correctAnswer: newCorrect
     }));
   };
 
@@ -141,7 +203,7 @@ export default function QuestionForm({
     setPairs(pairs.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const submissionData = { ...formData };
@@ -164,288 +226,556 @@ export default function QuestionForm({
       submissionData.options = [];
     }
 
-    onSubmit?.(submissionData);
+    const success = await onSubmit?.(submissionData, submitAction);
+    
+    if (success && submitAction === "another") {
+      // Clear form on Add Another click
+      setFormData({
+        ...INITIAL_FORM,
+        type: formData.type, // keep type
+        concept: formData.concept // keep concept
+      });
+      setPairs([{ left: "", right: "" }, { left: "", right: "" }]);
+      setTokens(["", "", ""]);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleCancel = () => {
+    router.push(finalCourseId ? `/instructor/courses/${finalCourseId}/quizzes` : "/instructor/quizzes");
   };
 
   return (
-    <Card className="mx-auto max-w-5xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">
-          {mode === "create" ? "Create Question" : "Edit Question"}
-        </h1>
-        <p className="mt-2 text-slate-400">
-          Create structured questions using advanced quiz modes.
-        </p>
+    <div className="space-y-8 pb-24">
+      {/* Header and Title */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-bold text-white tracking-tight">Add New Question</h1>
+            <p className="mt-2 text-slate-400">
+              Quiz: <span className="text-orange-400 font-extrabold">{quiz?.title || "Quiz"}</span>
+            </p>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-3">
+            <button
+              onClick={() => {
+                setSubmitAction("save");
+                document.getElementById("question-form-element")?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+              }}
+              disabled={loading}
+              className="px-5 py-3 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-850 hover:text-white transition font-extrabold text-xs uppercase tracking-wider"
+            >
+              {loading && submitAction === "save" ? "Saving..." : "Save Draft"}
+            </button>
+            <button
+              onClick={() => {
+                setSubmitAction("publish");
+                document.getElementById("question-form-element")?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+              }}
+              disabled={loading}
+              className="px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 transition font-black text-xs uppercase tracking-wider shadow-lg shadow-orange-500/10"
+            >
+              {loading && submitAction === "publish" ? "Publishing..." : "Publish Quiz"}
+            </button>
+          </div>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Type Selection */}
-        <div>
-          <label className="mb-2 block text-sm font-medium text-white">
-            Question Type
-          </label>
-          <select
-            name="type"
-            value={formData.type}
-            onChange={(e) => handleTypeChange(e.target.value)}
-            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-orange-500"
-          >
-            <option value="MCQ_SINGLE">Single Choice (MCQ)</option>
-            <option value="MCQ_MULTI">Multiple Choice (Checkboxes)</option>
-            <option value="ARRANGE_TOKENS">Arrange Tokens (Sequence)</option>
-            <option value="MATCH_PAIRS">Match Pairs (Columns Matching)</option>
-            <option value="SELF_ASSESSMENT">Self Assessment (Text Area)</option>
-          </select>
-        </div>
-
-        {/* Question Text */}
-        <Input
-          label="Question / Instruction"
-          name="question"
-          value={formData.question}
-          onChange={handleChange}
-          placeholder={
-            formData.type === "MATCH_PAIRS"
-              ? "Match the terms to their descriptions."
-              : "What is the output of the code snippet?"
-          }
-          required
-        />
-
-        {/* Concept Tag */}
-        <Input
-          label="Concept / Topic Tag"
-          name="concept"
-          value={formData.concept}
-          onChange={handleChange}
-          placeholder="e.g. Java Basics, Biology, Math"
-        />
-
-        {/* MCQ_SINGLE Options View */}
-        {formData.type === "MCQ_SINGLE" && (
-          <div className="space-y-5">
-            <h2 className="text-lg font-semibold">Answer Options</h2>
-            {formData.options.map((option, index) => (
-              <Input
-                key={index}
-                label={`Option ${index + 1}`}
-                value={option}
-                onChange={(e) => handleOptionChange(index, e.target.value)}
-                placeholder={`Enter option ${index + 1}`}
-                required
-              />
-            ))}
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-white">
-                Correct Answer Option
-              </label>
-              <select
-                name="correctAnswer"
-                value={formData.correctAnswer}
-                onChange={handleChange}
-                required
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-orange-500"
-              >
-                <option value="">Select Correct Option</option>
-                {formData.options.map((option, index) => (
-                  <option key={index} value={option} disabled={!option}>
-                    Option {index + 1} {option ? ` - ${option}` : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
-
-        {/* MCQ_MULTI Options View */}
-        {formData.type === "MCQ_MULTI" && (
-          <div className="space-y-5">
-            <h2 className="text-lg font-semibold">Answer Options</h2>
-            {formData.options.map((option, index) => (
-              <Input
-                key={index}
-                label={`Option ${index + 1}`}
-                value={option}
-                onChange={(e) => handleOptionChange(index, e.target.value)}
-                placeholder={`Enter option ${index + 1}`}
-                required
-              />
-            ))}
-
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-white">
-                Select Correct Options (Check all that apply)
-              </label>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {formData.options.map((option, index) => {
-                  const isChecked = Array.isArray(formData.correctAnswer) && formData.correctAnswer.includes(option);
-                  return (
-                    <label
-                      key={index}
-                      className={`flex items-center gap-3 rounded-xl border p-4 cursor-pointer transition ${
-                        isChecked
-                          ? "border-orange-500 bg-orange-500/10"
-                          : "border-slate-800 bg-slate-900/50 hover:border-slate-700"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        disabled={!option}
-                        onChange={() => handleMultiCorrectToggle(option)}
-                        className="rounded border-slate-700 bg-slate-900 text-orange-500 focus:ring-orange-500"
-                      />
-                      <span className="text-sm text-slate-200">
-                        Option {index + 1} {option ? `: ${option}` : ""}
-                      </span>
-                    </label>
-                  );
-                })}
+      <form id="question-form-element" onSubmit={handleSubmit} className="space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* ================= LEFT COLUMN: DETAILS & OPTIONS ================= */}
+          <div className="lg:col-span-7 space-y-8">
+            {/* Question Details Card */}
+            <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400 shrink-0">
+                  <HelpCircle size={22} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white tracking-tight">Question Details</h3>
+                  <p className="text-xs text-slate-400">Define the question information</p>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* ARRANGE_TOKENS Options View */}
-        {formData.type === "ARRANGE_TOKENS" && (
-          <div className="space-y-5">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Arrange Tokens (In Correct Order)</h2>
-              <Button type="button" onClick={addToken} className="px-3 py-1.5 text-xs flex items-center gap-1">
-                <Plus size={14} /> Add Token
-              </Button>
-            </div>
+              <div className="space-y-5">
+                {/* Question Title */}
+                <div className="space-y-2">
+                  <label className="text-xs text-slate-500 font-bold uppercase tracking-wider flex justify-between">
+                    <span>Question Title *</span>
+                    <span className="font-mono">{formData.question.length}/500</span>
+                  </label>
+                  <textarea
+                    name="question"
+                    value={formData.question}
+                    onChange={handleChange}
+                    maxLength={500}
+                    placeholder="Enter your question here..."
+                    required
+                    rows={4}
+                    className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3 text-sm resize-none placeholder-slate-600"
+                  />
+                </div>
 
-            <div className="space-y-3">
-              {tokens.map((token, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <span className="text-slate-500 text-sm font-bold w-6">{index + 1}.</span>
-                  <div className="flex-1">
-                    <Input
-                      value={token}
-                      onChange={(e) => handleTokenChange(index, e.target.value)}
-                      placeholder="Enter token text"
-                      required
+                {/* 2x2 fields Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* Type */}
+                  <div className="space-y-2">
+                    <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">Question Type *</label>
+                    <select
+                      name="type"
+                      value={formData.type}
+                      onChange={(e) => handleTypeChange(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3.5 text-sm cursor-pointer"
+                    >
+                      <option value="MCQ_SINGLE">Single Choice</option>
+                      <option value="MCQ_MULTI">Multiple Choice</option>
+                      <option value="ARRANGE_TOKENS">Arrange Tokens</option>
+                      <option value="MATCH_PAIRS">Match Pairs</option>
+                      <option value="SELF_ASSESSMENT">Self Assessment</option>
+                    </select>
+                  </div>
+
+                  {/* Marks */}
+                  <div className="space-y-2">
+                    <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">Marks *</label>
+                    <select
+                      name="marks"
+                      value={formData.marks}
+                      onChange={handleChange}
+                      className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3.5 text-sm cursor-pointer"
+                    >
+                      {[1, 2, 3, 4, 5, 10, 15, 20].map((val) => (
+                        <option key={val} value={val}>{val}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Difficulty */}
+                  <div className="space-y-2">
+                    <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">Difficulty *</label>
+                    <select
+                      name="difficulty"
+                      value={formData.difficulty}
+                      onChange={handleChange}
+                      className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3.5 text-sm cursor-pointer"
+                    >
+                      <option value="Easy">Easy</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Hard">Hard</option>
+                    </select>
+                  </div>
+
+                  {/* Category / Concept */}
+                  <div className="space-y-2">
+                    <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">Category</label>
+                    <input
+                      type="text"
+                      name="concept"
+                      value={formData.concept}
+                      onChange={handleChange}
+                      placeholder="Select Category / Concept tag"
+                      className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3.5 text-sm placeholder-slate-600"
                     />
                   </div>
-                  {tokens.length > 2 && (
-                    <button
-                      type="button"
-                      onClick={() => removeToken(index)}
-                      className="text-slate-500 hover:text-red-400 p-2 transition"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                </div>
+              </div>
+            </Card>
+
+            {/* Answer Options Card */}
+            <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400 shrink-0">
+                    <CheckSquare size={22} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white tracking-tight">Answer Options</h3>
+                    <p className="text-xs text-slate-400">Add options for this question</p>
+                  </div>
+                </div>
+
+                {/* Shuffle options toggle */}
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-slate-500 font-bold">Shuffle Options</span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="shuffleOptions"
+                      checked={formData.shuffleOptions}
+                      onChange={handleChange}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500"></div>
+                  </label>
+                </div>
+              </div>
+
+              {/* MCQ_SINGLE Options */}
+              {formData.type === "MCQ_SINGLE" && (
+                <div className="space-y-4">
+                  {formData.options.map((option, index) => (
+                    <div key={index} className="flex items-center gap-3 group">
+                      <GripVertical className="text-slate-700 group-hover:text-slate-400 transition cursor-grab" size={16} />
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-800 bg-slate-900 text-xs font-bold text-slate-300">
+                        {String.fromCharCode(65 + index)}
+                      </span>
+                      <input
+                        type="text"
+                        value={option}
+                        onChange={(e) => handleOptionChange(index, e.target.value)}
+                        placeholder={`Enter option ${String.fromCharCode(65 + index).toLowerCase()}`}
+                        className="flex-1 bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-2.5 text-sm"
+                        required
+                      />
+                      <label className="flex items-center gap-2 cursor-pointer shrink-0">
+                        <input
+                          type="radio"
+                          name="correctAnswer"
+                          checked={formData.correctAnswer === option && option !== ""}
+                          onChange={() => setFormData((prev) => ({ ...prev, correctAnswer: option }))}
+                          disabled={!option}
+                          className="h-4 w-4 border-slate-800 bg-slate-900 text-orange-500 focus:ring-orange-500"
+                        />
+                        <span className="text-xs font-bold text-slate-400">Correct</span>
+                      </label>
+                      {formData.options.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => removeOption(index)}
+                          className="text-slate-600 hover:text-red-400 p-2 transition"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addOption}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-slate-800 hover:border-orange-500/50 bg-slate-900/30 text-xs font-bold text-orange-400 hover:text-orange-300 transition"
+                  >
+                    <Plus size={14} />
+                    <span>Add Option</span>
+                  </button>
+                </div>
+              )}
+
+              {/* MCQ_MULTI Options */}
+              {formData.type === "MCQ_MULTI" && (
+                <div className="space-y-4">
+                  {formData.options.map((option, index) => (
+                    <div key={index} className="flex items-center gap-3 group">
+                      <GripVertical className="text-slate-700 group-hover:text-slate-400 transition cursor-grab" size={16} />
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-800 bg-slate-900 text-xs font-bold text-slate-300">
+                        {String.fromCharCode(65 + index)}
+                      </span>
+                      <input
+                        type="text"
+                        value={option}
+                        onChange={(e) => handleOptionChange(index, e.target.value)}
+                        placeholder={`Enter option ${String.fromCharCode(65 + index).toLowerCase()}`}
+                        className="flex-1 bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-2.5 text-sm"
+                        required
+                      />
+                      <label className="flex items-center gap-2 cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={Array.isArray(formData.correctAnswer) && formData.correctAnswer.includes(option) && option !== ""}
+                          onChange={() => handleMultiCorrectToggle(option)}
+                          disabled={!option}
+                          className="h-4 w-4 border-slate-800 bg-slate-900 rounded text-orange-500 focus:ring-orange-500"
+                        />
+                        <span className="text-xs font-bold text-slate-400">Correct</span>
+                      </label>
+                      {formData.options.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => removeOption(index)}
+                          className="text-slate-600 hover:text-red-400 p-2 transition"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addOption}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-slate-800 hover:border-orange-500/50 bg-slate-900/30 text-xs font-bold text-orange-400 hover:text-orange-300 transition"
+                  >
+                    <Plus size={14} />
+                    <span>Add Option</span>
+                  </button>
+                </div>
+              )}
+
+              {/* ARRANGE_TOKENS Options */}
+              {formData.type === "ARRANGE_TOKENS" && (
+                <div className="space-y-4">
+                  {tokens.map((token, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs font-bold w-6">{index + 1}.</span>
+                      <input
+                        type="text"
+                        value={token}
+                        onChange={(e) => handleTokenChange(index, e.target.value)}
+                        placeholder="Enter token text (Correct Order)"
+                        className="flex-1 bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-2.5 text-sm"
+                        required
+                      />
+                      {tokens.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => removeToken(index)}
+                          className="text-slate-600 hover:text-red-400 p-2 transition"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addToken}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-slate-800 hover:border-orange-500/50 bg-slate-900/30 text-xs font-bold text-orange-400 hover:text-orange-300 transition"
+                  >
+                    <Plus size={14} />
+                    <span>Add Token</span>
+                  </button>
+                </div>
+              )}
+
+              {/* MATCH_PAIRS Options */}
+              {formData.type === "MATCH_PAIRS" && (
+                <div className="space-y-4">
+                  {pairs.map((pair, index) => (
+                    <div key={index} className="flex flex-col sm:flex-row items-center gap-3 bg-slate-950/40 p-4 rounded-xl border border-slate-850">
+                      <span className="text-slate-500 text-xs font-bold w-6 shrink-0">{index + 1}.</span>
+                      <input
+                        type="text"
+                        value={pair.left}
+                        onChange={(e) => handlePairChange(index, "left", e.target.value)}
+                        placeholder="Left Item"
+                        className="w-full bg-slate-900 border border-slate-850 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-2.5 text-xs"
+                        required
+                      />
+                      <span className="text-slate-600 font-bold font-mono shrink-0">⟷</span>
+                      <input
+                        type="text"
+                        value={pair.right}
+                        onChange={(e) => handlePairChange(index, "right", e.target.value)}
+                        placeholder="Right Item"
+                        className="w-full bg-slate-900 border border-slate-850 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-2.5 text-xs"
+                        required
+                      />
+                      {pairs.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => removePair(index)}
+                          className="text-slate-600 hover:text-red-400 p-2 transition shrink-0"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addPair}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-slate-800 hover:border-orange-500/50 bg-slate-900/30 text-xs font-bold text-orange-400 hover:text-orange-300 transition"
+                  >
+                    <Plus size={14} />
+                    <span>Add Pair</span>
+                  </button>
+                </div>
+              )}
+
+              {/* SELF_ASSESSMENT Options */}
+              {formData.type === "SELF_ASSESSMENT" && (
+                <div className="space-y-3 bg-slate-950/30 p-4 rounded-xl border border-slate-850">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Grading Rubric / Criteria
+                  </label>
+                  <textarea
+                    name="correctAnswer"
+                    value={formData.correctAnswer}
+                    onChange={handleChange}
+                    placeholder="Describe how the question response will be self-graded or matching keyword expectations..."
+                    required
+                    rows={4}
+                    className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3 text-sm resize-none placeholder-slate-600"
+                  />
+                </div>
+              )}
+            </Card>
+          </div>
+
+          {/* ================= RIGHT COLUMN: PREVIEW & EXPLANATION ================= */}
+          <div className="lg:col-span-5 space-y-8 lg:sticky lg:top-6">
+            {/* Live Student Preview Card */}
+            <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl space-y-5">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400 shrink-0">
+                  <Eye size={22} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white tracking-tight">Live Preview</h3>
+                  <p className="text-xs text-slate-400">This is how the question will appear to students</p>
+                </div>
+              </div>
+
+              {/* Inner White Student Preview Card */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 text-slate-900 space-y-6">
+                <div>
+                  <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Question</h4>
+                  <p className="text-sm font-bold text-slate-950 mt-2 leading-relaxed whitespace-pre-wrap">
+                    {formData.question || "What is the output of the following Java code?"}
+                  </p>
+                </div>
+
+                {/* Options Previews */}
+                <div className="space-y-3">
+                  {(formData.type === "MCQ_SINGLE" || formData.type === "MCQ_MULTI") &&
+                    formData.options.map((opt, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-slate-300 text-[10px] font-extrabold text-slate-500">
+                          {String.fromCharCode(65 + i)}
+                        </span>
+                        <span className="text-xs text-slate-600 truncate">{opt || `Option ${String.fromCharCode(65 + i)}`}</span>
+                      </div>
+                    ))}
+
+                  {formData.type === "ARRANGE_TOKENS" && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {tokens.map((tok, i) => (
+                        <span
+                          key={i}
+                          className="bg-slate-100 border border-slate-200 text-slate-700 text-xs px-2.5 py-1.5 rounded-lg font-bold"
+                        >
+                          {tok || `Token ${i + 1}`}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {formData.type === "MATCH_PAIRS" && (
+                    <div className="grid gap-2 pt-1">
+                      {pairs.map((pr, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between text-xs border border-slate-200 bg-slate-50 px-3 py-2 rounded-lg text-slate-700"
+                        >
+                          <span className="font-semibold">{pr.left || "Left Term"}</span>
+                          <span className="text-slate-400 font-bold">⟷</span>
+                          <span className="font-semibold text-blue-600">{pr.right || "Right Term"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {formData.type === "SELF_ASSESSMENT" && (
+                    <textarea
+                      disabled
+                      placeholder="Student response textarea..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs resize-none placeholder-slate-400 h-24"
+                    />
                   )}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* MATCH_PAIRS Options View */}
-        {formData.type === "MATCH_PAIRS" && (
-          <div className="space-y-5">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Match Pairs (Left to Right pairings)</h2>
-              <Button type="button" onClick={addPair} className="px-3 py-1.5 text-xs flex items-center gap-1">
-                <Plus size={14} /> Add Match Pair
-              </Button>
-            </div>
-
-            <div className="space-y-4">
-              {pairs.map((pair, index) => (
-                <div key={index} className="flex flex-col sm:flex-row items-center gap-3 bg-slate-900/30 p-4 rounded-xl border border-slate-800">
-                  <span className="text-slate-500 text-sm font-bold w-6">{index + 1}.</span>
-                  <div className="flex-1 w-full">
-                    <Input
-                      value={pair.left}
-                      onChange={(e) => handlePairChange(index, "left", e.target.value)}
-                      placeholder="Left Item (e.g. Cat)"
-                      required
-                    />
-                  </div>
-                  <span className="text-slate-500 text-xs font-bold font-mono">⟷</span>
-                  <div className="flex-1 w-full">
-                    <Input
-                      value={pair.right}
-                      onChange={(e) => handlePairChange(index, "right", e.target.value)}
-                      placeholder="Right Item (e.g. Mammal)"
-                      required
-                    />
-                  </div>
-                  {pairs.length > 2 && (
-                    <button
-                      type="button"
-                      onClick={() => removePair(index)}
-                      className="text-slate-500 hover:text-red-400 p-2 transition"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  )}
+                <div className="border-t border-slate-100 pt-3 text-[10px] text-slate-500 flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
+                  <span>
+                    {formData.type === "MCQ_SINGLE"
+                      ? "Students will select one correct answer."
+                      : formData.type === "MCQ_MULTI"
+                      ? "Students will select multiple correct answers."
+                      : formData.type === "ARRANGE_TOKENS"
+                      ? "Students will arrange items in sequence."
+                      : formData.type === "MATCH_PAIRS"
+                      ? "Students will match columns."
+                      : "Students will write a text assessment."}
+                  </span>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              </div>
+            </Card>
 
-        {/* SELF_ASSESSMENT Options View */}
-        {formData.type === "SELF_ASSESSMENT" && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Self Assessment Rubric</h2>
-            <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5 space-y-3">
-              <label className="block text-sm font-medium text-slate-300">
-                Ideal Answer / Evaluation Criteria
-              </label>
-              <textarea
-                name="correctAnswer"
-                value={formData.correctAnswer}
-                onChange={handleChange}
-                placeholder="Describe key concepts, keywords, or points the student should include in their response to pass."
-                required
-                className="w-full h-36 rounded-xl border border-slate-700 bg-slate-950 p-4 text-white outline-none transition focus:border-orange-500 text-sm"
-              />
-            </div>
-          </div>
-        )}
+            {/* Explanation / Hint Card */}
+            <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl space-y-5">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400 shrink-0">
+                  <Lightbulb size={22} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white tracking-tight">Explanation / Hint</h3>
+                  <p className="text-xs text-slate-400">Provide explanation for the correct answer (optional)</p>
+                </div>
+              </div>
 
-        {/* Marks Input */}
-        <div className="grid gap-6 md:grid-cols-2">
-          <Input
-            label="Question Marks"
-            type="number"
-            name="marks"
-            min={1}
-            value={formData.marks}
-            onChange={handleChange}
-            required
-          />
+              <div className="space-y-2">
+                <label className="text-xs text-slate-500 font-bold uppercase tracking-wider flex justify-between">
+                  <span>Hint Content</span>
+                  <span className="font-mono">{formData.explanation.length}/500</span>
+                </label>
+                <textarea
+                  name="explanation"
+                  value={formData.explanation}
+                  onChange={handleChange}
+                  maxLength={500}
+                  placeholder="Enter explanation or hint here..."
+                  rows={4}
+                  className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3 text-sm resize-none placeholder-slate-600"
+                />
+              </div>
+            </Card>
+          </div>
         </div>
 
-        {/* Guidelines Footer */}
-        <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-5">
-          <h3 className="font-semibold text-orange-400">Guidelines</h3>
-          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-300">
-            <li>Ensure the instruction fits the selected question format.</li>
-            <li>Double-check matches and sequencing correct order before submitting.</li>
-            <li>Marks must be a positive integer value.</li>
-          </ul>
-        </div>
+        {/* ================= STICKY BOTTOM ACTION BAR ================= */}
+        <div className="sticky bottom-0 left-0 right-0 z-30 bg-slate-950/90 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 shadow-2xl flex flex-wrap gap-4 items-center justify-between">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="flex items-center gap-1.5 px-5 py-3 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white transition font-extrabold text-xs uppercase tracking-wider"
+          >
+            <X size={14} />
+            <span>Cancel</span>
+          </button>
 
-        {/* Submit Actions */}
-        <div className="flex justify-end">
-          <Button type="submit" disabled={loading}>
-            {loading
-              ? mode === "create"
-                ? "Creating..."
-                : "Updating..."
-              : mode === "create"
-              ? "Create Question"
-              : "Update Question"}
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="submit"
+              onClick={() => setSubmitAction("save")}
+              disabled={loading}
+              className="px-5 py-3 rounded-xl border border-slate-850 bg-slate-900/40 text-slate-300 hover:bg-slate-850 hover:text-white transition font-extrabold text-xs uppercase tracking-wider"
+            >
+              {loading && submitAction === "save" ? "Saving..." : "Save Draft"}
+            </button>
+            
+            {mode === "create" && (
+              <button
+                type="submit"
+                onClick={() => setSubmitAction("another")}
+                disabled={loading}
+                className="flex items-center gap-1.5 px-5 py-3 rounded-xl border border-slate-850 bg-slate-900/40 text-orange-400 hover:text-orange-300 transition font-extrabold text-xs uppercase tracking-wider"
+              >
+                <PlusCircle size={14} />
+                <span>Save & Add Another</span>
+              </button>
+            )}
+
+            <button
+              type="submit"
+              onClick={() => setSubmitAction("publish")}
+              disabled={loading}
+              className="flex items-center gap-1.5 px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 transition font-black text-xs uppercase tracking-wider shadow-lg shadow-orange-500/10"
+            >
+              <ArrowRight size={14} />
+              <span>{loading && submitAction === "publish" ? "Publishing..." : "Publish Quiz"}</span>
+            </button>
+          </div>
         </div>
       </form>
-    </Card>
+    </div>
   );
 }

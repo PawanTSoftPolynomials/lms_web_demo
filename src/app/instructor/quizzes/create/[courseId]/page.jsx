@@ -29,7 +29,7 @@ export default function CreateQuizPage() {
             const newQuiz = await createQuizMutation.mutateAsync(payload);
 
             if (action === "questions") {
-                router.push(`/instructor/questions/${newQuiz.id}`);
+                router.push(`/instructor/courses/${courseId}/quizzes/${newQuiz.id}/questions/create`);
             } else {
                 router.push(`/instructor/quizzes/${courseId}`);
             }

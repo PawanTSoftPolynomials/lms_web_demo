@@ -192,8 +192,14 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
 
     // Add Questions leaf node
     if (hasQuestions) {
-      const questionsHref = quizId ? `/${role}/questions/${quizId}` : null;
-      breadcrumbs.push({ label: "QUESTIONS", href: questionsHref });
+      if (segments.includes("create")) {
+        breadcrumbs.push({ label: "ADD QUESTION", href: null });
+      } else if (segments.includes("edit")) {
+        breadcrumbs.push({ label: "EDIT QUESTION", href: null });
+      } else {
+        const questionsHref = quizId ? `/${role}/questions/${quizId}` : null;
+        breadcrumbs.push({ label: "QUESTIONS", href: questionsHref });
+      }
     }
 
     // Handle Standalone sections
@@ -203,10 +209,10 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
     }
 
     // Handle Create/Edit static operations
-    if (segments.includes("create")) {
+    if (segments.includes("create") && !hasQuestions) {
       breadcrumbs.push({ label: "CREATE", href: null });
     }
-    if (segments.includes("edit")) {
+    if (segments.includes("edit") && !hasQuestions) {
       breadcrumbs.push({ label: "EDIT", href: null });
     }
 
