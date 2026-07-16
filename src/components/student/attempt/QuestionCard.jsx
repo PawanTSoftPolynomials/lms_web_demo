@@ -1,6 +1,6 @@
 "use client";
 
-
+import { useMemo } from "react";
 import OptionList from "./OptionList";
 import MCQMultiOptionList from "./MCQMultiOptionList";
 import ArrangeTokensList from "./ArrangeTokensList";
@@ -17,6 +17,54 @@ export default function QuestionCard({
   if (!question) return null;
 
   const type = question.type || "MCQ_SINGLE";
+
+  // Deterministic shuffle helper for single option, multioption, and arrange tokens
+  const shuffledOptions = useMemo(() => {
+    let opts = question.options;
+    if (typeof opts === "string") {
+      try {
+        opts = JSON.parse(opts);
+      } catch (e) {
+        opts = [];
+      }
+    }
+    if (!Array.isArray(opts)) return [];
+
+    const getHash = (str) => {
+      let hash = 0;
+      const combined = str + (question.id || "");
+      for (let i = 0; i < combined.length; i++) {
+        hash = (hash << 5) - hash + combined.charCodeAt(i);
+        hash |= 0;
+      }
+      return hash;
+    };
+
+    return [...opts].sort((a, b) => getHash(a) - getHash(b));
+  }, [question.id, question.options]);
+
+  // Deterministic shuffle for Match Pairs column B (Right side options)
+  const shuffledMatchOptions = useMemo(() => {
+    if (type !== "MATCH_PAIRS" || !question.options) return {};
+
+    const colA = question.options.columnA || question.options.left || [];
+    const colB = question.options.columnB || question.options.right || [];
+
+    const getHash = (str) => {
+      let hash = 0;
+      const combined = str + (question.id || "");
+      for (let i = 0; i < combined.length; i++) {
+        hash = (hash << 5) - hash + combined.charCodeAt(i);
+        hash |= 0;
+      }
+      return hash;
+    };
+
+    return {
+      columnA: colA,
+      columnB: [...colB].sort((a, b) => getHash(a) - getHash(b)),
+    };
+  }, [question.id, question.options, type]);
 
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
@@ -65,28 +113,28 @@ export default function QuestionCard({
       <div className="mt-6">
         {type === "MCQ_SINGLE" && (
           <OptionList
-            options={question.options}
+            options={shuffledOptions}
             selectedAnswer={selectedAnswer}
             onSelect={onSelectAnswer}
           />
         )}
         {type === "MCQ_MULTI" && (
           <MCQMultiOptionList
-            options={question.options}
+            options={shuffledOptions}
             selectedAnswers={selectedAnswer || []}
             onSelect={onSelectAnswer}
           />
         )}
         {type === "ARRANGE_TOKENS" && (
           <ArrangeTokensList
-            options={question.options}
+            options={shuffledOptions}
             selectedOrder={selectedAnswer || []}
             onOrderChange={onSelectAnswer}
           />
         )}
         {type === "MATCH_PAIRS" && (
           <MatchPairsGrid
-            options={question.options}
+            options={shuffledMatchOptions}
             selectedPairs={selectedAnswer || {}}
             onPairsChange={onSelectAnswer}
           />
