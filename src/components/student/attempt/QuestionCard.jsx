@@ -16,7 +16,7 @@ export default function QuestionCard({
 }) {
   const type = question?.type || "MCQ_SINGLE";
 
-  // Deterministic shuffle helper for single option, multioption, and arrange tokens
+  // Deterministic-ish stable random shuffle helper for single option, multioption, and arrange tokens
   const shuffledOptions = useMemo(() => {
     if (!question?.options) return [];
     let opts = question.options;
@@ -29,41 +29,30 @@ export default function QuestionCard({
     }
     if (!Array.isArray(opts)) return [];
 
-    const getHash = (str) => {
-      let hash = 0;
-      const combined = str + (question.id || "");
-      for (let i = 0; i < combined.length; i++) {
-        hash = (hash << 5) - hash + combined.charCodeAt(i);
-        hash |= 0;
-      }
-      return hash;
-    };
+    return [...opts].sort(() => Math.random() - 0.5);
+  }, [question]);
 
-    return [...opts].sort((a, b) => getHash(a) - getHash(b));
-  }, [question?.id, question?.options]);
-
-  // Deterministic shuffle for Match Pairs column B (Right side options)
+  // Deterministic-ish stable random shuffle for Match Pairs column B (Right side options)
   const shuffledMatchOptions = useMemo(() => {
     if (type !== "MATCH_PAIRS" || !question?.options) return {};
 
-    const colA = question.options.columnA || question.options.left || [];
-    const colB = question.options.columnB || question.options.right || [];
-
-    const getHash = (str) => {
-      let hash = 0;
-      const combined = str + (question.id || "");
-      for (let i = 0; i < combined.length; i++) {
-        hash = (hash << 5) - hash + combined.charCodeAt(i);
-        hash |= 0;
+    let opts = question.options;
+    if (typeof opts === "string") {
+      try {
+        opts = JSON.parse(opts);
+      } catch {
+        opts = {};
       }
-      return hash;
-    };
+    }
+
+    const colA = opts?.columnA || opts?.left || [];
+    const colB = opts?.columnB || opts?.right || [];
 
     return {
       columnA: colA,
-      columnB: [...colB].sort((a, b) => getHash(a) - getHash(b)),
+      columnB: [...colB].sort(() => Math.random() - 0.5),
     };
-  }, [question?.id, question?.options, type]);
+  }, [question, type]);
 
   if (!question) return null;
 
