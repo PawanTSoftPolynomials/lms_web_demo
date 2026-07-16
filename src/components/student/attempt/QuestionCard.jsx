@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, ArrowRight } from "lucide-react";
+
 import OptionList from "./OptionList";
 import MCQMultiOptionList from "./MCQMultiOptionList";
 import ArrangeTokensList from "./ArrangeTokensList";

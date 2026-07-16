@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { GripVertical, RefreshCw, ChevronRight } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 
 export default function ArrangeTokensList({
   options = [],
@@ -10,27 +10,7 @@ export default function ArrangeTokensList({
 }) {
   const arrangedSequence = Array.isArray(selectedOrder) ? selectedOrder : [];
 
-  // Filter pool to show only options that are not yet selected
-  // We track matching counts to support duplicates if any exist
-  const getPoolItems = () => {
-    const counts = {};
-    arrangedSequence.forEach((val) => {
-      counts[val] = (counts[val] || 0) + 1;
-    });
 
-    const pool = [];
-    options.forEach((opt) => {
-      const needed = counts[opt] || 0;
-      if (needed > 0) {
-        counts[opt]--;
-      } else {
-        pool.push(opt);
-      }
-    });
-    return pool;
-  };
-
-  const poolItems = getPoolItems();
 
   const handlePoolClick = (token) => {
     onOrderChange([...arrangedSequence, token]);

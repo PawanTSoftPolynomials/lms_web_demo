@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Link2, Trash2, HelpCircle, CheckCircle } from "lucide-react";
+import { motion } from "framer-motion";
+import { Trash2, HelpCircle } from "lucide-react";
 
 export default function MatchPairsGrid({
   options = {},

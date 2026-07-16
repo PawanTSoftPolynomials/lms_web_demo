@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Square } from "lucide-react";
+import { Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function MCQMultiOptionList({
