@@ -36,9 +36,8 @@ import Link from "next/link";
 import Loader from "@/components/common/Loader";
 import useDashboard from "@/hooks/queries/student/useDashboard";
 import useAssignments from "@/hooks/queries/student/useAssignments";
+import useUpcomingTasks from "@/hooks/queries/student/useUpcomingTasks";
 import { useAuth } from "@/context/AuthContext";
-import { useQuery } from "@tanstack/react-query";
-import { getUpcomingTasks } from "@/services/upcomingTasks.service";
 
 // Helper for formatting learning times (e.g. "28h 45m" or "45 mins")
 const formatTime = (minutes) => {
@@ -89,15 +88,68 @@ function DashboardStatCard({ title, value, subValue, trend, icon, sparkData, col
   );
 }
 
+// Relative time helper for timeline items
+const getRelativeTimeLabel = (eventDateStr, eventTimeStr) => {
+  if (!eventDateStr) return "";
+  
+  let dateObj;
+  try {
+    if (eventTimeStr) {
+      const [time, modifier] = eventTimeStr.split(" ");
+      let [hours, minutes] = time.split(":");
+      hours = parseInt(hours, 10);
+      if (modifier === "PM" && hours < 12) hours += 12;
+      if (modifier === "AM" && hours === 12) hours = 0;
+      
+      const [year, month, day] = eventDateStr.split("-").map(Number);
+      dateObj = new Date(year, month - 1, day, hours, Number(minutes));
+    } else {
+      const [year, month, day] = eventDateStr.split("-").map(Number);
+      dateObj = new Date(year, month - 1, day);
+    }
+  } catch (e) {
+    return eventDateStr;
+  }
+
+  const now = new Date();
+  const diffMs = dateObj - now;
+  const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  const isToday = now.getFullYear() === dateObj.getFullYear() &&
+                  now.getMonth() === dateObj.getMonth() &&
+                  now.getDate() === dateObj.getDate();
+
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const isTomorrow = tomorrow.getFullYear() === dateObj.getFullYear() &&
+                     tomorrow.getMonth() === dateObj.getMonth() &&
+                     tomorrow.getDate() === dateObj.getDate();
+
+  if (isToday) {
+    if (diffHours <= 0) return "Due now";
+    if (diffHours === 1) return "Due in 1 hour";
+    if (diffHours < 24) return `Due in ${diffHours} hours`;
+    return "Today";
+  }
+
+  if (isTomorrow) return "Tomorrow";
+  if (diffDays > 0) return `Due in ${diffDays} day${diffDays !== 1 ? "s" : ""}`;
+  
+  return eventDateStr;
+};
+
+const priorityStyles = {
+  HIGH: "bg-red-500/15 text-red-400 border-red-500/30",
+  MEDIUM: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+  LOW: "bg-slate-500/15 text-slate-400 border-slate-500/30"
+};
+
 export default function StudentDashboardPage() {
   const { user } = useAuth();
   const { data, isLoading, isError } = useDashboard();
   const { data: assignments = [] } = useAssignments();
-  const { data: upcomingTasks = [] } = useQuery({
-    queryKey: ["upcoming-tasks"],
-    queryFn: getUpcomingTasks,
-    staleTime: 1000 * 60 * 5,
-  });
+  const { data: upcomingTasksList = [], isLoading: isLoadingTasks, isError: isErrorTasks } = useUpcomingTasks();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -446,22 +498,55 @@ export default function StudentDashboardPage() {
             </div>
 
             <div className="space-y-3.5">
-              {upcomingTasks.map((task) => (
-                <div key={task.id} className="flex gap-3 items-start p-2 rounded-xl hover:bg-slate-800/30 transition">
-                  <div className="p-2.5 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20">
-                    {task.type === "quiz" && <GraduationCap size={18} />}
-                    {task.type === "assignment" && <ClipboardList size={18} />}
-                    {task.type === "class" && <Activity size={18} />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-xs font-black text-white truncate">{task.title}</h4>
-                    <p className="text-[10px] text-slate-400 truncate">{task.subtitle}</p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <div className="text-[10px] text-orange-400 font-bold">{task.dueDateLabel}</div>
-                  </div>
+              {isLoadingTasks ? (
+                <div className="space-y-3.5 animate-pulse">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex gap-3 items-center p-2">
+                      <div className="w-10 h-10 rounded-lg bg-slate-800" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 bg-slate-800 rounded w-3/4" />
+                        <div className="h-2 bg-slate-800 rounded w-1/2" />
+                      </div>
+                      <div className="w-12 h-4 bg-slate-800 rounded" />
+                    </div>
+                  ))}
                 </div>
-              ))}
+              ) : isErrorTasks ? (
+                <div className="p-4 text-center border border-red-500/20 bg-red-500/5 rounded-xl text-xs text-red-400">
+                  Failed to load upcoming tasks. Please refresh.
+                </div>
+              ) : upcomingTasksList.length === 0 ? (
+                <div className="p-6 text-center border border-dashed border-slate-800/60 rounded-xl text-xs text-slate-500">
+                  🎉 All caught up! No upcoming tasks.
+                </div>
+              ) : (
+                upcomingTasksList.map((task) => (
+                  <div key={task.id} className="flex gap-3 items-center p-2 rounded-xl hover:bg-slate-800/30 transition">
+                    <div className="p-2.5 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                      {(task.type || "").toUpperCase() === "QUIZ" && <GraduationCap size={18} />}
+                      {(task.type || "").toUpperCase() === "ASSIGNMENT" && <ClipboardList size={18} />}
+                      {(task.type || "").toUpperCase() === "LIVE_CLASS" && <Activity size={18} />}
+                      {(task.type || "").toUpperCase() === "EXAM" && <Trophy size={18} />}
+                      {(task.type || "").toUpperCase() === "BATCH" && <BookOpen size={18} />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-xs font-black text-white truncate">{task.title}</h4>
+                      <p className="text-[10px] text-slate-400 truncate">{task.courseName}</p>
+                      <p className="text-[9px] text-slate-500 mt-0.5">{task.date} at {task.time}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
+                      <div className="text-[10px] text-orange-400 font-bold">
+                        {getRelativeTimeLabel(task.date, task.time)}
+                      </div>
+                      {task.priority && (
+                        <span className={`text-[8px] px-1.5 py-0.5 rounded-full border font-black uppercase tracking-wider ${priorityStyles[task.priority.toUpperCase()] || "bg-slate-800/50 text-slate-350 border-slate-700/50"}`}>
+                          {task.priority}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 

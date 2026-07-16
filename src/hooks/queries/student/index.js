@@ -6,3 +6,4 @@ export { default as useAssignments } from "./useAssignments";
 export { default as useAssignment } from "./useAssignment";
 export { default as useStudentState } from "./useStudentState";
 export { default as useUpdateStudentState } from "./useUpdateStudentState";
+export { default as useUpcomingTasks } from "./useUpcomingTasks";

@@ -8,6 +8,8 @@ import Button from "@/components/ui/Button";
 export default function EmptyQuizzes({
                                          courseId,
                                      }) {
+    const isGlobal = !courseId;
+
     return (
         <Card className="py-20">
             <div className="mx-auto max-w-lg text-center">
@@ -33,17 +35,17 @@ export default function EmptyQuizzes({
                 </h2>
 
                 <p className="mt-4 text-slate-400">
-                    This course does not have any quizzes yet.
-                    Create your first quiz to assess your
-                    students knowledge.
+                    {isGlobal
+                        ? "You have not created any quizzes yet. Choose a course first to create and manage quizzes."
+                        : "This course does not have any quizzes yet. Create your first quiz to assess your students knowledge."}
                 </p>
 
                 <div className="mt-8">
                     <Link
-                        href={`/instructor/quizzes/create/${courseId}`}
+                        href={isGlobal ? "/instructor/courses" : `/instructor/quizzes/create/${courseId}`}
                     >
                         <Button>
-                            Create First Quiz
+                            {isGlobal ? "Go to Courses" : "Create First Quiz"}
                         </Button>
                     </Link>
                 </div>

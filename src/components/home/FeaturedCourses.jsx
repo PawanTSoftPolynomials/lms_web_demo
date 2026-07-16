@@ -7,7 +7,7 @@ import {
   getCourses,
 } from "@/services/course.service";
 
-import CourseCard from "./CourseCard";
+import FeaturedCourseCard from "@/components/courses/FeaturedCourseCard";
 
 export default function FeaturedCourses() {
   const [courses, setCourses] =
@@ -75,7 +75,7 @@ export default function FeaturedCourses() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {courses.map(
           (course) => (
-            <CourseCard
+            <FeaturedCourseCard
               key={course.id}
               course={course}
             />

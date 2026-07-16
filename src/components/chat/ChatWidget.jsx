@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 
-import ChatButton from "./ChatButton";
 import ChatWindow from "./ChatWindow";
 
 import useConversation from "@/features/chat/hooks/useConversation";
@@ -20,7 +19,6 @@ export default function ChatWidget() {
   return (
     <>
       <ChatWindow />
-      <ChatButton />
     </>
   );
 }

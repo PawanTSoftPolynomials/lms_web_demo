@@ -65,9 +65,11 @@ export const SIDEBAR_ITEMS = {
         },
     ],
 
+
+
     INSTRUCTOR: [
         {
-            title: "Instructor Dashboard",
+            title: "Dashboard",
             icon: FaTachometerAlt,
             href: "/instructor/dashboard",
         },
