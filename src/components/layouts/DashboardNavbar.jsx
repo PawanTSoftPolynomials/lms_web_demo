@@ -189,7 +189,9 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
     isOpen, 
     setIsOpen, 
     activeConversation, 
-    setActiveConversation 
+    setActiveConversation,
+    toggleChat,
+    unreadCount: chatUnreadCount
   } = useChat();
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -348,6 +350,33 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
 
       <div className="flex gap-3 items-center relative">
         
+        {/* Chat Message Icon */}
+        <button
+          onClick={toggleChat}
+          className={`
+            p-3
+            rounded-lg
+            transition-all
+            relative
+            flex
+            items-center
+            justify-center
+            ${
+              isOpen
+                ? "bg-slate-800 text-orange-500"
+                : "bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white"
+            }
+          `}
+          title="Messages"
+        >
+          <MessageSquare size={18} />
+          {isMounted && chatUnreadCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-bold text-white shadow-[0_0_10px_rgba(249,115,22,0.45)]">
+              {chatUnreadCount}
+            </span>
+          )}
+        </button>
+
         {/* Notifications Icon & Panel */}
         <div className="relative">
           <button

@@ -11,7 +11,9 @@ import {
   RefreshCw,
   HelpCircle,
   Check,
-  X
+  X,
+  BookOpen,
+  ArrowRight
 } from "lucide-react";
 
 import Card from "@/components/ui/Card";
@@ -36,6 +38,7 @@ export default function QuizResultPage() {
         return [];
       }
     }
+    return submission.answers;
   }, [submission]);
 
   if (isLoading) {
@@ -75,8 +78,41 @@ export default function QuizResultPage() {
     );
   }
 
-  const { quiz, score, totalMarks, percentage, passed, submittedAt } = submission;
+  const { quiz, score, totalMarks, percentage, passed, submittedAt, conceptScores } = submission;
   const passingScore = quiz?.passingScore ?? 70;
+
+  // Grade helper checks matching backend
+  const checkAnswerCorrectness = (type, selected, correct) => {
+    if (selected === undefined || selected === null) return false;
+    
+    if (type === "MCQ_SINGLE") {
+      return selected === correct;
+    }
+    
+    if (type === "MCQ_MULTI") {
+      if (!Array.isArray(selected) || !Array.isArray(correct)) return false;
+      return selected.length === correct.length && selected.every(v => correct.includes(v));
+    }
+    
+    if (type === "ARRANGE_TOKENS") {
+      if (!Array.isArray(selected) || !Array.isArray(correct)) return false;
+      return selected.length === correct.length && selected.every((v, i) => v === correct[i]);
+    }
+    
+    if (type === "MATCH_PAIRS") {
+      if (typeof selected !== "object" || typeof correct !== "object" || !selected || !correct) return false;
+      const selKeys = Object.keys(selected);
+      const corrKeys = Object.keys(correct);
+      if (selKeys.length !== corrKeys.length) return false;
+      return selKeys.every(k => String(selected[k]) === String(correct[k]));
+    }
+    
+    if (type === "SELF_ASSESSMENT") {
+      return typeof selected === "string" && selected.trim().length > 0;
+    }
+    
+    return false;
+  };
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-12">
@@ -166,6 +202,41 @@ export default function QuizResultPage() {
         </div>
       </section>
 
+      {/* Concept Breakdown Section */}
+      {conceptScores && Object.keys(conceptScores).length > 0 && (
+        <section className="space-y-4">
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <BookOpen size={20} className="text-orange-500" />
+            Performance by Topic Concept
+          </h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {Object.entries(conceptScores).map(([conceptName, cScore]) => {
+              const perc = cScore.percentage;
+              let barColor = "bg-rose-500";
+              if (perc >= 70) barColor = "bg-emerald-500";
+              else if (perc >= 50) barColor = "bg-amber-500";
+
+              return (
+                <div key={conceptName} className="rounded-xl border border-slate-850 bg-slate-900/20 p-5 space-y-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-semibold text-slate-200">{conceptName}</span>
+                    <span className="text-slate-400 font-medium">
+                      {cScore.score} / {cScore.total} Marks ({perc}%)
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+                    <div
+                      className={`h-full rounded-full ${barColor} transition-all duration-300`}
+                      style={{ width: `${perc}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* Detailed Question Review List */}
       <section className="space-y-6">
         <div>
@@ -178,20 +249,23 @@ export default function QuizResultPage() {
 
         <div className="space-y-5">
           {quiz?.questions?.map((question, index) => {
+            const qType = question.type || "MCQ_SINGLE";
             const userAnswer = parsedAnswers.find(ans => ans.questionId === question.id);
             const selectedOption = userAnswer?.selectedOption;
-            const isCorrect = selectedOption === question.correctAnswer;
+            const isCorrect = checkAnswerCorrectness(qType, selectedOption, question.correctAnswer);
             
-            // Handle parsing options if stored as JSON array string
+            // Format option text mapping
             let optionsList = [];
-            if (typeof question.options === "string") {
-              try {
-                optionsList = JSON.parse(question.options);
-              } catch (e) {
-                optionsList = [question.options];
+            if (qType === "MCQ_SINGLE" || qType === "MCQ_MULTI") {
+              if (typeof question.options === "string") {
+                try {
+                  optionsList = JSON.parse(question.options);
+                } catch (e) {
+                  optionsList = [question.options];
+                }
+              } else if (Array.isArray(question.options)) {
+                optionsList = question.options;
               }
-            } else if (Array.isArray(question.options)) {
-              optionsList = question.options;
             }
 
             return (
@@ -202,51 +276,155 @@ export default function QuizResultPage() {
                     {index + 1}
                   </span>
 
-                  <div className="flex-1 space-y-4">
+                  <div className="flex-1 space-y-4 min-w-0">
                     {/* Question Title & Marks */}
                     <div className="flex justify-between items-start gap-4">
-                      <h4 className="text-sm font-semibold text-slate-100 leading-relaxed">
-                        {question.text}
+                      <h4 className="text-sm font-semibold text-slate-100 leading-relaxed break-words flex-1">
+                        {question.question}
                       </h4>
-                      <span className="flex-shrink-0 text-[10px] bg-slate-850 px-2 py-0.5 rounded border border-slate-850 text-slate-400 font-bold uppercase">
-                        {question.marks || 1} {question.marks === 1 ? "Mark" : "Marks"}
-                      </span>
+                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                        <span className="text-[10px] bg-slate-850 px-2 py-0.5 rounded border border-slate-850 text-slate-400 font-bold uppercase">
+                          {question.marks || 1} {question.marks === 1 ? "Mark" : "Marks"}
+                        </span>
+                        {question.concept && (
+                          <span className="text-[9px] text-purple-400 font-semibold uppercase">
+                            {question.concept}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Options Stack */}
-                    <div className="grid gap-2.5">
-                      {optionsList.map((option, optIdx) => {
-                        const isSelected = selectedOption === option;
-                        const isAnswerCorrect = option === question.correctAnswer;
-                        
-                        let optionStyle = "border-slate-800 bg-slate-950/40 text-slate-400";
-                        let badgeIcon = null;
+                    {/* Conditional Display per Question Type */}
 
-                        if (isSelected) {
-                          if (isAnswerCorrect) {
-                            optionStyle = "border-emerald-500/30 bg-emerald-500/5 text-emerald-300 font-medium";
-                            badgeIcon = <Check className="h-3.5 w-3.5 text-emerald-400" />;
-                          } else {
-                            optionStyle = "border-rose-500/30 bg-rose-500/5 text-rose-300 font-medium";
-                            badgeIcon = <X className="h-3.5 w-3.5 text-rose-400" />;
+                    {/* 1. MCQ_SINGLE / MCQ_MULTI Options Review */}
+                    {(qType === "MCQ_SINGLE" || qType === "MCQ_MULTI") && (
+                      <div className="grid gap-2.5">
+                        {optionsList.map((option, optIdx) => {
+                          const isSelected = qType === "MCQ_SINGLE" 
+                            ? selectedOption === option
+                            : Array.isArray(selectedOption) && selectedOption.includes(option);
+                          const isAnswerCorrect = qType === "MCQ_SINGLE"
+                            ? option === question.correctAnswer
+                            : Array.isArray(question.correctAnswer) && question.correctAnswer.includes(option);
+                          
+                          let optionStyle = "border-slate-800 bg-slate-950/40 text-slate-400";
+                          let badgeIcon = null;
+
+                          if (isSelected) {
+                            if (isAnswerCorrect) {
+                              optionStyle = "border-emerald-500/30 bg-emerald-500/5 text-emerald-300 font-medium";
+                              badgeIcon = <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />;
+                            } else {
+                              optionStyle = "border-rose-500/30 bg-rose-500/5 text-rose-300 font-medium";
+                              badgeIcon = <X className="h-3.5 w-3.5 text-rose-400 shrink-0" />;
+                            }
+                          } else if (isAnswerCorrect) {
+                            optionStyle = "border-emerald-500/25 bg-emerald-500/5 text-emerald-400/80";
+                            badgeIcon = <Check className="h-3.5 w-3.5 text-emerald-500/60 shrink-0" />;
                           }
-                        } else if (isAnswerCorrect) {
-                          // Highlight the missed correct answer
-                          optionStyle = "border-emerald-500/25 bg-emerald-500/5 text-emerald-400/80";
-                          badgeIcon = <Check className="h-3.5 w-3.5 text-emerald-500" />;
-                        }
 
-                        return (
-                          <div
-                            key={optIdx}
-                            className={`flex items-center justify-between rounded-xl border p-3.5 text-xs transition ${optionStyle}`}
-                          >
-                            <span className="pr-4">{option}</span>
-                            {badgeIcon}
+                          return (
+                            <div
+                              key={optIdx}
+                              className={`flex items-center justify-between rounded-xl border p-3.5 text-xs transition ${optionStyle}`}
+                            >
+                              <span className="pr-4 break-words">{option}</span>
+                              {badgeIcon}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* 2. ARRANGE_TOKENS Review */}
+                    {qType === "ARRANGE_TOKENS" && (
+                      <div className="space-y-3 bg-slate-950/40 p-4 rounded-xl border border-slate-850">
+                        <div className="space-y-2">
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Your Sequence:</span>
+                          <div className="flex flex-wrap gap-2">
+                            {Array.isArray(selectedOption) && selectedOption.length > 0 ? (
+                              selectedOption.map((token, tIdx) => {
+                                const isCorrectPos = Array.isArray(question.correctAnswer) && question.correctAnswer[tIdx] === token;
+                                return (
+                                  <span key={tIdx} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 ${
+                                    isCorrectPos ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                                  }`}>
+                                    <span className="text-[9px] opacity-60 font-bold">{tIdx + 1}</span>
+                                    {token}
+                                  </span>
+                                );
+                              })
+                            ) : (
+                              <span className="text-xs text-slate-500 italic">Not Answered</span>
+                            )}
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+
+                        {!isCorrect && Array.isArray(question.correctAnswer) && (
+                          <div className="space-y-2 border-t border-slate-900 pt-3 mt-2">
+                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Correct Sequence:</span>
+                            <div className="flex flex-wrap gap-2">
+                              {question.correctAnswer.map((token, tIdx) => (
+                                <span key={tIdx} className="bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                                  <span className="text-[9px] text-slate-500 font-bold">{tIdx + 1}</span>
+                                  {token}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* 3. MATCH_PAIRS Review */}
+                    {qType === "MATCH_PAIRS" && (
+                      <div className="space-y-3 bg-slate-950/40 p-4 rounded-xl border border-slate-850">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Matches Review:</span>
+                        <div className="grid gap-3">
+                          {Object.entries(question.correctAnswer || {}).map(([leftItem, rightItem]) => {
+                            const studentMatch = selectedOption?.[leftItem] || "";
+                            const isMatchCorrect = studentMatch === rightItem;
+
+                            return (
+                              <div key={leftItem} className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border text-xs gap-3 ${
+                                isMatchCorrect 
+                                  ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400"
+                                  : "border-rose-500/20 bg-rose-500/5 text-rose-400"
+                              }`}>
+                                <div className="font-semibold flex items-center gap-2">
+                                  <span>{leftItem}</span>
+                                  <ArrowRight size={14} className="opacity-50" />
+                                  <span className="underline">{studentMatch || "(No Match Selected)"}</span>
+                                </div>
+                                {!isMatchCorrect && (
+                                  <div className="text-[10px] text-slate-500 font-medium">
+                                    Expected Match: <span className="text-emerald-400 font-bold">{rightItem}</span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 4. SELF_ASSESSMENT Review */}
+                    {qType === "SELF_ASSESSMENT" && (
+                      <div className="space-y-3">
+                        <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-850 space-y-2">
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Your Written Answer:</span>
+                          <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap">
+                            {selectedOption || "(No response typed)"}
+                          </p>
+                        </div>
+                        <div className="bg-slate-950/20 p-4 rounded-xl border border-slate-850 space-y-2">
+                          <span className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">Evaluation Rubric & Key:</span>
+                          <p className="text-xs text-slate-400 leading-relaxed whitespace-pre-wrap">
+                            {question.correctAnswer}
+                          </p>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Result Summary Bar */}
                     <div className="flex items-center gap-2 pt-2 border-t border-slate-900">
@@ -260,7 +438,7 @@ export default function QuizResultPage() {
                           ) : (
                             <div className="flex items-center gap-1.5 text-xs text-rose-400 font-semibold">
                               <XCircle size={14} />
-                              <span>Incorrect Choice (Selected: {selectedOption})</span>
+                              <span>Incorrect Choice</span>
                             </div>
                           )}
                         </>

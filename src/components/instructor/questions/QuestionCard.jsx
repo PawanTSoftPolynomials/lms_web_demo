@@ -66,7 +66,13 @@ export default function QuestionCard({
                                 </h3>
 
                                 <p className="mt-3 text-sm text-slate-400">
-                                    {Array.isArray(question.options)
+                                    {question.type === "MATCH_PAIRS"
+                                        ? `${question.options?.left?.length ?? 0} Match Pairs`
+                                        : question.type === "ARRANGE_TOKENS"
+                                        ? `${question.options?.length ?? 0} Tokens`
+                                        : question.type === "SELF_ASSESSMENT"
+                                        ? "Self Assessment Rubric"
+                                        : Array.isArray(question.options)
                                         ? `${question.options.length} Options`
                                         : "No options"}
                                 </p>

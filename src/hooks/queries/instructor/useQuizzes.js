@@ -10,7 +10,6 @@ export function useQuizzes(courseId) {
     return useQuery({
         queryKey: [QUERY_KEYS.QUIZZES, courseId],
         queryFn: () => getQuizzes(courseId),
-        enabled: !!courseId,
         ...defaultQueryOptions,
     });
 }
