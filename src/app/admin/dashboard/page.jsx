@@ -19,7 +19,6 @@ import AnalyticsChart from "@/components/dashboard/AnalyticsChart";
 import CourseStatusChart from "@/components/dashboard/CourseStatusChart";
 import QuickActions from "@/components/dashboard/QuickActions";
 import RecentUsers from "@/components/dashboard/RecentUsers";
-import MiniCalendar from "@/components/dashboard/MiniCalendar";
 import Modal from "@/components/ui/Modal";
 
 export default function AdminDashboard() {

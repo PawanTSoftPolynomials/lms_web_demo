@@ -75,7 +75,8 @@ export default function StudentTable({
                 {students.map((student) => (
                     <div
                         key={student.id}
-                        className="rounded-xl border border-white/10 bg-white/5 p-4"
+                        onClick={() => onView?.(student)}
+                        className="rounded-xl border border-white/10 bg-white/5 p-4 cursor-pointer hover:bg-white/10 transition"
                     >
                         <div className="flex items-start justify-between">
                             <div className="flex gap-3">
@@ -94,22 +95,24 @@ export default function StudentTable({
                                 </div>
                             </div>
 
-                            <ActionMenu
-                                items={[
-                                    {
-                                        label: "View",
-                                        onClick: () =>
-                                            onView?.(student),
-                                    },
+                            <div onClick={(e) => e.stopPropagation()}>
+                                <ActionMenu
+                                    items={[
+                                        {
+                                            label: "View",
+                                            onClick: () =>
+                                                onView?.(student),
+                                        },
 
-                                    {
-                                        label: "Delete",
-                                        danger: true,
-                                        onClick: () =>
-                                            onDelete?.(student),
-                                    },
-                                ]}
-                            />
+                                        {
+                                            label: "Delete",
+                                            danger: true,
+                                            onClick: () =>
+                                                onDelete?.(student),
+                                        },
+                                    ]}
+                                />
+                            </div>
                         </div>
 
                         <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
