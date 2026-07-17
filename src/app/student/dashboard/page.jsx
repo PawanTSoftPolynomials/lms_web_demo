@@ -231,7 +231,9 @@ export default function StudentDashboardPage() {
     }
 
     const sortedEnrollments = [...enrolledCourses].sort(
-      (a, b) => new Date(b.enrolledAt) - new Date(a.enrolledAt)
+      (a, b) =>
+        new Date(b.lastAccessedAt ?? b.enrolledAt) -
+        new Date(a.lastAccessedAt ?? a.enrolledAt)
     );
     return sortedEnrollments[0];
   }, [enrolledCourses, data?.progressList]);

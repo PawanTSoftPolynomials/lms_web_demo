@@ -25,6 +25,7 @@ import { useCourse, useStudentState, useUpdateStudentState } from "@/hooks/queri
 import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
 import ProgressBar from "@/components/student/courses/ProgressBar";
+import { trackCourseAccess } from "@/services/enrollment.service";
 
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
@@ -75,6 +76,13 @@ export default function LearnPage() {
       setExpandedModules(course.modules.map((m) => m.id));
     }
   }, [course]);
+
+  // Track course access — stamps lastAccessedAt on the enrollment once on mount
+  useEffect(() => {
+    if (courseId) {
+      trackCourseAccess(courseId);
+    }
+  }, [courseId]);
 
   // Restore state from DB on load
   useEffect(() => {
