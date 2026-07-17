@@ -13,9 +13,11 @@ import {
     useCourses, useDeleteCourse,
 } from "@/hooks/queries/admin/useCourses";
 import Button from "@/components/ui/Button";
+import { useConfirm } from "@/context/ConfirmContext";
 
 export default function AdminCoursesPage() {
     const router = useRouter();
+    const confirm = useConfirm();
 
     const {
         data: courses = [], isLoading, isError, refetch,
@@ -48,12 +50,18 @@ export default function AdminCoursesPage() {
     }, [courses, search, status, level,]);
 
     const handleDelete = async (course) => {
-        const confirmed = window.confirm(`Delete "${course.title}"?`);
+        const confirmed = await confirm({
+            title: "Delete Course",
+            message: `Are you sure you want to delete the course "${course.title}"?`,
+            confirmText: "Delete",
+            cancelText: "Cancel"
+        });
 
         if (!confirmed) return;
 
         try {
             await deleteCourseMutation.mutateAsync(course.id);
+            refetch();
         } catch (error) {
             console.error(error);
         }

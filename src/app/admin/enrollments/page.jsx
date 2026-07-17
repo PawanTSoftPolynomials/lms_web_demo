@@ -15,9 +15,11 @@ import {
   useEnrollments,
   useDeleteEnrollment,
 } from "@/hooks/queries/admin/useEnrollments";
+import { useConfirm } from "@/context/ConfirmContext";
 
 export default function AdminEnrollmentsPage() {
   const router = useRouter();
+  const confirm = useConfirm();
 
   const {
     data: enrollments = [],
@@ -74,9 +76,12 @@ export default function AdminEnrollmentsPage() {
           enrollment
       ) => {
         const confirmed =
-            window.confirm(
-                `Delete enrollment for "${enrollment.student?.user?.name}"?`
-            );
+            await confirm({
+                title: "Delete Enrollment",
+                message: `Are you sure you want to delete the enrollment for "${enrollment.student?.user?.name}"?`,
+                confirmText: "Delete",
+                cancelText: "Cancel"
+            });
 
         if (!confirmed) return;
 
@@ -84,6 +89,7 @@ export default function AdminEnrollmentsPage() {
           await deleteEnrollmentMutation.mutateAsync(
               enrollment.id
           );
+          refetch();
         } catch (error) {
           console.error(error);
         }

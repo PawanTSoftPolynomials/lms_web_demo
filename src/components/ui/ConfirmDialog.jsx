@@ -28,12 +28,14 @@ export default function ConfirmDialog({
 
         <div className="flex justify-end gap-3">
 
-          <Button
-            variant="outline"
-            onClick={onCancel}
-          >
-            {cancelText}
-          </Button>
+          {cancelText && (
+            <Button
+              variant="outline"
+              onClick={onCancel}
+            >
+              {cancelText}
+            </Button>
+          )}
 
           <Button
             variant="danger"

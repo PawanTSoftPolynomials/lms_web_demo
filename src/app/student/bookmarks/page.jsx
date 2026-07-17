@@ -20,6 +20,7 @@ import {
   useBookmarks,
   useDeleteBookmark,
 } from "@/hooks/queries/student/useBookmarks";
+import { useConfirm } from "@/context/ConfirmContext";
 
 const TYPE_TABS = ["All", "Lesson", "Video", "Document", "Note", "Web Link", "Course"];
 
@@ -45,10 +46,11 @@ const typeColor = (type) => {
 
 export default function BookmarksPage() {
   const router = useRouter();
+  const confirm = useConfirm();
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: bookmarks = [], isLoading, isError } = useBookmarks();
+  const { data: bookmarks = [], isLoading, isError, refetch } = useBookmarks();
   const deleteBookmark = useDeleteBookmark();
 
   const filtered = useMemo(() => {
@@ -63,8 +65,17 @@ export default function BookmarksPage() {
   }, [bookmarks, activeTab, searchQuery]);
 
   const handleDelete = async (id) => {
-    if (!confirm("Remove this bookmark?")) return;
-    try { await deleteBookmark.mutateAsync(id); } catch {}
+    const confirmed = await confirm({
+      title: "Remove Bookmark",
+      message: "Are you sure you want to remove this bookmark?",
+      confirmText: "Remove",
+      cancelText: "Cancel"
+    });
+    if (!confirmed) return;
+    try {
+      await deleteBookmark.mutateAsync(id);
+      refetch();
+    } catch {}
   };
 
   const handleCardClick = (bookmark) => {
