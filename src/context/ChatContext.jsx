@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, useCallback } from "react";
+import { createContext, useContext, useMemo, useState, useCallback, useEffect } from "react";
 
 const ChatContext = createContext(null);
 
@@ -46,6 +46,15 @@ export function ChatProvider({ children }) {
     message: "",
     onConfirm: null,
   });
+
+  // Calculate total unread count when conversations array changes
+  useEffect(() => {
+    const totalUnread = conversations.reduce(
+      (sum, conv) => sum + (conv.unread || 0),
+      0
+    );
+    setUnreadCount(totalUnread);
+  }, [conversations]);
 
   const value = useMemo(
     () => ({

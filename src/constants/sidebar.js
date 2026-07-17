@@ -137,11 +137,6 @@ export const SIDEBAR_ITEMS = {
             href: "/student/achievements",
         },
         {
-            title: "Messages",
-            icon: FaEnvelope,
-            href: "/student/messages",
-        },
-        {
             title: "Settings",
             icon: FaCog,
             href: "/student/settings",

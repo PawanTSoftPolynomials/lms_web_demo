@@ -29,12 +29,19 @@ export default function useSocket() {
 
     const socket = socketService.connect(token);
 
-    if (activeConversation?.id) {
-      socket.emit("join_conversation", activeConversation.id);
-      console.log(`🔌 Emitted join_conversation for room: ${activeConversation.id}`);
-    }
+    const joinRoom = () => {
+      if (activeConversation?.id) {
+        socket.emit("join_conversation", activeConversation.id);
+        console.log(`🔌 Emitted join_conversation for room: ${activeConversation.id}`);
+      }
+    };
+
+    joinRoom();
+
+    socket.on("connect", joinRoom);
 
     return () => {
+      socket.off("connect", joinRoom);
       if (activeConversation?.id) {
         socket.emit("leave_conversation", activeConversation.id);
         console.log(`🔌 Emitted leave_conversation for room: ${activeConversation.id}`);
@@ -50,7 +57,7 @@ export default function useSocket() {
     const socket = socketService.connect(token);
     setSocket(socket);
 
-    socket.on("message:new", (message) => {
+    const handleNewMessage = (message) => {
       // 1. Update active messages list if the message belongs to current active conversation
       const currentActiveConv = activeConversationRef.current;
       if (currentActiveConv && currentActiveConv.id === message.conversationId) {
@@ -99,7 +106,10 @@ export default function useSocket() {
         updatedList.splice(convIndex, 1); // remove from old position
         return [targetConv, ...updatedList]; // insert at top
       });
-    });
+    };
+
+    socket.on("message:new", handleNewMessage);
+    socket.on("receive_message", handleNewMessage);
 
     socket.on("message:edit", (message) => {
       const currentActiveConv = activeConversationRef.current;
@@ -150,6 +160,13 @@ export default function useSocket() {
     });
 
     return () => {
+      socket.off("message:new");
+      socket.off("receive_message");
+      socket.off("message:edit");
+      socket.off("message:star");
+      socket.off("conversation:created");
+      socket.off("user:online");
+      socket.off("user:offline");
       socket.disconnect();
     };
   }, [user]);
