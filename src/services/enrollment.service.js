@@ -89,3 +89,16 @@ export const deleteEnrollment =
 
         return data;
     };
+
+/**
+ * Track Course Access — updates lastAccessedAt on the enrollment.
+ * Fire-and-forget: call whenever a student opens the course player.
+ */
+export const trackCourseAccess = async (courseId) => {
+    try {
+        const { data } = await api.patch(`/enrollments/${courseId}/access`);
+        return data;
+    } catch {
+        // Non-critical — silently ignore failures
+    }
+};
