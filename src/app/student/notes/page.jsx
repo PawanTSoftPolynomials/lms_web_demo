@@ -20,10 +20,12 @@ import {
   useToggleNoteStar,
   useDeleteNote,
 } from "@/hooks/queries/student/useNotes";
+import { useConfirm } from "@/context/ConfirmContext";
 
 const CATEGORIES = ["All", "General", "JavaScript", "React", "Database", "Operating Systems", "Python", "Algorithms", "Other"];
 
 export default function NotesPage() {
+  const confirm = useConfirm();
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [showStarred, setShowStarred] = useState(false);
@@ -33,7 +35,7 @@ export default function NotesPage() {
   const [saving, setSaving] = useState(false);
 
   // Real API hooks
-  const { data: notes = [], isLoading, isError } = useNotes();
+  const { data: notes = [], isLoading, isError, refetch } = useNotes();
   const createNote = useCreateNote();
   const updateNote = useUpdateNote();
   const toggleStar = useToggleNoteStar();
@@ -78,6 +80,7 @@ export default function NotesPage() {
       } else {
         await createNote.mutateAsync(form);
       }
+      refetch();
       setShowModal(false);
     } catch (err) {
       console.error("Failed to save note:", err);
@@ -87,12 +90,24 @@ export default function NotesPage() {
   };
 
   const handleToggleStar = async (noteId) => {
-    try { await toggleStar.mutateAsync(noteId); } catch {}
+    try {
+      await toggleStar.mutateAsync(noteId);
+      refetch();
+    } catch {}
   };
 
   const handleDelete = async (noteId) => {
-    if (!confirm("Delete this note?")) return;
-    try { await deleteNote.mutateAsync(noteId); } catch {}
+    const confirmed = await confirm({
+      title: "Delete Note",
+      message: "Are you sure you want to delete this note?",
+      confirmText: "Delete",
+      cancelText: "Cancel"
+    });
+    if (!confirmed) return;
+    try {
+      await deleteNote.mutateAsync(noteId);
+      refetch();
+    } catch {}
   };
 
   return (

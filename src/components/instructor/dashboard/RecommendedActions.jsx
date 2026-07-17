@@ -43,42 +43,19 @@ export default function RecommendedActions({ courseId }) {
     );
   }
 
-  // Map backend recommendations to high-fidelity mockup items
+  // Map backend recommendations to mockup items
   const recommendations = dashboardData ?? [];
   const displayItems = recommendations.map((item, idx) => {
-    let title = item.title;
-    let description = item.description;
-    let priority = item.priority === 'Critical' ? 'High' : item.priority === 'Needs Review' ? 'Medium' : 'Low';
-
-    if (item.title === 'Remediation Required') {
-      title = 'Students struggling with State Management';
-      description = '18 students need additional support';
-      priority = 'High';
-    } else if (item.title === 'Content Review') {
-      title = 'Low quiz scores in Advanced Concepts';
-      description = '12 students scoring below 60%';
-      priority = 'Medium';
-    }
+    const priority = item.priority === 'Critical' ? 'High' : item.priority === 'Needs Review' ? 'Medium' : 'Low';
 
     return {
-      id: item.id,
-      title,
-      description,
+      id: item.id || idx,
+      title: item.title,
+      description: item.description,
       priority,
       action: 'Take Action'
     };
   });
-
-  // Supplement if needed to ensure 3 rows matching the mockup
-  if (displayItems.length === 2) {
-    displayItems.push({
-      id: 'rec-mock-3',
-      title: 'Course content review suggested',
-      description: 'UI/UX Design Principles needs updates',
-      priority: 'Low',
-      action: 'Take Action'
-    });
-  }
 
   const badgeColors = {
     High: 'border-red-500/20 bg-red-500/10 text-red-400',
@@ -105,34 +82,40 @@ export default function RecommendedActions({ courseId }) {
 
       {/* List */}
       <div className="space-y-3.5 flex-1 overflow-y-auto pr-1">
-        {displayItems.map((item) => {
-          const Icon = iconMap[item.priority] || Sparkles;
-          return (
-            <div 
-              key={item.id}
-              className="flex items-center justify-between gap-4 p-3 rounded-xl border border-slate-800 bg-slate-950/20 hover:border-slate-800 transition duration-200"
-            >
-              <div className="flex gap-3 items-center min-w-0">
-                <div className={`p-2.5 rounded-xl border shrink-0 ${iconStyles[item.priority]}`}>
-                  <Icon size={16} />
+        {displayItems.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">No Recommended Actions</p>
+          </div>
+        ) : (
+          displayItems.map((item) => {
+            const Icon = iconMap[item.priority] || Sparkles;
+            return (
+              <div 
+                key={item.id}
+                className="flex items-center justify-between gap-4 p-3 rounded-xl border border-slate-800 bg-slate-950/20 hover:border-slate-800 transition duration-200"
+              >
+                <div className="flex gap-3 items-center min-w-0">
+                  <div className={`p-2.5 rounded-xl border shrink-0 ${iconStyles[item.priority]}`}>
+                    <Icon size={16} />
+                  </div>
+                  <div className="space-y-0.5 min-w-0">
+                    <h5 className="font-bold text-xs text-white leading-tight truncate">{item.title}</h5>
+                    <p className="text-[10px] text-slate-400 truncate max-w-[210px]">{item.description}</p>
+                  </div>
                 </div>
-                <div className="space-y-0.5 min-w-0">
-                  <h5 className="font-bold text-xs text-white leading-tight truncate">{item.title}</h5>
-                  <p className="text-[10px] text-slate-400 truncate max-w-[210px]">{item.description}</p>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-2.5 shrink-0">
-                <span className={`inline-block rounded px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide border ${badgeColors[item.priority]}`}>
-                  {item.priority}
-                </span>
-                <button className="text-[10px] font-bold text-white px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-800 transition cursor-pointer select-none">
-                  {item.action}
-                </button>
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <span className={`inline-block rounded px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide border ${badgeColors[item.priority]}`}>
+                    {item.priority}
+                  </span>
+                  <button className="text-[10px] font-bold text-white px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-800 transition cursor-pointer select-none">
+                    {item.action}
+                  </button>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </div>
   );

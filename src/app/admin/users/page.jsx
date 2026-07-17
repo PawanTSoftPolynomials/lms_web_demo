@@ -12,9 +12,11 @@ import UserToolbar from "@/components/admin/users/UserToolbar";
 import UserTable from "@/components/admin/users/UserTable";
 
 import { useUsers, useDeleteUser } from "@/hooks/queries/admin/useUsers";
+import { useConfirm } from "@/context/ConfirmContext";
 
 export default function AdminUsersPage() {
   const router = useRouter();
+  const confirm = useConfirm();
 
   const { data: users = [], isLoading, isError, refetch } = useUsers();
 
@@ -41,11 +43,17 @@ export default function AdminUsersPage() {
   }, [users, search, role, status]);
 
   const handleDelete = async (user) => {
-    const confirmed = window.confirm(`Delete ${user.name}?`);
+    const confirmed = await confirm({
+      title: "Delete User",
+      message: `Are you sure you want to delete the user "${user.name}"?`,
+      confirmText: "Delete",
+      cancelText: "Cancel"
+    });
 
     if (!confirmed) return;
 
     await deleteUserMutation.mutateAsync(user.id);
+    refetch();
   };
 
   if (isLoading) {

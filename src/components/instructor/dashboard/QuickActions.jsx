@@ -1,6 +1,6 @@
 'use client';
 
-import { PlusCircle, FileText, CheckSquare, Megaphone, Video, BarChart2, Settings } from 'lucide-react';
+import { PlusCircle, FileText, CheckSquare, Megaphone, Video, BarChart2, User } from 'lucide-react';
 import Link from 'next/link';
 
 const actions = [
@@ -12,7 +12,7 @@ const actions = [
   },
   {
     title: 'Add Assignment',
-    href: '/instructor/dashboard',
+    href: '/instructor/assignments',
     icon: FileText,
     colorClass: 'bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20',
   },
@@ -24,7 +24,7 @@ const actions = [
   },
   {
     title: 'Send Announcement',
-    href: '/instructor/dashboard',
+    href: '/instructor/announcements',
     icon: Megaphone,
     colorClass: 'bg-orange-500/10 text-orange-400 border-orange-500/20 hover:bg-orange-500/20',
   },
@@ -36,14 +36,14 @@ const actions = [
   },
   {
     title: 'View Reports',
-    href: '/instructor/courses',
+    href: '/instructor/reports',
     icon: BarChart2,
     colorClass: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20 hover:bg-cyan-500/20',
   },
   {
-    title: 'Customize Dashboard',
+    title: 'My Profile',
     href: '/instructor/profile',
-    icon: Settings,
+    icon: User,
     colorClass: 'bg-slate-500/10 text-slate-400 border-slate-500/20 hover:bg-slate-500/20',
   },
 ];

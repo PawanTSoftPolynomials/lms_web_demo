@@ -11,6 +11,7 @@ import "./globals.css";
 import { ChatProvider } from "@/context/ChatContext";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { NotificationProvider } from "@/context/NotificationContext";
+import { ConfirmProvider } from "@/context/ConfirmContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,11 +42,13 @@ export default function RootLayout({
         <AuthProvider>
           <QueryProvider>
             <ToastProvider>
-              <NotificationProvider>
-                <ChatProvider>
-                  {children}
-                </ChatProvider>
-              </NotificationProvider>
+              <ConfirmProvider>
+                <NotificationProvider>
+                  <ChatProvider>
+                    {children}
+                  </ChatProvider>
+                </NotificationProvider>
+              </ConfirmProvider>
             </ToastProvider>
           </QueryProvider>
         </AuthProvider>

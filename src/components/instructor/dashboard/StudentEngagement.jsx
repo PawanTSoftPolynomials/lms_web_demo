@@ -54,34 +54,14 @@ export default function StudentEngagement({ courseId }) {
   const engagement = dashboardData ?? [];
 
   // Scale data dynamically to display high-fidelity lines (0 to 1.5K range)
-  const chartData = engagement.map((item, idx) => {
-    // Generate organic variations if database is empty/constant
-    const multipliers = [120, 150, 220, 180, 200, 160, 130];
-    const multiplier = multipliers[idx % multipliers.length];
-
+  const chartData = engagement.map((item) => {
     return {
       name: item.day,
-      active: (item.activeStudents ?? 5) * multiplier,
-      lessons: (item.lessonsCompleted ?? 3) * multiplier * 0.7,
-      quizzes: (item.quizAttempts ?? 1) * multiplier * 0.4,
+      active: item.activeStudents ?? 0,
+      lessons: item.lessonsCompleted ?? 0,
+      quizzes: item.quizAttempts ?? 0,
     };
   });
-
-  // Provide fallback if data is empty
-  if (chartData.length === 0) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    days.forEach((day, idx) => {
-      const activeValues = [500, 700, 1100, 900, 1000, 800, 600];
-      const lessonValues = [300, 450, 800, 600, 700, 500, 400];
-      const quizValues = [100, 200, 400, 300, 350, 250, 150];
-      chartData.push({
-        name: day,
-        active: activeValues[idx],
-        lessons: lessonValues[idx],
-        quizzes: quizValues[idx],
-      });
-    });
-  }
 
   return (
     <ChartCard
@@ -107,7 +87,7 @@ export default function StudentEngagement({ courseId }) {
               tick={{ fill: '#94a3b8', fontSize: 10 }}
             />
             <YAxis
-              domain={[0, 1500]}
+              domain={['auto', 'auto']}
               axisLine={false}
               tickLine={false}
               tick={{ fill: '#94a3b8', fontSize: 10 }}
@@ -141,7 +121,7 @@ export default function StudentEngagement({ courseId }) {
             <Line
               type="monotone"
               dataKey="lessons"
-              name="Lessons Completed"
+              name="Course completed"
               stroke="#3b82f6"
               strokeWidth={3}
               dot={{ r: 4, stroke: '#3b82f6', strokeWidth: 2 }}

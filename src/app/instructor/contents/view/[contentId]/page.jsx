@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { 
@@ -8,7 +8,9 @@ import {
   Pencil, 
   Trash2, 
   Play, 
+  Pause,
   Volume2, 
+  VolumeX,
   Settings, 
   Maximize2, 
   Download, 
@@ -38,6 +40,13 @@ export default function ContentDetailsPage() {
   const params = useParams();
   const contentId = params.contentId;
   const router = useRouter();
+
+  // Video player logic
+  const videoRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
 
   const tabs = [
     { id: "description", label: "Description" },
@@ -81,6 +90,51 @@ export default function ContentDetailsPage() {
     }
   };
 
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play().catch(err => console.log("Play interrupted:", err));
+      setIsPlaying(true);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (!videoRef.current) return;
+    setCurrentTime(videoRef.current.currentTime);
+  };
+
+  const handleLoadedMetadata = () => {
+    if (!videoRef.current) return;
+    setVideoDuration(videoRef.current.duration);
+  };
+
+  const handleSeek = (e) => {
+    if (!videoRef.current || !videoDuration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const width = rect.width;
+    const percentage = clickX / width;
+    const newTime = percentage * videoDuration;
+    videoRef.current.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
+
+  const toggleMute = () => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
+
+  const formatVideoTime = (seconds) => {
+    if (isNaN(seconds) || seconds === Infinity) return "00:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-20">
@@ -102,6 +156,30 @@ export default function ContentDetailsPage() {
 
   const isVideo = content.type === "VIDEO" || content.type === "Video";
   const durationStr = content.duration ? `${Math.floor(content.duration / 60)}:${(content.duration % 60).toString().padStart(2, '0')}` : "24:30";
+
+  const getYouTubeEmbedUrl = (url) => {
+    if (!url) return null;
+    let videoId = null;
+    if (url.includes("youtu.be/")) {
+      videoId = url.split("youtu.be/")[1]?.split(/[?#]/)[0];
+    } else if (url.includes("youtube.com")) {
+      if (url.includes("v=")) {
+        videoId = url.split("v=")[1]?.split(/[&#]/)[0];
+      } else if (url.includes("/embed/")) {
+        videoId = url.split("/embed/")[1]?.split(/[?#]/)[0];
+      }
+    }
+    return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0` : null;
+  };
+
+  const isYouTube = content.videoUrl && (content.videoUrl.includes("youtube.com") || content.videoUrl.includes("youtu.be"));
+  const ytEmbedUrl = isYouTube ? getYouTubeEmbedUrl(content.videoUrl) : null;
+
+  const videoSrc = content.videoUrl
+    ? content.videoUrl.startsWith("http")
+      ? content.videoUrl
+      : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${content.videoUrl}`
+    : "https://www.w3schools.com/html/mov_bbb.mp4"; // standard Big Buck Bunny video as fallback for mock content
 
   return (
     <div className="space-y-6 pb-12 animate-fade-in duration-300">
@@ -173,54 +251,133 @@ export default function ContentDetailsPage() {
               </div>
             </div>
 
-            {/* Video Player Box */}
-            <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 flex flex-col justify-between p-4 group">
-              {/* Center Play Button Graphic */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="h-16 w-16 overflow-hidden rounded-xl bg-white border border-slate-200 shrink-0 flex items-center justify-center p-1.5 shadow-md opacity-90 group-hover:scale-105 transition duration-300">
-                  <img
-                    src="https://miro.medium.com/v2/resize:fit:800/1*98hG5s4K5yZJ0FhD2b5Ptw.png"
-                    alt="Java Logo"
-                    className="h-full w-full object-contain filter grayscale-[30%]"
+            {/* Video Player or Document Preview Box */}
+            {isVideo ? (
+              isYouTube ? (
+                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 flex flex-col justify-between group shadow-lg">
+                  <iframe
+                    src={ytEmbedUrl}
+                    title={content.title || "YouTube video player"}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="absolute inset-0 w-full h-full rounded-2xl"
                   />
                 </div>
-                <div className="absolute flex h-14 w-14 items-center justify-center rounded-full bg-orange-600 text-white shadow-lg opacity-90 group-hover:scale-110 transition duration-300">
-                  <Play size={24} className="fill-white translate-x-0.5" />
-                </div>
-              </div>
+              ) : (
+                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 flex flex-col justify-between group">
+                  
+                  {/* HTML5 video element */}
+                  <video
+                    ref={videoRef}
+                    src={videoSrc}
+                    onTimeUpdate={handleTimeUpdate}
+                    onLoadedMetadata={handleLoadedMetadata}
+                    onClick={togglePlay}
+                    className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+                  />
 
-              {/* Mock Overlay Text label */}
-              <div className="self-end bg-slate-950/80 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wider text-white border border-slate-800">
-                Introduction to Servlets
-              </div>
+                  {/* Center Play Button Graphic (only when paused) */}
+                  {!isPlaying && (
+                    <div 
+                      onClick={togglePlay}
+                      className="absolute inset-0 flex items-center justify-center bg-slate-950/20 cursor-pointer z-20 transition-all duration-300 animate-in fade-in"
+                    >
+                      <div className="absolute flex h-16 w-16 items-center justify-center rounded-full bg-orange-500 text-slate-950 shadow-lg scale-100 hover:scale-110 active:scale-95 transition duration-300">
+                        <Play size={26} className="fill-slate-950 translate-x-0.5" />
+                      </div>
+                    </div>
+                  )}
 
-              {/* Bottom controls */}
-              <div className="w-full space-y-3 mt-auto z-10">
-                {/* Progress bar */}
-                <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden cursor-pointer relative">
-                  <div className="h-full w-1/4 bg-orange-600 rounded-full" />
-                </div>
+                  {/* Overlay Text label */}
+                  {!isPlaying && (
+                    <div className="absolute top-4 right-4 bg-slate-950/80 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wider text-white border border-slate-800 z-20">
+                      {content.title || "Introduction to Servlets"}
+                    </div>
+                  )}
 
-                {/* Buttons controls */}
-                <div className="flex items-center justify-between text-slate-300 text-xs">
-                  <div className="flex items-center gap-4">
-                    <button className="hover:text-white transition"><Play size={14} className="fill-slate-300" /></button>
-                    <button className="hover:text-white transition flex items-center gap-1.5">
-                      <Volume2 size={14} />
-                      <span className="text-[10px] text-slate-500">10s</span>
-                    </button>
-                    <span>02:15 / {durationStr}</span>
+                  {/* Bottom controls */}
+                  <div className="w-full space-y-3 mt-auto p-4 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    {/* Progress bar */}
+                    <div 
+                      onClick={handleSeek}
+                      className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden cursor-pointer relative"
+                    >
+                      <div 
+                        className="h-full bg-orange-500 rounded-full" 
+                        style={{ width: `${(currentTime / (videoDuration || 1)) * 100}%` }}
+                      />
+                    </div>
+
+                    {/* Buttons controls */}
+                    <div className="flex items-center justify-between text-slate-300 text-xs">
+                      <div className="flex items-center gap-4">
+                        <button 
+                          onClick={togglePlay}
+                          className="hover:text-white transition"
+                        >
+                          {isPlaying ? <Pause size={14} className="fill-slate-300" /> : <Play size={14} className="fill-slate-300" />}
+                        </button>
+                        <button 
+                          onClick={toggleMute}
+                          className="hover:text-white transition flex items-center gap-1.5"
+                        >
+                          {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                        </button>
+                        <span className="font-medium text-slate-400">
+                          {formatVideoTime(currentTime)} / {formatVideoTime(videoDuration || content.duration)}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-4 font-semibold">
+                        <button 
+                          onClick={() => {
+                            if (videoRef.current) {
+                              if (videoRef.current.playbackRate === 1) videoRef.current.playbackRate = 1.5;
+                              else if (videoRef.current.playbackRate === 1.5) videoRef.current.playbackRate = 2;
+                              else videoRef.current.playbackRate = 1;
+                            }
+                          }}
+                          className="text-[10px] tracking-widest hover:text-white transition bg-slate-800/80 px-1.5 py-0.5 rounded"
+                        >
+                          {videoRef.current?.playbackRate || 1}x
+                        </button>
+                        <button 
+                          onClick={() => videoRef.current?.requestFullscreen()}
+                          className="hover:text-white transition"
+                        >
+                          <Maximize2 size={14} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-
-                  <div className="flex items-center gap-4 font-semibold">
-                    <span className="text-[10px] tracking-widest">1x</span>
-                    <span className="rounded-md border border-slate-700 px-1 py-0.5 text-[8px] font-black uppercase text-slate-400">CC</span>
-                    <button className="hover:text-white transition"><Settings size={14} /></button>
-                    <button className="hover:text-white transition"><Maximize2 size={14} /></button>
-                  </div>
                 </div>
+              )
+            ) : (
+              <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-950 flex flex-col items-center justify-center p-6 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-400 mb-4 animate-pulse">
+                  <FileText size={32} />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-1.5">{content.title}</h3>
+                <p className="text-xs text-slate-400 max-w-sm mb-5 leading-relaxed">
+                  This document resource is ready. Instructors can download the attachment below or modify the file details.
+                </p>
+                <a
+                  href={content.fileUrl || "#"}
+                  download
+                  onClick={(e) => {
+                    if (!content.fileUrl) {
+                      e.preventDefault();
+                      alert("No attached file URL found for this content template.");
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold text-xs px-5 py-3 transition shadow-lg shadow-orange-500/10 active:scale-95 cursor-pointer"
+                >
+                  <Download size={14} />
+                  <span>Download Document</span>
+                </a>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Description & Objectives Tabs Card */}

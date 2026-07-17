@@ -111,7 +111,7 @@ export default function KPIGrid({ courseId }) {
   const courses = dashboardData?.coursePerformance ?? [];
 
   // Parse total published courses dynamically
-  const publishedCount = courses.filter(c => c.status === 'Published' || c.completion > 0).length || courses.length || 18;
+  const publishedCount = courses.filter(c => c.status === 'Published' || c.completion > 0).length || courses.length || 0;
 
   // Render 6 KPI cards
   const items = [

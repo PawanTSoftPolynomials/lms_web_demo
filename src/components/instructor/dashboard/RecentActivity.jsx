@@ -38,60 +38,21 @@ export default function RecentActivity({ courseId }) {
     );
   }
 
-  // Map activities dynamically to match the high-fidelity mock timestamps & tags
+  // Map activities dynamically to match the backend timestamps & tags
   const activities = summaryList.map((item, idx) => {
-    let text = item;
-    let badge = 'Activity';
-    let badgeColor = 'border-blue-500/20 bg-blue-500/10 text-blue-400';
-    let time = '10:30 AM';
-
-    if (idx === 0) {
-      text = 'John Doe completed JavaScript Basics quiz';
-      badge = 'Quiz';
-      badgeColor = 'border-sky-500/20 bg-sky-500/10 text-sky-400';
-      time = '10:30 AM';
-    } else if (idx === 1) {
-      text = 'Sarah Wilson submitted React Assignment';
-      badge = 'Assignment';
-      badgeColor = 'border-purple-500/20 bg-purple-500/10 text-purple-400';
-      time = '09:45 AM';
-    } else if (idx === 2) {
-      text = 'Mike Johnson enrolled in Node.js Backend';
-      badge = 'Enrollment';
-      badgeColor = 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400';
-      time = '08:15 AM';
-    } else if (idx === 3) {
-      text = 'Emily Davis completed Advanced Hooks lesson';
-      badge = 'Lesson';
-      badgeColor = 'border-blue-500/20 bg-blue-500/10 text-blue-400';
-      time = 'Yesterday';
-    } else if (idx === 4) {
-      text = 'David Brown submitted API Integration quiz';
-      badge = 'Quiz';
-      badgeColor = 'border-sky-500/20 bg-sky-500/10 text-sky-400';
-      time = 'Yesterday';
-    }
+    const text = typeof item === 'string' ? item : (item.text || JSON.stringify(item));
+    const badge = typeof item === 'object' && item.badge ? item.badge : 'Activity';
+    const badgeColor = typeof item === 'object' && item.badgeColor ? item.badgeColor : 'border-blue-500/20 bg-blue-500/10 text-blue-400';
+    const time = typeof item === 'object' && item.time ? item.time : 'Just Now';
 
     return {
-      id: idx,
+      id: typeof item === 'object' && item.id ? item.id : idx,
       text,
       badge,
       badgeColor,
       time
     };
   });
-
-  // Supplement if needed
-  if (activities.length === 0) {
-    const fallbacks = [
-      { text: 'John Doe completed JavaScript Basics quiz', badge: 'Quiz', badgeColor: 'border-sky-500/20 bg-sky-500/10 text-sky-400', time: '10:30 AM' },
-      { text: 'Sarah Wilson submitted React Assignment', badge: 'Assignment', badgeColor: 'border-purple-500/20 bg-purple-500/10 text-purple-400', time: '09:45 AM' },
-      { text: 'Mike Johnson enrolled in Node.js Backend', badge: 'Enrollment', badgeColor: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400', time: '08:15 AM' },
-      { text: 'Emily Davis completed Advanced Hooks lesson', badge: 'Lesson', badgeColor: 'border-blue-500/20 bg-blue-500/10 text-blue-400', time: 'Yesterday' },
-      { text: 'David Brown submitted API Integration quiz', badge: 'Quiz', badgeColor: 'border-sky-500/20 bg-sky-500/10 text-sky-400', time: 'Yesterday' }
-    ];
-    activities.push(...fallbacks);
-  }
 
   return (
     <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-5 shadow-sm hover:border-slate-700/60 transition duration-300 h-full flex flex-col justify-between">
@@ -106,17 +67,23 @@ export default function RecentActivity({ courseId }) {
 
       {/* List */}
       <div className="space-y-3.5 flex-1 overflow-y-auto pr-1">
-        {activities.map((act) => (
-          <div key={act.id} className="flex items-center justify-between gap-4 p-2.5 rounded-xl border border-slate-850/65 bg-slate-950/10">
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="text-[9px] font-bold text-slate-500 shrink-0 w-16 uppercase tracking-wider">{act.time}</span>
-              <p className="text-xs font-semibold text-white leading-tight truncate max-w-[210px]">{act.text}</p>
-            </div>
-            <span className={`inline-block rounded px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide border shrink-0 ${act.badgeColor}`}>
-              {act.badge}
-            </span>
+        {activities.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">No Recent Activity</p>
           </div>
-        ))}
+        ) : (
+          activities.map((act) => (
+            <div key={act.id} className="flex items-center justify-between gap-4 p-2.5 rounded-xl border border-slate-850/65 bg-slate-955/10">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-[9px] font-bold text-slate-500 shrink-0 w-16 uppercase tracking-wider">{act.time}</span>
+                <p className="text-xs font-semibold text-white leading-tight truncate max-w-[210px]">{act.text}</p>
+              </div>
+              <span className={`inline-block rounded px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide border shrink-0 ${act.badgeColor}`}>
+                {act.badge}
+              </span>
+            </div>
+          ))
+        )}
       </div>
 
     </div>

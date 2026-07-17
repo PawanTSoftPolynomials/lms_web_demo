@@ -40,53 +40,14 @@ export default function CoursePerformance({ courseId }) {
 
   const courses = dashboardData ?? [];
   const displayCourses = courses.map((course, idx) => {
-    let title = course.course;
-    let students = course.enrollments ?? 150;
-    let completion = course.completion ?? 50;
-    let rating = course.quizAverage ? (course.quizAverage / 20).toFixed(1) : '4.5';
-    let status = 'Good';
-
-    // Map exact titles/ratings to match the mockup data if available!
-    if (idx === 0) {
-      title = 'React Fundamentals';
-      students = 342;
-      completion = 75;
-      rating = '4.8';
-      status = 'Excellent';
-    } else if (idx === 1) {
-      title = 'Advanced JavaScript';
-      students = 289;
-      completion = 68;
-      rating = '4.5';
-      status = 'Good';
-    } else if (idx === 2) {
-      title = 'Node.js Backend';
-      students = 256;
-      completion = 62;
-      rating = '4.3';
-      status = 'Good';
-    } else if (idx === 3) {
-      title = 'UI/UX Design Principles';
-      students = 198;
-      completion = 48;
-      rating = '4.4';
-      status = 'Good';
-    } else if (idx === 4) {
-      title = 'Database Management';
-      students = 167;
-      completion = 35;
-      rating = '4.2';
-      status = 'Needs Attention';
-    } else if (idx === 5) {
-      title = 'TypeScript Mastery';
-      students = 143;
-      completion = 28;
-      rating = '4.1';
-      status = 'Needs Attention';
-    }
+    const title = course.course || 'Untitled Course';
+    const students = course.students ?? 0;
+    const completion = course.completion ?? 0;
+    const rating = typeof course.rating === 'number' ? course.rating.toFixed(1) : (course.rating || '0.0');
+    const status = course.status || (completion >= 70 ? 'Excellent' : completion >= 50 ? 'Good' : 'Needs Attention');
 
     return {
-      id: course.id,
+      id: course.id || idx,
       title,
       students,
       completion,
@@ -125,8 +86,15 @@ export default function CoursePerformance({ courseId }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-850/40">
-            {displayCourses.map((c) => (
-              <tr key={c.id} className="text-slate-300 hover:bg-slate-850/30 transition duration-200">
+            {displayCourses.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="py-12 text-center text-slate-500 text-xs font-bold uppercase tracking-wider">
+                  No Course Data Available
+                </td>
+              </tr>
+            ) : (
+              displayCourses.map((c) => (
+                <tr key={c.id} className="text-slate-300 hover:bg-slate-850/30 transition duration-200">
                 <td className="py-3 font-semibold text-xs text-white pl-2">{c.title}</td>
                 <td className="py-3 text-xs font-bold text-center text-slate-200">{c.students}</td>
                 <td className="py-3 w-36">
@@ -147,7 +115,8 @@ export default function CoursePerformance({ courseId }) {
                   </span>
                 </td>
               </tr>
-            ))}
+            ))
+          )}
           </tbody>
         </table>
       </div>

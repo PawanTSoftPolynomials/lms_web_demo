@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 const INITIAL_FORM = {
     title: "",
     description: "",
+    isPublished: false,
 };
 
 export default function ModuleForm({
@@ -28,17 +29,20 @@ export default function ModuleForm({
                 description:
                     initialValues.description ??
                     "",
+                isPublished:
+                    initialValues.isPublished ??
+                    false,
             });
         }
     }, [initialValues]);
 
     const handleChange = (e) => {
-        const {name, value} =
+        const {name, value, type, checked} =
             e.target;
 
         setFormData((prev) => ({
             ...prev,
-            [name]: value,
+            [name]: type === "checkbox" ? checked : value,
         }));
     };
 
@@ -53,8 +57,8 @@ export default function ModuleForm({
             <div className="mb-8">
                 <h1 className="text-3xl font-bold">
                     {mode === "create"
-                        ? "Create Module"
-                        : "Edit Module"}
+                         ? "Create Module"
+                         : "Edit Module"}
                 </h1>
 
                 <p className="mt-2 text-slate-400">
@@ -103,6 +107,20 @@ export default function ModuleForm({
               focus:border-orange-500
             "
                     />
+                </div>
+
+                <div className="flex items-center gap-3 bg-slate-950/40 p-4 rounded-xl border border-slate-800">
+                    <input
+                        type="checkbox"
+                        id="isPublished"
+                        name="isPublished"
+                        checked={formData.isPublished}
+                        onChange={handleChange}
+                        className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-orange-500 focus:ring-orange-500 focus:ring-offset-slate-900 cursor-pointer"
+                    />
+                    <label htmlFor="isPublished" className="text-sm font-semibold text-slate-200 cursor-pointer">
+                        Publish Module (Make this module visible to students instantly)
+                    </label>
                 </div>
 
                 <div className="flex justify-end">
