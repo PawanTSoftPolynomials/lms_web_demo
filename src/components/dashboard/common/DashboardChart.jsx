@@ -10,6 +10,7 @@ export default function DashboardChart({
   action,
   children,
   className = "",
+  contentClassName = "h-[340px]",
 }) {
   return (
     <DashboardSection
@@ -17,7 +18,7 @@ export default function DashboardChart({
       subtitle={subtitle}
       action={action}
       className={className}
-      contentClassName="h-[340px]"
+      contentClassName={contentClassName}
     >
       {children}
     </DashboardSection>

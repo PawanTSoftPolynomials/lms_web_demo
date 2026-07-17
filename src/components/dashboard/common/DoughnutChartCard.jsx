@@ -22,26 +22,29 @@ export default function DoughnutChartCard({
   nameKey = "name",
   colors = DEFAULT_COLORS,
   height = 300,
+  innerRadius = 70,
+  outerRadius = 100,
+  contentClassName = "h-[340px]",
 }) {
   return (
-    <DashboardChart title={title} subtitle={subtitle}>
+    <DashboardChart title={title} subtitle={subtitle} contentClassName={contentClassName}>
       <ResponsiveContainer width="100%" height={height}>
         <PieChart>
           <Pie
             data={data}
             dataKey={dataKey}
             nameKey={nameKey}
-            innerRadius={70}
-            outerRadius={100}
+            innerRadius={innerRadius}
+            outerRadius={outerRadius}
             paddingAngle={4}
           >
             {data.map((_, index) => (
               <Cell key={index} fill={colors[index % colors.length]} />
             ))}
           </Pie>
-
+ 
           <Tooltip content={<ChartTooltip />} />
-
+ 
           <Legend />
         </PieChart>
       </ResponsiveContainer>

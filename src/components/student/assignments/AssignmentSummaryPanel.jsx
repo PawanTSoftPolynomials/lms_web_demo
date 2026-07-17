@@ -55,7 +55,10 @@ export default function AssignmentSummaryPanel({
         colors={Object.keys(statusCounts).map(
           (status) => statusColors[status] ?? "#64748b"
         )}
-        height={280}
+        height={180}
+        innerRadius={45}
+        outerRadius={65}
+        contentClassName="h-[230px]"
       />
 
       <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-lg shadow-black/20">
