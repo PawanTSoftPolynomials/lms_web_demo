@@ -7,11 +7,91 @@ import {
   Link2,
   ClipboardList,
   MessageSquare,
+  Bookmark,
+  BookmarkCheck,
 } from "lucide-react";
 import CourseChat from "@/components/chat/CourseChat";
+import { useBookmarks, useCreateBookmark, useDeleteBookmark } from "@/hooks/queries/student/useBookmarks";
 
 export default function LessonTabs({ lesson, course }) {
   const [activeTab, setActiveTab] = useState("overview");
+
+  const { data: bookmarks = [] } = useBookmarks();
+  const createBookmarkMutation = useCreateBookmark();
+  const deleteBookmarkMutation = useDeleteBookmark();
+
+  const isLessonBookmarked = bookmarks?.some(
+    (b) => b.lessonId === lesson?.id && b.type === "Lesson"
+  ) || false;
+
+  const handleBookmarkLesson = async () => {
+    if (!lesson) return;
+    if (isLessonBookmarked) {
+      const bookmark = bookmarks?.find(
+        (b) => b.lessonId === lesson?.id && b.type === "Lesson"
+      );
+      if (bookmark) {
+        try {
+          await deleteBookmarkMutation.mutateAsync(bookmark.id);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    } else {
+      try {
+        await createBookmarkMutation.mutateAsync({
+          type: "Lesson",
+          title: lesson.title,
+          detail: course?.title || "",
+          courseId: course?.id || "",
+          lessonId: lesson.id,
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const getBookmarkedContent = (content) => {
+    if (!lesson) return null;
+    return bookmarks?.find(
+      (b) => b.title === content.title && b.lessonId === lesson?.id
+    );
+  };
+
+  const handleBookmarkContent = async (content) => {
+    if (!lesson) return;
+    const existing = getBookmarkedContent(content);
+    if (existing) {
+      try {
+        await deleteBookmarkMutation.mutateAsync(existing.id);
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      const typeMap = {
+        VIDEO: "Video",
+        DOCUMENT: "Document",
+        LINK: "Web Link",
+        PRESENTATION: "Document"
+      };
+      const bookmarkType = typeMap[content.type] || "Document";
+      const contentUrl = content.videoUrl || content.fileUrl || content.externalUrl || "";
+
+      try {
+        await createBookmarkMutation.mutateAsync({
+          type: bookmarkType,
+          title: content.title || "Untitled Resource",
+          detail: lesson.title || "",
+          url: contentUrl,
+          courseId: course?.id || "",
+          lessonId: lesson.id,
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
 
   if (!lesson) {
     return (
@@ -77,9 +157,32 @@ export default function LessonTabs({ lesson, course }) {
       <div className="p-6">
         {activeTab === "overview" && (
           <div className="space-y-4">
-            <h2 className="text-2xl font-semibold text-white">
-              {lesson.title}
-            </h2>
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-2xl font-semibold text-white">
+                {lesson.title}
+              </h2>
+
+              <button
+                onClick={handleBookmarkLesson}
+                className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-semibold cursor-pointer transition ${
+                  isLessonBookmarked
+                    ? "bg-orange-500 text-white border-orange-500 hover:bg-orange-600"
+                    : "bg-slate-900/50 text-slate-300 border-slate-800 hover:border-orange-500/50"
+                }`}
+              >
+                {isLessonBookmarked ? (
+                  <>
+                    <BookmarkCheck className="h-4 w-4" />
+                    Bookmarked
+                  </>
+                ) : (
+                  <>
+                    <Bookmark className="h-4 w-4" />
+                    Bookmark Lesson
+                  </>
+                )}
+              </button>
+            </div>
 
             <p className="leading-7 text-slate-300">
               {lesson.description || "No description available."}
@@ -95,18 +198,43 @@ export default function LessonTabs({ lesson, course }) {
 
             {lesson.contents?.length ? (
               <div className="space-y-3">
-                {lesson.contents.map((content) => (
-                  <div
-                    key={content.id}
-                    className="rounded-lg border border-slate-800 bg-slate-950 p-4"
-                  >
-                    <p className="font-medium text-white">{content.title}</p>
+                {lesson.contents.map((content) => {
+                  const isContentSaved = !!getBookmarkedContent(content);
+                  return (
+                    <div
+                      key={content.id}
+                      className="flex items-center justify-between gap-4 rounded-lg border border-slate-800 bg-slate-950 p-4"
+                    >
+                      <div>
+                        <p className="font-medium text-white">{content.title}</p>
+                        <p className="mt-2 text-sm text-slate-400">
+                          Type: {content.type}
+                        </p>
+                      </div>
 
-                    <p className="mt-2 text-sm text-slate-400">
-                      Type: {content.type}
-                    </p>
-                  </div>
-                ))}
+                      <button
+                        onClick={() => handleBookmarkContent(content)}
+                        className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[10px] font-bold cursor-pointer transition ${
+                          isContentSaved
+                            ? "bg-orange-500 text-white border-orange-500 hover:bg-orange-600"
+                            : "bg-slate-900 text-slate-400 border-slate-800 hover:border-orange-500/50"
+                        }`}
+                      >
+                        {isContentSaved ? (
+                          <>
+                            <BookmarkCheck className="h-3 w-3" />
+                            Bookmarked
+                          </>
+                        ) : (
+                          <>
+                            <Bookmark className="h-3 w-3" />
+                            Bookmark
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-slate-400">No resources available.</p>

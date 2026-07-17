@@ -44,6 +44,20 @@ export default function LearnPage() {
     useEffect(() => {
         if (isStateLoading || isLoading || stateRestored) return;
 
+        // Try restoring from URL query param first
+        if (typeof window !== "undefined") {
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryLessonId = urlParams.get("lessonId");
+            if (queryLessonId) {
+                const matchedLesson = lessons.find((l) => l.id === queryLessonId);
+                if (matchedLesson) {
+                    setSelectedLesson(matchedLesson);
+                    setStateRestored(true);
+                    return;
+                }
+            }
+        }
+
         const savedState = stateData?.data || stateData;
         if (savedState && savedState.courseId === courseId && savedState.lessonId) {
             const matchedLesson = lessons.find((l) => l.id === savedState.lessonId);

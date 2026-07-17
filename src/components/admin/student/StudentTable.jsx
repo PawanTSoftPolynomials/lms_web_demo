@@ -8,6 +8,7 @@ import StudentRow from "./StudentRow";
 export default function StudentTable({
                                          students = [],
                                          onView,
+                                         onEdit,
                                          onDelete,
                                      }) {
     if (!students.length) {
@@ -63,6 +64,7 @@ export default function StudentTable({
                             key={student.id}
                             student={student}
                             onView={onView}
+                            onEdit={onEdit}
                             onDelete={onDelete}
                         />
                     ))}
@@ -103,7 +105,11 @@ export default function StudentTable({
                                             onClick: () =>
                                                 onView?.(student),
                                         },
-
+                                        {
+                                            label: "Edit",
+                                            onClick: () =>
+                                                onEdit?.(student),
+                                        },
                                         {
                                             label: "Delete",
                                             danger: true,

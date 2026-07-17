@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
   Bookmark,
   Trash2,
@@ -43,6 +44,7 @@ const typeColor = (type) => {
 };
 
 export default function BookmarksPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -63,6 +65,22 @@ export default function BookmarksPage() {
   const handleDelete = async (id) => {
     if (!confirm("Remove this bookmark?")) return;
     try { await deleteBookmark.mutateAsync(id); } catch {}
+  };
+
+  const handleCardClick = (bookmark) => {
+    if (bookmark.type === "Course" && bookmark.courseId) {
+      router.push(`/student/courses/${bookmark.courseId}`);
+    } else if (
+      (bookmark.type === "Lesson" || bookmark.type === "Video" || bookmark.type === "Document") &&
+      bookmark.courseId &&
+      bookmark.lessonId
+    ) {
+      router.push(`/student/learn/${bookmark.courseId}?lessonId=${bookmark.lessonId}`);
+    } else if (bookmark.type === "Note") {
+      router.push("/student/notes");
+    } else if (bookmark.url) {
+      window.open(bookmark.url, "_blank", "noopener,noreferrer");
+    }
   };
 
   return (
@@ -126,7 +144,8 @@ export default function BookmarksPage() {
           {filtered.map((bookmark) => (
             <div
               key={bookmark.id}
-              className="bg-slate-900/50 border border-slate-800/80 backdrop-blur-md rounded-2xl px-5 py-4 shadow-luxury-md hover:border-orange-500/30 transition group flex items-center gap-4"
+              onClick={() => handleCardClick(bookmark)}
+              className="bg-slate-900/50 border border-slate-800/80 backdrop-blur-md rounded-2xl px-5 py-4 shadow-luxury-md hover:border-orange-500/30 transition group flex items-center gap-4 cursor-pointer hover:bg-slate-900/80"
             >
               {/* Type Icon */}
               <div className={`p-2.5 rounded-xl flex-shrink-0 border ${typeColor(bookmark.type)}`}>
@@ -163,7 +182,10 @@ export default function BookmarksPage() {
                   </a>
                 )}
                 <button
-                  onClick={() => handleDelete(bookmark.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(bookmark.id);
+                  }}
                   className="p-2 hover:bg-red-500/10 rounded-xl transition text-slate-400 hover:text-red-500"
                 >
                   <Trash2 size={15} />

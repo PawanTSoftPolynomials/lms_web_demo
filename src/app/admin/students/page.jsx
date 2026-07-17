@@ -113,7 +113,11 @@ export default function AdminStudentsPage() {
                             `/admin/students/${student.id}`
                         )
                     }
-
+                    onEdit={(student) =>
+                        router.push(
+                            `/admin/users/edit/${student.user.id}`
+                        )
+                    }
                     onDelete={(student) =>
                         console.log(
                             "Delete Student:",
