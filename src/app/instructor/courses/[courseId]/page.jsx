@@ -16,19 +16,6 @@ import {
   MoreVertical,
   Settings,
   ChevronRight,
-import {
-  Eye,
-  Pencil,
-  Plus,
-  GraduationCap,
-  Layers,
-  Star,
-  Calendar,
-  Clock,
-  User,
-  MoreVertical,
-  Settings,
-  ChevronRight,
   ChevronDown,
   BookOpen,
   TrendingUp,
@@ -38,7 +25,7 @@ import {
   FileText,
   HelpCircle,
   ClipboardList,
-  ClipboardList,
+  PlayCircle
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -47,15 +34,7 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Legend,
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
+  Legend
 } from "recharts";
 
 import Loader from "@/components/common/Loader";
@@ -65,66 +44,12 @@ import { useModules } from "@/hooks/queries/instructor/useModules";
 import { useDeleteModule } from "@/hooks/queries/instructor/useDeleteModule";
 import { useStudentEngagement, useConceptMastery } from "@/hooks/queries/instructor/useInstructorDashboard";
 
-// Recharts mockup datasets for Student Engagement fallback
-const defaultEngagementData = [
-  { name: "Apr 20", active: 160, enrollments: 80, completions: 50 },
-  { name: "Apr 27", active: 155, enrollments: 85, completions: 52 },
-  { name: "May 04", active: 165, enrollments: 95, completions: 48 },
-  { name: "May 11", active: 195, enrollments: 110, completions: 55 },
-  { name: "May 18", active: 220, enrollments: 125, completions: 58 },
-// Recharts mockup datasets for Student Engagement
-const engagementData = [
-  { name: "Apr 20", active: 160, enrollments: 80, completions: 50 },
-  { name: "Apr 27", active: 155, enrollments: 85, completions: 52 },
-  { name: "May 04", active: 165, enrollments: 95, completions: 48 },
-  { name: "May 11", active: 195, enrollments: 110, completions: 55 },
-  { name: "May 18", active: 220, enrollments: 125, completions: 58 },
-];
-
-// Concept Mastery dataset
-const conceptMasteryList = [
-  {
-    name: "Servlet Lifecycle",
-    mastered: 176,
-    total: 248,
-    rate: 71,
-    level: "strong",
-  },
-  { name: "JSP & EL", mastered: 162, total: 248, rate: 65, level: "strong" },
-  {
-    name: "EJB Architecture",
-    mastered: 148,
-    total: 248,
-    rate: 60,
-    level: "neutral",
-  },
-  {
-    name: "JPA & Hibernate",
-    mastered: 138,
-    total: 248,
-    rate: 56,
-    level: "neutral",
-  },
-  { name: "Transactions", mastered: 124, total: 248, rate: 50, level: "weak" },
-  {
-    name: "Security Concepts",
-    mastered: 112,
-    total: 248,
-    rate: 45,
-    level: "weak",
-  },
-];
-
 export default function CourseDetailsPage() {
-  const { courseId } = useParams();
+  const params = useParams();
   const router = useRouter();
-  const [activeDropdown, setActiveDropdown] = useState(null);
+  const courseId = params.courseId;
 
-
-  // Accordion open/close states
-  const [expandedModules, setExpandedModules] = useState({});
-  const [expandedLessons, setExpandedLessons] = useState({});
-
+  // React Query Hooks
   const {
     data: course,
     isLoading: courseLoading,
@@ -137,10 +62,22 @@ export default function CourseDetailsPage() {
     isError: modulesError,
   } = useModules(courseId);
 
-  const { data: dbEngagement = [] } = useStudentEngagement(courseId);
-  const { data: dbConceptMastery = [] } = useConceptMastery(courseId);
-
   const deleteModuleMutation = useDeleteModule();
+
+  const {
+    data: engagementData = [],
+    isLoading: engagementLoading,
+  } = useStudentEngagement(courseId);
+
+  const {
+    data: conceptMasteryData = [],
+    isLoading: masteryLoading,
+  } = useConceptMastery(courseId);
+
+  // States
+  const [expandedModules, setExpandedModules] = useState({});
+  const [expandedLessons, setExpandedLessons] = useState({});
+  const [activeDropdown, setActiveDropdown] = useState(null);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -163,14 +100,13 @@ export default function CourseDetailsPage() {
     }));
   };
 
-  const handleDelete = async (e, module) => {
+  const handleDelete = async (e, mod) => {
     e.stopPropagation();
-    setActiveDropdown(null);
-    const confirmed = window.confirm(`Delete "${module.title}"?`);
-    if (!confirmed) return;
-
+    if (!window.confirm("Are you sure you want to delete this module and all its lessons?")) {
+      return;
+    }
     try {
-      await deleteModuleMutation.mutateAsync(module.id);
+      await deleteModuleMutation.mutateAsync(mod.id);
     } catch (error) {
       console.error(error);
     }
@@ -196,15 +132,8 @@ export default function CourseDetailsPage() {
             Please check your database connection or try again later.
           </p>
           <button
-          <h2 className="text-2xl font-bold text-white mb-2">
-            Failed to load course details
-          </h2>
-          <p className="text-slate-400 mb-6">
-            Please check your database connection or try again later.
-          </p>
-          <button
             onClick={() => window.location.reload()}
-            className="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold uppercase text-xs tracking-wider transition"
+            className="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-655 text-slate-950 font-extrabold uppercase text-xs tracking-wider transition"
           >
             Retry Loading
           </button>
@@ -213,72 +142,18 @@ export default function CourseDetailsPage() {
     );
   }
 
-  const isPublished =
-    course.status === "Published" || course.status === "PUBLISHED";
-  const isPublished =
-    course.status === "Published" || course.status === "PUBLISHED";
-
-  // Use the course's nested modules if available, otherwise fallback to modules list
-  const activeModules =
-    course.modules && course.modules.length > 0 ? course.modules : modules;
-
-  // Map Student Engagement Data
-  const engagementData = dbEngagement.map((item, idx) => {
-    const multipliers = [120, 150, 220, 180, 200, 160, 130];
-    const multiplier = multipliers[idx % multipliers.length];
-    return {
-      name: item.day,
-      active: (item.activeStudents ?? 5) * multiplier,
-      enrollments: (item.activeStudents ?? 5) * multiplier * 0.5,
-      completions: (item.lessonsCompleted ?? 3) * multiplier * 0.7,
-    };
-  });
-
-  if (engagementData.length === 0) {
-    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    days.forEach((day, idx) => {
-      const activeValues = [160, 155, 165, 195, 220, 200, 180];
-      const enrollmentValues = [80, 85, 95, 110, 125, 115, 100];
-      const completionValues = [50, 52, 48, 55, 58, 62, 50];
-      engagementData.push({
-        name: day,
-        active: activeValues[idx],
-        enrollments: enrollmentValues[idx],
-        completions: completionValues[idx],
-      });
-    });
-  }
-
-  // Map Concept Mastery Data
+  const isPublished = course.status === "Published" || course.status === "PUBLISHED";
+  const activeModules = modules || [];
+  const lessonsCount = activeModules.reduce((acc, m) => acc + (m.lessons?.length ?? 0), 0);
   const totalEnrolls = course.enrollments?.length ?? 0;
-  const conceptList = dbConceptMastery.map((item) => ({
-    name: item.concept,
-    mastered: Math.round((item.mastery / 100) * (item.students || totalEnrolls || 1)),
-    total: item.students || totalEnrolls || 0,
-    rate: item.mastery,
-    level: item.status?.toLowerCase() || (item.mastery >= 70 ? "strong" : item.mastery >= 50 ? "neutral" : "weak"),
-  }));
-
-  const finalConceptMastery = conceptList.length > 0 ? conceptList : [
-    { name: "Servlet Lifecycle", mastered: Math.min(176, totalEnrolls), total: totalEnrolls || 248, rate: totalEnrolls > 0 ? 71 : 0, level: totalEnrolls > 0 ? "strong" : "weak" },
-    { name: "JSP & EL", mastered: Math.min(162, totalEnrolls), total: totalEnrolls || 248, rate: totalEnrolls > 0 ? 65 : 0, level: totalEnrolls > 0 ? "strong" : "weak" },
-    { name: "EJB Architecture", mastered: Math.min(148, totalEnrolls), total: totalEnrolls || 248, rate: totalEnrolls > 0 ? 60 : 0, level: totalEnrolls > 0 ? "neutral" : "weak" },
-    { name: "JPA & Hibernate", mastered: Math.min(138, totalEnrolls), total: totalEnrolls || 248, rate: totalEnrolls > 0 ? 56 : 0, level: totalEnrolls > 0 ? "neutral" : "weak" },
-    { name: "Transactions", mastered: Math.min(124, totalEnrolls), total: totalEnrolls || 248, rate: totalEnrolls > 0 ? 50 : 0, level: "weak" },
-    { name: "Security Concepts", mastered: Math.min(112, totalEnrolls), total: totalEnrolls || 248, rate: totalEnrolls > 0 ? 45 : 0, level: "weak" },
-  ];
-
-  const avgMasteryRate = finalConceptMastery.length > 0
-    ? Math.round(finalConceptMastery.reduce((sum, c) => sum + c.rate, 0) / finalConceptMastery.length)
-    : 0;
 
   return (
     <div className="space-y-6 pb-16 animate-fade-in duration-300">
-      {/* 1. Compact Course Header Card (110-130px height block) */}
+      {/* 1. Course Header Card */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4 flex-1 min-w-0">
-            {/* Small Logo Square (64px) */}
+            {/* Logo */}
             <div className="h-16 w-16 overflow-hidden rounded-xl bg-white border border-slate-200 shrink-0 flex items-center justify-center p-1.5 shadow-sm">
               {course.thumbnailUrl ? (
                 <img
@@ -291,19 +166,12 @@ export default function CourseDetailsPage() {
               )}
             </div>
 
-            {/* Header Content */}
+            {/* Header Details */}
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-1">
                 <span className="rounded-xl bg-purple-500/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-purple-400 border border-purple-500/20">
                   {course.category}
                 </span>
-                <span
-                  className={`rounded-xl px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
-                    isPublished
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                      : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                  }`}
-                >
                 <span
                   className={`rounded-xl px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
                     isPublished
@@ -329,19 +197,7 @@ export default function CourseDetailsPage() {
                   <Calendar size={12} className="text-purple-400" />
                   <span>
                     Created:{" "}
-                    {new Date(
-                      course.createdAt ?? "2026-07-01",
-                    ).toLocaleDateString("en-US", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </span>
-                  <span>
-                    Created:{" "}
-                    {new Date(
-                      course.createdAt ?? "2026-07-01",
-                    ).toLocaleDateString("en-US", {
+                    {new Date(course.createdAt ?? "2026-07-01").toLocaleDateString("en-US", {
                       day: "numeric",
                       month: "short",
                       year: "numeric",
@@ -352,19 +208,7 @@ export default function CourseDetailsPage() {
                   <Clock size={12} className="text-purple-400" />
                   <span>
                     Last updated:{" "}
-                    {new Date(
-                      course.updatedAt ?? "2026-07-03",
-                    ).toLocaleDateString("en-US", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </span>
-                  <span>
-                    Last updated:{" "}
-                    {new Date(
-                      course.updatedAt ?? "2026-07-03",
-                    ).toLocaleDateString("en-US", {
+                    {new Date(course.updatedAt ?? "2026-07-03").toLocaleDateString("en-US", {
                       day: "numeric",
                       month: "short",
                       year: "numeric",
@@ -375,912 +219,164 @@ export default function CourseDetailsPage() {
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-3 shrink-0">
-            <Link
-              href={`/courses/${course.id}`}
-              target="_blank"
-              className="flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900/40 px-3.5 py-2 text-xs font-black uppercase tracking-widest text-slate-300 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+          {/* Quick Actions buttons */}
+          <div className="flex flex-wrap gap-2 shrink-0">
+            <button
+              onClick={() => router.push(`/instructor/courses/edit/${courseId}`)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-xl transition"
             >
-              <Eye size={13} />
-              <span>Preview Course</span>
-            </Link>
-
-            <Link
-              href={`/instructor/courses/edit/${course.id}`}
-              className="flex items-center gap-1.5 rounded-xl bg-orange-500 px-3.5 py-2 text-xs font-black uppercase tracking-widest text-slate-950 hover:bg-orange-600 transition cursor-pointer"
+              <Pencil size={12} />
+              Edit Course
+            </button>
+            <button
+              onClick={() => router.push(`/instructor/quizzes/${courseId}`)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-xl transition"
             >
-              <Pencil size={13} />
-              <span>Edit Course</span>
-            </Link>
+              <ClipboardList size={12} />
+              Manage Quizzes
+            </button>
+            <button
+              onClick={() => router.push(`/instructor/modules/create/${courseId}`)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold text-white bg-orange-500 hover:bg-orange-655 rounded-xl shadow-sm transition"
+            >
+              <Plus size={12} />
+              Add Module
+            </button>
           </div>
         </div>
       </div>
 
-      {/* 2. Main Dashboard Columns (65% / 35% Layout Grid) */}
-      <div className="grid gap-6 lg:grid-cols-3 lg:gap-6">
-        {/* Left Column (65% Width) */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* KPI Statistics Sub-Grid (4 Cards) */}
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-            {/* Card 1: Students */}
-            <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4.5 shadow-sm hover:border-slate-700/60 transition duration-305">
-              <div className="flex items-center justify-between">
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                  Total Students
-                </p>
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                  Total Students
-                </p>
-                <div className="rounded-lg bg-purple-500/10 p-2 border border-purple-500/20">
-                  <GraduationCap size={15} className="text-purple-400" />
-                </div>
-              </div>
-              <h3 className="mt-2 text-2xl font-bold text-white">
-                {course.enrollments?.length ?? 0}
-              </h3>
-              <p className="mt-1.5 text-[8px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-0.5">
-                <span>↑ {course.enrollments?.length > 0 ? "12%" : "0%"}</span>
-                <span className="text-slate-500">from last month</span>
-              </p>
-            </div>
-
-            {/* Card 2: Modules */}
-            <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4.5 shadow-sm hover:border-slate-700/60 transition duration-305">
-              <div className="flex items-center justify-between">
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                  Total Modules
-                </p>
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                  Total Modules
-                </p>
-                <div className="rounded-lg bg-orange-500/10 p-2 border border-orange-500/20">
-                  <Layers size={15} className="text-orange-400" />
-                </div>
-              </div>
-              <h3 className="mt-2 text-2xl font-bold text-white">
-                {activeModules.length}
-              </h3>
-              <h3 className="mt-2 text-2xl font-bold text-white">
-                {activeModules.length}
-              </h3>
-              <p className="mt-1.5 text-[8px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-0.5">
-                <span>— No change</span>
-              </p>
-            </div>
-
-            {/* Card 3: Lessons */}
-            <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4.5 shadow-sm hover:border-slate-700/60 transition duration-305">
-              <div className="flex items-center justify-between">
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                  Total Lessons
-                </p>
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                  Total Lessons
-                </p>
-                <div className="rounded-lg bg-blue-500/10 p-2 border border-blue-500/20">
-                  <BookOpen size={15} className="text-blue-400" />
-                </div>
-              </div>
-              <h3 className="mt-2 text-2xl font-bold text-white">
-                {activeModules.reduce(
-                  (acc, curr) =>
-                    acc + (curr.lessons?.length || 0),
-                  0,
-                )}
-              </h3>
-              <p className="mt-1.5 text-[8px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-0.5">
-                <span>↑ {activeModules.length > 0 ? "8%" : "0%"}</span>
-                <span className="text-slate-500">from last month</span>
-              </p>
-            </div>
-
-            {/* Card 4: Completion Rate */}
-            <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4.5 shadow-sm hover:border-slate-700/60 transition duration-305">
-              <div className="flex items-center justify-between">
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                  Completion Rate
-                </p>
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-                  Completion Rate
-                </p>
-                <div className="rounded-lg bg-emerald-500/10 p-2 border border-emerald-500/20">
-                  <Percent size={15} className="text-emerald-400" />
-                </div>
-              </div>
-              <h3 className="mt-2 text-2xl font-bold text-white">
-                {course.enrollments?.length > 0 ? "68%" : "0%"}
-              </h3>
-              <p className="mt-1.5 text-[8px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-0.5">
-                <span>↑ {course.enrollments?.length > 0 ? "4%" : "0%"}</span>
-                <span className="text-slate-500">from last month</span>
-              </p>
-            </div>
+      {/* 2. KPI Statistics Cards */}
+      <div className="grid gap-4 grid-cols-3">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm flex flex-col justify-between">
+          <div className="flex justify-between items-start text-slate-500 mb-2">
+            <p className="text-[9px] font-extrabold uppercase tracking-wider">Total Modules</p>
+            <Layers size={16} className="text-orange-500" />
           </div>
-
-          {/* Modules Table Directory Card (Rebuilt into Nested Accordion Tree Table) */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-350">
-                    Modules
-                  </h3>
-                  <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-extrabold text-slate-400 border border-slate-700/60">
-                    {activeModules.length}
-                  </span>
-                </div>
-                <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider mt-0.5">
-                  Organize and manage your course content.
-                </p>
-              </div>
-
-              <Link
-                href={`/instructor/modules/create/${courseId}`}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-orange-500/30 text-orange-400 hover:bg-orange-500 hover:text-slate-950 text-[10px] font-black uppercase tracking-widest transition cursor-pointer"
-              >
-                <Plus size={12} />
-                <span>Add Module</span>
-              </Link>
-            </div>
-
-            {/* Tree Accordion Content */}
-            {!activeModules.length ? (
-              <div className="py-12 text-center rounded-2xl border border-dashed border-slate-800/80">
-                <Layers size={36} className="mx-auto text-slate-600 mb-3" />
-                <h4 className="text-sm font-bold text-white uppercase tracking-widest">
-                  No Modules Found
-                </h4>
-                <p className="text-[10px] text-slate-500 uppercase font-semibold mt-1">
-                  Get started by creating your first course module.
-                </p>
-                <h4 className="text-sm font-bold text-white uppercase tracking-widest">
-                  No Modules Found
-                </h4>
-                <p className="text-[10px] text-slate-500 uppercase font-semibold mt-1">
-                  Get started by creating your first course module.
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs table-auto align-middle">
-                  <thead>
-                    <tr className="border-b border-slate-800/80 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                      <th className="py-3 pl-3"># MODULE NAME</th>
-                      <th className="py-3 text-center w-24">LESSONS</th>
-                      <th className="py-3 text-center w-24">DURATION</th>
-                      <th className="py-3 w-28">STATUS</th>
-                      <th className="py-3 pr-3 text-right w-16">ACTIONS</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activeModules.map((mod, idx) => {
-                      const modExpanded = !!expandedModules[mod.id];
-                      const modPublished = mod.isPublished;
-                      const modLessons = mod.lessons || [];
-                      const durationStr = modLessons.length
-                        ? `${modLessons.length * 15} min`
-                        : "45 min";
-
-                      const durationStr = modLessons.length
-                        ? `${modLessons.length * 15} min`
-                        : "45 min";
-
-                      return (
-                        <Fragment key={mod.id}>
-                          {/* Module Accordion Header Row */}
-                          <tr
-                          <tr
-                            key={mod.id}
-                            className="border-b border-slate-800/40 hover:bg-slate-800/10 transition duration-200 align-middle"
-                          >
-                            <td className="py-3.5 pl-3">
-                              <div className="flex items-center gap-2">
-                                <button
-                                <button
-                                  onClick={() => toggleModule(mod.id)}
-                                  className="text-slate-500 hover:text-white p-1 rounded transition"
-                                >
-                                  {modExpanded ? (
-                                    <ChevronDown size={14} />
-                                  ) : (
-                                    <ChevronRight size={14} />
-                                  )}
-                                  {modExpanded ? (
-                                    <ChevronDown size={14} />
-                                  ) : (
-                                    <ChevronRight size={14} />
-                                  )}
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    router.push(
-                                      `/instructor/courses/${courseId}/modules/${mod.id}`,
-                                    )
-                                  }
-                                  onClick={() =>
-                                    router.push(
-                                      `/instructor/courses/${courseId}/modules/${mod.id}`,
-                                    )
-                                  }
-                                  className="font-extrabold text-white hover:text-orange-400 text-left transition"
-                                >
-                                  Module {idx + 1}: {mod.title}
-                                </button>
-                              </div>
-                            </td>
-                            <td className="py-3.5 text-center">
-                              <span className="rounded-xl border border-slate-800 bg-slate-900/60 px-2.5 py-1 text-[10px] font-bold text-slate-300">
-                                {modLessons.length} Lessons
-                              </span>
-                            </td>
-                            <td className="py-3.5 text-center font-extrabold text-slate-400">
-                              {durationStr}
-                            </td>
-                            <td className="py-3.5">
-                              <span
-                                className={`inline-flex rounded-xl px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
-                                  modPublished
-                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                    : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                                }`}
-                              >
-                              <span
-                                className={`inline-flex rounded-xl px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
-                                  modPublished
-                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                    : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                                }`}
-                              >
-                                {modPublished ? "Published" : "Draft"}
-                              </span>
-                            </td>
-                            <td className="py-3.5 pr-3 text-right relative">
-                              <button
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveDropdown(
-                                    activeDropdown === mod.id ? null : mod.id,
-                                  );
-                                  setActiveDropdown(
-                                    activeDropdown === mod.id ? null : mod.id,
-                                  );
-                                }}
-                                className="text-slate-500 hover:text-white transition p-1 hover:bg-slate-800/60 rounded-lg"
-                              >
-                                <MoreVertical size={16} />
-                              </button>
-
-                              {/* Dropdown Menu */}
-                              {activeDropdown === mod.id && (
-                                <div className="absolute right-3 mt-1.5 w-32 rounded-xl border border-slate-800 bg-slate-955 p-1.5 shadow-xl z-20 text-left">
-                                  <button
-                                    onClick={() =>
-                                      router.push(
-                                        `/instructor/courses/${courseId}/quizzes`,
-                                      )
-                                    }
-                                    onClick={() =>
-                                      router.push(
-                                        `/instructor/courses/${courseId}/quizzes`,
-                                      )
-                                    }
-                                    className="w-full text-[10px] font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-slate-800 px-2.5 py-1.5 rounded-lg transition"
-                                  >
-                                    Quizzes
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      router.push(
-                                        `/instructor/courses/${courseId}/modules/edit/${mod.id}`,
-                                      )
-                                    }
-                                    onClick={() =>
-                                      router.push(
-                                        `/instructor/courses/${courseId}/modules/edit/${mod.id}`,
-                                      )
-                                    }
-                                    className="w-full text-[10px] font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-slate-800 px-2.5 py-1.5 rounded-lg transition"
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
-                                    onClick={(e) => handleDelete(e, mod)}
-                                    className="w-full text-[10px] font-bold uppercase tracking-wider text-red-400 hover:text-red-300 hover:bg-red-950/20 px-2.5 py-1.5 rounded-lg transition"
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              )}
-                            </td>
-                          </tr>
-
-                          {/* Expanded Lessons sub-list */}
-                          {modExpanded && (
-                            <tr>
-                              <td
-                                colSpan={5}
-                                className="py-1 px-0 border-b border-slate-800/40 bg-slate-900/10"
-                              >
-                              <td
-                                colSpan={5}
-                                className="py-1 px-0 border-b border-slate-800/40 bg-slate-900/10"
-                              >
-                                <div className="space-y-1 py-1">
-                                  {!modLessons.length ? (
-                                    <div className="pl-12 py-3 text-[10px] text-slate-500 uppercase font-semibold">
-                                      No lessons added to this module.
-                                    </div>
-                                  ) : (
-                                    modLessons.map((lesson, lIdx) => {
-                                      const lessonExpanded =
-                                        !!expandedLessons[lesson.id];
-                                      const lessonContents =
-                                        lesson.contents || [];
-
-                                      return (
-                                        <div
-                                          key={lesson.id}
-                                          className="space-y-1"
-                                        >
-                                        <div
-                                          key={lesson.id}
-                                          className="space-y-1"
-                                        >
-                                          {/* Lesson Row */}
-                                          <div className="flex items-center justify-between py-2 hover:bg-slate-800/20 rounded-lg transition">
-                                            {/* Lesson Title column */}
-                                            <div className="pl-8 flex items-center gap-2">
-                                              <button
-                                                onClick={() =>
-                                                  toggleLesson(lesson.id)
-                                                }
-                                              <button
-                                                onClick={() =>
-                                                  toggleLesson(lesson.id)
-                                                }
-                                                className="text-slate-500 hover:text-white p-1 rounded transition"
-                                              >
-                                                {lessonExpanded ? (
-                                                  <ChevronDown size={12} />
-                                                ) : (
-                                                  <ChevronRight size={12} />
-                                                )}
-                                                {lessonExpanded ? (
-                                                  <ChevronDown size={12} />
-                                                ) : (
-                                                  <ChevronRight size={12} />
-                                                )}
-                                              </button>
-                                              <FileText
-                                                size={13}
-                                                className="text-slate-400 shrink-0"
-                                              />
-                                              <FileText
-                                                size={13}
-                                                className="text-slate-400 shrink-0"
-                                              />
-                                              <button
-                                                onClick={() =>
-                                                  router.push(
-                                                    `/instructor/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}`,
-                                                  )
-                                                }
-                                                onClick={() =>
-                                                  router.push(
-                                                    `/instructor/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}`,
-                                                  )
-                                                }
-                                                className="font-semibold text-slate-300 hover:text-orange-400 text-left transition"
-                                              >
-                                                Lesson {lIdx + 1}:{" "}
-                                                {lesson.title}
-                                                Lesson {lIdx + 1}:{" "}
-                                                {lesson.title}
-                                              </button>
-                                            </div>
-
-                                            {/* Lesson Metadata columns mapped to headers */}
-                                            <div className="flex items-center justify-end w-full max-w-[290px] mr-12 text-right">
-                                              <div className="w-24 text-center shrink-0">
-                                                <span className="rounded-xl border border-slate-805 bg-slate-900/80 px-2.5 py-0.5 text-[9px] font-bold text-slate-400">
-                                                  {lessonContents.length}{" "}
-                                                  Contents
-                                                  {lessonContents.length}{" "}
-                                                  Contents
-                                                </span>
-                                              </div>
-                                              <div className="w-24 text-center shrink-0 font-bold text-slate-500 text-[10px]">
-                                                {lessonContents.length ? `${lessonContents.length * 15} min` : "0 min"}
-                                              </div>
-                                              <div className="w-28 text-left shrink-0 pl-1">
-                                                <span className={`rounded-xl px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
-                                                  lesson.isPublished
-                                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                                    : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                                                }`}>
-                                                  {lesson.isPublished ? "Published" : "Draft"}
-                                                </span>
-                                              </div>
-                                              <div className="w-16 text-right shrink-0 pr-1.5 relative">
-                                                <button
-                                                <button
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setActiveDropdown(
-                                                      activeDropdown ===
-                                                        lesson.id
-                                                        ? null
-                                                        : lesson.id,
-                                                    );
-                                                    setActiveDropdown(
-                                                      activeDropdown ===
-                                                        lesson.id
-                                                        ? null
-                                                        : lesson.id,
-                                                    );
-                                                  }}
-                                                  className="text-slate-600 hover:text-white transition"
-                                                >
-                                                  <MoreVertical size={14} />
-                                                </button>
-
-                                                {/* Lesson Dropdown */}
-                                                {activeDropdown ===
-                                                  lesson.id && (
-                                                {activeDropdown ===
-                                                  lesson.id && (
-                                                  <div className="absolute right-3 mt-1.5 w-32 rounded-xl border border-slate-800 bg-slate-955 p-1.5 shadow-xl z-20 text-left">
-                                                    <button
-                                                      onClick={() =>
-                                                        router.push(
-                                                          `/instructor/courses/${courseId}/modules/${mod.id}/lessons/edit/${lesson.id}`,
-                                                        )
-                                                      }
-                                                      onClick={() =>
-                                                        router.push(
-                                                          `/instructor/courses/${courseId}/modules/${mod.id}/lessons/edit/${lesson.id}`,
-                                                        )
-                                                      }
-                                                      className="w-full text-[10px] font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-slate-800 px-2.5 py-1.5 rounded-lg transition"
-                                                    >
-                                                      Edit
-                                                    </button>
-                                                    <button
-                                                      onClick={() =>
-                                                        router.push(
-                                                          `/instructor/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}/contents/create`,
-                                                        )
-                                                      }
-                                                      onClick={() =>
-                                                        router.push(
-                                                          `/instructor/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}/contents/create`,
-                                                        )
-                                                      }
-                                                      className="w-full text-[10px] font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-slate-800 px-2.5 py-1.5 rounded-lg transition"
-                                                    >
-                                                      Add Content
-                                                    </button>
-                                                    <button
-                                                      onClick={() => {}}
-                                                      className="w-full text-[10px] font-bold uppercase tracking-wider text-red-400 hover:text-red-300 hover:bg-red-955 px-2.5 py-1.5 rounded-lg transition"
-                                                    >
-                                                      Delete
-                                                    </button>
-                                                  </div>
-                                                )}
-                                              </div>
-                                            </div>
-                                          </div>
-
-                                          {/* Nested Content Row List */}
-                                          {lessonExpanded && (
-                                            <div className="pl-16 ml-3 border-l border-slate-800 space-y-2 py-1 mt-0.5 mb-2">
-                                              {lessonContents.map((content) => {
-                                                const isQuiz =
-                                                  content.type === "QUIZ" ||
-                                                  content.title
-                                                    .toLowerCase()
-                                                    .includes("quiz");
-                                                const isAssignment =
-                                                  content.type ===
-                                                    "ASSIGNMENT" ||
-                                                  content.title
-                                                    .toLowerCase()
-                                                    .includes("assignment") ||
-                                                  content.title
-                                                    .toLowerCase()
-                                                    .includes("practice");
-
-                                                let icon = (
-                                                  <FileText
-                                                    size={12}
-                                                    className="text-slate-500 shrink-0"
-                                                  />
-                                                );
-                                                const isQuiz =
-                                                  content.type === "QUIZ" ||
-                                                  content.title
-                                                    .toLowerCase()
-                                                    .includes("quiz");
-                                                const isAssignment =
-                                                  content.type ===
-                                                    "ASSIGNMENT" ||
-                                                  content.title
-                                                    .toLowerCase()
-                                                    .includes("assignment") ||
-                                                  content.title
-                                                    .toLowerCase()
-                                                    .includes("practice");
-
-                                                let icon = (
-                                                  <FileText
-                                                    size={12}
-                                                    className="text-slate-500 shrink-0"
-                                                  />
-                                                );
-                                                let labelPrefix = "Content";
-
-
-                                                if (isQuiz) {
-                                                  icon = (
-                                                    <HelpCircle
-                                                      size={12}
-                                                      className="text-slate-500 shrink-0"
-                                                    />
-                                                  );
-                                                  icon = (
-                                                    <HelpCircle
-                                                      size={12}
-                                                      className="text-slate-500 shrink-0"
-                                                    />
-                                                  );
-                                                  labelPrefix = "Quiz";
-                                                } else if (isAssignment) {
-                                                  icon = (
-                                                    <ClipboardList
-                                                      size={12}
-                                                      className="text-slate-500 shrink-0"
-                                                    />
-                                                  );
-                                                  icon = (
-                                                    <ClipboardList
-                                                      size={12}
-                                                      className="text-slate-500 shrink-0"
-                                                    />
-                                                  );
-                                                  labelPrefix = "Assignment";
-                                                }
-
-
-                                                // Format name: Strip prefix if user has added it
-                                                const cleanTitle =
-                                                  content.title.replace(
-                                                    /^(content|quiz|assignment):\s*/i,
-                                                    "",
-                                                  );
-
-                                                const cleanTitle =
-                                                  content.title.replace(
-                                                    /^(content|quiz|assignment):\s*/i,
-                                                    "",
-                                                  );
-
-                                                return (
-                                                  <button
-                                                    key={content.id}
-                                                    onClick={() =>
-                                                      router.push(
-                                                        `/instructor/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}/contents/${content.id}`,
-                                                      )
-                                                    }
-                                                    onClick={() =>
-                                                      router.push(
-                                                        `/instructor/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}/contents/${content.id}`,
-                                                      )
-                                                    }
-                                                    className="flex items-center gap-2.5 py-1 text-slate-400 hover:text-orange-400 text-left transition cursor-pointer"
-                                                  >
-                                                    {icon}
-                                                    <span className="text-[10px] font-semibold uppercase tracking-wider">
-                                                      {labelPrefix}:{" "}
-                                                      {cleanTitle}
-                                                      {labelPrefix}:{" "}
-                                                      {cleanTitle}
-                                                    </span>
-                                                  </button>
-                                                );
-                                              })}
-                                            </div>
-                                          )}
-                                        </div>
-                                      );
-                                    })
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                        </Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+          <div>
+            <h4 className="text-2xl font-black tracking-tight text-white leading-none">
+              {activeModules.length}
+            </h4>
+            <p className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider mt-1">Modules added</p>
           </div>
         </div>
 
-        {/* Right Column (35% Width) */}
-        <div className="lg:col-span-1 space-y-6">
-          {/* Student Engagement Chart Card */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-black uppercase tracking-widest text-slate-350">
-                Student Engagement
-              </h3>
-              <h3 className="text-sm font-black uppercase tracking-widest text-slate-350">
-                Student Engagement
-              </h3>
-              <div className="flex items-center gap-1 text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-955 px-2.5 py-1.5 rounded-xl border border-slate-800/60 cursor-pointer hover:text-slate-300 transition">
-                <span>Last 30 days</span>
-                <ChevronDown size={12} className="text-slate-600" />
-              </div>
-            </div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm flex flex-col justify-between">
+          <div className="flex justify-between items-start text-slate-500 mb-2">
+            <p className="text-[9px] font-extrabold uppercase tracking-wider">Total Lessons</p>
+            <PlayCircle size={16} className="text-blue-500" />
+          </div>
+          <div>
+            <h4 className="text-2xl font-black tracking-tight text-white leading-none">
+              {lessonsCount}
+            </h4>
+            <p className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider mt-1">Lessons structured</p>
+          </div>
+        </div>
 
-            {/* Recharts Curved Spline Chart */}
-            <div className="h-[210px] w-full text-[10px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={engagementData}
-                  margin={{ top: 5, right: 5, left: -25, bottom: 5 }}
-                >
-                <AreaChart
-                  data={engagementData}
-                  margin={{ top: 5, right: 5, left: -25, bottom: 5 }}
-                >
-                  <defs>
-                    <linearGradient
-                      id="colorActive"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="5%"
-                        stopColor="#a855f7"
-                        stopOpacity={0.25}
-                      />
-                      <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
-                    <linearGradient
-                      id="colorActive"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="5%"
-                        stopColor="#a855f7"
-                        stopOpacity={0.25}
-                      />
-                      <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient
-                      id="colorEnrollments"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="5%"
-                        stopColor="#f97316"
-                        stopOpacity={0.25}
-                      />
-                      <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
-                    <linearGradient
-                      id="colorEnrollments"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="5%"
-                        stopColor="#f97316"
-                        stopOpacity={0.25}
-                      />
-                      <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient
-                      id="colorCompletions"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="5%"
-                        stopColor="#3b82f6"
-                        stopOpacity={0.25}
-                      />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                    <linearGradient
-                      id="colorCompletions"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="5%"
-                        stopColor="#3b82f6"
-                        stopOpacity={0.25}
-                      />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis
-                    dataKey="name"
-                    stroke="#475569"
-                  <XAxis
-                    dataKey="name"
-                    stroke="#475569"
-                    tickLine={false}
-                    axisLine={false}
-                    axisLine={false}
-                    dy={8}
-                    style={{ fontSize: "9px", fontWeight: "bold" }}
-                    style={{ fontSize: "9px", fontWeight: "bold" }}
-                  />
-                  <YAxis
-                    stroke="#475569"
-                  <YAxis
-                    stroke="#475569"
-                    tickLine={false}
-                    axisLine={false}
-                    axisLine={false}
-                    dx={-8}
-                    style={{ fontSize: "9px", fontWeight: "bold" }}
-                    style={{ fontSize: "9px", fontWeight: "bold" }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#020617",
-                      borderColor: "#1e293b",
-                      borderRadius: "12px",
-                      fontSize: "10px",
-                      fontWeight: "bold",
-                      color: "#f8fafc",
-                    }}
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#020617",
-                      borderColor: "#1e293b",
-                      borderRadius: "12px",
-                      fontSize: "10px",
-                      fontWeight: "bold",
-                      color: "#f8fafc",
-                    }}
-                  />
-                  <Legend
-                    verticalAlign="top"
-                    height={36}
-                  <Legend
-                    verticalAlign="top"
-                    height={36}
-                    iconSize={8}
-                    iconType="circle"
-                    style={{ fontSize: "9px", fontWeight: "bold" }}
-                    style={{ fontSize: "9px", fontWeight: "bold" }}
-                  />
-                  <Area
-                    type="monotone"
-                  <Area
-                    type="monotone"
-                    name="Active Students"
-                    dataKey="active"
-                    stroke="#a855f7"
-                    dataKey="active"
-                    stroke="#a855f7"
-                    strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#colorActive)"
-                    fillOpacity={1}
-                    fill="url(#colorActive)"
-                  />
-                  <Area
-                    type="monotone"
-                  <Area
-                    type="monotone"
-                    name="New Enrollments"
-                    dataKey="enrollments"
-                    stroke="#f97316"
-                    dataKey="enrollments"
-                    stroke="#f97316"
-                    strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#colorEnrollments)"
-                    fillOpacity={1}
-                    fill="url(#colorEnrollments)"
-                  />
-                  <Area
-                    type="monotone"
-                  <Area
-                    type="monotone"
-                    name="Lesson Completion"
-                    dataKey="completions"
-                    stroke="#3b82f6"
-                    dataKey="completions"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#colorCompletions)"
-                    fillOpacity={1}
-                    fill="url(#colorCompletions)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm flex flex-col justify-between">
+          <div className="flex justify-between items-start text-slate-500 mb-2">
+            <p className="text-[9px] font-extrabold uppercase tracking-wider">Students Enrolled</p>
+            <GraduationCap size={16} className="text-purple-500" />
+          </div>
+          <div>
+            <h4 className="text-2xl font-black tracking-tight text-white leading-none">
+              {totalEnrolls}
+            </h4>
+            <p className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider mt-1">Enrolled learners</p>
+          </div>
+        </div>
+      </div>
 
-            {/* Chart KPI Footers */}
-            <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-800/40 pt-4 text-center">
-              <div>
-                <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">
-                  Active Students
-                </p>
-                <p className="mt-1 text-sm font-bold text-white">
-                  {Math.round(engagementData[engagementData.length - 1]?.active ?? 0)}
-                </p>
-                <p className="mt-0.5 text-[8px] font-bold text-emerald-400">
-                  ↑ {totalEnrolls > 0 ? "15%" : "0%"}
-                </p>
-              </div>
-              <div className="border-l border-slate-850">
-                <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">
-                  New Enrollments
-                </p>
-                <p className="mt-1 text-sm font-bold text-white">
-                  {Math.round(engagementData[engagementData.length - 1]?.enrollments ?? 0)}
-                </p>
-                <p className="mt-0.5 text-[8px] font-bold text-emerald-400">
-                  ↑ {totalEnrolls > 0 ? "8%" : "0%"}
-                </p>
-              </div>
-              <div className="border-l border-slate-850">
-                <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">
-                  Lessons Done
-                </p>
-                <p className="mt-1 text-sm font-bold text-white">
-                  {Math.round(engagementData[engagementData.length - 1]?.completions ?? 0)}
-                </p>
-                <p className="mt-0.5 text-[8px] font-bold text-emerald-400">
-                  ↑ {totalEnrolls > 0 ? "12%" : "0%"}
-                </p>
-              </div>
-            </div>
+      {/* 3. Spline Chart & Concept Mastery Grid */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Student Engagement AreaChart */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm">
+          <h3 className="text-sm font-black uppercase tracking-widest text-slate-350 mb-1">
+            Student Engagement
+          </h3>
+          <p className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider mb-4">
+            Cohort activity footprint trends
+          </p>
+
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={engagementData} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorEnrollments" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorCompletions" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" stroke="#64748b" fontSize={8} tickLine={false} axisLine={false} />
+                <YAxis stroke="#64748b" fontSize={8} tickLine={false} axisLine={false} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#020617",
+                    borderColor: "#1e293b",
+                    borderRadius: "12px",
+                    fontSize: "10px",
+                    fontWeight: "bold",
+                    color: "#f8fafc",
+                  }}
+                />
+                <Legend
+                  verticalAlign="top"
+                  height={36}
+                  iconSize={8}
+                  iconType="circle"
+                  style={{ fontSize: "9px", fontWeight: "bold" }}
+                />
+                <Area type="monotone" name="Active Students" dataKey="active" stroke="#a855f7" strokeWidth={2} fill="url(#colorActive)" />
+                <Area type="monotone" name="New Enrollments" dataKey="enrollments" stroke="#f97316" strokeWidth={2} fill="url(#colorEnrollments)" />
+                <Area type="monotone" name="Lesson Completion" dataKey="completions" stroke="#3b82f6" strokeWidth={2} fill="url(#colorCompletions)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
 
-          {/* Concept Mastery Analytics Card */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
+          {/* Footers */}
+          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-800/40 pt-4 text-center">
+            <div>
+              <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">Active Students</p>
+              <p className="mt-1 text-sm font-bold text-white">
+                {Math.round(engagementData[engagementData.length - 1]?.active ?? 0)}
+              </p>
+              <p className="mt-0.5 text-[8px] font-bold text-emerald-400">↑ {totalEnrolls > 0 ? "15%" : "0%"}</p>
+            </div>
+            <div className="border-l border-slate-850">
+              <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">New Enrollments</p>
+              <p className="mt-1 text-sm font-bold text-white">
+                {Math.round(engagementData[engagementData.length - 1]?.enrollments ?? 0)}
+              </p>
+              <p className="mt-0.5 text-[8px] font-bold text-emerald-400">↑ {totalEnrolls > 0 ? "8%" : "0%"}</p>
+            </div>
+            <div className="border-l border-slate-850">
+              <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">Lessons Done</p>
+              <p className="mt-1 text-sm font-bold text-white">
+                {Math.round(engagementData[engagementData.length - 1]?.completions ?? 0)}
+              </p>
+              <p className="mt-0.5 text-[8px] font-bold text-emerald-400">↑ {totalEnrolls > 0 ? "12%" : "0%"}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Concept Mastery Analytics Card */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-1">
               <h3 className="text-sm font-black uppercase tracking-widest text-slate-350">
                 Concept Mastery
               </h3>
               <button
-                onClick={() =>
-                  router.push(`/instructor/courses/analytics/${courseId}`)
-                }
-              <h3 className="text-sm font-black uppercase tracking-widest text-slate-350">
-                Concept Mastery
-              </h3>
-              <button
-                onClick={() =>
-                  router.push(`/instructor/courses/analytics/${courseId}`)
-                }
+                onClick={() => router.push(`/instructor/courses/analytics/${courseId}`)}
                 className="text-[9px] font-black text-orange-400 hover:text-orange-500 uppercase tracking-widest transition"
               >
                 View Details
@@ -1290,61 +386,27 @@ export default function CourseDetailsPage() {
               Student understanding of key concepts in this course
             </p>
 
-            {/* List of concept mastery horizontal lines */}
-            <div className="space-y-3.5">
-              {finalConceptMastery.map((concept, index) => {
-                const isStrong = concept.level === "strong";
-                const isWeak = concept.level === "weak";
-
+            <div className="space-y-3">
+              {conceptMasteryData.map((concept, index) => {
+                const isStrong = concept.rate >= 70;
+                const isWeak = concept.rate < 40;
 
                 return (
-                  <div key={index} className="space-y-1.5">
+                  <div key={index} className="space-y-1">
                     <div className="flex items-center justify-between text-[10px] font-bold">
                       <span className="text-slate-300">{concept.name}</span>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-slate-500 font-medium">
-                          ({concept.mastered}/{concept.total})
-                        </span>
-                        <span
-                          className={
-                            isStrong
-                              ? "text-purple-400"
-                              : isWeak
-                                ? "text-amber-400"
-                                : "text-slate-400"
-                          }
-                        >
-                        <span className="text-slate-500 font-medium">
-                          ({concept.mastered}/{concept.total})
-                        </span>
-                        <span
-                          className={
-                            isStrong
-                              ? "text-purple-400"
-                              : isWeak
-                                ? "text-amber-400"
-                                : "text-slate-400"
-                          }
-                        >
+                        <span className="text-slate-500 font-medium">({concept.mastered ?? 0}/{(concept.total ?? totalEnrolls) || 100})</span>
+                        <span className={isStrong ? "text-purple-400" : isWeak ? "text-amber-400" : "text-slate-400"}>
                           {concept.rate}%
                         </span>
                       </div>
                     </div>
-
-                    {/* Progress Bar Container */}
-                    <div className="h-2 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-850">
-                      <div
+                    {/* Progress Bar */}
+                    <div className="h-1.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-850">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
-                          isStrong
-                            ? "bg-purple-500"
-                            : isWeak
-                              ? "bg-amber-500/80"
-                          isStrong
-                            ? "bg-purple-500"
-                            : isWeak
-                              ? "bg-amber-500/80"
-                              : "bg-slate-400/80"
+                          isStrong ? "bg-purple-500" : isWeak ? "bg-amber-500/85" : "bg-blue-500/80"
                         }`}
                         style={{ width: `${concept.rate}%` }}
                       />
@@ -1353,20 +415,258 @@ export default function CourseDetailsPage() {
                 );
               })}
             </div>
-
-            {/* Average Mastery Footer */}
-            <div className="mt-5 pt-3.5 border-t border-slate-800/40 flex items-center justify-between">
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                Average Mastery Rate
-              </span>
-              <span className="text-xl font-bold text-purple-400 tracking-tight">
-                {avgMasteryRate}%
-              </span>
-            </div>
           </div>
+
+          <div className="mt-4 pt-3.5 border-t border-slate-800/40 flex items-center justify-between">
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+              Average Mastery Rate
+            </span>
+            <span className="text-lg font-bold text-purple-400 tracking-tight">
+              {conceptMasteryData.length > 0
+                ? Math.round(conceptMasteryData.reduce((sum, c) => sum + c.rate, 0) / conceptMasteryData.length)
+                : 0}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Course Curriculum Accordion Section */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm">
+        <h3 className="text-sm font-black uppercase tracking-widest text-slate-350 mb-4 pl-1">
+          Course Syllabus
+        </h3>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-slate-800 text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                <th className="pb-3 pl-3">Module / Lesson</th>
+                <th className="pb-3 text-center w-28">Items</th>
+                <th className="pb-3 text-center w-28">Duration</th>
+                <th className="pb-3 w-28">Status</th>
+                <th className="pb-3 text-right pr-3 w-16">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-850/40">
+              {activeModules.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center text-slate-500 text-xs font-bold uppercase tracking-wider">
+                    No Modules Structuring This Course.
+                  </td>
+                </tr>
+              ) : (
+                activeModules.map((mod, idx) => {
+                  const modExpanded = !!expandedModules[mod.id];
+                  const modLessons = mod.lessons || [];
+
+                  return (
+                    <Fragment key={mod.id}>
+                      {/* Module Header Row */}
+                      <tr className="border-b border-slate-800/40 hover:bg-slate-800/10 transition duration-200 align-middle">
+                        <td className="py-3.5 pl-3">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => toggleModule(mod.id)}
+                              className="text-slate-500 hover:text-white p-1 rounded transition"
+                            >
+                              {modExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                            </button>
+                            <button
+                              onClick={() => router.push(`/instructor/courses/${courseId}/modules/${mod.id}`)}
+                              className="font-extrabold text-white hover:text-orange-400 text-left transition"
+                            >
+                              Module {idx + 1}: {mod.title}
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-3.5 text-center">
+                          <span className="rounded-xl border border-slate-800 bg-slate-900/60 px-2.5 py-1 text-[10px] font-bold text-slate-300">
+                            {modLessons.length} Lessons
+                          </span>
+                        </td>
+                        <td className="py-3.5 text-center font-extrabold text-slate-400">
+                          {modLessons.length ? `${modLessons.length * 15} min` : "45 min"}
+                        </td>
+                        <td className="py-3.5">
+                          <span
+                            className={`inline-flex rounded-xl px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
+                              mod.isPublished
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                            }`}
+                          >
+                            {mod.isPublished ? "Published" : "Draft"}
+                          </span>
+                        </td>
+                        <td className="py-3.5 pr-3 text-right relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDropdown(activeDropdown === mod.id ? null : mod.id);
+                            }}
+                            className="text-slate-500 hover:text-white transition p-1 hover:bg-slate-800/60 rounded-lg"
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+
+                          {activeDropdown === mod.id && (
+                            <div className="absolute right-3 mt-1.5 w-32 rounded-xl border border-slate-800 bg-slate-950 p-1.5 shadow-xl z-20 text-left">
+                              <button
+                                onClick={() => router.push(`/instructor/lessons/create/${mod.id}`)}
+                                className="w-full text-[9px] font-black uppercase tracking-widest text-slate-300 hover:text-white hover:bg-slate-805 px-2 py-1.5 rounded-lg transition text-left"
+                              >
+                                Add Lesson
+                              </button>
+                              <button
+                                onClick={() => router.push(`/instructor/modules/edit/${mod.id}`)}
+                                className="w-full text-[9px] font-black uppercase tracking-widest text-slate-300 hover:text-white hover:bg-slate-800 px-2 py-1.5 rounded-lg transition text-left"
+                              >
+                                Edit Module
+                              </button>
+                              <button
+                                onClick={(e) => handleDelete(e, mod)}
+                                className="w-full text-[9px] font-black uppercase tracking-widest text-red-400 hover:text-red-355 hover:bg-red-950/20 px-2 py-1.5 rounded-lg transition text-left"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+
+                      {/* Expanded Lessons sub-list */}
+                      {modExpanded && (
+                        <tr>
+                          <td colSpan={5} className="py-1 px-0 border-b border-slate-800/40 bg-slate-900/10">
+                            <div className="space-y-1 py-1">
+                              {!modLessons.length ? (
+                                <div className="pl-12 py-3 text-[9px] text-slate-500 uppercase font-semibold">
+                                  No lessons added to this module.
+                                </div>
+                              ) : (
+                                modLessons.map((lesson, lIdx) => {
+                                  const lessonExpanded = !!expandedLessons[lesson.id];
+                                  const lessonContents = lesson.contents || [];
+
+                                  return (
+                                    <div key={lesson.id} className="space-y-1">
+                                      <div className="flex items-center justify-between py-2 hover:bg-slate-800/20 rounded-lg transition">
+                                        <div className="pl-8 flex items-center gap-2">
+                                          <button
+                                            onClick={() => toggleLesson(lesson.id)}
+                                            className="text-slate-500 hover:text-white p-1 rounded transition"
+                                          >
+                                            {lessonExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                                          </button>
+                                          <FileText size={13} className="text-slate-400 shrink-0" />
+                                          <button
+                                            onClick={() => router.push(`/instructor/lessons/${lesson.id}`)}
+                                            className="font-semibold text-slate-300 hover:text-orange-400 text-left transition text-xs"
+                                          >
+                                            Lesson {lIdx + 1}: {lesson.title}
+                                          </button>
+                                        </div>
+
+                                        <div className="flex items-center justify-end w-full max-w-[290px] mr-12 text-right">
+                                          <div className="w-24 text-center shrink-0">
+                                            <span className="rounded-xl border border-slate-805 bg-slate-900/80 px-2.5 py-0.5 text-[9px] font-bold text-slate-400">
+                                              {lessonContents.length} Contents
+                                            </span>
+                                          </div>
+                                          <div className="w-24 text-center shrink-0 font-bold text-slate-500 text-[10px]">
+                                            {lessonContents.length ? `${lessonContents.length * 15} min` : "0 min"}
+                                          </div>
+                                          <div className="w-28 text-left shrink-0 pl-1">
+                                            <span
+                                              className={`rounded-xl px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
+                                                lesson.isPublished
+                                                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                                  : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                              }`}
+                                            >
+                                              {lesson.isPublished ? "Published" : "Draft"}
+                                            </span>
+                                          </div>
+                                          <div className="w-16 text-right shrink-0 pr-1.5 relative">
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setActiveDropdown(activeDropdown === lesson.id ? null : lesson.id);
+                                              }}
+                                              className="text-slate-650 hover:text-white transition"
+                                            >
+                                              <MoreVertical size={14} />
+                                            </button>
+
+                                            {activeDropdown === lesson.id && (
+                                              <div className="absolute right-3 mt-1.5 w-32 rounded-xl border border-slate-800 bg-slate-950 p-1.5 shadow-xl z-20 text-left">
+                                                <button
+                                                  onClick={() => router.push(`/instructor/lessons/edit/${lesson.id}`)}
+                                                  className="w-full text-[9px] font-black uppercase tracking-widest text-slate-300 hover:text-white hover:bg-slate-800 px-2 py-1.5 rounded-lg transition text-left"
+                                                >
+                                                  Edit Lesson
+                                                </button>
+                                                <button
+                                                  onClick={() => router.push(`/instructor/contents/create/${lesson.id}`)}
+                                                  className="w-full text-[9px] font-black uppercase tracking-widest text-slate-300 hover:text-white hover:bg-slate-800 px-2 py-1.5 rounded-lg transition text-left"
+                                                >
+                                                  Add Content
+                                                </button>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Lesson Contents Expanded Detail */}
+                                      {lessonExpanded && (
+                                        <div className="pl-16 pr-12 py-2 space-y-1.5">
+                                          {lessonContents.length === 0 ? (
+                                            <p className="text-[9px] text-slate-500 uppercase font-semibold">No contents added to this lesson.</p>
+                                          ) : (
+                                            lessonContents.map((content, cIdx) => (
+                                              <div key={content.id} className="flex justify-between items-center bg-slate-950/20 border border-slate-850/55 rounded-xl p-2.5">
+                                                <div className="flex items-center gap-2">
+                                                  <span className="text-[9px] text-slate-500 font-bold">Content {cIdx + 1}:</span>
+                                                  <Link
+                                                    href={`/instructor/contents/view/${content.id}`}
+                                                    className="text-xs font-semibold text-slate-300 hover:text-orange-400 transition"
+                                                  >
+                                                    {content.title}
+                                                  </Link>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                  <span className="rounded bg-slate-900 border border-slate-800 px-1.5 py-0.5 text-[8px] font-bold text-slate-400 uppercase tracking-wide">
+                                                    {content.type}
+                                                  </span>
+                                                  <button
+                                                    onClick={() => router.push(`/instructor/contents/edit/${content.id}`)}
+                                                    className="text-[9px] text-slate-505 hover:text-orange-400 transition font-bold"
+                                                  >
+                                                    Edit
+                                                  </button>
+                                                </div>
+                                              </div>
+                                            ))
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   );
 }
-
