@@ -361,7 +361,14 @@ export default function ChatSidebar() {
                 key={conversation.id}
                 conversation={conversation}
                 active={activeConversation?.id === conversation.id}
-                onClick={() => setActiveConversation(conversation)}
+                onClick={() => {
+                  setActiveConversation(conversation);
+                  setConversations((prev) =>
+                    prev.map((c) =>
+                      c.id === conversation.id ? { ...c, unread: 0 } : c
+                    )
+                  );
+                }}
               />
             ))
           )

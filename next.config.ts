@@ -27,26 +27,28 @@ const nextConfig: NextConfig = {
     },
     async rewrites() {
         return [
-            // Nested module details
+            // ==========================
+            // Modules (Specific first, then general)
+            // ==========================
+            // Nested module create
             {
-                source: "/instructor/courses/:courseId/modules/:moduleId",
-                destination: "/instructor/modules/:moduleId",
+                source: "/instructor/courses/:courseId/modules/create",
+                destination: "/instructor/modules/create/:courseId",
             },
             // Nested module edit
             {
                 source: "/instructor/courses/:courseId/modules/edit/:moduleId",
                 destination: "/instructor/modules/edit/:moduleId",
             },
-            // Nested module create
+            // Nested module details
             {
-                source: "/instructor/courses/:courseId/modules/create",
-                destination: "/instructor/modules/create/:courseId",
+                source: "/instructor/courses/:courseId/modules/:moduleId",
+                destination: "/instructor/modules/:moduleId",
             },
-            // Nested lesson details
-            {
-                source: "/instructor/courses/:courseId/modules/:moduleId/lessons/:lessonId",
-                destination: "/instructor/lessons/:lessonId",
-            },
+
+            // ==========================
+            // Lessons (Specific first, then general)
+            // ==========================
             // Nested lesson create
             {
                 source: "/instructor/courses/:courseId/modules/:moduleId/lessons/create",
@@ -57,11 +59,15 @@ const nextConfig: NextConfig = {
                 source: "/instructor/courses/:courseId/modules/:moduleId/lessons/edit/:lessonId",
                 destination: "/instructor/lessons/edit/:lessonId",
             },
-            // Nested content details
+            // Nested lesson details
             {
-                source: "/instructor/courses/:courseId/modules/:moduleId/lessons/:lessonId/contents/:contentId",
-                destination: "/instructor/contents/view/:contentId",
+                source: "/instructor/courses/:courseId/modules/:moduleId/lessons/:lessonId",
+                destination: "/instructor/lessons/:lessonId",
             },
+
+            // ==========================
+            // Contents (Specific first, then general)
+            // ==========================
             // Nested content create
             {
                 source: "/instructor/courses/:courseId/modules/:moduleId/lessons/:lessonId/contents/create",
@@ -72,16 +78,15 @@ const nextConfig: NextConfig = {
                 source: "/instructor/courses/:courseId/modules/:moduleId/lessons/:lessonId/contents/edit/:contentId",
                 destination: "/instructor/contents/edit/:contentId",
             },
-            // Nested quizzes list
+            // Nested content details
             {
-                source: "/instructor/courses/:courseId/quizzes",
-                destination: "/instructor/quizzes/:courseId",
+                source: "/instructor/courses/:courseId/modules/:moduleId/lessons/:lessonId/contents/:contentId",
+                destination: "/instructor/contents/view/:contentId",
             },
-            // Nested quiz details
-            {
-                source: "/instructor/courses/:courseId/quizzes/:quizId",
-                destination: "/instructor/quizzes/view/:quizId",
-            },
+
+            // ==========================
+            // Quizzes (Specific first, then general)
+            // ==========================
             // Nested quiz create
             {
                 source: "/instructor/courses/:courseId/quizzes/create",
@@ -92,11 +97,20 @@ const nextConfig: NextConfig = {
                 source: "/instructor/courses/:courseId/quizzes/edit/:quizId",
                 destination: "/instructor/quizzes/edit/:quizId",
             },
-            // Nested questions list
+            // Nested quiz details
             {
-                source: "/instructor/courses/:courseId/quizzes/:quizId/questions",
-                destination: "/instructor/questions/:quizId",
+                source: "/instructor/courses/:courseId/quizzes/:quizId",
+                destination: "/instructor/quizzes/view/:quizId",
             },
+            // Nested quizzes list
+            {
+                source: "/instructor/courses/:courseId/quizzes",
+                destination: "/instructor/quizzes/:courseId",
+            },
+
+            // ==========================
+            // Questions
+            // ==========================
             // Nested question create
             {
                 source: "/instructor/courses/:courseId/quizzes/:quizId/questions/create",
@@ -111,6 +125,11 @@ const nextConfig: NextConfig = {
             {
                 source: "/instructor/courses/:courseId/quizzes/:quizId/questions/view/:questionId",
                 destination: "/instructor/questions/view/:questionId",
+            },
+            // Nested questions list
+            {
+                source: "/instructor/courses/:courseId/quizzes/:quizId/questions",
+                destination: "/instructor/questions/:quizId",
             },
         ];
     },

@@ -187,6 +187,7 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
   const breadcrumbs = getBreadcrumbs();
   const { 
     conversations = [], 
+    setConversations,
     messages = [], 
     isOpen, 
     setIsOpen, 
@@ -289,6 +290,11 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
         const found = conversations.find((c) => c.id === targetConvId);
         if (found) {
           setActiveConversation(found);
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === found.id ? { ...c, unread: 0 } : c
+            )
+          );
         } else {
           // If not in standard list, set a baseline conversation structure
           setActiveConversation({ id: targetConvId, name: n.title.replace("New message from ", "") });

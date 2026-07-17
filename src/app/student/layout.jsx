@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Cookies from "js-cookie";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { getProfile } from "@/services/auth.service";
 
 export default function Layout({ children }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,10 +41,16 @@ export default function Layout({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
         Loading...
       </div>
     );
+  }
+
+  const isLearnPage = pathname?.includes("/student/learn/");
+
+  if (isLearnPage) {
+    return <>{children}</>;
   }
 
   return (
