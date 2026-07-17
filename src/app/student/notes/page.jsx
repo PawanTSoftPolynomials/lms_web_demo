@@ -236,7 +236,7 @@ export default function NotesPage() {
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
                   placeholder="Note title..."
                   required
-                  className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-orange-500 transition"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-orange-500 transition"
                 />
               </div>
 
@@ -245,7 +245,7 @@ export default function NotesPage() {
                 <select
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-orange-500 transition cursor-pointer"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-orange-500 transition cursor-pointer"
                 >
                   {CATEGORIES.filter((c) => c !== "All").map((c) => (
                     <option key={c} className="bg-slate-950">{c}</option>
@@ -260,7 +260,7 @@ export default function NotesPage() {
                   onChange={(e) => setForm({ ...form, content: e.target.value })}
                   placeholder="Write your notes here..."
                   rows={6}
-                  className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-orange-500 transition resize-none"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-orange-500 transition resize-none"
                 />
               </div>
 
@@ -268,7 +268,7 @@ export default function NotesPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 py-2 border border-slate-800 text-slate-350 text-sm font-semibold rounded-xl hover:bg-slate-850 transition cursor-pointer"
+                  className="flex-1 py-2 border border-slate-800 text-slate-300 text-sm font-semibold rounded-xl hover:bg-slate-800 transition cursor-pointer"
                 >
                   Cancel
                 </button>

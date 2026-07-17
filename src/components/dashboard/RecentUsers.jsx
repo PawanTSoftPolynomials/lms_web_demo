@@ -7,7 +7,7 @@ export default function RecentUsers({
   users = [],
 }) {
   return (
-    <Card>
+    <Card className="h-full">
       <h2 className="text-lg font-semibold mb-6">
         Recent Users
       </h2>

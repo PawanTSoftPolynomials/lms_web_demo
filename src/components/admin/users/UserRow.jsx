@@ -19,7 +19,10 @@ export default function UserRow({ user, onView, onEdit, onDelete }) {
   const createdAt = new Date(user.createdAt).toLocaleDateString();
 
   return (
-    <tr className="border-b border-white/5 hover:bg-white/5 transition">
+    <tr
+      onClick={() => onView?.(user)}
+      className="border-b border-white/5 hover:bg-white/5 transition cursor-pointer"
+    >
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
           <UserAvatar name={user.name} />
@@ -64,7 +67,7 @@ export default function UserRow({ user, onView, onEdit, onDelete }) {
 
       <td className="px-6 py-4 text-gray-400">{createdAt}</td>
 
-      <td className="px-6 py-4 text-right">
+      <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
         <ActionMenu
           items={[
             {

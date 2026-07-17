@@ -64,3 +64,19 @@ export const updateStudent = async (studentId, studentData) => {
   const { data } = await api.put(`/students/${studentId}`, studentData);
   return data;
 };
+
+/**
+ * Get Student Learning State (Journey State)
+ */
+export const getStudentState = async () => {
+  const { data } = await api.get("/students/state");
+  return data.data ?? data;
+};
+
+/**
+ * Update Student Learning State (Journey State)
+ */
+export const updateStudentState = async (stateData) => {
+  const { data } = await api.post("/students/state", stateData);
+  return data;
+};

@@ -1,23 +1,39 @@
 "use client";
 
-import { CheckCircle2 } from "lucide-react";
+import { Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function OptionList({
+export default function MCQMultiOptionList({
   options = [],
-  selectedAnswer,
+  selectedAnswers = [],
   onSelect,
 }) {
+  const handleToggle = (option) => {
+    let newAnswers;
+    if (selectedAnswers.includes(option)) {
+      newAnswers = selectedAnswers.filter((ans) => ans !== option);
+    } else {
+      newAnswers = [...selectedAnswers, option];
+    }
+    onSelect(newAnswers);
+  };
+
   return (
     <div className="space-y-4">
+      {/* Top Banner Alert / Instruction */}
+      <div className="flex items-center gap-2 rounded-xl bg-orange-500/5 border border-orange-500/10 px-4 py-3 text-xs text-orange-400 font-semibold mb-4">
+        <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+        <span>Multiple Choice: Select all options that apply to this question.</span>
+      </div>
+
       {options.map((option, index) => {
-        const isSelected = selectedAnswer === option;
+        const isSelected = selectedAnswers.includes(option);
 
         return (
           <motion.button
             key={index}
             type="button"
-            onClick={() => onSelect(option)}
+            onClick={() => handleToggle(option)}
             whileHover={{ scale: 1.01, y: -2 }}
             whileTap={{ scale: 0.99 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -41,16 +57,16 @@ export default function OptionList({
               }
             `}
           >
-            {/* Background selection glow gradient */}
+            {/* Glow effect */}
             {isSelected && (
               <motion.div
-                layoutId="activeOptionGlow"
+                layoutId="activeMultiOptionGlow"
                 className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/5 to-pink-500/5 -z-10 pointer-events-none"
                 transition={{ type: "spring", stiffness: 380, damping: 30 }}
               />
             )}
 
-            {/* Option Label (A, B, C, D) */}
+            {/* Option Index Label (A, B, C, D) */}
             <div
               className={`
                 flex
@@ -87,20 +103,27 @@ export default function OptionList({
               </p>
             </div>
 
-            {/* Selected Indicator Checkmark */}
+            {/* Checkbox indicator */}
             <div className="flex items-center self-center shrink-0">
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 {isSelected ? (
                   <motion.div
-                    initial={{ scale: 0, rotate: -45 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    exit={{ scale: 0, rotate: -45 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                    key="checked"
+                    initial={{ scale: 0.6, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.6, opacity: 0 }}
+                    className="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-500 text-white shadow-md shadow-orange-500/25"
                   >
-                    <CheckCircle2 className="h-6 w-6 text-orange-500 fill-orange-500/10" />
+                    <Check className="h-4 w-4 stroke-[3.5]" />
                   </motion.div>
                 ) : (
-                  <div className="h-6 w-6 rounded-full border border-slate-700 bg-slate-950/20 hover:border-orange-500/40 transition-colors" />
+                  <motion.div
+                    key="unchecked"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.8, opacity: 0 }}
+                    className="h-6 w-6 rounded-lg border border-slate-750 bg-slate-950/40 hover:border-orange-500/50 transition-colors"
+                  />
                 )}
               </AnimatePresence>
             </div>

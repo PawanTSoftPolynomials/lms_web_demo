@@ -75,11 +75,11 @@ export default function ChatInput() {
 
       {/* Attachment Previews */}
       {(attachments.length > 0 || uploading) && (
-        <div className="flex flex-wrap gap-2 mb-3 p-2 bg-slate-955/40 rounded-xl border border-slate-800/60 max-h-32 overflow-y-auto">
+        <div className="flex flex-wrap gap-2 mb-3 p-2 bg-slate-950/40 rounded-xl border border-slate-800/60 max-h-32 overflow-y-auto">
           {attachments.map((att, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 border border-slate-850 rounded-lg text-xs text-slate-200"
+              className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-200"
             >
               <Paperclip size={12} className="text-orange-400" />
               <span className="max-w-[120px] truncate">{att.fileName}</span>

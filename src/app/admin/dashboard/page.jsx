@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   FaUsers,
@@ -18,7 +19,7 @@ import AnalyticsChart from "@/components/dashboard/AnalyticsChart";
 import CourseStatusChart from "@/components/dashboard/CourseStatusChart";
 import QuickActions from "@/components/dashboard/QuickActions";
 import RecentUsers from "@/components/dashboard/RecentUsers";
-import MiniCalendar from "@/components/dashboard/MiniCalendar";
+import Modal from "@/components/ui/Modal";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -66,15 +67,8 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Top Section: DashboardHeader & MiniCalendar side-by-side */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
-        <div className="lg:col-span-3">
-          <DashboardHeader name="Admin" />
-        </div>
-        <div className="lg:col-span-1">
-          <MiniCalendar role="ADMIN" />
-        </div>
-      </div>
+      {/* Top Section: Full-width Greeting Banner */}
+      <DashboardHeader name="Admin" />
 
       {/* KPI Stats Counters (perfectly aligned in 5 columns) */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
@@ -114,6 +108,7 @@ export default function AdminDashboard() {
         />
       </div>
 
+      {/* Charts Section */}
       <div className="grid gap-6 xl:grid-cols-2">
         <AnalyticsChart title="Platform Overview" data={analyticsData} />
 
@@ -123,8 +118,11 @@ export default function AdminDashboard() {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <QuickActions />
+      {/* Bottom Section: QuickActions & RecentUsers side-by-side */}
+      <div className="grid gap-6 lg:grid-cols-3 items-stretch">
+        <div className="lg:col-span-1">
+          <QuickActions />
+        </div>
 
         <div className="lg:col-span-2">
           <RecentUsers users={dashboard.recentUsers} />

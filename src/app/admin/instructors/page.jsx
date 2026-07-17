@@ -126,9 +126,8 @@ export default function AdminInstructorsPage() {
                     onEdit={(
                         instructor
                     ) =>
-                        console.log(
-                            "Edit Instructor:",
-                            instructor
+                        router.push(
+                            `/admin/users/edit/${instructor.user.id}`
                         )
                     }
                     onDelete={(

@@ -219,7 +219,7 @@ export default function CourseChat({ course, courseId }) {
       <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(to_right,#f97316_1px,transparent_1px),linear-gradient(to_bottom,#f97316_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
 
       {/* Left Sidebar Directory */}
-      <div className="relative flex flex-col border-r border-slate-850/80 bg-slate-950/45 p-4 backdrop-blur-md z-10">
+      <div className="relative flex flex-col border-r border-slate-800/80 bg-slate-950/45 p-4 backdrop-blur-md z-10">
         {/* Header decoration */}
         <div className="mb-5 flex items-center gap-2 px-1">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 shadow-md">
@@ -331,7 +331,7 @@ export default function CourseChat({ course, courseId }) {
                     className={`flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left text-sm transition duration-300 border ${
                       isSelected
                         ? "bg-gradient-to-r from-orange-500/20 to-pink-500/10 text-orange-400 border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.15)]"
-                        : "text-slate-400 hover:bg-slate-900/50 hover:text-slate-200 border-transparent hover:border-slate-850"
+                        : "text-slate-400 hover:bg-slate-900/50 hover:text-slate-200 border-transparent hover:border-slate-800"
                     }`}
                   >
                     <div className="relative">
@@ -356,7 +356,7 @@ export default function CourseChat({ course, courseId }) {
         {activeConversation ? (
           <>
             {/* Chat Header */}
-            <div className="flex h-16 items-center justify-between border-b border-slate-850/80 bg-slate-950/50 px-6">
+            <div className="flex h-16 items-center justify-between border-b border-slate-800/80 bg-slate-950/50 px-6">
               <div className="flex items-center gap-3">
                 {activeConversation.isGroup ? (
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500/10 to-pink-500/10 text-orange-400 border border-orange-500/20">
@@ -447,7 +447,7 @@ export default function CourseChat({ course, courseId }) {
             </div>
 
             {/* Input Form */}
-            <form onSubmit={handleSend} className="p-4 border-t border-slate-850/80 bg-slate-950/60 backdrop-blur-md">
+            <form onSubmit={handleSend} className="p-4 border-t border-slate-800/80 bg-slate-950/60 backdrop-blur-md">
               <div className="flex items-center gap-3 max-w-5xl mx-auto">
                 <div className="relative flex-1">
                   <input

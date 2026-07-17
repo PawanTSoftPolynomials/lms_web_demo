@@ -20,7 +20,10 @@ export default function InstructorRow({
     };
 
     return (
-        <tr className="border-b border-white/5 transition hover:bg-white/5">
+        <tr
+            onClick={() => onView?.(instructor)}
+            className="border-b border-white/5 transition hover:bg-white/5 cursor-pointer"
+        >
             {/* Instructor */}
             <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
@@ -81,7 +84,7 @@ export default function InstructorRow({
             </td>
 
             {/* Actions */}
-            <td className="px-6 py-4 text-right">
+            <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                 <ActionMenu
                     items={[
                         {

@@ -80,7 +80,8 @@ export default function CourseTable({
                 {courses.map((course) => (
                     <div
                         key={course.id}
-                        className="rounded-xl border border-white/10 bg-white/5 p-4"
+                        onClick={() => onView?.(course)}
+                        className="rounded-xl border border-white/10 bg-white/5 p-4 cursor-pointer hover:bg-white/10 transition"
                     >
                         <div className="flex items-start justify-between gap-3">
                             <div className="flex gap-3">
@@ -100,32 +101,34 @@ export default function CourseTable({
                                 </div>
                             </div>
 
-                            <ActionMenu
-                                items={[
-                                    {
-                                        label: "View",
-                                        onClick: () =>
-                                            onView?.(
-                                                course
-                                            ),
-                                    },
-                                    {
-                                        label: "Edit",
-                                        onClick: () =>
-                                            onEdit?.(
-                                                course
-                                            ),
-                                    },
-                                    {
-                                        label: "Delete",
-                                        danger: true,
-                                        onClick: () =>
-                                            onDelete?.(
-                                                course
-                                            ),
-                                    },
-                                ]}
-                            />
+                            <div onClick={(e) => e.stopPropagation()}>
+                                <ActionMenu
+                                    items={[
+                                        {
+                                            label: "View",
+                                            onClick: () =>
+                                                onView?.(
+                                                    course
+                                                ),
+                                        },
+                                        {
+                                            label: "Edit",
+                                            onClick: () =>
+                                                onEdit?.(
+                                                    course
+                                                ),
+                                        },
+                                        {
+                                            label: "Delete",
+                                            danger: true,
+                                            onClick: () =>
+                                                onDelete?.(
+                                                    course
+                                                ),
+                                        },
+                                    ]}
+                                />
+                            </div>
                         </div>
 
                         <div className="mt-4 grid grid-cols-2 gap-3 text-sm">

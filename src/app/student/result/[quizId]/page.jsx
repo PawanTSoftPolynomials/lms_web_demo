@@ -22,6 +22,23 @@ import PageHeader from "@/components/layouts/PageHeader";
 import Loader from "@/components/common/Loader";
 import useQuizResult from "@/hooks/queries/student/useQuizResult";
 
+const renderMarkdown = (text) => {
+  if (!text) return "";
+  let html = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  
+  html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/^### (.*?)$/gm, "<h3 class='text-sm font-bold text-white mt-2 mb-1'>$1</h3>");
+  html = html.replace(/^## (.*?)$/gm, "<h2 class='text-base font-bold text-white mt-3 mb-1.5'>$1</h2>");
+  html = html.replace(/^# (.*?)$/gm, "<h1 class='text-lg font-bold text-white mt-3 mb-1.5'>$1</h1>");
+  html = html.replace(/^\-\s+(.*?)$/gm, "<li class='list-disc list-inside ml-2 text-slate-300'>$1</li>");
+  html = html.replace(/`(.*?)`/g, "<code class='bg-slate-800 px-1 py-0.5 rounded text-orange-400 font-mono text-[11px]'>$1</code>");
+  html = html.split("\n").join("<br/>");
+  return html;
+};
+
 export default function QuizResultPage() {
   const { quizId } = useParams();
   const { data, isLoading, isError } = useQuizResult(quizId);
@@ -40,6 +57,38 @@ export default function QuizResultPage() {
     }
     return submission.answers;
   }, [submission]);
+
+  const checkAnswerCorrectness = (type, selected, correct) => {
+    if (selected === undefined || selected === null) return false;
+    
+    if (type === "MCQ_SINGLE") {
+      return selected === correct;
+    }
+    
+    if (type === "MCQ_MULTI") {
+      if (!Array.isArray(selected) || !Array.isArray(correct)) return false;
+      return selected.length === correct.length && selected.every(v => correct.includes(v));
+    }
+    
+    if (type === "ARRANGE_TOKENS") {
+      if (!Array.isArray(selected) || !Array.isArray(correct)) return false;
+      return selected.length === correct.length && selected.every((v, i) => v === correct[i]);
+    }
+    
+    if (type === "MATCH_PAIRS") {
+      if (typeof selected !== "object" || typeof correct !== "object" || !selected || !correct) return false;
+      const selKeys = Object.keys(selected);
+      const corrKeys = Object.keys(correct);
+      if (selKeys.length !== corrKeys.length) return false;
+      return selKeys.every(k => String(selected[k]) === String(correct[k]));
+    }
+    
+    if (type === "SELF_ASSESSMENT") {
+      return typeof selected === "string" && selected.trim().length > 0;
+    }
+    
+    return false;
+  };
 
   if (isLoading) {
     return <Loader />;
@@ -80,39 +129,6 @@ export default function QuizResultPage() {
 
   const { quiz, score, totalMarks, percentage, passed, submittedAt, conceptScores } = submission;
   const passingScore = quiz?.passingScore ?? 70;
-
-  // Grade helper checks matching backend
-  const checkAnswerCorrectness = (type, selected, correct) => {
-    if (selected === undefined || selected === null) return false;
-    
-    if (type === "MCQ_SINGLE") {
-      return selected === correct;
-    }
-    
-    if (type === "MCQ_MULTI") {
-      if (!Array.isArray(selected) || !Array.isArray(correct)) return false;
-      return selected.length === correct.length && selected.every(v => correct.includes(v));
-    }
-    
-    if (type === "ARRANGE_TOKENS") {
-      if (!Array.isArray(selected) || !Array.isArray(correct)) return false;
-      return selected.length === correct.length && selected.every((v, i) => v === correct[i]);
-    }
-    
-    if (type === "MATCH_PAIRS") {
-      if (typeof selected !== "object" || typeof correct !== "object" || !selected || !correct) return false;
-      const selKeys = Object.keys(selected);
-      const corrKeys = Object.keys(correct);
-      if (selKeys.length !== corrKeys.length) return false;
-      return selKeys.every(k => String(selected[k]) === String(correct[k]));
-    }
-    
-    if (type === "SELF_ASSESSMENT") {
-      return typeof selected === "string" && selected.trim().length > 0;
-    }
-    
-    return false;
-  };
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-12">
@@ -173,28 +189,28 @@ export default function QuizResultPage() {
 
       {/* KPI Performance Grid */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-5">
-        <div className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 backdrop-blur-md">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-md">
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Your Score</p>
           <p className="mt-2 text-2xl font-extrabold text-white">
             {score} <span className="text-xs text-slate-500 font-normal">/ {totalMarks} Marks</span>
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 backdrop-blur-md">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-md">
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Percentage</p>
           <p className="mt-2 text-2xl font-extrabold text-white">
             {percentage}%
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 backdrop-blur-md">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-md">
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Passing Criteria</p>
           <p className="mt-2 text-2xl font-extrabold text-white">
             {passingScore}% <span className="text-xs text-slate-500 font-normal">or above</span>
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 backdrop-blur-md">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-md">
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Questions Answered</p>
           <p className="mt-2 text-2xl font-extrabold text-white">
             {parsedAnswers.length} <span className="text-xs text-slate-500 font-normal">/ {quiz?.questions?.length || 0}</span>
@@ -202,35 +218,66 @@ export default function QuizResultPage() {
         </div>
       </section>
 
-      {/* Concept Breakdown Section */}
+      {/* Concept Performance Analysis */}
       {conceptScores && Object.keys(conceptScores).length > 0 && (
         <section className="space-y-4">
-          <h3 className="text-xl font-bold text-white flex items-center gap-2">
-            <BookOpen size={20} className="text-orange-500" />
-            Performance by Topic Concept
-          </h3>
+          <div>
+            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+              <BookOpen size={20} className="text-orange-500" />
+              Concept-wise Performance Analysis
+            </h3>
+            <p className="text-xs text-slate-400 mt-1">Review which concepts are well understood and which need practice.</p>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
-            {Object.entries(conceptScores).map(([conceptName, cScore]) => {
-              const perc = cScore.percentage;
+            {Object.entries(conceptScores).map(([conceptName, cData]) => {
+              const perc = cData.percentage ?? 0;
+              const isPassed = perc >= passingScore;
+              
               let barColor = "bg-rose-500";
-              if (perc >= 70) barColor = "bg-emerald-500";
-              else if (perc >= 50) barColor = "bg-amber-500";
+              let textColor = "text-rose-450";
+              let label = "Needs practice";
+              
+              if (perc >= 75) {
+                barColor = "bg-emerald-500";
+                textColor = "text-emerald-400";
+                label = "Well understood";
+              } else if (perc >= 50) {
+                barColor = "bg-amber-500";
+                textColor = "text-amber-400";
+                label = "Getting there";
+              }
 
               return (
-                <div key={conceptName} className="rounded-xl border border-slate-850 bg-slate-900/20 p-5 space-y-3">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="font-semibold text-slate-200">{conceptName}</span>
-                    <span className="text-slate-400 font-medium">
-                      {cScore.score} / {cScore.total} Marks ({perc}%)
+                <Card key={conceptName} className={`p-5 border-slate-800 bg-slate-900/30 flex flex-col justify-between gap-4 border-l-[4px] ${
+                  isPassed ? "border-l-emerald-500" : "border-l-orange-550"
+                }`}>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="text-sm font-semibold text-white">{conceptName}</h4>
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        {cData.score} / {cData.total} Marks
+                      </p>
+                    </div>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                      isPassed ? "bg-emerald-500/10 text-emerald-400" : "bg-orange-500/10 text-orange-400"
+                    }`}>
+                      {perc}%
                     </span>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
-                    <div
-                      className={`h-full rounded-full ${barColor} transition-all duration-300`}
-                      style={{ width: `${perc}%` }}
-                    />
+
+                  <div className="w-full space-y-1">
+                    <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+                        style={{ width: `${perc}%` }}
+                      />
+                    </div>
+                    <p className={`text-[10px] text-right font-medium ${textColor}`}>
+                      {label}
+                    </p>
                   </div>
-                </div>
+                </Card>
               );
             })}
           </div>
@@ -269,7 +316,7 @@ export default function QuizResultPage() {
             }
 
             return (
-              <Card key={question.id} className="p-6 border-slate-850 bg-slate-900/30">
+              <Card key={question.id} className="p-6 border-slate-800 bg-slate-900/30">
                 <div className="flex items-start gap-4">
                   {/* Number Badge */}
                   <span className="flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800 text-xs font-bold text-slate-300 border border-slate-700/50">
@@ -283,11 +330,11 @@ export default function QuizResultPage() {
                         {question.question}
                       </h4>
                       <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                        <span className="text-[10px] bg-slate-850 px-2 py-0.5 rounded border border-slate-850 text-slate-400 font-bold uppercase">
+                        <span className="text-[10px] bg-slate-850 px-2 py-0.5 rounded border border-slate-800 text-slate-400 font-bold uppercase">
                           {question.marks || 1} {question.marks === 1 ? "Mark" : "Marks"}
                         </span>
                         {question.concept && (
-                          <span className="text-[9px] text-purple-400 font-semibold uppercase">
+                          <span className="text-[9px] text-orange-400 font-semibold uppercase">
                             {question.concept}
                           </span>
                         )}
@@ -319,7 +366,7 @@ export default function QuizResultPage() {
                               badgeIcon = <X className="h-3.5 w-3.5 text-rose-400 shrink-0" />;
                             }
                           } else if (isAnswerCorrect) {
-                            optionStyle = "border-emerald-500/25 bg-emerald-500/5 text-emerald-400/80";
+                            optionStyle = "border-emerald-500/25 bg-emerald-500/5 text-emerald-450";
                             badgeIcon = <Check className="h-3.5 w-3.5 text-emerald-500/60 shrink-0" />;
                           }
 
@@ -347,7 +394,7 @@ export default function QuizResultPage() {
                                 const isCorrectPos = Array.isArray(question.correctAnswer) && question.correctAnswer[tIdx] === token;
                                 return (
                                   <span key={tIdx} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 ${
-                                    isCorrectPos ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                                    isCorrectPos ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-450 border border-rose-500/20"
                                   }`}>
                                     <span className="text-[9px] opacity-60 font-bold">{tIdx + 1}</span>
                                     {token}
@@ -361,11 +408,11 @@ export default function QuizResultPage() {
                         </div>
 
                         {!isCorrect && Array.isArray(question.correctAnswer) && (
-                          <div className="space-y-2 border-t border-slate-900 pt-3 mt-2">
-                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Correct Sequence:</span>
+                          <div className="space-y-2 border-t border-slate-900/50 pt-3 mt-2">
+                            <span className="text-[10px] text-slate-505 font-bold uppercase tracking-wider">Correct Sequence:</span>
                             <div className="flex flex-wrap gap-2">
                               {question.correctAnswer.map((token, tIdx) => (
-                                <span key={tIdx} className="bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                                <span key={tIdx} className="bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-slate-700/40">
                                   <span className="text-[9px] text-slate-500 font-bold">{tIdx + 1}</span>
                                   {token}
                                 </span>
@@ -388,8 +435,8 @@ export default function QuizResultPage() {
                             return (
                               <div key={leftItem} className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border text-xs gap-3 ${
                                 isMatchCorrect 
-                                  ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400"
-                                  : "border-rose-500/20 bg-rose-500/5 text-rose-400"
+                                  ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-450"
+                                  : "border-rose-500/20 bg-rose-500/5 text-rose-455"
                               }`}>
                                 <div className="font-semibold flex items-center gap-2">
                                   <span>{leftItem}</span>
@@ -413,7 +460,7 @@ export default function QuizResultPage() {
                       <div className="space-y-3">
                         <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-850 space-y-2">
                           <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Your Written Answer:</span>
-                          <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap">
+                          <p className="text-xs text-slate-350 leading-relaxed whitespace-pre-wrap">
                             {selectedOption || "(No response typed)"}
                           </p>
                         </div>
@@ -427,7 +474,7 @@ export default function QuizResultPage() {
                     )}
 
                     {/* Result Summary Bar */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-900">
+                    <div className="flex items-center gap-2 pt-2.5 border-t border-slate-900/60">
                       {selectedOption ? (
                         <>
                           {isCorrect ? (
@@ -436,7 +483,7 @@ export default function QuizResultPage() {
                               <span>Correct Choice</span>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-1.5 text-xs text-rose-400 font-semibold">
+                            <div className="flex items-center gap-1.5 text-xs text-rose-455 font-semibold">
                               <XCircle size={14} />
                               <span>Incorrect Choice</span>
                             </div>

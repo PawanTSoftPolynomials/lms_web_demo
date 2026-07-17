@@ -3,12 +3,14 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FaArrowLeft, FaSignOutAlt, FaBars } from "react-icons/fa";
-import { Bell, BookOpen, Award, CheckCheck, MessageSquare, ChevronRight } from "lucide-react";
+import { Bell, BookOpen, Award, CheckCheck, MessageSquare, Calendar,ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
 import { useNotification } from "@/context/NotificationContext";
+import Modal from "@/components/ui/Modal";
+import MiniCalendar from "@/components/dashboard/MiniCalendar";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
 import { useModule } from "@/hooks/queries/instructor/useModule";
 import { useLesson } from "@/hooks/queries/instructor/useLesson";
@@ -234,6 +236,7 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const { notifications, markAllRead, clearAll, markAsRead, addNotification } = useNotification();
   const [isMounted, setIsMounted] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   // Client-side initialization to prevent hydration mismatch
   useEffect(() => {
@@ -588,6 +591,17 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
         </button>
 
       </div>
+      {/* Calendar Modal Popup */}
+      <Modal
+        open={calendarOpen}
+        onClose={() => setCalendarOpen(false)}
+        title="Schedule Calendar"
+        size="md"
+      >
+        <div className="text-white">
+          <MiniCalendar role={currentUser?.role} />
+        </div>
+      </Modal>
     </header>
   );
 }

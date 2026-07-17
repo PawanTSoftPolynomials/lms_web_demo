@@ -629,7 +629,7 @@ export default function StudentDashboardPage() {
                   }`}>
                     {ach.icon}
                   </div>
-                  <div className="text-[9px] font-black text-slate-350 truncate w-full">{ach.name}</div>
+                  <div className="text-[9px] font-black text-slate-300 truncate w-full">{ach.name}</div>
                   <div className="text-[8px] text-slate-500 truncate w-full">{ach.desc}</div>
                 </div>
               ))}
@@ -679,7 +679,7 @@ export default function StudentDashboardPage() {
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              <div className="p-3 bg-slate-850/50 border border-slate-800/50 rounded-xl text-center flex flex-col justify-between h-24">
+              <div className="p-3 bg-slate-800/50 border border-slate-800/50 rounded-xl text-center flex flex-col justify-between h-24">
                 <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Tests Taken</span>
                 <div className="text-xl font-black text-white">{stats.completedQuizzes ?? 0}</div>
                 <div className="flex gap-0.5 justify-center items-end h-5 opacity-40">
@@ -690,7 +690,7 @@ export default function StudentDashboardPage() {
                 </div>
               </div>
 
-              <div className="p-3 bg-slate-850/50 border border-slate-800/50 rounded-xl text-center flex flex-col justify-between h-24">
+              <div className="p-3 bg-slate-800/50 border border-slate-800/50 rounded-xl text-center flex flex-col justify-between h-24">
                 <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Avg Score</span>
                 <div className="text-xl font-black text-white">{stats.avgQuizScore ?? 78}%</div>
                 <div className="flex justify-center items-center h-5">
@@ -698,7 +698,7 @@ export default function StudentDashboardPage() {
                 </div>
               </div>
 
-              <div className="p-3 bg-slate-850/50 border border-slate-800/50 rounded-xl text-center flex flex-col justify-between h-24">
+              <div className="p-3 bg-slate-800/50 border border-slate-800/50 rounded-xl text-center flex flex-col justify-between h-24">
                 <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Rank</span>
                 <div className="text-xs font-black text-white truncate">Top {stats.rankPercentile ?? 100}%</div>
                 <div className="flex justify-center items-center h-5 text-orange-400">
@@ -722,7 +722,7 @@ export default function StudentDashboardPage() {
             </div>
 
             {recommendations.length > 0 ? (
-              <div className="flex gap-4 items-center bg-slate-850/50 p-3.5 rounded-xl border border-slate-800/60">
+              <div className="flex gap-4 items-center bg-slate-800/50 p-3.5 rounded-xl border border-slate-800/60">
                 <div className="h-16 w-16 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-xl flex items-center justify-center text-xs font-black shadow-sm uppercase">
                   {recommendations[0].category ? recommendations[0].category.substring(0, 4) : "LMS"}
                 </div>
@@ -739,7 +739,7 @@ export default function StudentDashboardPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-slate-850/50 p-6 rounded-xl border border-slate-800/60 text-center text-xs text-slate-400">
+              <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-800/60 text-center text-xs text-slate-400">
                 You have enrolled in all available courses! 🎉
               </div>
             )}

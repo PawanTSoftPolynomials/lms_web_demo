@@ -6,6 +6,7 @@ import ActionMenu from "@/components/menus/ActionMenu";
 export default function StudentRow({
                                        student,
                                        onView,
+                                       onEdit,
                                        onDelete,
                                    }) {
     const createdAt = new Date(
@@ -22,7 +23,10 @@ export default function StudentRow({
     };
 
     return (
-        <tr className="border-b border-white/5 hover:bg-white/5 transition">
+        <tr
+            onClick={() => onView?.(student)}
+            className="border-b border-white/5 hover:bg-white/5 transition cursor-pointer"
+        >
             {/* Student */}
             <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
@@ -79,7 +83,7 @@ export default function StudentRow({
             </td>
 
             {/* Actions */}
-            <td className="px-6 py-4 text-right">
+            <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                 <ActionMenu
                     items={[
                         {
@@ -87,7 +91,11 @@ export default function StudentRow({
                             onClick: () =>
                                 onView?.(student),
                         },
-
+                        {
+                            label: "Edit",
+                            onClick: () =>
+                                onEdit?.(student),
+                        },
                         {
                             label: "Delete",
                             danger: true,

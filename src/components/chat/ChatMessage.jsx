@@ -304,7 +304,7 @@ export default function ChatMessage({ message }) {
                       setIsEditing(false);
                       setEditText(message.text || message.content || "");
                     }}
-                    className="text-slate-300 hover:text-white bg-slate-850 px-2 py-1 rounded-md transition-colors"
+                    className="text-slate-300 hover:text-white bg-slate-800 px-2 py-1 rounded-md transition-colors"
                   >
                     Cancel
                   </button>

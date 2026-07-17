@@ -68,7 +68,7 @@ export default function AchievementsPage() {
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1.5">Total XP</p>
         </div>
         <div className="bg-slate-900/50 border border-slate-800/80 backdrop-blur-md rounded-2xl p-5 shadow-luxury-md text-center">
-          <p className="text-2xl font-black text-emerald-450">{earnedCount}</p>
+          <p className="text-2xl font-black text-emerald-500">{earnedCount}</p>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1.5">Earned</p>
         </div>
         <div className="bg-slate-900/50 border border-slate-800/80 backdrop-blur-md rounded-2xl p-5 shadow-luxury-md text-center">
@@ -118,7 +118,7 @@ export default function AchievementsPage() {
                   +{achievement.xpReward} XP
                 </span>
                 {achievement.earned ? (
-                  <span className="text-[9px] font-bold text-emerald-450 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+                  <span className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
                     ✓ Earned
                   </span>
                 ) : (
