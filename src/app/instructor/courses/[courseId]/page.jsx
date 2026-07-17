@@ -16,6 +16,19 @@ import {
   MoreVertical,
   Settings,
   ChevronRight,
+import {
+  Eye,
+  Pencil,
+  Plus,
+  GraduationCap,
+  Layers,
+  Star,
+  Calendar,
+  Clock,
+  User,
+  MoreVertical,
+  Settings,
+  ChevronRight,
   ChevronDown,
   BookOpen,
   TrendingUp,
@@ -25,7 +38,16 @@ import {
   FileText,
   HelpCircle,
   ClipboardList,
+  ClipboardList,
 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
 import {
   ResponsiveContainer,
   AreaChart,
@@ -50,12 +72,54 @@ const defaultEngagementData = [
   { name: "May 04", active: 165, enrollments: 95, completions: 48 },
   { name: "May 11", active: 195, enrollments: 110, completions: 55 },
   { name: "May 18", active: 220, enrollments: 125, completions: 58 },
+// Recharts mockup datasets for Student Engagement
+const engagementData = [
+  { name: "Apr 20", active: 160, enrollments: 80, completions: 50 },
+  { name: "Apr 27", active: 155, enrollments: 85, completions: 52 },
+  { name: "May 04", active: 165, enrollments: 95, completions: 48 },
+  { name: "May 11", active: 195, enrollments: 110, completions: 55 },
+  { name: "May 18", active: 220, enrollments: 125, completions: 58 },
+];
+
+// Concept Mastery dataset
+const conceptMasteryList = [
+  {
+    name: "Servlet Lifecycle",
+    mastered: 176,
+    total: 248,
+    rate: 71,
+    level: "strong",
+  },
+  { name: "JSP & EL", mastered: 162, total: 248, rate: 65, level: "strong" },
+  {
+    name: "EJB Architecture",
+    mastered: 148,
+    total: 248,
+    rate: 60,
+    level: "neutral",
+  },
+  {
+    name: "JPA & Hibernate",
+    mastered: 138,
+    total: 248,
+    rate: 56,
+    level: "neutral",
+  },
+  { name: "Transactions", mastered: 124, total: 248, rate: 50, level: "weak" },
+  {
+    name: "Security Concepts",
+    mastered: 112,
+    total: 248,
+    rate: 45,
+    level: "weak",
+  },
 ];
 
 export default function CourseDetailsPage() {
   const { courseId } = useParams();
   const router = useRouter();
   const [activeDropdown, setActiveDropdown] = useState(null);
+
 
   // Accordion open/close states
   const [expandedModules, setExpandedModules] = useState({});
@@ -132,6 +196,13 @@ export default function CourseDetailsPage() {
             Please check your database connection or try again later.
           </p>
           <button
+          <h2 className="text-2xl font-bold text-white mb-2">
+            Failed to load course details
+          </h2>
+          <p className="text-slate-400 mb-6">
+            Please check your database connection or try again later.
+          </p>
+          <button
             onClick={() => window.location.reload()}
             className="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold uppercase text-xs tracking-wider transition"
           >
@@ -142,6 +213,8 @@ export default function CourseDetailsPage() {
     );
   }
 
+  const isPublished =
+    course.status === "Published" || course.status === "PUBLISHED";
   const isPublished =
     course.status === "Published" || course.status === "PUBLISHED";
 
@@ -231,6 +304,13 @@ export default function CourseDetailsPage() {
                       : "bg-amber-500/10 text-amber-400 border-amber-500/20"
                   }`}
                 >
+                <span
+                  className={`rounded-xl px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
+                    isPublished
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                      : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                  }`}
+                >
                   {course.status}
                 </span>
               </div>
@@ -257,9 +337,29 @@ export default function CourseDetailsPage() {
                       year: "numeric",
                     })}
                   </span>
+                  <span>
+                    Created:{" "}
+                    {new Date(
+                      course.createdAt ?? "2026-07-01",
+                    ).toLocaleDateString("en-US", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock size={12} className="text-purple-400" />
+                  <span>
+                    Last updated:{" "}
+                    {new Date(
+                      course.updatedAt ?? "2026-07-03",
+                    ).toLocaleDateString("en-US", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
                   <span>
                     Last updated:{" "}
                     {new Date(
@@ -309,6 +409,9 @@ export default function CourseDetailsPage() {
                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
                   Total Students
                 </p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                  Total Students
+                </p>
                 <div className="rounded-lg bg-purple-500/10 p-2 border border-purple-500/20">
                   <GraduationCap size={15} className="text-purple-400" />
                 </div>
@@ -328,10 +431,16 @@ export default function CourseDetailsPage() {
                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
                   Total Modules
                 </p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                  Total Modules
+                </p>
                 <div className="rounded-lg bg-orange-500/10 p-2 border border-orange-500/20">
                   <Layers size={15} className="text-orange-400" />
                 </div>
               </div>
+              <h3 className="mt-2 text-2xl font-bold text-white">
+                {activeModules.length}
+              </h3>
               <h3 className="mt-2 text-2xl font-bold text-white">
                 {activeModules.length}
               </h3>
@@ -343,6 +452,9 @@ export default function CourseDetailsPage() {
             {/* Card 3: Lessons */}
             <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4.5 shadow-sm hover:border-slate-700/60 transition duration-305">
               <div className="flex items-center justify-between">
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                  Total Lessons
+                </p>
                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
                   Total Lessons
                 </p>
@@ -366,6 +478,9 @@ export default function CourseDetailsPage() {
             {/* Card 4: Completion Rate */}
             <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4.5 shadow-sm hover:border-slate-700/60 transition duration-305">
               <div className="flex items-center justify-between">
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                  Completion Rate
+                </p>
                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
                   Completion Rate
                 </p>
@@ -419,6 +534,12 @@ export default function CourseDetailsPage() {
                 <p className="text-[10px] text-slate-500 uppercase font-semibold mt-1">
                   Get started by creating your first course module.
                 </p>
+                <h4 className="text-sm font-bold text-white uppercase tracking-widest">
+                  No Modules Found
+                </h4>
+                <p className="text-[10px] text-slate-500 uppercase font-semibold mt-1">
+                  Get started by creating your first course module.
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -441,15 +562,21 @@ export default function CourseDetailsPage() {
                         ? `${modLessons.length * 15} min`
                         : "45 min";
 
+                      const durationStr = modLessons.length
+                        ? `${modLessons.length * 15} min`
+                        : "45 min";
+
                       return (
                         <Fragment key={mod.id}>
                           {/* Module Accordion Header Row */}
+                          <tr
                           <tr
                             key={mod.id}
                             className="border-b border-slate-800/40 hover:bg-slate-800/10 transition duration-200 align-middle"
                           >
                             <td className="py-3.5 pl-3">
                               <div className="flex items-center gap-2">
+                                <button
                                 <button
                                   onClick={() => toggleModule(mod.id)}
                                   className="text-slate-500 hover:text-white p-1 rounded transition"
@@ -459,8 +586,18 @@ export default function CourseDetailsPage() {
                                   ) : (
                                     <ChevronRight size={14} />
                                   )}
+                                  {modExpanded ? (
+                                    <ChevronDown size={14} />
+                                  ) : (
+                                    <ChevronRight size={14} />
+                                  )}
                                 </button>
                                 <button
+                                  onClick={() =>
+                                    router.push(
+                                      `/instructor/courses/${courseId}/modules/${mod.id}`,
+                                    )
+                                  }
                                   onClick={() =>
                                     router.push(
                                       `/instructor/courses/${courseId}/modules/${mod.id}`,
@@ -488,13 +625,24 @@ export default function CourseDetailsPage() {
                                     : "bg-amber-500/10 text-amber-400 border-amber-500/20"
                                 }`}
                               >
+                              <span
+                                className={`inline-flex rounded-xl px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
+                                  modPublished
+                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                    : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                }`}
+                              >
                                 {modPublished ? "Published" : "Draft"}
                               </span>
                             </td>
                             <td className="py-3.5 pr-3 text-right relative">
                               <button
+                              <button
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  setActiveDropdown(
+                                    activeDropdown === mod.id ? null : mod.id,
+                                  );
                                   setActiveDropdown(
                                     activeDropdown === mod.id ? null : mod.id,
                                   );
@@ -513,11 +661,21 @@ export default function CourseDetailsPage() {
                                         `/instructor/courses/${courseId}/quizzes`,
                                       )
                                     }
+                                    onClick={() =>
+                                      router.push(
+                                        `/instructor/courses/${courseId}/quizzes`,
+                                      )
+                                    }
                                     className="w-full text-[10px] font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-slate-800 px-2.5 py-1.5 rounded-lg transition"
                                   >
                                     Quizzes
                                   </button>
                                   <button
+                                    onClick={() =>
+                                      router.push(
+                                        `/instructor/courses/${courseId}/modules/edit/${mod.id}`,
+                                      )
+                                    }
                                     onClick={() =>
                                       router.push(
                                         `/instructor/courses/${courseId}/modules/edit/${mod.id}`,
@@ -545,6 +703,10 @@ export default function CourseDetailsPage() {
                                 colSpan={5}
                                 className="py-1 px-0 border-b border-slate-800/40 bg-slate-900/10"
                               >
+                              <td
+                                colSpan={5}
+                                className="py-1 px-0 border-b border-slate-800/40 bg-slate-900/10"
+                              >
                                 <div className="space-y-1 py-1">
                                   {!modLessons.length ? (
                                     <div className="pl-12 py-3 text-[10px] text-slate-500 uppercase font-semibold">
@@ -562,10 +724,18 @@ export default function CourseDetailsPage() {
                                           key={lesson.id}
                                           className="space-y-1"
                                         >
+                                        <div
+                                          key={lesson.id}
+                                          className="space-y-1"
+                                        >
                                           {/* Lesson Row */}
                                           <div className="flex items-center justify-between py-2 hover:bg-slate-800/20 rounded-lg transition">
                                             {/* Lesson Title column */}
                                             <div className="pl-8 flex items-center gap-2">
+                                              <button
+                                                onClick={() =>
+                                                  toggleLesson(lesson.id)
+                                                }
                                               <button
                                                 onClick={() =>
                                                   toggleLesson(lesson.id)
@@ -577,7 +747,16 @@ export default function CourseDetailsPage() {
                                                 ) : (
                                                   <ChevronRight size={12} />
                                                 )}
+                                                {lessonExpanded ? (
+                                                  <ChevronDown size={12} />
+                                                ) : (
+                                                  <ChevronRight size={12} />
+                                                )}
                                               </button>
+                                              <FileText
+                                                size={13}
+                                                className="text-slate-400 shrink-0"
+                                              />
                                               <FileText
                                                 size={13}
                                                 className="text-slate-400 shrink-0"
@@ -588,8 +767,15 @@ export default function CourseDetailsPage() {
                                                     `/instructor/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}`,
                                                   )
                                                 }
+                                                onClick={() =>
+                                                  router.push(
+                                                    `/instructor/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}`,
+                                                  )
+                                                }
                                                 className="font-semibold text-slate-300 hover:text-orange-400 text-left transition"
                                               >
+                                                Lesson {lIdx + 1}:{" "}
+                                                {lesson.title}
                                                 Lesson {lIdx + 1}:{" "}
                                                 {lesson.title}
                                               </button>
@@ -599,6 +785,8 @@ export default function CourseDetailsPage() {
                                             <div className="flex items-center justify-end w-full max-w-[290px] mr-12 text-right">
                                               <div className="w-24 text-center shrink-0">
                                                 <span className="rounded-xl border border-slate-805 bg-slate-900/80 px-2.5 py-0.5 text-[9px] font-bold text-slate-400">
+                                                  {lessonContents.length}{" "}
+                                                  Contents
                                                   {lessonContents.length}{" "}
                                                   Contents
                                                 </span>
@@ -617,8 +805,15 @@ export default function CourseDetailsPage() {
                                               </div>
                                               <div className="w-16 text-right shrink-0 pr-1.5 relative">
                                                 <button
+                                                <button
                                                   onClick={(e) => {
                                                     e.stopPropagation();
+                                                    setActiveDropdown(
+                                                      activeDropdown ===
+                                                        lesson.id
+                                                        ? null
+                                                        : lesson.id,
+                                                    );
                                                     setActiveDropdown(
                                                       activeDropdown ===
                                                         lesson.id
@@ -634,8 +829,15 @@ export default function CourseDetailsPage() {
                                                 {/* Lesson Dropdown */}
                                                 {activeDropdown ===
                                                   lesson.id && (
+                                                {activeDropdown ===
+                                                  lesson.id && (
                                                   <div className="absolute right-3 mt-1.5 w-32 rounded-xl border border-slate-800 bg-slate-955 p-1.5 shadow-xl z-20 text-left">
                                                     <button
+                                                      onClick={() =>
+                                                        router.push(
+                                                          `/instructor/courses/${courseId}/modules/${mod.id}/lessons/edit/${lesson.id}`,
+                                                        )
+                                                      }
                                                       onClick={() =>
                                                         router.push(
                                                           `/instructor/courses/${courseId}/modules/${mod.id}/lessons/edit/${lesson.id}`,
@@ -646,6 +848,11 @@ export default function CourseDetailsPage() {
                                                       Edit
                                                     </button>
                                                     <button
+                                                      onClick={() =>
+                                                        router.push(
+                                                          `/instructor/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}/contents/create`,
+                                                        )
+                                                      }
                                                       onClick={() =>
                                                         router.push(
                                                           `/instructor/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}/contents/create`,
@@ -692,9 +899,37 @@ export default function CourseDetailsPage() {
                                                     className="text-slate-500 shrink-0"
                                                   />
                                                 );
+                                                const isQuiz =
+                                                  content.type === "QUIZ" ||
+                                                  content.title
+                                                    .toLowerCase()
+                                                    .includes("quiz");
+                                                const isAssignment =
+                                                  content.type ===
+                                                    "ASSIGNMENT" ||
+                                                  content.title
+                                                    .toLowerCase()
+                                                    .includes("assignment") ||
+                                                  content.title
+                                                    .toLowerCase()
+                                                    .includes("practice");
+
+                                                let icon = (
+                                                  <FileText
+                                                    size={12}
+                                                    className="text-slate-500 shrink-0"
+                                                  />
+                                                );
                                                 let labelPrefix = "Content";
 
+
                                                 if (isQuiz) {
+                                                  icon = (
+                                                    <HelpCircle
+                                                      size={12}
+                                                      className="text-slate-500 shrink-0"
+                                                    />
+                                                  );
                                                   icon = (
                                                     <HelpCircle
                                                       size={12}
@@ -709,10 +944,23 @@ export default function CourseDetailsPage() {
                                                       className="text-slate-500 shrink-0"
                                                     />
                                                   );
+                                                  icon = (
+                                                    <ClipboardList
+                                                      size={12}
+                                                      className="text-slate-500 shrink-0"
+                                                    />
+                                                  );
                                                   labelPrefix = "Assignment";
                                                 }
 
+
                                                 // Format name: Strip prefix if user has added it
+                                                const cleanTitle =
+                                                  content.title.replace(
+                                                    /^(content|quiz|assignment):\s*/i,
+                                                    "",
+                                                  );
+
                                                 const cleanTitle =
                                                   content.title.replace(
                                                     /^(content|quiz|assignment):\s*/i,
@@ -727,10 +975,17 @@ export default function CourseDetailsPage() {
                                                         `/instructor/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}/contents/${content.id}`,
                                                       )
                                                     }
+                                                    onClick={() =>
+                                                      router.push(
+                                                        `/instructor/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}/contents/${content.id}`,
+                                                      )
+                                                    }
                                                     className="flex items-center gap-2.5 py-1 text-slate-400 hover:text-orange-400 text-left transition cursor-pointer"
                                                   >
                                                     {icon}
                                                     <span className="text-[10px] font-semibold uppercase tracking-wider">
+                                                      {labelPrefix}:{" "}
+                                                      {cleanTitle}
                                                       {labelPrefix}:{" "}
                                                       {cleanTitle}
                                                     </span>
@@ -765,6 +1020,9 @@ export default function CourseDetailsPage() {
               <h3 className="text-sm font-black uppercase tracking-widest text-slate-350">
                 Student Engagement
               </h3>
+              <h3 className="text-sm font-black uppercase tracking-widest text-slate-350">
+                Student Engagement
+              </h3>
               <div className="flex items-center gap-1 text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-955 px-2.5 py-1.5 rounded-xl border border-slate-800/60 cursor-pointer hover:text-slate-300 transition">
                 <span>Last 30 days</span>
                 <ChevronDown size={12} className="text-slate-600" />
@@ -778,7 +1036,24 @@ export default function CourseDetailsPage() {
                   data={engagementData}
                   margin={{ top: 5, right: 5, left: -25, bottom: 5 }}
                 >
+                <AreaChart
+                  data={engagementData}
+                  margin={{ top: 5, right: 5, left: -25, bottom: 5 }}
+                >
                   <defs>
+                    <linearGradient
+                      id="colorActive"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="5%"
+                        stopColor="#a855f7"
+                        stopOpacity={0.25}
+                      />
+                      <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
                     <linearGradient
                       id="colorActive"
                       x1="0"
@@ -806,7 +1081,33 @@ export default function CourseDetailsPage() {
                         stopOpacity={0.25}
                       />
                       <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                    <linearGradient
+                      id="colorEnrollments"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="5%"
+                        stopColor="#f97316"
+                        stopOpacity={0.25}
+                      />
+                      <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
                     </linearGradient>
+                    <linearGradient
+                      id="colorCompletions"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="5%"
+                        stopColor="#3b82f6"
+                        stopOpacity={0.25}
+                      />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                     <linearGradient
                       id="colorCompletions"
                       x1="0"
@@ -825,18 +1126,36 @@ export default function CourseDetailsPage() {
                   <XAxis
                     dataKey="name"
                     stroke="#475569"
+                  <XAxis
+                    dataKey="name"
+                    stroke="#475569"
                     tickLine={false}
                     axisLine={false}
+                    axisLine={false}
                     dy={8}
+                    style={{ fontSize: "9px", fontWeight: "bold" }}
                     style={{ fontSize: "9px", fontWeight: "bold" }}
                   />
                   <YAxis
                     stroke="#475569"
+                  <YAxis
+                    stroke="#475569"
                     tickLine={false}
+                    axisLine={false}
                     axisLine={false}
                     dx={-8}
                     style={{ fontSize: "9px", fontWeight: "bold" }}
+                    style={{ fontSize: "9px", fontWeight: "bold" }}
                   />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#020617",
+                      borderColor: "#1e293b",
+                      borderRadius: "12px",
+                      fontSize: "10px",
+                      fontWeight: "bold",
+                      color: "#f8fafc",
+                    }}
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#020617",
@@ -850,34 +1169,56 @@ export default function CourseDetailsPage() {
                   <Legend
                     verticalAlign="top"
                     height={36}
+                  <Legend
+                    verticalAlign="top"
+                    height={36}
                     iconSize={8}
                     iconType="circle"
                     style={{ fontSize: "9px", fontWeight: "bold" }}
+                    style={{ fontSize: "9px", fontWeight: "bold" }}
                   />
+                  <Area
+                    type="monotone"
                   <Area
                     type="monotone"
                     name="Active Students"
                     dataKey="active"
                     stroke="#a855f7"
+                    dataKey="active"
+                    stroke="#a855f7"
                     strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#colorActive)"
                     fillOpacity={1}
                     fill="url(#colorActive)"
                   />
                   <Area
                     type="monotone"
+                  <Area
+                    type="monotone"
                     name="New Enrollments"
+                    dataKey="enrollments"
+                    stroke="#f97316"
                     dataKey="enrollments"
                     stroke="#f97316"
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#colorEnrollments)"
+                    fillOpacity={1}
+                    fill="url(#colorEnrollments)"
                   />
+                  <Area
+                    type="monotone"
                   <Area
                     type="monotone"
                     name="Lesson Completion"
                     dataKey="completions"
                     stroke="#3b82f6"
+                    dataKey="completions"
+                    stroke="#3b82f6"
                     strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#colorCompletions)"
                     fillOpacity={1}
                     fill="url(#colorCompletions)"
                   />
@@ -933,6 +1274,13 @@ export default function CourseDetailsPage() {
                 onClick={() =>
                   router.push(`/instructor/courses/analytics/${courseId}`)
                 }
+              <h3 className="text-sm font-black uppercase tracking-widest text-slate-350">
+                Concept Mastery
+              </h3>
+              <button
+                onClick={() =>
+                  router.push(`/instructor/courses/analytics/${courseId}`)
+                }
                 className="text-[9px] font-black text-orange-400 hover:text-orange-500 uppercase tracking-widest transition"
               >
                 View Details
@@ -948,11 +1296,24 @@ export default function CourseDetailsPage() {
                 const isStrong = concept.level === "strong";
                 const isWeak = concept.level === "weak";
 
+
                 return (
                   <div key={index} className="space-y-1.5">
                     <div className="flex items-center justify-between text-[10px] font-bold">
                       <span className="text-slate-300">{concept.name}</span>
                       <div className="flex items-center gap-1.5">
+                        <span className="text-slate-500 font-medium">
+                          ({concept.mastered}/{concept.total})
+                        </span>
+                        <span
+                          className={
+                            isStrong
+                              ? "text-purple-400"
+                              : isWeak
+                                ? "text-amber-400"
+                                : "text-slate-400"
+                          }
+                        >
                         <span className="text-slate-500 font-medium">
                           ({concept.mastered}/{concept.total})
                         </span>
@@ -973,7 +1334,12 @@ export default function CourseDetailsPage() {
                     {/* Progress Bar Container */}
                     <div className="h-2 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-850">
                       <div
+                      <div
                         className={`h-full rounded-full transition-all duration-500 ${
+                          isStrong
+                            ? "bg-purple-500"
+                            : isWeak
+                              ? "bg-amber-500/80"
                           isStrong
                             ? "bg-purple-500"
                             : isWeak
@@ -1003,3 +1369,4 @@ export default function CourseDetailsPage() {
     </div>
   );
 }
+

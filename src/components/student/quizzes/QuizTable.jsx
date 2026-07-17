@@ -41,6 +41,10 @@ export default function QuizTable({
                             Time Limit
                         </th>
 
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-slate-300">
+                            Status
+                        </th>
+
                         <th className="px-6 py-4 text-right text-sm font-semibold text-slate-300">
                             Action
                         </th>
