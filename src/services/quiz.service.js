@@ -84,4 +84,15 @@ export const getQuizResult =
             );
 
         return data.data ?? data;
-    };
+};
+
+/**
+ * Self Generate Quiz
+ */
+export const generateSelfAssessmentQuiz = async (courseId, questionCount = 5) => {
+    const { data } = await api.post("/quizzes/self-generate", {
+        courseId,
+        questionCount
+    });
+    return data.data ?? data;
+};

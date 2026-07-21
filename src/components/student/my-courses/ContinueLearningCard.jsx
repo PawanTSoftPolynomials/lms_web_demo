@@ -1,53 +1,58 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen } from "lucide-react";
+import { ArrowRight, BookOpen, Clock, PlayCircle } from "lucide-react";
 
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 
-export default function ContinueLearningCard({
-                                                 enrollment,
-                                             }) {
+export default function ContinueLearningCard({ enrollment }) {
     if (!enrollment) return null;
 
-    const { course, enrolledAt } = enrollment;
+    const { course, enrolledAt, progress = 0 } = enrollment;
 
     return (
-        <Card className="overflow-hidden">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                <div className="space-y-3">
-                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/10 text-orange-500">
-                        <BookOpen className="h-6 w-6" />
-                    </div>
+        <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-orange-500/5 blur-3xl pointer-events-none" />
+            
+            <div className="flex-1 w-full space-y-4">
+                <div className="flex items-center gap-3">
+                    <span className="text-[9px] bg-orange-500/10 text-orange-400 border border-orange-500/25 px-2.5 py-0.5 rounded-full font-black uppercase tracking-widest">
+                        Resume Spotlight
+                    </span>
+                    <span className="text-xs text-slate-450 font-bold">{progress}% Complete</span>
+                </div>
 
-                    <div>
-                        <p className="text-sm uppercase tracking-wide text-orange-400">
-                            Continue Learning
-                        </p>
-
-                        <h2 className="mt-2 text-2xl font-bold text-white">
-                            {course.title}
-                        </h2>
-
-                        <p className="mt-2 max-w-2xl text-slate-400">
-                            {course.description}
-                        </p>
-                    </div>
-
-                    <p className="text-sm text-slate-500">
-                        Enrolled on{" "}
-                        {new Date(enrolledAt).toLocaleDateString()}
+                <div>
+                    <h2 className="text-xl font-black text-white tracking-tight leading-snug">
+                        {course.title}
+                    </h2>
+                    <p className="mt-2 max-w-3xl text-xs text-slate-400 leading-relaxed">
+                        {course.description}
                     </p>
                 </div>
 
-                <Link
-                    href={`/student/learn/${course.id}`}
-                >
-                    <Button className="flex items-center gap-2">
+                <div className="flex flex-wrap gap-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    <span>Enrolled: {new Date(enrolledAt).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}</span>
+                </div>
+
+                {/* Progress bar */}
+                <div className="w-full max-w-md space-y-1">
+                    <div className="h-1.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-855">
+                        <div
+                            className="bg-orange-500 h-full rounded-full transition-all duration-500"
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex-shrink-0 w-full md:w-auto">
+                <Link href={`/student/learn/${course.id}`}>
+                    <button className="w-full md:w-auto px-6 py-3 bg-orange-500 hover:bg-orange-655 text-slate-950 rounded-xl text-xs font-black uppercase tracking-widest transition flex items-center justify-center gap-2 shadow-sm">
                         Continue Learning
-                        <ArrowRight className="h-4 w-4" />
-                    </Button>
+                        <ArrowRight size={14} />
+                    </button>
                 </Link>
             </div>
-        </Card>
+        </div>
     );
 }
