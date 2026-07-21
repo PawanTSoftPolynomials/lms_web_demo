@@ -56,6 +56,7 @@ const playNotificationChime = () => {
 export default function Navbar({ title = "Dashboard", setOpen, role }) {
   const router = useRouter();
   const { logout, user: currentUser } = useAuth();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const pathname = usePathname();
   
@@ -578,7 +579,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
         {/* Logout Button */}
         <button
-          onClick={handleLogout}
+          onClick={() => setShowLogoutModal(true)}
           className="
             bg-red-600/10
             hover:bg-red-600
@@ -609,6 +610,34 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
       >
         <div className="text-white">
           <MiniCalendar role={currentUser?.role} />
+        </div>
+      </Modal>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        open={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        title="Sign Out"
+        size="sm"
+      >
+        <div className="space-y-6 text-center py-2">
+          <p className="text-sm text-slate-400">
+            Are you sure you want to sign out of your account?
+          </p>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setShowLogoutModal(false)}
+              className="px-4 py-2 text-xs font-bold rounded-xl border border-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-750 text-white transition cursor-pointer"
+            >
+              Yes, Logout
+            </button>
+          </div>
         </div>
       </Modal>
     </header>

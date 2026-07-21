@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   BarChart2,
@@ -28,7 +28,7 @@ import Loader from "@/components/common/Loader";
 import StudentEngagement from "@/components/instructor/dashboard/StudentEngagement";
 import ConceptMastery from "@/components/tables/ConceptMastery";
 
-export default function InstructorReportsPage() {
+function InstructorReportsPageContent() {
   const router = useRouter();
   const { user } = useAuth();
 
@@ -635,5 +635,13 @@ export default function InstructorReportsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function InstructorReportsPage() {
+  return (
+    <Suspense fallback={<Loader />}>
+      <InstructorReportsPageContent />
+    </Suspense>
   );
 }

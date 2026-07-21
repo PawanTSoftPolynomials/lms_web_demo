@@ -15,15 +15,16 @@ import AuthHeader from "@/components/auth/AuthHeader";
 import AuthAlert from "@/components/auth/AuthAlert";
 import AuthInput from "@/components/auth/AuthInput";
 import AuthFooter from "@/components/auth/AuthFooter";
-
 import Button from "@/components/ui/Button";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [validationErrors, setValidationErrors] = useState({});
 
   const [formData, setFormData] = useState({
     email: "",
@@ -40,8 +41,24 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Client-side validations
+    const errors = {};
+    if (!formData.email.trim()) {
+      errors.email = "Email is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      errors.email = "Please enter a valid email address.";
+    }
+    if (!formData.password) {
+      errors.password = "Password is required.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+
     setLoading(true);
-    setError("");
+    setValidationErrors({});
 
     try {
       const user = await login({
@@ -73,7 +90,7 @@ export default function LoginPage() {
 
         default:
           console.error("Unknown role:", user.role);
-          setError(`Unknown role: ${user.role}`);
+          showToast(`Unknown role: ${user.role}`, "error", "Login Failed");
           return;
       }
 
@@ -90,7 +107,7 @@ export default function LoginPage() {
         return;
       }
 
-      setError(message);
+      showToast("Invalid email or password.", "error", "Login Failed");
     } finally {
       setLoading(false);
     }
@@ -112,28 +129,40 @@ export default function LoginPage() {
           description="Sign in to continue your learning journey."
         />
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-          <AuthAlert type="error" message={error} />
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
+          <div>
+            <AuthInput
+              label="Email"
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+            {validationErrors.email && (
+              <p className="text-red-500 text-[11px] font-semibold mt-1.5 px-1 text-left animate-in fade-in duration-150">
+                {validationErrors.email}
+              </p>
+            )}
+          </div>
 
-          <AuthInput
-            label="Email"
-            type="email"
-            name="email"
-            placeholder="Enter your email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-
-          <AuthInput
-            label="Password"
-            type="password"
-            name="password"
-            placeholder="Enter your password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
+          <div>
+            <AuthInput
+              label="Password"
+              type="password"
+              name="password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            {validationErrors.password && (
+              <p className="text-red-500 text-[11px] font-semibold mt-1.5 px-1 text-left animate-in fade-in duration-150">
+                {validationErrors.password}
+              </p>
+            )}
+          </div>
 
           <div className="flex justify-end">
             <Link

@@ -1,50 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import Cookies from "js-cookie";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
-import { getProfile } from "@/services/auth.service";
+import { useAuth } from "@/context/AuthContext";
+import Loader from "@/components/common/Loader";
 
 export default function Layout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    const validate = async () => {
-      try {
-        const token = Cookies.get("accessToken");
-
-        if (!token) {
-          router.push("/login");
-          return;
-        }
-
-        const response = await getProfile();
-        const user = response.data || response;
-
-        if (user.role !== "STUDENT") {
-          router.push("/login");
-          return;
-        }
-      } catch (error) {
-        console.error(error);
+    if (!loading) {
+      if (!user || user.role !== "STUDENT") {
         router.push("/login");
-      } finally {
-        setLoading(false);
       }
-    };
-
-    validate();
-  }, [router]);
+    }
+  }, [user, loading, router]);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
-        Loading...
+        <Loader />
       </div>
     );
+  }
+
+  if (!user || user.role !== "STUDENT") {
+    return null; // Let the useEffect redirect
   }
 
   const isLearnPage = pathname?.includes("/student/learn/");

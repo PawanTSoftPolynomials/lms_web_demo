@@ -87,10 +87,6 @@ export default function StudentDashboardPage() {
     ];
   }, [stats]);
 
-  if (isDashboardLoading || isAssignmentsLoading || isQuizzesLoading || isTasksLoading) {
-    return <Loader />;
-  }
-
   if (isError) {
     return (
       <Card className="p-8 text-center border border-slate-800 bg-slate-900/60">
@@ -99,6 +95,8 @@ export default function StudentDashboardPage() {
       </Card>
     );
   }
+
+  const isAnyLoading = isDashboardLoading || isAssignmentsLoading || isQuizzesLoading || isTasksLoading;
 
   return (
     <div className="space-y-6 pb-16 animate-fade-in duration-300">
@@ -122,9 +120,13 @@ export default function StudentDashboardPage() {
           <div>
             <div className="flex items-center justify-between border-b border-slate-800/60 pb-3.5 mb-2">
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-300">My Courses</h3>
-              <span className="text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/30 px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
-                {enrolledCourses.length} Enrolled
-              </span>
+              {isDashboardLoading ? (
+                <div className="h-5 bg-slate-800 w-16 rounded animate-pulse" />
+              ) : (
+                <span className="text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/30 px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
+                  {enrolledCourses.length} Enrolled
+                </span>
+              )}
             </div>
           </div>
 
@@ -133,7 +135,20 @@ export default function StudentDashboardPage() {
               Last Content Viewed
             </span>
 
-            {lastActiveCourse ? (
+            {isDashboardLoading ? (
+              <div className="rounded-xl border border-slate-800/50 bg-slate-955/40 p-3.5 flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-4 items-center animate-pulse">
+                <div className="w-full sm:w-2/5 lg:w-full xl:w-2/5 aspect-[4/3] rounded-lg bg-slate-800 shrink-0" />
+                <div className="flex-1 w-full space-y-2">
+                  <div className="h-4 bg-slate-800 rounded w-3/4" />
+                  <div className="h-3 bg-slate-800 rounded w-1/2" />
+                  <div className="h-3 bg-slate-800 rounded w-2/3" />
+                  <div className="space-y-1 pt-1">
+                    <div className="w-full bg-slate-800 h-1.5 rounded-full" />
+                    <div className="h-2.5 bg-slate-800 rounded w-1/4" />
+                  </div>
+                </div>
+              </div>
+            ) : lastActiveCourse ? (
               <div className="rounded-xl border border-slate-800/50 bg-slate-955/40 p-3.5 flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-4 items-center">
                 {/* Left side: Thumbnail with play overlay */}
                 <div className="w-full sm:w-2/5 lg:w-full xl:w-2/5 aspect-[4/3] rounded-lg relative overflow-hidden bg-teal-955 flex items-center justify-center shrink-0 border border-slate-800/60">
@@ -180,14 +195,16 @@ export default function StudentDashboardPage() {
                 </div>
               </div>
             ) : (
-              <div className="py-12 text-center text-xs text-slate-550 border border-dashed border-slate-800 rounded-xl">
+              <div className="py-12 text-center text-xs text-slate-555 border border-dashed border-slate-800 rounded-xl">
                 You have not enrolled in any courses yet.
               </div>
             )}
           </div>
 
           <div className="pt-4 border-t border-slate-800/40 flex flex-col sm:flex-row gap-2">
-            {lastActiveCourse ? (
+            {isDashboardLoading ? (
+              <div className="w-full h-10 bg-slate-800 rounded-xl animate-pulse" />
+            ) : lastActiveCourse ? (
               <>
                 <Link href={`/student/learn/${lastActiveCourse.courseId}`} className="flex-1">
                   <button className="w-full py-2.5 px-2 bg-orange-500 hover:bg-orange-600 text-slate-950 rounded-xl text-[10px] font-black uppercase tracking-wider transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap">
@@ -212,7 +229,7 @@ export default function StudentDashboardPage() {
           </div>
         </div>
 
-        {/* Card 2: Quick Actions (Pending item lists) */}
+        {/* Card 2: Quick Actions */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm flex flex-col justify-between min-h-[350px]">
           <div>
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
@@ -221,66 +238,82 @@ export default function StudentDashboardPage() {
             </div>
 
             <div className="space-y-3">
-              {/* New Quizzes */}
-              <Link
-                href="/student/quizzes"
-                className="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 border border-slate-800 hover:border-slate-700 transition"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-orange-500/10 p-2 text-orange-400">
-                    <BookOpen size={14} />
-                  </div>
-                  <span className="text-xs font-bold text-slate-200">New Quizzes</span>
-                </div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-black bg-slate-900 text-orange-400 border border-slate-800">
-                  {newQuizzes.length}
-                </span>
-              </Link>
+              {isAnyLoading ? (
+                <>
+                  {[1, 2, 3].map((n) => (
+                    <div key={n} className="h-[52px] bg-slate-950/40 border border-slate-800 rounded-xl animate-pulse flex items-center justify-between p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-lg bg-slate-800 h-8 w-8" />
+                        <div className="h-3 bg-slate-800 rounded w-24" />
+                      </div>
+                      <div className="h-4 bg-slate-800 rounded w-6" />
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <>
+                  {/* New Quizzes */}
+                  <Link
+                    href="/student/quizzes"
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-955/60 border border-slate-800 hover:border-slate-700 transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-lg bg-orange-500/10 p-2 text-orange-400">
+                        <BookOpen size={14} />
+                      </div>
+                      <span className="text-xs font-bold text-slate-200">New Quizzes</span>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-black bg-slate-900 text-orange-400 border border-slate-800">
+                      {newQuizzes.length}
+                    </span>
+                  </Link>
 
-              {/* New Assignments */}
-              <Link
-                href="/student/assignments"
-                className="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 border border-slate-800 hover:border-slate-700 transition"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-purple-500/10 p-2 text-purple-400">
-                    <ClipboardList size={14} />
-                  </div>
-                  <span className="text-xs font-bold text-slate-200">New Assignments</span>
-                </div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-black bg-slate-900 text-purple-400 border border-slate-800">
-                  {pendingAssignments.length}
-                </span>
-              </Link>
+                  {/* New Assignments */}
+                  <Link
+                    href="/student/assignments"
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-955/60 border border-slate-800 hover:border-slate-700 transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-lg bg-purple-500/10 p-2 text-purple-400">
+                        <ClipboardList size={14} />
+                      </div>
+                      <span className="text-xs font-bold text-slate-200">New Assignments</span>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-black bg-slate-900 text-purple-400 border border-slate-800">
+                      {pendingAssignments.length}
+                    </span>
+                  </Link>
 
-              {/* New Assessments / Exams */}
-              <Link
-                href="/student/calendar"
-                className="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 border border-slate-800 hover:border-slate-700 transition"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-blue-500/10 p-2 text-blue-400">
-                    <Target size={14} />
-                  </div>
-                  <span className="text-xs font-bold text-slate-200">New Assessments</span>
-                </div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-black bg-slate-900 text-blue-400 border border-slate-800">
-                  {upcomingTasksList.filter(t => t.type === "exam").length}
-                </span>
-              </Link>
+                  {/* New Assessments / Exams */}
+                  <Link
+                    href="/student/calendar"
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-955/60 border border-slate-800 hover:border-slate-700 transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-lg bg-blue-500/10 p-2 text-blue-400">
+                        <Target size={14} />
+                      </div>
+                      <span className="text-xs font-bold text-slate-200">New Assessments</span>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-black bg-slate-900 text-blue-400 border border-slate-800">
+                      {upcomingTasksList.filter(t => t.type === "exam").length}
+                    </span>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
           <div className="pt-4 border-t border-slate-800/40">
             <Link href="/student/quizzes" className="block w-full">
-              <button className="w-full py-2.5 bg-slate-800 hover:bg-slate-750 text-white rounded-xl text-xs font-black uppercase tracking-widest transition flex items-center justify-center gap-1.5 border border-slate-700/60">
+              <button className="w-full py-2.5 bg-slate-800 hover:bg-slate-750 text-white rounded-xl text-xs font-black uppercase tracking-widest transition flex items-center justify-center gap-1.5 border border-slate-700/60 cursor-pointer">
                 Self Generate Quiz
               </button>
             </Link>
           </div>
         </div>
 
-        {/* Card 3: Schedules (Calendar & Events list) */}
+        {/* Card 3: Schedules */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm flex flex-col justify-between min-h-[350px]">
           <div>
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
@@ -289,7 +322,19 @@ export default function StudentDashboardPage() {
             </div>
 
             <div className="space-y-3.5 max-h-[185px] overflow-y-auto pr-1">
-              {upcomingTasksList.length === 0 ? (
+              {isTasksLoading ? (
+                <>
+                  {[1, 2, 3].map((n) => (
+                    <div key={n} className="h-[46px] bg-slate-950/30 border border-slate-800/60 rounded-xl animate-pulse flex justify-between items-center p-2">
+                      <div className="flex-1 space-y-1.5 min-w-0">
+                        <div className="h-3 bg-slate-800 rounded w-2/3" />
+                        <div className="h-2 bg-slate-800 rounded w-1/3" />
+                      </div>
+                      <div className="h-4 bg-slate-800 rounded w-10 shrink-0" />
+                    </div>
+                  ))}
+                </>
+              ) : upcomingTasksList.length === 0 ? (
                 <div className="py-8 text-center text-xs text-slate-550">
                   🎉 No classes or events scheduled this week.
                 </div>
@@ -313,7 +358,7 @@ export default function StudentDashboardPage() {
 
           <div className="pt-4 border-t border-slate-800/40">
             <Link href="/student/calendar" className="block w-full">
-              <button className="w-full py-2.5 bg-slate-800 hover:bg-slate-750 text-white rounded-xl text-xs font-black uppercase tracking-widest transition flex items-center justify-center gap-1.5 border border-slate-700/60">
+              <button className="w-full py-2.5 bg-slate-800 hover:bg-slate-750 text-white rounded-xl text-xs font-black uppercase tracking-widest transition flex items-center justify-center gap-1.5 border border-slate-700/60 cursor-pointer">
                 View Calendar Events
               </button>
             </Link>
@@ -329,31 +374,49 @@ export default function StudentDashboardPage() {
             </div>
 
             <div className="space-y-4">
-              {/* Student Batch Detail */}
-              <div className="p-3.5 rounded-xl bg-slate-955/60 border border-slate-800 flex items-center justify-between">
-                <div>
-                  <span className="text-[9px] text-slate-500 uppercase font-extrabold tracking-wider">Active Batch</span>
-                  <h4 className="text-sm font-extrabold text-white mt-0.5">{user?.batchName ?? "Java Full Stack LR-01"}</h4>
-                </div>
-                <div className="rounded-lg bg-orange-500/10 p-2 text-orange-400 border border-orange-500/20">
-                  <GraduationCap size={16} />
-                </div>
-              </div>
-
-              {/* Next Live session indicator */}
-              {liveSessions.length > 0 ? (
-                <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-955/20 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[9px] text-emerald-400 font-black uppercase tracking-wider">Live Session Scheduled</span>
+              {isTasksLoading ? (
+                <>
+                  <div className="h-[62px] bg-slate-955/60 border border-slate-800 rounded-xl animate-pulse flex items-center justify-between p-3.5">
+                    <div className="space-y-1.5">
+                      <div className="h-2 bg-slate-800 rounded w-16" />
+                      <div className="h-3.5 bg-slate-800 rounded w-32" />
+                    </div>
+                    <div className="h-8 w-8 bg-slate-800 rounded-lg shrink-0" />
                   </div>
-                  <h5 className="text-xs font-bold text-slate-300 leading-snug">{liveSessions[0].title}</h5>
-                  <p className="text-[9px] text-slate-500 font-semibold">{liveSessions[0].date} at {liveSessions[0].time}</p>
-                </div>
+                  <div className="h-[74px] border border-slate-800 bg-slate-955/20 rounded-xl animate-pulse p-3.5 space-y-2">
+                    <div className="h-2 bg-slate-800 rounded w-24" />
+                    <div className="h-3 bg-slate-800 rounded w-2/3" />
+                  </div>
+                </>
               ) : (
-                <div className="py-4 text-center text-xs text-slate-550 border border-dashed border-slate-800 rounded-xl">
-                  No upcoming live sessions this week.
-                </div>
+                <>
+                  {/* Student Batch Detail */}
+                  <div className="p-3.5 rounded-xl bg-slate-955/60 border border-slate-800 flex items-center justify-between">
+                    <div>
+                      <span className="text-[9px] text-slate-505 uppercase font-extrabold tracking-wider">Active Batch</span>
+                      <h4 className="text-sm font-extrabold text-white mt-0.5">{user?.batchName ?? "Java Full Stack LR-01"}</h4>
+                    </div>
+                    <div className="rounded-lg bg-orange-500/10 p-2 text-orange-400 border border-orange-500/20">
+                      <GraduationCap size={16} />
+                    </div>
+                  </div>
+
+                  {/* Next Live session indicator */}
+                  {liveSessions.length > 0 ? (
+                    <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-955/20 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[9px] text-emerald-400 font-black uppercase tracking-wider">Live Session Scheduled</span>
+                      </div>
+                      <h5 className="text-xs font-bold text-slate-300 leading-snug">{liveSessions[0].title}</h5>
+                      <p className="text-[9px] text-slate-500 font-semibold">{liveSessions[0].date} at {liveSessions[0].time}</p>
+                    </div>
+                  ) : (
+                    <div className="py-4 text-center text-xs text-slate-550 border border-dashed border-slate-800 rounded-xl">
+                      No upcoming live sessions this week.
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -361,13 +424,13 @@ export default function StudentDashboardPage() {
           <div className="pt-4 border-t border-slate-800/40">
             {liveSessions.length > 0 && liveSessions[0].meetingLink ? (
               <a href={liveSessions[0].meetingLink} target="_blank" rel="noopener noreferrer" className="block w-full">
-                <button className="w-full py-2.5 bg-orange-500 hover:bg-orange-655 text-slate-950 rounded-xl text-xs font-black uppercase tracking-widest transition flex items-center justify-center gap-1.5 shadow-sm">
+                <button className="w-full py-2.5 bg-orange-500 hover:bg-orange-655 text-slate-950 rounded-xl text-xs font-black uppercase tracking-widest transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
                   Join Live Session
                 </button>
               </a>
             ) : (
               <Link href="/student/live-classes" className="block w-full">
-                <button className="w-full py-2.5 bg-slate-800 hover:bg-slate-750 text-white rounded-xl text-xs font-black uppercase tracking-widest transition flex items-center justify-center gap-1.5 border border-slate-700/60">
+                <button className="w-full py-2.5 bg-slate-800 hover:bg-slate-750 text-white rounded-xl text-xs font-black uppercase tracking-widest transition flex items-center justify-center gap-1.5 border border-slate-700/60 cursor-pointer">
                   View Live Schedule
                 </button>
               </Link>
@@ -383,29 +446,46 @@ export default function StudentDashboardPage() {
               <Trophy size={16} className="text-yellow-400" />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 bg-slate-955/60 border border-slate-800 rounded-xl text-center">
-                <span className="text-[9px] text-slate-505 uppercase tracking-wider font-extrabold">Avg Quiz Score</span>
-                <div className="text-xl font-black text-white mt-1.5">{stats.avgQuizScore ?? 78}%</div>
-              </div>
-
-              <div className="p-3 bg-slate-955/60 border border-slate-800 rounded-xl text-center">
-                <span className="text-[9px] text-slate-505 uppercase tracking-wider font-extrabold">Lessons Finished</span>
-                <div className="text-xl font-black text-white mt-1.5">
-                  {stats.completedLessons ?? 0}/{stats.totalLessons ?? 5}
+            {isDashboardLoading ? (
+              <div className="grid grid-cols-2 gap-3 animate-pulse">
+                <div className="p-3 bg-slate-955/60 border border-slate-800 rounded-xl flex flex-col items-center justify-center h-[62px] space-y-1.5">
+                  <div className="h-2 bg-slate-805 rounded w-16" />
+                  <div className="h-4 bg-slate-805 rounded w-8" />
+                </div>
+                <div className="p-3 bg-slate-955/60 border border-slate-800 rounded-xl flex flex-col items-center justify-center h-[62px] space-y-1.5">
+                  <div className="h-2 bg-slate-805 rounded w-20" />
+                  <div className="h-4 bg-slate-805 rounded w-10" />
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-slate-955/60 border border-slate-800 rounded-xl text-center">
+                  <span className="text-[9px] text-slate-500 uppercase tracking-wider font-extrabold">Avg Quiz Score</span>
+                  <div className="text-xl font-black text-white mt-1.5">{stats.avgQuizScore ?? 78}%</div>
+                </div>
 
-            <div className="mt-4 p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs text-center flex items-center justify-center gap-1.5 font-bold">
-              <span>📈</span>
-              <span>Avg Passing Rate: 100% on attempted tests</span>
-            </div>
+                <div className="p-3 bg-slate-955/60 border border-slate-800 rounded-xl text-center">
+                  <span className="text-[9px] text-slate-500 uppercase tracking-wider font-extrabold">Lessons Finished</span>
+                  <div className="text-xl font-black text-white mt-1.5">
+                    {stats.completedLessons ?? 0}/{stats.totalLessons ?? 5}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isDashboardLoading ? (
+              <div className="h-10 mt-4 rounded-xl bg-slate-800 animate-pulse" />
+            ) : (
+              <div className="mt-4 p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs text-center flex items-center justify-center gap-1.5 font-bold">
+                <span>📈</span>
+                <span>Avg Passing Rate: 100% on attempted tests</span>
+              </div>
+            )}
           </div>
 
           <div className="pt-4 border-t border-slate-800/40">
             <Link href="/student/quizzes" className="block w-full">
-              <button className="w-full py-2.5 bg-slate-800 hover:bg-slate-750 text-white rounded-xl text-xs font-black uppercase tracking-widest transition flex items-center justify-center gap-1.5 border border-slate-700/60">
+              <button className="w-full py-2.5 bg-slate-800 hover:bg-slate-750 text-white rounded-xl text-xs font-black uppercase tracking-widest transition flex items-center justify-center gap-1.5 border border-slate-700/60 cursor-pointer">
                 View Performance Reports
               </button>
             </Link>
@@ -420,39 +500,54 @@ export default function StudentDashboardPage() {
               <Award size={16} className="text-emerald-400" />
             </div>
             <div className="space-y-4">
-              {/* Certificates count card */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-955/60 border border-slate-800">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-emerald-500/10 p-2 text-emerald-400 border border-emerald-500/20">
-                    <CertificateIcon size={14} />
+              {isDashboardLoading ? (
+                <>
+                  <div className="h-[52px] bg-slate-955/60 border border-slate-800 rounded-xl animate-pulse flex items-center justify-between p-3">
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-lg bg-slate-800 h-8 w-8" />
+                      <div className="h-3 bg-slate-800 rounded w-28" />
+                    </div>
+                    <div className="h-4 bg-slate-800 rounded w-6" />
                   </div>
-                  <span className="text-xs font-bold text-slate-200">Earned Certificates</span>
-                </div>
-                <span className="text-xs font-black text-white">{stats.certificatesCount ?? 0}</span>
-              </div>
+                  <div className="h-10 bg-slate-800 rounded-xl animate-pulse" />
+                </>
+              ) : (
+                <>
+                  {/* Certificates count card */}
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-955/60 border border-slate-800">
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-lg bg-emerald-500/10 p-2 text-emerald-400 border border-emerald-500/20">
+                        <CertificateIcon size={14} />
+                      </div>
+                      <span className="text-xs font-bold text-slate-200">Earned Certificates</span>
+                    </div>
+                    <span className="text-xs font-black text-white">{stats.certificatesCount ?? 0}</span>
+                  </div>
 
-              {/* Achievements row preview */}
-              <div className="flex items-center justify-between gap-1.5 px-1 py-1">
-                {achievementsList.map((ach, idx) => (
-                  <div
-                    key={idx}
-                    title={ach.name}
-                    className={`h-10 w-10 rounded-xl flex items-center justify-center text-sm border shadow-sm transition-transform hover:scale-105 duration-200 cursor-help ${
-                      ach.active
-                        ? "bg-orange-500/10 text-orange-400 border-orange-500/25"
-                        : "bg-slate-800/20 border-slate-800 text-slate-650 opacity-30"
-                    }`}
-                  >
-                    {ach.icon}
+                  {/* Achievements row preview */}
+                  <div className="flex items-center justify-between gap-1.5 px-1 py-1">
+                    {achievementsList.map((ach, idx) => (
+                      <div
+                        key={idx}
+                        title={ach.name}
+                        className={`h-10 w-10 rounded-xl flex items-center justify-center text-sm border shadow-sm transition-transform hover:scale-105 duration-200 cursor-help ${
+                          ach.active
+                            ? "bg-orange-500/10 text-orange-400 border-orange-500/25"
+                            : "bg-slate-800/20 border-slate-800 text-slate-650 opacity-30"
+                        }`}
+                      >
+                        {ach.icon}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              )}
             </div>
           </div>
 
           <div className="pt-4 border-t border-slate-800/40">
             <Link href="/student/certificates" className="block w-full">
-              <button className="w-full py-2.5 bg-slate-800 hover:bg-slate-750 text-white rounded-xl text-xs font-black uppercase tracking-widest transition flex items-center justify-center gap-1.5 border border-slate-700/60">
+              <button className="w-full py-2.5 bg-slate-800 hover:bg-slate-750 text-white rounded-xl text-xs font-black uppercase tracking-widest transition flex items-center justify-center gap-1.5 border border-slate-700/60 cursor-pointer">
                 View My Certificates
               </button>
             </Link>
