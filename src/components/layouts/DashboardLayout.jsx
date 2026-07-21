@@ -11,7 +11,7 @@ export default function DashboardLayout({ children, role, title }) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-slate-950">
+    <div className={`flex min-h-screen ${role === 'INSTRUCTOR' ? 'bg-[#080B11]' : 'bg-slate-950'}`}>
       <Sidebar
         role={role}
         open={open}
@@ -31,6 +31,7 @@ export default function DashboardLayout({ children, role, title }) {
       >
         <DashboardNavbar
           title={title}
+          role={role}
           setOpen={setOpen}
           collapsed={collapsed}
           setCollapsed={setCollapsed}

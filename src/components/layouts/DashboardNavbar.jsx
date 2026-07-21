@@ -53,7 +53,7 @@ const playNotificationChime = () => {
   }
 };
 
-export default function Navbar({ title = "Dashboard", setOpen }) {
+export default function Navbar({ title = "Dashboard", setOpen, role }) {
   const router = useRouter();
   const { logout, user: currentUser } = useAuth();
 
@@ -206,7 +206,11 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
 
     // Handle Standalone sections
     const section = segments[1];
-    if (["calendar", "profile"].includes(section)) {
+    const standalonePages = [
+      "calendar", "profile", "assignments", "reports",
+      "announcements", "modules", "lessons", "contents",
+    ];
+    if (standalonePages.includes(section)) {
       breadcrumbs.push({ label: section.toUpperCase(), href: null });
     }
 
@@ -347,16 +351,15 @@ export default function Navbar({ title = "Dashboard", setOpen }) {
 
   return (
     <header
-      className="
-      bg-slate-900
+      className={`
+      ${role === 'INSTRUCTOR' ? 'bg-[#080B11] border-[#1A1F35]' : 'bg-slate-900 border-slate-800'}
       border-b
-      border-slate-800
       px-4
       py-4
       flex
       items-center
       justify-between
-    "
+    `}
     >
       <div className="flex items-center gap-4">
         <button

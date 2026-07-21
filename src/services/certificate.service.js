@@ -49,10 +49,20 @@ export const deleteCertificate =
   async (
     certificateId
   ) => {
-    const response =
-      await api.delete(
-        `/certificates/${certificateId}`
-      );
+  const response =
+    await api.delete(
+      `/certificates/${certificateId}`
+    );
 
-    return response.data;
-  };
+  return response.data;
+};
+
+export const createCertificate = async (data) => {
+  const response = await api.post("/certificates", data);
+  return response.data;
+};
+
+export const updateCertificate = async (certificateId, data) => {
+  const response = await api.put(`/certificates/${certificateId}`, data);
+  return response.data;
+};
