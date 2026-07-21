@@ -18,7 +18,7 @@ import {
   ExternalLink,
   ChevronRight
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 import api from "@/lib/axios";
 import Card from "@/components/ui/Card";
@@ -32,7 +32,9 @@ export default function InstructorReportsPage() {
   const router = useRouter();
   const { user } = useAuth();
 
-  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const searchParams = useSearchParams();
+  const initialCourseId = searchParams.get("courseId") || "";
+  const [selectedCourseId, setSelectedCourseId] = useState(initialCourseId);
   const [activeTab, setActiveTab] = useState(""); // "", "student", "attendance", "course", "batches"
   
   // Search query for student list

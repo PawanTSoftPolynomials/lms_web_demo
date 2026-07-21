@@ -117,8 +117,14 @@ const seedEvents = [
  * Get all calendar events (real API)
  */
 export const getCalendarEvents = async () => {
-  const { data } = await api.get("/calendar");
-  return data.data ?? data;
+  try {
+    const { data } = await api.get("/calendar");
+    return data.data ?? data;
+  } catch (error) {
+    // Silently return empty array if backend calendar endpoint fails
+    // so polling in NotificationContext doesn't flood the console
+    return [];
+  }
 };
 
 /**
