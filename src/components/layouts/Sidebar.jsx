@@ -59,11 +59,6 @@ export default function Sidebar({
           { title: "My Enrolled Courses", href: "/student/my-courses" },
         ];
       }
-      if (title === "Quizzes") {
-        return [
-          { title: "My Quiz Center", href: "/student/quizzes" },
-        ];
-      }
     }
     if (role === "ADMIN") {
       if (title === "Users") {
@@ -112,7 +107,7 @@ export default function Sidebar({
       >
         <div className="flex flex-col h-full">
           {/* Header branding & Close button */}
-          <div className="p-6 flex items-center justify-between border-b border-slate-805/60">
+          <div className="p-6 flex items-center justify-between border-b border-slate-855/60">
             <div className="flex items-center gap-2.5">
               <PiOrangeDuotone className="text-3xl text-orange-500 animate-pulse" />
               <span className="text-lg font-black text-orange-500 tracking-tight">
@@ -142,10 +137,10 @@ export default function Sidebar({
                   {hasSubmenus ? (
                     <button
                       onClick={() => setMobileExpandedMenu(isExpanded ? null : item.title)}
-                      className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200 border-l-4 cursor-pointer ${
+                      className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-205 border-l-4 cursor-pointer ${
                         isActive || isExpanded
                           ? 'bg-slate-800/60 text-white border-orange-505 font-bold'
-                          : 'border-transparent text-slate-450 hover:text-slate-100 hover:bg-slate-800/30'
+                          : 'border-transparent text-slate-455 hover:text-slate-100 hover:bg-slate-800/30'
                       }`}
                     >
                       <div className="flex items-center gap-3.5">
@@ -175,7 +170,7 @@ export default function Sidebar({
 
                   {/* Render Accordion for Submenu items */}
                   {hasSubmenus && isExpanded && (
-                    <div className="pl-9 pr-2 py-1 space-y-1 bg-slate-950/20 rounded-xl border border-slate-850/30">
+                    <div className="pl-9 pr-2 py-1 space-y-1 bg-slate-955/20 rounded-xl border border-slate-855/30">
                       {subItems.map((sub) => {
                         const isSubActive = pathname === sub.href;
                         return (
@@ -229,7 +224,7 @@ export default function Sidebar({
               p-2
               rounded-lg
               text-white
-              hover:bg-slate-800
+              hover:bg-slate-805
               transition
               cursor-pointer
             "
@@ -243,7 +238,7 @@ export default function Sidebar({
           {!collapsed ? (
             <div className="flex items-center gap-3">
               <PiOrangeDuotone className="text-3xl text-orange-500" />
-              <h1 className="text-xl font-bold text-orange-500">
+              <h1 className="text-xl font-bold text-orange-505">
                 Orange Tree LMS
               </h1>
             </div>
@@ -281,8 +276,8 @@ export default function Sidebar({
                       cursor-pointer
                       ${
                         isActive || isExpanded
-                          ? 'bg-slate-800/80 text-white border-l-4 border-orange-500 font-semibold shadow-inner'
-                          : 'border-l-4 border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 hover:translate-x-1 hover:border-slate-700/50'
+                          ? 'bg-slate-800/80 text-white border-l-4 border-orange-505 font-semibold shadow-inner'
+                          : 'border-l-4 border-transparent text-slate-450 hover:text-slate-100 hover:bg-slate-800/40 hover:translate-x-1 hover:border-slate-700/50'
                       }
                     `}
                   >
@@ -291,9 +286,9 @@ export default function Sidebar({
                       <span>{item.title}</span>
                     </div>
                     {isExpanded ? (
-                      <ChevronDown size={14} className="text-slate-450 mr-2" />
+                      <ChevronDown size={14} className="text-slate-455 mr-2" />
                     ) : (
-                      <ChevronRight size={14} className="text-slate-450 mr-2" />
+                      <ChevronRight size={14} className="text-slate-455 mr-2" />
                     )}
                   </button>
                 ) : (
@@ -314,7 +309,7 @@ export default function Sidebar({
                       duration-350
                       ${
                         isActive
-                          ? 'bg-slate-800/80 text-white border-l-4 border-orange-500 font-semibold shadow-inner'
+                          ? 'bg-slate-800/80 text-white border-l-4 border-orange-505 font-semibold shadow-inner'
                           : 'border-l-4 border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 hover:translate-x-1 hover:border-slate-700/50'
                       }
                     `}
@@ -352,7 +347,7 @@ export default function Sidebar({
                 {/* Submenu selection flyout container when collapsed */}
                 {hasSubmenus && collapsed && hoveredMenu === item.title && (
                   <div className="absolute left-full top-0 ml-1.5 z-[100] w-52 rounded-xl border border-slate-800 bg-slate-955/95 backdrop-blur-md p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] border-l-2 border-l-orange-500 animate-in fade-in slide-in-from-left-2 duration-150">
-                    <div className="text-[10px] text-slate-500 font-extrabold px-2.5 py-1.5 uppercase tracking-wider border-b border-slate-900/60 mb-1">
+                    <div className="text-[10px] text-slate-505 font-extrabold px-2.5 py-1.5 uppercase tracking-wider border-b border-slate-900/60 mb-1">
                       {item.title} Options
                     </div>
                     {subItems.map((sub) => {

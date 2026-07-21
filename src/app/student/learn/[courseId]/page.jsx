@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, Bell, MessageSquare, ArrowLeft, BookOpen, Clock3, 
   ChevronDown, ChevronRight, PlayCircle, CheckCircle2,
-  Menu, Sparkles, CheckCheck
+  Menu, Sparkles, CheckCheck, HelpCircle, Star
 } from "lucide-react";
 import { 
   FaTachometerAlt, FaGraduationCap, FaBook, FaVideo, 
@@ -22,10 +22,13 @@ import LessonTabs from "@/components/student/learning/LessonTabs";
 import LessonNavigation from "@/components/student/learning/LessonNavigation";
 import useCompleteLesson from "@/hooks/queries/student/useCompleteLesson";
 import { useCourse, useStudentState, useUpdateStudentState } from "@/hooks/queries/student";
+import useProgress from "@/hooks/queries/student/useProgress";
 import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
 import ProgressBar from "@/components/student/courses/ProgressBar";
 import { trackCourseAccess } from "@/services/enrollment.service";
+import { ChatWidget } from "@/components/chat";
+import { createConversation } from "@/features/chat/api/chat.api";
 
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
@@ -41,9 +44,15 @@ export default function LearnPage() {
   const { data: stateData, isLoading: isStateLoading } = useStudentState();
   const updateStateMutation = useUpdateStudentState();
   const completeLessonMutation = useCompleteLesson();
+  const { data: progressData } = useProgress();
+  const courseProgress = useMemo(() => {
+    if (!progressData?.courses) return 0;
+    const match = progressData.courses.find((c) => c.id === courseId);
+    return match ? Math.round(match.progress) : 0;
+  }, [progressData, courseId]);
 
   const { logout, user: currentUser } = useAuth();
-  const { toggleChat, isOpen: chatOpen, chatUnreadCount } = useChat();
+  const { toggleChat, isOpen: chatOpen, chatUnreadCount, conversations = [], setConversations, setActiveConversation, setIsOpen } = useChat();
   const { notifications, markAllRead, clearAll, markAsRead } = useNotification();
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -181,15 +190,7 @@ export default function LearnPage() {
     0
   ) || 0;
 
-  // Add messages sidebar item dynamically to match the mockup
-  const sidebarItems = [
-    ...(SIDEBAR_ITEMS.STUDENT || []),
-    {
-      title: "Messages",
-      icon: FaEnvelope,
-      href: "/student/messages"
-    }
-  ];
+  const sidebarItems = SIDEBAR_ITEMS.STUDENT || [];
 
   return (
     <div className="min-h-screen bg-[#07080f] text-white flex overflow-hidden font-sans">
@@ -236,7 +237,26 @@ export default function LearnPage() {
             const Icon = item.icon;
             const isMyLearning = item.title === "My Learning";
             const isActive = isMyLearning; // Highlight My Learning as parent of learn player
+            const isMessages = item.title === "Messages";
             
+            if (isMessages) {
+              return (
+                <button
+                  key={item.title}
+                  onClick={toggleChat}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${
+                    !mainSidebarOpen ? "justify-center" : ""
+                  } border-l-4 border-transparent text-slate-405 hover:text-slate-100 hover:bg-slate-800/30 cursor-pointer`}
+                  title={!mainSidebarOpen ? item.title : ""}
+                >
+                  <Icon className="text-lg transition-transform duration-200 group-hover:scale-110 text-slate-400 group-hover:text-slate-200" />
+                  {mainSidebarOpen && (
+                    <span className="text-sm tracking-wide truncate">{item.title}</span>
+                  )}
+                </button>
+              );
+            }
+
             return (
               <Link
                 key={item.title}
@@ -511,99 +531,210 @@ export default function LearnPage() {
         </header>
 
         {/* ========================================================== */}
-        {/* COURSE DETAILS / INFO BANNER */}
+        {/* REDESIGNED WORKSPACE CONTENT */}
         {/* ========================================================== */}
-        <div className="p-6 md:p-8 space-y-6">
-          <div className="space-y-4">
-            <Link
-              href="/student/my-courses"
-              className="inline-flex items-center gap-2 text-xs text-slate-400 transition hover:text-orange-400"
-            >
-              <ArrowLeft className="h-3 w-3" />
-              Back to My Courses
-            </Link>
-
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-              {/* Left Info */}
-              <div className="space-y-2 max-w-3xl">
-                <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-wide">
-                  {course.title}
-                </h1>
-                <p className="text-xs md:text-sm text-slate-400 leading-relaxed">
-                  {course.description}
-                </p>
-                <div className="flex items-center gap-4 text-xs text-slate-400 pt-1">
-                  <div className="flex items-center gap-1.5">
-                    <BookOpen className="h-3.5 w-3.5 text-orange-500" />
-                    <span>{course.modules?.length || 0} Modules</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Clock3 className="h-3.5 w-3.5 text-orange-500" />
-                    <span>{totalLessons} Lessons</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Progress */}
-              <div className="w-full md:w-64 bg-slate-900/40 border border-slate-800/40 rounded-xl p-4 space-y-2.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-400 font-medium">Course Progress</span>
-                  <span className="font-bold text-orange-400">0%</span>
-                </div>
-                <ProgressBar value={0} />
-                <p className="text-[10px] text-slate-500 leading-tight">
-                  Complete every lesson to finish this course.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* ========================================================== */}
-          {/* COURSE CONTENT VIDEO PLAYER AND STICKY NOTES */}
-          {/* ========================================================== */}
-          <div className={`grid gap-6 ${showStickyNotes ? "grid-cols-1 xl:grid-cols-[1fr_360px]" : "grid-cols-1"}`}>
+        <div className="p-6 md:p-8">
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-8">
             
-            {/* Left Player Area */}
-            <div className="space-y-6">
-              <VideoPlayer
-                content={selectedLesson?.contents?.[0]}
-                onTimeUpdate={setCurrentTimestamp}
-                initialTime={initialTime}
-              />
+            {/* LEFT COLUMN: Info, Video, Transcript, Modules, Tabs */}
+            <div className="space-y-6 min-w-0">
+              
+              {/* Back to courses link & Course Info Banner */}
+              <div className="space-y-4">
+                <Link
+                  href="/student/my-courses"
+                  className="inline-flex items-center gap-2 text-xs text-slate-400 transition hover:text-orange-500 font-bold uppercase tracking-wider"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Back to My Courses
+                </Link>
+                 {/* Minimal inline progress bar */}
+                 <div className="flex items-center gap-3 w-64 text-[10px] font-bold text-slate-500 pb-1">
+                   <span className="uppercase tracking-widest text-[9px]">Progress</span>
+                   <div className="flex-1 bg-slate-955 border border-slate-850/30 rounded-full h-1.5 overflow-hidden relative">
+                     <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-500 to-pink-505 rounded-full" style={{ width: `${courseProgress}%` }} />
+                   </div>
+                   <span className="text-orange-550 font-extrabold">{courseProgress}%</span>
+                 </div>
+
+                <div className="flex flex-col sm:flex-row gap-5 items-start">
+                  {course.thumbnailUrl && (
+                    <div className="relative w-20 h-20 rounded-2xl overflow-hidden border border-slate-805 bg-slate-900/60 flex-shrink-0 flex items-center justify-center">
+                      <img
+                        src={course.thumbnailUrl}
+                        alt={course.title}
+                        className="object-contain w-14 h-14"
+                      />
+                    </div>
+                  )}
+                  <div className="space-y-2.5">
+                    <h1 className="text-2xl md:text-3xl font-black text-white tracking-wide leading-tight">
+                      {course.title}
+                    </h1>
+                    <p className="text-xs text-slate-400 leading-relaxed font-semibold">
+                      {course.description}
+                    </p>
+                    <div className="flex items-center gap-4 text-xs font-bold text-slate-500 pt-1">
+                      <div className="flex items-center gap-1.5">
+                        <BookOpen className="h-4 w-4 text-orange-500" />
+                        <span>{course.modules?.length || 0} Modules</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Clock3 className="h-4 w-4 text-orange-500" />
+                        <span>12h 30m</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Video Player Header and Component */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-800/40 pb-2">
+                  <h3 className="text-sm font-black text-slate-205 flex items-center gap-2">
+                    <PlayCircle className="text-orange-505" size={18} />
+                    {selectedLesson?.title || "Loading Lesson..."}
+                  </h3>
+                </div>
+
+                <VideoPlayer
+                  content={selectedLesson?.contents?.[0]}
+                  onTimeUpdate={setCurrentTimestamp}
+                  initialTime={initialTime}
+                />
+              </div>
+
+              {/* Transcript Card */}
+              <div className="bg-[#0d0e16]/40 border border-slate-800 rounded-3xl p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-300 flex items-center gap-2">
+                    <FaFileAlt className="text-orange-500" size={13} />
+                    Transcript
+                  </h4>
+                  <button className="px-4 py-2 border border-slate-800 hover:border-slate-700 bg-slate-950/20 hover:bg-slate-900/40 text-[10px] font-black uppercase tracking-widest rounded-xl transition text-slate-300 cursor-pointer">
+                    View Full Transcript
+                  </button>
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed font-semibold">
+                  Welcome to the {selectedLesson?.title || "Introduction"} module. In this module, we will learn the core concepts, syntax, implementation, and configurations step-by-step.
+                </p>
+              </div>
+
+              {/* Lesson Tabs component */}
+              <div className="pt-6 border-t border-slate-900/80">
+                <LessonTabs
+                  lesson={selectedLesson}
+                  course={course}
+                />
+              </div>
+
             </div>
 
-            {/* Right Sticky Notes Area (Hidden when both sidebars are open) */}
-            {showStickyNotes && (
-              <div className="w-full">
+            {/* RIGHT COLUMN: Course Progress, Query, Feedback, Reviews, Sticky Notes */}
+            <div className="space-y-6 xl:sticky xl:top-24 h-fit">
+              
+
+              {/* Three Navigation Action Cards (Query, Feedback, Reviews) */}
+              <div className="space-y-4">
+                
+                {/* Query Card */}
+                <button
+                  onClick={async () => {
+                    const instId = course?.creatorId || course?.creator?.id || course?.creator?._id;
+                    if (!instId) {
+                      console.warn("Instructor ID not found for this course.");
+                      return;
+                    }
+                    const matched = conversations.find(c =>
+                      !c.isGroup && c.participants?.some(p => {
+                        const pId = p.userId || p.user?.id || p.id;
+                        return pId === instId;
+                      })
+                    );
+                    if (matched) {
+                      setActiveConversation(matched);
+                      setIsOpen(true);
+                    } else {
+                      try {
+                        const res = await createConversation({
+                          name: course?.creator?.name || "Instructor",
+                          participantIds: [instId],
+                          courseId: course.id,
+                          isGroup: false
+                        });
+                        const newConv = res.data || res;
+                        if (newConv) {
+                          setConversations(prev => [newConv, ...prev]);
+                          setActiveConversation(newConv);
+                        }
+                        setIsOpen(true);
+                      } catch (err) {
+                        console.error("Failed to auto-create conversation with instructor:", err);
+                      }
+                    }
+                  }}
+                  className="w-full flex items-center justify-between p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-amber-500/15 bg-amber-505/5 text-amber-505">
+                      <HelpCircle size={18} className="stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition">Query</h4>
+                      <p className="text-[10px] text-slate-500 leading-normal font-semibold mt-0.5">Ask your doubts and get help from instructors.</p>
+                    </div>
+                  </div>
+                  <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-505 transition-colors shrink-0" />
+                </button>
+
+                {/* Feedback Card */}
+                <Link
+                  href={`/student/feedback?courseId=${course.id}`}
+                  className="w-full flex items-center justify-between p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-emerald-500/15 bg-emerald-505/5 text-emerald-505">
+                      <MessageSquare size={18} className="stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition">Feedback</h4>
+                      <p className="text-[10px] text-slate-550 leading-normal font-semibold mt-0.5">Share your feedback to help us improve.</p>
+                    </div>
+                  </div>
+                  <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-555 transition-colors shrink-0" />
+                </Link>
+
+                {/* Reviews Card */}
+                <Link
+                  href={`/student/reviews?courseId=${course.id}`}
+                  className="w-full flex items-center justify-between p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-blue-500/15 bg-blue-550/5 text-blue-505">
+                      <Star size={18} className="stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition">Reviews</h4>
+                      <p className="text-[10px] text-slate-550 leading-normal font-semibold mt-0.5">Rate this course and see what others think.</p>
+                    </div>
+                  </div>
+                  <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-555 transition-colors shrink-0" />
+                </Link>
+
+              </div>
+
+              {/* Sticky Notes Panel */}
+              {showStickyNotes && (
                 <StickyNotesPanel
                   lessonId={selectedLesson?.id}
                   currentTimestamp={currentTimestamp}
                 />
-              </div>
-            )}
-          </div>
+              )}
 
-          {/* ========================================================== */}
-          {/* TABS & NAVIGATION */}
-          {/* ========================================================== */}
-          <div className="pt-6 border-t border-slate-900 space-y-6">
-            <LessonTabs
-              lesson={selectedLesson}
-              course={course}
-            />
-
-            <LessonNavigation
-              activeLesson={selectedLesson}
-              previousLesson={null}
-              nextLesson={null}
-              onPrevious={() => {}}
-              onNext={() => {}}
-              onComplete={markComplete}
-              isCompleting={completeLessonMutation.isPending}
-            />
+            </div>
           </div>
         </div>
-
+        <ChatWidget />
       </div>
     </div>
   );

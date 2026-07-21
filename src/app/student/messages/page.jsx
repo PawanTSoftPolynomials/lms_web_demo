@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Search,
   Send,
@@ -22,8 +23,11 @@ import { useAuth } from "@/context/AuthContext";
 import useMessages from "@/features/chat/hooks/useMessages";
 import useSendMessage from "@/hooks/useSendMessage";
 
-export default function MessagesPage() {
+function MessagesPageContent() {
   const { user: currentUser } = useAuth();
+  const searchParams = useSearchParams();
+  const instructorId = searchParams.get("instructorId");
+  const courseId = searchParams.get("courseId");
 
   // Real database chat hooks
   const {
@@ -44,6 +48,41 @@ export default function MessagesPage() {
   const [sending, setSending] = useState(false);
   const [showRightPanel, setShowRightPanel] = useState(true);
   const messagesEndRef = useRef(null);
+
+  // Auto-select or create conversation with course instructor on mount/change
+  useEffect(() => {
+    if (!instructorId || chatLoading || conversations.length === 0) return;
+
+    const findAndSelectConversation = async () => {
+      // Find direct conversation with this instructorId
+      const matched = conversations.find(c =>
+        !c.isGroup && c.participants?.some(p => p.id === instructorId || p._id === instructorId)
+      );
+
+      if (matched) {
+        setActiveConversation(matched);
+      } else {
+        // Create new direct conversation
+        try {
+          const { createConversation } = await import("@/features/chat/api/chat.api");
+          const res = await createConversation({
+            participantIds: [instructorId],
+            courseId: courseId,
+            isGroup: false
+          });
+          const newConv = res.data || res;
+          if (newConv) {
+            setConversations(prev => [newConv, ...prev]);
+            setActiveConversation(newConv);
+          }
+        } catch (err) {
+          console.error("Failed to auto-create conversation with instructor:", err);
+        }
+      }
+    };
+
+    findAndSelectConversation();
+  }, [instructorId, conversations, chatLoading, courseId, setActiveConversation, setConversations]);
 
   // Load messages when conversation changes
   useEffect(() => {
@@ -106,7 +145,7 @@ export default function MessagesPage() {
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-450" />
             <input
               type="text"
               placeholder="Search conversations..."
@@ -150,7 +189,7 @@ export default function MessagesPage() {
                       <h4 className="text-xs font-black text-slate-800 truncate">{conv.name || "Chat Room"}</h4>
                       <span className="text-[8px] text-slate-400 flex-shrink-0 ml-1">{conv.time || "10:30 AM"}</span>
                     </div>
-                    <p className="text-[10px] text-slate-500 truncate mt-0.5">{conv.lastMessage || "No messages yet."}</p>
+                    <p className="text-[10px] text-slate-505 truncate mt-0.5">{conv.lastMessage || "No messages yet."}</p>
                   </div>
                 </div>
               );
@@ -174,7 +213,7 @@ export default function MessagesPage() {
                   {activeConversation.name?.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-xs font-black text-slate-800 leading-none">{activeConversation.name}</h3>
+                  <h3 className="text-xs font-black text-slate-805 leading-none">{activeConversation.name}</h3>
                   <span className="text-[9px] text-emerald-500 font-bold mt-1 block">● Online</span>
                 </div>
               </div>
@@ -209,7 +248,7 @@ export default function MessagesPage() {
                     <div className={`max-w-[70%] rounded-2xl p-3 text-xs leading-relaxed ${
                       isMe
                         ? "bg-indigo-600 text-white rounded-tr-none shadow-sm"
-                        : "bg-white border border-slate-100 text-slate-800 rounded-tl-none shadow-sm"
+                        : "bg-white border border-slate-100 text-slate-850 rounded-tl-none shadow-sm"
                     }`}>
                       {!isMe && (
                         <div className="text-[8px] font-black text-indigo-600 mb-1.5">
@@ -256,8 +295,8 @@ export default function MessagesPage() {
             <div className="p-4 bg-slate-50 rounded-full text-indigo-600 mb-3">
               <Send size={32} />
             </div>
-            <h3 className="text-sm font-black text-slate-800">Select a conversation</h3>
-            <p className="text-xs text-slate-500 mt-1">Pick a teammate or course group to begin messaging.</p>
+            <h3 className="text-sm font-black text-slate-805">Select a conversation</h3>
+            <p className="text-xs text-slate-505 mt-1">Pick a teammate or course group to begin messaging.</p>
           </div>
         )}
       </div>
@@ -269,22 +308,22 @@ export default function MessagesPage() {
             <div className="h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center font-black text-xl text-indigo-700 border border-indigo-200 mx-auto mb-3">
               {activeConversation.name?.charAt(0).toUpperCase()}
             </div>
-            <h4 className="text-xs font-black text-slate-800 leading-none">{activeConversation.name}</h4>
+            <h4 className="text-xs font-black text-slate-805 leading-none">{activeConversation.name}</h4>
             <span className="text-[9px] text-slate-400 mt-2 block">Instructor • Computer Science</span>
           </div>
 
           {/* Quick options */}
           <div className="grid grid-cols-4 gap-2 text-center py-4 border-b border-slate-100">
-            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-500 hover:bg-slate-100 transition"><Phone size={14} /></span><span className="text-[8px] font-bold text-slate-500">Call</span></button>
-            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-500 hover:bg-slate-100 transition"><VideoIcon size={14} /></span><span className="text-[8px] font-bold text-slate-500">Video</span></button>
-            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-500 hover:bg-slate-100 transition"><User size={14} /></span><span className="text-[8px] font-bold text-slate-500">Profile</span></button>
-            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-500 hover:bg-slate-100 transition"><Bookmark size={14} /></span><span className="text-[8px] font-bold text-slate-500">Mute</span></button>
+            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-500 hover:bg-slate-105 transition"><Phone size={14} /></span><span className="text-[8px] font-bold text-slate-500">Call</span></button>
+            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-505 hover:bg-slate-105 transition"><VideoIcon size={14} /></span><span className="text-[8px] font-bold text-slate-505">Video</span></button>
+            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-505 hover:bg-slate-105 transition"><User size={14} /></span><span className="text-[8px] font-bold text-slate-505">Profile</span></button>
+            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-505 hover:bg-slate-105 transition"><Bookmark size={14} /></span><span className="text-[8px] font-bold text-slate-505">Mute</span></button>
           </div>
 
           {/* Shared files list */}
           <div className="flex-1 overflow-y-auto pt-4 space-y-4">
             <div>
-              <h5 className="text-[10px] font-black text-slate-800 uppercase tracking-wider mb-2">Conversation Files</h5>
+              <h5 className="text-[10px] font-black text-slate-805 uppercase tracking-wider mb-2">Conversation Files</h5>
               <div className="space-y-2">
                 <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition cursor-pointer">
                   <div className="flex items-center gap-2">
@@ -312,11 +351,11 @@ export default function MessagesPage() {
 
             {/* About metadata */}
             <div className="border-t border-slate-100 pt-4">
-              <h5 className="text-[10px] font-black text-slate-800 uppercase tracking-wider mb-2">About</h5>
-              <div className="space-y-2 text-[10px] text-slate-500 font-medium">
+              <h5 className="text-[10px] font-black text-slate-805 uppercase tracking-wider mb-2">About</h5>
+              <div className="space-y-2 text-[10px] text-slate-505 font-medium">
                 <p>This is the start of your message thread. Feel free to collaborate, coordinate, and ask any questions.</p>
-                <div className="flex justify-between font-semibold"><span className="text-slate-400">Member since</span><span className="text-slate-700">March 12, 2025</span></div>
-                <div className="flex justify-between font-semibold"><span className="text-slate-400">Associated course</span><span className="text-slate-700 truncate max-w-[110px]">Data Structures</span></div>
+                <div className="flex justify-between font-semibold"><span className="text-slate-400">Member since</span><span className="text-slate-707">March 12, 2025</span></div>
+                <div className="flex justify-between font-semibold"><span className="text-slate-400">Associated course</span><span className="text-slate-707 truncate max-w-[110px]">Data Structures</span></div>
               </div>
             </div>
           </div>
@@ -324,5 +363,13 @@ export default function MessagesPage() {
       )}
 
     </div>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center py-20 text-xs text-slate-400">Loading conversation...</div>}>
+      <MessagesPageContent />
+    </Suspense>
   );
 }
