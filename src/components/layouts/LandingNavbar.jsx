@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function LandingNavbar() {
   return (
-    <nav className="flex justify-between items-center py-6">
+    <nav className="sticky top-0 bg-slate-950/80 border-b border-slate-900/40 backdrop-blur-md z-50 flex justify-between items-center py-4 px-4 -mx-4">
       <h1 className="text-2xl font-bold text-orange-500">
         Orange Tree LMS
       </h1>

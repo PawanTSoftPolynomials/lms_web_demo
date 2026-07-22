@@ -1,7 +1,23 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
+import { getLandingData } from "@/services/landing.service";
 
 export default function Hero() {
+  const [stats, setStats] = useState({ students: 0, courses: 0, certificates: 0 });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const data = await getLandingData();
+      if (data && data.stats) {
+        setStats(data.stats);
+      }
+    };
+    fetchStats();
+  }, []);
+
   return (
     <section className="min-h-[75vh] flex items-center py-16">
       <div className="grid lg:grid-cols-2 gap-16 items-center w-full">
@@ -51,7 +67,7 @@ export default function Hero() {
             </h3>
 
             <h2 className="text-4xl font-bold text-orange-500 mt-2">
-              1200+
+              {stats.students}+
             </h2>
           </div>
 
@@ -61,7 +77,7 @@ export default function Hero() {
             </h3>
 
             <h2 className="text-4xl font-bold text-orange-500 mt-2">
-              80+
+              {stats.courses}+
             </h2>
           </div>
 
@@ -71,7 +87,7 @@ export default function Hero() {
             </h3>
 
             <h2 className="text-4xl font-bold text-orange-500 mt-2">
-              600+
+              {stats.certificates}+
             </h2>
           </div>
         </div>

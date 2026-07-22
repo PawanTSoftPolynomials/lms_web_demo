@@ -235,7 +235,7 @@ export default async function CoursePage({ params }) {
 
               {/* Price Details */}
               <div className="space-y-1">
-                <h3 className="text-3xl font-black text-white">$49.00</h3>
+                <h3 className="text-3xl font-black text-white">₹4,999.00</h3>
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Full Access Price</p>
               </div>
 
