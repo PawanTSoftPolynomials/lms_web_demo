@@ -16,7 +16,7 @@ export function useDeleteQuestion() {
             deleteQuestion(questionId),
 
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({
+            queryClient.resetQueries({
                 queryKey: [
                     QUERY_KEYS.QUESTIONS,
                     variables.quizId,

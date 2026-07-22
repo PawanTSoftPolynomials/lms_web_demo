@@ -12,14 +12,13 @@ import ActionMenu from "@/components/menus/ActionMenu";
 
 export default function QuestionCard({
                                          question,
-                                         courseId,
                                          onDelete,
                                      }) {
     const router = useRouter();
 
     const openQuestion = () => {
         router.push(
-            `/instructor/courses/${courseId}/quizzes/${question.quizId}/questions/view/${question.id}`
+            `/instructor/questions/view/${question.id}`
         );
     };
 
@@ -66,13 +65,7 @@ export default function QuestionCard({
                                 </h3>
 
                                 <p className="mt-3 text-sm text-slate-400">
-                                    {question.type === "MATCH_PAIRS"
-                                        ? `${question.options?.left?.length ?? 0} Match Pairs`
-                                        : question.type === "ARRANGE_TOKENS"
-                                        ? `${question.options?.length ?? 0} Tokens`
-                                        : question.type === "SELF_ASSESSMENT"
-                                        ? "Self Assessment Rubric"
-                                        : Array.isArray(question.options)
+                                    {Array.isArray(question.options)
                                         ? `${question.options.length} Options`
                                         : "No options"}
                                 </p>
@@ -87,10 +80,14 @@ export default function QuestionCard({
                             <ActionMenu
                                 items={[
                                     {
+                                        label: "View",
+                                        onClick: openQuestion,
+                                    },
+                                    {
                                         label: "Edit",
                                         onClick: () =>
                                             router.push(
-                                                `/instructor/courses/${courseId}/quizzes/${question.quizId}/questions/edit/${question.id}`
+                                                `/instructor/questions/edit/${question.id}`
                                             ),
                                     },
                                     {

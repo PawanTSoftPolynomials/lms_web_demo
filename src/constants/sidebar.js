@@ -70,23 +70,53 @@ export const SIDEBAR_ITEMS = {
     INSTRUCTOR: [
         {
             title: "Dashboard",
-            icon: FaTachometerAlt,
+            icon: "🏠",
             href: "/instructor/dashboard",
         },
         {
             title: "Courses",
-            icon: FaBook,
+            icon: "📚",
             href: "/instructor/courses",
         },
         {
+            title: "Students",
+            icon: "👨‍🎓",
+            href: "/instructor/students",
+        },
+        {
+            title: "Assignments",
+            icon: "📝",
+            href: "/instructor/assignments",
+        },
+        {
             title: "Quizzes",
-            icon: FaClipboardList,
+            icon: "❓",
             href: "/instructor/quizzes",
         },
         {
-            title: "Calendar",
-            icon: FaCalendarAlt,
+            title: "Schedule",
+            icon: "📅",
             href: "/instructor/calendar",
+        },
+        {
+            title: "Certificates",
+            icon: "📜",
+            href: "/instructor/certificates",
+        },
+        {
+            title: "Messages",
+            icon: "💬",
+            href: "/instructor/messages",
+        },
+        {
+            title: "Analytics",
+            icon: "📊",
+            href: "/instructor/reports",
+        },
+        {
+            title: "Settings",
+            icon: "⚙",
+            href: "/instructor/settings",
         },
     ],
 

@@ -53,6 +53,63 @@ const playNotificationChime = () => {
   }
 };
 
+function ProfileDropdown({ user, logout }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        onClick={() => setOpen(!open)}
+        className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition ${
+          open
+            ? "bg-[#1A1F35] border-slate-700 text-slate-100"
+            : "bg-[#0D1021] border-[#1A1F35] text-slate-400 hover:text-slate-100 hover:border-slate-800"
+        }`}
+      >
+        <span className="h-4 w-4 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center text-[9px] font-black font-mono shrink-0">
+          {user?.name?.[0]?.toUpperCase() || 'I'}
+        </span>
+        <span className="truncate max-w-[80px]">{user?.name || "Profile"}</span>
+        <span className="text-[9px] text-slate-550 shrink-0">▼</span>
+      </button>
+      
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-10 z-50 w-44 rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-1.5 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="px-3 py-2 border-b border-[#1A1F35] mb-1">
+              <p className="text-[10px] font-black text-slate-200 truncate">{user?.name}</p>
+              <p className="text-[8.5px] text-slate-500 truncate">{user?.email}</p>
+            </div>
+            <Link
+              href="/instructor/profile"
+              onClick={() => setOpen(false)}
+              className="flex items-center px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-slate-100 hover:bg-[#1A1F35] rounded-xl transition"
+            >
+              👤 My Profile
+            </Link>
+            <Link
+              href="/instructor/settings"
+              onClick={() => setOpen(false)}
+              className="flex items-center px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-slate-100 hover:bg-[#1A1F35] rounded-xl transition"
+            >
+              ⚙ Settings
+            </Link>
+            <button
+              onClick={() => {
+                setOpen(false);
+                logout();
+              }}
+              className="w-full text-left flex items-center px-3 py-2 text-[10px] font-black text-rose-400 hover:text-rose-350 hover:bg-rose-500/10 rounded-xl transition cursor-pointer"
+            >
+              🚪 Sign Out
+            </button>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
 export default function Navbar({ title = "Dashboard", setOpen, role }) {
   const router = useRouter();
   const { logout, user: currentUser } = useAuth();
@@ -348,6 +405,116 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
       router.push(currentUser?.role === "INSTRUCTOR" ? "/instructor/courses" : "/student/courses");
     }
   };
+
+  if (role === 'INSTRUCTOR') {
+    return (
+      <header className="bg-[#080B11] border-b border-[#1A1F35] px-6 py-4 flex items-center justify-between text-slate-200">
+        <div className="flex items-center gap-6">
+          {/* Mobile menu toggle */}
+          <button
+            onClick={() => setOpen?.(true)}
+            className="md:hidden text-xl text-white mr-1"
+          >
+            <FaBars />
+          </button>
+          
+          {/* Logo */}
+          <Link href="/instructor/dashboard" className="flex items-center gap-2 font-black text-slate-100 hover:opacity-90">
+            <span className="text-xl">🍊</span>
+            <span className="text-sm tracking-wider font-mono">ORANGE TREE</span>
+          </Link>
+
+          {/* Navigation Links with labels */}
+          <nav className="hidden md:flex items-center gap-5 ml-4">
+            <Link href="/instructor/students" className={`text-xs font-bold transition hover:text-slate-100 ${pathname === '/instructor/students' ? 'text-orange-400 font-extrabold' : 'text-slate-400'}`}>
+              My Students
+            </Link>
+            <Link href="/instructor/courses" className={`text-xs font-bold transition hover:text-slate-100 ${pathname === '/instructor/courses' ? 'text-orange-400 font-extrabold' : 'text-slate-400'}`}>
+              My Courses
+            </Link>
+            <Link href="/instructor/announcements" className={`text-xs font-bold transition hover:text-slate-100 ${pathname === '/instructor/announcements' ? 'text-orange-400 font-extrabold' : 'text-slate-400'}`}>
+              News
+            </Link>
+          </nav>
+        </div>
+
+        {/* Search, Notifications & Profile */}
+        <div className="flex items-center gap-4">
+          {/* Global Search */}
+          <div className="hidden sm:block relative">
+            <input
+              type="text"
+              placeholder="Search..."
+              className="w-48 lg:w-60 bg-[#0D1021] border border-[#1A1F35] text-xs px-3.5 py-1.5 rounded-xl outline-none text-slate-200 placeholder-slate-500 focus:border-slate-700 transition-all duration-300"
+            />
+          </div>
+
+          {/* Notifications */}
+          <div className="relative">
+            <button
+              onClick={() => setShowNotifications((prev) => !prev)}
+              className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition ${
+                showNotifications
+                  ? "bg-[#1A1F35] border-slate-700 text-slate-100"
+                  : "bg-[#0D1021] border-[#1A1F35] text-slate-400 hover:text-slate-100 hover:border-slate-800"
+              }`}
+            >
+              <span>🔔</span>
+              <span>Notifications</span>
+              {unreadCount > 0 && (
+                <span className="bg-orange-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 ml-0.5 animate-pulse">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+                <div className="absolute right-0 top-10 z-50 w-80 rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-4 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#1A1F35] mb-2">
+                    <h3 className="font-black text-xs text-slate-200">Notifications</h3>
+                    {unreadCount > 0 && (
+                      <button onClick={handleMarkAllRead} className="text-[10px] text-orange-400 hover:text-orange-300 font-bold transition">
+                        Mark read
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-64 overflow-y-auto space-y-2 pr-0.5">
+                    {notifications.length === 0 ? (
+                      <div className="py-8 text-center text-[10px] text-slate-500">No notifications</div>
+                    ) : (
+                      notifications.slice(0, 5).map((n) => (
+                        <div
+                          key={n.id}
+                          onClick={() => handleNotificationClick(n)}
+                          className={`p-2 rounded-xl border cursor-pointer transition ${
+                            n.read ? "bg-white/[0.01] border-transparent hover:bg-white/[0.03]" : "bg-orange-500/5 border-orange-500/10 hover:bg-orange-500/10"
+                          }`}
+                        >
+                          <div className="flex justify-between items-start gap-1">
+                            <h4 className="font-extrabold text-[10.5px] text-slate-200 truncate">{n.title}</h4>
+                            {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0 mt-1" />}
+                          </div>
+                          <p className="text-[9.5px] text-slate-500 line-clamp-2 mt-0.5 leading-snug">{n.message}</p>
+                          <span className="text-[8px] text-slate-655 block mt-1">{n.time}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Profile Dropdown */}
+          <div className="relative">
+            <ProfileDropdown logout={handleLogout} user={currentUser} />
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header

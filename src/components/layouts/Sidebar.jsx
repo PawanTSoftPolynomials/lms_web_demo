@@ -20,6 +20,7 @@ export default function Sidebar({
   const [hoveredMenu, setHoveredMenu] = useState(null);
 
   const menus = SIDEBAR_ITEMS[role] || [];
+  const isCollapsed = role === "INSTRUCTOR" ? false : collapsed;
 
   // Define sub-fields dynamic configuration for hover selection
   const getSubmenus = (title) => {
@@ -89,34 +90,35 @@ export default function Sidebar({
           top-0 left-0
           h-screen
           overflow-y-auto
-          bg-slate-900
-          border-r border-slate-800
+          ${role === 'INSTRUCTOR' ? 'bg-[#0D1021] border-r border-[#1A1F35]' : 'bg-slate-900 border-r border-slate-800'}
           z-50
           transition-all
           duration-300
-          ${collapsed ? 'w-20' : 'w-64'}
+          ${isCollapsed ? 'w-20' : 'w-64'}
           ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
       >
         {/* Collapse Button */}
-        <div className="hidden md:flex justify-end p-4">
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="
-              p-2
-              rounded-lg
-              text-white
-              hover:bg-slate-800
-              transition
-            "
-          >
-            <FaBars />
-          </button>
-        </div>
+        {role !== 'INSTRUCTOR' && (
+          <div className="hidden md:flex justify-end p-4">
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="
+                p-2
+                rounded-lg
+                text-white
+                hover:bg-slate-800
+                transition
+              "
+            >
+              <FaBars />
+            </button>
+          </div>
+        )}
 
         {/* Logo */}
-        <div className="px-6 pb-6 flex items-center justify-center">
-          {!collapsed ? (
+        <div className={`px-6 flex items-center justify-center ${role === 'INSTRUCTOR' ? 'py-6' : 'pb-6'}`}>
+          {!isCollapsed ? (
             <div className="flex items-center gap-3">
               <PiOrangeDuotone className="text-3xl text-orange-500" />
 
@@ -149,21 +151,25 @@ export default function Sidebar({
                   onClick={() => setOpen(false)}
                   className={`
                     flex items-center
-                    ${collapsed ? 'justify-center' : 'gap-3'}
+                    ${isCollapsed ? 'justify-center' : 'gap-3'}
                     p-3
                     rounded-r-xl
                     transition-all
                     duration-350
                     ${
                       isActive
-                        ? 'bg-slate-800/80 text-white border-l-4 border-orange-500 font-semibold shadow-inner'
-                        : 'border-l-4 border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 hover:translate-x-1 hover:border-slate-700/50'
+                        ? 'bg-orange-500/5 text-orange-400 border-l-2 border-orange-500 font-semibold'
+                        : 'border-l-2 border-transparent text-slate-400 hover:text-slate-100 hover:bg-white/[0.02] hover:translate-x-0.5'
                     }
                   `}
                 >
-                  <Icon className="text-lg" />
+                  {typeof Icon === 'string' ? (
+                    <span className="text-lg flex-shrink-0 w-5 text-center">{Icon}</span>
+                  ) : (
+                    <Icon className="text-lg flex-shrink-0" />
+                  )}
 
-                  {!collapsed && <span>{item.title}</span>}
+                  {!isCollapsed && <span>{item.title}</span>}
                 </Link>
 
                 {/* Submenu selection flyout container */}

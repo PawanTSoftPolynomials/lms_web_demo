@@ -21,6 +21,7 @@ import Button from "@/components/ui/Button";
 
 import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
+import ImportQuestionsModal from "@/components/instructor/questions/ImportQuestionsModal";
 
 const INITIAL_FORM = {
   type: "MCQ_SINGLE",
@@ -53,6 +54,7 @@ export default function QuestionForm({
 
   // Form State
   const [formData, setFormData] = useState(INITIAL_FORM);
+  const [showImport, setShowImport] = useState(false);
   const [pairs, setPairs] = useState([{ left: "", right: "" }, { left: "", right: "" }]);
   const [tokens, setTokens] = useState(["", "", ""]);
   
@@ -249,13 +251,25 @@ export default function QuestionForm({
     <div className="space-y-8 pb-24">
       {/* Header and Title */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4 w-full">
           <div>
             <h1 className="text-4xl font-bold text-white tracking-tight">Add New Question</h1>
             <p className="mt-2 text-slate-400">
               Quiz: <span className="text-orange-400 font-extrabold">{quiz?.title || "Quiz"}</span>
             </p>
           </div>
+
+          {mode === "create" && (
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowImport(true)}
+                className="flex items-center gap-2 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 font-extrabold text-xs uppercase tracking-wider px-5 py-3 transition active:scale-95 cursor-pointer"
+              >
+                <span>Import from File</span>
+              </button>
+            </div>
+          )}
 
           <div className="hidden sm:flex items-center gap-3">
             <button
@@ -776,6 +790,17 @@ export default function QuestionForm({
           </div>
         </div>
       </form>
+
+      {showImport && (
+        <ImportQuestionsModal
+          quizId={quizId}
+          onClose={() => setShowImport(false)}
+          onSuccess={() => {
+            setShowImport(false);
+            router.push(`/instructor/questions/${quizId}`);
+          }}
+        />
+      )}
     </div>
   );
 }

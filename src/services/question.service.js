@@ -57,3 +57,22 @@ export const deleteQuestion =
 
     return response.data;
   };
+
+export const bulkCreateQuestions = async (quizId, questions) => {
+  const response = await api.post("/questions/bulk", {
+    quizId,
+    questions,
+  });
+  return response.data;
+};
+
+export const importQuestions = async (quizId, file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("quizId", quizId);
+
+  const response = await api.post("/questions/import", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+};
