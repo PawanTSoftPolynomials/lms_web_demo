@@ -56,7 +56,7 @@ export default function StudentDashboardPage() {
   const { data: calendarEvents = [], isLoading: isCalendarEventsLoading } = useQuery({
     queryKey: ["calendar_events"],
     queryFn: getCalendarEvents,
-    refetchInterval: 30000,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 
   const formatTime = (timeStr) => {

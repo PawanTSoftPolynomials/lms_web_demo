@@ -19,7 +19,9 @@ import {
   ChevronRight,
   ClipboardList,
   PenTool,
-  Info
+  Info,
+  CalendarCheck,
+  Activity
 } from "lucide-react";
 
 import Loader from "@/components/common/Loader";
@@ -239,40 +241,82 @@ function StudentQuizzesPageContent() {
 
               const actionItems = [
                 {
-                  label: "New Quizzes",
-                  tab: "new",
-                  icon: ClipboardList,
-                  color: "text-purple-500",
-                  border: "border-purple-500/15",
-                  bg: "bg-purple-500/5",
-                  status: `${newCount} Quiz${newCount !== 1 ? "zes" : ""}`
-                },
-                {
-                  label: "Completed Quizzes",
-                  tab: "completed",
-                  icon: CheckCircle,
-                  color: "text-emerald-500",
-                  border: "border-emerald-500/15",
-                  bg: "bg-emerald-500/5",
-                  status: `${completedCount} Quiz${completedCount !== 1 ? "zes" : ""}`
-                },
-                {
-                  label: "Self-Generated Quizzes",
-                  tab: "self_generate",
-                  icon: PenTool,
-                  color: "text-amber-500",
-                  border: "border-amber-500/15",
-                  bg: "bg-amber-500/5",
-                  status: `${practiceCount} Quiz${practiceCount !== 1 ? "zes" : ""}`
-                },
-                {
-                  label: "Reports",
-                  tab: "reports",
-                  icon: BarChart2,
+                  label: "My Learning",
+                  icon: CalendarCheck,
                   color: "text-blue-500",
                   border: "border-blue-500/15",
                   bg: "bg-blue-500/5",
-                  status: "View Reports"
+                  status: "Learn",
+                  onClick: () => router.push(`/student/learn/${course.id}`)
+                },
+                {
+                  label: "My Homework",
+                  icon: CalendarCheck,
+                  color: "text-orange-500",
+                  border: "border-orange-500/15",
+                  bg: "bg-orange-500/5",
+                  status: "Homework",
+                  onClick: () => router.push(`/student/assignments`)
+                },
+                {
+                  label: "My Assignment",
+                  icon: CalendarCheck,
+                  color: "text-purple-500",
+                  border: "border-purple-500/15",
+                  bg: "bg-purple-500/5",
+                  status: "Assignments",
+                  onClick: () => router.push(`/student/assignments`)
+                },
+                {
+                  label: "My Test",
+                  icon: CalendarCheck,
+                  color: "text-emerald-500",
+                  border: "border-emerald-500/15",
+                  bg: "bg-emerald-500/5",
+                  status: `${newCount} Pending`,
+                  onClick: () => {
+                    setViewingCourseId(course.id);
+                    setActiveTab("new");
+                  }
+                },
+                {
+                  label: "My Assessment Activity",
+                  icon: CalendarCheck,
+                  color: "text-pink-500",
+                  border: "border-pink-500/15",
+                  bg: "bg-pink-500/5",
+                  status: `${courseQuizzes.length} Quizzes`,
+                  onClick: () => {
+                    setViewingCourseId(course.id);
+                    setActiveTab("self_generate");
+                  }
+                },
+                {
+                  label: "Feedback",
+                  icon: CalendarCheck,
+                  color: "text-rose-500",
+                  border: "border-rose-500/15",
+                  bg: "bg-rose-500/5",
+                  status: "Submit",
+                  onClick: () => router.push(`/student/feedback`)
+                },
+                {
+                  label: "CO Outcome Summary",
+                  icon: BarChart2,
+                  color: "text-amber-500",
+                  border: "border-amber-500/15",
+                  bg: "bg-amber-500/5",
+                  status: "View",
+                  onClick: () => router.push(`/student/progress`)
+                },
+                {
+                  label: "Check Activity Status",
+                  icon: Activity,
+                  color: "text-cyan-500",
+                  border: "border-cyan-500/15",
+                  bg: "bg-cyan-500/5",
+                  status: "Check",
+                  onClick: () => router.push(`/student/achievements`)
                 }
               ];
 
@@ -286,22 +330,19 @@ function StudentQuizzesPageContent() {
                     <h3 className="text-lg font-black text-white tracking-tight leading-snug truncate" title={course.title}>
                       {course.title}
                     </h3>
-                    <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider block mt-1">
-                      {courseQuizzes.length} Quizzes Available
+                    <span className="text-[11px] text-slate-400 font-extrabold uppercase tracking-wider block mt-1">
+                      Theory, Practical
                     </span>
                   </div>
 
                   {/* List of Navigation Actions (Divided row structure matching user course card layout) */}
-                  <div className="divide-y divide-slate-800/80 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/20">
+                  <div className="divide-y divide-slate-800/80 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-955/20">
                     {actionItems.map((item, idx) => {
                       const Icon = item.icon;
                       return (
                         <div
                           key={idx}
-                          onClick={() => {
-                            setViewingCourseId(course.id);
-                            setActiveTab(item.tab);
-                          }}
+                          onClick={item.onClick}
                           className="flex items-center justify-between px-4 py-3 hover:bg-slate-900/50 transition group cursor-pointer"
                         >
                           <div className="flex items-center gap-4">
@@ -321,6 +362,11 @@ function StudentQuizzesPageContent() {
                         </div>
                       );
                     })}
+                  </div>
+
+                  {/* Bottom Right Help Icon */}
+                  <div className="flex justify-end pt-3 text-slate-500 hover:text-white transition select-none">
+                    <HelpCircle size={15} />
                   </div>
                 </div>
               );

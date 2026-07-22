@@ -12,7 +12,10 @@ import {
   X,
   CheckCircle,
   PenTool,
-  BarChart2
+  BarChart2,
+  CalendarCheck,
+  Activity,
+  HelpCircle
 } from "lucide-react";
 
 import useAssignments from "@/hooks/queries/student/useAssignments";
@@ -67,52 +70,79 @@ export default function MyCourseCard({ enrollment }) {
         {
             label: "My Learning",
             href: `/student/learn/${course.id}`,
-            icon: PlayCircle,
-            color: "text-orange-500",
-            border: "border-orange-500/15",
-            bg: "bg-orange-500/5",
-            status: `${totalLessons} Lessons`
-        },
-        {
-            label: "Quizzes",
-            href: `/student/quizzes?courseId=${course.id}`,
-            icon: Award,
-            color: "text-purple-500",
-            border: "border-purple-500/15",
-            bg: "bg-purple-500/5",
-            status: `${totalQuizzes} Quizzes`
-        },
-        {
-            label: "Assignments",
-            href: `/student/assignments`,
-            icon: ClipboardList,
+            icon: CalendarCheck,
             color: "text-blue-500",
             border: "border-blue-500/15",
             bg: "bg-blue-500/5",
+            status: `${totalLessons} Lessons`
+        },
+        {
+            label: "My Homework",
+            href: `/student/assignments`,
+            icon: CalendarCheck,
+            color: "text-orange-500",
+            border: "border-orange-500/15",
+            bg: "bg-orange-500/5",
+            status: `${pendingHomeworks} Pending`
+        },
+        {
+            label: "My Assignment",
+            href: `/student/assignments`,
+            icon: CalendarCheck,
+            color: "text-purple-500",
+            border: "border-purple-500/15",
+            bg: "bg-purple-500/5",
             status: `${pendingAssignments} Pending`
         },
         {
-            label: "Test",
+            label: "My Test",
             href: `/student/quizzes?courseId=${course.id}`,
-            icon: Target,
+            icon: CalendarCheck,
             color: "text-emerald-500",
             border: "border-emerald-500/15",
             bg: "bg-emerald-500/5",
-            status: `${pendingTests} Test${pendingTests !== 1 ? "s" : ""}`
+            status: `${pendingTests} Pending`
         },
         {
-            label: "Homework",
-            href: `/student/assignments`,
-            icon: BookOpen,
+            label: "My Assessment Activity",
+            href: `/student/quizzes?courseId=${course.id}`,
+            icon: CalendarCheck,
             color: "text-pink-500",
             border: "border-pink-500/15",
             bg: "bg-pink-500/5",
-            status: `${pendingHomeworks} Pending`
+            status: `${totalQuizzes} Quizzes`
+        },
+        {
+            label: "Feedback",
+            href: `/student/feedback`,
+            icon: CalendarCheck,
+            color: "text-rose-500",
+            border: "border-rose-500/15",
+            bg: "bg-rose-500/5",
+            status: "Submit"
+        },
+        {
+            label: "CO Outcome Summary",
+            href: `/student/progress`,
+            icon: BarChart2,
+            color: "text-amber-500",
+            border: "border-amber-500/15",
+            bg: "bg-amber-500/5",
+            status: "View"
+        },
+        {
+            label: "Check Activity Status",
+            href: `/student/achievements`,
+            icon: Activity,
+            color: "text-cyan-500",
+            border: "border-cyan-500/15",
+            bg: "bg-cyan-500/5",
+            status: "Check"
         }
     ];
 
     const handleRowClick = (e, label) => {
-        if (label === "Quizzes" || label === "Test") {
+        if (label === "My Test" || label === "My Assessment Activity") {
             e.preventDefault();
             setQuizModalOpen(true);
         }
@@ -126,8 +156,8 @@ export default function MyCourseCard({ enrollment }) {
                     <h3 className="text-lg font-black text-white tracking-tight leading-snug truncate" title={course.title}>
                         {course.title}
                     </h3>
-                    <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider block mt-1">
-                        5 Learning Resources
+                    <span className="text-[11px] text-slate-400 font-extrabold uppercase tracking-wider block mt-1">
+                        Theory, Practical
                     </span>
                 </div>
 
@@ -159,6 +189,11 @@ export default function MyCourseCard({ enrollment }) {
                             </Link>
                         );
                     })}
+                </div>
+
+                {/* Bottom Right Help Icon */}
+                <div className="flex justify-end pt-3 text-slate-500 hover:text-white transition select-none">
+                    <HelpCircle size={15} />
                 </div>
             </div>
 
