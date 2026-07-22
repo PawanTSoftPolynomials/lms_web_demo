@@ -20,6 +20,14 @@ import {
   FaUsers
 } from "react-icons/fa";
 
+const toLocalDateString = (date) => {
+  if (!date) return "";
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
@@ -95,7 +103,7 @@ export default function CalendarView({ role }) {
       days.push({
         day: d,
         isCurrentMonth: false,
-        dateString: prevDate.toISOString().split("T")[0],
+        dateString: toLocalDateString(prevDate),
         date: prevDate,
       });
     }
@@ -106,7 +114,7 @@ export default function CalendarView({ role }) {
       days.push({
         day: d,
         isCurrentMonth: true,
-        dateString: currDate.toISOString().split("T")[0],
+        dateString: toLocalDateString(currDate),
         date: currDate,
       });
     }
@@ -119,7 +127,7 @@ export default function CalendarView({ role }) {
       days.push({
         day: d,
         isCurrentMonth: false,
-        dateString: nextDate.toISOString().split("T")[0],
+        dateString: toLocalDateString(nextDate),
         date: nextDate,
       });
     }
@@ -200,7 +208,7 @@ export default function CalendarView({ role }) {
     }
   };
 
-  const todayString = new Date().toISOString().split("T")[0];
+  const todayString = toLocalDateString(new Date());
 
   if (isLoading) {
     return (
@@ -281,7 +289,7 @@ export default function CalendarView({ role }) {
 
           {role !== "STUDENT" && (
             <Button
-              onClick={() => openAddEventModal(new Date().toISOString().split("T")[0])}
+              onClick={() => openAddEventModal(toLocalDateString(new Date()))}
               className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-semibold flex items-center gap-2"
             >
               <FaPlus className="w-3 h-3" />
@@ -365,7 +373,7 @@ export default function CalendarView({ role }) {
             {daysGrid.map(({ day, isCurrentMonth, dateString, date }, index) => {
               const dayEvents = eventsByDate[dateString] || [];
               const isToday = dateString === todayString;
-              const isSelected = selectedDate && dateString === selectedDate.toISOString().split("T")[0];
+              const isSelected = selectedDate && dateString === toLocalDateString(selectedDate);
 
               return (
                 <div

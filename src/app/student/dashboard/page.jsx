@@ -31,6 +31,9 @@ import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 
+import { useQuery } from "@tanstack/react-query";
+import { getCalendarEvents } from "@/services/calendar.service";
+
 import useDashboard from "@/hooks/queries/student/useDashboard";
 import useAssignments from "@/hooks/queries/student/useAssignments";
 import useUpcomingTasks from "@/hooks/queries/student/useUpcomingTasks";
@@ -41,11 +44,92 @@ export default function StudentDashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
 
+  // Schedule Tab state: 'day', 'week', 'month'
+  const [scheduleTab, setScheduleTab] = useState("day");
+
   // Queries
   const { data: dashboardData, isLoading: isDashboardLoading, isError } = useDashboard();
   const { data: assignments = [], isLoading: isAssignmentsLoading } = useAssignments();
   const { data: quizzes = [], isLoading: isQuizzesLoading } = useQuizzes();
   const { data: upcomingTasksList = [], isLoading: isTasksLoading } = useUpcomingTasks();
+
+  const { data: calendarEvents = [], isLoading: isCalendarEventsLoading } = useQuery({
+    queryKey: ["calendar_events"],
+    queryFn: getCalendarEvents,
+    refetchInterval: 30000,
+  });
+
+  const formatTime = (timeStr) => {
+    if (!timeStr) return "";
+    if (timeStr.toLowerCase().includes("am") || timeStr.toLowerCase().includes("pm")) return timeStr;
+    const parts = timeStr.split(":");
+    if (parts.length < 2) return timeStr;
+    let hours = parseInt(parts[0], 10);
+    const minutes = parts[1];
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    return `${String(hours).padStart(2, "0")}:${minutes} ${ampm}`;
+  };
+
+  const getBadgeStyle = (type) => {
+    const t = (type || "").toLowerCase();
+    if (t === "class" || t === "lecture") {
+      return { label: "Lecture", className: "bg-blue-500/10 text-blue-400 border-blue-500/20" };
+    }
+    if (t === "office hours" || t === "session" || t === "q&a" || t === "live_class") {
+      return { label: "Office Hours", className: "bg-purple-500/10 text-purple-400 border-purple-500/20" };
+    }
+    if (t === "assignment" || t === "deadline" || t === "exam") {
+      return { label: "Deadline", className: "bg-rose-500/10 text-rose-400 border-rose-500/20" };
+    }
+    return { label: type || "Event", className: "bg-orange-500/10 text-orange-400 border-orange-500/20" };
+  };
+
+  const getLocation = (task) => {
+    if (task.link?.includes("meet.google") || task.link?.includes("zoom.us")) return "Virtual";
+    if (task.type === "class") return "Lecture Room";
+    return "LMS Platform";
+  };
+
+  const filteredScheduleEvents = useMemo(() => {
+    if (!calendarEvents || calendarEvents.length === 0) return [];
+
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, "0");
+    const d = String(today.getDate()).padStart(2, "0");
+    const todayStr = `${y}-${m}-${d}`;
+
+    if (scheduleTab === "day") {
+      return calendarEvents.filter((e) => e.date === todayStr);
+    }
+
+    if (scheduleTab === "week") {
+      const dayOfWeek = today.getDay();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - dayOfWeek);
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      const endOfWeek = new Date(today);
+      endOfWeek.setDate(today.getDate() + (6 - dayOfWeek));
+      endOfWeek.setHours(23, 59, 59, 999);
+
+      return calendarEvents.filter((e) => {
+        const evDate = new Date(e.date + "T00:00:00");
+        return evDate >= startOfWeek && evDate <= endOfWeek;
+      });
+    }
+
+    if (scheduleTab === "month") {
+      return calendarEvents.filter((e) => {
+        const evDate = new Date(e.date + "T00:00:00");
+        return evDate.getFullYear() === y && evDate.getMonth() === today.getMonth();
+      });
+    }
+
+    return [];
+  }, [calendarEvents, scheduleTab]);
 
   const stats = dashboardData?.stats ?? {};
   const enrolledCourses = dashboardData?.enrolledCoursesList ?? [];
@@ -153,7 +237,7 @@ export default function StudentDashboardPage() {
                 {/* Left side: Thumbnail with play overlay */}
                 <div className="w-full sm:w-2/5 lg:w-full xl:w-2/5 aspect-[4/3] rounded-lg relative overflow-hidden bg-teal-955 flex items-center justify-center shrink-0 border border-slate-800/60">
                   <img
-                    src="/last_content_viewed_mock.png"
+                    src={lastActiveCourse.course?.thumbnailUrl || "/last_content_viewed_mock.png"}
                     alt={lastActiveCourse.course?.title}
                     className="w-full h-full object-cover opacity-90"
                   />
@@ -164,8 +248,7 @@ export default function StudentDashboardPage() {
                   </div>
                   {/* Duration badge */}
                   <div className="absolute bottom-1.5 left-1.5 rounded bg-black/75 px-1.5 py-0.5 flex items-center gap-1 text-[8px] font-bold text-white border border-white/5">
-                    <Clock size={8} className="text-slate-300" />
-                    <span>24:35</span>
+                    <span>{lastActiveCourse.completedLessons}/{lastActiveCourse.course?.lessons || 0} Lessons</span>
                   </div>
                 </div>
 
@@ -175,10 +258,10 @@ export default function StudentDashboardPage() {
                     {lastActiveCourse.course?.title}
                   </h4>
                   <p className="text-xs text-slate-450 font-medium truncate">
-                    Introduction to Testing
+                    {lastActiveCourse.course?.description || "No description available"}
                   </p>
                   <p className="text-xs text-slate-550 font-bold">
-                    <span className="text-purple-400 font-black">Category:</span> <span className="text-slate-300 font-medium">{lastActiveCourse.course?.category || "Software Testing"}</span>
+                    <span className="text-purple-400 font-black">Category:</span> <span className="text-slate-300 font-medium">{lastActiveCourse.course?.category || "General"}</span>
                   </p>
                   {/* Progress bar */}
                   <div className="space-y-1 pt-1">
@@ -312,56 +395,99 @@ export default function StudentDashboardPage() {
             </Link>
           </div>
         </div>
-
-        {/* Card 3: Schedules */}
+             {/* Card 3: Calendar Schedule */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm flex flex-col justify-between min-h-[350px]">
           <div>
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-300">Schedules</h3>
-              <Calendar size={16} className="text-purple-400" />
+              <h3 className="text-xs font-black uppercase tracking-widest text-slate-300">Calendar Schedule</h3>
+              <Link href="/student/calendar" className="text-[10px] font-black text-orange-400 hover:text-orange-500 transition uppercase tracking-wider">
+                Open Full View
+              </Link>
             </div>
 
-            <div className="space-y-3.5 max-h-[185px] overflow-y-auto pr-1">
-              {isTasksLoading ? (
+            {/* Tab Swapper */}
+            <div className="flex gap-2 bg-slate-950/40 p-1 rounded-xl border border-slate-800/60 mb-4 select-none">
+              <button
+                onClick={() => setScheduleTab("day")}
+                className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition ${
+                  scheduleTab === "day"
+                    ? "bg-slate-800 text-white shadow-sm border border-slate-700/60"
+                    : "text-slate-500 hover:text-slate-350"
+                }`}
+              >
+                Day View
+              </button>
+              <button
+                onClick={() => setScheduleTab("week")}
+                className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition ${
+                  scheduleTab === "week"
+                    ? "bg-slate-800 text-white shadow-sm border border-slate-700/60"
+                    : "text-slate-500 hover:text-slate-350"
+                }`}
+              >
+                Week View
+              </button>
+              <button
+                onClick={() => setScheduleTab("month")}
+                className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition ${
+                  scheduleTab === "month"
+                    ? "bg-slate-800 text-white shadow-sm border border-slate-700/60"
+                    : "text-slate-500 hover:text-slate-350"
+                }`}
+              >
+                Month View
+              </button>
+            </div>
+                     {/* Schedule Cards Container */}
+            <div className="space-y-3.5 max-h-[220px] overflow-y-auto pr-1">
+              {isCalendarEventsLoading ? (
                 <>
-                  {[1, 2, 3].map((n) => (
-                    <div key={n} className="h-[46px] bg-slate-950/30 border border-slate-800/60 rounded-xl animate-pulse flex justify-between items-center p-2">
-                      <div className="flex-1 space-y-1.5 min-w-0">
-                        <div className="h-3 bg-slate-800 rounded w-2/3" />
-                        <div className="h-2 bg-slate-800 rounded w-1/3" />
+                  {[1, 2].map((n) => (
+                    <div key={n} className="h-[76px] bg-slate-950/30 border border-slate-800/60 rounded-xl animate-pulse flex flex-col p-3 gap-2">
+                      <div className="flex justify-between items-center">
+                        <div className="h-3.5 bg-slate-800 rounded w-12" />
+                        <div className="h-3.5 bg-slate-800 rounded w-20" />
                       </div>
-                      <div className="h-4 bg-slate-800 rounded w-10 shrink-0" />
+                      <div className="h-4 bg-slate-800 rounded w-3/4" />
                     </div>
                   ))}
                 </>
-              ) : upcomingTasksList.length === 0 ? (
-                <div className="py-8 text-center text-xs text-slate-550">
-                  🎉 No classes or events scheduled this week.
+              ) : filteredScheduleEvents.length === 0 ? (
+                <div className="py-12 text-center text-xs text-slate-500 border border-dashed border-slate-800/60 rounded-xl">
+                  No events scheduled for {scheduleTab === "day" ? "today" : scheduleTab === "week" ? "this week" : "this month"}.
                 </div>
               ) : (
-                upcomingTasksList.slice(0, 3).map((task) => (
-                  <div key={task.id} className="flex justify-between items-center gap-2 p-2 rounded-xl bg-slate-950/30 border border-slate-800/60">
-                    <div className="min-w-0 flex-1">
-                      <h5 className="text-xs font-bold text-white truncate">{task.title}</h5>
-                      <span className="text-[9px] text-slate-500 font-semibold block uppercase mt-0.5">
-                        {task.date} • {task.time}
-                      </span>
+                filteredScheduleEvents.map((task) => {
+                  const badge = getBadgeStyle(task.type);
+                  const timeLabel = task.startTime
+                    ? `${formatTime(task.startTime)}${task.endTime ? ` - ${formatTime(task.endTime)}` : ""}`
+                    : "All Day";
+                  const subtitleLabel = task.courseName || task.subtitle || "LMS Program";
+                  const locationLabel = getLocation(task);
+
+                  return (
+                    <div key={task.id} className="p-3.5 rounded-xl bg-slate-950/30 border border-slate-800/60 flex flex-col gap-2 transition hover:border-slate-700/60">
+                      <div className="flex justify-between items-center">
+                        <span className={`text-[8px] px-1.5 py-0.5 rounded border font-black uppercase tracking-wider ${badge.className}`}>
+                          {badge.label}
+                        </span>
+                        <span className="text-[9px] text-slate-500 font-extrabold uppercase flex items-center gap-1.5">
+                          <Clock size={10} className="text-slate-500" />
+                          {timeLabel}
+                        </span>
+                      </div>
+                      <h5 className="font-extrabold text-xs text-white leading-tight">{task.title}</h5>
+                      <div className="flex items-center justify-between text-[9px] text-slate-500 font-bold uppercase tracking-wider border-t border-slate-800/40 pt-2 mt-1">
+                        <span className="truncate max-w-[170px]">{subtitleLabel}</span>
+                        <span className="shrink-0 flex items-center gap-0.5 text-slate-400">
+                          📍 {locationLabel}
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-[8px] px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20 font-black uppercase shrink-0">
-                      {task.type}
-                    </span>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
-          </div>
-
-          <div className="pt-4 border-t border-slate-800/40">
-            <Link href="/student/calendar" className="block w-full">
-              <button className="w-full py-2.5 bg-slate-800 hover:bg-slate-750 text-white rounded-xl text-xs font-black uppercase tracking-widest transition flex items-center justify-center gap-1.5 border border-slate-700/60 cursor-pointer">
-                View Calendar Events
-              </button>
-            </Link>
           </div>
         </div>
 
