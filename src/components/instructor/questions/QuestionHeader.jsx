@@ -3,14 +3,12 @@
 import Link from "next/link";
 
 import {
-    FaQuestionCircle, FaPlus, FaArrowLeft,
+    FaQuestionCircle, FaPlus, FaArrowLeft, FaLayerGroup, FaCloudUploadAlt,
 } from "react-icons/fa";
 
 import Card from "@/components/ui/Card";
 
-export default function QuestionHeader({
-                                           quiz,
-                                       }) {
+export default function QuestionHeader({ quiz, onImport }) {
     return (<Card className="overflow-hidden">
         <div className="space-y-8">
             {/* Back */}
@@ -76,25 +74,77 @@ export default function QuestionHeader({
                     </div>
                 </div>
 
-                <Link
-                    href={`/instructor/questions/create/${quiz.id}`}
-                    className="
-                            inline-flex
-                            items-center
-                            gap-2
-                            rounded-xl
-                            bg-orange-600
-                            px-5
-                            py-3
-                            font-medium
-                            text-white
-                            transition
-                            hover:bg-orange-700
-                        "
-                >
-                    <FaPlus size={14}/>
-                    Add Question
-                </Link>
+                {/* Action Buttons */}
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* Import Questions */}
+                    <button
+                        type="button"
+                        onClick={onImport}
+                        className="
+                                inline-flex
+                                items-center
+                                gap-2
+                                rounded-xl
+                                border
+                                border-slate-700
+                                bg-slate-800
+                                px-5
+                                py-3
+                                font-medium
+                                text-slate-300
+                                transition
+                                hover:border-orange-500/50
+                                hover:text-orange-400
+                            "
+                    >
+                        <FaCloudUploadAlt size={15}/>
+                        Import File
+                    </button>
+
+                    {/* Bulk Add */}
+                    <Link
+                        href={`/instructor/questions/bulk/${quiz.id}`}
+                        className="
+                                inline-flex
+                                items-center
+                                gap-2
+                                rounded-xl
+                                border
+                                border-orange-500/40
+                                bg-orange-500/10
+                                px-5
+                                py-3
+                                font-medium
+                                text-orange-400
+                                transition
+                                hover:bg-orange-500/20
+                            "
+                    >
+                        <FaLayerGroup size={15}/>
+                        Add Multiple
+                    </Link>
+
+                    {/* Single Add */}
+                    <Link
+                        href={`/instructor/questions/create/${quiz.id}`}
+                        className="
+                                inline-flex
+                                items-center
+                                gap-2
+                                rounded-xl
+                                bg-orange-600
+                                px-5
+                                py-3
+                                font-medium
+                                text-white
+                                transition
+                                hover:bg-orange-700
+                            "
+                    >
+                        <FaPlus size={14}/>
+                        Add Question
+                    </Link>
+                </div>
             </div>
 
             {/* Stats */}
@@ -155,4 +205,4 @@ export default function QuestionHeader({
             </div>
         </div>
     </Card>);
-}
+}

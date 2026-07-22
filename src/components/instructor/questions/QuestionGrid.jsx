@@ -4,11 +4,12 @@ import QuestionCard from "./QuestionCard";
 import EmptyQuestions from "./EmptyQuestions";
 
 export default function QuestionGrid({
-                                         questions = [], quizId, courseId, onDelete,
+                                         questions = [], quizId, onDelete, onImport,
                                      }) {
     if (!questions.length) {
         return (<EmptyQuestions
                 quizId={quizId}
+                onImport={onImport}
             />);
     }
 
@@ -23,7 +24,6 @@ export default function QuestionGrid({
             {questions.map((question) => (<QuestionCard
                     key={question.id}
                     question={question}
-                    courseId={courseId}
                     onDelete={onDelete}
                 />))}
         </div>);

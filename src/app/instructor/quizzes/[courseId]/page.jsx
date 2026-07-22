@@ -21,6 +21,7 @@ import {
 
 import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
+import ImportQuestionsModal from "@/components/instructor/questions/ImportQuestionsModal";
 
 import { useQuizzes } from "@/hooks/queries/instructor/useQuizzes";
 import { useDeleteQuiz } from "@/hooks/queries/instructor/useDeleteQuiz";
@@ -34,6 +35,7 @@ export default function CourseQuizListPage() {
 
   // Selected Quiz state for Master-Detail pattern
   const [selectedQuiz, setSelectedQuiz] = useState(null);
+  const [showImport, setShowImport] = useState(false);
 
   // Quiz Search, Filters & Pagination States
   const [searchQuery, setSearchQuery] = useState("");
@@ -576,12 +578,22 @@ export default function CourseQuizListPage() {
                   </div>
                 </div>
 
-                <Link href={`/instructor/courses/${courseId}/quizzes/${selectedQuiz.id}/questions/create`}>
-                  <button className="flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold text-sm px-6 py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowImport(true)}
+                    className="flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-extrabold text-sm px-5 py-3.5 transition active:scale-95 cursor-pointer"
+                  >
                     <Plus size={16} />
-                    <span>Add Question</span>
+                    <span>Import Questions</span>
                   </button>
-                </Link>
+
+                  <Link href={`/instructor/courses/${courseId}/quizzes/${selectedQuiz.id}/questions/create`}>
+                    <button className="flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold text-sm px-6 py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95">
+                      <Plus size={16} />
+                      <span>Add Question</span>
+                    </button>
+                  </Link>
+                </div>
               </div>
             </div>
 
@@ -782,6 +794,17 @@ export default function CourseQuizListPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {showImport && (
+        <ImportQuestionsModal
+          quizId={selectedQuiz?.id}
+          onClose={() => setShowImport(false)}
+          onSuccess={() => {
+            setShowImport(false);
+            refetchQuestions();
+          }}
+        />
+      )}
     </div>
   );
 }

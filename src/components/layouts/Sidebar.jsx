@@ -22,6 +22,7 @@ export default function Sidebar({
   const [desktopExpandedMenu, setDesktopExpandedMenu] = useState(null);
 
   const menus = SIDEBAR_ITEMS[role] || [];
+  const isCollapsed = collapsed;
 
   // Close mobile drawer on escape press
   useEffect(() => {
@@ -144,7 +145,11 @@ export default function Sidebar({
                       }`}
                     >
                       <div className="flex items-center gap-3.5">
-                        <Icon className="text-lg shrink-0" />
+                        {typeof Icon === "string" ? (
+                          <span className="text-lg shrink-0 select-none">{Icon}</span>
+                        ) : (
+                          <Icon className="text-lg shrink-0" />
+                        )}
                         <span className="text-xs uppercase font-bold tracking-wider">{item.title}</span>
                       </div>
                       {isExpanded ? (
@@ -163,7 +168,11 @@ export default function Sidebar({
                           : 'border-transparent text-slate-455 hover:text-slate-100 hover:bg-slate-800/30'
                       }`}
                     >
-                      <Icon className="text-lg shrink-0" />
+                      {typeof Icon === "string" ? (
+                        <span className="text-lg shrink-0 select-none">{Icon}</span>
+                      ) : (
+                        <Icon className="text-lg shrink-0" />
+                      )}
                       <span className="text-xs uppercase font-bold tracking-wider">{item.title}</span>
                     </Link>
                   )}
@@ -208,8 +217,7 @@ export default function Sidebar({
           top-0 left-0
           h-screen
           overflow-y-auto
-          bg-slate-900
-          border-r border-slate-800
+          ${role === 'INSTRUCTOR' ? 'bg-[#0D1021] border-r border-[#1A1F35]' : 'bg-slate-900 border-r border-slate-800'}
           z-50
           transition-all
           duration-300
@@ -234,8 +242,8 @@ export default function Sidebar({
         </div>
 
         {/* Logo */}
-        <div className="px-6 pb-6 flex items-center justify-center">
-          {!collapsed ? (
+        <div className={`px-6 flex items-center justify-center ${role === 'INSTRUCTOR' ? 'py-6' : 'pb-6'}`}>
+          {!isCollapsed ? (
             <div className="flex items-center gap-3">
               <PiOrangeDuotone className="text-3xl text-orange-500" />
               <h1 className="text-xl font-bold text-orange-505">
@@ -282,7 +290,11 @@ export default function Sidebar({
                     `}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className="text-lg shrink-0" />
+                      {typeof Icon === "string" ? (
+                        <span className="text-lg shrink-0 select-none">{Icon}</span>
+                      ) : (
+                        <Icon className="text-lg shrink-0" />
+                      )}
                       <span>{item.title}</span>
                     </div>
                     {isExpanded ? (
@@ -314,7 +326,11 @@ export default function Sidebar({
                       }
                     `}
                   >
-                    <Icon className="text-lg shrink-0" />
+                    {typeof Icon === "string" ? (
+                      <span className="text-lg shrink-0 select-none">{Icon}</span>
+                    ) : (
+                      <Icon className="text-lg shrink-0" />
+                    )}
                     {!collapsed && <span>{item.title}</span>}
                   </Link>
                 )}
@@ -382,3 +398,4 @@ export default function Sidebar({
     </>
   );
 }
+ 

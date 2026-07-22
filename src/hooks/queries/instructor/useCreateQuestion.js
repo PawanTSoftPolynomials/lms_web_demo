@@ -15,7 +15,7 @@ export function useCreateQuestion() {
         mutationFn: createQuestion,
 
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({
+            queryClient.resetQueries({
                 queryKey: [
                     QUERY_KEYS.QUESTIONS,
                     variables.quizId,
