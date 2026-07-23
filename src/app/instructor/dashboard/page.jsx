@@ -336,21 +336,30 @@ export default function InstructorDashboardPage() {
           <Link href="/instructor/calendar" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
             Schedule Class
           </Link>
-          <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0" />
-          <Link href="/instructor/certificates/create" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
-            Create Certificate
-          </Link>
-          <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0" />
-          <Link href="/instructor/modules" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
-            Upload Material
-          </Link>
+          
+          {/* Create Certificate: Hidden on mobile (visible in dropdown instead) */}
+          <div className="hidden md:flex items-center gap-1">
+            <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0 mx-1" />
+            <Link href="/instructor/certificates/create" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
+              Create Certificate
+            </Link>
+          </div>
+
+          {/* Upload Material: Hidden on mobile (visible in dropdown instead) */}
+          <div className="hidden md:flex items-center gap-1">
+            <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0 mx-1" />
+            <Link href="/instructor/modules" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
+              Upload Material
+            </Link>
+          </div>
+
           <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0" />
           
           {/* Dropdown toggle for More */}
           <div className="relative shrink-0">
             <button
               onClick={() => setMoreActionsOpen(!moreActionsOpen)}
-              className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-orange-400 hover:bg-white/[0.02] transition cursor-pointer"
+              className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-orange-400 hover:bg-white/[0.02] transition cursor-pointer animate-pulse"
             >
               More ▼
             </button>
@@ -358,6 +367,24 @@ export default function InstructorDashboardPage() {
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setMoreActionsOpen(false)} />
                 <div className="absolute left-0 mt-2 z-50 w-48 rounded-xl border border-[#1A1F35] bg-[#0D1021] p-1.5 shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150">
+                  {/* Certificate option visible ONLY on mobile dropdown */}
+                  <Link
+                    href="/instructor/certificates/create"
+                    onClick={() => setMoreActionsOpen(false)}
+                    className="block md:hidden px-3.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-255 hover:bg-white/[0.03] rounded-lg transition"
+                  >
+                    Create Certificate
+                  </Link>
+
+                  {/* Material option visible ONLY on mobile dropdown */}
+                  <Link
+                    href="/instructor/modules"
+                    onClick={() => setMoreActionsOpen(false)}
+                    className="block md:hidden px-3.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-255 hover:bg-white/[0.03] rounded-lg transition"
+                  >
+                    Upload Material
+                  </Link>
+
                   <Link
                     href="/instructor/announcements"
                     onClick={() => setMoreActionsOpen(false)}

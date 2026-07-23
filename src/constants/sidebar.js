@@ -12,7 +12,8 @@ import {
     FaBookmark,
     FaTrophy,
     FaEnvelope,
-    FaCog
+    FaCog,
+    FaChartBar
 } from "react-icons/fa";
 import {FcGraduationCap} from "react-icons/fc";
 import {FaCertificate} from "react-icons/fa6";
@@ -70,52 +71,52 @@ export const SIDEBAR_ITEMS = {
     INSTRUCTOR: [
         {
             title: "Dashboard",
-            icon: "🏠",
+            icon: FaTachometerAlt,
             href: "/instructor/dashboard",
         },
         {
             title: "Courses",
-            icon: "📚",
+            icon: FaBook,
             href: "/instructor/courses",
         },
         {
             title: "Students",
-            icon: "👨‍🎓",
+            icon: FaUsers,
             href: "/instructor/students",
         },
         {
             title: "Assignments",
-            icon: "📝",
+            icon: FaClipboardList,
             href: "/instructor/assignments",
         },
         {
             title: "Quizzes",
-            icon: "❓",
+            icon: FaQuestionCircle,
             href: "/instructor/quizzes",
         },
         {
             title: "Schedule",
-            icon: "📅",
+            icon: FaCalendarAlt,
             href: "/instructor/calendar",
         },
         {
             title: "Certificates",
-            icon: "📜",
+            icon: FaCertificate,
             href: "/instructor/certificates",
         },
         {
             title: "Messages",
-            icon: "💬",
+            icon: FaEnvelope,
             href: "/instructor/messages",
         },
         {
             title: "Analytics",
-            icon: "📊",
+            icon: FaChartBar,
             href: "/instructor/reports",
         },
         {
             title: "Settings",
-            icon: "⚙",
+            icon: FaCog,
             href: "/instructor/settings",
         },
     ],

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Search,
   Send,
@@ -14,7 +15,8 @@ import {
   Bookmark,
   Download,
   Info,
-  User
+  User,
+  ArrowLeft
 } from "lucide-react";
 
 import useChat from "@/hooks/useChat";
@@ -22,8 +24,11 @@ import { useAuth } from "@/context/AuthContext";
 import useMessages from "@/features/chat/hooks/useMessages";
 import useSendMessage from "@/hooks/useSendMessage";
 
-export default function MessagesPage() {
+function MessagesPageContent() {
   const { user: currentUser } = useAuth();
+  const searchParams = useSearchParams();
+  const instructorId = searchParams.get("instructorId");
+  const courseId = searchParams.get("courseId");
 
   // Real database chat hooks
   const {
@@ -43,7 +48,52 @@ export default function MessagesPage() {
   const [inputText, setInputText] = useState("");
   const [sending, setSending] = useState(false);
   const [showRightPanel, setShowRightPanel] = useState(true);
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const messagesEndRef = useRef(null);
+
+  const unreadCountTotal = useMemo(() => {
+    return conversations.filter(c => (c.unread || c.unreadCount || 0) > 0).length;
+  }, [conversations]);
+
+  const groupsCountTotal = useMemo(() => {
+    return conversations.filter(c => c.isGroup).length;
+  }, [conversations]);
+
+  // Auto-select or create conversation with course instructor on mount/change
+  useEffect(() => {
+    if (!instructorId || chatLoading || conversations.length === 0) return;
+
+    const findAndSelectConversation = async () => {
+      // Find direct conversation with this instructorId
+      const matched = conversations.find(c =>
+        !c.isGroup && c.participants?.some(p => p.id === instructorId || p._id === instructorId)
+      );
+
+      if (matched) {
+        setActiveConversation(matched);
+      } else {
+        // Create new direct conversation
+        try {
+          const { createConversation } = await import("@/features/chat/api/chat.api");
+          const res = await createConversation({
+            participantIds: [instructorId],
+            courseId: courseId,
+            isGroup: false
+          });
+          const newConv = res.data || res;
+          if (newConv) {
+            setConversations(prev => [newConv, ...prev]);
+            setActiveConversation(newConv);
+          }
+        } catch (err) {
+          console.error("Failed to auto-create conversation with instructor:", err);
+        }
+      }
+    };
+
+    findAndSelectConversation();
+  }, [instructorId, conversations, chatLoading, courseId, setActiveConversation, setConversations]);
 
   // Load messages when conversation changes
   useEffect(() => {
@@ -75,14 +125,31 @@ export default function MessagesPage() {
     }
   };
 
-  // Filter conversations based on query
+  // Filter conversations based on query and active category
   const filteredConversations = useMemo(() => {
     if (!conversations) return [];
-    return conversations.filter(c =>
+    
+    // 1. Search Query filter
+    let list = conversations.filter(c =>
       c.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [conversations, searchQuery]);
+
+    // 2. Category tab filter
+    if (activeCategory === "unread") {
+      list = list.filter(c => (c.unread || c.unreadCount || 0) > 0);
+    } else if (activeCategory === "favourites") {
+      list = list.filter(c => c.isFavorite || c.favorite);
+    } else if (activeCategory === "groups") {
+      list = list.filter(c => c.isGroup);
+    } else if (activeCategory === "direct") {
+      list = list.filter(c => !c.isGroup);
+    } else if (activeCategory === "archived") {
+      list = list.filter(c => c.isArchived || c.archived);
+    }
+
+    return list;
+  }, [conversations, searchQuery, activeCategory]);
 
   return (
     <div className="bg-[#f8f9fa] h-[calc(100vh-4rem)] p-6 -m-6 flex gap-4 overflow-hidden font-sans">
@@ -95,7 +162,7 @@ export default function MessagesPage() {
       `}</style>
 
       {/* 1. Left Sidebar Panel */}
-      <div className="w-80 bg-white border border-slate-100 rounded-2xl flex flex-col h-full shadow-[0_2px_8px_rgba(0,0,0,0.015)] overflow-hidden flex-shrink-0">
+      <div className={`w-full md:w-80 bg-white border border-slate-100 rounded-2xl flex flex-col h-full shadow-[0_2px_8px_rgba(0,0,0,0.015)] overflow-hidden flex-shrink-0 ${activeConversation ? 'hidden md:flex' : 'flex'}`}>
         {/* Search header */}
         <div className="p-4 border-b border-slate-100">
           <div className="flex justify-between items-center mb-3">
@@ -106,7 +173,7 @@ export default function MessagesPage() {
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-450" />
             <input
               type="text"
               placeholder="Search conversations..."
@@ -118,10 +185,119 @@ export default function MessagesPage() {
         </div>
 
         {/* Categories Tabs */}
-        <div className="flex border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 py-1.5 gap-2">
-          <button className="px-2.5 py-1 text-indigo-600 bg-indigo-50 rounded-lg">All</button>
-          <button className="px-2.5 py-1 hover:text-slate-700 transition">Direct</button>
-          <button className="px-2.5 py-1 hover:text-slate-700 transition">Groups</button>
+        <div className="flex items-center gap-1.5 px-3 py-2 border-b border-slate-100/80 bg-slate-50/50 relative overflow-visible flex-shrink-0">
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none flex-1 min-w-0 pr-1">
+            {/* pill 1: All */}
+            <button
+              onClick={() => setActiveCategory("all")}
+              className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border transition cursor-pointer shrink-0 ${
+                activeCategory === "all"
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 shadow-sm"
+                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+              }`}
+            >
+              All
+            </button>
+
+            {/* pill 2: Unread */}
+            <button
+              onClick={() => setActiveCategory("unread")}
+              className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border transition cursor-pointer shrink-0 flex items-center gap-1 ${
+                activeCategory === "unread"
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 shadow-sm"
+                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+              }`}
+            >
+              <span>Unread</span>
+              {unreadCountTotal > 0 && (
+                <span className={`px-1 rounded-md text-[8.5px] font-black ${
+                  activeCategory === "unread" ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-600"
+                }`}>
+                  {unreadCountTotal}
+                </span>
+              )}
+            </button>
+
+            {/* pill 3: Favourites */}
+            <button
+              onClick={() => setActiveCategory("favourites")}
+              className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border transition cursor-pointer shrink-0 ${
+                activeCategory === "favourites"
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 shadow-sm"
+                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+              }`}
+            >
+              Favourites
+            </button>
+
+            {/* pill 4: Groups */}
+            <button
+              onClick={() => setActiveCategory("groups")}
+              className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border transition cursor-pointer shrink-0 flex items-center gap-1 ${
+                activeCategory === "groups"
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 shadow-sm"
+                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+              }`}
+            >
+              <span>Groups</span>
+              {groupsCountTotal > 0 && (
+                <span className={`px-1 rounded-md text-[8.5px] font-black ${
+                  activeCategory === "groups" ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-600"
+                }`}>
+                  {groupsCountTotal}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* More Dropdown Trigger button */}
+          <div className="relative shrink-0">
+            <button
+              onClick={() => setMoreMenuOpen(!moreMenuOpen)}
+              className={`h-7 w-7 rounded-full flex items-center justify-center border text-xs font-black transition cursor-pointer ${
+                activeCategory === "direct" || activeCategory === "archived"
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600"
+                  : "bg-white border-slate-200 text-slate-400 hover:text-slate-655 hover:bg-slate-50"
+              }`}
+              title="More Categories"
+            >
+              •••
+            </button>
+
+            {moreMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMoreMenuOpen(false)} />
+                <div className="absolute right-0 mt-1.5 z-50 w-36 rounded-xl border border-slate-200 bg-white p-1 shadow-lg animate-in fade-in slide-in-from-top-1 duration-150">
+                  <button
+                    onClick={() => {
+                      setActiveCategory("direct");
+                      setMoreMenuOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider rounded-lg transition cursor-pointer ${
+                      activeCategory === "direct"
+                        ? "bg-emerald-500/10 text-emerald-600"
+                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                    }`}
+                  >
+                    Direct
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveCategory("archived");
+                      setMoreMenuOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider rounded-lg transition cursor-pointer ${
+                      activeCategory === "archived"
+                        ? "bg-emerald-500/10 text-emerald-600"
+                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                    }`}
+                  >
+                    Archived
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Conversations List */}
@@ -150,7 +326,7 @@ export default function MessagesPage() {
                       <h4 className="text-xs font-black text-slate-800 truncate">{conv.name || "Chat Room"}</h4>
                       <span className="text-[8px] text-slate-400 flex-shrink-0 ml-1">{conv.time || "10:30 AM"}</span>
                     </div>
-                    <p className="text-[10px] text-slate-500 truncate mt-0.5">{conv.lastMessage || "No messages yet."}</p>
+                    <p className="text-[10px] text-slate-505 truncate mt-0.5">{conv.lastMessage || "No messages yet."}</p>
                   </div>
                 </div>
               );
@@ -164,17 +340,24 @@ export default function MessagesPage() {
       </div>
 
       {/* 2. Main Chat Room View */}
-      <div className="flex-1 bg-white border border-slate-100 rounded-2xl flex flex-col h-full shadow-[0_2px_8px_rgba(0,0,0,0.015)] overflow-hidden min-w-0">
+      <div className={`flex-1 bg-white border border-slate-100 rounded-2xl flex flex-col h-full shadow-[0_2px_8px_rgba(0,0,0,0.015)] overflow-hidden min-w-0 ${activeConversation ? 'flex' : 'hidden md:flex'}`}>
         {activeConversation ? (
           <>
             {/* Active Header */}
             <div className="p-4 border-b border-slate-100 flex justify-between items-center flex-shrink-0">
               <div className="flex items-center gap-3">
+                {/* Back button visible only on mobile */}
+                <button
+                  onClick={() => setActiveConversation(null)}
+                  className="md:hidden p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-500 transition cursor-pointer flex items-center justify-center"
+                >
+                  <ArrowLeft size={14} />
+                </button>
                 <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700 border border-indigo-200 text-sm">
                   {activeConversation.name?.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-xs font-black text-slate-800 leading-none">{activeConversation.name}</h3>
+                  <h3 className="text-xs font-black text-slate-805 leading-none">{activeConversation.name}</h3>
                   <span className="text-[9px] text-emerald-500 font-bold mt-1 block">● Online</span>
                 </div>
               </div>
@@ -209,7 +392,7 @@ export default function MessagesPage() {
                     <div className={`max-w-[70%] rounded-2xl p-3 text-xs leading-relaxed ${
                       isMe
                         ? "bg-indigo-600 text-white rounded-tr-none shadow-sm"
-                        : "bg-white border border-slate-100 text-slate-800 rounded-tl-none shadow-sm"
+                        : "bg-white border border-slate-100 text-slate-850 rounded-tl-none shadow-sm"
                     }`}>
                       {!isMe && (
                         <div className="text-[8px] font-black text-indigo-600 mb-1.5">
@@ -256,35 +439,35 @@ export default function MessagesPage() {
             <div className="p-4 bg-slate-50 rounded-full text-indigo-600 mb-3">
               <Send size={32} />
             </div>
-            <h3 className="text-sm font-black text-slate-800">Select a conversation</h3>
-            <p className="text-xs text-slate-500 mt-1">Pick a teammate or course group to begin messaging.</p>
+            <h3 className="text-sm font-black text-slate-805">Select a conversation</h3>
+            <p className="text-xs text-slate-505 mt-1">Pick a teammate or course group to begin messaging.</p>
           </div>
         )}
       </div>
 
       {/* 3. Right Conversation Details Panel */}
       {activeConversation && showRightPanel && (
-        <div className="w-72 bg-white border border-slate-100 rounded-2xl flex flex-col h-full shadow-[0_2px_8px_rgba(0,0,0,0.015)] overflow-hidden p-5 flex-shrink-0">
+        <div className="hidden md:flex w-72 bg-white border border-slate-100 rounded-2xl flex flex-col h-full shadow-[0_2px_8px_rgba(0,0,0,0.015)] overflow-hidden p-5 flex-shrink-0">
           <div className="text-center pb-4 border-b border-slate-100">
             <div className="h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center font-black text-xl text-indigo-700 border border-indigo-200 mx-auto mb-3">
               {activeConversation.name?.charAt(0).toUpperCase()}
             </div>
-            <h4 className="text-xs font-black text-slate-800 leading-none">{activeConversation.name}</h4>
+            <h4 className="text-xs font-black text-slate-805 leading-none">{activeConversation.name}</h4>
             <span className="text-[9px] text-slate-400 mt-2 block">Instructor • Computer Science</span>
           </div>
 
           {/* Quick options */}
           <div className="grid grid-cols-4 gap-2 text-center py-4 border-b border-slate-100">
-            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-500 hover:bg-slate-100 transition"><Phone size={14} /></span><span className="text-[8px] font-bold text-slate-500">Call</span></button>
-            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-500 hover:bg-slate-100 transition"><VideoIcon size={14} /></span><span className="text-[8px] font-bold text-slate-500">Video</span></button>
-            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-500 hover:bg-slate-100 transition"><User size={14} /></span><span className="text-[8px] font-bold text-slate-500">Profile</span></button>
-            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-500 hover:bg-slate-100 transition"><Bookmark size={14} /></span><span className="text-[8px] font-bold text-slate-500">Mute</span></button>
+            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-500 hover:bg-slate-105 transition"><Phone size={14} /></span><span className="text-[8px] font-bold text-slate-500">Call</span></button>
+            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-505 hover:bg-slate-105 transition"><VideoIcon size={14} /></span><span className="text-[8px] font-bold text-slate-505">Video</span></button>
+            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-505 hover:bg-slate-105 transition"><User size={14} /></span><span className="text-[8px] font-bold text-slate-505">Profile</span></button>
+            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-505 hover:bg-slate-105 transition"><Bookmark size={14} /></span><span className="text-[8px] font-bold text-slate-505">Mute</span></button>
           </div>
 
           {/* Shared files list */}
           <div className="flex-1 overflow-y-auto pt-4 space-y-4">
             <div>
-              <h5 className="text-[10px] font-black text-slate-800 uppercase tracking-wider mb-2">Conversation Files</h5>
+              <h5 className="text-[10px] font-black text-slate-805 uppercase tracking-wider mb-2">Conversation Files</h5>
               <div className="space-y-2">
                 <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition cursor-pointer">
                   <div className="flex items-center gap-2">
@@ -312,11 +495,11 @@ export default function MessagesPage() {
 
             {/* About metadata */}
             <div className="border-t border-slate-100 pt-4">
-              <h5 className="text-[10px] font-black text-slate-800 uppercase tracking-wider mb-2">About</h5>
-              <div className="space-y-2 text-[10px] text-slate-500 font-medium">
+              <h5 className="text-[10px] font-black text-slate-805 uppercase tracking-wider mb-2">About</h5>
+              <div className="space-y-2 text-[10px] text-slate-505 font-medium">
                 <p>This is the start of your message thread. Feel free to collaborate, coordinate, and ask any questions.</p>
-                <div className="flex justify-between font-semibold"><span className="text-slate-400">Member since</span><span className="text-slate-700">March 12, 2025</span></div>
-                <div className="flex justify-between font-semibold"><span className="text-slate-400">Associated course</span><span className="text-slate-700 truncate max-w-[110px]">Data Structures</span></div>
+                <div className="flex justify-between font-semibold"><span className="text-slate-400">Member since</span><span className="text-slate-707">March 12, 2025</span></div>
+                <div className="flex justify-between font-semibold"><span className="text-slate-400">Associated course</span><span className="text-slate-707 truncate max-w-[110px]">Data Structures</span></div>
               </div>
             </div>
           </div>
@@ -324,5 +507,13 @@ export default function MessagesPage() {
       )}
 
     </div>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center py-20 text-xs text-slate-400">Loading conversation...</div>}>
+      <MessagesPageContent />
+    </Suspense>
   );
 }

@@ -28,7 +28,7 @@ import Loader from "@/components/common/Loader";
 import StudentEngagement from "@/components/instructor/dashboard/StudentEngagement";
 import ConceptMastery from "@/components/tables/ConceptMastery";
 
-function ReportsPageContent() {
+function InstructorReportsPageContent() {
   const router = useRouter();
   const { user } = useAuth();
 
@@ -660,8 +660,7 @@ function ReportsPageContent() {
 export default function InstructorReportsPage() {
   return (
     <Suspense fallback={<div className="flex min-h-[400px] items-center justify-center"><Loader /></div>}>
-      <ReportsPageContent />
+      <InstructorReportsPageContent />
     </Suspense>
   );
 }
-

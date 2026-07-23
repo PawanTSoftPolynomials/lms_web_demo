@@ -67,6 +67,14 @@ export default function MyCoursesPage() {
         return filtered;
     }, [enrollments, search, sortBy]);
 
+    const currentEnrollments = useMemo(() => {
+        return filteredEnrollments.filter((e) => (e.progress ?? 0) < 100);
+    }, [filteredEnrollments]);
+
+    const completedEnrollments = useMemo(() => {
+        return filteredEnrollments.filter((e) => (e.progress ?? 0) === 105 || (e.progress ?? 0) === 100);
+    }, [filteredEnrollments]);
+
     if (isLoading) {
         return <Loader/>;
     }
@@ -91,32 +99,39 @@ export default function MyCoursesPage() {
                 title="My Courses"
                 subtitle="Manage and continue your enrolled courses."
             />
-
-            <MyCourseStats
-                enrollments={enrollments}
-            />
-
-            <MyCourseToolbar
-                search={search}
-                setSearch={setSearch}
-                sortBy={sortBy}
-                setSortBy={setSortBy}
-            />
-
-            {filteredEnrollments.length > 0 && (
-                <ContinueLearningCard
-                    enrollment={filteredEnrollments[0]}
-                />
+            {currentEnrollments.length > 0 ? (
+                <div className="space-y-4">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Current Courses</h3>
+                    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                        {currentEnrollments.map((enrollment) => (
+                            <MyCourseCard
+                                key={enrollment.id}
+                                enrollment={enrollment}
+                            />
+                        ))}
+                    </div>
+                </div>
+            ) : (
+                completedEnrollments.length === 0 && (
+                    <div className="py-12 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-2xl">
+                        No courses found matching your query.
+                    </div>
+                )
             )}
 
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {filteredEnrollments.map((enrollment) => (
-                    <MyCourseCard
-                        key={enrollment.id}
-                        enrollment={enrollment}
-                    />
-                ))}
-            </div>
+            {completedEnrollments.length > 0 && (
+                <div className="space-y-4 pt-4 border-t border-slate-850">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-slate-450">Completed Courses</h3>
+                    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                        {completedEnrollments.map((enrollment) => (
+                            <MyCourseCard
+                                key={enrollment.id}
+                                enrollment={enrollment}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

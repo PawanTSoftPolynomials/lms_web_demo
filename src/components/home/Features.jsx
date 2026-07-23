@@ -22,16 +22,6 @@ export default function Features() {
       description:
         "Monitor learning progress in real time.",
     },
-    {
-      title: "Role Based Access",
-      description:
-        "Admin, Instructor, and Student dashboards.",
-    },
-    {
-      title: "Responsive Design",
-      description:
-        "Access the platform from any device.",
-    },
   ];
 
   return (

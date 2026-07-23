@@ -26,7 +26,7 @@ import {
   HelpCircle,
   ClipboardList,
   PlayCircle,
-  Trash2
+  Trash2,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -35,7 +35,7 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Legend
+  Legend,
 } from "recharts";
 
 import Loader from "@/components/common/Loader";
@@ -44,7 +44,10 @@ import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCou
 import { useModules } from "@/hooks/queries/instructor/useModules";
 import { useDeleteModule } from "@/hooks/queries/instructor/useDeleteModule";
 import { useDeleteCourse } from "@/hooks/queries/instructor/useDeleteCourse";
-import { useStudentEngagement, useConceptMastery } from "@/hooks/queries/instructor/useInstructorDashboard";
+import {
+  useStudentEngagement,
+  useConceptMastery,
+} from "@/hooks/queries/instructor/useInstructorDashboard";
 
 export default function CourseDetailsPage() {
   const params = useParams();
@@ -67,15 +70,11 @@ export default function CourseDetailsPage() {
   const deleteModuleMutation = useDeleteModule();
   const deleteCourseMutation = useDeleteCourse();
 
-  const {
-    data: engagementData = [],
-    isLoading: engagementLoading,
-  } = useStudentEngagement(courseId);
+  const { data: engagementData = [], isLoading: engagementLoading } =
+    useStudentEngagement(courseId);
 
-  const {
-    data: conceptMasteryData = [],
-    isLoading: masteryLoading,
-  } = useConceptMastery(courseId);
+  const { data: conceptMasteryData = [], isLoading: masteryLoading } =
+    useConceptMastery(courseId);
 
   // States
   const [expandedModules, setExpandedModules] = useState({});
@@ -105,7 +104,11 @@ export default function CourseDetailsPage() {
 
   const handleDelete = async (e, mod) => {
     e.stopPropagation();
-    if (!window.confirm("Are you sure you want to delete this module and all its lessons?")) {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this module and all its lessons?",
+      )
+    ) {
       return;
     }
     try {
@@ -116,7 +119,11 @@ export default function CourseDetailsPage() {
   };
 
   const handleCourseDelete = async () => {
-    if (!window.confirm(`Are you sure you want to delete this course? All associated modules, lessons, and content will be permanently removed.`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete this course? All associated modules, lessons, and content will be permanently removed.`,
+      )
+    ) {
       return;
     }
     try {
@@ -139,8 +146,13 @@ export default function CourseDetailsPage() {
     return (
       <div className="max-w-md mx-auto my-20 p-8 text-center bg-[#0D1021] border border-[#1A1F35] rounded-2xl space-y-4">
         <h2 className="text-xl font-bold text-white">Course Not Found</h2>
-        <p className="text-xs text-slate-400">The requested course could not be loaded from the database.</p>
-        <Link href="/instructor/courses" className="inline-block px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 text-xs font-black transition">
+        <p className="text-xs text-slate-400">
+          The requested course could not be loaded from the database.
+        </p>
+        <Link
+          href="/instructor/courses"
+          className="inline-block px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 text-xs font-black transition"
+        >
           Back to Courses
         </Link>
       </div>
@@ -150,9 +162,16 @@ export default function CourseDetailsPage() {
   const activeCourse = course;
   const activeModules = modules || [];
 
-  const isPublished = activeCourse.status === "Published" || activeCourse.status === "PUBLISHED" || activeCourse.isPublished;
-  const lessonsCount = activeModules.reduce((acc, m) => acc + (m.lessons?.length ?? 0), 0);
-  const totalEnrolls = activeCourse._count?.enrollments ?? activeCourse.enrollments?.length ?? 0;
+  const isPublished =
+    activeCourse.status === "Published" ||
+    activeCourse.status === "PUBLISHED" ||
+    activeCourse.isPublished;
+  const lessonsCount = activeModules.reduce(
+    (acc, m) => acc + (m.lessons?.length ?? 0),
+    0,
+  );
+  const totalEnrolls =
+    activeCourse._count?.enrollments ?? activeCourse.enrollments?.length ?? 0;
 
   return (
     <div className="space-y-6 pb-16 animate-fade-in duration-300">
@@ -198,13 +217,18 @@ export default function CourseDetailsPage() {
               <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[9px] font-bold text-slate-500 uppercase tracking-wider">
                 <div className="flex items-center gap-1">
                   <User size={12} className="text-purple-400" />
-                  <span>Instructor: {activeCourse.creator?.name ?? "Prasad Kulkarni"}</span>
+                  <span>
+                    Instructor:{" "}
+                    {activeCourse.creator?.name ?? "Prasad Kulkarni"}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar size={12} className="text-purple-400" />
                   <span>
                     Created:{" "}
-                    {new Date(activeCourse.createdAt ?? "2026-07-01").toLocaleDateString("en-US", {
+                    {new Date(
+                      activeCourse.createdAt ?? "2026-07-01",
+                    ).toLocaleDateString("en-US", {
                       day: "numeric",
                       month: "short",
                       year: "numeric",
@@ -215,7 +239,9 @@ export default function CourseDetailsPage() {
                   <Clock size={12} className="text-purple-400" />
                   <span>
                     Last updated:{" "}
-                    {new Date(activeCourse.updatedAt ?? "2026-07-20").toLocaleDateString("en-US", {
+                    {new Date(
+                      activeCourse.updatedAt ?? "2026-07-20",
+                    ).toLocaleDateString("en-US", {
                       day: "numeric",
                       month: "short",
                       year: "numeric",
@@ -229,7 +255,9 @@ export default function CourseDetailsPage() {
           {/* Quick Actions buttons */}
           <div className="flex flex-wrap gap-2 shrink-0">
             <button
-              onClick={() => router.push(`/instructor/courses/edit/${courseId}`)}
+              onClick={() =>
+                router.push(`/instructor/courses/edit/${courseId}`)
+              }
               className="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-xl transition"
             >
               <Pencil size={12} />
@@ -243,7 +271,9 @@ export default function CourseDetailsPage() {
               Manage Quizzes
             </button>
             <button
-              onClick={() => router.push(`/instructor/modules/create/${courseId}`)}
+              onClick={() =>
+                router.push(`/instructor/modules/create/${courseId}`)
+              }
               className="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold text-white bg-orange-500 hover:bg-orange-655 rounded-xl shadow-sm transition"
             >
               <Plus size={12} />
@@ -262,43 +292,55 @@ export default function CourseDetailsPage() {
       </div>
 
       {/* 2. KPI Statistics Cards */}
-      <div className="grid gap-4 grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start text-slate-500 mb-2">
-            <p className="text-[9px] font-extrabold uppercase tracking-wider">Total Modules</p>
+            <p className="text-[9px] font-extrabold uppercase tracking-wider">
+              Total Modules
+            </p>
             <Layers size={16} className="text-orange-500" />
           </div>
           <div>
             <h4 className="text-2xl font-black tracking-tight text-white leading-none">
               {activeModules.length}
             </h4>
-            <p className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider mt-1">Modules added</p>
+            <p className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider mt-1">
+              Modules added
+            </p>
           </div>
         </div>
 
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start text-slate-500 mb-2">
-            <p className="text-[9px] font-extrabold uppercase tracking-wider">Total Lessons</p>
+            <p className="text-[9px] font-extrabold uppercase tracking-wider">
+              Total Lessons
+            </p>
             <PlayCircle size={16} className="text-blue-500" />
           </div>
           <div>
             <h4 className="text-2xl font-black tracking-tight text-white leading-none">
               {lessonsCount}
             </h4>
-            <p className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider mt-1">Lessons structured</p>
+            <p className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider mt-1">
+              Lessons structured
+            </p>
           </div>
         </div>
 
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start text-slate-500 mb-2">
-            <p className="text-[9px] font-extrabold uppercase tracking-wider">Students Enrolled</p>
+            <p className="text-[9px] font-extrabold uppercase tracking-wider">
+              Students Enrolled
+            </p>
             <GraduationCap size={16} className="text-purple-500" />
           </div>
           <div>
             <h4 className="text-2xl font-black tracking-tight text-white leading-none">
               {totalEnrolls}
             </h4>
-            <p className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider mt-1">Enrolled learners</p>
+            <p className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider mt-1">
+              Enrolled learners
+            </p>
           </div>
         </div>
       </div>
@@ -316,23 +358,49 @@ export default function CourseDetailsPage() {
 
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={engagementData} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
+              <AreaChart
+                data={engagementData}
+                margin={{ top: 10, right: 5, left: -20, bottom: 0 }}
+              >
                 <defs>
                   <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#a855f7" stopOpacity={0.2} />
                     <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
                   </linearGradient>
-                  <linearGradient id="colorEnrollments" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient
+                    id="colorEnrollments"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
                     <stop offset="5%" stopColor="#f97316" stopOpacity={0.2} />
                     <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
                   </linearGradient>
-                  <linearGradient id="colorCompletions" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient
+                    id="colorCompletions"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
                     <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="name" stroke="#64748b" fontSize={8} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748b" fontSize={8} tickLine={false} axisLine={false} />
+                <XAxis
+                  dataKey="name"
+                  stroke="#64748b"
+                  fontSize={8}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke="#64748b"
+                  fontSize={8}
+                  tickLine={false}
+                  axisLine={false}
+                />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "#020617",
@@ -350,9 +418,30 @@ export default function CourseDetailsPage() {
                   iconType="circle"
                   style={{ fontSize: "9px", fontWeight: "bold" }}
                 />
-                <Area type="monotone" name="Active Students" dataKey="active" stroke="#a855f7" strokeWidth={2} fill="url(#colorActive)" />
-                <Area type="monotone" name="New Enrollments" dataKey="enrollments" stroke="#f97316" strokeWidth={2} fill="url(#colorEnrollments)" />
-                <Area type="monotone" name="Lesson Completion" dataKey="completions" stroke="#3b82f6" strokeWidth={2} fill="url(#colorCompletions)" />
+                <Area
+                  type="monotone"
+                  name="Active Students"
+                  dataKey="active"
+                  stroke="#a855f7"
+                  strokeWidth={2}
+                  fill="url(#colorActive)"
+                />
+                <Area
+                  type="monotone"
+                  name="New Enrollments"
+                  dataKey="enrollments"
+                  stroke="#f97316"
+                  strokeWidth={2}
+                  fill="url(#colorEnrollments)"
+                />
+                <Area
+                  type="monotone"
+                  name="Lesson Completion"
+                  dataKey="completions"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  fill="url(#colorCompletions)"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -360,25 +449,43 @@ export default function CourseDetailsPage() {
           {/* Footers */}
           <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-800/40 pt-4 text-center">
             <div>
-              <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">Active Students</p>
-              <p className="mt-1 text-sm font-bold text-white">
-                {Math.round(engagementData[engagementData.length - 1]?.active ?? 0)}
+              <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">
+                Active Students
               </p>
-              <p className="mt-0.5 text-[8px] font-bold text-emerald-400">↑ {totalEnrolls > 0 ? "15%" : "0%"}</p>
+              <p className="mt-1 text-sm font-bold text-white">
+                {Math.round(
+                  engagementData[engagementData.length - 1]?.active ?? 0,
+                )}
+              </p>
+              <p className="mt-0.5 text-[8px] font-bold text-emerald-400">
+                ↑ {totalEnrolls > 0 ? "15%" : "0%"}
+              </p>
             </div>
             <div className="border-l border-slate-850">
-              <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">New Enrollments</p>
-              <p className="mt-1 text-sm font-bold text-white">
-                {Math.round(engagementData[engagementData.length - 1]?.enrollments ?? 0)}
+              <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">
+                New Enrollments
               </p>
-              <p className="mt-0.5 text-[8px] font-bold text-emerald-400">↑ {totalEnrolls > 0 ? "8%" : "0%"}</p>
+              <p className="mt-1 text-sm font-bold text-white">
+                {Math.round(
+                  engagementData[engagementData.length - 1]?.enrollments ?? 0,
+                )}
+              </p>
+              <p className="mt-0.5 text-[8px] font-bold text-emerald-400">
+                ↑ {totalEnrolls > 0 ? "8%" : "0%"}
+              </p>
             </div>
             <div className="border-l border-slate-850">
-              <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">Lessons Done</p>
-              <p className="mt-1 text-sm font-bold text-white">
-                {Math.round(engagementData[engagementData.length - 1]?.completions ?? 0)}
+              <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">
+                Lessons Done
               </p>
-              <p className="mt-0.5 text-[8px] font-bold text-emerald-400">↑ {totalEnrolls > 0 ? "12%" : "0%"}</p>
+              <p className="mt-1 text-sm font-bold text-white">
+                {Math.round(
+                  engagementData[engagementData.length - 1]?.completions ?? 0,
+                )}
+              </p>
+              <p className="mt-0.5 text-[8px] font-bold text-emerald-400">
+                ↑ {totalEnrolls > 0 ? "12%" : "0%"}
+              </p>
             </div>
           </div>
         </div>
@@ -391,7 +498,9 @@ export default function CourseDetailsPage() {
                 Concept Mastery
               </h3>
               <button
-                onClick={() => router.push(`/instructor/courses/analytics/${courseId}`)}
+                onClick={() =>
+                  router.push(`/instructor/courses/analytics/${courseId}`)
+                }
                 className="text-[9px] font-black text-orange-400 hover:text-orange-500 uppercase tracking-widest transition"
               >
                 View Details
@@ -411,8 +520,19 @@ export default function CourseDetailsPage() {
                     <div className="flex items-center justify-between text-[10px] font-bold">
                       <span className="text-slate-300">{concept.name}</span>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-slate-500 font-medium">({concept.mastered ?? 0}/{(concept.total ?? totalEnrolls) || 100})</span>
-                        <span className={isStrong ? "text-purple-400" : isWeak ? "text-amber-400" : "text-slate-400"}>
+                        <span className="text-slate-500 font-medium">
+                          ({concept.mastered ?? 0}/
+                          {(concept.total ?? totalEnrolls) || 100})
+                        </span>
+                        <span
+                          className={
+                            isStrong
+                              ? "text-purple-400"
+                              : isWeak
+                                ? "text-amber-400"
+                                : "text-slate-400"
+                          }
+                        >
                           {concept.rate}%
                         </span>
                       </div>
@@ -421,7 +541,11 @@ export default function CourseDetailsPage() {
                     <div className="h-1.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-850">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
-                          isStrong ? "bg-purple-500" : isWeak ? "bg-amber-500/85" : "bg-blue-500/80"
+                          isStrong
+                            ? "bg-purple-500"
+                            : isWeak
+                              ? "bg-amber-500/85"
+                              : "bg-blue-500/80"
                         }`}
                         style={{ width: `${concept.rate}%` }}
                       />
@@ -438,8 +562,12 @@ export default function CourseDetailsPage() {
             </span>
             <span className="text-lg font-bold text-purple-400 tracking-tight">
               {conceptMasteryData.length > 0
-                ? Math.round(conceptMasteryData.reduce((sum, c) => sum + c.rate, 0) / conceptMasteryData.length)
-                : 0}%
+                ? Math.round(
+                    conceptMasteryData.reduce((sum, c) => sum + c.rate, 0) /
+                      conceptMasteryData.length,
+                  )
+                : 0}
+              %
             </span>
           </div>
         </div>
@@ -465,7 +593,10 @@ export default function CourseDetailsPage() {
             <tbody className="divide-y divide-slate-850/40">
               {activeModules.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-500 text-xs font-bold uppercase tracking-wider">
+                  <td
+                    colSpan={5}
+                    className="py-12 text-center text-slate-500 text-xs font-bold uppercase tracking-wider"
+                  >
                     No Modules Structuring This Course.
                   </td>
                 </tr>
@@ -484,10 +615,18 @@ export default function CourseDetailsPage() {
                               onClick={() => toggleModule(mod.id)}
                               className="text-slate-500 hover:text-white p-1 rounded transition"
                             >
-                              {modExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                              {modExpanded ? (
+                                <ChevronDown size={14} />
+                              ) : (
+                                <ChevronRight size={14} />
+                              )}
                             </button>
                             <button
-                              onClick={() => router.push(`/instructor/courses/${courseId}/modules/${mod.id}`)}
+                              onClick={() =>
+                                router.push(
+                                  `/instructor/courses/${courseId}/modules/${mod.id}`,
+                                )
+                              }
                               className="font-extrabold text-white hover:text-orange-400 text-left transition"
                             >
                               Module {idx + 1}: {mod.title}
@@ -500,7 +639,9 @@ export default function CourseDetailsPage() {
                           </span>
                         </td>
                         <td className="py-3.5 text-center font-extrabold text-slate-400">
-                          {modLessons.length ? `${modLessons.length * 15} min` : "45 min"}
+                          {modLessons.length
+                            ? `${modLessons.length * 15} min`
+                            : "45 min"}
                         </td>
                         <td className="py-3.5">
                           <span
@@ -517,7 +658,9 @@ export default function CourseDetailsPage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setActiveDropdown(activeDropdown === mod.id ? null : mod.id);
+                              setActiveDropdown(
+                                activeDropdown === mod.id ? null : mod.id,
+                              );
                             }}
                             className="text-slate-500 hover:text-white transition p-1 hover:bg-slate-800/60 rounded-lg"
                           >
@@ -527,13 +670,21 @@ export default function CourseDetailsPage() {
                           {activeDropdown === mod.id && (
                             <div className="absolute right-3 mt-1.5 w-32 rounded-xl border border-slate-800 bg-slate-950 p-1.5 shadow-xl z-20 text-left">
                               <button
-                                onClick={() => router.push(`/instructor/lessons/create/${mod.id}`)}
+                                onClick={() =>
+                                  router.push(
+                                    `/instructor/lessons/create/${mod.id}`,
+                                  )
+                                }
                                 className="w-full text-[9px] font-black uppercase tracking-widest text-slate-300 hover:text-white hover:bg-slate-805 px-2 py-1.5 rounded-lg transition text-left"
                               >
                                 Add Lesson
                               </button>
                               <button
-                                onClick={() => router.push(`/instructor/modules/edit/${mod.id}`)}
+                                onClick={() =>
+                                  router.push(
+                                    `/instructor/modules/edit/${mod.id}`,
+                                  )
+                                }
                                 className="w-full text-[9px] font-black uppercase tracking-widest text-slate-300 hover:text-white hover:bg-slate-800 px-2 py-1.5 rounded-lg transition text-left"
                               >
                                 Edit Module
@@ -552,7 +703,10 @@ export default function CourseDetailsPage() {
                       {/* Expanded Lessons sub-list */}
                       {modExpanded && (
                         <tr>
-                          <td colSpan={5} className="py-1 px-0 border-b border-slate-800/40 bg-slate-900/10">
+                          <td
+                            colSpan={5}
+                            className="py-1 px-0 border-b border-slate-800/40 bg-slate-900/10"
+                          >
                             <div className="space-y-1 py-1">
                               {!modLessons.length ? (
                                 <div className="pl-12 py-3 text-[9px] text-slate-500 uppercase font-semibold">
@@ -560,7 +714,8 @@ export default function CourseDetailsPage() {
                                 </div>
                               ) : (
                                 modLessons.map((lesson, lIdx) => {
-                                  const lessonExpanded = !!expandedLessons[lesson.id];
+                                  const lessonExpanded =
+                                    !!expandedLessons[lesson.id];
                                   const lessonContents = lesson.contents || [];
 
                                   return (
@@ -568,14 +723,27 @@ export default function CourseDetailsPage() {
                                       <div className="flex items-center justify-between py-2 hover:bg-slate-800/20 rounded-lg transition">
                                         <div className="pl-8 flex items-center gap-2">
                                           <button
-                                            onClick={() => toggleLesson(lesson.id)}
+                                            onClick={() =>
+                                              toggleLesson(lesson.id)
+                                            }
                                             className="text-slate-500 hover:text-white p-1 rounded transition"
                                           >
-                                            {lessonExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                                            {lessonExpanded ? (
+                                              <ChevronDown size={12} />
+                                            ) : (
+                                              <ChevronRight size={12} />
+                                            )}
                                           </button>
-                                          <FileText size={13} className="text-slate-400 shrink-0" />
+                                          <FileText
+                                            size={13}
+                                            className="text-slate-400 shrink-0"
+                                          />
                                           <button
-                                            onClick={() => router.push(`/instructor/lessons/${lesson.id}`)}
+                                            onClick={() =>
+                                              router.push(
+                                                `/instructor/lessons/${lesson.id}`,
+                                              )
+                                            }
                                             className="font-semibold text-slate-300 hover:text-orange-400 text-left transition text-xs"
                                           >
                                             Lesson {lIdx + 1}: {lesson.title}
@@ -589,7 +757,9 @@ export default function CourseDetailsPage() {
                                             </span>
                                           </div>
                                           <div className="w-24 text-center shrink-0 font-bold text-slate-500 text-[10px]">
-                                            {lessonContents.length ? `${lessonContents.length * 15} min` : "0 min"}
+                                            {lessonContents.length
+                                              ? `${lessonContents.length * 15} min`
+                                              : "0 min"}
                                           </div>
                                           <div className="w-28 text-left shrink-0 pl-1">
                                             <span
@@ -599,14 +769,20 @@ export default function CourseDetailsPage() {
                                                   : "bg-amber-500/10 text-amber-400 border-amber-500/20"
                                               }`}
                                             >
-                                              {lesson.isPublished ? "Published" : "Draft"}
+                                              {lesson.isPublished
+                                                ? "Published"
+                                                : "Draft"}
                                             </span>
                                           </div>
                                           <div className="w-16 text-right shrink-0 pr-1.5 relative">
                                             <button
                                               onClick={(e) => {
                                                 e.stopPropagation();
-                                                setActiveDropdown(activeDropdown === lesson.id ? null : lesson.id);
+                                                setActiveDropdown(
+                                                  activeDropdown === lesson.id
+                                                    ? null
+                                                    : lesson.id,
+                                                );
                                               }}
                                               className="text-slate-650 hover:text-white transition"
                                             >
@@ -616,13 +792,21 @@ export default function CourseDetailsPage() {
                                             {activeDropdown === lesson.id && (
                                               <div className="absolute right-3 mt-1.5 w-32 rounded-xl border border-slate-800 bg-slate-950 p-1.5 shadow-xl z-20 text-left">
                                                 <button
-                                                  onClick={() => router.push(`/instructor/lessons/edit/${lesson.id}`)}
+                                                  onClick={() =>
+                                                    router.push(
+                                                      `/instructor/lessons/edit/${lesson.id}`,
+                                                    )
+                                                  }
                                                   className="w-full text-[9px] font-black uppercase tracking-widest text-slate-300 hover:text-white hover:bg-slate-800 px-2 py-1.5 rounded-lg transition text-left"
                                                 >
                                                   Edit Lesson
                                                 </button>
                                                 <button
-                                                  onClick={() => router.push(`/instructor/contents/create/${lesson.id}`)}
+                                                  onClick={() =>
+                                                    router.push(
+                                                      `/instructor/contents/create/${lesson.id}`,
+                                                    )
+                                                  }
                                                   className="w-full text-[9px] font-black uppercase tracking-widest text-slate-300 hover:text-white hover:bg-slate-800 px-2 py-1.5 rounded-lg transition text-left"
                                                 >
                                                   Add Content
@@ -637,32 +821,45 @@ export default function CourseDetailsPage() {
                                       {lessonExpanded && (
                                         <div className="pl-16 pr-12 py-2 space-y-1.5">
                                           {lessonContents.length === 0 ? (
-                                            <p className="text-[9px] text-slate-500 uppercase font-semibold">No contents added to this lesson.</p>
+                                            <p className="text-[9px] text-slate-500 uppercase font-semibold">
+                                              No contents added to this lesson.
+                                            </p>
                                           ) : (
-                                            lessonContents.map((content, cIdx) => (
-                                              <div key={content.id} className="flex justify-between items-center bg-slate-950/20 border border-slate-850/55 rounded-xl p-2.5">
-                                                <div className="flex items-center gap-2">
-                                                  <span className="text-[9px] text-slate-500 font-bold">Content {cIdx + 1}:</span>
-                                                  <Link
-                                                    href={`/instructor/contents/view/${content.id}`}
-                                                    className="text-xs font-semibold text-slate-300 hover:text-orange-400 transition"
-                                                  >
-                                                    {content.title}
-                                                  </Link>
+                                            lessonContents.map(
+                                              (content, cIdx) => (
+                                                <div
+                                                  key={content.id}
+                                                  className="flex justify-between items-center bg-slate-950/20 border border-slate-850/55 rounded-xl p-2.5"
+                                                >
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="text-[9px] text-slate-500 font-bold">
+                                                      Content {cIdx + 1}:
+                                                    </span>
+                                                    <Link
+                                                      href={`/instructor/contents/view/${content.id}`}
+                                                      className="text-xs font-semibold text-slate-300 hover:text-orange-400 transition"
+                                                    >
+                                                      {content.title}
+                                                    </Link>
+                                                  </div>
+                                                  <div className="flex items-center gap-3">
+                                                    <span className="rounded bg-slate-900 border border-slate-800 px-1.5 py-0.5 text-[8px] font-bold text-slate-400 uppercase tracking-wide">
+                                                      {content.type}
+                                                    </span>
+                                                    <button
+                                                      onClick={() =>
+                                                        router.push(
+                                                          `/instructor/contents/edit/${content.id}`,
+                                                        )
+                                                      }
+                                                      className="text-[9px] text-slate-505 hover:text-orange-400 transition font-bold"
+                                                    >
+                                                      Edit
+                                                    </button>
+                                                  </div>
                                                 </div>
-                                                <div className="flex items-center gap-3">
-                                                  <span className="rounded bg-slate-900 border border-slate-800 px-1.5 py-0.5 text-[8px] font-bold text-slate-400 uppercase tracking-wide">
-                                                    {content.type}
-                                                  </span>
-                                                  <button
-                                                    onClick={() => router.push(`/instructor/contents/edit/${content.id}`)}
-                                                    className="text-[9px] text-slate-505 hover:text-orange-400 transition font-bold"
-                                                  >
-                                                    Edit
-                                                  </button>
-                                                </div>
-                                              </div>
-                                            ))
+                                              ),
+                                            )
                                           )}
                                         </div>
                                       )}

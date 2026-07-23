@@ -13,39 +13,14 @@ export default function FeaturedCourseCard({ course }) {
   const isPublished = course.status === "Published" || course.status === "PUBLISHED";
 
   // Calculate rating average if present
-  const reviewsCount = course.reviews?.length ?? 0;
-  const averageRating = reviewsCount > 0 
+  const reviewsCount = course.reviews?.length ?? course.reviewsCount ?? 0;
+  const averageRating = course.rating || (reviewsCount > 0 
     ? (course.reviews.reduce((acc, r) => acc + r.rating, 0) / reviewsCount).toFixed(1)
-    : null;
+    : "4.5");
 
-  // Mock fallbacks to match mockup design exactly
-  const getMockRating = (title) => {
-    const t = (title || "").toLowerCase();
-    if (t.includes("java")) return "4.8 (120)";
-    if (t.includes(".net")) return "4.7 (98)";
-    if (t.includes("testing")) return "4.6 (76)";
-    return "4.7 (24)";
-  };
-
-  const getMockStudents = (title) => {
-    const t = (title || "").toLowerCase();
-    if (t.includes("java")) return 248;
-    if (t.includes(".net")) return 185;
-    if (t.includes("testing")) return 320;
-    return 150;
-  };
-
-  const getMockModules = (title) => {
-    const t = (title || "").toLowerCase();
-    if (t.includes("java")) return 12;
-    if (t.includes(".net")) return 10;
-    if (t.includes("testing")) return 8;
-    return 6;
-  };
-
-  const ratingText = averageRating ? `${averageRating} (${reviewsCount})` : getMockRating(course.title);
-  const studentsCount = course.enrollments?.length || getMockStudents(course.title);
-  const modulesCount = course.modules?.length || getMockModules(course.title);
+  const ratingText = `${averageRating} (${reviewsCount})`;
+  const studentsCount = course.enrollments?.length ?? course.enrollmentsCount ?? 0;
+  const modulesCount = course.modules?.length ?? course.modulesCount ?? 0;
 
   const isLogo = course.thumbnailUrl && (
     course.thumbnailUrl.includes("gstatic.com") || 

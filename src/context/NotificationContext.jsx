@@ -118,6 +118,7 @@ export function NotificationProvider({ children }) {
 
     // Initialize seen calendar event IDs to avoid alerting for old existing events
     const initSeenEvents = async () => {
+      if (!user) return;
       try {
         const events = await getCalendarEvents();
         events.forEach(e => {
@@ -243,7 +244,7 @@ export function NotificationProvider({ children }) {
   // Schedule Observer: check for newly added calendar events periodically
   useEffect(() => {
     const checkNewEvents = async () => {
-      if (!isMountedRef.current) return;
+      if (!isMountedRef.current || !user) return;
       try {
         const events = await getCalendarEvents();
         
@@ -280,8 +281,8 @@ export function NotificationProvider({ children }) {
       }
     };
 
-    // Poll every 5 seconds to detect new calendar additions (real-time cross-tab updates)
-    const interval = setInterval(checkNewEvents, 5000);
+    // Poll every 60 seconds to detect new calendar additions (real-time cross-tab updates)
+    const interval = setInterval(checkNewEvents, 60000);
 
     // Listen to storage events from other tabs for instant triggers
     const handleStorageChange = (e) => {

@@ -99,7 +99,7 @@ export default async function CoursePage({ params }) {
               <div className="border-t border-slate-800/80 my-4" />
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-4 gap-4 text-center">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
                 <div>
                   <p className="text-[8px] font-black uppercase text-slate-500 tracking-wider">Experience</p>
                   <p className="mt-1 text-xs font-bold text-white">8+ years</p>
@@ -235,7 +235,7 @@ export default async function CoursePage({ params }) {
 
               {/* Price Details */}
               <div className="space-y-1">
-                <h3 className="text-3xl font-black text-white">$49.00</h3>
+                <h3 className="text-3xl font-black text-white">₹4,999.00</h3>
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Full Access Price</p>
               </div>
 
