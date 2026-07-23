@@ -49,6 +49,7 @@ const parseSlides = (html) => {
 export default function VideoPlayer({
                                         content,
                                         onTimeUpdate,
+                                        onEnded,
                                         initialTime = 0,
                                     }) {
     const containerRef = useRef(null);
@@ -91,6 +92,9 @@ export default function VideoPlayer({
                         onTimeUpdate?.(Math.floor(player.getCurrentTime()));
                     }
                 }, 500);
+            } else if (event.data === window.YT.PlayerState.ENDED) {
+                clearInterval(intervalId);
+                onEnded?.();
             } else {
                 clearInterval(intervalId);
             }
@@ -145,7 +149,7 @@ export default function VideoPlayer({
                 playerRef.current.destroy();
             }
         };
-    }, [videoUrl, isYoutube, onTimeUpdate]);
+    }, [videoUrl, isYoutube, onTimeUpdate, onEnded]);
 
     // Handle Local Video Initial Resume Time
     useEffect(() => {
@@ -204,6 +208,7 @@ export default function VideoPlayer({
                             ref={localVideoRef}
                             controls
                             src={videoUrl}
+                            onEnded={onEnded}
                             onTimeUpdate={(event) =>
                                 onTimeUpdate?.(Math.floor(event.currentTarget.currentTime))
                             }
