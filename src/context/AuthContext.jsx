@@ -119,9 +119,9 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await logoutUser();
+      await logoutUser().catch(() => {});
     } catch (error) {
-      console.error("Logout failed:", error);
+      // Ignore network / auth errors during logout
     } finally {
       logoutLocal();
     }

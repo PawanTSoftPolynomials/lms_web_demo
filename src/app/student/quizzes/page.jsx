@@ -243,37 +243,25 @@ function StudentQuizzesPageContent() {
                 {
                   label: "My Learning",
                   icon: CalendarCheck,
-                  color: "text-blue-500",
-                  border: "border-blue-500/15",
-                  bg: "bg-blue-500/5",
-                  status: "Learn",
+                  iconColor: "text-blue-400",
                   onClick: () => router.push(`/student/learn/${course.id}`)
                 },
                 {
                   label: "My Homework",
                   icon: CalendarCheck,
-                  color: "text-orange-500",
-                  border: "border-orange-500/15",
-                  bg: "bg-orange-500/5",
-                  status: "Homework",
+                  iconColor: "text-orange-400",
                   onClick: () => router.push(`/student/assignments`)
                 },
                 {
                   label: "My Assignment",
                   icon: CalendarCheck,
-                  color: "text-purple-500",
-                  border: "border-purple-500/15",
-                  bg: "bg-purple-500/5",
-                  status: "Assignments",
+                  iconColor: "text-purple-400",
                   onClick: () => router.push(`/student/assignments`)
                 },
                 {
                   label: "My Test",
                   icon: CalendarCheck,
-                  color: "text-emerald-500",
-                  border: "border-emerald-500/15",
-                  bg: "bg-emerald-500/5",
-                  status: `${newCount} Pending`,
+                  iconColor: "text-emerald-400",
                   onClick: () => {
                     setViewingCourseId(course.id);
                     setActiveTab("new");
@@ -282,10 +270,7 @@ function StudentQuizzesPageContent() {
                 {
                   label: "My Assessment Activity",
                   icon: CalendarCheck,
-                  color: "text-pink-500",
-                  border: "border-pink-500/15",
-                  bg: "bg-pink-500/5",
-                  status: `${courseQuizzes.length} Quizzes`,
+                  iconColor: "text-pink-400",
                   onClick: () => {
                     setViewingCourseId(course.id);
                     setActiveTab("self_generate");
@@ -294,28 +279,19 @@ function StudentQuizzesPageContent() {
                 {
                   label: "Feedback",
                   icon: CalendarCheck,
-                  color: "text-rose-500",
-                  border: "border-rose-500/15",
-                  bg: "bg-rose-500/5",
-                  status: "Submit",
+                  iconColor: "text-rose-400",
                   onClick: () => router.push(`/student/feedback`)
                 },
                 {
                   label: "CO Outcome Summary",
                   icon: BarChart2,
-                  color: "text-amber-500",
-                  border: "border-amber-500/15",
-                  bg: "bg-amber-500/5",
-                  status: "View",
+                  iconColor: "text-amber-400",
                   onClick: () => router.push(`/student/progress`)
                 },
                 {
                   label: "Check Activity Status",
                   icon: Activity,
-                  color: "text-cyan-500",
-                  border: "border-cyan-500/15",
-                  bg: "bg-cyan-500/5",
-                  status: "Check",
+                  iconColor: "text-cyan-400",
                   onClick: () => router.push(`/student/achievements`)
                 }
               ];
@@ -323,50 +299,38 @@ function StudentQuizzesPageContent() {
               return (
                 <div
                   key={course.id}
-                  className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm flex flex-col justify-between hover:border-orange-500/20 hover:-translate-y-0.5 transition duration-300"
+                  className="rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6 shadow-lg flex flex-col justify-between transition-all duration-300 hover:border-slate-700 hover:-translate-y-1 select-none"
                 >
-                  {/* Center-aligned Card Header (Matches user course card design) */}
-                  <div className="text-center pb-5">
-                    <h3 className="text-lg font-black text-white tracking-tight leading-snug truncate" title={course.title}>
+                  {/* Card Header */}
+                  <div className="pb-3 text-center">
+                    <h3 className="text-base font-black text-white tracking-tight leading-snug truncate" title={course.title}>
                       {course.title}
                     </h3>
-                    <span className="text-[11px] text-slate-400 font-extrabold uppercase tracking-wider block mt-1">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mt-1">
                       Theory, Practical
                     </span>
                   </div>
 
-                  {/* List of Navigation Actions (Divided row structure matching user course card layout) */}
-                  <div className="divide-y divide-slate-800/80 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-955/20">
+                  {/* List of Navigation Actions */}
+                  <div className="space-y-2.5 my-3">
                     {actionItems.map((item, idx) => {
                       const Icon = item.icon;
                       return (
                         <div
                           key={idx}
                           onClick={item.onClick}
-                          className="flex items-center justify-between px-4 py-3 hover:bg-slate-900/50 transition group cursor-pointer"
+                          className="flex items-center gap-3 text-xs font-bold text-slate-200 hover:text-white transition group py-0.5 cursor-pointer"
                         >
-                          <div className="flex items-center gap-4">
-                            <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${item.border} ${item.bg} ${item.color}`}>
-                              <Icon size={18} className="stroke-[2]" />
-                            </div>
-                            <span className="text-xs font-bold text-slate-200 group-hover:text-white transition">
-                              {item.label}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2.5">
-                            <span className="text-[11px] font-bold text-slate-500 group-hover:text-slate-400 transition">
-                              {item.status}
-                            </span>
-                            <ChevronRight size={13} className="text-slate-650 group-hover:text-orange-500 transition-colors" />
-                          </div>
+                          <Icon size={16} className={`${item.iconColor} shrink-0 stroke-[2]`} />
+                          <span className="truncate">{item.label}</span>
                         </div>
                       );
                     })}
                   </div>
 
                   {/* Bottom Right Help Icon */}
-                  <div className="flex justify-end pt-3 text-slate-500 hover:text-white transition select-none">
-                    <HelpCircle size={15} />
+                  <div className="flex justify-end pt-1 text-slate-500 hover:text-white transition select-none">
+                    <HelpCircle size={16} />
                   </div>
                 </div>
               );

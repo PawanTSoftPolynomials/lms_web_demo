@@ -103,10 +103,11 @@ export default function MyCoursesPage() {
                 <div className="space-y-4">
                     <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Current Courses</h3>
                     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                        {currentEnrollments.map((enrollment) => (
+                        {currentEnrollments.map((enrollment, idx) => (
                             <MyCourseCard
                                 key={enrollment.id}
                                 enrollment={enrollment}
+                                index={idx}
                             />
                         ))}
                     </div>
@@ -123,10 +124,11 @@ export default function MyCoursesPage() {
                 <div className="space-y-4 pt-4 border-t border-slate-850">
                     <h3 className="text-xs font-black uppercase tracking-widest text-slate-450">Completed Courses</h3>
                     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                        {completedEnrollments.map((enrollment) => (
+                        {completedEnrollments.map((enrollment, idx) => (
                             <MyCourseCard
                                 key={enrollment.id}
                                 enrollment={enrollment}
+                                index={idx + currentEnrollments.length}
                             />
                         ))}
                     </div>

@@ -22,7 +22,16 @@ import useAssignments from "@/hooks/queries/student/useAssignments";
 import useQuizzes from "@/hooks/queries/student/useQuizzes";
 import useUpcomingTasks from "@/hooks/queries/student/useUpcomingTasks";
 
-export default function MyCourseCard({ enrollment }) {
+const CARD_PALETTES = [
+    { bg: "bg-gradient-to-br from-cyan-500 to-sky-600" },
+    { bg: "bg-gradient-to-br from-rose-400 to-orange-500" },
+    { bg: "bg-gradient-to-br from-amber-500 to-yellow-600" },
+    { bg: "bg-gradient-to-br from-pink-500 to-rose-600" },
+    { bg: "bg-gradient-to-br from-purple-500 to-indigo-600" },
+    { bg: "bg-gradient-to-br from-emerald-500 to-teal-600" }
+];
+
+export default function MyCourseCard({ enrollment, index = 0 }) {
     const {
         course,
     } = enrollment;
@@ -71,73 +80,49 @@ export default function MyCourseCard({ enrollment }) {
             label: "My Learning",
             href: `/student/learn/${course.id}`,
             icon: CalendarCheck,
-            color: "text-blue-500",
-            border: "border-blue-500/15",
-            bg: "bg-blue-500/5",
-            status: `${totalLessons} Lessons`
+            iconColor: "text-blue-400",
         },
         {
             label: "My Homework",
             href: `/student/assignments`,
             icon: CalendarCheck,
-            color: "text-orange-500",
-            border: "border-orange-500/15",
-            bg: "bg-orange-500/5",
-            status: `${pendingHomeworks} Pending`
+            iconColor: "text-orange-400",
         },
         {
             label: "My Assignment",
             href: `/student/assignments`,
             icon: CalendarCheck,
-            color: "text-purple-500",
-            border: "border-purple-500/15",
-            bg: "bg-purple-500/5",
-            status: `${pendingAssignments} Pending`
+            iconColor: "text-purple-400",
         },
         {
             label: "My Test",
             href: `/student/quizzes?courseId=${course.id}`,
             icon: CalendarCheck,
-            color: "text-emerald-500",
-            border: "border-emerald-500/15",
-            bg: "bg-emerald-500/5",
-            status: `${pendingTests} Pending`
+            iconColor: "text-emerald-400",
         },
         {
             label: "My Assessment Activity",
             href: `/student/quizzes?courseId=${course.id}`,
             icon: CalendarCheck,
-            color: "text-pink-500",
-            border: "border-pink-500/15",
-            bg: "bg-pink-500/5",
-            status: `${totalQuizzes} Quizzes`
+            iconColor: "text-pink-400",
         },
         {
             label: "Feedback",
             href: `/student/feedback`,
             icon: CalendarCheck,
-            color: "text-rose-500",
-            border: "border-rose-500/15",
-            bg: "bg-rose-500/5",
-            status: "Submit"
+            iconColor: "text-rose-400",
         },
         {
             label: "CO Outcome Summary",
             href: `/student/progress`,
             icon: BarChart2,
-            color: "text-amber-500",
-            border: "border-amber-500/15",
-            bg: "bg-amber-500/5",
-            status: "View"
+            iconColor: "text-amber-400",
         },
         {
             label: "Check Activity Status",
             href: `/student/achievements`,
             icon: Activity,
-            color: "text-cyan-500",
-            border: "border-cyan-500/15",
-            bg: "bg-cyan-500/5",
-            status: "Check"
+            iconColor: "text-cyan-400",
         }
     ];
 
@@ -150,19 +135,19 @@ export default function MyCourseCard({ enrollment }) {
 
     return (
         <>
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm flex flex-col justify-between hover:border-orange-500/20 hover:-translate-y-0.5 transition duration-300">
+            <div className="rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6 shadow-lg flex flex-col justify-between transition-all duration-300 hover:border-slate-700 hover:-translate-y-1 select-none">
                 {/* Center-aligned Card Header */}
-                <div className="text-center pb-5">
-                    <h3 className="text-lg font-black text-white tracking-tight leading-snug truncate" title={course.title}>
+                <div className="pb-3 text-center">
+                    <h3 className="text-base font-black text-white tracking-tight leading-snug truncate" title={course.title}>
                         {course.title}
                     </h3>
-                    <span className="text-[11px] text-slate-400 font-extrabold uppercase tracking-wider block mt-1">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mt-1">
                         Theory, Practical
                     </span>
                 </div>
 
                 {/* List of Navigation Links */}
-                <div className="divide-y divide-slate-800/80 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-955/20">
+                <div className="space-y-2.5 my-3">
                     {links.map((link, idx) => {
                         const Icon = link.icon;
                         return (
@@ -170,30 +155,18 @@ export default function MyCourseCard({ enrollment }) {
                                 key={idx}
                                 href={link.href}
                                 onClick={(e) => handleRowClick(e, link.label)}
-                                className="flex items-center justify-between px-4 py-3 hover:bg-slate-900/50 transition group"
+                                className="flex items-center gap-3 text-xs font-bold text-slate-200 hover:text-white transition group py-0.5"
                             >
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${link.border} ${link.bg} ${link.color}`}>
-                                        <Icon size={18} className="stroke-[2]" />
-                                    </div>
-                                    <span className="text-xs font-bold text-slate-200 group-hover:text-white transition">
-                                        {link.label}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2.5">
-                                    <span className="text-[11px] font-bold text-slate-500 group-hover:text-slate-400 transition">
-                                        {link.status}
-                                    </span>
-                                    <ChevronRight size={13} className="text-slate-650 group-hover:text-orange-500 transition-colors" />
-                                </div>
+                                <Icon size={16} className={`${link.iconColor} shrink-0 stroke-[2]`} />
+                                <span className="truncate">{link.label}</span>
                             </Link>
                         );
                     })}
                 </div>
 
                 {/* Bottom Right Help Icon */}
-                <div className="flex justify-end pt-3 text-slate-500 hover:text-white transition select-none">
-                    <HelpCircle size={15} />
+                <div className="flex justify-end pt-1 text-slate-500 hover:text-white transition select-none">
+                    <HelpCircle size={16} />
                 </div>
             </div>
 
