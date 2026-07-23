@@ -1,16 +1,46 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Settings, Layers, MoreVertical } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Settings, Layers, MoreVertical, Pencil, Trash2 } from "lucide-react";
 
 import DifficultyBadge from "./DifficultyBadge";
 import CourseMetaItem from "./CourseMetaItem";
+import { useDeleteCourse } from "@/hooks/queries/instructor/useDeleteCourse";
 
 export default function InstructorCourseCard({ course }) {
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+  const router = useRouter();
+  const deleteCourseMutation = useDeleteCourse();
+
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    window.addEventListener("click", handleOutsideClick);
+    return () => window.removeEventListener("click", handleOutsideClick);
+  }, []);
+
   if (!course) return null;
 
   const isPublished = course.status === "Published" || course.status === "PUBLISHED";
   const modulesCount = course.modules?.length ?? 0;
+
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+    setShowDropdown(false);
+    if (window.confirm(`Are you sure you want to delete "${course.title}"? This action cannot be undone.`)) {
+      try {
+        await deleteCourseMutation.mutateAsync(course.id);
+      } catch (error) {
+        console.error("Failed to delete course:", error);
+      }
+    }
+  };
 
   return (
     <div className="group bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800/80 rounded-2xl p-6 hover:-translate-y-1.5 hover:border-slate-700/60 hover:shadow-2xl hover:shadow-slate-950/60 transition-all duration-400 flex flex-col justify-between min-h-[360px]">
@@ -28,9 +58,41 @@ export default function InstructorCourseCard({ course }) {
               </p>
             )}
           </div>
-          <button className="text-slate-500 hover:text-white transition p-1 hover:bg-slate-800/40 rounded-lg shrink-0">
-            <MoreVertical size={18} />
-          </button>
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDropdown((prev) => !prev);
+              }}
+              className="text-slate-500 hover:text-white transition p-1.5 hover:bg-slate-800/60 rounded-lg shrink-0"
+              title="Options"
+            >
+              <MoreVertical size={18} />
+            </button>
+
+            {showDropdown && (
+              <div className="absolute right-0 mt-1.5 w-36 rounded-xl border border-slate-800 bg-slate-950 p-1.5 shadow-xl z-20 text-left">
+                <button
+                  onClick={() => {
+                    setShowDropdown(false);
+                    router.push(`/instructor/courses/edit/${course.id}`);
+                  }}
+                  className="w-full flex items-center gap-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 px-3 py-2 rounded-lg transition"
+                >
+                  <Pencil size={14} />
+                  <span>Edit</span>
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleteCourseMutation.isPending}
+                  className="w-full flex items-center gap-2 text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-950/30 px-3 py-2 rounded-lg transition"
+                >
+                  <Trash2 size={14} />
+                  <span>{deleteCourseMutation.isPending ? "Deleting..." : "Delete"}</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Separator Divider */}
