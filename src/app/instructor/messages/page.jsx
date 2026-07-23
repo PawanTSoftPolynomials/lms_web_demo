@@ -1,10 +1,19 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { MessageSquare, Send, Search, ArrowLeft, Users, CheckCheck } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { MessageSquare, Send, Search, ArrowLeft, Users, CheckCheck, Loader2 } from 'lucide-react';
+import useAuth from '@/hooks/useAuth';
+import {
+  getConversations,
+  getMessages,
+  sendMessage,
+  markAsRead
+} from '@/features/chat/api/chat.api';
 
-const mockConversations = [
+const mockConversationsFallback = [
   {
     id: 'conv1',
     name: 'Amit Sharma',
@@ -12,9 +21,9 @@ const mockConversations = [
     unreadCount: 1,
     lastMsgTime: '15 mins ago',
     messages: [
-      { sender: 'student', text: 'Hello instructor, I had a query regarding Quiz 2 question 4. Is the option B correct?', time: 'Yesterday, 4:12 PM' },
-      { sender: 'instructor', text: 'Hi Amit, yes, option B is correct because the streams API processes elements lazily. Check the recap slides in Module 2.', time: 'Yesterday, 5:30 PM' },
-      { sender: 'student', text: 'Got it, thank you! Also, can you please check my Quiz 2 submission? I got some errors in the compilation step.', time: '15 mins ago' }
+      { id: 'm1', sender: 'student', text: 'Hello instructor, I had a query regarding Quiz 2 question 4. Is the option B correct?', time: 'Yesterday, 4:12 PM' },
+      { id: 'm2', sender: 'instructor', text: 'Hi Amit, yes, option B is correct because the streams API processes elements lazily. Check the recap slides in Module 2.', time: 'Yesterday, 5:30 PM' },
+      { id: 'm3', sender: 'student', text: 'Got it, thank you! Also, can you please check my Quiz 2 submission? I got some errors in the compilation step.', time: '15 mins ago' }
     ]
   },
   {
@@ -24,8 +33,8 @@ const mockConversations = [
     unreadCount: 0,
     lastMsgTime: '1 hour ago',
     messages: [
-      { sender: 'instructor', text: 'Hello Meera, excellent work on the React Concurrent rendering assignment! You scored 98.', time: 'Yesterday, 11:30 AM' },
-      { sender: 'student', text: 'Thank you so much! I uploaded the updated module file containing the extra credit features.', time: '1 hour ago' }
+      { id: 'm4', sender: 'instructor', text: 'Hello Meera, excellent work on the React Concurrent rendering assignment! You scored 98.', time: 'Yesterday, 11:30 AM' },
+      { id: 'm5', sender: 'student', text: 'Thank you so much! I uploaded the updated module file containing the extra credit features.', time: '1 hour ago' }
     ]
   },
   {
@@ -35,74 +44,173 @@ const mockConversations = [
     unreadCount: 0,
     lastMsgTime: '2 days ago',
     messages: [
-      { sender: 'student', text: 'Hi Sir, I am facing some issues setting up the JWT authentication middleware in my local node project.', time: '2 days ago' },
-      { sender: 'instructor', text: 'Hi Rahul, make sure you installed the jsonwebtoken package and configured the secret key in your .env configuration.', time: '2 days ago' }
+      { id: 'm6', sender: 'student', text: 'Hi Sir, I am facing some issues setting up the JWT authentication middleware in my local node project.', time: '2 days ago' },
+      { id: 'm7', sender: 'instructor', text: 'Hi Rahul, make sure you installed the jsonwebtoken package and configured the secret key in your .env configuration.', time: '2 days ago' }
     ]
   }
 ];
 
 export default function MessagingCenterPage() {
-  const [conversations, setConversations] = useState(mockConversations);
-  const [selectedConvId, setSelectedConvId] = useState('conv1');
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen text-slate-100 flex items-center justify-center bg-[#080B11]">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="animate-spin text-orange-500" size={24} />
+          <span className="text-xs font-black text-slate-450 uppercase tracking-widest font-mono">Loading Messages...</span>
+        </div>
+      </div>
+    }>
+      <MessagingCenterContent />
+    </Suspense>
+  );
+}
+
+function MessagingCenterContent() {
+  const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const studentIdParam = searchParams.get('studentId');
+
+  const queryClient = useQueryClient();
+
+  const [selectedConvId, setSelectedConvId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [inputText, setInputText] = useState('');
 
   const chatEndRef = useRef(null);
 
-  // Filter conversations
+  // --- 1. FETCH CONVERSATIONS FROM REAL API ---
+  const { data: convsData, isLoading: loadingConvs, refetch: refetchConvs } = useQuery({
+    queryKey: ['conversationsList'],
+    queryFn: async () => {
+      const res = await getConversations();
+      return res?.data ?? res ?? [];
+    },
+    staleTime: 1000 * 60 * 2,
+  });
+
+  // Resolve conversations list from API or Fallback
+  const conversationsList = useMemo(() => {
+    const rawList = Array.isArray(convsData) ? convsData : (convsData?.data ?? []);
+    if (rawList.length > 0) {
+      return rawList.map(c => ({
+        id: c.id || c._id,
+        name: c.name || c.participantName || c.participants?.[0]?.name || 'Student Query',
+        course: c.courseName || c.course || 'Java Full Stack Development',
+        unreadCount: c.unread || c.unreadCount || 0,
+        lastMsgTime: c.lastSeen || c.lastMsgTime || 'Recently',
+        lastMessageText: c.lastMessage || c.lastMsg || 'No message preview',
+        messages: c.messages || null
+      }));
+    }
+    return mockConversationsFallback;
+  }, [convsData]);
+
+  // Set initial selected conversation ID or search query parameter match
+  useEffect(() => {
+    if (conversationsList.length > 0) {
+      if (studentIdParam) {
+        const match = conversationsList.find(c => c.id === studentIdParam || c.id === `s${studentIdParam}`);
+        if (match) setSelectedConvId(match.id);
+        else setSelectedConvId(conversationsList[0].id);
+      } else {
+        const exists = conversationsList.some(c => c.id === selectedConvId);
+        if (!selectedConvId || !exists) {
+          setSelectedConvId(conversationsList[0].id);
+        }
+      }
+    }
+  }, [conversationsList, studentIdParam, selectedConvId]);
+
+  // --- 2. FETCH REAL MESSAGES FOR SELECTED THREAD ---
+  const { data: rawMessagesData, isLoading: loadingMsgs, refetch: refetchMsgs } = useQuery({
+    queryKey: ['messagesThread', selectedConvId],
+    queryFn: async () => {
+      if (!selectedConvId) return [];
+      const res = await getMessages(selectedConvId);
+      return res?.data ?? res ?? [];
+    },
+    enabled: !!selectedConvId,
+    staleTime: 1000 * 15,
+  });
+
+  // Resolve active conversation object
+  const activeConv = useMemo(() => {
+    return conversationsList.find(c => c.id === selectedConvId) || conversationsList[0] || null;
+  }, [conversationsList, selectedConvId]);
+
+  // Resolve active messages thread without fallback to dummy messages if DB list exists
+  const activeMessages = useMemo(() => {
+    let fetchedMsgs = [];
+    if (Array.isArray(rawMessagesData)) {
+      fetchedMsgs = rawMessagesData;
+    } else if (Array.isArray(rawMessagesData?.data)) {
+      fetchedMsgs = rawMessagesData.data;
+    } else if (Array.isArray(rawMessagesData?.messages)) {
+      fetchedMsgs = rawMessagesData.messages;
+    } else if (Array.isArray(rawMessagesData?.data?.messages)) {
+      fetchedMsgs = rawMessagesData.data.messages;
+    }
+
+    if (fetchedMsgs.length > 0) {
+      return fetchedMsgs.map((m, idx) => {
+        const isInstructor = m.senderId === user?.id || m.senderId === 'me' || m.sender === 'me' || m.isInstructor || m.sender === 'instructor' || m.senderRole === 'INSTRUCTOR';
+        return {
+          id: m.id || m._id || `m_${idx}`,
+          sender: isInstructor ? 'instructor' : 'student',
+          text: m.text || m.content || m.message || '',
+          time: m.time || (m.createdAt ? new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently')
+        };
+      });
+    }
+
+    if (activeConv?.messages && activeConv.messages.length > 0) {
+      return activeConv.messages;
+    }
+
+    return [];
+  }, [rawMessagesData, activeConv, user?.id]);
+
+  // --- 3. REAL MESSAGE SEND MUTATION ---
+  const sendMutation = useMutation({
+    mutationFn: async (text) => {
+      return await sendMessage(selectedConvId, { text });
+    },
+    onSuccess: () => {
+      refetchMsgs();
+      refetchConvs();
+      queryClient.invalidateQueries({ queryKey: ['messagesThread', selectedConvId] });
+      setInputText('');
+    },
+  });
+
+  // Filter conversations by search input
   const filteredConversations = useMemo(() => {
-    return conversations.filter(c =>
+    return conversationsList.filter(c =>
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.course.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [conversations, searchQuery]);
-
-  // Selected conversation object
-  const activeConv = useMemo(() => {
-    return conversations.find(c => c.id === selectedConvId) || null;
-  }, [conversations, selectedConvId]);
+  }, [conversationsList, searchQuery]);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [activeConv?.messages]);
+  }, [activeMessages]);
 
-  // Mark active conversation read
+  // Mark active conversation read via API
   useEffect(() => {
     if (selectedConvId) {
-      setConversations(prev =>
-        prev.map(c =>
-          c.id === selectedConvId ? { ...c, unreadCount: 0 } : c
-        )
-      );
+      markAsRead(selectedConvId).catch(() => {});
     }
   }, [selectedConvId]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!inputText.trim() || !selectedConvId) return;
-
-    setConversations(prev =>
-      prev.map(c => {
-        if (c.id === selectedConvId) {
-          return {
-            ...c,
-            lastMsgTime: 'Just now',
-            messages: [
-              ...c.messages,
-              { sender: 'instructor', text: inputText.trim(), time: 'Just now' }
-            ]
-          };
-        }
-        return c;
-      })
-    );
-
-    setInputText('');
+    if (!inputText.trim() || !selectedConvId || sendMutation.isPending) return;
+    sendMutation.mutate(inputText.trim());
   };
 
   return (
-    <div className="min-h-screen text-slate-100 flex flex-col bg-[#080B11] pb-10">
+    <div className="min-h-screen text-slate-100 flex flex-col bg-[#080B11] pb-10 select-none">
       
       {/* HEADER */}
       <div className="flex items-center justify-between border-b border-[#1A1F35] pb-4">
@@ -111,7 +219,7 @@ export default function MessagingCenterPage() {
             Messaging Center
           </h1>
           <p className="text-[10px] text-slate-550 font-semibold mt-0.5">
-            Resolve student queries and coordinate learning activities
+            Resolve student queries and coordinate learning activities with real-time API sync
           </p>
         </div>
         <Link href="/instructor/dashboard" className="text-[10px] font-black text-slate-500 hover:text-slate-350 flex items-center gap-1">
@@ -140,7 +248,12 @@ export default function MessagingCenterPage() {
 
           {/* Conversations Thread Items */}
           <div className="flex-1 overflow-y-auto space-y-2 pr-0.5">
-            {filteredConversations.length === 0 ? (
+            {loadingConvs ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-2 text-slate-500">
+                <Loader2 size={18} className="animate-spin text-orange-500" />
+                <span className="text-[10px] font-mono font-bold">Loading Chats...</span>
+              </div>
+            ) : filteredConversations.length === 0 ? (
               <p className="text-[10px] text-slate-500 text-center py-8">No chats found</p>
             ) : (
               filteredConversations.map((conv) => (
@@ -161,7 +274,7 @@ export default function MessagingCenterPage() {
                   
                   <div className="flex justify-between items-center mt-1">
                     <p className="text-[9.5px] text-slate-450 truncate max-w-[170px] leading-snug">
-                      {conv.messages[conv.messages.length - 1]?.text}
+                      {conv.lastMessageText || 'No message preview'}
                     </p>
                     {conv.unreadCount > 0 && (
                       <span className="bg-orange-500 text-white text-[8px] font-black h-4 min-w-[16px] px-1 flex items-center justify-center rounded-full shrink-0">
@@ -193,30 +306,43 @@ export default function MessagingCenterPage() {
 
               {/* Chat Thread Bubbles */}
               <div className="flex-1 overflow-y-auto p-5 space-y-4">
-                {activeConv.messages.map((msg, idx) => {
-                  const isInstructor = msg.sender === 'instructor';
-                  return (
-                    <div
-                      key={idx}
-                      className={`flex flex-col max-w-[70%] ${
-                        isInstructor ? 'ml-auto items-end' : 'mr-auto items-start'
-                      }`}
-                    >
+                {loadingMsgs ? (
+                  <div className="flex flex-col items-center justify-center py-16 gap-2 text-slate-500">
+                    <Loader2 size={20} className="animate-spin text-orange-500" />
+                    <span className="text-[10px] font-mono font-bold">Syncing Messages...</span>
+                  </div>
+                ) : activeMessages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center text-slate-500">
+                    <MessageSquare size={24} className="mb-2 text-slate-600" />
+                    <p className="text-xs font-black text-slate-400">No messages in this chat yet</p>
+                    <p className="text-[9.5px] text-slate-500 mt-1">Send a message below to start communicating with {activeConv.name}.</p>
+                  </div>
+                ) : (
+                  activeMessages.map((msg, idx) => {
+                    const isInstructor = msg.sender === 'instructor';
+                    return (
                       <div
-                        className={`p-3 rounded-2xl text-[11px] leading-relaxed font-semibold ${
-                          isInstructor
-                            ? 'bg-orange-500 text-white rounded-tr-none'
-                            : 'bg-white/5 text-slate-200 border border-white/5 rounded-tl-none'
+                        key={msg.id || idx}
+                        className={`flex flex-col max-w-[70%] ${
+                          isInstructor ? 'ml-auto items-end' : 'mr-auto items-start'
                         }`}
                       >
-                        {msg.text}
+                        <div
+                          className={`p-3 rounded-2xl text-[11px] leading-relaxed font-semibold ${
+                            isInstructor
+                              ? 'bg-orange-500 text-white rounded-tr-none'
+                              : 'bg-white/5 text-slate-200 border border-white/5 rounded-tl-none'
+                          }`}
+                        >
+                          {msg.text}
+                        </div>
+                        <span className="text-[8px] text-slate-550 mt-1 font-semibold">
+                          {msg.time} {isInstructor && '• Sent'}
+                        </span>
                       </div>
-                      <span className="text-[8px] text-slate-550 mt-1 font-semibold">
-                        {msg.time} {isInstructor && '• Sent'}
-                      </span>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
                 <div ref={chatEndRef} />
               </div>
 
@@ -231,10 +357,14 @@ export default function MessagingCenterPage() {
                 />
                 <button
                   type="submit"
-                  disabled={!inputText.trim()}
+                  disabled={!inputText.trim() || sendMutation.isPending}
                   className="px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white transition flex items-center justify-center cursor-pointer shrink-0"
                 >
-                  <Send size={13} />
+                  {sendMutation.isPending ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : (
+                    <Send size={13} />
+                  )}
                 </button>
               </form>
             </>

@@ -1,172 +1,133 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { initialAdminData } from "@/data/adminDashboardData";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  FaUsers,
+  FaBook,
+  FaUserGraduate,
+  FaChalkboardTeacher,
+} from "react-icons/fa";
 
-import AdminHeader from "@/components/admin/dashboard/AdminHeader";
-import QuickActionBar from "@/components/admin/dashboard/QuickActionBar";
-import SystemAlertsBanner from "@/components/admin/dashboard/SystemAlertsBanner";
+import { useDashboard } from "@/hooks/queries/admin/useDashboard";
 
-import PendingApprovalsPanel from "@/components/admin/dashboard/PendingApprovalsPanel";
-import TodaysOperationsPanel from "@/components/admin/dashboard/TodaysOperationsPanel";
-import MessagesSupportPanel from "@/components/admin/dashboard/MessagesSupportPanel";
+import Loader from "@/components/common/Loader";
 
-import AIInsightsPanel from "@/components/admin/dashboard/AIInsightsPanel";
+import DashboardHeader from "@/components/dashboard/common/DashboardHeader";
+import DashboardStatCard from "@/components/dashboard/common/DashboardStatCard";
+import AnalyticsChart from "@/components/dashboard/AnalyticsChart";
+import CourseStatusChart from "@/components/dashboard/CourseStatusChart";
+import QuickActions from "@/components/dashboard/QuickActions";
+import RecentUsers from "@/components/dashboard/RecentUsers";
+import Modal from "@/components/ui/Modal";
 
-import StudentManagementPanel from "@/components/admin/dashboard/StudentManagementPanel";
-import CourseManagementPanel from "@/components/admin/dashboard/CourseManagementPanel";
-import InstructorManagementPanel from "@/components/admin/dashboard/InstructorManagementPanel";
+export default function AdminDashboard() {
+  const router = useRouter();
 
-import EnrollmentCenterPanel from "@/components/admin/dashboard/EnrollmentCenterPanel";
-import CertificateCenterPanel from "@/components/admin/dashboard/CertificateCenterPanel";
-import FinancePaymentsPanel from "@/components/admin/dashboard/FinancePaymentsPanel";
+  const { data: dashboard, isLoading, isError } = useDashboard();
 
-import SystemHealthPanel from "@/components/admin/dashboard/SystemHealthPanel";
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-24">
+        <Loader />
+      </div>
+    );
+  }
 
-import RecentActivityPanel from "@/components/admin/dashboard/RecentActivityPanel";
-import AnalyticsSummariesPanel from "@/components/admin/dashboard/AnalyticsSummariesPanel";
+  if (isError || !dashboard) {
+    return (
+      <div className="py-24 text-center text-red-500">
+        Failed to load dashboard.
+      </div>
+    );
+  }
 
-import ActionDrawerModal from "@/components/admin/dashboard/modals/ActionDrawerModal";
-
-export default function AdminDashboardPage() {
-  const [adminData, setAdminData] = useState(initialAdminData);
-  const [activeModalAction, setActiveModalAction] = useState(null);
-  const [theme, setTheme] = useState("dark");
-
-  // Global Keyboard Shortcut: Ctrl + K or Cmd + K for Search Palette
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setActiveModalAction({ type: "search_palette", title: "Search Command Palette" });
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-  };
-
-  const handleOpenAction = (actionConfig) => {
-    setActiveModalAction(actionConfig);
-  };
-
-  const handleCloseModal = () => {
-    setActiveModalAction(null);
-  };
+  const analyticsData = [
+    {
+      name: "Users",
+      value: dashboard.totalUsers,
+    },
+    {
+      name: "Students",
+      value: dashboard.totalStudents,
+    },
+    {
+      name: "Instructors",
+      value: dashboard.totalInstructors,
+    },
+    {
+      name: "Courses",
+      value: dashboard.totalCourses,
+    },
+    {
+      name: "Enrollments",
+      value: dashboard.totalEnrollments,
+    },
+  ];
 
   return (
-    <div className={`min-h-screen ${theme === "dark" ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"} font-sans antialiased transition-colors duration-200`}>
-      {/* Top Header */}
-      <AdminHeader
-        onOpenSearch={() => handleOpenAction({ type: "search_palette", title: "Search Command Palette" })}
-        onOpenAction={handleOpenAction}
-        theme={theme}
-        toggleTheme={toggleTheme}
-      />
+    <div className="space-y-8">
+      {/* Top Section: Full-width Greeting Banner */}
+      <DashboardHeader name="Admin" />
 
-      {/* Quick Action Bar */}
-      <QuickActionBar onOpenAction={handleOpenAction} />
-
-      {/* Main Workspace Container */}
-      <main className="p-6 space-y-6 max-w-[1800px] mx-auto">
-        {/* System Alerts Banner (Sticky / Top Priority) */}
-        <SystemAlertsBanner
-          alerts={adminData.systemAlerts}
-          onOpenAction={handleOpenAction}
+      {/* KPI Stats Counters (perfectly aligned in 5 columns) */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+        <DashboardStatCard
+          title="Total Users"
+          value={dashboard.totalUsers}
+          icon={<FaUsers />}
+          onClick={() => router.push("/admin/users")}
         />
 
-        {/* 1. OPERATIONAL TRIAD: Pending Approvals | Today's Operations | Messages & Support */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-          <PendingApprovalsPanel
-            pendingData={adminData.pendingApprovals}
-            onOpenAction={handleOpenAction}
-          />
-          <TodaysOperationsPanel
-            operationsData={adminData.todaysOperations}
-            onOpenAction={handleOpenAction}
-          />
-          <MessagesSupportPanel
-            messagesData={adminData.messagesSupport}
-            onOpenAction={handleOpenAction}
-          />
-        </section>
+        <DashboardStatCard
+          title="Courses"
+          value={dashboard.totalCourses}
+          icon={<FaBook />}
+          onClick={() => router.push("/admin/courses")}
+        />
 
-        {/* 2. AI OPERATIONAL INSIGHTS */}
-        <section>
-          <AIInsightsPanel
-            insights={adminData.aiInsights}
-            onOpenAction={handleOpenAction}
-          />
-        </section>
+        <DashboardStatCard
+          title="Students"
+          value={dashboard.totalStudents}
+          icon={<FaUserGraduate />}
+          onClick={() => router.push("/admin/students")}
+        />
 
-        {/* 3. CORE INTERVENTIONS: Student Intervention | Course Review | Instructor Management */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-          <StudentManagementPanel
-            studentData={adminData.studentManagement}
-            onOpenAction={handleOpenAction}
-          />
-          <CourseManagementPanel
-            courseData={adminData.courseManagement}
-            onOpenAction={handleOpenAction}
-          />
-          <InstructorManagementPanel
-            instructorData={adminData.instructorManagement}
-            onOpenAction={handleOpenAction}
-          />
-        </section>
+        <DashboardStatCard
+          title="Instructors"
+          value={dashboard.totalInstructors}
+          icon={<FaChalkboardTeacher />}
+          onClick={() => router.push("/admin/instructors")}
+        />
 
-        {/* 4. CENTER PIPELINES: Enrollment Center | Certificate Center | Finance & Payments */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-          <EnrollmentCenterPanel
-            enrollmentData={adminData.enrollmentCenter}
-            onOpenAction={handleOpenAction}
-          />
-          <CertificateCenterPanel
-            certificateData={adminData.certificateCenter}
-            onOpenAction={handleOpenAction}
-          />
-          <FinancePaymentsPanel
-            financeData={adminData.financeCenter}
-            onOpenAction={handleOpenAction}
-          />
-        </section>
+        <DashboardStatCard
+          title="Enrollments"
+          value={dashboard.totalEnrollments}
+          icon={<FaUsers />}
+          onClick={() => router.push("/admin/enrollments")}
+        />
+      </div>
 
-        {/* 5. SYSTEM HEALTH MONITOR */}
-        <section>
-          <SystemHealthPanel
-            healthData={adminData.systemHealth}
-            onOpenAction={handleOpenAction}
-          />
-        </section>
+      {/* Charts Section */}
+      <div className="grid gap-6 xl:grid-cols-2">
+        <AnalyticsChart title="Platform Overview" data={analyticsData} />
 
-        {/* 6. RECENT ACTIVITY LOG & OPERATIONAL ANALYTICS */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          <div className="lg:col-span-5">
-            <RecentActivityPanel
-              activityData={adminData.recentActivity}
-              onOpenAction={handleOpenAction}
-            />
-          </div>
-          <div className="lg:col-span-7">
-            <AnalyticsSummariesPanel
-              summaries={adminData.analyticsSummaries}
-              onOpenAction={handleOpenAction}
-            />
-          </div>
-        </section>
-      </main>
+        <CourseStatusChart
+          publishedCourses={dashboard.publishedCourses}
+          draftCourses={dashboard.draftCourses}
+        />
+      </div>
 
-      {/* Slide-over Command Drawer / Modal System */}
-      <ActionDrawerModal
-        actionState={activeModalAction}
-        onClose={handleCloseModal}
-        onPerformAction={(res) => {
-          console.log("Action performed:", res);
-        }}
-      />
+      {/* Bottom Section: QuickActions & RecentUsers side-by-side */}
+      <div className="grid gap-6 lg:grid-cols-3 items-stretch">
+        <div className="lg:col-span-1">
+          <QuickActions />
+        </div>
+
+        <div className="lg:col-span-2">
+          <RecentUsers users={dashboard.recentUsers} />
+        </div>
+      </div>
     </div>
   );
 }

@@ -25,7 +25,8 @@ import {
   FileText,
   HelpCircle,
   ClipboardList,
-  PlayCircle
+  PlayCircle,
+  Trash2
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -42,6 +43,7 @@ import Card from "@/components/ui/Card";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
 import { useModules } from "@/hooks/queries/instructor/useModules";
 import { useDeleteModule } from "@/hooks/queries/instructor/useDeleteModule";
+import { useDeleteCourse } from "@/hooks/queries/instructor/useDeleteCourse";
 import { useStudentEngagement, useConceptMastery } from "@/hooks/queries/instructor/useInstructorDashboard";
 
 export default function CourseDetailsPage() {
@@ -63,6 +65,7 @@ export default function CourseDetailsPage() {
   } = useModules(courseId);
 
   const deleteModuleMutation = useDeleteModule();
+  const deleteCourseMutation = useDeleteCourse();
 
   const {
     data: engagementData = [],
@@ -109,6 +112,18 @@ export default function CourseDetailsPage() {
       await deleteModuleMutation.mutateAsync(mod.id);
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleCourseDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete this course? All associated modules, lessons, and content will be permanently removed.`)) {
+      return;
+    }
+    try {
+      await deleteCourseMutation.mutateAsync(courseId);
+      router.push("/instructor/courses");
+    } catch (error) {
+      console.error("Failed to delete course:", error);
     }
   };
 
@@ -251,6 +266,14 @@ export default function CourseDetailsPage() {
             >
               <Plus size={12} />
               Add Module
+            </button>
+            <button
+              onClick={handleCourseDelete}
+              disabled={deleteCourseMutation.isPending}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold text-red-400 hover:text-red-300 bg-red-950/40 hover:bg-red-900/60 border border-red-800/60 rounded-xl transition disabled:opacity-50"
+            >
+              <Trash2 size={12} />
+              {deleteCourseMutation.isPending ? "Deleting..." : "Delete Course"}
             </button>
           </div>
         </div>
