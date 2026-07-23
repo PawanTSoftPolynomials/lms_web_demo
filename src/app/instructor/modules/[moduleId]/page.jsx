@@ -118,12 +118,12 @@ export default function ModuleDetailsPage() {
       ) : (
         <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800/80 rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[500px] text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-800 bg-slate-900/40 text-slate-400 text-xs font-bold uppercase tracking-wider">
                   <th className="p-5 pl-6">Lesson Title</th>
-                  <th className="p-5">Type</th>
-                  <th className="p-5 pr-6 text-left">ACTIONS</th>
+                  <th className="p-5 whitespace-nowrap">Type</th>
+                  <th className="p-5 pr-6 text-left whitespace-nowrap">ACTIONS</th>
                 </tr>
               </thead>
               <tbody>

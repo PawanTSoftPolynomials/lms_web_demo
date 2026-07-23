@@ -389,15 +389,181 @@ export default function CourseDetailsPage() {
           Course Syllabus
         </h3>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        {/* Mobile View Cards (< md) */}
+        <div className="space-y-3 block md:hidden">
+          {activeModules.length === 0 ? (
+            <div className="py-8 text-center text-slate-500 text-xs font-bold uppercase tracking-wider">
+              No Modules Structuring This Course.
+            </div>
+          ) : (
+            activeModules.map((mod, idx) => {
+              const modExpanded = !!expandedModules[mod.id];
+              const modLessons = mod.lessons || [];
+
+              return (
+                <div key={mod.id} className="rounded-xl border border-slate-800 bg-slate-950/40 p-3 space-y-2">
+                  {/* Module Header Card */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <button onClick={() => toggleModule(mod.id)} className="text-slate-400 p-0.5 cursor-pointer">
+                        {modExpanded ? <ChevronDown size={14} className="text-orange-500" /> : <ChevronRight size={14} />}
+                      </button>
+                      <span className="h-5 w-5 rounded bg-orange-500/10 text-orange-500 flex items-center justify-center text-[10px] font-black shrink-0">M</span>
+                      <button
+                        onClick={() => router.push(`/instructor/courses/${courseId}/modules/${mod.id}`)}
+                        className="font-bold text-slate-100 text-xs text-left truncate cursor-pointer hover:text-orange-400 transition"
+                      >
+                        Module {idx + 1}: {mod.title}
+                      </button>
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-wider border shrink-0 ${
+                      mod.isPublished ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                    }`}>
+                      {mod.isPublished ? "Published" : "Draft"}
+                    </span>
+                  </div>
+
+                  {/* Sub Info & Actions Row */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-400 pl-7 pt-1.5 border-t border-slate-800/40">
+                    <span>{modLessons.length} Lessons &bull; {modLessons.length ? `${modLessons.length * 15} min` : "45 min"}</span>
+                    
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => router.push(`/instructor/lessons/create/${mod.id}`)}
+                        title="Add Lesson"
+                        className="p-1.5 rounded-lg border border-slate-800 text-orange-400 bg-slate-900 hover:bg-slate-800 transition cursor-pointer"
+                      >
+                        <Plus size={11} />
+                      </button>
+                      <button
+                        onClick={() => router.push(`/instructor/courses/${courseId}/modules/${mod.id}`)}
+                        title="View Module"
+                        className="p-1.5 rounded-lg border border-slate-800 text-slate-300 bg-slate-900 hover:bg-slate-800 transition cursor-pointer"
+                      >
+                        <Eye size={11} />
+                      </button>
+                      <button
+                        onClick={() => router.push(`/instructor/modules/edit/${mod.id}`)}
+                        title="Edit Module"
+                        className="p-1.5 rounded-lg border border-slate-800 text-slate-300 bg-slate-900 hover:bg-slate-800 transition cursor-pointer"
+                      >
+                        <Pencil size={11} />
+                      </button>
+                      <button
+                        onClick={(e) => handleDelete(e, mod)}
+                        title="Delete Module"
+                        className="p-1.5 rounded-lg border border-red-500/30 text-red-400 bg-slate-900 hover:bg-red-950/30 transition cursor-pointer"
+                      >
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Lessons Mobile List */}
+                  {modExpanded && (
+                    <div className="pl-3 pt-2 space-y-2 border-l border-orange-500/20 ml-2">
+                      {modLessons.length === 0 ? (
+                        <p className="text-[10px] text-slate-500 py-1">No lessons added to this module.</p>
+                      ) : (
+                        modLessons.map((lesson, lIdx) => {
+                          const lessonExpanded = !!expandedLessons[lesson.id];
+                          const lessonContents = lesson.contents || [];
+
+                          return (
+                            <div key={lesson.id} className="rounded-lg border border-slate-800/60 bg-slate-900/60 p-2.5 space-y-1.5">
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <button onClick={() => toggleLesson(lesson.id)} className="text-slate-400 p-0.5 cursor-pointer">
+                                    {lessonExpanded ? <ChevronDown size={12} className="text-orange-500" /> : <ChevronRight size={12} />}
+                                  </button>
+                                  <FileText size={12} className="text-purple-400 shrink-0" />
+                                  <button
+                                    onClick={() => router.push(`/instructor/lessons/${lesson.id}`)}
+                                    className="font-semibold text-slate-200 text-[11px] text-left truncate cursor-pointer hover:text-orange-400 transition"
+                                  >
+                                    Lesson {lIdx + 1}: {lesson.title}
+                                  </button>
+                                </div>
+                                <span className={`rounded-full px-1.5 py-0.5 text-[7.5px] font-black uppercase tracking-wider border shrink-0 ${
+                                  lesson.isPublished ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                }`}>
+                                  {lesson.isPublished ? "Published" : "Draft"}
+                                </span>
+                              </div>
+
+                              <div className="flex flex-wrap items-center justify-between gap-1 text-[9px] text-slate-400 pl-4 pt-1 border-t border-slate-800/40">
+                                <span>{lessonContents.length} Contents &bull; {lessonContents.length ? `${lessonContents.length * 15} min` : "0 min"}</span>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => router.push(`/instructor/contents/create/${lesson.id}`)}
+                                    title="Add Content"
+                                    className="p-1 rounded border border-slate-800 text-orange-400 bg-slate-950 cursor-pointer"
+                                  >
+                                    <Plus size={10} />
+                                  </button>
+                                  <button
+                                    onClick={() => router.push(`/instructor/lessons/${lesson.id}`)}
+                                    title="View Lesson"
+                                    className="p-1 rounded border border-slate-800 text-slate-300 bg-slate-950 cursor-pointer"
+                                  >
+                                    <Eye size={10} />
+                                  </button>
+                                  <button
+                                    onClick={() => router.push(`/instructor/lessons/edit/${lesson.id}`)}
+                                    title="Edit Lesson"
+                                    className="p-1 rounded border border-slate-800 text-slate-300 bg-slate-950 cursor-pointer"
+                                  >
+                                    <Pencil size={10} />
+                                  </button>
+                                  <button
+                                    onClick={(e) => handleDeleteLesson(e, lesson, mod.id)}
+                                    title="Delete Lesson"
+                                    className="p-1 rounded border border-red-500/30 text-red-400 bg-slate-950 cursor-pointer"
+                                  >
+                                    <Trash2 size={10} />
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Content list under lesson */}
+                              {lessonExpanded && (
+                                <div className="pl-3 pt-1.5 space-y-1 border-l border-purple-500/20 ml-2">
+                                  {lessonContents.length === 0 ? (
+                                    <p className="text-[9px] text-slate-500">No contents added.</p>
+                                  ) : (
+                                    lessonContents.map((c, cIdx) => (
+                                      <div key={c.id} className="flex items-center justify-between text-[10px] text-slate-300 py-1 border-b border-slate-800/30">
+                                        <Link href={`/instructor/contents/view/${c.id}`} className="hover:text-orange-400 truncate max-w-[170px]">
+                                          Content {cIdx + 1}: {c.title}
+                                        </Link>
+                                        <span className="text-[8px] uppercase text-slate-500 bg-slate-950 px-1 rounded border border-slate-800">{c.type}</span>
+                                      </div>
+                                    ))
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop View Table (>= md) */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full min-w-[650px] text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-800 text-[10px] font-black text-slate-500 uppercase tracking-wider">
-                <th className="pb-3 pl-3">Module / Lesson / Content</th>
-                <th className="pb-3 text-center w-28">Items / Type</th>
-                <th className="pb-3 text-center w-28">Duration</th>
-                <th className="pb-3 w-28">Status</th>
-                <th className="pb-3 text-left w-36 uppercase">Actions</th>
+                <th className="pb-3 pl-3 pr-2">Module / Lesson / Content</th>
+                <th className="pb-3 text-center w-28 whitespace-nowrap px-2">Items / Type</th>
+                <th className="pb-3 text-center w-24 whitespace-nowrap px-2">Duration</th>
+                <th className="pb-3 text-center w-24 whitespace-nowrap px-2">Status</th>
+                <th className="pb-3 text-left w-36 uppercase whitespace-nowrap pl-2">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-850/40">
@@ -419,7 +585,7 @@ export default function CourseDetailsPage() {
                     <Fragment key={mod.id}>
                       {/* Module Header Row */}
                       <tr className="border-b border-slate-800/40 hover:bg-slate-800/10 bg-slate-900/10 transition duration-150 align-middle">
-                        <td className="py-2.5 pl-3">
+                        <td className="py-2.5 pl-3 pr-2">
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => toggleModule(mod.id)}
@@ -440,23 +606,23 @@ export default function CourseDetailsPage() {
                                   `/instructor/courses/${courseId}/modules/${mod.id}`,
                                 )
                               }
-                              className="font-extrabold text-slate-100 hover:text-orange-400 text-left transition text-xs cursor-pointer"
+                              className="font-extrabold text-slate-100 hover:text-orange-400 text-left transition text-xs cursor-pointer truncate max-w-xs"
                             >
                               Module {idx + 1}: {mod.title}
                             </button>
                           </div>
                         </td>
-                        <td className="py-2.5 text-center">
+                        <td className="py-2.5 text-center whitespace-nowrap px-2">
                           <span className="rounded-full border border-slate-805 bg-slate-950/80 px-2.5 py-0.5 text-[9px] font-bold text-slate-400">
                             {modLessons.length} Lessons
                           </span>
                         </td>
-                        <td className="py-2.5 text-center font-extrabold text-slate-400 text-xs">
+                        <td className="py-2.5 text-center font-extrabold text-slate-400 text-xs whitespace-nowrap px-2">
                           {modLessons.length
                             ? `${modLessons.length * 15} min`
                             : "45 min"}
                         </td>
-                        <td className="py-2.5">
+                        <td className="py-2.5 text-center whitespace-nowrap px-2">
                           <span
                             className={`inline-flex rounded-full px-2.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider border ${
                               mod.isPublished
@@ -467,7 +633,7 @@ export default function CourseDetailsPage() {
                             {mod.isPublished ? "Published" : "Draft"}
                           </span>
                         </td>
-                        <td className="py-2.5 text-left">
+                        <td className="py-2.5 text-left pl-2 whitespace-nowrap">
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <button
                               onClick={() =>
@@ -530,7 +696,7 @@ export default function CourseDetailsPage() {
                               <Fragment key={lesson.id}>
                                 {/* Lesson Row */}
                                 <tr className="border-b border-slate-800/30 hover:bg-slate-800/20 bg-slate-950/5 transition duration-150 align-middle">
-                                  <td className="py-2 pl-8">
+                                  <td className="py-2 pl-8 pr-2">
                                     <div className="flex items-center gap-2">
                                       <button
                                         onClick={() => toggleLesson(lesson.id)}
@@ -549,23 +715,23 @@ export default function CourseDetailsPage() {
                                             `/instructor/lessons/${lesson.id}`,
                                           )
                                         }
-                                        className="font-bold text-slate-300 hover:text-orange-400 text-left transition text-xs cursor-pointer"
+                                        className="font-bold text-slate-300 hover:text-orange-400 text-left transition text-xs cursor-pointer truncate max-w-xs"
                                       >
                                         Lesson {lIdx + 1}: {lesson.title}
                                       </button>
                                     </div>
                                   </td>
-                                  <td className="py-2 text-center">
+                                  <td className="py-2 text-center whitespace-nowrap px-2">
                                     <span className="rounded-full border border-slate-805 bg-slate-950/80 px-2.5 py-0.5 text-[8.5px] font-bold text-slate-400">
                                       {lessonContents.length} Contents
                                     </span>
                                   </td>
-                                  <td className="py-2 text-center font-extrabold text-slate-400 text-xs">
+                                  <td className="py-2 text-center font-extrabold text-slate-400 text-xs whitespace-nowrap px-2">
                                     {lessonContents.length
                                       ? `${lessonContents.length * 15} min`
                                       : "0 min"}
                                   </td>
-                                  <td className="py-2">
+                                  <td className="py-2 text-center whitespace-nowrap px-2">
                                     <span
                                       className={`inline-flex rounded-full px-2.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider border ${
                                         lesson.isPublished
@@ -576,7 +742,7 @@ export default function CourseDetailsPage() {
                                       {lesson.isPublished ? "Published" : "Draft"}
                                     </span>
                                   </td>
-                                  <td className="py-2 text-left">
+                                  <td className="py-2 text-left pl-2 whitespace-nowrap">
                                     <div className="flex items-center gap-1.5 mt-0.5">
                                       <button
                                         onClick={() =>
@@ -651,7 +817,7 @@ export default function CourseDetailsPage() {
 
                                       return (
                                         <tr key={content.id} className="border-b border-slate-800/10 hover:bg-slate-800/10 bg-slate-950/10 transition duration-150 align-middle">
-                                          <td className="py-1.5 pl-14">
+                                          <td className="py-1.5 pl-14 pr-2">
                                             <div className="flex items-center gap-2">
                                               <ContentIcon size={12} className={`${iconColor} shrink-0`} />
                                               <span className="text-[9px] text-slate-500 font-bold shrink-0">
@@ -659,26 +825,26 @@ export default function CourseDetailsPage() {
                                               </span>
                                               <Link
                                                 href={`/instructor/contents/view/${content.id}`}
-                                                className="text-xs font-semibold text-slate-300 hover:text-orange-400 transition"
+                                                className="text-xs font-semibold text-slate-300 hover:text-orange-400 transition truncate max-w-xs"
                                               >
                                                 {content.title}
                                               </Link>
                                             </div>
                                           </td>
-                                          <td className="py-1.5 text-center">
+                                          <td className="py-1.5 text-center whitespace-nowrap px-2">
                                             <span className="rounded bg-slate-900 border border-slate-800 px-1.5 py-0.5 text-[8px] font-bold text-slate-450 uppercase tracking-wide">
                                               {content.type}
                                             </span>
                                           </td>
-                                          <td className="py-1.5 text-center font-extrabold text-slate-500 text-xs">
+                                          <td className="py-1.5 text-center font-extrabold text-slate-500 text-xs whitespace-nowrap px-2">
                                             —
                                           </td>
-                                          <td className="py-1.5">
+                                          <td className="py-1.5 text-center whitespace-nowrap px-2">
                                             <span className="rounded-full px-2.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider bg-slate-950/40 text-slate-500 border border-slate-800/40">
                                               Active
                                             </span>
                                           </td>
-                                          <td className="py-1.5 text-left">
+                                          <td className="py-1.5 text-left pl-2 whitespace-nowrap">
                                             <div className="flex items-center gap-1.5 mt-0.5">
                                               <button
                                                 onClick={() =>
