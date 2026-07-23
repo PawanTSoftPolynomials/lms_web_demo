@@ -1,11 +1,34 @@
-import Image from "next/image";
+"use client";
 
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+
+import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import useMyCourses from "@/hooks/queries/student/useMyCourses";
+import useEnrollCourse from "@/hooks/queries/student/useEnrollCourse";
 
 export default function CourseHeader({
                                          course,
                                      }) {
+    const router = useRouter();
+    const { data: myEnrollments = [] } = useMyCourses();
+    const enrollMutation = useEnrollCourse();
+
     if (!course) return null;
+
+    const isEnrolled = Array.isArray(myEnrollments) && myEnrollments.some(
+        (e) => e.courseId === course.id || e.course?.id === course.id
+    );
+
+    const handleEnroll = async () => {
+        try {
+            await enrollMutation.mutateAsync(course.id);
+            router.push(`/student/learn/${course.id}`);
+        } catch (err) {
+            console.error("Enrollment failed:", err);
+        }
+    };
 
     const totalModules =
         course.modules?.length || 0;
@@ -95,6 +118,26 @@ export default function CourseHeader({
                             value={course.level}
                         />
                     </div>
+
+                    <div className="pt-2">
+                        {isEnrolled ? (
+                            <Button
+                                onClick={() => router.push(`/student/learn/${course.id}`)}
+                                className="w-full sm:w-auto px-6 py-3 font-semibold text-base text-white"
+                            >
+                                Continue Learning
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={handleEnroll}
+                                loading={enrollMutation.isPending}
+                                disabled={enrollMutation.isPending}
+                                className="w-full sm:w-auto px-6 py-3 font-semibold text-base text-white"
+                            >
+                                Enroll Now
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </div>
         </Card>
@@ -116,4 +159,4 @@ function InfoItem({
             </p>
         </div>
     );
-}
+}

@@ -8,118 +8,14 @@ import {
   AlertTriangle, ArrowLeft, Mail, Book, FileText, Calendar, Loader2
 } from 'lucide-react';
 
-const mockStudents = [
-  {
-    id: 's1',
-    name: 'Amit Sharma',
-    email: 'amit.sharma@example.com',
-    course: 'Java Full Stack Development',
-    status: 'Behind Average',
-    progress: 54,
-    assignmentRate: 75,
-    attendanceRate: 85,
-    joinedDate: 'Jan 15, 2026',
-    assignments: [
-      { id: 'as1', title: 'Java Lambda Expressions Practice', status: 'Graded', score: 85, maxScore: 100, date: 'June 20, 2026' },
-      { id: 'as2', title: 'OOP Design Patterns Exercise', status: 'Graded', score: 70, maxScore: 100, date: 'July 2, 2026' },
-      { id: 'as3', title: 'Multi-threading Concurrent Queue', status: 'Pending Review', score: null, maxScore: 100, date: 'July 15, 2026' },
-      { id: 'as4', title: 'Spring Boot REST Controller Mock', status: 'Overdue', score: null, maxScore: 100, date: 'July 20, 2026' }
-    ],
-    modules: [
-      { name: 'Java Programming Basics', progress: 100, status: 'Completed' },
-      { name: 'Object-Oriented Design Principles', progress: 85, status: 'In Progress' },
-      { name: 'Spring Boot & Microservices', progress: 15, status: 'In Progress' }
-    ],
-    certificates: []
-  },
-  {
-    id: 's2',
-    name: 'Sneha Patil',
-    email: 'sneha.patil@example.com',
-    course: 'Java Full Stack Development',
-    status: 'Struggling',
-    progress: 60,
-    assignmentRate: 80,
-    attendanceRate: 90,
-    joinedDate: 'Jan 18, 2026',
-    assignments: [
-      { id: 'as1', title: 'Java Lambda Expressions Practice', status: 'Graded', score: 45, maxScore: 100, date: 'June 20, 2026' },
-      { id: 'as2', title: 'OOP Design Patterns Exercise', status: 'Graded', score: 62, maxScore: 100, date: 'July 2, 2026' }
-    ],
-    modules: [
-      { name: 'Java Programming Basics', progress: 100, status: 'Completed' },
-      { name: 'Object-Oriented Design Principles', progress: 60, status: 'In Progress' }
-    ],
-    certificates: []
-  },
-  {
-    id: 's3',
-    name: 'Karan Malhotra',
-    email: 'karan.m@example.com',
-    course: 'React Development',
-    status: 'Attendance Alert',
-    progress: 42,
-    assignmentRate: 60,
-    attendanceRate: 65,
-    joinedDate: 'Feb 10, 2026',
-    assignments: [
-      { id: 'as10', title: 'React Hooks State Practice', status: 'Graded', score: 80, maxScore: 100, date: 'July 1, 2026' },
-      { id: 'as11', title: 'Context API and Routing Lab', status: 'Overdue', score: null, maxScore: 100, date: 'July 14, 2026' }
-    ],
-    modules: [
-      { name: 'React Essentials & JSX', progress: 100, status: 'Completed' },
-      { name: 'Hooks, Context, & State Management', progress: 30, status: 'In Progress' }
-    ],
-    certificates: []
-  },
-  {
-    id: 's4',
-    name: 'Meera Deshmukh',
-    email: 'meera.d@example.com',
-    course: 'React Development',
-    status: 'Top Performer',
-    progress: 96,
-    assignmentRate: 100,
-    attendanceRate: 98,
-    joinedDate: 'Feb 05, 2026',
-    assignments: [
-      { id: 'as10', title: 'React Hooks State Practice', status: 'Graded', score: 98, maxScore: 100, date: 'July 1, 2026' },
-      { id: 'as11', title: 'Context API and Routing Lab', status: 'Graded', score: 95, maxScore: 100, date: 'July 12, 2026' }
-    ],
-    modules: [
-      { name: 'React Essentials & JSX', progress: 100, status: 'Completed' },
-      { name: 'Hooks, Context, & State Management', progress: 100, status: 'Completed' },
-      { name: 'Advanced React patterns & Performance', progress: 90, status: 'In Progress' }
-    ],
-    certificates: [
-      { id: 'cert1', title: 'React Architecture Professional Certificate', date: 'July 15, 2026', code: 'OT-REC-9921' }
-    ]
-  },
-  {
-    id: 's5',
-    name: 'Rahul Varma',
-    email: 'rahul.v@example.com',
-    course: 'Express API Design & Security',
-    status: 'Pending Submission',
-    progress: 30,
-    assignmentRate: 50,
-    attendanceRate: 80,
-    joinedDate: 'Mar 01, 2026',
-    assignments: [
-      { id: 'as20', title: 'REST Endpoint Router Setup', status: 'Graded', score: 85, maxScore: 100, date: 'July 10, 2026' },
-      { id: 'as21', title: 'Security Headers & Helmet Middleware', status: 'Overdue', score: null, maxScore: 100, date: 'July 20, 2026' }
-    ],
-    modules: [
-      { name: 'Express Basics & Routing', progress: 80, status: 'In Progress' }
-    ],
-    certificates: []
-  }
-];
+import { useStudents } from '@/hooks/queries/instructor/useStudents';
 
 function StudentsDirectoryContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
+  const { data: students = [], isLoading, isError } = useStudents();
+
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -135,21 +31,22 @@ function StudentsDirectoryContent() {
 
   // Filter students list
   const filteredStudents = useMemo(() => {
-    return mockStudents.filter(student => {
-      const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            student.course.toLowerCase().includes(searchQuery.toLowerCase());
+    return students.filter(student => {
+      const isStudentRole = !student.role || student.role === 'STUDENT';
+      const matchesSearch = (student.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            (student.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            (student.course || '').toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesStatus = statusFilter === 'All' || student.status === statusFilter;
       
-      return matchesSearch && matchesStatus;
+      return isStudentRole && matchesSearch && matchesStatus;
     });
-  }, [searchQuery, statusFilter]);
+  }, [students, searchQuery, statusFilter]);
 
   // Selected student details object
   const selectedStudent = useMemo(() => {
-    return mockStudents.find(s => s.id === selectedStudentId) || null;
-  }, [selectedStudentId]);
+    return students.find(s => s.id === selectedStudentId) || null;
+  }, [students, selectedStudentId]);
 
   const handleSelectStudent = (id) => {
     setSelectedStudentId(id);
@@ -163,6 +60,17 @@ function StudentsDirectoryContent() {
     setSelectedStudentId(null);
     router.replace('/instructor/students');
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen text-slate-100 flex items-center justify-center bg-[#080B11]">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="animate-spin text-orange-500" size={24} />
+          <span className="text-xs font-black text-slate-450 uppercase tracking-widest font-mono">Loading Students...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen text-slate-100 flex flex-col gap-6 bg-[#080B11] pb-10">
@@ -383,7 +291,7 @@ function StudentsDirectoryContent() {
             </div>
 
             <div className="flex gap-1.5 overflow-x-auto w-full sm:w-auto scrollbar-none">
-              {['All', 'Behind Average', 'Struggling', 'Attendance Alert', 'Top Performer'].map((filter) => (
+              {['All', 'Not Started', 'Behind Average', 'Struggling', 'Attendance Alert', 'Top Performer'].map((filter) => (
                 <button
                   key={filter}
                   onClick={() => setStatusFilter(filter)}
@@ -431,6 +339,8 @@ function StudentsDirectoryContent() {
                         <span className={`text-[7.5px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider inline-block ${
                           student.status === 'Top Performer' 
                             ? 'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20' 
+                            : student.status === 'Not Started'
+                            ? 'bg-slate-800 text-slate-400 border border-slate-700/50'
                             : student.status === 'Struggling' || student.status === 'Behind Average'
                             ? 'bg-rose-500/10 text-rose-455 border border-rose-500/20' 
                             : 'bg-amber-500/10 text-amber-450 border border-amber-500/20'

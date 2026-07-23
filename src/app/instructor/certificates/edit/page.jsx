@@ -32,11 +32,7 @@ export default function UpdateCertificatePage() {
   // Fetch all certificates issued by instructor
   const { data: certificatesData = [], isLoading: loadingCerts } = useInstructorCertificates(user?.id);
   
-  // Fallback mocks if no real certificates yet (for UI demonstration)
-  const certificates = certificatesData.length > 0 ? certificatesData : [
-    { id: "mock_cert_1", certificateNo: "CERT-9042", issuedAt: new Date().toISOString(), student: { id: "u1", name: "Alex Morgan" }, course: { id: "c1", title: "React for Beginners" } },
-    { id: "mock_cert_2", certificateNo: "CERT-9041", issuedAt: new Date(Date.now() - 86400000).toISOString(), student: { id: "u2", name: "Sam Williams" }, course: { id: "c2", title: "Advanced Node.js" } },
-  ];
+  const certificates = certificatesData;
 
   // Fetch Instructor's Courses
   const { data: courses = [], isLoading: loadingCourses } = useQuery({
@@ -79,10 +75,6 @@ export default function UpdateCertificatePage() {
 
   const updateMutation = useMutation({
     mutationFn: async (data) => {
-      // If it's a mock cert, fake the success
-      if (selectedCertId.startsWith("mock_")) {
-        return new Promise(resolve => setTimeout(resolve, 1000));
-      }
       return await updateCertificate(selectedCertId, data);
     },
     onSuccess: () => {

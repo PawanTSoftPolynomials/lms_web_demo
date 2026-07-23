@@ -135,42 +135,24 @@ export default function CourseDetailsPage() {
     );
   }
 
-  const activeCourse = course || {
-    id: courseId || 'cmrdc9yr90003feh84rvmbqx6',
-    title: courseId === 'c2' ? 'React Architecture & State' : courseId === 'c3' ? 'Express API Design & Security' : 'Java Full Stack Development & Enterprise Architecture',
-    category: 'Software Engineering',
-    status: 'Published',
-    description: 'Comprehensive enterprise curriculum covering foundational architecture, modern frameworks, and production-grade deployments.',
-    thumbnailUrl: null,
-    creator: { name: 'Prasad Kulkarni', email: 'prasad@example.com' },
-    createdAt: '2026-06-15T00:00:00.000Z',
-    updatedAt: '2026-07-20T00:00:00.000Z',
-    enrollments: Array(145).fill({ id: 'en1' }),
-  };
+  if (courseError || !course) {
+    return (
+      <div className="max-w-md mx-auto my-20 p-8 text-center bg-[#0D1021] border border-[#1A1F35] rounded-2xl space-y-4">
+        <h2 className="text-xl font-bold text-white">Course Not Found</h2>
+        <p className="text-xs text-slate-400">The requested course could not be loaded from the database.</p>
+        <Link href="/instructor/courses" className="inline-block px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 text-xs font-black transition">
+          Back to Courses
+        </Link>
+      </div>
+    );
+  }
 
-  const activeModules = (modules && modules.length > 0) ? modules : [
-    {
-      id: 'mod-1',
-      title: 'Module 1: Java Advanced Concepts & Concurrency',
-      order: 1,
-      lessons: [
-        { id: 'les-1', title: '1.1 Streams API & Functional Operators', duration: '45 mins', type: 'VIDEO' },
-        { id: 'les-2', title: '1.2 Multithreading & Executor Service Lab', duration: '60 mins', type: 'QUIZ' }
-      ]
-    },
-    {
-      id: 'mod-2',
-      title: 'Module 2: Spring Boot Architecture & REST Services',
-      order: 2,
-      lessons: [
-        { id: 'les-3', title: '2.1 Spring DI, IoC & Controller Setup', duration: '50 mins', type: 'ASSIGNMENT' }
-      ]
-    }
-  ];
+  const activeCourse = course;
+  const activeModules = modules || [];
 
-  const isPublished = activeCourse.status === "Published" || activeCourse.status === "PUBLISHED";
+  const isPublished = activeCourse.status === "Published" || activeCourse.status === "PUBLISHED" || activeCourse.isPublished;
   const lessonsCount = activeModules.reduce((acc, m) => acc + (m.lessons?.length ?? 0), 0);
-  const totalEnrolls = activeCourse.enrollments?.length ?? 145;
+  const totalEnrolls = activeCourse._count?.enrollments ?? activeCourse.enrollments?.length ?? 0;
 
   return (
     <div className="space-y-6 pb-16 animate-fade-in duration-300">

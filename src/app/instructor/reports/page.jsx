@@ -58,14 +58,9 @@ function ReportsPageContent() {
     },
   });
 
-  // Filter courses with mock fallback
+  // Filter courses strictly from real database API
   const eligibleCourses = useMemo(() => {
-    if (courses && courses.length > 0) return courses;
-    return [
-      { id: 'c1', title: 'Java Full Stack Development', status: 'PUBLISHED' },
-      { id: 'c2', title: 'React Architecture & State', status: 'PUBLISHED' },
-      { id: 'c3', title: 'Express API Design & Security', status: 'DRAFT' }
-    ];
+    return courses || [];
   }, [courses]);
 
   // Sync selectedCourseId when URL query changes or auto-select first course if empty
@@ -148,11 +143,7 @@ function ReportsPageContent() {
 
   if (loadingCourses) return <Loader />;
 
-  const activeCourse = eligibleCourses.find((c) => c.id === selectedCourseId) || {
-    id: selectedCourseId || 'c1',
-    title: selectedCourseId === 'c2' ? 'React Architecture & State' : selectedCourseId === 'c3' ? 'Express API Design & Security' : 'Java Full Stack Development',
-    status: 'PUBLISHED'
-  };
+  const activeCourse = eligibleCourses.find((c) => c.id === selectedCourseId) || eligibleCourses[0] || null;
 
   // Filter student roster by search input
   const filteredStudents = studentsRoster.filter((student) =>

@@ -4,10 +4,8 @@ export default function CourseGrid({
                                        courses = [],
                                        enrollments = [],
                                    }) {
-    const items =
-        enrollments.length > 0
-            ? enrollments
-            : courses;
+    const isShowingEnrollmentsOnly = courses.length === 0 && enrollments.length > 0;
+    const items = isShowingEnrollmentsOnly ? enrollments : courses;
 
     if (!items.length) {
         return (
@@ -25,15 +23,20 @@ export default function CourseGrid({
 
     return (
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {items.map((item) => (
-                <CourseCard
-                    key={item.id}
-                    course={courses.length ? item : undefined}
-                    enrollment={
-                        enrollments.length ? item : undefined
-                    }
-                />
-            ))}
+            {items.map((item) => {
+                const courseObj = isShowingEnrollmentsOnly ? undefined : item;
+                const enrollmentObj = isShowingEnrollmentsOnly
+                    ? item
+                    : enrollments.find((e) => e.courseId === item.id || e.course?.id === item.id);
+
+                return (
+                    <CourseCard
+                        key={item.id}
+                        course={courseObj}
+                        enrollment={enrollmentObj}
+                    />
+                );
+            })}
         </div>
     );
-}
+}
