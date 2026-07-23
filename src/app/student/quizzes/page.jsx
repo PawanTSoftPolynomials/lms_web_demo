@@ -423,7 +423,7 @@ function StudentQuizzesPageContent() {
           {/* Content render block */}
           {activeTab === "reports" ? (
             <div className="space-y-6">
-              <div className="grid gap-4 grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
                 <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-center">
                   <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500">Passed</p>
                   <h4 className="text-lg font-black text-emerald-400 mt-1">{reportStats.passedCount}</h4>

@@ -62,7 +62,7 @@ export default function AchievementsPage() {
       </div>
 
       {/* XP Stats */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div className="bg-slate-900/50 border border-slate-800/80 backdrop-blur-md rounded-2xl p-5 shadow-luxury-md text-center">
           <p className="text-2xl font-black text-orange-500">{totalXp}</p>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1.5">Total XP</p>

@@ -231,7 +231,7 @@ function MessagingCenterContent() {
       <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 mt-4 h-[550px] items-stretch">
         
         {/* LEFT COLUMN: ACTIVE CONVERSATIONS LIST */}
-        <div className="bg-[#0D1021] border border-[#1A1F35] rounded-2xl p-4 flex flex-col gap-4 overflow-hidden h-full">
+        <div className={`bg-[#0D1021] border border-[#1A1F35] rounded-2xl p-4 flex flex-col gap-4 overflow-hidden h-full ${selectedConvId ? 'hidden md:flex' : 'flex'}`}>
           {/* Search box */}
           <div className="relative">
             <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
@@ -289,14 +289,23 @@ function MessagingCenterContent() {
         </div>
 
         {/* RIGHT COLUMN: ACTIVE THREAD */}
-        <div className="bg-[#0D1021] border border-[#1A1F35] rounded-2xl flex flex-col overflow-hidden h-full">
+        <div className={`bg-[#0D1021] border border-[#1A1F35] rounded-2xl flex flex-col overflow-hidden h-full ${selectedConvId ? 'flex' : 'hidden md:flex'}`}>
           {activeConv ? (
             <>
               {/* Active Chat Header */}
               <div className="px-5 py-4 border-b border-[#1A1F35] bg-white/[0.01] flex justify-between items-center">
-                <div>
-                  <h3 className="text-xs font-black text-slate-200">{activeConv.name}</h3>
-                  <p className="text-[9px] font-semibold text-slate-550 mt-0.5">{activeConv.course}</p>
+                <div className="flex items-center gap-3">
+                  {/* Back button visible only on mobile */}
+                  <button
+                    onClick={() => setSelectedConvId('')}
+                    className="md:hidden p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition cursor-pointer flex items-center justify-center"
+                  >
+                    <ArrowLeft size={14} />
+                  </button>
+                  <div>
+                    <h3 className="text-xs font-black text-slate-200">{activeConv.name}</h3>
+                    <p className="text-[9px] font-semibold text-slate-550 mt-0.5">{activeConv.course}</p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-1.5 text-[9px] text-emerald-450 font-black bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-550 animate-pulse shrink-0" />

@@ -68,8 +68,8 @@ function ProfileDropdown({ user, logout }) {
         <span className="h-4 w-4 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center text-[9px] font-black font-mono shrink-0">
           {user?.name?.[0]?.toUpperCase() || 'I'}
         </span>
-        <span className="truncate max-w-[80px]">{user?.name || "Profile"}</span>
-        <span className="text-[9px] text-slate-550 shrink-0">▼</span>
+        <span className="hidden md:inline truncate max-w-[80px]">{user?.name || "Profile"}</span>
+        <span className="hidden md:inline text-[9px] text-slate-550 shrink-0">▼</span>
       </button>
       
       {open && (
@@ -461,7 +461,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
               }`}
             >
               <span>🔔</span>
-              <span>Notifications</span>
+              <span className="hidden md:inline">Notifications</span>
               {unreadCount > 0 && (
                 <span className="bg-orange-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 ml-0.5 animate-pulse">
                   {unreadCount}

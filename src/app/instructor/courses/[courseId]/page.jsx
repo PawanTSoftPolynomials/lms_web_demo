@@ -280,7 +280,7 @@ export default function CourseDetailsPage() {
       </div>
 
       {/* 2. KPI Statistics Cards */}
-      <div className="grid gap-4 grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm flex flex-col justify-between">
           <div className="flex justify-between items-start text-slate-500 mb-2">
             <p className="text-[9px] font-extrabold uppercase tracking-wider">Total Modules</p>

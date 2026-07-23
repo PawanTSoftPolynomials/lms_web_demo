@@ -25,6 +25,8 @@ export default function DashboardLayout({ children, role, title }) {
           flex-1
           flex
           flex-col
+          min-w-0
+          overflow-x-hidden
           transition-all
           duration-300
         "

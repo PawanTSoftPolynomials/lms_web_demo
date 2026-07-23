@@ -95,7 +95,7 @@ function FeedbackPageContent() {
             {/* Satisfaction Level */}
             <div className="space-y-3">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Overall Satisfaction</label>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
                   { id: "dissatisfied", label: "Needs Improvement", icon: Frown, color: "text-rose-500", border: "border-rose-500/20", bg: "bg-rose-500/5" },
                   { id: "neutral", label: "Neutral / Average", icon: Meh, color: "text-amber-500", border: "border-amber-500/20", bg: "bg-amber-500/5" },

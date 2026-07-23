@@ -99,7 +99,7 @@ export default async function CoursePage({ params }) {
               <div className="border-t border-slate-800/80 my-4" />
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-4 gap-4 text-center">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
                 <div>
                   <p className="text-[8px] font-black uppercase text-slate-500 tracking-wider">Experience</p>
                   <p className="mt-1 text-xs font-bold text-white">8+ years</p>
