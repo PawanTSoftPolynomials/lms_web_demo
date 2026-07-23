@@ -37,7 +37,7 @@ export default function DashboardLayout({ children, role, title }) {
           setCollapsed={setCollapsed}
         />
 
-        <main className="p-6 flex-1">{children}</main>
+        <main className="p-3 sm:p-6 flex-1">{children}</main>
       </div>
       <ChatWidget />
     </div>
