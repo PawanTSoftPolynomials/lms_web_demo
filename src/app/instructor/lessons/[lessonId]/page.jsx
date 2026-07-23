@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
   Plus,
-  Edit,
+  Pencil,
   Trash2,
   Eye,
   ArrowLeft
@@ -95,20 +95,9 @@ export default function LessonDetailsPage() {
       <LessonHeader lesson={lesson} courseId={courseId} moduleId={moduleId} />
 
       {/* Contents Section Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-white tracking-tight">Contents</h2>
-          <p className="mt-1 text-slate-400">Manage lesson contents.</p>
-        </div>
-
-        <Link
-          href={`/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/create`}
-        >
-          <button className="flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold text-sm px-6 py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95">
-            <Plus size={16} />
-            <span>Add Content</span>
-          </button>
-        </Link>
+      <div>
+        <h2 className="text-3xl font-bold text-white tracking-tight">Contents</h2>
+        <p className="mt-1 text-slate-400">Manage lesson contents.</p>
       </div>
 
       {/* Contents List - Tabular Flow */}
@@ -127,7 +116,7 @@ export default function LessonDetailsPage() {
                 <tr className="border-b border-slate-800 bg-slate-900/40 text-slate-400 text-xs font-bold uppercase tracking-wider">
                   <th className="p-5 pl-6">Content Title</th>
                   <th className="p-5">Type</th>
-                  <th className="p-5 pr-6 text-center">Actions</th>
+                  <th className="p-5 pr-6 text-left">ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
@@ -166,31 +155,39 @@ export default function LessonDetailsPage() {
                       </td>
 
                       {/* Actions cell */}
-                      <td className="p-5 pr-6" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-center gap-2">
+                      <td className="p-5 pr-6 text-left" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-start gap-1.5 mt-0.5">
                           {/* View */}
-                          <Link
-                            href={`/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/${content.id}`}
+                          <button
+                            onClick={() =>
+                              router.push(
+                                `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/${content.id}`
+                              )
+                            }
+                            title="View Content"
+                            className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-slate-400 hover:text-white hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
                           >
-                            <button className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-white transition" title="View Content">
-                              <Eye size={14} />
-                            </button>
-                          </Link>
+                            <Eye size={12} />
+                          </button>
                           {/* Edit */}
-                          <Link
-                            href={`/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/edit/${content.id}`}
+                          <button
+                            onClick={() =>
+                              router.push(
+                                `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/edit/${content.id}`
+                              )
+                            }
+                            title="Edit Content"
+                            className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-slate-400 hover:text-white hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
                           >
-                            <button className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Edit Content">
-                              <Edit size={14} />
-                            </button>
-                          </Link>
+                            <Pencil size={12} />
+                          </button>
                           {/* Delete */}
                           <button
                             onClick={() => handleDeleteContent(content.id)}
-                            className="p-2.5 rounded-lg border border-slate-855 bg-slate-900/20 hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition"
                             title="Delete Content"
+                            className="p-1 rounded-lg border border-red-500/30 bg-slate-955/40 text-red-400 hover:text-red-300 hover:bg-red-955/20 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={12} />
                           </button>
                         </div>
                       </td>
