@@ -13,43 +13,6 @@ import {
   markAsRead
 } from '@/features/chat/api/chat.api';
 
-const mockConversationsFallback = [
-  {
-    id: 'conv1',
-    name: 'Amit Sharma',
-    course: 'Java Full Stack Development',
-    unreadCount: 1,
-    lastMsgTime: '15 mins ago',
-    messages: [
-      { id: 'm1', sender: 'student', text: 'Hello instructor, I had a query regarding Quiz 2 question 4. Is the option B correct?', time: 'Yesterday, 4:12 PM' },
-      { id: 'm2', sender: 'instructor', text: 'Hi Amit, yes, option B is correct because the streams API processes elements lazily. Check the recap slides in Module 2.', time: 'Yesterday, 5:30 PM' },
-      { id: 'm3', sender: 'student', text: 'Got it, thank you! Also, can you please check my Quiz 2 submission? I got some errors in the compilation step.', time: '15 mins ago' }
-    ]
-  },
-  {
-    id: 'conv2',
-    name: 'Meera Deshmukh',
-    course: 'React Development',
-    unreadCount: 0,
-    lastMsgTime: '1 hour ago',
-    messages: [
-      { id: 'm4', sender: 'instructor', text: 'Hello Meera, excellent work on the React Concurrent rendering assignment! You scored 98.', time: 'Yesterday, 11:30 AM' },
-      { id: 'm5', sender: 'student', text: 'Thank you so much! I uploaded the updated module file containing the extra credit features.', time: '1 hour ago' }
-    ]
-  },
-  {
-    id: 'conv3',
-    name: 'Rahul Varma',
-    course: 'Express API Design & Security',
-    unreadCount: 0,
-    lastMsgTime: '2 days ago',
-    messages: [
-      { id: 'm6', sender: 'student', text: 'Hi Sir, I am facing some issues setting up the JWT authentication middleware in my local node project.', time: '2 days ago' },
-      { id: 'm7', sender: 'instructor', text: 'Hi Rahul, make sure you installed the jsonwebtoken package and configured the secret key in your .env configuration.', time: '2 days ago' }
-    ]
-  }
-];
-
 export default function MessagingCenterPage() {
   return (
     <Suspense fallback={
@@ -88,21 +51,21 @@ function MessagingCenterContent() {
     staleTime: 1000 * 60 * 2,
   });
 
-  // Resolve conversations list from API or Fallback
+  // Resolve conversations list from API
   const conversationsList = useMemo(() => {
     const rawList = Array.isArray(convsData) ? convsData : (convsData?.data ?? []);
     if (rawList.length > 0) {
       return rawList.map(c => ({
         id: c.id || c._id,
         name: c.name || c.participantName || c.participants?.[0]?.name || 'Student Query',
-        course: c.courseName || c.course || 'Java Full Stack Development',
+        course: c.courseName || c.course || 'Course',
         unreadCount: c.unread || c.unreadCount || 0,
         lastMsgTime: c.lastSeen || c.lastMsgTime || 'Recently',
         lastMessageText: c.lastMessage || c.lastMsg || 'No message preview',
         messages: c.messages || null
       }));
     }
-    return mockConversationsFallback;
+    return [];
   }, [convsData]);
 
   // Set initial selected conversation ID or search query parameter match

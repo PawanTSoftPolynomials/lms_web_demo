@@ -1,7 +1,7 @@
 "use client";
 
-import CalendarView from "@/components/calendar/CalendarView";
+import InstructorScheduleView from "@/components/instructor/schedule/InstructorScheduleView";
 
 export default function InstructorCalendarPage() {
-  return <CalendarView role="INSTRUCTOR" />;
+  return <InstructorScheduleView />;
 }

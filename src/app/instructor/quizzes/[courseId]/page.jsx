@@ -451,7 +451,7 @@ export default function CourseQuizListPage() {
                             {/* Actions */}
                             <td className="p-5 pr-6" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center justify-center gap-2">
-                                <Link href={`/instructor/courses/${courseId}/quizzes/${quiz.id}/questions/create`}>
+                                <Link href={`/instructor/questions/create/${quiz.id}`}>
                                   <button className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-orange-400 hover:text-orange-300 transition" title="Add Question">
                                     <Plus size={14} />
                                   </button>
@@ -587,8 +587,8 @@ export default function CourseQuizListPage() {
                     <span>Import Questions</span>
                   </button>
 
-                  <Link href={`/instructor/courses/${courseId}/quizzes/${selectedQuiz.id}/questions/create`}>
-                    <button className="flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold text-sm px-6 py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95">
+                  <Link href={`/instructor/questions/create/${selectedQuiz.id}`}>
+                    <button className="flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold text-sm px-6 py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95 font-sans">
                       <Plus size={16} />
                       <span>Add Question</span>
                     </button>

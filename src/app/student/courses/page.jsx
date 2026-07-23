@@ -12,9 +12,11 @@ import CourseStats from "@/components/student/courses/CourseStats";
 import CourseToolbar from "@/components/student/courses/CourseToolbar";
 
 import useCourses from "@/hooks/queries/student/useCourses";
+import useMyCourses from "@/hooks/queries/student/useMyCourses";
 
 export default function StudentCoursesPage() {
     const {data: courses = [], isLoading, isError} = useCourses();
+    const {data: myEnrollments = []} = useMyCourses();
 
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState("");
@@ -108,7 +110,7 @@ export default function StudentCoursesPage() {
                 levels={levels}
             />
 
-            <CourseGrid courses={filteredCourses}/>
+            <CourseGrid courses={filteredCourses} enrollments={myEnrollments}/>
         </div>
     );
-}
+}
