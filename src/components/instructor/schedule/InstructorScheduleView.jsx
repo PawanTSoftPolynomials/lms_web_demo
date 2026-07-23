@@ -415,9 +415,10 @@ export default function InstructorScheduleView() {
               {WEEKDAYS.map((day) => (
                 <div
                   key={day}
-                  className="py-3 text-center text-xs font-black text-slate-400 uppercase tracking-widest font-mono border-r last:border-r-0 border-[#1A1F35]"
+                  className="py-2 sm:py-3 text-center text-[9px] sm:text-xs font-black text-slate-400 uppercase tracking-widest font-mono border-r last:border-r-0 border-[#1A1F35]"
                 >
-                  {day}
+                  <span className="hidden sm:inline">{day}</span>
+                  <span className="sm:hidden">{day.substring(0, 3)}</span>
                 </div>
               ))}
             </div>
@@ -433,7 +434,7 @@ export default function InstructorScheduleView() {
                   <div
                     key={`${dateStr}-${idx}`}
                     onClick={() => handleDateClick(dateStr)}
-                    className={`min-h-[125px] p-2 border-r border-b border-[#1A1F35] flex flex-col justify-between transition-all group relative cursor-pointer hover:bg-white/[0.03] ${
+                    className={`min-h-[75px] sm:min-h-[125px] p-1 sm:p-2 border-r border-b border-[#1A1F35] flex flex-col justify-between transition-all group relative cursor-pointer hover:bg-white/[0.03] ${
                       isCurrentMonth ? "bg-transparent" : "bg-[#05070E]/50 opacity-40"
                     } ${
                       isToday ? "ring-2 ring-inset ring-orange-500/50 bg-orange-500/[0.03]" : ""
@@ -442,9 +443,9 @@ export default function InstructorScheduleView() {
                     }`}
                   >
                     {/* Cell Header */}
-                    <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center justify-between mb-1 sm:mb-1.5">
                       <span
-                        className={`text-xs font-extrabold font-mono rounded-lg flex items-center justify-center w-6 h-6 ${
+                        className={`text-[10px] sm:text-xs font-extrabold font-mono rounded-lg flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 ${
                           isToday
                             ? "bg-gradient-to-r from-orange-500 to-pink-500 text-white font-black shadow-md"
                             : "text-slate-300"

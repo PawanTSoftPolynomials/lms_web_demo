@@ -6,7 +6,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, Bell, MessageSquare, ArrowLeft, BookOpen, Clock3, 
-  ChevronDown, ChevronRight, PlayCircle, CheckCircle2,
+  ChevronDown, ChevronRight, ChevronLeft, PlayCircle, CheckCircle2,
   Menu, Sparkles, CheckCheck, HelpCircle, Star
 } from "lucide-react";
 import { 
@@ -78,6 +78,28 @@ export default function LearnPage() {
   const [initialTime, setInitialTime] = useState(0);
   const [stateRestored, setStateRestored] = useState(false);
   const [expandedModules, setExpandedModules] = useState([]);
+
+  // Compute lesson index and navigation targets
+  const currentLessonIndex = useMemo(() => {
+    return lessons.findIndex((l) => l.id === selectedLesson?.id);
+  }, [lessons, selectedLesson]);
+
+  const previousLesson = useMemo(() => {
+    return currentLessonIndex > 0 ? lessons[currentLessonIndex - 1] : null;
+  }, [lessons, currentLessonIndex]);
+
+  const nextLesson = useMemo(() => {
+    return currentLessonIndex >= 0 && currentLessonIndex < lessons.length - 1
+      ? lessons[currentLessonIndex + 1]
+      : null;
+  }, [lessons, currentLessonIndex]);
+
+  const handleVideoEnded = () => {
+    markComplete();
+    if (nextLesson) {
+      setSelectedLesson(nextLesson);
+    }
+  };
 
   // Auto-expand modules when course loads
   useEffect(() => {
@@ -534,7 +556,8 @@ export default function LearnPage() {
         {/* REDESIGNED WORKSPACE CONTENT */}
         {/* ========================================================== */}
         <div className="p-6 md:p-8">
-          <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-8">
+          {/* Collapse right side panel if both left sidebars are open to prevent layout crowding */}
+          <div className={`grid grid-cols-1 ${(mainSidebarOpen && courseSidebarOpen) ? '' : 'xl:grid-cols-[1fr_360px]'} gap-8`}>
             
             {/* LEFT COLUMN: Info, Video, Transcript, Modules, Tabs */}
             <div className="space-y-6 min-w-0">
@@ -600,8 +623,48 @@ export default function LearnPage() {
                 <VideoPlayer
                   content={selectedLesson?.contents?.[0]}
                   onTimeUpdate={setCurrentTimestamp}
+                  onEnded={handleVideoEnded}
                   initialTime={initialTime}
                 />
+
+                {/* Lesson Navigation Bar (Previous Lesson / Next Lesson) */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-[#0d0e16] border border-[#1e2030] shadow-md">
+                  <button
+                    disabled={!previousLesson}
+                    onClick={() => {
+                      if (previousLesson) setSelectedLesson(previousLesson);
+                    }}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-700 font-extrabold text-xs text-slate-300 hover:text-white hover:border-orange-500 transition cursor-pointer ${
+                      !previousLesson ? "opacity-30 cursor-not-allowed hover:border-slate-700 text-slate-500" : ""
+                    }`}
+                  >
+                    <ChevronLeft size={16} />
+                    <span>Previous Lesson</span>
+                  </button>
+
+                  <div className="text-center font-mono">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      Lesson {currentLessonIndex >= 0 ? currentLessonIndex + 1 : 1} of {lessons.length || 1}
+                    </span>
+                    <p className="text-xs font-bold text-orange-400 truncate max-w-[200px] sm:max-w-[280px]">
+                      {selectedLesson?.title || "Course Lesson"}
+                    </p>
+                  </div>
+
+                  <button
+                    disabled={!nextLesson}
+                    onClick={() => {
+                      markComplete();
+                      if (nextLesson) setSelectedLesson(nextLesson);
+                    }}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 font-black text-xs text-slate-950 transition shadow-lg shadow-orange-500/20 active:scale-95 cursor-pointer ${
+                      !nextLesson ? "opacity-40 cursor-not-allowed bg-orange-500/40 text-slate-400" : ""
+                    }`}
+                  >
+                    <span>{nextLesson ? "Next Lesson" : "Course Completed 🎉"}</span>
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
               </div>
 
               {/* Transcript Card */}
@@ -630,108 +693,109 @@ export default function LearnPage() {
 
             </div>
 
-            {/* RIGHT COLUMN: Course Progress, Query, Feedback, Reviews, Sticky Notes */}
-            <div className="space-y-6 xl:sticky xl:top-24 h-fit">
-              
-
-              {/* Three Navigation Action Cards (Query, Feedback, Reviews) */}
-              <div className="space-y-4">
+            {/* RIGHT COLUMN: Course Progress, Query, Feedback, Reviews, Sticky Notes (collapsed when both sidebars open) */}
+            {!(mainSidebarOpen && courseSidebarOpen) && (
+              <div className="space-y-6 xl:sticky xl:top-24 h-fit transition-all duration-300">
                 
-                {/* Query Card */}
-                <button
-                  onClick={async () => {
-                    const instId = course?.creatorId || course?.creator?.id || course?.creator?._id;
-                    if (!instId) {
-                      console.warn("Instructor ID not found for this course.");
-                      return;
-                    }
-                    const matched = conversations.find(c =>
-                      !c.isGroup && c.participants?.some(p => {
-                        const pId = p.userId || p.user?.id || p.id;
-                        return pId === instId;
-                      })
-                    );
-                    if (matched) {
-                      setActiveConversation(matched);
-                      setIsOpen(true);
-                    } else {
-                      try {
-                        const res = await createConversation({
-                          name: course?.creator?.name || "Instructor",
-                          participantIds: [instId],
-                          courseId: course.id,
-                          isGroup: false
-                        });
-                        const newConv = res.data || res;
-                        if (newConv) {
-                          setConversations(prev => [newConv, ...prev]);
-                          setActiveConversation(newConv);
-                        }
-                        setIsOpen(true);
-                      } catch (err) {
-                        console.error("Failed to auto-create conversation with instructor:", err);
+                {/* Three Navigation Action Cards (Query, Feedback, Reviews) */}
+                <div className="space-y-4">
+                  
+                  {/* Query Card */}
+                  <button
+                    onClick={async () => {
+                      const instId = course?.creatorId || course?.creator?.id || course?.creator?._id;
+                      if (!instId) {
+                        console.warn("Instructor ID not found for this course.");
+                        return;
                       }
-                    }
-                  }}
-                  className="w-full flex items-center justify-between p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-amber-500/15 bg-amber-505/5 text-amber-505">
-                      <HelpCircle size={18} className="stroke-[2.5]" />
+                      const matched = conversations.find(c =>
+                        !c.isGroup && c.participants?.some(p => {
+                          const pId = p.userId || p.user?.id || p.id;
+                          return pId === instId;
+                        })
+                      );
+                      if (matched) {
+                        setActiveConversation(matched);
+                        setIsOpen(true);
+                      } else {
+                        try {
+                          const res = await createConversation({
+                            name: course?.creator?.name || "Instructor",
+                            participantIds: [instId],
+                            courseId: course.id,
+                            isGroup: false
+                          });
+                          const newConv = res.data || res;
+                          if (newConv) {
+                            setConversations(prev => [newConv, ...prev]);
+                            setActiveConversation(newConv);
+                          }
+                          setIsOpen(true);
+                        } catch (err) {
+                          console.error("Failed to auto-create conversation with instructor:", err);
+                        }
+                      }
+                    }}
+                    className="w-full flex items-center justify-between p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-amber-500/15 bg-amber-505/5 text-amber-505">
+                        <HelpCircle size={18} className="stroke-[2.5]" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition">Query</h4>
+                        <p className="text-[10px] text-slate-500 leading-normal font-semibold mt-0.5">Ask your doubts and get help from instructors.</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition">Query</h4>
-                      <p className="text-[10px] text-slate-500 leading-normal font-semibold mt-0.5">Ask your doubts and get help from instructors.</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-505 transition-colors shrink-0" />
-                </button>
+                    <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-505 transition-colors shrink-0" />
+                  </button>
 
-                {/* Feedback Card */}
-                <Link
-                  href={`/student/feedback?courseId=${course.id}`}
-                  className="w-full flex items-center justify-between p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-emerald-500/15 bg-emerald-505/5 text-emerald-505">
-                      <MessageSquare size={18} className="stroke-[2.5]" />
+                  {/* Feedback Card */}
+                  <Link
+                    href={`/student/feedback?courseId=${course.id}`}
+                    className="w-full flex items-center justify-between p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-emerald-500/15 bg-emerald-505/5 text-emerald-505">
+                        <MessageSquare size={18} className="stroke-[2.5]" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition">Feedback</h4>
+                        <p className="text-[10px] text-slate-550 leading-normal font-semibold mt-0.5">Share your feedback to help us improve.</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition">Feedback</h4>
-                      <p className="text-[10px] text-slate-550 leading-normal font-semibold mt-0.5">Share your feedback to help us improve.</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-555 transition-colors shrink-0" />
-                </Link>
+                    <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-555 transition-colors shrink-0" />
+                  </Link>
 
-                {/* Reviews Card */}
-                <Link
-                  href={`/student/reviews?courseId=${course.id}`}
-                  className="w-full flex items-center justify-between p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-blue-500/15 bg-blue-550/5 text-blue-505">
-                      <Star size={18} className="stroke-[2.5]" />
+                  {/* Reviews Card */}
+                  <Link
+                    href={`/student/reviews?courseId=${course.id}`}
+                    className="w-full flex items-center justify-between p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-blue-500/15 bg-blue-550/5 text-blue-505">
+                        <Star size={18} className="stroke-[2.5]" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition">Reviews</h4>
+                        <p className="text-[10px] text-slate-550 leading-normal font-semibold mt-0.5">Rate this course and see what others think.</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition">Reviews</h4>
-                      <p className="text-[10px] text-slate-550 leading-normal font-semibold mt-0.5">Rate this course and see what others think.</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-555 transition-colors shrink-0" />
-                </Link>
+                    <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-555 transition-colors shrink-0" />
+                  </Link>
+
+                </div>
+
+                {/* Sticky Notes Panel */}
+                {showStickyNotes && (
+                  <StickyNotesPanel
+                    lessonId={selectedLesson?.id}
+                    currentTimestamp={currentTimestamp}
+                  />
+                )}
 
               </div>
-
-              {/* Sticky Notes Panel */}
-              {showStickyNotes && (
-                <StickyNotesPanel
-                  lessonId={selectedLesson?.id}
-                  currentTimestamp={currentTimestamp}
-                />
-              )}
-
-            </div>
+            )}
           </div>
         </div>
         <ChatWidget />

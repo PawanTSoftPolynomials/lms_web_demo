@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -38,6 +38,7 @@ import { useLesson } from "@/hooks/queries/instructor/useLesson";
 import { useModule } from "@/hooks/queries/instructor/useModule";
 import { useContents } from "@/hooks/queries/instructor/useContents";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
+import LessonStickySidebar from "@/components/instructor/lessons/LessonStickySidebar";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -129,6 +130,16 @@ export default function ContentDetailsPage() {
     else { videoRef.current.play().catch(console.log); setIsPlaying(true); }
   };
 
+  const handleSeekToSeconds = (seconds) => {
+    if (!videoRef.current) return;
+    videoRef.current.currentTime = seconds;
+    setCurrentTime(seconds);
+    if (!isPlaying) {
+      videoRef.current.play().catch(() => {});
+      setIsPlaying(true);
+    }
+  };
+
   const toggleMute = () => {
     if (!videoRef.current) return;
     videoRef.current.muted = !isMuted;
@@ -164,7 +175,7 @@ export default function ContentDetailsPage() {
     return (
       <Card>
         <div className="py-16 text-center">
-          <h2 className="text-2xl font-semibold">Content Not Found</h2>
+          <h2 className="text-2xl font-semibold text-white">Content Not Found</h2>
           <p className="mt-2 text-slate-400">Unable to load this content.</p>
         </div>
       </Card>
@@ -210,35 +221,37 @@ export default function ContentDetailsPage() {
   return (
     <div className="space-y-6 pb-12 animate-fade-in duration-300">
       
-      {/* 1. Header Card */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm">
+      {/* 1. Header Navigation Bar */}
+      <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-5 shadow-xl">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => router.push(`/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`)}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-orange-500 transition"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#05070E] border border-[#1A1F35] text-slate-300 hover:text-white hover:border-orange-500 transition cursor-pointer"
+              title="Back to Lesson Details"
             >
               <ArrowLeft size={16} />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight leading-none">Content Preview</h1>
-              <p className="text-xs text-slate-400 mt-1.5">Review content details and preview before publishing</p>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-white tracking-tight">{content.title}</h1>
+                <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20 font-mono">
+                  Lesson {currentIndex >= 0 ? currentIndex + 1 : 1} of {contents.length || 1}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                {course?.title || "Course"} &bull; {moduleData?.title || "Module"} &bull; {lesson?.title || "Lesson"}
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => router.push(`/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`)}
-              className="rounded-xl border border-slate-700 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:border-orange-500 transition"
-            >
-              Back to Lesson
-            </button>
+          <div className="flex items-center gap-2.5 flex-wrap">
             <button 
               onClick={() => router.push(`/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/edit/${content.id}`)}
-              className="flex items-center gap-2 rounded-xl bg-orange-600 px-4 py-2.5 text-xs font-black uppercase tracking-wider text-white hover:bg-orange-700 transition"
+              className="flex items-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 px-4 py-2 text-xs font-black text-slate-950 transition shadow-lg shadow-orange-500/10 cursor-pointer"
             >
               <Pencil size={13} />
-              Edit Content
+              <span>Edit</span>
             </button>
             <ActionMenu
               items={[
@@ -252,10 +265,10 @@ export default function ContentDetailsPage() {
         </div>
       </div>
 
-      {/* 2. Main content Layout Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      {/* 2. Main Responsive Grid: Video Player + Sticky Right Sidebar */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
-        {/* Left Column: Video & Tabs (2/3 size) */}
+        {/* LEFT COLUMN: Large Video Player, Progress, Description (2/3 size) */}
         <div className="lg:col-span-2 space-y-6">
           
           {/* Video / Media Preview Card */}
@@ -275,19 +288,20 @@ export default function ContentDetailsPage() {
                   {content.description || "This content introduces the key concepts and demonstrates application usage."}
                 </p>
               </div>
+              <span className="text-[10px] font-mono text-slate-400">{durationStr}</span>
             </div>
 
             {/* Video Player or Document/Presentation Preview Box */}
             {isVideo && (
               isYouTube ? (
-                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 flex flex-col justify-between group shadow-lg">
+                <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-[#1A1F35] bg-black flex flex-col justify-between shadow-2xl">
                   <iframe
                     src={ytEmbedUrl}
                     title={content.title || "YouTube video player"}
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
-                    className="absolute inset-0 w-full h-full rounded-2xl"
+                    className="absolute inset-0 w-full h-full rounded-xl"
                   />
                 </div>
               ) : (
@@ -304,7 +318,7 @@ export default function ContentDetailsPage() {
                   {!isPlaying && (
                     <div 
                       onClick={togglePlay}
-                      className="absolute inset-0 flex items-center justify-center bg-slate-950/20 cursor-pointer z-20 transition-all duration-300 animate-in fade-in"
+                      className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer z-20 transition-all duration-300"
                     >
                       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-500 text-slate-950 shadow-lg scale-100 hover:scale-110 active:scale-95 transition duration-300">
                         <Play size={26} className="fill-slate-950 translate-x-0.5" />
@@ -442,13 +456,13 @@ export default function ContentDetailsPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`pb-3.5 text-sm font-bold tracking-wide uppercase transition cursor-pointer relative ${
-                    activeTab === tab.id ? "text-orange-500" : "text-slate-400 hover:text-white"
+                  className={`pb-3 text-xs font-black tracking-wide uppercase transition cursor-pointer relative ${
+                    activeTab === tab.id ? "text-orange-400" : "text-slate-400 hover:text-white"
                   }`}
                 >
                   {tab.label}
                   {activeTab === tab.id && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500 rounded-full" />
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-400 rounded-full" />
                   )}
                 </button>
               ))}
@@ -514,15 +528,15 @@ export default function ContentDetailsPage() {
                   </p>
                   <ul className="space-y-3">
                     {[
-                      "Explain configuration directives and settings options.",
-                      "Demonstrate dynamic lifecycle hook integrations.",
+                      "Implement configuration directives and request parameters.",
+                      "Demonstrate lifecycle hook integrations in real code.",
                       "Evaluate performance tuning strategies."
-                    ].map((obj, idx) => (
-                      <li key={idx} className="flex items-start gap-2.5 text-sm text-slate-200">
-                        <span className="h-5 w-5 rounded-full bg-orange-500/10 text-orange-400 flex items-center justify-center text-[10px] font-bold mt-0.5 shrink-0 border border-orange-500/20">
-                          {idx + 1}
+                    ].map((o, i) => (
+                      <li key={i} className="flex items-start gap-2 text-slate-200">
+                        <span className="h-4 w-4 rounded-full bg-orange-500/10 text-orange-400 flex items-center justify-center text-[9px] font-bold mt-0.5 shrink-0 border border-orange-500/20 font-mono">
+                          {i + 1}
                         </span>
-                        <span>{obj}</span>
+                        <span>{o}</span>
                       </li>
                     ))}
                   </ul>
@@ -530,9 +544,8 @@ export default function ContentDetailsPage() {
               )}
 
               {activeTab === "attachments" && (
-                <div className="text-center py-10 space-y-3">
-                  <UploadCloud className="mx-auto text-slate-600" size={32} />
-                  <p className="text-slate-400 text-sm">No additional attachments linked to this content preview.</p>
+                <div className="py-6 text-center text-slate-500 text-xs">
+                  No extra attachment files attached to this lesson content.
                 </div>
               )}
             </div>
@@ -676,6 +689,7 @@ export default function ContentDetailsPage() {
           </div>
 
         </div>
+
       </div>
 
     </div>

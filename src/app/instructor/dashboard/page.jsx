@@ -25,7 +25,7 @@ export default function InstructorDashboardPage() {
   const { user } = useAuth();
 
   // --- INTERACTION STATES ---
-  const [activePrepTab, setActivePrepTab] = useState('Lecture'); // Lecture | Assignment | Quiz
+  const [activePrepTab, setActivePrepTab] = useState('Content'); // Content | Assignment | Quiz
   const [openAccordions, setOpenAccordions] = useState({
     messages: true,
     announcements: true,
@@ -215,15 +215,18 @@ export default function InstructorDashboardPage() {
     return result;
   }, [calEvents, todayStr, tomorrowStr]);
 
-  // 3. Real Continue Working Items (Modules, Assignments, Quizzes)
+  // 3. Real Continue Working Items (Modules/Content, Assignments, Quizzes)
   const prepTabItems = useMemo(() => {
     const draftModules = modules.map(m => ({
       id: m.id,
+      courseId: m.courseId,
       title: m.title || m.name || 'Module Unit',
       course: m.course?.title || 'Course Module',
       status: m.isPublished ? 'Published' : 'Draft',
       lastUpdated: 'Recently',
-      estTimeRemaining: 'In Progress'
+      estTimeRemaining: 'In Progress',
+      manageUrl: `/instructor/modules/${m.id}`,
+      viewUrl: `/instructor/modules/${m.id}`
     }));
 
     const realAssignments = assignments.map(a => ({
@@ -232,7 +235,9 @@ export default function InstructorDashboardPage() {
       course: a.course?.title || 'Assignment',
       status: a.isPublished ? 'Published' : 'Draft',
       lastUpdated: 'Recently',
-      estTimeRemaining: a.dueDate ? `Due: ${a.dueDate.split('T')[0]}` : 'Active'
+      estTimeRemaining: a.dueDate ? `Due: ${a.dueDate.split('T')[0]}` : 'Active',
+      manageUrl: `/instructor/assignments`,
+      viewUrl: `/instructor/assignments`
     }));
 
     const realQuizzes = quizzes.map(q => ({
@@ -241,11 +246,13 @@ export default function InstructorDashboardPage() {
       course: q.course?.title || 'Quiz',
       status: q.isPublished ? 'Published' : 'Draft',
       lastUpdated: 'Recently',
-      estTimeRemaining: q.passingScore ? `Passing: ${q.passingScore}%` : 'Active'
+      estTimeRemaining: q.passingScore ? `Passing: ${q.passingScore}%` : 'Active',
+      manageUrl: q.courseId ? `/instructor/quizzes/${q.courseId}` : `/instructor/quizzes`,
+      viewUrl: `/instructor/quizzes/view/${q.id}`
     }));
 
     return {
-      Lecture: draftModules,
+      Content: draftModules,
       Assignment: realAssignments,
       Quiz: realQuizzes,
     };
@@ -644,7 +651,7 @@ export default function InstructorDashboardPage() {
 
         {/* Tabs Selector */}
         <div className="flex gap-2.5 border-b border-[#1A1F35] pb-1">
-          {['Lecture', 'Assignment', 'Quiz'].map((tab) => (
+          {['Content', 'Assignment', 'Quiz'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActivePrepTab(tab)}
@@ -686,10 +693,10 @@ export default function InstructorDashboardPage() {
                 </div>
                 
                 <div className="grid grid-cols-2 gap-2 mt-3 pt-2 border-t border-[#1A1F35]">
-                  <Link href={`/instructor/${activePrepTab.toLowerCase()}s`} className="flex items-center justify-center p-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-slate-950 text-[9px] font-black transition text-center shadow-md">
+                  <Link href={work.manageUrl || `/instructor/courses`} className="flex items-center justify-center p-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-slate-950 text-[9px] font-black transition text-center shadow-md">
                     Manage
                   </Link>
-                  <Link href={`/instructor/${activePrepTab.toLowerCase()}s`} className="flex items-center justify-center p-2 rounded-lg bg-white/5 hover:bg-white/10 text-[9px] font-black transition text-slate-300 text-center border border-white/5">
+                  <Link href={work.viewUrl || `/instructor/courses`} className="flex items-center justify-center p-2 rounded-lg bg-white/5 hover:bg-white/10 text-[9px] font-black transition text-slate-300 text-center border border-white/5">
                     View
                   </Link>
                 </div>
