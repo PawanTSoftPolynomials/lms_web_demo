@@ -128,11 +128,6 @@ export const SIDEBAR_ITEMS = {
             href: "/student/dashboard",
         },
         {
-            title: "My Learning",
-            icon: FaGraduationCap,
-            href: "/student/my-courses",
-        },
-        {
             title: "Courses",
             icon: FaBook,
             href: "/student/courses",
