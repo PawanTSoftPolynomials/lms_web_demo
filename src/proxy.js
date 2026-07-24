@@ -1,65 +1,31 @@
 import { NextResponse } from "next/server";
 
 export function proxy(request) {
-  const token =
-    request.cookies.get(
-      "accessToken"
-    );
+  const token = request.cookies.get("accessToken")?.value;
+  const role = request.cookies.get("role")?.value;
+  const path = request.nextUrl.pathname;
 
-  const role =
-    request.cookies.get(
-      "role"
-    )?.value;
-
-  const path =
-    request.nextUrl.pathname;
-
-  if (
-    path.startsWith("/admin")
-  ) {
+  // Protect Admin Routes
+  if (path.startsWith("/admin")) {
     if (!token || role !== "ADMIN") {
-      return NextResponse.redirect(
-        new URL(
-          "/login",
-          request.url
-        )
-      );
+      const loginUrl = new URL("/login", request.url);
+      return NextResponse.redirect(loginUrl);
     }
   }
 
-  if (
-    path.startsWith(
-      "/instructor"
-    )
-  ) {
-    if (
-      !token ||
-      role !== "INSTRUCTOR"
-    ) {
-      return NextResponse.redirect(
-        new URL(
-          "/login",
-          request.url
-        )
-      );
+  // Protect Instructor Routes
+  if (path.startsWith("/instructor")) {
+    if (!token || role !== "INSTRUCTOR") {
+      const loginUrl = new URL("/login", request.url);
+      return NextResponse.redirect(loginUrl);
     }
   }
 
-  if (
-    path.startsWith(
-      "/student"
-    )
-  ) {
-    if (
-      !token ||
-      role !== "STUDENT"
-    ) {
-      return NextResponse.redirect(
-        new URL(
-          "/login",
-          request.url
-        )
-      );
+  // Protect Student Routes
+  if (path.startsWith("/student")) {
+    if (!token || role !== "STUDENT") {
+      const loginUrl = new URL("/login", request.url);
+      return NextResponse.redirect(loginUrl);
     }
   }
 

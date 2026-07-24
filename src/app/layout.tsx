@@ -39,8 +39,8 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
       <body className="min-h-full flex flex-col">
-        <AuthProvider>
-          <QueryProvider>
+        <QueryProvider>
+          <AuthProvider>
             <ToastProvider>
               <ConfirmProvider>
                 <NotificationProvider>
@@ -50,8 +50,8 @@ export default function RootLayout({
                 </NotificationProvider>
               </ConfirmProvider>
             </ToastProvider>
-          </QueryProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

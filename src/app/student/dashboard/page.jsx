@@ -185,6 +185,7 @@ export default function StudentDashboardPage() {
   return (
     <div className="space-y-6 pb-16 animate-fade-in duration-300">
       
+       
       {/* Page Header banner */}
       <div className="flex justify-between items-center mb-2">
         <div>

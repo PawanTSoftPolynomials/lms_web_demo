@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Cookies from "js-cookie";
+import { useQueryClient } from "@tanstack/react-query";
 
 import {
   registerUser,
@@ -18,15 +19,37 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const queryClient = useQueryClient();
 
   const logoutLocal = () => {
+    // 1. Clear all authentication cookies across root and default paths
+    Cookies.remove("accessToken", { path: "/" });
+    Cookies.remove("refreshToken", { path: "/" });
+    Cookies.remove("role", { path: "/" });
+
     Cookies.remove("accessToken");
     Cookies.remove("refreshToken");
     Cookies.remove("role");
 
-    localStorage.removeItem("user");
+    // 2. Clear all local and session storage
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("user");
+      localStorage.clear();
+      sessionStorage.clear();
+    }
 
+    // 3. Clear all React Query cached data
+    try {
+      if (queryClient) {
+        queryClient.clear();
+      }
+    } catch (e) {
+      console.warn("React query cache clear notice:", e);
+    }
+
+    // 4. Reset auth state
     setUser(null);
+    setLoading(false);
   };
 
   const initializeAuth = async () => {
@@ -39,7 +62,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     // Restore cached user from localStorage synchronously to prevent layout flashes
-    const cachedUser = localStorage.getItem("user");
+    const cachedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
     if (cachedUser) {
       try {
         setUser(JSON.parse(cachedUser));
@@ -51,7 +74,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await getProfile();
       setUser(response.data);
-      localStorage.setItem("user", JSON.stringify(response.data));
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(response.data));
+      }
     } catch (error) {
       console.error("Authentication initialization failed:", error);
       logoutLocal();
@@ -97,19 +122,21 @@ export const AuthProvider = ({ children }) => {
 
     Cookies.set("accessToken", accessToken, {
       expires: 1,
+      path: "/",
     });
 
     Cookies.set("refreshToken", refreshToken, {
       expires: 7,
+      path: "/",
     });
 
     Cookies.set("role", user.role, {
       expires: 1,
+      path: "/",
     });
 
-    localStorage.setItem("user", JSON.stringify(user));
-
     if (typeof window !== "undefined") {
+      localStorage.setItem("user", JSON.stringify(user));
       sessionStorage.setItem("fresh_login", "true");
     }
 
@@ -119,11 +146,17 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await logoutUser().catch(() => {});
+      const refreshToken = Cookies.get("refreshToken");
+      await logoutUser(refreshToken).catch((err) => {
+        console.warn("Logout API call notice:", err?.message || err);
+      });
     } catch (error) {
-      // Ignore network / auth errors during logout
+      console.warn("Logout error handled gracefully:", error?.message || error);
     } finally {
       logoutLocal();
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
     }
   };
 
@@ -135,6 +168,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        logoutLocal,
       }}
     >
       {children}

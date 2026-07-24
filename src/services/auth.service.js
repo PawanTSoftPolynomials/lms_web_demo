@@ -50,8 +50,8 @@ export const refreshToken = async (refreshToken) => {
 
 /* ---------------- Logout ---------------- */
 
-export const logoutUser = async () => {
-  const response = await api.post("/auth/logout");
+export const logoutUser = async (refreshToken) => {
+  const response = await api.post("/auth/logout", { refreshToken });
   return response.data;
 };
 

@@ -96,90 +96,98 @@ export default function Sidebar({
       {open && (
         <div
           onClick={() => setOpen(false)}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 md:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 md:hidden transition-opacity duration-300"
         />
       )}
 
       {/* Mobile Drawer (Visible on mobile, hidden on md+) */}
       <div
-        className={`fixed top-0 left-0 h-screen w-72 bg-slate-900 border-r border-slate-800 z-[60] md:hidden transition-transform duration-300 ease-in-out flex flex-col justify-between ${
+        className={`fixed top-0 left-0 h-screen w-72 bg-[#090D16] border-r border-slate-800/60 z-[60] md:hidden transition-transform duration-300 ease-in-out flex flex-col justify-between shadow-2xl ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Header branding & Close button */}
-          <div className="p-6 flex items-center justify-between border-b border-slate-855/60">
+          <div className="h-14 px-4 flex items-center justify-between border-b border-slate-800/60">
             <div className="flex items-center gap-2.5">
-              <PiOrangeDuotone className="text-3xl text-orange-500 animate-pulse" />
-              <span className="text-lg font-black text-orange-500 tracking-tight">
-                Orange Tree LMS
+              <div className="p-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                <PiOrangeDuotone className="text-xl text-orange-500" />
+              </div>
+              <span className="text-sm font-black text-white tracking-tight">
+                Orange Tree <span className="text-orange-500">LMS</span>
               </span>
             </div>
             <button
               onClick={() => setOpen(false)}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/80 border border-slate-800/60 transition cursor-pointer"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition cursor-pointer"
             >
               <X size={16} />
             </button>
           </div>
 
-          {/* Navigation Links list */}
-          <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-2">
-            {menus.map((item) => {
+          {/* Mobile Navigation Links */}
+          <nav className="flex-1 overflow-y-auto p-2.5 space-y-1 scrollbar-none">
+            {menus.map((item, idx) => {
               const Icon = item.icon;
               const isActive = pathname === item.href ||
                 (item.href !== '/student/dashboard' && item.href !== '/instructor/dashboard' && item.href !== '/admin/dashboard' && pathname.startsWith(item.href));
               const subItems = getSubmenus(item.title);
               const hasSubmenus = subItems && subItems.length > 0;
               const isExpanded = mobileExpandedMenu === item.title;
+              const isSeparator = idx > 0 && (item.title === "Settings" || item.title === "Profile");
 
               return (
                 <div key={item.href} className="space-y-1">
+                  {isSeparator && <div className="my-1.5 border-t border-slate-800/40" />}
                   {hasSubmenus ? (
                     <button
                       onClick={() => setMobileExpandedMenu(isExpanded ? null : item.title)}
-                      className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-205 border-l-4 cursor-pointer ${
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 cursor-pointer ${
                         isActive || isExpanded
-                          ? 'bg-slate-800/60 text-white border-orange-505 font-bold'
-                          : 'border-transparent text-slate-455 hover:text-slate-100 hover:bg-slate-800/30'
+                          ? 'bg-orange-500 text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]'
+                          : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 font-medium'
                       }`}
                     >
-                      <div className="flex items-center gap-3.5">
-                        {typeof Icon === "string" ? (
-                          <span className="text-lg shrink-0 select-none">{Icon}</span>
-                        ) : (
-                          <Icon className="text-lg shrink-0" />
-                        )}
-                        <span className="text-xs uppercase font-bold tracking-wider">{item.title}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                          {typeof Icon === "string" ? (
+                            <span className="text-base select-none">{Icon}</span>
+                          ) : (
+                            <Icon className={`text-base ${isActive || isExpanded ? 'text-slate-950' : 'text-slate-400'}`} />
+                          )}
+                        </div>
+                        <span className="text-xs tracking-wide">{item.title}</span>
                       </div>
                       {isExpanded ? (
-                        <ChevronDown size={14} className="text-slate-400" />
+                        <ChevronDown size={14} className={isActive || isExpanded ? 'text-slate-950' : 'text-slate-400'} />
                       ) : (
-                        <ChevronRight size={14} className="text-slate-400" />
+                        <ChevronRight size={14} className={isActive || isExpanded ? 'text-slate-950' : 'text-slate-400'} />
                       )}
                     </button>
                   ) : (
                     <Link
                       href={item.href}
                       onClick={() => setOpen(false)}
-                      className={`flex items-center gap-3.5 p-3 rounded-xl transition-all duration-200 border-l-4 ${
+                      className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 ${
                         isActive
-                          ? 'bg-slate-800/60 text-white border-orange-505 font-bold'
-                          : 'border-transparent text-slate-455 hover:text-slate-100 hover:bg-slate-800/30'
+                          ? 'bg-orange-500 text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]'
+                          : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 font-medium'
                       }`}
                     >
-                      {typeof Icon === "string" ? (
-                        <span className="text-lg shrink-0 select-none">{Icon}</span>
-                      ) : (
-                        <Icon className="text-lg shrink-0" />
-                      )}
-                      <span className="text-xs uppercase font-bold tracking-wider">{item.title}</span>
+                      <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                        {typeof Icon === "string" ? (
+                          <span className="text-base select-none">{Icon}</span>
+                        ) : (
+                          <Icon className={`text-base ${isActive ? 'text-slate-950' : 'text-slate-400'}`} />
+                        )}
+                      </div>
+                      <span className="text-xs tracking-wide">{item.title}</span>
                     </Link>
                   )}
 
-                  {/* Render Accordion for Submenu items */}
+                  {/* Accordion for Mobile Submenu items */}
                   {hasSubmenus && isExpanded && (
-                    <div className="pl-9 pr-2 py-1 space-y-1 bg-slate-955/20 rounded-xl border border-slate-855/30">
+                    <div className="pl-9 pr-2 py-1 space-y-1">
                       {subItems.map((sub) => {
                         const isSubActive = pathname === sub.href;
                         return (
@@ -190,13 +198,14 @@ export default function Sidebar({
                               setOpen(false);
                               setMobileExpandedMenu(null);
                             }}
-                            className={`block px-3.5 py-2 text-xs rounded-lg transition-all duration-200 border-l-2 ${
+                            className={`flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-lg transition-all duration-200 ${
                               isSubActive
-                                ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold border-orange-500'
-                                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/60'
+                                ? 'bg-orange-500/15 text-orange-400 font-bold border border-orange-500/20'
+                                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
                             }`}
                           >
-                            {sub.title}
+                            <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${isSubActive ? 'bg-orange-500' : 'bg-slate-600'}`} />
+                            <span>{sub.title}</span>
                           </Link>
                         );
                       })}
@@ -209,98 +218,112 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* Desktop Sidebar (visible on md:block/flex, hidden on mobile) */}
+      {/* Desktop Sidebar */}
       <aside
         className={`
-          hidden md:block
-          sticky
-          top-0 left-0
+          hidden md:flex flex-col
+          sticky top-0 left-0
           h-screen
-          overflow-y-auto
-          ${role === 'INSTRUCTOR' ? 'bg-[#0D1021] border-r border-[#1A1F35]' : 'bg-slate-900 border-r border-slate-800'}
+          ${role === 'INSTRUCTOR' ? 'bg-[#090D16] border-r border-slate-800/60' : 'bg-[#090D16] border-r border-slate-800/60'}
           z-50
-          transition-all
-          duration-300
-          ${collapsed ? 'w-20' : 'w-64'}
+          transition-[width] duration-300 cubic-bezier(0.4, 0, 0.2, 1)
+          ${collapsed ? 'w-16' : 'w-60'}
+          shadow-xl
         `}
       >
-        {/* Collapse Button */}
-        <div className="flex justify-end p-4">
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="
-              p-2
-              rounded-lg
-              text-white
-              hover:bg-slate-805
-              transition
-              cursor-pointer
-            "
-          >
-            <FaBars />
-          </button>
-        </div>
-
-        {/* Logo */}
-        <div className={`px-6 flex items-center justify-center ${role === 'INSTRUCTOR' ? 'py-6' : 'pb-6'}`}>
+        {/* Top Header Row with Logo & Collapse Toggle */}
+        <div className="h-14 px-3.5 flex items-center justify-between border-b border-slate-800/60 shrink-0">
           {!isCollapsed ? (
-            <div className="flex items-center gap-3">
-              <PiOrangeDuotone className="text-3xl text-orange-500" />
-              <h1 className="text-xl font-bold text-orange-505">
-                Orange Tree LMS
-              </h1>
-            </div>
+            <Link href={role === 'INSTRUCTOR' ? '/instructor/dashboard' : role === 'ADMIN' ? '/admin/dashboard' : '/student/dashboard'} className="flex items-center gap-2.5 overflow-hidden">
+              <div className="p-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20 shrink-0">
+                <PiOrangeDuotone className="text-xl text-orange-500" />
+              </div>
+              <span className="text-sm font-black text-white tracking-tight truncate">
+                Orange Tree <span className="text-orange-500">LMS</span>
+              </span>
+            </Link>
           ) : (
-            <PiOrangeDuotone className="text-3xl text-orange-500" />
+            <div className="mx-auto p-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20" title="Orange Tree LMS">
+              <PiOrangeDuotone className="text-xl text-orange-500" />
+            </div>
+          )}
+
+          {!isCollapsed && (
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              title="Collapse Sidebar"
+              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition cursor-pointer shrink-0"
+            >
+              <FaBars className="text-xs" />
+            </button>
           )}
         </div>
 
-        {/* Navigation */}
-        <nav className="pr-3 pl-1 space-y-2 relative">
-          {menus.map((item) => {
+        {/* Collapsed Toggle Button when sidebar is collapsed */}
+        {isCollapsed && (
+          <div className="pt-2 pb-1 flex justify-center">
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              title="Expand Sidebar"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-orange-400 hover:bg-orange-500/10 border border-slate-800/40 transition cursor-pointer"
+            >
+              <FaBars className="text-xs" />
+            </button>
+          </div>
+        )}
+
+        {/* Desktop Navigation Link List */}
+        <nav className="flex-1 overflow-y-auto p-2.5 space-y-1 relative scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+          {menus.map((item, idx) => {
             const Icon = item.icon;
             const isActive = pathname === item.href || 
               (item.href !== '/student/dashboard' && item.href !== '/instructor/dashboard' && item.href !== '/admin/dashboard' && pathname.startsWith(item.href));
             const subItems = getSubmenus(item.title);
             const hasSubmenus = subItems && subItems.length > 0;
             const isExpanded = desktopExpandedMenu === item.title;
+            const isSeparator = idx > 0 && (item.title === "Settings" || item.title === "Profile");
 
             return (
               <div
                 key={item.href}
-                className="relative"
+                className="relative group space-y-1"
                 onMouseEnter={() => collapsed && setHoveredMenu(item.title)}
                 onMouseLeave={() => collapsed && setHoveredMenu(null)}
               >
+                {isSeparator && <div className="my-1.5 border-t border-slate-800/40" />}
+
                 {hasSubmenus && !collapsed ? (
                   <button
                     onClick={() => setDesktopExpandedMenu(isExpanded ? null : item.title)}
                     className={`
                       w-full flex items-center justify-between
-                      p-3
-                      rounded-r-xl
-                      transition-all
-                      duration-350
+                      px-3 py-2
+                      rounded-xl
+                      transition-all duration-200
                       cursor-pointer
                       ${
                         isActive || isExpanded
-                          ? 'bg-slate-800/80 text-white border-l-4 border-orange-505 font-semibold shadow-inner'
-                          : 'border-l-4 border-transparent text-slate-450 hover:text-slate-100 hover:bg-slate-800/40 hover:translate-x-1 hover:border-slate-700/50'
+                          ? 'bg-orange-500 text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]'
+                          : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 font-medium'
                       }
                     `}
                   >
-                    <div className="flex items-center gap-3">
-                      {typeof Icon === "string" ? (
-                        <span className="text-lg shrink-0 select-none">{Icon}</span>
-                      ) : (
-                        <Icon className="text-lg shrink-0" />
-                      )}
-                      <span>{item.title}</span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                        {typeof Icon === "string" ? (
+                          <span className="text-base select-none">{Icon}</span>
+                        ) : (
+                          <Icon className={`text-base transition-colors duration-200 ${isActive || isExpanded ? 'text-slate-950' : 'text-slate-400 group-hover:text-orange-400'}`} />
+                        )}
+                      </div>
+                      <span className="text-xs tracking-wide truncate">
+                        {item.title}
+                      </span>
                     </div>
                     {isExpanded ? (
-                      <ChevronDown size={14} className="text-slate-455 mr-2" />
+                      <ChevronDown size={14} className={isActive || isExpanded ? 'text-slate-950 shrink-0 ml-1' : 'text-slate-400 shrink-0 ml-1 group-hover:text-orange-400'} />
                     ) : (
-                      <ChevronRight size={14} className="text-slate-455 mr-2" />
+                      <ChevronRight size={14} className={isActive || isExpanded ? 'text-slate-950 shrink-0 ml-1' : 'text-slate-400 shrink-0 ml-1 group-hover:text-orange-400'} />
                     )}
                   </button>
                 ) : (
@@ -314,30 +337,34 @@ export default function Sidebar({
                     }}
                     className={`
                       flex items-center
-                      ${collapsed ? 'justify-center' : 'gap-3'}
-                      p-3
-                      rounded-r-xl
-                      transition-all
-                      duration-350
+                      ${collapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2'}
+                      rounded-xl
+                      transition-all duration-200
                       ${
                         isActive
-                          ? 'bg-slate-800/80 text-white border-l-4 border-orange-505 font-semibold shadow-inner'
-                          : 'border-l-4 border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 hover:translate-x-1 hover:border-slate-700/50'
+                          ? 'bg-orange-500 text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]'
+                          : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 font-medium'
                       }
                     `}
                   >
-                    {typeof Icon === "string" ? (
-                      <span className="text-lg shrink-0 select-none">{Icon}</span>
-                    ) : (
-                      <Icon className="text-lg shrink-0" />
+                    <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                      {typeof Icon === "string" ? (
+                        <span className="text-base select-none">{Icon}</span>
+                      ) : (
+                        <Icon className={`text-base transition-colors duration-200 ${isActive ? 'text-slate-950' : 'text-slate-400 group-hover:text-orange-400'}`} />
+                      )}
+                    </div>
+                    {!collapsed && (
+                      <span className="text-xs tracking-wide truncate">
+                        {item.title}
+                      </span>
                     )}
-                    {!collapsed && <span>{item.title}</span>}
                   </Link>
                 )}
 
                 {/* Submenu inline accordion for desktop expanded mode */}
                 {hasSubmenus && !collapsed && isExpanded && (
-                  <div className="pl-9 pr-3 py-1 mt-1 space-y-1 bg-slate-950/20 rounded-r-xl border-l-2 border-slate-800">
+                  <div className="pl-9 pr-2 py-1 space-y-1">
                     {subItems.map((sub) => {
                       const isSubActive = pathname === sub.href;
                       return (
@@ -345,49 +372,64 @@ export default function Sidebar({
                           key={sub.href}
                           href={sub.href}
                           className={`
-                            block px-3 py-2 text-xs rounded-lg transition-all duration-200
+                            flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-lg transition-all duration-200
                             ${
                               isSubActive
-                                ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold'
-                                : 'text-slate-400 hover:text-white hover:bg-slate-900 hover:translate-x-1'
+                                ? 'bg-orange-500/15 text-orange-400 font-bold border border-orange-500/20'
+                                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
                             }
                           `}
                         >
-                          {sub.title}
+                          <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${isSubActive ? 'bg-orange-500' : 'bg-slate-600'}`} />
+                          <span className="truncate">{sub.title}</span>
                         </Link>
                       );
                     })}
                   </div>
                 )}
 
+                {/* Custom styled hover tooltip when sidebar is collapsed */}
+                {!hasSubmenus && collapsed && hoveredMenu === item.title && (
+                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-[100] px-3 py-2 rounded-[8px] border border-slate-700/60 bg-[#111827] text-white text-xs font-semibold whitespace-nowrap shadow-xl shadow-black/40 animate-in fade-in slide-in-from-left-2 duration-150 pointer-events-none flex items-center">
+                    {/* Arrow pointing toward the sidebar icon */}
+                    <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#111827] border-l border-b border-slate-700/60 rotate-45" />
+                    <span className="relative z-10">{item.title}</span>
+                  </div>
+                )}
+
                 {/* Submenu selection flyout container when collapsed */}
                 {hasSubmenus && collapsed && hoveredMenu === item.title && (
-                  <div className="absolute left-full top-0 ml-1.5 z-[100] w-52 rounded-xl border border-slate-800 bg-slate-955/95 backdrop-blur-md p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] border-l-2 border-l-orange-500 animate-in fade-in slide-in-from-left-2 duration-150">
-                    <div className="text-[10px] text-slate-505 font-extrabold px-2.5 py-1.5 uppercase tracking-wider border-b border-slate-900/60 mb-1">
-                      {item.title} Options
+                  <div className="absolute left-full top-0 ml-3 z-[100] w-48 rounded-[8px] border border-slate-700/60 bg-[#111827] backdrop-blur-xl p-2 shadow-xl shadow-black/40 animate-in fade-in slide-in-from-left-2 duration-150">
+                    <div className="absolute -left-1 top-4 w-2 h-2 bg-[#111827] border-l border-b border-slate-700/60 rotate-45" />
+                    <div className="relative z-10 text-[10px] text-orange-400 font-bold px-2 py-1 uppercase tracking-wider border-b border-slate-800/60 mb-1 flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+                      <span>{item.title}</span>
                     </div>
-                    {subItems.map((sub) => {
-                      const isSubActive = pathname === sub.href;
-                      return (
-                        <Link
-                          key={sub.href}
-                          href={sub.href}
-                          onClick={() => {
-                            setHoveredMenu(null);
-                          }}
-                          className={`
-                            block px-3 py-2 text-xs rounded-lg transition-all duration-200
-                            ${
-                              isSubActive
-                                ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold'
-                                : 'text-slate-400 hover:text-white hover:bg-slate-900 hover:translate-x-1'
-                            }
-                          `}
-                        >
-                          {sub.title}
-                        </Link>
-                      );
-                    })}
+                    <div className="relative z-10 space-y-1">
+                      {subItems.map((sub) => {
+                        const isSubActive = pathname === sub.href;
+                        return (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            onClick={() => {
+                              setHoveredMenu(null);
+                            }}
+                            className={`
+                              flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-lg transition-all duration-200
+                              ${
+                                isSubActive
+                                  ? 'bg-orange-500/15 text-orange-400 font-bold border border-orange-500/20'
+                                  : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                              }
+                            `}
+                          >
+                            <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${isSubActive ? 'bg-orange-500' : 'bg-slate-600'}`} />
+                            <span>{sub.title}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
@@ -398,4 +440,3 @@ export default function Sidebar({
     </>
   );
 }
- 

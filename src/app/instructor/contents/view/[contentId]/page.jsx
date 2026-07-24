@@ -233,12 +233,7 @@ export default function ContentDetailsPage() {
               <ArrowLeft size={16} />
             </button>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-white tracking-tight">{content.title}</h1>
-                <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20 font-mono">
-                  Lesson {currentIndex >= 0 ? currentIndex + 1 : 1} of {contents.length || 1}
-                </span>
-              </div>
+              <h1 className="text-xl font-bold text-white tracking-tight">{content.title}</h1>
               <p className="text-xs text-slate-400 mt-1">
                 {course?.title || "Course"} &bull; {moduleData?.title || "Module"} &bull; {lesson?.title || "Lesson"}
               </p>
@@ -265,14 +260,12 @@ export default function ContentDetailsPage() {
         </div>
       </div>
 
-      {/* 2. Main Responsive Grid: Video Player + Sticky Right Sidebar */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      {/* 2. Main 2-Column Equal Height Layout (Matching User Reference Image) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         
-        {/* LEFT COLUMN: Large Video Player, Progress, Description (2/3 size) */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* Video / Media Preview Card */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm">
+        {/* LEFT COLUMN: Media Preview Box */}
+        <div className="rounded-2xl border border-slate-800 bg-[#0B101D] p-6 shadow-sm flex flex-col justify-between">
+          <div>
             <div className="flex items-start gap-4 mb-5">
               <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border ${typeMeta.bg} ${typeMeta.color}`}>
                 <TypeIcon size={22} />
@@ -288,20 +281,20 @@ export default function ContentDetailsPage() {
                   {content.description || "This content introduces the key concepts and demonstrates application usage."}
                 </p>
               </div>
-              <span className="text-[10px] font-mono text-slate-400">{durationStr}</span>
+              {durationStr && <span className="text-[10px] font-mono text-slate-400 shrink-0 ml-auto">{durationStr}</span>}
             </div>
 
             {/* Video Player or Document/Presentation Preview Box */}
             {isVideo && (
               isYouTube ? (
-                <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-[#1A1F35] bg-black flex flex-col justify-between shadow-2xl">
+                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-black flex flex-col justify-between shadow-2xl">
                   <iframe
                     src={ytEmbedUrl}
                     title={content.title || "YouTube video player"}
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
-                    className="absolute inset-0 w-full h-full rounded-xl"
+                    className="absolute inset-0 w-full h-full rounded-2xl"
                   />
                 </div>
               ) : (
@@ -383,18 +376,18 @@ export default function ContentDetailsPage() {
                     />
                   </div>
                 ) : (
-                  <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-950 flex flex-col items-center justify-center p-6 text-center">
+                  <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-[#060913] flex flex-col items-center justify-center p-8 text-center my-2">
                     <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-400 mb-4 animate-pulse">
                       <FileText size={32} />
                     </div>
                     <h3 className="text-lg font-bold text-white mb-1.5">{content.title}</h3>
-                    <p className="text-xs text-slate-400 max-w-sm mb-5 leading-relaxed">
+                    <p className="text-xs text-slate-400 max-w-sm mb-6 leading-relaxed">
                       {isPresentation ? "Presentation file attached and ready for download." : "Document resource ready."}
                     </p>
                     <a
                       href={content.fileUrl}
                       download
-                      className="inline-flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold text-xs px-5 py-3 transition shadow-lg shadow-orange-500/10 active:scale-95 cursor-pointer"
+                      className="inline-flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold text-xs px-6 py-3 transition shadow-lg shadow-orange-500/10 active:scale-95 cursor-pointer"
                     >
                       <Download size={14} />
                       <span>Download {isPresentation ? "Presentation" : "Document"}</span>
@@ -402,16 +395,29 @@ export default function ContentDetailsPage() {
                   </div>
                 )
               ) : (
-                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
-                  <FileText size={32} className="text-slate-600 mb-2" />
-                  <p className="text-slate-400 text-xs">No file attached to this content.</p>
+                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-[#060913] flex flex-col items-center justify-center p-8 text-center my-2">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-400 mb-4">
+                    <FileText size={32} />
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-1.5">{content.title}</h3>
+                  <p className="text-xs text-slate-400 max-w-sm mb-6 leading-relaxed">
+                    {isPresentation ? "Presentation file attached and ready for download." : "Document resource ready."}
+                  </p>
+                  <a
+                    href="#"
+                    onClick={(e) => { e.preventDefault(); alert("Preparing download..."); }}
+                    className="inline-flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold text-xs px-6 py-3 transition shadow-lg shadow-orange-500/10 active:scale-95 cursor-pointer"
+                  >
+                    <Download size={14} />
+                    <span>Download {isPresentation ? "Presentation" : "Document"}</span>
+                  </a>
                 </div>
               )
             )}
 
             {/* External Link */}
             {isLink && (
-              <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 flex flex-col items-center justify-center p-6 text-center gap-4">
+              <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-[#060913] flex flex-col items-center justify-center p-6 text-center gap-4">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
                   <LinkIcon size={32} />
                 </div>
@@ -435,7 +441,7 @@ export default function ContentDetailsPage() {
 
             {/* Text / HTML */}
             {isText && (
-              <div className="rounded-2xl border border-slate-800 bg-slate-950 p-6 min-h-[240px]">
+              <div className="rounded-2xl border border-slate-800 bg-[#060913] p-6 min-h-[240px]">
                 {content.htmlContent ? (
                   <div
                     className="prose prose-invert prose-sm max-w-none text-slate-300 leading-relaxed"
@@ -446,11 +452,12 @@ export default function ContentDetailsPage() {
                 )}
               </div>
             )}
-
           </div>
+        </div>
 
-          {/* Description & Objectives Tabs Card */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm">
+        {/* RIGHT COLUMN: Content Details & Tabs */}
+        <div className="rounded-2xl border border-slate-800 bg-[#0B101D] p-6 shadow-sm flex flex-col justify-between space-y-6">
+          <div>
             <div className="flex border-b border-slate-800 gap-6">
               {tabs.map((tab) => (
                 <button
@@ -470,48 +477,46 @@ export default function ContentDetailsPage() {
 
             <div className="pt-6">
               {activeTab === "description" && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <div className="md:col-span-2 space-y-6">
-                    <p className="text-slate-300 text-sm leading-relaxed">
-                      {content.description || "This video introduces key concepts. You will learn what it is, how it works, and how to apply it in real-world scenarios."}
-                    </p>
-                    
-                    <div className="space-y-4">
-                      <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">Key Topics Covered</h4>
-                      <ul className="space-y-3">
-                        {[
-                          "Core Lifecycle & Initialization",
-                          "Handling Client Side Inbound Request",
-                          "Managing Dynamic Content Responses",
-                          "Best practices for local configuration"
-                        ].map((topic, idx) => (
-                          <li key={idx} className="flex items-center gap-2.5 text-sm text-slate-200">
-                            <CheckCircle2 size={16} className="text-orange-500 shrink-0" />
-                            <span>{topic}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                <div className="space-y-6">
+                  <p className="text-slate-300 text-xs leading-relaxed">
+                    {content.description || "This video introduces key concepts. You will learn what it is, how it works, and how to apply it in real-world scenarios."}
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">KEY TOPICS COVERED</h4>
+                    <ul className="space-y-2.5">
+                      {[
+                        "Core Lifecycle & Initialization",
+                        "Handling Client Side Inbound Request",
+                        "Managing Dynamic Content Responses",
+                        "Best practices for local configuration"
+                      ].map((topic, idx) => (
+                        <li key={idx} className="flex items-center gap-2.5 text-xs text-slate-200">
+                          <CheckCircle2 size={15} className="text-orange-500 shrink-0" />
+                          <span>{topic}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
-                  <div className="rounded-xl border border-slate-800/80 bg-slate-950 p-4 space-y-4">
-                    <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">Resources</h4>
+                  <div className="pt-4 border-t border-slate-800/80 space-y-3">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">RESOURCES</h4>
                     <div className="space-y-3">
                       {[
                         { title: "Cheat Sheet", info: "PDF • 245 KB", iconColor: "text-red-400", bg: "bg-red-500/10 border-red-500/20" },
                         { title: "Lifecycle Diagram", info: "PNG • 128 KB", iconColor: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" }
                       ].map((res, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:border-orange-500/30 transition">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className={`h-8 w-8 rounded-lg flex items-center justify-center border shrink-0 ${res.bg} ${res.iconColor}`}>
-                              <FileText size={14} />
+                        <div key={idx} className="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-[#060913] hover:border-orange-500/30 transition group cursor-pointer">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className={`h-9 w-9 rounded-lg flex items-center justify-center border shrink-0 ${res.bg} ${res.iconColor}`}>
+                              <FileText size={15} />
                             </div>
                             <div className="min-w-0">
-                              <p className="text-[11px] font-bold text-slate-200 truncate">{res.title}</p>
-                              <p className="text-[9px] text-slate-500 mt-0.5">{res.info}</p>
+                              <p className="text-xs font-bold text-slate-200 group-hover:text-orange-400 transition truncate">{res.title}</p>
+                              <p className="text-[9.5px] text-slate-500 mt-0.5">{res.info}</p>
                             </div>
                           </div>
-                          <button className="text-slate-400 hover:text-white p-1 transition">
+                          <button className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition cursor-pointer">
                             <Download size={14} />
                           </button>
                         </div>
@@ -522,8 +527,8 @@ export default function ContentDetailsPage() {
               )}
 
               {activeTab === "objectives" && (
-                <div className="space-y-4 max-w-2xl">
-                  <p className="text-slate-300 text-sm leading-relaxed">
+                <div className="space-y-4">
+                  <p className="text-slate-300 text-xs leading-relaxed">
                     By the end of this content session, students should be able to:
                   </p>
                   <ul className="space-y-3">
@@ -532,11 +537,11 @@ export default function ContentDetailsPage() {
                       "Demonstrate lifecycle hook integrations in real code.",
                       "Evaluate performance tuning strategies."
                     ].map((o, i) => (
-                      <li key={i} className="flex items-start gap-2 text-slate-200">
+                      <li key={i} className="flex items-start gap-2.5 text-xs text-slate-200">
                         <span className="h-4 w-4 rounded-full bg-orange-500/10 text-orange-400 flex items-center justify-center text-[9px] font-bold mt-0.5 shrink-0 border border-orange-500/20 font-mono">
                           {i + 1}
                         </span>
-                        <span>{o}</span>
+                        <span className="leading-snug">{o}</span>
                       </li>
                     ))}
                   </ul>
@@ -550,146 +555,33 @@ export default function ContentDetailsPage() {
               )}
             </div>
           </div>
-
-          {/* Bottom Navigation Row */}
-          <div className="flex justify-between items-center pt-2">
-            <button
-              disabled={!prevContent}
-              onClick={() => navTo(prevContent)}
-              className={`flex items-center gap-2 rounded-xl border border-slate-700 px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:border-orange-500 transition ${
-                !prevContent && "opacity-40 cursor-not-allowed hover:border-slate-700 text-slate-500"
-              }`}
-            >
-              <ChevronLeft size={14} />
-              Previous Content
-            </button>
-
-            <button
-              disabled={!nextContent}
-              onClick={() => navTo(nextContent)}
-              className={`flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 text-xs font-black uppercase tracking-wider text-white hover:bg-orange-700 transition ${
-                !nextContent && "opacity-40 cursor-not-allowed bg-orange-600/40 hover:bg-orange-600/40 text-slate-400"
-              }`}
-            >
-              Next Content
-              <ChevronRight size={14} />
-            </button>
-          </div>
         </div>
 
-        {/* Right Column: Metadata & Sidebar (1/3 size) */}
-        <div className="space-y-6">
-          
-          {/* Card 1: Content Information */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm">
-            <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-3 mb-4">Content Information</h3>
-            <div className="space-y-4 text-xs">
-              <div className="flex justify-between items-center py-1 border-b border-slate-800/40">
-                <span className="text-slate-400">Content Type</span>
-                <span className={`rounded-xl px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${typeMeta.bg} ${typeMeta.color}`}>
-                  {typeMeta.label}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-800/40">
-                <span className="text-slate-400">Duration</span>
-                <span className="font-semibold text-slate-200 flex items-center gap-1.5">
-                  <Clock size={13} className="text-orange-400" />
-                  {durationStr || "—"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-800/40">
-                <span className="text-slate-400">Module</span>
-                <span 
-                  className="font-semibold text-orange-400 hover:underline cursor-pointer truncate max-w-[150px] text-right"
-                  onClick={() => router.push(`/instructor/courses/${courseId}/modules/${moduleId}`)}
-                >
-                  {moduleData?.title || "Module details"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-800/40">
-                <span className="text-slate-400">Lesson</span>
-                <span 
-                  className="font-semibold text-orange-400 hover:underline cursor-pointer truncate max-w-[150px] text-right"
-                  onClick={() => router.push(`/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`)}
-                >
-                  {lesson?.title || "Lesson details"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-800/40">
-                <span className="text-slate-400">Status</span>
-                <span className="rounded-xl px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                  Published
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-800/40">
-                <span className="text-slate-400">Created On</span>
-                <span className="font-semibold text-slate-200">
-                  {content.createdAt ? new Date(content.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Jul 1, 2026"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-800/40">
-                <span className="text-slate-400">Last Updated</span>
-                <span className="font-semibold text-slate-200">
-                  {content.updatedAt ? new Date(content.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Jul 3, 2026"}
-                </span>
-              </div>
-            </div>
-          </div>
+      </div>
 
-          {/* Card 2: Instructor Actions */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm space-y-3">
-            <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-3 mb-1">Instructor Actions</h3>
-            
-            <button
-              onClick={() => router.push(`/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/edit/${content.id}`)}
-              className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-800 hover:border-orange-500/40 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white transition"
-            >
-              <Pencil size={13} />
-              Edit Content
-            </button>
+      {/* 3. Bottom Navigation Row */}
+      <div className="flex justify-between items-center pt-2">
+        <button
+          disabled={!prevContent}
+          onClick={() => navTo(prevContent)}
+          className={`flex items-center gap-2 rounded-xl border border-slate-800 bg-[#0B101D] px-5 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:border-slate-700 transition ${
+            !prevContent && "opacity-40 cursor-not-allowed text-slate-500"
+          }`}
+        >
+          <ChevronLeft size={14} />
+          Previous
+        </button>
 
-            <button
-              onClick={handleDelete}
-              className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-800 hover:border-red-500/40 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-red-400 hover:text-red-300 transition"
-            >
-              <Trash2 size={13} />
-              Delete Content
-            </button>
-          </div>
-
-          {/* Card 3: Navigate Content */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm space-y-4">
-            <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-3 mb-1">Navigate Content</h3>
-            
-            <div 
-              onClick={() => prevContent && navTo(prevContent)}
-              className={`flex items-start gap-3 p-2.5 rounded-lg border border-slate-800 hover:border-orange-500/30 transition bg-slate-900/40 ${
-                prevContent ? "cursor-pointer" : "opacity-30 cursor-not-allowed hover:border-slate-800"
-              }`}
-            >
-              <ChevronLeft size={16} className="text-slate-500 shrink-0 mt-0.5" />
-              <div className="min-w-0">
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Previous Content</p>
-                <p className="text-xs font-bold text-slate-300 mt-1 truncate">{prevContent ? prevContent.title : "No previous content"}</p>
-              </div>
-            </div>
-
-            <div 
-              onClick={() => nextContent && navTo(nextContent)}
-              className={`flex items-start justify-between gap-3 p-2.5 rounded-lg border border-slate-800 hover:border-orange-500/30 transition bg-slate-900/40 ${
-                nextContent ? "cursor-pointer" : "opacity-30 cursor-not-allowed hover:border-slate-800"
-              }`}
-            >
-              <div className="min-w-0">
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Next Content</p>
-                <p className="text-xs font-bold text-slate-300 mt-1 truncate">{nextContent ? nextContent.title : "No next content"}</p>
-              </div>
-              <ChevronRight size={16} className="text-slate-500 shrink-0 mt-0.5" />
-            </div>
-          </div>
-
-        </div>
-
+        <button
+          disabled={!nextContent}
+          onClick={() => navTo(nextContent)}
+          className={`flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-orange-600 transition ${
+            !nextContent && "opacity-40 cursor-not-allowed bg-orange-500/40 text-slate-400"
+          }`}
+        >
+          Next
+          <ChevronRight size={14} />
+        </button>
       </div>
 
     </div>
