@@ -71,9 +71,9 @@ export default function StudentSubNavStrip() {
       label: "News",
       icon: Newspaper,
       badge: null,
-      href: "/student/announcements",
-      apiPresent: false,
-      apiEndpoint: null,
+      href: "/student/news",
+      apiPresent: true,
+      apiEndpoint: "/courses & /notifications",
     },
     {
       id: "announcement",
