@@ -377,7 +377,7 @@ export default function InstructorDashboardPage() {
       
       {/* 1. QUICK ACTION BAR */}
       <div className="bg-[#0D1021] border border-[#1A1F35] rounded-xl shadow-xl">
-        {/* Desktop: unchanged inline row */}
+        {/* Desktop: all actions inline, no "More" dropdown (mobile-only pattern) */}
         <div className="hidden md:flex items-center gap-1 p-2">
           <Link href="/instructor/courses/create" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
             Create Course
@@ -395,35 +395,13 @@ export default function InstructorDashboardPage() {
             Create Certificate
           </Link>
           <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0" />
-          <div className="relative shrink-0">
-            <button
-              onClick={() => setMoreActionsOpen(!moreActionsOpen)}
-              className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-orange-400 hover:bg-white/[0.02] transition cursor-pointer animate-pulse whitespace-nowrap"
-            >
-              More ▼
-            </button>
-            {moreActionsOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setMoreActionsOpen(false)} />
-                <div className="absolute right-0 mt-2 z-50 w-48 rounded-xl border border-[#1A1F35] bg-[#0D1021] p-1.5 shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150">
-                  <Link
-                    href="/instructor/announcements"
-                    onClick={() => setMoreActionsOpen(false)}
-                    className="block px-3.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] rounded-lg transition"
-                  >
-                    Make Announcement
-                  </Link>
-                  <Link
-                    href="/instructor/reports"
-                    onClick={() => setMoreActionsOpen(false)}
-                    className="block px-3.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] rounded-lg transition"
-                  >
-                    View Reports
-                  </Link>
-                </div>
-              </>
-            )}
-          </div>
+          <Link href="/instructor/announcements" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
+            Make Announcement
+          </Link>
+          <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0" />
+          <Link href="/instructor/reports" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
+            View Reports
+          </Link>
         </div>
 
         {/* Mobile: 3 primary actions, evenly aligned, no scroll/wrap; rest behind "More" */}
