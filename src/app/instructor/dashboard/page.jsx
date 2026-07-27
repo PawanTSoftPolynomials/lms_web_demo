@@ -376,61 +376,104 @@ export default function InstructorDashboardPage() {
     <div className="min-h-screen text-slate-100 flex flex-col gap-6 select-none bg-[#080B11] pb-10">
       
       {/* 1. QUICK ACTION BAR */}
-      <div className="flex items-center gap-1 bg-[#0D1021] border border-[#1A1F35] rounded-xl p-2 shadow-xl">
-        {/* Scrollable action list: horizontally scrollable on mobile/tablet, fits inline on desktop */}
-        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none min-w-0 flex-1">
-          <Link href="/instructor/courses/create" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap shrink-0">
+      <div className="bg-[#0D1021] border border-[#1A1F35] rounded-xl shadow-xl">
+        {/* Desktop: unchanged inline row */}
+        <div className="hidden md:flex items-center gap-1 p-2">
+          <Link href="/instructor/courses/create" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
             Create Course
           </Link>
           <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0" />
-          <Link href="/instructor/quizzes/create" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap shrink-0">
+          <Link href="/instructor/quizzes/create" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
             Create Quiz
           </Link>
           <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0" />
-          <Link href="/instructor/calendar" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap shrink-0">
+          <Link href="/instructor/calendar" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
             Schedule Class
           </Link>
           <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0" />
-          <Link href="/instructor/certificates/create" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap shrink-0">
+          <Link href="/instructor/certificates/create" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
             Create Certificate
           </Link>
           <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0" />
-          <Link href="/instructor/modules" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap shrink-0">
-            Upload Material
-          </Link>
+          <div className="relative shrink-0">
+            <button
+              onClick={() => setMoreActionsOpen(!moreActionsOpen)}
+              className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-orange-400 hover:bg-white/[0.02] transition cursor-pointer animate-pulse whitespace-nowrap"
+            >
+              More ▼
+            </button>
+            {moreActionsOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMoreActionsOpen(false)} />
+                <div className="absolute right-0 mt-2 z-50 w-48 rounded-xl border border-[#1A1F35] bg-[#0D1021] p-1.5 shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150">
+                  <Link
+                    href="/instructor/announcements"
+                    onClick={() => setMoreActionsOpen(false)}
+                    className="block px-3.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] rounded-lg transition"
+                  >
+                    Make Announcement
+                  </Link>
+                  <Link
+                    href="/instructor/reports"
+                    onClick={() => setMoreActionsOpen(false)}
+                    className="block px-3.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] rounded-lg transition"
+                  >
+                    View Reports
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
-        <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0" />
+        {/* Mobile: 3 primary actions, evenly aligned, no scroll/wrap; rest behind "More" */}
+        <div className="flex items-stretch gap-1.5 p-2 md:hidden">
+          <Link href="/instructor/courses/create" className="flex-1 flex items-center justify-center px-1 py-2.5 rounded-lg text-[11px] font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition text-center whitespace-nowrap">
+            Create Course
+          </Link>
+          <Link href="/instructor/quizzes/create" className="flex-1 flex items-center justify-center px-1 py-2.5 rounded-lg text-[11px] font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition text-center whitespace-nowrap">
+            Create Quiz
+          </Link>
+          <Link href="/instructor/calendar" className="flex-1 flex items-center justify-center px-1 py-2.5 rounded-lg text-[11px] font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition text-center whitespace-nowrap">
+            Schedule Class
+          </Link>
 
-        {/* "More" trigger stays pinned outside the scroll container so its popover is never clipped */}
-        <div className="relative shrink-0">
-          <button
-            onClick={() => setMoreActionsOpen(!moreActionsOpen)}
-            className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-orange-400 hover:bg-white/[0.02] transition cursor-pointer animate-pulse whitespace-nowrap"
-          >
-            More ▼
-          </button>
-          {moreActionsOpen && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setMoreActionsOpen(false)} />
-              <div className="absolute right-0 mt-2 z-50 w-48 rounded-xl border border-[#1A1F35] bg-[#0D1021] p-1.5 shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150">
-                <Link
-                  href="/instructor/announcements"
-                  onClick={() => setMoreActionsOpen(false)}
-                  className="block px-3.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] rounded-lg transition"
-                >
-                  Make Announcement
-                </Link>
-                <Link
-                  href="/instructor/reports"
-                  onClick={() => setMoreActionsOpen(false)}
-                  className="block px-3.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] rounded-lg transition"
-                >
-                  View Reports
-                </Link>
-              </div>
-            </>
-          )}
+          <div className="relative shrink-0">
+            <button
+              onClick={() => setMoreActionsOpen(!moreActionsOpen)}
+              className="flex items-center justify-center h-full px-3 py-2.5 rounded-lg text-[11px] font-black text-orange-400 hover:bg-white/[0.02] transition cursor-pointer whitespace-nowrap"
+            >
+              More ▼
+            </button>
+            {moreActionsOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMoreActionsOpen(false)} />
+                <div className="absolute right-0 mt-2 z-50 w-48 rounded-xl border border-[#1A1F35] bg-[#0D1021] p-1.5 shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150">
+                  <Link
+                    href="/instructor/certificates/create"
+                    onClick={() => setMoreActionsOpen(false)}
+                    className="block px-3.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] rounded-lg transition"
+                  >
+                    Create Certificate
+                  </Link>
+                  <Link
+                    href="/instructor/announcements"
+                    onClick={() => setMoreActionsOpen(false)}
+                    className="block px-3.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] rounded-lg transition"
+                  >
+                    Make Announcement
+                  </Link>
+                  <Link
+                    href="/instructor/reports"
+                    onClick={() => setMoreActionsOpen(false)}
+                    className="block px-3.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] rounded-lg transition"
+                  >
+                    View Reports
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -671,12 +714,12 @@ export default function InstructorDashboardPage() {
         </div>
 
         {/* Tabs Selector */}
-        <div className="flex gap-2.5 border-b border-[#1A1F35] pb-1">
+        <div className="flex gap-2.5 border-b border-[#1A1F35] pb-1 overflow-x-auto scrollbar-none">
           {['Content', 'Assignment', 'Quiz'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActivePrepTab(tab)}
-              className={`pb-2.5 px-1 text-xs font-black transition relative cursor-pointer ${
+              className={`pb-2.5 px-1 text-xs font-black transition relative cursor-pointer shrink-0 whitespace-nowrap ${
                 activePrepTab === tab ? 'text-orange-400' : 'text-slate-500 hover:text-slate-300'
               }`}
             >
