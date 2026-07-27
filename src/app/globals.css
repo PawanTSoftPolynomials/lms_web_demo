@@ -69,3 +69,13 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #f97316, #ec4899);
 }
+
+/* Fully hidden scrollbar for horizontally-scrolling strips (nav bars, chip rows) */
+.scrollbar-none {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Edge */
+}

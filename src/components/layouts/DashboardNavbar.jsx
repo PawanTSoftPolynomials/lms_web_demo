@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { FaArrowLeft, FaSignOutAlt, FaBars } from "react-icons/fa";
-import { Bell, BookOpen, Award, CheckCheck, MessageSquare, Calendar,ChevronRight } from "lucide-react";
+import { FaArrowLeft, FaBars } from "react-icons/fa";
+import { MessageSquare, Calendar, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 import useAuth from "@/hooks/useAuth";
@@ -18,7 +18,9 @@ import { useContent } from "@/hooks/queries/instructor/useContent";
 import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
 import { useQuestion } from "@/hooks/queries/instructor/useQuestion";
 
-import StudentSubNavStrip from "@/components/layouts/StudentSubNavStrip";
+import StudentDashboardNav from "@/components/layouts/StudentDashboardNav";
+import GlobalSearch from "@/components/layouts/GlobalSearch";
+import { NotificationsMenu, ProfileMenu } from "@/components/layouts/NavUserMenus";
 
 // Self-contained high-end chime player using HTML5 AudioContext
 const playNotificationChime = () => {
@@ -529,6 +531,9 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
         border-b
         flex
         flex-col
+        sticky
+        top-0
+        z-40
       `}
       >
         <div className="px-4 py-4 flex items-center justify-between">
@@ -569,7 +574,10 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
           </div>
 
           <div className="flex gap-3 items-center relative">
-            
+
+            {/* Global Search: Courses, Assignments, Live Classes, Notes */}
+            {isStudentRole && <GlobalSearch />}
+
             {/* Chat Message Icon */}
             <button
               onClick={toggleChat}
@@ -597,183 +605,27 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
               )}
             </button>
 
-            {/* Notifications Icon & Panel */}
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications((prev) => !prev)}
-                className={`
-                  p-3
-                  rounded-lg
-                  transition-all
-                  relative
-                  flex
-                  items-center
-                  justify-center
-                  ${
-                    showNotifications
-                      ? "bg-slate-800 text-orange-500"
-                      : "bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white"
-                  }
-                `}
-              >
-                <Bell size={18} />
-                {isMounted && unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-bold text-white shadow-[0_0_10px_rgba(249,115,22,0.45)]">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
+            {/* Notifications */}
+            <NotificationsMenu
+              notifications={notifications}
+              unreadCount={isMounted ? unreadCount : 0}
+              onMarkAllRead={handleMarkAllRead}
+              onClearAll={handleClearAll}
+              onItemClick={handleNotificationClick}
+            />
 
-              {/* Dropdown overlay panel */}
-              {showNotifications && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40 cursor-default"
-                    onClick={() => setShowNotifications(false)}
-                  />
-
-                  <div className="
-                    absolute
-                    right-0
-                    top-14
-                    z-50
-                    w-96
-                    rounded-3xl
-                    border
-                    border-slate-800/80
-                    bg-slate-950/95
-                    backdrop-blur-md
-                    p-5
-                    shadow-2xl
-                    text-slate-200
-                    animate-in
-                    fade-in
-                    slide-in-from-top-2
-                    duration-150
-                  ">
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-800/60">
-                      <h3 className="font-bold text-sm text-white flex items-center gap-2">
-                        <Bell size={16} className="text-orange-500" />
-                        Notifications
-                      </h3>
-                      {unreadCount > 0 && (
-                        <button
-                          onClick={handleMarkAllRead}
-                          className="text-xs text-orange-400 hover:text-orange-300 font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <CheckCheck size={14} />
-                          Mark all read
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="max-h-96 overflow-y-auto mt-3.5 space-y-3 pr-1 scrollbar-thin">
-                      {notifications.length === 0 ? (
-                        <div className="py-12 text-center text-xs text-slate-500">
-                          No notifications yet
-                        </div>
-                      ) : (
-                        notifications.map((n) => (
-                          <div
-                            key={n.id}
-                            onClick={() => handleNotificationClick(n)}
-                            className={`
-                              flex
-                              gap-4
-                              p-3.5
-                              rounded-2xl
-                              transition-all
-                              cursor-pointer
-                              border
-                              ${
-                                n.read
-                                  ? "bg-slate-900/20 hover:bg-slate-900/50 border-transparent"
-                                  : "bg-orange-500/5 hover:bg-orange-500/10 border-orange-500/10"
-                              }
-                            `}
-                          >
-                            <div className={`p-2.5 rounded-xl flex-shrink-0 flex items-center justify-center ${
-                              n.type === "course"
-                                ? "bg-orange-500/15 text-orange-400"
-                                : n.type === "quiz"
-                                ? "bg-purple-500/15 text-purple-400"
-                                : n.type === "chat"
-                                ? "bg-blue-500/15 text-blue-400"
-                                : "bg-emerald-500/15 text-emerald-400"
-                            }`}>
-                              {n.type === "course" ? (
-                                <BookOpen size={16} />
-                              ) : n.type === "quiz" ? (
-                                <Award size={16} />
-                              ) : n.type === "chat" ? (
-                                <MessageSquare size={16} />
-                              ) : (
-                                <Bell size={16} />
-                              )}
-                            </div>
-
-                            <div className="min-w-0 flex-1">
-                              <h4 className="font-bold text-sm text-white truncate">
-                                {n.title}
-                              </h4>
-                              <p className="text-xs text-slate-400 mt-1 leading-relaxed break-words">
-                                {n.message}
-                              </p>
-                              <span className="text-[10px] text-slate-500 mt-1.5 block">
-                                {n.time}
-                              </span>
-                            </div>
-
-                            {!n.read && (
-                              <div className="h-2.5 w-2.5 rounded-full bg-orange-500 self-center flex-shrink-0" />
-                            )}
-                          </div>
-                        ))
-                      )}
-                    </div>
-
-                    {notifications.length > 0 && (
-                      <div className="pt-2.5 border-t border-slate-800/60 flex justify-end mt-2">
-                        <button
-                          onClick={handleClearAll}
-                          className="text-[10px] text-slate-500 hover:text-slate-300 font-medium transition-colors cursor-pointer"
-                        >
-                          Clear all
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Logout Button */}
-            <button
-              onClick={() => setShowLogoutModal(true)}
-              className="
-                bg-red-600/10
-                hover:bg-red-600
-                border
-                border-red-500/20
-                text-red-400
-                hover:text-white
-                transition-all
-                p-3
-                rounded-lg
-                flex
-                items-center
-                justify-center
-                cursor-pointer
-              "
-              title="Sign Out"
-            >
-              <FaSignOutAlt />
-            </button>
+            {/* Profile */}
+            <ProfileMenu
+              user={currentUser}
+              onLogout={() => setShowLogoutModal(true)}
+              profileHref={isStudentRole ? "/student/profile" : "/admin/profile"}
+              settingsHref={isStudentRole ? "/student/settings" : null}
+            />
           </div>
         </div>
 
-        {/* Sub-navbar strip for student layout */}
-        {isStudentRole && <StudentSubNavStrip />}
+        {/* Secondary dashboard navigation for student layout */}
+        {isStudentRole && <StudentDashboardNav />}
       </header>
 
       {/* Calendar Modal Popup */}
