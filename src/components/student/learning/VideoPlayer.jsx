@@ -8,13 +8,11 @@ import {
     BookOpen,
     Presentation,
     ChevronLeft,
-    ChevronRight,
 } from "lucide-react";
+import axios from "axios";
+import Cookies from "js-cookie";
 
 import { getYouTubeVideoId, isYouTubeUrl as isYoutubeUrl } from "@/lib/youtube";
-
-const isGoogleSlidesUrl = (url) =>
-    Boolean(url?.includes("docs.google.com/presentation"));
 
 const isGoogleSlidesUrl = (url) => Boolean(url?.includes("docs.google.com/presentation"));
 const getGoogleSlidesEmbedUrl = (url) => {
@@ -37,11 +35,12 @@ const parseSlides = (html) => {
 };
 
 const VideoPlayer = forwardRef(function VideoPlayer(
-    { content, onTimeUpdate, onEnded, onDurationChange, initialTime = 0 },
+    { content, onTimeUpdate, onEnded, onDurationChange, initialTime = 0, courseId, lessonId: resolvedLessonId },
     ref
 ) {
     const containerRef = useRef(null);
     const playerRef = useRef(null);
+    const localVideoRef = useRef(null);
     const [slideIndex, setSlideIndex] = useState(0);
     const [hasStarted, setHasStarted] = useState(false);
     
@@ -347,7 +346,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                             }
                             className="aspect-video w-full max-h-[520px] bg-black object-contain"
                         />
-                    </div>
+                    )
                 )}
 
                 {/* FILE (PDFs / PPTs / Docs / Resources) */}
