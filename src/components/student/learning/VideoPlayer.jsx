@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState, useCallback } from "react";
 import {
     FileText,
     ExternalLink,
@@ -8,6 +8,7 @@ import {
     BookOpen,
     Presentation,
     ChevronLeft,
+    ChevronRight,
 } from "lucide-react";
 import axios from "axios";
 import Cookies from "js-cookie";
