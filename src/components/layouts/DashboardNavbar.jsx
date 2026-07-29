@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FaArrowLeft, FaSignOutAlt, FaBars } from "react-icons/fa";
+import { PiOrangeDuotone } from "react-icons/pi";
 import { Bell, BookOpen, Award, CheckCheck, MessageSquare, Calendar,ChevronRight } from "lucide-react";
 import Link from "next/link";
 
@@ -531,31 +532,48 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
         flex-col
       `}
       >
-        <div className="px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setOpen?.(true)}
-              className="
-                md:hidden
-                text-xl
-                text-white
-              "
-            >
-              <FaBars />
-            </button>
+        <div className="px-4 py-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            {!isStudentRole && (
+              <button
+                onClick={() => setOpen?.(true)}
+                className="
+                  md:hidden
+                  text-xl
+                  text-white
+                  shrink-0
+                "
+              >
+                <FaBars />
+              </button>
+            )}
+            {isStudentRole && (
+              <Link href="/student/dashboard" className="flex items-center gap-2 shrink-0">
+                <div className="p-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                  <PiOrangeDuotone className="text-lg text-orange-500" />
+                </div>
+                <span className="hidden sm:inline text-sm font-black text-white tracking-tight whitespace-nowrap">
+                  Orange Tree <span className="text-orange-500">LMS</span>
+                </span>
+              </Link>
+            )}
             {breadcrumbs.length > 0 ? (
-              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest pl-1">
+              <div
+                className={`${
+                  isStudentRole ? "hidden sm:flex" : "flex"
+                } items-center gap-2 text-[10px] font-black uppercase tracking-widest pl-1 min-w-0 overflow-hidden`}
+              >
                 {breadcrumbs.map((b, idx) => {
                   const isLast = idx === breadcrumbs.length - 1;
                   return (
-                    <div key={idx} className="flex items-center gap-2">
-                      {idx > 0 && <ChevronRight size={12} className="text-slate-700 stroke-[3]" />}
+                    <div key={idx} className="flex items-center gap-2 min-w-0">
+                      {idx > 0 && <ChevronRight size={12} className="text-slate-700 stroke-[3] shrink-0" />}
                       {b.href && !isLast ? (
-                        <Link href={b.href} className="text-slate-400 hover:text-slate-200 transition">
+                        <Link href={b.href} className="text-slate-400 hover:text-slate-200 transition truncate">
                           {b.label}
                         </Link>
                       ) : (
-                        <span className={isLast && idx > 0 ? "text-sky-400 font-black tracking-widest" : "text-slate-300"}>
+                        <span className={`truncate ${isLast && idx > 0 ? "text-sky-400 font-black tracking-widest" : "text-slate-300"}`}>
                           {b.label}
                         </span>
                       )}
@@ -564,11 +582,11 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                 })}
               </div>
             ) : (
-              <h1 className="text-lg font-semibold">{title}</h1>
+              <h1 className="text-lg font-semibold truncate">{title}</h1>
             )}
           </div>
 
-          <div className="flex gap-3 items-center relative">
+          <div className="flex gap-2 sm:gap-3 items-center relative shrink-0">
             
             {/* Chat Message Icon */}
             <button

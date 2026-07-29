@@ -392,7 +392,7 @@ export default function InstructorDashboardPage() {
           </Link>
           <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0" />
           <Link href="/instructor/certificates/create" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
-            Create Certificate
+            Certificate Template
           </Link>
           <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0" />
           <Link href="/instructor/announcements" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
@@ -432,7 +432,7 @@ export default function InstructorDashboardPage() {
                     onClick={() => setMoreActionsOpen(false)}
                     className="block px-3.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] rounded-lg transition"
                   >
-                    Create Certificate
+                    Certificate Template
                   </Link>
                   <Link
                     href="/instructor/announcements"
