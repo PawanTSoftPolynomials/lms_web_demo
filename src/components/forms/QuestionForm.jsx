@@ -12,7 +12,8 @@ import {
   X,
   PlusCircle,
   ArrowRight,
-  GripVertical
+  GripVertical,
+  BookOpen
 } from "lucide-react";
 
 import Card from "@/components/ui/Card";
@@ -259,8 +260,17 @@ export default function QuestionForm({
             </p>
           </div>
 
-          {mode === "create" && (
-            <div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => router.push(`/instructor/quizzes/${quizId}/import-questions`)}
+              className="flex items-center gap-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-400 font-extrabold text-xs uppercase tracking-wider px-5 py-3 transition active:scale-95 cursor-pointer shadow-lg shadow-amber-500/5"
+            >
+              <BookOpen size={14} />
+              <span>Import from Repository</span>
+            </button>
+
+            {mode === "create" && (
               <button
                 type="button"
                 onClick={() => setShowImport(true)}
@@ -268,8 +278,8 @@ export default function QuestionForm({
               >
                 <span>Import from File</span>
               </button>
-            </div>
-          )}
+            )}
+          </div>
 
           <div className="hidden sm:flex items-center gap-3">
             <button

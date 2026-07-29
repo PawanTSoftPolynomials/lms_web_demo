@@ -120,19 +120,27 @@ export const AuthProvider = ({ children }) => {
     const response = await loginUser(credentials);
     const { accessToken, refreshToken, user } = response.data;
 
+    const isProduction = process.env.NODE_ENV === "production";
+
     Cookies.set("accessToken", accessToken, {
       expires: 1,
       path: "/",
+      sameSite: "strict",
+      secure: isProduction,
     });
 
     Cookies.set("refreshToken", refreshToken, {
       expires: 7,
       path: "/",
+      sameSite: "strict",
+      secure: isProduction,
     });
 
     Cookies.set("role", user.role, {
       expires: 1,
       path: "/",
+      sameSite: "strict",
+      secure: isProduction,
     });
 
     if (typeof window !== "undefined") {

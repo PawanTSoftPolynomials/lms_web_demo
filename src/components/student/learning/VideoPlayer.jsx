@@ -1,5 +1,6 @@
 "use client";
 
+import DOMPurify from "isomorphic-dompurify";
 import { useEffect, useRef, useState } from "react";
 import {
     FileText,
@@ -254,7 +255,7 @@ export default function VideoPlayer({
                             {/* Slide Content */}
                             <div 
                                 className="prose prose-invert max-w-none text-white text-lg leading-relaxed flex-1 flex flex-col justify-center select-text"
-                                dangerouslySetInnerHTML={{ __html: slides[slideIndex] }}
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(slides[slideIndex] || "") }}
                             />
                             
                             {/* Navigation Bar */}
@@ -292,7 +293,7 @@ export default function VideoPlayer({
                     ) : (
                         <div 
                             className="prose prose-invert max-w-none p-8 text-slate-200 leading-relaxed font-sans select-text"
-                            dangerouslySetInnerHTML={{ __html: htmlContent }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent || "") }}
                         />
                     )
                 )}

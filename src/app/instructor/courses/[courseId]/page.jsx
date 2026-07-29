@@ -27,6 +27,8 @@ import {
   ClipboardList,
   PlayCircle,
   Trash2,
+  Rocket,
+  Undo2,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -44,6 +46,7 @@ import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCou
 import { useModules } from "@/hooks/queries/instructor/useModules";
 import { useDeleteModule } from "@/hooks/queries/instructor/useDeleteModule";
 import { useDeleteCourse } from "@/hooks/queries/instructor/useDeleteCourse";
+import { useUpdateCourseStatus } from "@/hooks/queries/instructor/useUpdateCourseStatus";
 import { useDeleteLesson } from "@/hooks/queries/instructor/useDeleteLesson";
 import { useDeleteContent } from "@/hooks/queries/instructor/useDeleteContent";
 import { useQueryClient } from "@tanstack/react-query";
@@ -73,6 +76,7 @@ export default function CourseDetailsPage() {
 
   const deleteModuleMutation = useDeleteModule();
   const deleteCourseMutation = useDeleteCourse();
+  const updateCourseStatusMutation = useUpdateCourseStatus();
   const deleteLessonMutation = useDeleteLesson();
   const deleteContentMutation = useDeleteContent();
   const queryClient = useQueryClient();
@@ -165,6 +169,15 @@ export default function CourseDetailsPage() {
       router.push("/instructor/courses");
     } catch (error) {
       console.error("Failed to delete course:", error);
+    }
+  };
+
+  const handleTogglePublish = async () => {
+    const nextStatus = course?.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED";
+    try {
+      await updateCourseStatusMutation.mutateAsync({ courseId, status: nextStatus });
+    } catch (error) {
+      console.error("Failed to update course status:", error);
     }
   };
 
@@ -312,6 +325,22 @@ export default function CourseDetailsPage() {
             >
               <Plus size={12} />
               Add Module
+            </button>
+            <button
+              onClick={handleTogglePublish}
+              disabled={updateCourseStatusMutation.isPending}
+              className={`inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold rounded-xl border transition disabled:opacity-50 ${
+                isPublished
+                  ? "text-amber-400 hover:text-amber-300 bg-amber-950/30 hover:bg-amber-900/50 border-amber-800/60"
+                  : "text-emerald-400 hover:text-emerald-300 bg-emerald-950/30 hover:bg-emerald-900/50 border-emerald-800/60"
+              }`}
+            >
+              {isPublished ? <Undo2 size={12} /> : <Rocket size={12} />}
+              {updateCourseStatusMutation.isPending
+                ? "Updating..."
+                : isPublished
+                ? "Unpublish Course"
+                : "Publish Course"}
             </button>
             <button
               onClick={handleCourseDelete}

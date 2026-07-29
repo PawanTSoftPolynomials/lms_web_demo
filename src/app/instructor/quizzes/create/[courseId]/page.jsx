@@ -40,11 +40,7 @@ export default function CreateQuizPage() {
                 }
             }
 
-            if (action === "questions") {
-                router.push(`/instructor/questions/create/${newQuiz.id}`);
-            } else {
-                router.push(`/instructor/quizzes/${courseId}`);
-            }
+            router.push(`/instructor/quizzes`);
         } catch (error) {
             console.error(error);
         }

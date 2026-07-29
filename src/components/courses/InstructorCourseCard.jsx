@@ -3,17 +3,19 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Settings, Layers, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Settings, Layers, MoreVertical, Pencil, Trash2, Rocket, Undo2 } from "lucide-react";
 
 import DifficultyBadge from "./DifficultyBadge";
 import CourseMetaItem from "./CourseMetaItem";
 import { useDeleteCourse } from "@/hooks/queries/instructor/useDeleteCourse";
+import { useUpdateCourseStatus } from "@/hooks/queries/instructor/useUpdateCourseStatus";
 
 export default function InstructorCourseCard({ course }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const router = useRouter();
   const deleteCourseMutation = useDeleteCourse();
+  const updateCourseStatusMutation = useUpdateCourseStatus();
 
   useEffect(() => {
     const handleOutsideClick = (e) => {
@@ -29,6 +31,17 @@ export default function InstructorCourseCard({ course }) {
 
   const isPublished = course.status === "Published" || course.status === "PUBLISHED";
   const modulesCount = course.modules?.length ?? 0;
+
+  const handleTogglePublish = async (e) => {
+    e.stopPropagation();
+    setShowDropdown(false);
+    const nextStatus = isPublished ? "DRAFT" : "PUBLISHED";
+    try {
+      await updateCourseStatusMutation.mutateAsync({ courseId: course.id, status: nextStatus });
+    } catch (error) {
+      console.error("Failed to update course status:", error);
+    }
+  };
 
   const handleDelete = async (e) => {
     e.stopPropagation();
@@ -71,7 +84,17 @@ export default function InstructorCourseCard({ course }) {
             </button>
 
             {showDropdown && (
-              <div className="absolute right-0 mt-1.5 w-36 rounded-xl border border-slate-800 bg-slate-950 p-1.5 shadow-xl z-20 text-left">
+              <div className="absolute right-0 mt-1.5 w-40 rounded-xl border border-slate-800 bg-slate-950 p-1.5 shadow-xl z-20 text-left space-y-1">
+                <button
+                  onClick={handleTogglePublish}
+                  disabled={updateCourseStatusMutation.isPending}
+                  className={`w-full flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-lg transition ${
+                    isPublished ? "text-amber-400 hover:bg-amber-950/30" : "text-emerald-400 hover:bg-emerald-950/30"
+                  }`}
+                >
+                  {isPublished ? <Undo2 size={14} /> : <Rocket size={14} />}
+                  <span>{updateCourseStatusMutation.isPending ? "Updating..." : isPublished ? "Unpublish" : "Publish Course"}</span>
+                </button>
                 <button
                   onClick={() => {
                     setShowDropdown(false);

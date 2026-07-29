@@ -5,8 +5,10 @@ import PageHeader from "@/components/layouts/PageHeader";
 
 import ProfileCard from "@/components/profile/ProfileCard";
 import ProfileInfo from "@/components/profile/ProfileInfo";
+import ProfileForm from "@/components/profile/ProfileForm";
 
 import { useProfile } from "@/hooks/queries/admin/useProfile";
+import useUpdateProfile from "@/hooks/queries/student/useUpdateProfile";
 
 export default function AdminProfilePage() {
   const {
@@ -14,6 +16,16 @@ export default function AdminProfilePage() {
     isLoading,
     isError,
   } = useProfile();
+
+  const updateProfileMutation = useUpdateProfile();
+
+  const handleUpdateProfile = async (formData) => {
+    try {
+      await updateProfileMutation.mutateAsync(formData);
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -45,16 +57,31 @@ export default function AdminProfilePage() {
             />
           </div>
 
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-8">
             <ProfileInfo
                 profile={profile}
             />
+
+            <ProfileForm
+                profile={profile}
+                onSubmit={handleUpdateProfile}
+                isSubmitting={updateProfileMutation.isPending}
+            />
+
+            {updateProfileMutation.isSuccess && (
+                <p className="text-sm font-semibold text-emerald-400">
+                  Profile updated successfully.
+                </p>
+            )}
+
+            {updateProfileMutation.isError && (
+                <p className="text-sm font-semibold text-red-400">
+                  {updateProfileMutation.error?.response?.data?.message ||
+                    "Failed to update profile."}
+                </p>
+            )}
           </div>
         </div>
-
-        {/* Render ProfileForm here when
-          the backend provides an
-          update profile API */}
       </div>
   );
 }

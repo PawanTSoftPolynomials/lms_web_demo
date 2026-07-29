@@ -57,7 +57,7 @@ const playNotificationChime = () => {
   }
 };
 
-function ProfileDropdown({ user, logout }) {
+function ProfileDropdown({ user, onLogoutRequest }) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -101,7 +101,7 @@ function ProfileDropdown({ user, logout }) {
             <button
               onClick={() => {
                 setOpen(false);
-                logout();
+                onLogoutRequest();
               }}
               className="w-full text-left flex items-center px-3 py-2 text-[10px] font-black text-rose-400 hover:text-rose-350 hover:bg-rose-500/10 rounded-xl transition cursor-pointer"
             >
@@ -413,6 +413,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
   if (role === 'INSTRUCTOR') {
     return (
+      <>
       <header className="bg-[#080B11] border-b border-[#1A1F35] px-6 py-4 flex items-center justify-between text-slate-200">
         <div className="flex items-center gap-6">
           {/* Mobile menu toggle */}
@@ -514,10 +515,39 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
           {/* Profile Dropdown */}
           <div className="relative">
-            <ProfileDropdown logout={handleLogout} user={currentUser} />
+            <ProfileDropdown onLogoutRequest={() => setShowLogoutModal(true)} user={currentUser} />
           </div>
         </div>
       </header>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        open={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        title="Sign Out"
+        size="sm"
+      >
+        <div className="space-y-6 text-center py-2">
+          <p className="text-sm text-slate-400">
+            Are you sure you want to sign out of your account?
+          </p>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setShowLogoutModal(false)}
+              className="px-4 py-2 text-xs font-bold rounded-xl border border-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-750 text-white transition cursor-pointer"
+            >
+              Yes, Logout
+            </button>
+          </div>
+        </div>
+      </Modal>
+      </>
     );
   }
 

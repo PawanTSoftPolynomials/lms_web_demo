@@ -167,11 +167,11 @@ export default function QuizForm({
                             </button>
                             <button
                                 type="submit"
-                                onClick={() => setSubmitAction("questions")}
+                                onClick={() => setSubmitAction("publish")}
                                 disabled={loading}
                                 className="rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white text-xs font-extrabold px-6 py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95 cursor-pointer"
                             >
-                                {loading && submitAction === "questions" ? "Creating..." : "Add Questions"}
+                                {loading && submitAction === "publish" ? "Creating..." : "Create Quiz"}
                             </button>
                         </>
                     ) : (

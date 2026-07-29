@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useAuth } from '@/context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import Link from 'next/link';
@@ -22,8 +21,6 @@ import { getQuizzes } from '@/services/quiz.service';
 import { getModules } from '@/services/module.service';
 
 export default function InstructorDashboardPage() {
-  const { user } = useAuth();
-
   // --- INTERACTION STATES ---
   const [activePrepTab, setActivePrepTab] = useState('Content'); // Content | Assignment | Quiz
   const [openAccordions, setOpenAccordions] = useState({
@@ -53,15 +50,10 @@ export default function InstructorDashboardPage() {
     staleTime: 1000 * 60 * 5,
   });
 
-  const myCourses = useMemo(() =>
-    allCourses.filter((c) => c.creatorId === user?.id || c.instructorId === user?.id || !c.creatorId),
-    [allCourses, user?.id]
-  );
-
-  // STRICT REAL COURSES ONLY (No fallback mock data)
+  // Backend already scopes /courses to the authenticated instructor's own courses.
   const coursesData = useMemo(() => {
-    return Array.isArray(myCourses) ? myCourses : [];
-  }, [myCourses]);
+    return Array.isArray(allCourses) ? allCourses : [];
+  }, [allCourses]);
 
   const { data: assignments = [] } = useQuery({
     queryKey: ['instructorAssignments'],
@@ -75,7 +67,7 @@ export default function InstructorDashboardPage() {
     staleTime: 1000 * 60 * 3,
   });
 
-  const { data: calEvents = [] } = useQuery({
+  const { data: calEvents = [], isLoading: isLoadingCalEvents } = useQuery({
     queryKey: ['calendarEvents'],
     queryFn: async () => {
       try {
@@ -99,7 +91,7 @@ export default function InstructorDashboardPage() {
     staleTime: 1000 * 60 * 2,
   });
 
-  const { data: convData } = useQuery({
+  const { data: convData, isLoading: isLoadingConversations } = useQuery({
     queryKey: ['conversations'],
     queryFn: async () => {
       try {
@@ -194,7 +186,7 @@ export default function InstructorDashboardPage() {
         time: e.startTime ? `${e.startTime}${e.endTime ? ' - ' + e.endTime : ''}` : 'All Day',
         title: e.title || 'Scheduled Session',
         course: e.courseName || 'General Course',
-        batch: e.batch || 'Batch A',
+        batch: e.batch || 'General Batch',
         location: e.location || e.room || (e.link ? 'Online' : 'Online'),
         status: e.status || 'Scheduled'
       };
@@ -238,41 +230,16 @@ export default function InstructorDashboardPage() {
           contentItems.push({
             id: m.id || `mod-${idx + 1}`,
             courseId: m.courseId,
-            title: m.title || m.name || (idx === 0 ? 'C Programming Fundamentals' : 'Structure, Datatypes and Operators'),
+            title: m.title || m.name || `Module ${idx + 1}`,
             course: 'Course Module',
-            status: 'Published',
+            status: m.isPublished ? 'Published' : 'Draft',
             lastUpdated: 'Recently',
             estTimeRemaining: 'In Progress',
-            manageUrl: `/instructor/lessons/${m.id || `mod-${idx + 1}`}`,
-            viewUrl: `/instructor/lessons/${m.id || `mod-${idx + 1}`}`
+            manageUrl: `/instructor/modules/${m.id || `mod-${idx + 1}`}`,
+            viewUrl: `/instructor/modules/${m.id || `mod-${idx + 1}`}`
           });
         }
       });
-    }
-
-    if (contentItems.length === 0) {
-      contentItems.push(
-        {
-          id: 'c-prog-fundamentals',
-          title: 'C Programming Fundamentals',
-          course: 'Course Module',
-          status: 'Published',
-          lastUpdated: 'Recently',
-          estTimeRemaining: 'In Progress',
-          manageUrl: '/instructor/lessons/c-prog-fundamentals',
-          viewUrl: '/instructor/lessons/c-prog-fundamentals'
-        },
-        {
-          id: 'structure-datatypes',
-          title: 'Structure , Datatypes and Operators',
-          course: 'Course Module',
-          status: 'Published',
-          lastUpdated: 'Recently',
-          estTimeRemaining: 'In Progress',
-          manageUrl: '/instructor/lessons/structure-datatypes',
-          viewUrl: '/instructor/lessons/structure-datatypes'
-        }
-      );
     }
 
     const realAssignments = assignments.map(a => ({
@@ -474,7 +441,11 @@ export default function InstructorDashboardPage() {
           </div>
           
           <div className="space-y-4 overflow-y-auto max-h-[480px] pr-0.5">
-            {coursesData.length === 0 ? (
+            {isLoadingCourses ? (
+              <div className="py-12 flex justify-center">
+                <Loader2 size={22} className="animate-spin text-slate-500" />
+              </div>
+            ) : coursesData.length === 0 ? (
               <div className="py-12 px-4 text-center border border-dashed border-[#1A1F35] rounded-xl space-y-3">
                 <BookOpen size={28} className="mx-auto text-slate-600" />
                 <p className="text-xs font-bold text-slate-400">No courses found in database.</p>
@@ -499,7 +470,7 @@ export default function InstructorDashboardPage() {
                           }`}>
                             {isPub ? 'Published' : 'Draft'}
                           </span>
-                          <span className="text-[9px] text-slate-500 font-extrabold">{course.batch || 'Batch A'} &bull; {course._count?.enrollments ?? course.studentsCount ?? 0} Enrolled</span>
+                          <span className="text-[9px] text-slate-500 font-extrabold">{course.batch || 'General Batch'} &bull; {course._count?.enrollments ?? course.studentsCount ?? 0} Enrolled</span>
                         </div>
                       </div>
                       <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center shrink-0 text-orange-400">
@@ -540,7 +511,11 @@ export default function InstructorDashboardPage() {
           </div>
 
           <div className="space-y-4 overflow-y-auto max-h-[480px] pr-0.5">
-            {Object.keys(dynamicCalendarScheduleGrouped).length === 0 ? (
+            {isLoadingCalEvents ? (
+              <div className="py-12 flex justify-center">
+                <Loader2 size={22} className="animate-spin text-slate-500" />
+              </div>
+            ) : Object.keys(dynamicCalendarScheduleGrouped).length === 0 ? (
               <div className="py-12 px-4 text-center border border-dashed border-[#1A1F35] rounded-xl space-y-3">
                 <Calendar size={28} className="mx-auto text-slate-600" />
                 <p className="text-xs font-bold text-slate-400">No scheduled events in database.</p>
@@ -602,7 +577,11 @@ export default function InstructorDashboardPage() {
               </button>
               {openAccordions.messages && (
                 <div className="p-3 bg-transparent border-t border-[#1A1F35] space-y-2">
-                  {conversations.length > 0 ? (
+                  {isLoadingConversations ? (
+                    <div className="py-4 flex justify-center">
+                      <Loader2 size={18} className="animate-spin text-slate-500" />
+                    </div>
+                  ) : conversations.length > 0 ? (
                     conversations.slice(0, 4).map((conv) => (
                       <Link key={conv.id} href="/instructor/messages" className="block p-2.5 rounded-lg bg-[#0D1021] border border-[#1A1F35] hover:border-slate-700 transition">
                         <div className="flex justify-between items-center text-[9px] font-extrabold text-slate-300">

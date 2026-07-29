@@ -504,13 +504,13 @@ export default function StudentDashboardPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-slate-955/60 border border-slate-800 rounded-xl text-center">
                   <span className="text-[9px] text-slate-500 uppercase tracking-wider font-extrabold">Avg Quiz Score</span>
-                  <div className="text-xl font-black text-white mt-1.5">{stats.avgQuizScore ?? 78}%</div>
+                  <div className="text-xl font-black text-white mt-1.5">{stats.avgQuizScore ?? 0}%</div>
                 </div>
 
                 <div className="p-3 bg-slate-955/60 border border-slate-800 rounded-xl text-center">
                   <span className="text-[9px] text-slate-500 uppercase tracking-wider font-extrabold">Lessons Finished</span>
                   <div className="text-xl font-black text-white mt-1.5">
-                    {stats.completedLessons ?? 0}/{stats.totalLessons ?? 5}
+                    {stats.completedLessons ?? 0}/{stats.totalLessons ?? 0}
                   </div>
                 </div>
               </div>

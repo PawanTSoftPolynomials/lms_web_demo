@@ -1,5 +1,6 @@
 "use client";
 
+import {useState} from "react";
 import {useParams, useRouter} from "next/navigation";
 
 import Card from "@/components/ui/Card";
@@ -13,6 +14,7 @@ export default function EditCoursePage() {
     const {courseId} = useParams();
 
     const router = useRouter();
+    const [submitError, setSubmitError] = useState("");
 
     const {
         data: course,
@@ -26,20 +28,20 @@ export default function EditCoursePage() {
     const handleSubmit = async (
         values
     ) => {
+        setSubmitError("");
         try {
             await updateCourseMutation.mutateAsync({
                 courseId,
-                courseData: {
-                    ...values,
-                    status: values.status,
-                },
+                courseData: values,
             });
 
             router.push(
                 `/instructor/courses/${courseId}`
             );
         } catch (error) {
-            console.error(error);
+            setSubmitError(
+                error.response?.data?.message || "Failed to update course. Please try again."
+            );
         }
     };
 
@@ -79,6 +81,7 @@ export default function EditCoursePage() {
                 updateCourseMutation.isPending
             }
             onSubmit={handleSubmit}
+            submitError={submitError}
         />
     );
 }

@@ -25,9 +25,13 @@ export default function CourseForm({
                                        initialValues = null,
                                        loading = false,
                                        onSubmit,
+                                       submitError = "",
                                    }) {
     const [formData, setFormData] =
         useState(INITIAL_FORM);
+
+    const [validationErrors, setValidationErrors] =
+        useState({});
 
     useEffect(() => {
         if (initialValues) {
@@ -63,6 +67,23 @@ export default function CourseForm({
     const handleSubmit = (e) => {
         e.preventDefault();
 
+        const errors = {};
+        if (formData.title.trim().length < 3) {
+            errors.title = "Title must be at least 3 characters long.";
+        }
+        if (formData.description.trim().length < 20) {
+            errors.description = "Description must be at least 20 characters long.";
+        }
+        if (!formData.category.trim()) {
+            errors.category = "Category is required.";
+        }
+
+        if (Object.keys(errors).length > 0) {
+            setValidationErrors(errors);
+            return;
+        }
+
+        setValidationErrors({});
         onSubmit?.(formData);
     };
 
@@ -85,13 +106,21 @@ export default function CourseForm({
             <form
                 onSubmit={handleSubmit}
                 className="space-y-6"
+                noValidate
             >
+                {submitError && (
+                    <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-400">
+                        {submitError}
+                    </div>
+                )}
+
                 <Input
                     label="Course Title"
                     name="title"
                     value={formData.title}
                     onChange={handleChange}
                     placeholder="Java SE"
+                    error={validationErrors.title}
                     required
                 />
 
@@ -120,6 +149,11 @@ export default function CourseForm({
             "
                         placeholder="Enter course description..."
                     />
+                    {validationErrors.description && (
+                        <p className="mt-2 text-sm text-red-500">
+                            {validationErrors.description}
+                        </p>
+                    )}
                 </div>
 
                 <Input
@@ -128,6 +162,7 @@ export default function CourseForm({
                     value={formData.category}
                     onChange={handleChange}
                     placeholder="Programming"
+                    error={validationErrors.category}
                     required
                 />
 
@@ -164,14 +199,13 @@ export default function CourseForm({
                 </div>
 
                 <Input
-                    label="Thumbnail URL"
+                    label="Thumbnail URL (optional)"
                     name="thumbnailUrl"
                     value={
                         formData.thumbnailUrl
                     }
                     onChange={handleChange}
                     placeholder="https://..."
-                    required
                 />
 
                 {formData.thumbnailUrl && (

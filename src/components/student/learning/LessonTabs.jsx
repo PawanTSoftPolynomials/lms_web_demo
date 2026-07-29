@@ -1,5 +1,6 @@
 "use client";
 
+import DOMPurify from "isomorphic-dompurify";
 import { useState, useEffect } from "react";
 import {
   FileText,
@@ -285,7 +286,7 @@ export default function LessonTabs({ lesson, course }) {
                 <div className="p-4 rounded-xl bg-[#0D1021] border border-white/5 text-xs text-slate-200 leading-relaxed">
                   <div
                     className="prose prose-invert max-w-none text-slate-200"
-                    dangerouslySetInnerHTML={{ __html: instructorHtmlNotes }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(instructorHtmlNotes || "") }}
                   />
                 </div>
               )}
