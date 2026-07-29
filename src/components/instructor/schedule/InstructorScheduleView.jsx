@@ -55,6 +55,8 @@ export default function InstructorScheduleView() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createModalData, setCreateModalData] = useState({});
 
   const addMenuRef = useRef(null);
 
@@ -181,26 +183,58 @@ export default function InstructorScheduleView() {
   };
 
   // Event Mutations Persistent to DB API
-  const handleCreateEvent = async (typeKey) => {
+  const handleCreateEvent = (typeKey) => {
     setShowAddMenu(false);
+    setCreateModalData({
+      title: "",
+      type: typeKey,
+      course: "",
+      batch: "",
+      date: selectedDateStr || new Date().toISOString().split("T")[0],
+      startTime: "10:00",
+      duration: "60 mins",
+      room: "",
+      description: "",
+      meetingUrl: ""
+    });
+    setIsCreateModalOpen(true);
+  };
+
+  const submitCreateEvent = async (e) => {
+    e.preventDefault();
+    setIsCreateModalOpen(false);
+    
+    // Convert 24h time to 12h for UI consistency if needed, or just keep as is
+    const formatTime = (t) => {
+      if (!t) return "10:00 AM";
+      if (t.includes("AM") || t.includes("PM")) return t;
+      const [h, m] = t.split(":");
+      const hours = parseInt(h);
+      const suffix = hours >= 12 ? "PM" : "AM";
+      const displayH = hours % 12 || 12;
+      return `${displayH}:${m} ${suffix}`;
+    };
+
+    const displayStartTime = formatTime(createModalData.startTime);
+
     const newEvt = {
       id: `evt-${Date.now()}`,
-      title: `New ${EVENT_TYPES[typeKey].label} Session`,
-      type: typeKey,
-      course: "General Course",
-      batch: "Batch A",
-      date: selectedDateStr || new Date().toISOString().split("T")[0],
-      startTime: "10:00 AM",
-      endTime: "11:00 AM",
-      duration: "60 mins",
+      title: createModalData.title || `New ${EVENT_TYPES[createModalData.type]?.label || "Event"} Session`,
+      type: createModalData.type,
+      course: createModalData.course || "General Course",
+      batch: createModalData.batch || "Batch A",
+      date: createModalData.date,
+      startTime: displayStartTime,
+      endTime: "", // Can derive if needed
+      duration: createModalData.duration || "60 mins",
       status: "UPCOMING",
-      room: "Online",
-      meetingUrl: "https://meet.google.com/new-session",
+      room: createModalData.room || "Online",
+      meetingUrl: createModalData.meetingUrl,
       instructor: "Instructor",
       priority: "MEDIUM",
       studentsCount: 0,
       attendanceRate: "-",
-      description: "Newly created scheduled instruction item.",
+      description: createModalData.description,
       attachments: []
     };
 
@@ -209,7 +243,7 @@ export default function InstructorScheduleView() {
     setIsDrawerOpen(true);
 
     try {
-      await createCalendarEvent({
+      const savedEvent = await createCalendarEvent({
         title: newEvt.title,
         type: newEvt.type,
         date: newEvt.date,
@@ -220,8 +254,19 @@ export default function InstructorScheduleView() {
         link: newEvt.meetingUrl,
         courseName: newEvt.course,
       });
+
+      // Update the local state with the real database ID and fields
+      if (savedEvent && savedEvent.id) {
+        setScheduleEvents((prev) =>
+          prev.map((e) => (e.id === newEvt.id ? { ...e, id: savedEvent.id, ...savedEvent } : e))
+        );
+        setSelectedEvent((prev) => (prev?.id === newEvt.id ? { ...prev, id: savedEvent.id, ...savedEvent } : prev));
+      }
     } catch (err) {
       console.warn("Unable to persist created event to DB backend:", err?.message);
+      // Optional: Revert optimistic UI update on failure
+      setScheduleEvents((prev) => prev.filter((e) => e.id !== newEvt.id));
+      setSelectedEvent(null);
     }
   };
 
@@ -262,7 +307,7 @@ export default function InstructorScheduleView() {
       {/* =========================================================================
           1. TOP HEADER CARD
          ========================================================================= */}
-      <div className="bg-[#0D1021] border border-[#1A1F35] rounded-2xl p-5 shadow-2xl backdrop-blur-xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+      <div className="relative z-50 bg-[#0D1021] border border-[#1A1F35] rounded-2xl p-5 shadow-2xl backdrop-blur-xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         
         {/* Left Title & Month Switcher */}
         <div className="flex items-center gap-4 flex-wrap">
@@ -713,7 +758,7 @@ export default function InstructorScheduleView() {
                   </p>
 
                   <button
-                    onClick={() => handleCreateEvent("lecture")}
+                    onClick={() => handleCreateEvent("meeting")}
                     className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg cursor-pointer"
                   >
                     <Plus size={16} />
@@ -753,6 +798,88 @@ export default function InstructorScheduleView() {
                 Close Drawer
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          EXACT SCHEDULE EVENT MODAL
+         ========================================================================= */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 p-4">
+          <div className="w-full max-w-lg bg-[#0D1021] border border-[#1A1F35] rounded-2xl shadow-2xl p-6 relative overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center mb-6 relative z-10">
+              <h3 className="text-lg font-black text-white font-mono tracking-tight flex items-center gap-2">
+                <CalendarIcon size={20} className="text-orange-400" />
+                Schedule New Session
+              </h3>
+              <button onClick={() => setIsCreateModalOpen(false)} className="text-slate-400 hover:text-white transition cursor-pointer">
+                <X size={20} />
+              </button>
+            </div>
+            
+            {/* Modal Form */}
+            <form onSubmit={submitCreateEvent} className="space-y-4 relative z-10">
+              <div className="grid grid-cols-2 gap-4">
+                
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Title</label>
+                  <input required type="text" value={createModalData.title} onChange={e => setCreateModalData({...createModalData, title: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition" placeholder="e.g. Intro to React" />
+                </div>
+                
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Type</label>
+                  <select value={createModalData.type} onChange={e => setCreateModalData({...createModalData, type: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 appearance-none cursor-pointer transition">
+                    {Object.keys(EVENT_TYPES).map(k => <option key={k} value={k}>{EVENT_TYPES[k].label}</option>)}
+                  </select>
+                </div>
+                
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Date</label>
+                  <input required type="date" value={createModalData.date} onChange={e => setCreateModalData({...createModalData, date: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition cursor-pointer" />
+                </div>
+                
+                <div className="col-span-1 sm:col-span-1 grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Start</label>
+                    <input required type="time" value={createModalData.startTime} onChange={e => setCreateModalData({...createModalData, startTime: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-2 sm:px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition cursor-pointer" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Duration</label>
+                    <input type="text" value={createModalData.duration} onChange={e => setCreateModalData({...createModalData, duration: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-2 sm:px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition" placeholder="60 mins" />
+                  </div>
+                </div>
+
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Course Name</label>
+                  <input type="text" value={createModalData.course} onChange={e => setCreateModalData({...createModalData, course: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition" placeholder="e.g. General Course" />
+                </div>
+                
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Room / Meeting URL</label>
+                  <input type="text" value={createModalData.meetingUrl} onChange={e => setCreateModalData({...createModalData, meetingUrl: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition" placeholder="e.g. https://meet.google..." />
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Description (Optional)</label>
+                  <textarea rows="3" value={createModalData.description} onChange={e => setCreateModalData({...createModalData, description: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 resize-none transition" placeholder="Additional details..." />
+                </div>
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3 border-t border-[#1A1F35] mt-6">
+                <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition cursor-pointer">
+                  Cancel
+                </button>
+                <button type="submit" className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 transition cursor-pointer flex items-center gap-2">
+                  <Plus size={14} />
+                  <span>Schedule Event</span>
+                </button>
+              </div>
+            </form>
+            
+            {/* Background Glow */}
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-orange-500/10 rounded-full blur-[80px] pointer-events-none" />
           </div>
         </div>
       )}
