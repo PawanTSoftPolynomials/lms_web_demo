@@ -1,23 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import {
     FileText,
     ExternalLink,
     PlayCircle,
     ChevronLeft,
     ChevronRight,
-    Maximize2,
     BookOpen,
     Presentation,
 } from "lucide-react";
 
-const isYoutubeUrl = (url) =>
-    Boolean(
-        url?.match(
-            /(?:youtu\.be\/|youtube\.com\/watch\?v=|youtube\.com\/embed\/)/
-        )
-    );
+import { getYouTubeVideoId, isYouTubeUrl as isYoutubeUrl } from "@/lib/youtube";
 
 const isGoogleSlidesUrl = (url) =>
     Boolean(url?.includes("docs.google.com/presentation"));
@@ -46,12 +40,10 @@ const parseSlides = (html) => {
     return sections.map(s => s.trim()).filter(Boolean);
 };
 
-export default function VideoPlayer({
-                                        content,
-                                        onTimeUpdate,
-                                        onEnded,
-                                        initialTime = 0,
-                                    }) {
+const VideoPlayer = forwardRef(function VideoPlayer(
+    { content, onTimeUpdate, onEnded, initialTime = 0 },
+    ref
+) {
     const containerRef = useRef(null);
     const playerRef = useRef(null);
     const localVideoRef = useRef(null);
@@ -68,18 +60,49 @@ export default function VideoPlayer({
 
     const initialTimeRef = useRef(initialTime);
 
+    // Latest-callback refs: the YouTube init effect below must only ever
+    // depend on the video itself, never on these. Consumers rarely memoize
+    // onTimeUpdate/onEnded, so depending on them directly tears the YT
+    // player down and rebuilds it on every parent re-render (which happens
+    // ~2x/sec while playing, since onTimeUpdate drives parent state) —
+    // that's why the video looked like it "wasn't playing".
+    const onTimeUpdateRef = useRef(onTimeUpdate);
+    const onEndedRef = useRef(onEnded);
+    useEffect(() => {
+        onTimeUpdateRef.current = onTimeUpdate;
+    }, [onTimeUpdate]);
+    useEffect(() => {
+        onEndedRef.current = onEnded;
+    }, [onEnded]);
+
     // Sync initialTimeRef on content change
     useEffect(() => {
         initialTimeRef.current = initialTime;
     }, [videoUrl]);
 
+    // Expose imperative seek control so a transcript (or any other consumer)
+    // can jump the currently playing video without reaching into internals.
+    useImperativeHandle(
+        ref,
+        () => ({
+            seekTo(seconds) {
+                if (isYoutube) {
+                    playerRef.current?.seekTo?.(seconds, true);
+                    playerRef.current?.playVideo?.();
+                } else if (localVideoRef.current) {
+                    localVideoRef.current.currentTime = seconds;
+                    localVideoRef.current.play?.().catch(() => {});
+                }
+            },
+        }),
+        [isYoutube]
+    );
+
     // YouTube API Integration
     useEffect(() => {
         if (!isYoutube || !videoUrl) return;
 
-        const regExp = /^.*(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#&?]*).*/;
-        const match = videoUrl.match(regExp);
-        const videoId = match && match[1];
+        const videoId = getYouTubeVideoId(videoUrl);
         if (!videoId) return;
 
         let player;
@@ -89,12 +112,12 @@ export default function VideoPlayer({
             if (event.data === window.YT.PlayerState.PLAYING) {
                 intervalId = setInterval(() => {
                     if (player && typeof player.getCurrentTime === "function") {
-                        onTimeUpdate?.(Math.floor(player.getCurrentTime()));
+                        onTimeUpdateRef.current?.(Math.floor(player.getCurrentTime()));
                     }
                 }, 500);
             } else if (event.data === window.YT.PlayerState.ENDED) {
                 clearInterval(intervalId);
-                onEnded?.();
+                onEndedRef.current?.();
             } else {
                 clearInterval(intervalId);
             }
@@ -109,6 +132,13 @@ export default function VideoPlayer({
                 videoId: videoId,
                 playerVars: {
                     start: initialTimeRef.current || 0,
+                    rel: 0,
+                    modestbranding: 1,
+                    playsinline: 1,
+                    enablejsapi: 1,
+                    ...(typeof window !== "undefined"
+                        ? { origin: window.location.origin }
+                        : {}),
                 },
                 events: {
                     onStateChange: onPlayerStateChange,
@@ -149,14 +179,27 @@ export default function VideoPlayer({
                 playerRef.current.destroy();
             }
         };
-    }, [videoUrl, isYoutube, onTimeUpdate, onEnded]);
+    }, [videoUrl, isYoutube]);
 
-    // Handle Local Video Initial Resume Time
+    // Handle Local Video Initial Resume Time — wait for metadata so
+    // currentTime assignment isn't silently dropped before duration is known.
     useEffect(() => {
-        if (localVideoRef.current && initialTimeRef.current > 0) {
-            localVideoRef.current.currentTime = initialTimeRef.current;
+        const videoEl = localVideoRef.current;
+        if (!videoEl || isYoutube) return;
+
+        const applyInitialTime = () => {
+            if (initialTimeRef.current > 0) {
+                videoEl.currentTime = initialTimeRef.current;
+            }
+        };
+
+        if (videoEl.readyState >= 1) {
+            applyInitialTime();
+        } else {
+            videoEl.addEventListener("loadedmetadata", applyInitialTime);
+            return () => videoEl.removeEventListener("loadedmetadata", applyInitialTime);
         }
-    }, [videoUrl]);
+    }, [videoUrl, isYoutube]);
 
     // Reset slides when content changes
     useEffect(() => {
@@ -327,4 +370,6 @@ export default function VideoPlayer({
             </div>
         </div>
     );
-}
+});
+
+export default VideoPlayer;

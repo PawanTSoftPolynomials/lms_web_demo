@@ -1,31 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter, usePathname } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  X, Bell, MessageSquare, ArrowLeft, BookOpen, Clock3, 
-  ChevronDown, ChevronRight, ChevronLeft, PlayCircle, CheckCircle2,
-  Menu, Sparkles, CheckCheck, HelpCircle, Star
+import { motion } from "framer-motion";
+import {
+  X, Bell, MessageSquare, ArrowLeft, BookOpen, Clock3,
+  ChevronDown, ChevronRight, ChevronLeft, PlayCircle,
+  CheckCheck, HelpCircle, Star, CheckCircle2
 } from "lucide-react";
-import { 
-  FaTachometerAlt, FaGraduationCap, FaBook, FaVideo, 
-  FaClipboardList, FaQuestionCircle, FaFileAlt, FaBookmark, 
-  FaTrophy, FaCog, FaBars, FaSignOutAlt, FaEnvelope 
-} from "react-icons/fa";
-import { PiOrangeDuotone } from "react-icons/pi";
+import { FaSignOutAlt } from "react-icons/fa";
 
 import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel";
 import VideoPlayer from "@/components/student/learning/VideoPlayer";
+import TranscriptPanel from "@/components/student/learning/TranscriptPanel";
 import LessonTabs from "@/components/student/learning/LessonTabs";
-import LessonNavigation from "@/components/student/learning/LessonNavigation";
 import useCompleteLesson from "@/hooks/queries/student/useCompleteLesson";
 import { useCourse, useStudentState, useUpdateStudentState } from "@/hooks/queries/student";
 import useProgress from "@/hooks/queries/student/useProgress";
+import useTranscript from "@/hooks/queries/student/useTranscript";
 import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
-import ProgressBar from "@/components/student/courses/ProgressBar";
 import { trackCourseAccess } from "@/services/enrollment.service";
 import { ChatWidget } from "@/components/chat";
 import { createConversation } from "@/features/chat/api/chat.api";
@@ -33,13 +28,11 @@ import { createConversation } from "@/features/chat/api/chat.api";
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
 import { useNotification } from "@/context/NotificationContext";
-import { SIDEBAR_ITEMS } from "@/constants/sidebar";
 
 export default function LearnPage() {
   const { courseId } = useParams();
   const router = useRouter();
-  const pathname = usePathname();
-  
+
   const { data, isLoading, isError } = useCourse(courseId);
   const { data: stateData, isLoading: isStateLoading } = useStudentState();
   const updateStateMutation = useUpdateStudentState();
@@ -51,14 +44,16 @@ export default function LearnPage() {
     return match ? Math.round(match.progress) : 0;
   }, [progressData, courseId]);
 
-  const { logout, user: currentUser } = useAuth();
+  const { logout } = useAuth();
   const { toggleChat, isOpen: chatOpen, chatUnreadCount, conversations = [], setConversations, setActiveConversation, setIsOpen } = useChat();
-  const { notifications, markAllRead, clearAll, markAsRead } = useNotification();
+  const { notifications, markAllRead, markAsRead } = useNotification();
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Double Sidebar Toggles
-  const [mainSidebarOpen, setMainSidebarOpen] = useState(true);
+  // Course Content Sidebar toggle (the global app sidebar is hidden on this
+  // route entirely — see src/app/student/layout.jsx — so only this one remains)
   const [courseSidebarOpen, setCourseSidebarOpen] = useState(false);
+
+  const videoPlayerRef = useRef(null);
 
   const course = data?.data || data;
 
@@ -194,8 +189,11 @@ export default function LearnPage() {
     );
   };
 
-  // Sticky Notes constraint: hide if both sidebars are open, show if one or both are closed
-  const showStickyNotes = !(mainSidebarOpen && courseSidebarOpen);
+  const { segments: transcriptSegments, status: transcriptStatus } = useTranscript(selectedLesson?.id);
+
+  const handleTranscriptSeek = (seconds) => {
+    videoPlayerRef.current?.seekTo(seconds);
+  };
 
   if (isLoading) {
     return <Loader />;
@@ -207,105 +205,12 @@ export default function LearnPage() {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const totalLessons = course.modules?.reduce(
-    (total, module) => total + (module.lessons?.length || 0),
-    0
-  ) || 0;
-
-  const sidebarItems = SIDEBAR_ITEMS.STUDENT || [];
-
   return (
     <div className="min-h-screen bg-[#07080f] text-white flex overflow-hidden font-sans">
-      
-      {/* ========================================================================= */}
-      {/* SIDEBAR 1: MAIN NAVIGATION */}
-      {/* ========================================================================= */}
-      <motion.aside
-        animate={{ width: mainSidebarOpen ? 256 : 72 }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="h-screen bg-[#0d0e16] border-r border-[#1e2030] flex-shrink-0 flex flex-col z-20 overflow-y-auto relative select-none"
-      >
-        {/* Header Block */}
-        <div className="p-4 flex items-center justify-between min-h-[64px] border-b border-[#1e2030]/40">
-          {mainSidebarOpen ? (
-            <div className="flex items-center gap-3">
-              <PiOrangeDuotone className="text-2xl text-orange-500" />
-              <h1 className="text-base font-bold text-orange-500 tracking-wide truncate">
-                Orange Tree LMS
-              </h1>
-            </div>
-          ) : (
-            <button 
-              onClick={() => setMainSidebarOpen(true)}
-              className="mx-auto text-2xl text-orange-500 hover:scale-105 transition cursor-pointer font-semibold bg-transparent border-0 outline-none"
-            >
-              <PiOrangeDuotone />
-            </button>
-          )}
-
-          {mainSidebarOpen && (
-            <button
-              onClick={() => setMainSidebarOpen(false)}
-              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition cursor-pointer"
-            >
-              <X size={16} />
-            </button>
-          )}
-        </div>
-
-        {/* Menu Items */}
-        <nav className="py-4 px-2 space-y-1.5 flex-1">
-          {sidebarItems.map((item) => {
-            const Icon = item.icon;
-            const isMyLearning = item.title === "My Learning";
-            const isActive = isMyLearning; // Highlight My Learning as parent of learn player
-            const isMessages = item.title === "Messages";
-            
-            if (isMessages) {
-              return (
-                <button
-                  key={item.title}
-                  onClick={toggleChat}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${
-                    !mainSidebarOpen ? "justify-center" : ""
-                  } border-l-4 border-transparent text-slate-405 hover:text-slate-100 hover:bg-slate-800/30 cursor-pointer`}
-                  title={!mainSidebarOpen ? item.title : ""}
-                >
-                  <Icon className="text-lg transition-transform duration-200 group-hover:scale-110 text-slate-400 group-hover:text-slate-200" />
-                  {mainSidebarOpen && (
-                    <span className="text-sm tracking-wide truncate">{item.title}</span>
-                  )}
-                </button>
-              );
-            }
-
-            return (
-              <Link
-                key={item.title}
-                href={item.href}
-                className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${
-                  !mainSidebarOpen ? "justify-center" : ""
-                } ${
-                  isActive
-                    ? "bg-slate-800/80 text-white border-l-4 border-orange-500 font-semibold shadow-inner"
-                    : "border-l-4 border-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800/30"
-                }`}
-                title={!mainSidebarOpen ? item.title : ""}
-              >
-                <Icon className={`text-lg transition-transform duration-200 group-hover:scale-110 ${
-                  isActive ? "text-orange-500" : "text-slate-400 group-hover:text-slate-200"
-                }`} />
-                {mainSidebarOpen && (
-                  <span className="text-sm tracking-wide truncate">{item.title}</span>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-      </motion.aside>
 
       {/* ========================================================================= */}
-      {/* SIDEBAR 2: COURSE CONTENT */}
+      {/* COURSE CONTENT SIDEBAR — the only sidebar on this route. The global app */}
+      {/* sidebar is skipped for /student/learn/* in src/app/student/layout.jsx    */}
       {/* ========================================================================= */}
       <motion.aside
         animate={{ width: courseSidebarOpen ? 320 : 72 }}
@@ -556,8 +461,7 @@ export default function LearnPage() {
         {/* REDESIGNED WORKSPACE CONTENT */}
         {/* ========================================================== */}
         <div className="p-6 md:p-8">
-          {/* Collapse right side panel if both left sidebars are open to prevent layout crowding */}
-          <div className={`grid grid-cols-1 ${(mainSidebarOpen && courseSidebarOpen) ? '' : 'xl:grid-cols-[1fr_360px]'} gap-8`}>
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-8">
             
             {/* LEFT COLUMN: Info, Video, Transcript, Modules, Tabs */}
             <div className="space-y-6 min-w-0">
@@ -613,14 +517,36 @@ export default function LearnPage() {
 
               {/* Video Player Header and Component */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800/40 pb-2">
-                  <h3 className="text-sm font-black text-slate-205 flex items-center gap-2">
-                    <PlayCircle className="text-orange-505" size={18} />
-                    {selectedLesson?.title || "Loading Lesson..."}
-                  </h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-[10px] font-black uppercase tracking-wider text-orange-400">
+                        Lesson {currentLessonIndex >= 0 ? currentLessonIndex + 1 : 1} of {lessons.length || 1}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+                        <Clock3 size={11} className="text-orange-500" />
+                        ~12 mins
+                      </span>
+                    </div>
+                    <h3 className="text-base font-black text-white flex items-center gap-2 tracking-wide">
+                      <PlayCircle className="text-orange-500 shrink-0" size={20} />
+                      <span>{selectedLesson?.title || "Loading Lesson..."}</span>
+                    </h3>
+                  </div>
+
+                  {/* Mark as Complete Action */}
+                  <button
+                    type="button"
+                    onClick={markComplete}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-orange-500 hover:text-slate-950 border border-slate-800 hover:border-orange-400 text-xs font-black uppercase tracking-wider text-slate-200 transition-all shadow-md cursor-pointer shrink-0"
+                  >
+                    <CheckCircle2 size={15} className="text-emerald-400 group-hover:text-slate-950" />
+                    <span>Mark Complete</span>
+                  </button>
                 </div>
 
                 <VideoPlayer
+                  ref={videoPlayerRef}
                   content={selectedLesson?.contents?.[0]}
                   onTimeUpdate={setCurrentTimestamp}
                   onEnded={handleVideoEnded}
@@ -628,7 +554,7 @@ export default function LearnPage() {
                 />
 
                 {/* Lesson Navigation Bar (Previous Lesson / Next Lesson) */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-[#0d0e16] border border-[#1e2030] shadow-md">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-[#0d0e16]/80 border border-[#1e2030] shadow-xl backdrop-blur-md">
                   <button
                     disabled={!previousLesson}
                     onClick={() => {
@@ -644,7 +570,7 @@ export default function LearnPage() {
 
                   <div className="text-center font-mono">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                      Lesson {currentLessonIndex >= 0 ? currentLessonIndex + 1 : 1} of {lessons.length || 1}
+                      Active Lesson Pathway
                     </span>
                     <p className="text-xs font-bold text-orange-400 truncate max-w-[200px] sm:max-w-[280px]">
                       {selectedLesson?.title || "Course Lesson"}
@@ -667,21 +593,13 @@ export default function LearnPage() {
                 </div>
               </div>
 
-              {/* Transcript Card */}
-              <div className="bg-[#0d0e16]/40 border border-slate-800 rounded-3xl p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-300 flex items-center gap-2">
-                    <FaFileAlt className="text-orange-500" size={13} />
-                    Transcript
-                  </h4>
-                  <button className="px-4 py-2 border border-slate-800 hover:border-slate-700 bg-slate-950/20 hover:bg-slate-900/40 text-[10px] font-black uppercase tracking-widest rounded-xl transition text-slate-300 cursor-pointer">
-                    View Full Transcript
-                  </button>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed font-semibold">
-                  Welcome to the {selectedLesson?.title || "Introduction"} module. In this module, we will learn the core concepts, syntax, implementation, and configurations step-by-step.
-                </p>
-              </div>
+              {/* Transcript */}
+              <TranscriptPanel
+                segments={transcriptSegments}
+                status={transcriptStatus}
+                currentTime={currentTimestamp}
+                onSeek={handleTranscriptSeek}
+              />
 
               {/* Lesson Tabs component */}
               <div className="pt-6 border-t border-slate-900/80">
@@ -693,14 +611,11 @@ export default function LearnPage() {
 
             </div>
 
-            {/* RIGHT COLUMN: Course Progress, Query, Feedback, Reviews, Sticky Notes (collapsed when both sidebars open) */}
-            {!(mainSidebarOpen && courseSidebarOpen) && (
-              <div className="space-y-6 xl:sticky xl:top-24 h-fit transition-all duration-300">
-                
-                {/* Three Navigation Action Cards (Query, Feedback, Reviews) */}
+            {/* RIGHT COLUMN: Query, Sticky Notes, Feedback, Reviews */}
+            <div className="space-y-6 xl:sticky xl:top-24 h-fit transition-all duration-300">
+
+                {/* Query Hub Card */}
                 <div className="space-y-4">
-                  
-                  {/* Query Card */}
                   <button
                     onClick={async () => {
                       const instId = course?.creatorId || course?.creator?.id || course?.creator?._id;
@@ -736,20 +651,39 @@ export default function LearnPage() {
                         }
                       }
                     }}
-                    className="w-full flex items-center justify-between p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left"
+                    className="w-full p-5 rounded-3xl border border-slate-800 bg-slate-900/50 hover:bg-slate-900/80 hover:border-orange-500/40 transition duration-300 group cursor-pointer text-left shadow-lg relative overflow-hidden"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-amber-500/15 bg-amber-505/5 text-amber-505">
-                        <HelpCircle size={18} className="stroke-[2.5]" />
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-amber-500/20 bg-amber-500/10 text-amber-400">
+                          <HelpCircle size={18} className="stroke-[2.5]" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-black text-slate-100 group-hover:text-white transition">Ask Instructor</h4>
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Instructor Active • Avg response &lt; 2 hrs</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition">Query</h4>
-                        <p className="text-[10px] text-slate-500 leading-normal font-semibold mt-0.5">Ask your doubts and get help from instructors.</p>
-                      </div>
+                      <ChevronRight size={16} className="text-slate-500 group-hover:text-orange-400 transition-colors shrink-0" />
                     </div>
-                    <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-505 transition-colors shrink-0" />
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-800/60 text-[10px] text-slate-400 font-bold">
+                      <span className="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-orange-400">3 Active Discussions</span>
+                      <span>Direct Q&amp;A Chat</span>
+                    </div>
                   </button>
+                </div>
 
+                {/* Sticky Notes Panel */}
+                <StickyNotesPanel
+                  lessonId={selectedLesson?.id}
+                  currentTimestamp={currentTimestamp}
+                  onSeek={handleTranscriptSeek}
+                />
+
+                {/* Feedback / Reviews Action Cards */}
+                <div className="space-y-4">
                   {/* Feedback Card */}
                   <Link
                     href={`/student/feedback?courseId=${course.id}`}
@@ -786,16 +720,7 @@ export default function LearnPage() {
 
                 </div>
 
-                {/* Sticky Notes Panel */}
-                {showStickyNotes && (
-                  <StickyNotesPanel
-                    lessonId={selectedLesson?.id}
-                    currentTimestamp={currentTimestamp}
-                  />
-                )}
-
-              </div>
-            )}
+            </div>
           </div>
         </div>
         <ChatWidget />

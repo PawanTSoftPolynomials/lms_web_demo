@@ -3,11 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  PlayCircle,
-  Award,
   ClipboardList,
-  Target,
-  BookOpen,
   ChevronRight,
   X,
   CheckCircle,
@@ -18,20 +14,7 @@ import {
   HelpCircle
 } from "lucide-react";
 
-import useAssignments from "@/hooks/queries/student/useAssignments";
-import useQuizzes from "@/hooks/queries/student/useQuizzes";
-import useUpcomingTasks from "@/hooks/queries/student/useUpcomingTasks";
-
-const CARD_PALETTES = [
-    { bg: "bg-gradient-to-br from-cyan-500 to-sky-600" },
-    { bg: "bg-gradient-to-br from-rose-400 to-orange-500" },
-    { bg: "bg-gradient-to-br from-amber-500 to-yellow-600" },
-    { bg: "bg-gradient-to-br from-pink-500 to-rose-600" },
-    { bg: "bg-gradient-to-br from-purple-500 to-indigo-600" },
-    { bg: "bg-gradient-to-br from-emerald-500 to-teal-600" }
-];
-
-export default function MyCourseCard({ enrollment, index = 0 }) {
+export default function MyCourseCard({ enrollment }) {
     const {
         course,
     } = enrollment;
@@ -51,29 +34,6 @@ export default function MyCourseCard({ enrollment, index = 0 }) {
             window.removeEventListener("keydown", handleKeyDown);
         };
     }, [quizModalOpen]);
-
-    // Fetch dynamic query details
-    const { data: assignments = [] } = useAssignments();
-    const { data: quizzes = [] } = useQuizzes();
-    const { data: upcomingTasksList = [] } = useUpcomingTasks();
-
-    // 1. Lessons
-    const totalLessons = course.lessons ?? 0;
-    
-    // 2. Quizzes
-    const courseQuizzes = quizzes.filter(q => q.courseId === course.id);
-    const totalQuizzes = courseQuizzes.length;
-
-    // 3. Assignments
-    const courseAssignments = assignments.filter(a => a.courseId === course.id);
-    const pendingAssignments = courseAssignments.filter(a => a.status !== "Submitted" && a.status !== "Graded").length;
-
-    // 4. Test
-    const courseTests = upcomingTasksList.filter(t => t.courseId === course.id && (t.type || "").toUpperCase() === "EXAM");
-    const pendingTests = courseTests.length;
-
-    // 5. Homework
-    const pendingHomeworks = courseAssignments.filter(a => a.status !== "Submitted").length;
 
     const links = [
         {
@@ -135,9 +95,9 @@ export default function MyCourseCard({ enrollment, index = 0 }) {
 
     return (
         <>
-            <div className="rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6 shadow-lg flex flex-col justify-between transition-all duration-300 hover:border-slate-700 hover:-translate-y-1 select-none">
+            <div className="max-w-sm w-full rounded-3xl border border-slate-800/80 bg-slate-900/80 p-6 shadow-lg flex flex-col justify-between transition-all duration-300 hover:border-slate-700 hover:-translate-y-1 select-none">
                 {/* Center-aligned Card Header */}
-                <div className="pb-3 text-center">
+                <div className="pb-3 text-center border-b border-slate-800/50">
                     <h3 className="text-base font-black text-white tracking-tight leading-snug truncate" title={course.title}>
                         {course.title}
                     </h3>
@@ -146,8 +106,8 @@ export default function MyCourseCard({ enrollment, index = 0 }) {
                     </span>
                 </div>
 
-                {/* List of Navigation Links */}
-                <div className="space-y-2.5 my-3">
+                {/* Single Column Layout formatted to fit card tightly without unused space */}
+                <div className="space-y-1.5 my-3">
                     {links.map((link, idx) => {
                         const Icon = link.icon;
                         return (
@@ -155,7 +115,7 @@ export default function MyCourseCard({ enrollment, index = 0 }) {
                                 key={idx}
                                 href={link.href}
                                 onClick={(e) => handleRowClick(e, link.label)}
-                                className="flex items-center gap-3 text-xs font-bold text-slate-200 hover:text-white transition group py-0.5"
+                                className="flex items-center gap-3 text-xs font-bold text-slate-200 hover:text-white transition group py-1.5 px-3 rounded-xl hover:bg-slate-800/50 border border-transparent hover:border-slate-700/50"
                             >
                                 <Icon size={16} className={`${link.iconColor} shrink-0 stroke-[2]`} />
                                 <span className="truncate">{link.label}</span>
