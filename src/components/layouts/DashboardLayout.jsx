@@ -10,15 +10,20 @@ export default function DashboardLayout({ children, role, title }) {
 
   const [collapsed, setCollapsed] = useState(false);
 
+  // Students navigate via the top header + horizontal sub-nav strip instead of a side rail.
+  const showSidebar = role !== 'STUDENT';
+
   return (
     <div className={`flex min-h-screen ${role === 'INSTRUCTOR' ? 'bg-[#080B11]' : 'bg-slate-950'}`}>
-      <Sidebar
-        role={role}
-        open={open}
-        setOpen={setOpen}
-        collapsed={collapsed}
-        setCollapsed={setCollapsed}
-      />
+      {showSidebar && (
+        <Sidebar
+          role={role}
+          open={open}
+          setOpen={setOpen}
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
+        />
+      )}
 
       <div
         className="

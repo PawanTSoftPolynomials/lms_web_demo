@@ -343,8 +343,9 @@ export default function InstructorDashboardPage() {
     <div className="min-h-screen text-slate-100 flex flex-col gap-6 select-none bg-[#080B11] pb-10">
       
       {/* 1. QUICK ACTION BAR */}
-      <div className="flex items-center justify-between bg-[#0D1021] border border-[#1A1F35] rounded-xl p-2 relative overflow-visible shadow-xl">
-        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none shrink-0 w-full md:w-auto">
+      <div className="bg-[#0D1021] border border-[#1A1F35] rounded-xl shadow-xl">
+        {/* Desktop: all actions inline, no "More" dropdown (mobile-only pattern) */}
+        <div className="hidden md:flex items-center gap-1 p-2">
           <Link href="/instructor/courses/create" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
             Create Course
           </Link>
@@ -356,55 +357,50 @@ export default function InstructorDashboardPage() {
           <Link href="/instructor/calendar" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
             Schedule Class
           </Link>
-          
-          {/* Create Certificate: Hidden on mobile (visible in dropdown instead) */}
-          <div className="hidden md:flex items-center gap-1">
-            <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0 mx-1" />
-            <Link href="/instructor/certificates/create" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
-              Create Certificate
-            </Link>
-          </div>
-
-          {/* Upload Material: Hidden on mobile (visible in dropdown instead) */}
-          <div className="hidden md:flex items-center gap-1">
-            <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0 mx-1" />
-            <Link href="/instructor/modules" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
-              Upload Material
-            </Link>
-          </div>
-
           <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0" />
-          
-          {/* Dropdown toggle for More */}
+          <Link href="/instructor/certificates/create" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
+            Certificate Template
+          </Link>
+          <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0" />
+          <Link href="/instructor/announcements" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
+            Make Announcement
+          </Link>
+          <div className="h-4 w-px bg-[#1A1F35] self-center shrink-0" />
+          <Link href="/instructor/reports" className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition whitespace-nowrap">
+            View Reports
+          </Link>
+        </div>
+
+        {/* Mobile: 3 primary actions, evenly aligned, no scroll/wrap; rest behind "More" */}
+        <div className="flex items-stretch gap-1.5 p-2 md:hidden">
+          <Link href="/instructor/courses/create" className="flex-1 flex items-center justify-center px-1 py-2.5 rounded-lg text-[11px] font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition text-center whitespace-nowrap">
+            Create Course
+          </Link>
+          <Link href="/instructor/quizzes/create" className="flex-1 flex items-center justify-center px-1 py-2.5 rounded-lg text-[11px] font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition text-center whitespace-nowrap">
+            Create Quiz
+          </Link>
+          <Link href="/instructor/calendar" className="flex-1 flex items-center justify-center px-1 py-2.5 rounded-lg text-[11px] font-black text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] transition text-center whitespace-nowrap">
+            Schedule Class
+          </Link>
+
           <div className="relative shrink-0">
             <button
               onClick={() => setMoreActionsOpen(!moreActionsOpen)}
-              className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-black text-orange-400 hover:bg-white/[0.02] transition cursor-pointer animate-pulse"
+              className="flex items-center justify-center h-full px-3 py-2.5 rounded-lg text-[11px] font-black text-orange-400 hover:bg-white/[0.02] transition cursor-pointer whitespace-nowrap"
             >
               More ▼
             </button>
             {moreActionsOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setMoreActionsOpen(false)} />
-                <div className="absolute left-0 mt-2 z-50 w-48 rounded-xl border border-[#1A1F35] bg-[#0D1021] p-1.5 shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150">
-                  {/* Certificate option visible ONLY on mobile dropdown */}
+                <div className="absolute right-0 mt-2 z-50 w-48 rounded-xl border border-[#1A1F35] bg-[#0D1021] p-1.5 shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150">
                   <Link
                     href="/instructor/certificates/create"
                     onClick={() => setMoreActionsOpen(false)}
-                    className="block md:hidden px-3.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-255 hover:bg-white/[0.03] rounded-lg transition"
+                    className="block px-3.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-200 hover:bg-white/[0.03] rounded-lg transition"
                   >
-                    Create Certificate
+                    Certificate Template
                   </Link>
-
-                  {/* Material option visible ONLY on mobile dropdown */}
-                  <Link
-                    href="/instructor/modules"
-                    onClick={() => setMoreActionsOpen(false)}
-                    className="block md:hidden px-3.5 py-2 text-xs font-bold text-slate-400 hover:text-slate-255 hover:bg-white/[0.03] rounded-lg transition"
-                  >
-                    Upload Material
-                  </Link>
-
                   <Link
                     href="/instructor/announcements"
                     onClick={() => setMoreActionsOpen(false)}
@@ -675,12 +671,12 @@ export default function InstructorDashboardPage() {
         </div>
 
         {/* Tabs Selector */}
-        <div className="flex gap-2.5 border-b border-[#1A1F35] pb-1">
+        <div className="flex gap-2.5 border-b border-[#1A1F35] pb-1 overflow-x-auto scrollbar-none">
           {['Content', 'Assignment', 'Quiz'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActivePrepTab(tab)}
-              className={`pb-2.5 px-1 text-xs font-black transition relative cursor-pointer ${
+              className={`pb-2.5 px-1 text-xs font-black transition relative cursor-pointer shrink-0 whitespace-nowrap ${
                 activePrepTab === tab ? 'text-orange-400' : 'text-slate-500 hover:text-slate-300'
               }`}
             >

@@ -5,19 +5,31 @@ import { ArrowLeft, ClipboardCheck } from "lucide-react";
 
 export default function QuizHeader({
                                        quiz,
+                                       onBack,
                                    }) {
     if (!quiz) return null;
 
     return (
         <div className="flex flex-col gap-6 rounded-2xl border border-slate-800 bg-slate-900 p-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-3">
-                <Link
-                    href="/student/quizzes"
-                    className="inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-orange-400"
-                >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Quizzes
-                </Link>
+                {onBack ? (
+                    <button
+                        type="button"
+                        onClick={onBack}
+                        className="inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-orange-400 cursor-pointer bg-transparent border-0 outline-none min-h-[36px]"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to Lesson
+                    </button>
+                ) : (
+                    <Link
+                        href="/student/quizzes"
+                        className="inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-orange-400"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to Quizzes
+                    </Link>
+                )}
 
                 <div className="flex items-center gap-3">
                     <div className="rounded-xl bg-orange-500/10 p-3 text-orange-500">

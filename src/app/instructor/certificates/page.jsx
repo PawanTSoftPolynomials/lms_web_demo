@@ -101,7 +101,7 @@ export default function CertificatesDashboardPage() {
           </div>
           <Link href="/instructor/certificates/create">
             <Button className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-400 text-white font-bold text-xs">
-              <Plus size={14} strokeWidth={3} /> Issue Certificate
+              <Plus size={14} strokeWidth={3} /> Certificate Template Builder
             </Button>
           </Link>
         </div>
