@@ -500,6 +500,30 @@ function InstructorReportsPageContent() {
 
           {/* Charts container */}
           <div className="space-y-6">
+            
+            {/* Video Analytics Summary */}
+            {dashboardData?.kpis?.find(k => k.title === 'Total Video Watch Time') && (
+               <Card className="p-6 border border-slate-800 bg-slate-900/60 shadow-lg flex items-center justify-between">
+                 <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                       <Video size={24} />
+                    </div>
+                    <div>
+                       <h3 className="text-md font-bold text-white">Total Video Engagement</h3>
+                       <p className="text-xs text-slate-400 mt-1">Total time students spent watching video lessons in this course.</p>
+                    </div>
+                 </div>
+                 <div className="text-right">
+                    <div className="text-3xl font-black text-indigo-400">
+                       {dashboardData.kpis.find(k => k.title === 'Total Video Watch Time').value}
+                    </div>
+                    <div className="text-xs text-emerald-400 font-semibold mt-1">
+                       {dashboardData.kpis.find(k => k.title === 'Total Video Watch Time').status}
+                    </div>
+                 </div>
+               </Card>
+            )}
+
             <StudentEngagement courseId={selectedCourseId} />
             
             <ConceptMastery
