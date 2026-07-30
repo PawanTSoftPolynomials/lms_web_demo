@@ -1,6 +1,11 @@
 "use client";
 
-import { ChevronDown, ChevronRight, PlayCircle, CheckCircle2, Lock } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, ChevronRight, PlayCircle, CheckCircle2, Lock, Plus, Minus } from "lucide-react";
+
+// How many module rows show before the list needs a "Show more" tap —
+// mirrors the 3-line clamp on the lesson description above it.
+const VISIBLE_MODULE_LIMIT = 4;
 
 /**
  * Embedded (non-drawer) module/lesson navigator for the learning page.
@@ -20,6 +25,15 @@ export default function CourseContentAccordion({
   collapsed = false,
   onToggleCollapsed,
 }) {
+  const [modulesExpanded, setModulesExpanded] = useState(false);
+
+  const activeModuleIndex = modules.findIndex((m) => m.id === activeModuleId);
+  // Never hide the module the student is currently in behind a "Show more" tap.
+  const forceShowAll = activeModuleIndex >= VISIBLE_MODULE_LIMIT;
+  const showAllModules = modulesExpanded || forceShowAll || modules.length <= VISIBLE_MODULE_LIMIT;
+  const visibleModules = showAllModules ? modules : modules.slice(0, VISIBLE_MODULE_LIMIT);
+  const hiddenModuleCount = modules.length - visibleModules.length;
+
   return (
     <div className="rounded-3xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl overflow-hidden">
       {/* Overall course progress */}
@@ -34,9 +48,10 @@ export default function CourseContentAccordion({
               <button
                 type="button"
                 onClick={onToggleCollapsed}
-                className="text-[10px] font-black uppercase tracking-wider text-orange-400 hover:text-orange-300 transition cursor-pointer bg-transparent border-0 outline-none"
+                title={collapsed ? "Show Course Content" : "Hide Course Content"}
+                className="relative h-7 w-7 flex items-center justify-center rounded-full text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 transition cursor-pointer bg-transparent outline-none before:content-[''] before:absolute before:-inset-[9px]"
               >
-                {collapsed ? "Show" : "Hide"}
+                {collapsed ? <Plus size={14} /> : <Minus size={14} />}
               </button>
             )}
           </div>
@@ -61,7 +76,7 @@ export default function CourseContentAccordion({
       {/* Module accordion */}
       {!collapsed && (
       <div className="divide-y divide-slate-800/60">
-        {modules.map((module, moduleIndex) => {
+        {visibleModules.map((module, moduleIndex) => {
           const expanded = module.id === activeModuleId;
           const locked = Boolean(module.locked ?? module.isLocked);
           const lessonCount = module.lessons?.length || 0;
@@ -147,6 +162,16 @@ export default function CourseContentAccordion({
             </div>
           );
         })}
+
+        {modules.length > VISIBLE_MODULE_LIMIT && !forceShowAll && (
+          <button
+            type="button"
+            onClick={() => setModulesExpanded((prev) => !prev)}
+            className="w-full px-4 sm:px-5 py-3 min-h-[44px] text-[10px] font-black uppercase tracking-wider text-orange-400 hover:text-orange-300 transition cursor-pointer border-0 bg-transparent outline-none"
+          >
+            {modulesExpanded ? "Show Less" : `Show ${hiddenModuleCount} More ${hiddenModuleCount === 1 ? "Module" : "Modules"}`}
+          </button>
+        )}
       </div>
       )}
     </div>

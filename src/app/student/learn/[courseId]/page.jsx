@@ -245,7 +245,7 @@ export default function LearnPage() {
 
   const markComplete = async () => {
     if (!selectedLesson?.id) return;
-    completeLessonMutation.mutate(selectedLesson.id);
+    completeLessonMutation.mutate({ lessonId: selectedLesson.id });
   };
 
   const handleLogout = () => {
@@ -280,6 +280,15 @@ export default function LearnPage() {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  // "About this lesson" clamps to 3 lines by default so it reads as a
+  // compact paragraph instead of pushing the video/tabs further down; a
+  // Read More toggle reveals the rest. Collapses again on every new lesson.
+  const overviewDescription = selectedLesson?.description || "No specific lesson objectives provided.";
+  const [overviewExpanded, setOverviewExpanded] = useState(false);
+  useEffect(() => {
+    setOverviewExpanded(false);
+  }, [selectedLesson?.id]);
+
   // Mobile tab strip definition — mirrors the desktop stacked sections 1:1,
   // just presented one-at-a-time instead of all at once.
   const contentTabs = [
@@ -291,10 +300,6 @@ export default function LearnPage() {
     { id: "feedback", label: "Feedback", icon: Star },
     { id: "quiz", label: "Quiz", icon: ClipboardList },
   ];
-
-  // Below xl: show only the active tab's content. At xl+, "xl:block" always
-  // wins, so every section shows stacked regardless of which tab is "active".
-  const tabVisibility = (tabId) => (activeContentTab === tabId ? "block" : "hidden");
 
   // Tap-to-scroll controls for the tab strip, so reaching hidden tabs doesn't
   // require a swipe gesture.
@@ -310,8 +315,11 @@ export default function LearnPage() {
   };
 
   useEffect(() => {
+    // isLoading gates whether the tab strip is even in the DOM yet (it's
+    // replaced by <Loader /> until the course loads), so re-measure once
+    // that flips instead of only once on this component's very first mount.
     updateTabScrollState();
-  }, []);
+  }, [isLoading, selectedLesson]);
 
   const scrollContentTabs = (direction) => {
     tabStripRef.current?.scrollBy({ left: direction * 160, behavior: "smooth" });
@@ -326,6 +334,252 @@ export default function LearnPage() {
   }
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // Each tab's content is defined exactly once here, then referenced both by
+  // the mobile shared content panel (conditional render, one at a time) and
+  // by the desktop stacked layout (all shown at once) — so there is a single
+  // source of truth per tab, not two copies that can drift out of sync.
+  const overviewPanel = (
+    <div className="rounded-3xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl p-4 sm:p-5 space-y-3">
+      <h4 className="text-xs font-black uppercase tracking-widest text-slate-300">About this lesson</h4>
+      <div className="space-y-1.5">
+        <p
+          className={`text-xs text-slate-300 leading-relaxed font-medium ${
+            overviewExpanded ? "" : "line-clamp-3"
+          }`}
+        >
+          {overviewDescription}
+        </p>
+        {overviewDescription.length > 180 && (
+          <button
+            type="button"
+            onClick={() => setOverviewExpanded((prev) => !prev)}
+            className="text-[10px] font-black uppercase tracking-wider text-orange-400 hover:text-orange-300 transition cursor-pointer bg-transparent border-0 outline-none min-h-[36px]"
+          >
+            {overviewExpanded ? "Show Less" : "Read More"}
+          </button>
+        )}
+      </div>
+
+      {initialTime > 3 && (
+        <div className="rounded-2xl border border-orange-500/20 bg-orange-500/5 p-3.5 space-y-2">
+          <div className="flex items-center gap-2">
+            <PlayCircle size={14} className="text-orange-400 shrink-0" />
+            <span className="text-xs font-bold text-orange-300">
+              Continue Learning — you left at {formatResumeTime(initialTime)}
+            </span>
+          </div>
+          {videoDuration > 0 && (
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-slate-900 border border-slate-800 rounded-full h-1.5 overflow-hidden relative">
+                <div
+                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full"
+                  style={{ width: `${Math.min(100, Math.round((initialTime / videoDuration) * 100))}%` }}
+                />
+              </div>
+              <span className="text-[10px] font-extrabold text-orange-400 shrink-0">
+                {Math.min(100, Math.round((initialTime / videoDuration) * 100))}%
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  const resourcesPanel = (
+    <div className="rounded-3xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl p-4 sm:p-5 space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-xs font-black uppercase tracking-widest text-slate-300 flex items-center gap-2">
+          <FileText size={14} className="text-orange-500" />
+          <span>Resources</span>
+        </h4>
+        <span className="text-[10px] text-slate-500 font-mono">{instructorAttachments.length} file(s)</span>
+      </div>
+
+      {instructorAttachments.length > 0 ? (
+        <div className="space-y-2">
+          {instructorAttachments.map((file, idx) => (
+            <div
+              key={file.id || idx}
+              className="p-3 rounded-xl bg-slate-900/40 border border-slate-800/80 flex items-center justify-between gap-2 hover:border-orange-500/40 transition group"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="h-8 w-8 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
+                  <Download size={14} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-white truncate group-hover:text-orange-400 transition">
+                    {file.title || "Class Attachment"}
+                  </p>
+                  <span className="text-[10px] text-slate-500 font-mono uppercase">{file.type || "FILE"}</span>
+                </div>
+              </div>
+              {file.fileUrl ? (
+                <a
+                  href={
+                    file.fileUrl.startsWith("http")
+                      ? file.fileUrl
+                      : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${file.fileUrl}`
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                  download
+                  className="px-3 py-2 min-h-[44px] flex items-center gap-1 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-[10px] uppercase tracking-wider transition shadow-md shrink-0 cursor-pointer"
+                >
+                  <Download size={11} />
+                  <span>Get</span>
+                </a>
+              ) : (
+                <span className="text-[10px] text-slate-500 italic shrink-0">No File</span>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="p-4 rounded-xl bg-slate-900/20 border border-dashed border-slate-800 text-center text-slate-500 text-xs">
+          No downloadable resources for this lesson.
+        </div>
+      )}
+    </div>
+  );
+
+  const queryPanel = (
+    <button
+      onClick={async () => {
+        const instId = course?.creatorId || course?.creator?.id || course?.creator?._id;
+        if (!instId) {
+          console.warn("Instructor ID not found for this course.");
+          return;
+        }
+        const matched = conversations.find(c =>
+          !c.isGroup && c.participants?.some(p => {
+            const pId = p.userId || p.user?.id || p.id;
+            return pId === instId;
+          })
+        );
+        if (matched) {
+          setActiveConversation(matched);
+          setIsOpen(true);
+        } else {
+          try {
+            const res = await createConversation({
+              name: course?.creator?.name || "Instructor",
+              participantIds: [instId],
+              courseId: course.id,
+              isGroup: false
+            });
+            const newConv = res.data || res;
+            if (newConv) {
+              setConversations(prev => [newConv, ...prev]);
+              setActiveConversation(newConv);
+            }
+            setIsOpen(true);
+          } catch (err) {
+            console.error("Failed to auto-create conversation with instructor:", err);
+          }
+        }
+      }}
+      className="w-full p-4 sm:p-5 rounded-3xl border border-slate-800 bg-slate-900/50 hover:bg-slate-900/80 hover:border-orange-500/40 transition duration-300 group cursor-pointer text-left shadow-lg relative overflow-hidden min-h-[44px]"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-amber-500/20 bg-amber-500/10 text-amber-400 shrink-0">
+            <HelpCircle size={18} className="stroke-[2.5]" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm font-black text-slate-100 group-hover:text-white transition truncate">Ask Instructor</h4>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+            </div>
+            <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">Instructor Active • Avg response &lt; 2 hrs</p>
+          </div>
+        </div>
+        <ChevronRight size={16} className="text-slate-500 group-hover:text-orange-400 transition-colors shrink-0" />
+      </div>
+      <div className="flex items-center gap-2 pt-2 border-t border-slate-800/60 text-[10px] text-slate-400 font-bold flex-wrap">
+        <span className="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-orange-400 font-mono">3 Active Discussions</span>
+        <span>Direct Q&amp;A Chat</span>
+      </div>
+    </button>
+  );
+
+  const feedbackPanel = (
+    <div className="space-y-4">
+      <Link
+        href={`/student/feedback?courseId=${course.id}`}
+        className="w-full flex items-center justify-between p-4 sm:p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left min-h-[44px]"
+      >
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-emerald-500/15 bg-emerald-500/5 text-emerald-400 shrink-0">
+            <MessageSquare size={18} className="stroke-[2.5]" />
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition truncate">Feedback</h4>
+            <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">Share your feedback to help us improve.</p>
+          </div>
+        </div>
+        <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-400 transition-colors shrink-0 ml-2" />
+      </Link>
+
+      <Link
+        href={`/student/reviews?courseId=${course.id}`}
+        className="w-full flex items-center justify-between p-4 sm:p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left min-h-[44px]"
+      >
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-blue-500/15 bg-blue-500/5 text-blue-400 shrink-0">
+            <Star size={18} className="stroke-[2.5]" />
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition truncate">Reviews</h4>
+            <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">Rate this course and see what others think.</p>
+          </div>
+        </div>
+        <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-400 transition-colors shrink-0 ml-2" />
+      </Link>
+    </div>
+  );
+
+  const quizPanel = (
+    <div className="rounded-3xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl p-4 sm:p-5 space-y-4">
+      <h4 className="text-xs font-black uppercase tracking-widest text-slate-300 flex items-center gap-2">
+        <ClipboardList size={14} className="text-orange-500" />
+        <span>Assessment Quiz</span>
+      </h4>
+      {course?.quizzes?.length ? (
+        <div className="space-y-3">
+          {course.quizzes.map((quiz) => (
+            <div
+              key={quiz.id}
+              className="rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+            >
+              <div className="space-y-1">
+                <h3 className="text-xs font-extrabold text-white">{quiz.title}</h3>
+                <p className="text-[11px] text-slate-400 font-semibold">
+                  {quiz.description || "Self-assessment to verify concept mastery."}
+                </p>
+                <div className="flex items-center gap-3 text-[10px] font-mono text-slate-500 pt-1">
+                  <span>Passing: {quiz.passingScore}%</span>
+                  <span>&bull;</span>
+                  <span>{quiz.questions?.length || 0} Questions</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="px-4 py-2.5 min-h-[44px] rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-md shrink-0"
+              >
+                Start Quiz
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="p-6 rounded-2xl bg-slate-900/20 border border-slate-800 text-center text-slate-500 text-xs italic">
+          No quiz assigned for this course.
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#07080f] text-white flex overflow-x-hidden font-sans relative">
@@ -641,11 +895,12 @@ export default function LearnPage() {
                   </h3>
                 </div>
 
-                {/* Mark as Complete Action */}
+                {/* Mark as Complete Action — desktop only; mobile has a small
+                    version of this in the row below the player instead. */}
                 <button
                   type="button"
                   onClick={markComplete}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl bg-slate-900 hover:bg-orange-500 hover:text-slate-950 border border-slate-800 hover:border-orange-400 text-xs font-black uppercase tracking-wider text-slate-200 transition-all shadow-md cursor-pointer shrink-0 self-start sm:self-auto"
+                  className="hidden xl:inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl bg-slate-900 hover:bg-orange-500 hover:text-slate-950 border border-slate-800 hover:border-orange-400 text-xs font-black uppercase tracking-wider text-slate-200 transition-all shadow-md cursor-pointer shrink-0 self-start sm:self-auto"
                 >
                   <CheckCircle2 size={15} className="text-emerald-400 group-hover:text-slate-950" />
                   <span>Mark Complete</span>
@@ -660,6 +915,50 @@ export default function LearnPage() {
                 onEnded={handleVideoEnded}
                 initialTime={initialTime}
               />
+
+              {/* Compact Previous / Complete / Next — mobile & tablet only, right
+                  under the player. Small on purpose: the video stays the focus,
+                  these are just quick actions, not another card competing for
+                  attention. Desktop keeps its own Mark Complete + fuller bar. */}
+              <div className="flex items-center gap-1.5 xl:hidden">
+                <button
+                  type="button"
+                  disabled={!previousLesson}
+                  onClick={() => {
+                    if (previousLesson) setSelectedLesson(previousLesson);
+                  }}
+                  className={`relative flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-xl border border-slate-700 font-bold text-[10px] uppercase tracking-wide text-slate-300 hover:text-white hover:border-orange-500 transition cursor-pointer before:content-[''] before:absolute before:-inset-y-[8px] before:inset-x-0 ${
+                    !previousLesson ? "opacity-30 cursor-not-allowed hover:border-slate-700 hover:text-slate-300" : ""
+                  }`}
+                >
+                  <ChevronLeft size={14} />
+                  <span>Prev</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={markComplete}
+                  className="relative flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-xl border border-emerald-500/30 text-emerald-400 hover:border-emerald-400 hover:text-emerald-300 font-bold text-[10px] uppercase tracking-wide transition cursor-pointer bg-transparent before:content-[''] before:absolute before:-inset-y-[8px] before:inset-x-0"
+                >
+                  <CheckCircle2 size={14} />
+                  <span>Complete</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={!nextLesson}
+                  onClick={() => {
+                    markComplete();
+                    if (nextLesson) setSelectedLesson(nextLesson);
+                  }}
+                  className={`relative flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-xl bg-orange-500 hover:bg-orange-600 font-bold text-[10px] uppercase tracking-wide text-slate-950 transition cursor-pointer before:content-[''] before:absolute before:-inset-y-[8px] before:inset-x-0 ${
+                    !nextLesson ? "opacity-40 cursor-not-allowed bg-orange-500/40 text-slate-400" : ""
+                  }`}
+                >
+                  <span>Next</span>
+                  <ChevronRight size={14} />
+                </button>
+              </div>
             </div>
 
             {/* CONTENT TAB STRIP — mobile & tablet only. Desktop shows every
@@ -691,13 +990,13 @@ export default function LearnPage() {
                         key={tab.id}
                         type="button"
                         onClick={() => setActiveContentTab(tab.id)}
-                        className={`flex flex-col items-center gap-1 px-3.5 py-2 min-h-[44px] text-[10px] font-bold uppercase tracking-wide transition cursor-pointer border-0 border-b-2 outline-none shrink-0 bg-transparent ${
+                        className={`flex flex-col items-center gap-1 px-3.5 py-2 min-h-[44px] text-[11px] font-bold uppercase tracking-wide transition cursor-pointer border-0 border-b-2 outline-none shrink-0 bg-transparent ${
                           isActive
                             ? "text-orange-400 border-orange-500"
-                            : "text-slate-500 border-transparent hover:text-slate-300"
+                            : "text-slate-300 border-transparent hover:text-white"
                         }`}
                       >
-                        <Icon size={16} />
+                        <Icon size={18} />
                         <span>{tab.label}</span>
                       </button>
                     );
@@ -716,43 +1015,47 @@ export default function LearnPage() {
               </div>
             </div>
 
-            {/* OVERVIEW — lesson description + resume prompt. First tab below xl
-                (no tap needed by default); always visible on desktop, row 3. */}
-            <div className={`min-w-0 row-start-3 ${tabVisibility("overview")} xl:block xl:col-start-1 xl:row-start-3`}>
-              <div className="rounded-3xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl p-4 sm:p-5 space-y-3">
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-300">About this lesson</h4>
-                <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                  {selectedLesson?.description || "No specific lesson objectives provided."}
-                </p>
+            {/* SHARED CONTENT PANEL — mobile & tablet only. Exactly one branch
+                renders at a time based on activeContentTab: true conditional
+                rendering (if/else), not a CSS show/hide toggle across parallel
+                siblings. This is the one container every tab — Overview,
+                Transcript, Resources, Notes, Query, Feedback, and Quiz alike —
+                renders into below xl. Nothing else moves when it changes. */}
+            <div className="row-start-3 xl:hidden min-w-0">
+              {activeContentTab === "overview" && overviewPanel}
 
-                {initialTime > 3 && (
-                  <div className="rounded-2xl border border-orange-500/20 bg-orange-500/5 p-3.5 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <PlayCircle size={14} className="text-orange-400 shrink-0" />
-                      <span className="text-xs font-bold text-orange-300">
-                        Continue Learning — you left at {formatResumeTime(initialTime)}
-                      </span>
-                    </div>
-                    {videoDuration > 0 && (
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-slate-900 border border-slate-800 rounded-full h-1.5 overflow-hidden relative">
-                          <div
-                            className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full"
-                            style={{ width: `${Math.min(100, Math.round((initialTime / videoDuration) * 100))}%` }}
-                          />
-                        </div>
-                        <span className="text-[10px] font-extrabold text-orange-400 shrink-0">
-                          {Math.min(100, Math.round((initialTime / videoDuration) * 100))}%
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              {activeContentTab === "transcript" && (
+                <TranscriptPanel
+                  segments={transcriptSegments}
+                  status={transcriptStatus}
+                  currentTime={currentTimestamp}
+                  onSeek={handleTranscriptSeek}
+                />
+              )}
+
+              {activeContentTab === "resources" && resourcesPanel}
+
+              {activeContentTab === "notes" && (
+                <StickyNotesPanel
+                  lessonId={selectedLesson?.id}
+                  currentTimestamp={currentTimestamp}
+                  onSeek={handleTranscriptSeek}
+                />
+              )}
+
+              {activeContentTab === "query" && queryPanel}
+
+              {activeContentTab === "feedback" && feedbackPanel}
+
+              {activeContentTab === "quiz" && quizPanel}
             </div>
 
-            {/* TRANSCRIPT — read along with the video: a tab below xl, row 4 on desktop */}
-            <div className={`min-w-0 row-start-3 ${tabVisibility("transcript")} xl:block xl:col-start-1 xl:row-start-4`}>
+            {/* Desktop (xl+): no tab switching — every section stays mounted and
+                visible at once, stacked, each in its own row (unchanged from
+                before this refactor). */}
+            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-3">{overviewPanel}</div>
+
+            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-4">
               <TranscriptPanel
                 segments={transcriptSegments}
                 status={transcriptStatus}
@@ -761,217 +1064,21 @@ export default function LearnPage() {
               />
             </div>
 
-            {/* RESOURCES — downloadable lesson attachments: a tab below xl, row 5 on desktop */}
-            <div className={`min-w-0 row-start-3 ${tabVisibility("resources")} xl:block xl:col-start-1 xl:row-start-5`}>
-              <div className="rounded-3xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl p-4 sm:p-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-300 flex items-center gap-2">
-                    <FileText size={14} className="text-orange-500" />
-                    <span>Resources</span>
-                  </h4>
-                  <span className="text-[10px] text-slate-500 font-mono">{instructorAttachments.length} file(s)</span>
-                </div>
+            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-5">{resourcesPanel}</div>
 
-                {instructorAttachments.length > 0 ? (
-                  <div className="space-y-2">
-                    {instructorAttachments.map((file, idx) => (
-                      <div
-                        key={file.id || idx}
-                        className="p-3 rounded-xl bg-slate-900/40 border border-slate-800/80 flex items-center justify-between gap-2 hover:border-orange-500/40 transition group"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="h-8 w-8 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
-                            <Download size={14} />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-white truncate group-hover:text-orange-400 transition">
-                              {file.title || "Class Attachment"}
-                            </p>
-                            <span className="text-[10px] text-slate-500 font-mono uppercase">{file.type || "FILE"}</span>
-                          </div>
-                        </div>
-                        {file.fileUrl ? (
-                          <a
-                            href={
-                              file.fileUrl.startsWith("http")
-                                ? file.fileUrl
-                                : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${file.fileUrl}`
-                            }
-                            target="_blank"
-                            rel="noreferrer"
-                            download
-                            className="px-3 py-2 min-h-[44px] flex items-center gap-1 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-[10px] uppercase tracking-wider transition shadow-md shrink-0 cursor-pointer"
-                          >
-                            <Download size={11} />
-                            <span>Get</span>
-                          </a>
-                        ) : (
-                          <span className="text-[10px] text-slate-500 italic shrink-0">No File</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-xl bg-slate-900/20 border border-dashed border-slate-800 text-center text-slate-500 text-xs">
-                    No downloadable resources for this lesson.
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* QUERY / STICKY NOTES / FEEDBACK — one sticky column on desktop; below xl
-                each is its own tab, so only the active one renders visible content
-                and the wrapper collapses to whichever one that is. */}
-            <div className="flex flex-col gap-6 min-w-0 row-start-3 xl:col-start-2 xl:row-start-1 xl:row-span-7 xl:sticky xl:top-24 xl:h-fit">
-
-              {/* Sticky Notes Panel — "Notes" tab below xl, second on desktop */}
-              <div className={`${tabVisibility("notes")} xl:block xl:order-2`}>
+            <div className="hidden xl:flex xl:flex-col xl:gap-6 min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-8 xl:sticky xl:top-24 xl:h-fit">
+              <div className="xl:order-2">
                 <StickyNotesPanel
                   lessonId={selectedLesson?.id}
                   currentTimestamp={currentTimestamp}
                   onSeek={handleTranscriptSeek}
                 />
               </div>
-
-              {/* Query Hub Card — "Query" tab below xl, first on desktop */}
-              <div className={`${tabVisibility("query")} xl:block xl:order-1`}>
-                <button
-                  onClick={async () => {
-                    const instId = course?.creatorId || course?.creator?.id || course?.creator?._id;
-                    if (!instId) {
-                      console.warn("Instructor ID not found for this course.");
-                      return;
-                    }
-                    const matched = conversations.find(c =>
-                      !c.isGroup && c.participants?.some(p => {
-                        const pId = p.userId || p.user?.id || p.id;
-                        return pId === instId;
-                      })
-                    );
-                    if (matched) {
-                      setActiveConversation(matched);
-                      setIsOpen(true);
-                    } else {
-                      try {
-                        const res = await createConversation({
-                          name: course?.creator?.name || "Instructor",
-                          participantIds: [instId],
-                          courseId: course.id,
-                          isGroup: false
-                        });
-                        const newConv = res.data || res;
-                        if (newConv) {
-                          setConversations(prev => [newConv, ...prev]);
-                          setActiveConversation(newConv);
-                        }
-                        setIsOpen(true);
-                      } catch (err) {
-                        console.error("Failed to auto-create conversation with instructor:", err);
-                      }
-                    }
-                  }}
-                  className="w-full p-4 sm:p-5 rounded-3xl border border-slate-800 bg-slate-900/50 hover:bg-slate-900/80 hover:border-orange-500/40 transition duration-300 group cursor-pointer text-left shadow-lg relative overflow-hidden min-h-[44px]"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-amber-500/20 bg-amber-500/10 text-amber-400 shrink-0">
-                        <HelpCircle size={18} className="stroke-[2.5]" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-black text-slate-100 group-hover:text-white transition truncate">Ask Instructor</h4>
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
-                        </div>
-                        <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">Instructor Active • Avg response &lt; 2 hrs</p>
-                      </div>
-                    </div>
-                    <ChevronRight size={16} className="text-slate-500 group-hover:text-orange-400 transition-colors shrink-0" />
-                  </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/60 text-[10px] text-slate-400 font-bold flex-wrap">
-                    <span className="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-orange-400 font-mono">3 Active Discussions</span>
-                    <span>Direct Q&amp;A Chat</span>
-                  </div>
-                </button>
-              </div>
-
-              {/* Feedback / Reviews Action Cards — "Feedback" tab below xl, third on desktop */}
-              <div className={`space-y-4 ${tabVisibility("feedback")} xl:block xl:order-3`}>
-                <Link
-                  href={`/student/feedback?courseId=${course.id}`}
-                  className="w-full flex items-center justify-between p-4 sm:p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left min-h-[44px]"
-                >
-                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-emerald-500/15 bg-emerald-500/5 text-emerald-400 shrink-0">
-                      <MessageSquare size={18} className="stroke-[2.5]" />
-                    </div>
-                    <div className="min-w-0">
-                      <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition truncate">Feedback</h4>
-                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">Share your feedback to help us improve.</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-400 transition-colors shrink-0 ml-2" />
-                </Link>
-
-                <Link
-                  href={`/student/reviews?courseId=${course.id}`}
-                  className="w-full flex items-center justify-between p-4 sm:p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left min-h-[44px]"
-                >
-                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-blue-500/15 bg-blue-500/5 text-blue-400 shrink-0">
-                      <Star size={18} className="stroke-[2.5]" />
-                    </div>
-                    <div className="min-w-0">
-                      <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition truncate">Reviews</h4>
-                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">Rate this course and see what others think.</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-400 transition-colors shrink-0 ml-2" />
-                </Link>
-              </div>
+              <div className="xl:order-1">{queryPanel}</div>
+              <div className="xl:order-3">{feedbackPanel}</div>
             </div>
 
-            {/* QUIZ — mobile-only tab. Desktop keeps this inside Lesson Tabs below,
-                so it isn't duplicated there. */}
-            <div className={`min-w-0 row-start-3 ${tabVisibility("quiz")} xl:hidden`}>
-              <div className="rounded-3xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl p-4 sm:p-5 space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-300 flex items-center gap-2">
-                  <ClipboardList size={14} className="text-orange-500" />
-                  <span>Assessment Quiz</span>
-                </h4>
-                {course?.quizzes?.length ? (
-                  <div className="space-y-3">
-                    {course.quizzes.map((quiz) => (
-                      <div
-                        key={quiz.id}
-                        className="rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                      >
-                        <div className="space-y-1">
-                          <h3 className="text-xs font-extrabold text-white">{quiz.title}</h3>
-                          <p className="text-[11px] text-slate-400 font-semibold">
-                            {quiz.description || "Self-assessment to verify concept mastery."}
-                          </p>
-                          <div className="flex items-center gap-3 text-[10px] font-mono text-slate-500 pt-1">
-                            <span>Passing: {quiz.passingScore}%</span>
-                            <span>&bull;</span>
-                            <span>{quiz.questions?.length || 0} Questions</span>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          className="px-4 py-2.5 min-h-[44px] rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-md shrink-0"
-                        >
-                          Start Quiz
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-6 rounded-2xl bg-slate-900/20 border border-slate-800 text-center text-slate-500 text-xs italic">
-                    No quiz assigned for this course.
-                  </div>
-                )}
-              </div>
-            </div>
+            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-6">{quizPanel}</div>
 
             {/* COURSE CONTENT — embedded module/lesson navigator, mobile & tablet
                 only (below xl). Desktop keeps the fixed sidebar, so this would be
@@ -991,10 +1098,10 @@ export default function LearnPage() {
               />
             </div>
 
-            {/* COURSE INFO — orientation, not an action: deferred below the learning
-                flow on phones/tablets, restored to the top of the left column on
-                desktop where it costs no extra scrolling to see it first. */}
-            <div className="space-y-4 min-w-0 row-start-5 xl:col-start-1 xl:row-start-1">
+            {/* COURSE INFO — desktop only. On mobile this duplicates what's already
+                in the header (back arrow) and Course Content (progress %), and it
+                isn't part of the tabbed flow you're designing toward there. */}
+            <div className="hidden xl:block space-y-4 min-w-0 xl:col-start-1 xl:row-start-1">
               <Link
                 href="/student/my-courses"
                 className="inline-flex items-center gap-2 text-xs text-slate-400 transition hover:text-orange-500 font-bold uppercase tracking-wider min-h-[36px]"
@@ -1043,20 +1150,21 @@ export default function LearnPage() {
               </div>
             </div>
 
-            {/* LESSON TABS — desktop only. Its Overview/Notes/Quiz tabs are now
-                superseded on mobile by the tab strip above (Quiz included), so
-                showing it there too would just duplicate that content. */}
-            <div className="hidden xl:block pt-6 border-t border-slate-900/80 min-w-0 xl:col-start-1 xl:row-start-6">
+            {/* LESSON TABS — desktop only. Quiz was removed from inside this
+                component (see comment above); what's left (bookmark, personal
+                scratchpad notes) isn't part of the 7-tab set, so it stays as
+                supplementary reference material rather than a tab of its own. */}
+            <div className="hidden xl:block pt-6 border-t border-slate-900/80 min-w-0 xl:col-start-1 xl:row-start-7">
               <LessonTabs
                 lesson={selectedLesson}
                 course={course}
               />
             </div>
 
-            {/* PREVIOUS / NEXT LESSON — bottom-of-lesson call to action on every
-                screen size. Crossing into a new module suggests "Continue to
-                Next Module" instead of a generic "Next Lesson". */}
-            <div className="min-w-0 row-start-6 xl:col-start-1 xl:row-start-7">
+            {/* PREVIOUS / NEXT LESSON — desktop only. Mobile has the compact pair
+                right under the video player instead; "Continue to Next Module"
+                lives here where there's room for the fuller label. */}
+            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-8">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-[#0d0e16]/80 border border-[#1e2030] shadow-xl backdrop-blur-md min-w-0">
                 <button
                   disabled={!previousLesson}

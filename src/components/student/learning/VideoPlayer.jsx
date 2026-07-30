@@ -216,10 +216,13 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
     return (
         <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 flex flex-col w-full">
-            {/* Header */}
+            {/* Header — skipped for VIDEO: the lesson title already shows above the
+                player, and the video's own thumbnail/embed carries its title too,
+                so this bar was just a third repeat of the same text. Still shown
+                for other content types (slide counter, file/doc title). */}
+            {type !== "VIDEO" && (
             <div className="border-b border-slate-800 px-4 sm:px-6 py-3.5 flex items-center justify-between bg-slate-950 min-h-[52px]">
                 <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2 truncate pr-2">
-                    {type === "VIDEO" && <PlayCircle className="h-4 w-4 text-orange-500 shrink-0" />}
                     {isSlideShow && <Presentation className="h-4 w-4 text-orange-500 shrink-0" />}
                     {type === "HTML" && !isSlideShow && <BookOpen className="h-4 w-4 text-orange-500 shrink-0" />}
                     {type === "FILE" && <FileText className="h-4 w-4 text-orange-500 shrink-0" />}
@@ -231,13 +234,17 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     </span>
                 )}
             </div>
+            )}
 
             {/* Content Area with fluid aspect ratio */}
             <div className="relative w-full flex-1 flex flex-col bg-slate-900">
                 {/* VIDEO */}
                 {type === "VIDEO" && (
                     isYoutube ? (
-                        <div ref={containerRef} className="aspect-video w-full max-h-[520px] bg-black" />
+                        <div
+                            ref={containerRef}
+                            className="relative aspect-video w-full max-h-[520px] bg-black overflow-hidden [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full"
+                        />
                     ) : (
                         <video
                             ref={localVideoRef}
