@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Eye, Edit2, FileText } from "lucide-react";
+import DOMPurify from "isomorphic-dompurify";
 
 const renderMarkdown = (text) => {
     if (!text) return "";
@@ -85,7 +86,7 @@ export default function SelfAssessmentInput({
                     {value ? (
                         <div
                             className="prose prose-invert max-w-none text-slate-300 leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: renderMarkdown(value) }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(renderMarkdown(value)) }}
                         />
                     ) : (
                         <p className="text-slate-600 italic text-center mt-16">Nothing to preview. Go back to write your answer.</p>

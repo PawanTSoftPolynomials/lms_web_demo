@@ -1,6 +1,6 @@
 "use client";
 
-import {useParams, useRouter} from "next/navigation";
+import {useParams, useRouter, useSearchParams} from "next/navigation";
 
 import Loader from "@/components/common/Loader";
 import ContentForm from "@/components/instructor/contents/ContentForm";
@@ -10,8 +10,9 @@ import {useCreateContent} from "@/hooks/queries/instructor/useCreateContent";
 
 export default function CreateContentPage() {
     const {lessonId} = useParams();
-
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const typeParam = searchParams.get("type");
 
     const createContentMutation =
         useCreateContent();
@@ -67,6 +68,7 @@ export default function CreateContentPage() {
     return (
         <ContentForm
             mode="create"
+            initialValues={typeParam ? { type: typeParam } : undefined}
             loading={
                 createContentMutation.isPending
             }

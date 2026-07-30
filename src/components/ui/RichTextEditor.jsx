@@ -2,9 +2,9 @@
 
 import dynamic from "next/dynamic";
 import { forwardRef } from "react";
-import "react-quill/dist/quill.snow.css";
+import "react-quill-new/dist/quill.snow.css";
 
-const ReactQuill = dynamic(() => import("react-quill"), {
+const ReactQuill = dynamic(() => import("react-quill-new"), {
   ssr: false,
   loading: () => <div className="h-[200px] w-full animate-pulse rounded-lg bg-slate-800" />,
 });
@@ -27,7 +27,6 @@ const formats = [
   "strike",
   "blockquote",
   "list",
-  "bullet",
   "link",
   "code-block",
 ];

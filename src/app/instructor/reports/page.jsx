@@ -78,33 +78,35 @@ function InstructorReportsPageContent() {
     queryKey: ["instructorDashboard", selectedCourseId],
     queryFn: async () => {
       if (!selectedCourseId) return null;
-      const { data } = await api.get(`/instructor/dashboard?courseId=${selectedCourseId}`);
+      const { data } = await api.get(`/dashboard/instructor?courseId=${selectedCourseId}`);
       return data.data ?? data;
     },
     enabled: !!selectedCourseId,
   });
 
   // Fetch enrolled students roster for selected course
-  const { data: studentsRoster = [], isLoading: loadingRoster } = useQuery({
+  const { data: rawStudentsRoster = [], isLoading: loadingRoster } = useQuery({
     queryKey: ["courseStudentsRoster", selectedCourseId],
     queryFn: async () => {
       if (!selectedCourseId) return [];
       const { data } = await api.get(`/courses/${selectedCourseId}/students`);
-      return data;
+      return data?.data ?? data;
     },
     enabled: !!selectedCourseId,
   });
+  const studentsRoster = Array.isArray(rawStudentsRoster) ? rawStudentsRoster : [];
 
   // Fetch batches for selected course
-  const { data: batches = [], isLoading: loadingBatches, refetch: refetchBatches } = useQuery({
+  const { data: rawBatches = [], isLoading: loadingBatches, refetch: refetchBatches } = useQuery({
     queryKey: ["courseBatches", selectedCourseId],
     queryFn: async () => {
       if (!selectedCourseId) return [];
       const { data } = await api.get(`/courses/${selectedCourseId}/batches`);
-      return data;
+      return data?.data ?? data;
     },
     enabled: !!selectedCourseId,
   });
+  const batches = Array.isArray(rawBatches) ? rawBatches : [];
 
   // Batch Creation Mutation
   const createBatchMutation = useMutation({
@@ -147,8 +149,8 @@ function InstructorReportsPageContent() {
 
   // Filter student roster by search input
   const filteredStudents = studentsRoster.filter((student) =>
-    student.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
-    student.email.toLowerCase().includes(studentSearch.toLowerCase())
+    (student?.name || "").toLowerCase().includes(studentSearch.toLowerCase()) ||
+    (student?.email || "").toLowerCase().includes(studentSearch.toLowerCase())
   );
 
   return (
@@ -381,30 +383,26 @@ function InstructorReportsPageContent() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredStudents.map((student, index) => {
-                      // Generate dynamic completion rate and mock grades
-                      const mockProgress = Math.min(Math.floor((3 + index * 4) * 8.5), 100);
-                      const mockGrade = 65 + (index * 7) % 35;
-                      
-                      return (
-                        <tr key={student.id} className="border-b border-slate-800/60 hover:bg-slate-850/40 transition">
-                          <td className="py-3.5 pl-2 font-bold text-white">{student.name}</td>
-                          <td className="py-3.5">{student.email}</td>
-                          <td className="py-3.5 text-slate-400">
-                            {student.enrolledAt ? new Date(student.enrolledAt).toLocaleDateString() : "Jul 10, 2026"}
-                          </td>
-                          <td className="py-3.5">
-                            <div className="flex items-center gap-3">
-                              <div className="h-1.5 w-24 bg-slate-800 rounded-full overflow-hidden shrink-0">
-                                <div className="h-full bg-purple-500" style={{ width: `${mockProgress}%` }} />
-                              </div>
-                              <span className="font-bold">{mockProgress}%</span>
+                    {filteredStudents.map((student) => (
+                      <tr key={student.id} className="border-b border-slate-800/60 hover:bg-slate-850/40 transition">
+                        <td className="py-3.5 pl-2 font-bold text-white">{student.name}</td>
+                        <td className="py-3.5">{student.email}</td>
+                        <td className="py-3.5 text-slate-400">
+                          {student.enrolledAt ? new Date(student.enrolledAt).toLocaleDateString() : "—"}
+                        </td>
+                        <td className="py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="h-1.5 w-24 bg-slate-800 rounded-full overflow-hidden shrink-0">
+                              <div className="h-full bg-purple-500" style={{ width: `${student.progress ?? 0}%` }} />
                             </div>
-                          </td>
-                          <td className="py-3.5 pr-2 text-right font-black text-emerald-400">{mockGrade}%</td>
-                        </tr>
-                      );
-                    })}
+                            <span className="font-bold">{student.progress ?? 0}%</span>
+                          </div>
+                        </td>
+                        <td className="py-3.5 pr-2 text-right font-black text-emerald-400">
+                          {student.avgGrade != null ? `${student.avgGrade}%` : "—"}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -426,62 +424,16 @@ function InstructorReportsPageContent() {
             </button>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            {/* Stats */}
-            <Card className="p-5 border border-slate-800 bg-slate-900/60 md:col-span-1 space-y-4">
-              <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-400">Participation Analytics</h3>
-              
-              <div className="space-y-4 pt-2">
-                <div className="bg-slate-950/40 p-3 rounded-lg border border-slate-850">
-                  <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider block">Average Attendance</span>
-                  <span className="text-2xl font-black text-emerald-400 mt-1 block">84.2%</span>
-                </div>
-                <div className="bg-slate-950/40 p-3 rounded-lg border border-slate-850">
-                  <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider block">Live Sessions Completed</span>
-                  <span className="text-2xl font-black text-white mt-1 block">12 Classes</span>
-                </div>
-                <div className="bg-slate-950/40 p-3 rounded-lg border border-slate-850">
-                  <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider block">Cohort Attention Level</span>
-                  <span className="text-xs font-bold text-orange-400 mt-1 flex items-center gap-1">
-                    <span>High Attention (Stable)</span>
-                  </span>
-                </div>
-              </div>
-            </Card>
-
-            {/* Attendance list */}
-            <Card className="p-6 border border-slate-800 bg-slate-900/60 md:col-span-2">
-              <h3 className="text-md font-bold text-white mb-4">Student Attendance Index</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-slate-300 text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-800 text-slate-400 font-extrabold uppercase tracking-widest text-[9px]">
-                      <th className="pb-3 pl-2">Student Name</th>
-                      <th className="pb-3">Scheduled Sessions</th>
-                      <th className="pb-3">Attended Sessions</th>
-                      <th className="pb-3 pr-2 text-right">Attendance Rate</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {studentsRoster.map((student, index) => {
-                      const total = 12;
-                      const attended = Math.max(9, 12 - (index % 4));
-                      const percent = Math.round((attended / total) * 100);
-                      
-                      return (
-                        <tr key={student.id} className="border-b border-slate-800/60 hover:bg-slate-850/40 transition">
-                          <td className="py-3.5 pl-2 font-semibold text-white">{student.name}</td>
-                          <td className="py-3.5">{total} Classes</td>
-                          <td className="py-3.5 text-slate-400">{attended} Classes</td>
-                          <td className="py-3.5 pr-2 text-right font-bold text-emerald-400">{percent}%</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          </div>
+          <Card className="p-10 border border-slate-800 bg-slate-900/60 text-center space-y-3">
+            <div className="h-12 w-12 mx-auto rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <CheckCircle2 size={22} />
+            </div>
+            <h3 className="text-md font-bold text-white">Attendance tracking isn't available yet</h3>
+            <p className="text-xs text-slate-400 max-w-md mx-auto">
+              This course doesn't have live-session attendance tracking set up. Once sessions record
+              who joined, per-student attendance will appear here.
+            </p>
+          </Card>
         </div>
       )}
 
@@ -669,7 +621,9 @@ function InstructorReportsPageContent() {
 
                   <div className="border-t border-slate-800/80 mt-5 pt-3 flex items-center justify-between text-[10px] text-slate-500">
                     <span>Batch ID: {batch.id.slice(-8).toUpperCase()}</span>
-                    <span className="text-slate-400 font-bold">12 Registered Students</span>
+                    <span className="text-slate-400 font-bold">
+                      {batch.studentsCount ?? 0} Registered Student{(batch.studentsCount ?? 0) === 1 ? "" : "s"}
+                    </span>
                   </div>
                 </Card>
               ))

@@ -1,3 +1,5 @@
+import DOMPurify from "isomorphic-dompurify";
+
 export default function NotesViewer({
   htmlContent,
 }) {
@@ -10,7 +12,7 @@ export default function NotesViewer({
       <div
         className="prose prose-invert max-w-none"
         dangerouslySetInnerHTML={{
-          __html: htmlContent,
+          __html: DOMPurify.sanitize(htmlContent || ""),
         }}
       />
     </div>

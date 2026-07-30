@@ -73,4 +73,8 @@ export const QUERY_KEYS = {
     QUESTION: "question",
     QUIZ_RESULT: "quiz-result",
 
+    LESSON_NOTES: "lesson-notes",
+    LESSON_QUERIES: "lesson-queries",
+    DISCUSSIONS: "discussions",
+
 };

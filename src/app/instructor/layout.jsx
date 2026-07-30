@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { useAuth } from "@/context/AuthContext";
 import Loader from "@/components/common/Loader";
+import { NavigationStrip } from "@/components/instructor/NavigationStrip/NavigationStrip";
 
 export default function Layout({ children }) {
   const router = useRouter();
@@ -32,7 +33,12 @@ export default function Layout({ children }) {
 
   return (
     <DashboardLayout role="INSTRUCTOR" title="Instructor Dashboard">
-      {children}
+      <div className="flex flex-col gap-4 max-w-[1600px] mx-auto mb-6 sticky top-0 z-30 bg-[#080B11]/90 backdrop-blur-md pt-2 pb-2">
+        <NavigationStrip />
+      </div>
+      <div className="max-w-[1600px] mx-auto w-full">
+        {children}
+      </div>
     </DashboardLayout>
   );
 }

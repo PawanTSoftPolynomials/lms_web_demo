@@ -8,10 +8,7 @@ export const getCourses = async () => {
         const {data} = await api.get("/courses");
         return data.data ?? data;
     } catch (error) {
-        return [
-            { id: "course-react-next", title: "Fullstack Web Development with Next.js", category: "Web Development" },
-            { id: "course-node-express", title: "Backend Mastery with Node.js & Express", category: "Backend" }
-        ];
+        throw error;
     }
 };
 
@@ -27,8 +24,7 @@ export const getCourseById = async (
         );
         return data.data ?? data;
     } catch (error) {
-        console.warn("API error fetching course by ID, returning dynamic mock fallback:", error?.message);
-        
+        throw error;
     }
 };
 
@@ -87,4 +83,30 @@ export const updateCourseStatus = async (
     );
 
     return data;
+};
+
+/**
+ * Duplicate Course
+ */
+export const duplicateCourse = async (
+    courseId
+) => {
+    const {data} = await api.post(
+        `/courses/${courseId}/duplicate`
+    );
+
+    return data;
+};
+
+/**
+ * Get Students Enrolled In A Course (with real per-student progress/avgGrade)
+ */
+export const getCourseStudents = async (
+    courseId
+) => {
+    const {data} = await api.get(
+        `/courses/${courseId}/students`
+    );
+
+    return data.data ?? data;
 };

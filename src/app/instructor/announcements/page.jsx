@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Megaphone, ArrowLeft, Send, CheckCircle2, AlertTriangle } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 import api from "@/lib/axios";
 import Card from "@/components/ui/Card";
@@ -13,6 +13,7 @@ import Loader from "@/components/common/Loader";
 
 export default function InstructorAnnouncementsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
 
   const [selectedCourseId, setSelectedCourseId] = useState("");
@@ -34,6 +35,15 @@ export default function InstructorAnnouncementsPage() {
   const eligibleCourses = courses.filter(
     (c) => c.creatorId === user?.id && c.status === "PUBLISHED"
   );
+
+  useEffect(() => {
+    const action = searchParams.get("action");
+    const paramCourseId = searchParams.get("courseId");
+    
+    if (action === "create" && paramCourseId && eligibleCourses.some((c) => c.id === paramCourseId)) {
+      setSelectedCourseId(paramCourseId);
+    }
+  }, [searchParams, eligibleCourses]);
 
   const broadcastMutation = useMutation({
     mutationFn: async ({ courseId, title, message }) => {

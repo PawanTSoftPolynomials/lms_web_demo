@@ -2,10 +2,7 @@ import { useEffect, useCallback } from "react";
 
 import useChat from "@/hooks/useChat";
 
-import {
-  getConversations,
-  getLocalConvs,
-} from "../api/chat.api";
+import { getConversations } from "../api/chat.api";
 
 export default function useConversation() {
   const {
@@ -17,33 +14,13 @@ export default function useConversation() {
     try {
       setLoading(true);
 
-      let dbConvs = [];
-      try {
-        const response = await getConversations();
-        dbConvs = response.data || response || [];
-        if (!Array.isArray(dbConvs)) dbConvs = [];
-      } catch (err) {
-        console.warn("Failed to load database conversations:", err);
-      }
+      const response = await getConversations();
+      const dbConvs = Array.isArray(response) ? response : response?.data ?? [];
 
-      // Load mock conversations from local cache
-      const localConvs = getLocalConvs() || [];
-
-      // Merge DB conversations and local mock conversations
-      const mergedConvs = [...dbConvs];
-      localConvs.forEach((lc) => {
-        if (
-          lc &&
-          lc.id &&
-          !lc.id.toString().includes("undefined") &&
-          !lc.id.toString().includes("null") &&
-          !mergedConvs.some((dc) => dc.id === lc.id)
-        ) {
-          mergedConvs.push(lc);
-        }
-      });
-
-      setConversations(mergedConvs);
+      setConversations(Array.isArray(dbConvs) ? dbConvs : []);
+    } catch (err) {
+      console.error("Failed to load conversations:", err);
+      setConversations([]);
     } finally {
       setLoading(false);
     }
@@ -51,18 +28,6 @@ export default function useConversation() {
 
   useEffect(() => {
     loadConversations();
-  }, [loadConversations]);
-
-  useEffect(() => {
-    const handleStorage = (e) => {
-      if (e.key === "lms_conversations") {
-        loadConversations();
-      }
-    };
-    window.addEventListener("storage", handleStorage);
-    return () => {
-      window.removeEventListener("storage", handleStorage);
-    };
   }, [loadConversations]);
 
   return {

@@ -22,6 +22,10 @@ export function useDeleteQuestion() {
                     variables.quizId,
                 ],
             });
+
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES],
+            });
         },
     });
 }

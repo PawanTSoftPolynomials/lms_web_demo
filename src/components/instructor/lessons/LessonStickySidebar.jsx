@@ -54,7 +54,7 @@ export default function LessonStickySidebar({ lessonId, courseId, videoCurrentTi
           <LessonQueriesTab lessonId={lessonId} />
         )}
         {activeTab === 'feedback' && (
-          <LessonFeedbackTab lessonId={lessonId} />
+          <LessonFeedbackTab courseId={courseId} />
         )}
         {activeTab === 'reviews' && (
           <LessonReviewsTab courseId={courseId} />

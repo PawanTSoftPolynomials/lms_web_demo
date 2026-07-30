@@ -1,25 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Search, Edit3, Trash2, Clock, Check, FileText } from 'lucide-react';
+import { Plus, Search, Edit3, Trash2, Clock, Check, FileText, Loader2 } from 'lucide-react';
+
+import {
+  useCreateLessonNote,
+  useDeleteLessonNote,
+  useLessonNotes,
+  useUpdateLessonNote,
+} from '@/hooks/queries/instructor/useLessonNotes';
 
 export default function LessonNotesTab({ lessonId, videoCurrentTime, onSeekVideo }) {
-  const [notes, setNotes] = useState([
-    {
-      id: 'n1',
-      timestamp: '04:15',
-      timeSeconds: 255,
-      content: 'Important explanation of Servlet Request lifecycle and thread pool allocation.',
-      createdAt: 'Jul 23, 2026'
-    },
-    {
-      id: 'n2',
-      timestamp: '12:30',
-      timeSeconds: 750,
-      content: 'Remember to emphasize the distinction between doGet and doPost methods during live session.',
-      createdAt: 'Jul 22, 2026'
-    }
-  ]);
+  const { data: notes = [], isLoading } = useLessonNotes(lessonId);
+  const createNote = useCreateLessonNote();
+  const updateNote = useUpdateLessonNote(lessonId);
+  const deleteNote = useDeleteLessonNote(lessonId);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [newNoteText, setNewNoteText] = useState('');
@@ -27,40 +22,42 @@ export default function LessonNotesTab({ lessonId, videoCurrentTime, onSeekVideo
   const [editText, setEditText] = useState('');
 
   const formatTime = (secs) => {
-    const m = Math.floor(secs / 60);
-    const s = Math.floor(secs % 60);
+    const m = Math.floor((secs || 0) / 60);
+    const s = Math.floor((secs || 0) % 60);
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
+
+  const formatDate = (iso) =>
+    new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   const handleAddNote = (e) => {
     e.preventDefault();
     if (!newNoteText.trim()) return;
 
-    const timeSec = Math.floor(videoCurrentTime || 0);
-    const newNote = {
-      id: `n_${Date.now()}`,
-      timestamp: formatTime(timeSec),
-      timeSeconds: timeSec,
-      content: newNoteText.trim(),
-      createdAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    };
-
-    setNotes([newNote, ...notes]);
-    setNewNoteText('');
+    createNote.mutate(
+      {
+        lessonId,
+        content: newNoteText.trim(),
+        timestampSeconds: Math.floor(videoCurrentTime || 0),
+      },
+      { onSuccess: () => setNewNoteText('') }
+    );
   };
 
   const handleSaveEdit = (id) => {
-    setNotes(notes.map(n => n.id === id ? { ...n, content: editText } : n));
-    setEditingId(null);
-    setEditText('');
+    if (!editText.trim()) return;
+    updateNote.mutate(
+      { noteId: id, payload: { content: editText.trim() } },
+      { onSuccess: () => { setEditingId(null); setEditText(''); } }
+    );
   };
 
   const handleDelete = (id) => {
-    setNotes(notes.filter(n => n.id !== id));
+    deleteNote.mutate(id);
   };
 
-  const filteredNotes = notes.filter(n =>
-    n.content.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredNotes = notes.filter((n) =>
+    (n.content || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -93,10 +90,10 @@ export default function LessonNotesTab({ lessonId, videoCurrentTime, onSeekVideo
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={!newNoteText.trim()}
+            disabled={!newNoteText.trim() || createNote.isPending}
             className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-slate-950 font-black text-[11px] transition shadow-md cursor-pointer"
           >
-            <Plus size={13} />
+            {createNote.isPending ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
             <span>Save Note</span>
           </button>
         </div>
@@ -104,7 +101,11 @@ export default function LessonNotesTab({ lessonId, videoCurrentTime, onSeekVideo
 
       {/* Notes List */}
       <div className="flex-1 overflow-y-auto space-y-3 pr-1">
-        {filteredNotes.length === 0 ? (
+        {isLoading ? (
+          <div className="py-12 text-center text-slate-500">
+            <Loader2 size={20} className="mx-auto animate-spin" />
+          </div>
+        ) : filteredNotes.length === 0 ? (
           <div className="py-12 text-center text-slate-500 space-y-2">
             <FileText size={24} className="mx-auto text-slate-600" />
             <p className="text-xs font-bold">No notes found.</p>
@@ -115,14 +116,14 @@ export default function LessonNotesTab({ lessonId, videoCurrentTime, onSeekVideo
               <div className="flex items-center justify-between">
                 <button
                   type="button"
-                  onClick={() => onSeekVideo?.(note.timeSeconds)}
+                  onClick={() => onSeekVideo?.(note.timestampSeconds)}
                   className="flex items-center gap-1.5 text-[10px] font-mono font-black text-orange-400 bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-md hover:bg-orange-500/20 transition cursor-pointer"
                   title="Jump video to timestamp"
                 >
                   <Clock size={11} />
-                  <span>{note.timestamp}</span>
+                  <span>{formatTime(note.timestampSeconds)}</span>
                 </button>
-                <span className="text-[9px] text-slate-500 font-mono">{note.createdAt}</span>
+                <span className="text-[9px] text-slate-500 font-mono">{formatDate(note.createdAt)}</span>
               </div>
 
               {editingId === note.id ? (

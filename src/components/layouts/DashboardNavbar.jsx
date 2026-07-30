@@ -2,14 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-<<<<<<< HEAD
-import { FaArrowLeft, FaBars } from "react-icons/fa";
-import { MessageSquare, Calendar, ChevronRight } from "lucide-react";
-=======
-import { FaArrowLeft, FaSignOutAlt, FaBars } from "react-icons/fa";
+import { FaArrowLeft, FaBars, FaSignOutAlt } from "react-icons/fa";
 import { PiOrangeDuotone } from "react-icons/pi";
-import { Bell, BookOpen, Award, CheckCheck, MessageSquare, Calendar,ChevronRight } from "lucide-react";
->>>>>>> 5a148bc41b9873f0c0441fb0360d4371cb51ef5e
+import { MessageSquare, Calendar, ChevronRight, Bell, BookOpen, Award, CheckCheck } from "lucide-react";
 import Link from "next/link";
 
 import useAuth from "@/hooks/useAuth";
@@ -437,7 +432,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
           </Link>
 
           {/* Navigation Links with labels */}
-          <nav className="hidden md:flex items-center gap-5 ml-4">
+          {/* <nav className="hidden md:flex items-center gap-5 ml-4">
             <Link href="/instructor/students" className={`text-xs font-bold transition hover:text-slate-100 ${pathname === '/instructor/students' ? 'text-orange-400 font-extrabold' : 'text-slate-400'}`}>
               My Students
             </Link>
@@ -447,7 +442,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
             <Link href="/instructor/announcements" className={`text-xs font-bold transition hover:text-slate-100 ${pathname === '/instructor/announcements' ? 'text-orange-400 font-extrabold' : 'text-slate-400'}`}>
               News
             </Link>
-          </nav>
+          </nav> */}
         </div>
 
         {/* Search, Notifications & Profile */}
@@ -626,16 +621,11 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
             )}
           </div>
 
-<<<<<<< HEAD
-          <div className="flex gap-3 items-center relative">
+          <div className="flex gap-2 sm:gap-3 items-center relative shrink-0">
 
             {/* Global Search: Courses, Assignments, Live Classes, Notes */}
             {isStudentRole && <GlobalSearch />}
 
-=======
-          <div className="flex gap-2 sm:gap-3 items-center relative shrink-0">
-            
->>>>>>> 5a148bc41b9873f0c0441fb0360d4371cb51ef5e
             {/* Chat Message Icon */}
             <button
               onClick={toggleChat}

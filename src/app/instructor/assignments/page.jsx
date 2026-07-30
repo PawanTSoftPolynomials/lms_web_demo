@@ -1,22 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import {
-  FileText,
-  Plus,
-  Edit,
-  Trash2,
-  Calendar,
-  Clock,
-  BookOpen,
-  Filter,
-  CheckCircle,
-  X,
-  AlertTriangle,
-  ArrowLeft
+import { 
+  FileText, Plus, Search, CheckSquare, Edit, Trash2, ArrowLeft, 
+  Clock, Users, BookOpen, AlertCircle, FileArchive, Calendar, Filter, CheckCircle, X, AlertTriangle
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 import api from "@/lib/axios";
 import Card from "@/components/ui/Card";
@@ -26,6 +16,7 @@ import Loader from "@/components/common/Loader";
 
 export default function InstructorAssignmentsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
 
   const [courseFilter, setCourseFilter] = useState("all");
@@ -67,6 +58,19 @@ export default function InstructorAssignmentsPage() {
   const eligibleCourses = courses.filter(
     (c) => c.creatorId === user?.id && c.status === "PUBLISHED"
   );
+
+  const hasAutoOpened = useRef(false);
+
+  useEffect(() => {
+    const action = searchParams.get("action");
+    const paramCourseId = searchParams.get("courseId");
+    
+    if (action === "create" && eligibleCourses.length > 0 && !hasAutoOpened.current) {
+      setCourseId(paramCourseId || eligibleCourses[0]?.id || "");
+      setIsFormOpen(true);
+      hasAutoOpened.current = true;
+    }
+  }, [searchParams, eligibleCourses]);
 
   // Create Assignment Mutation
   const createMutation = useMutation({

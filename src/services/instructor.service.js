@@ -1,15 +1,8 @@
 import api from "@/lib/axios";
 
 export const getInstructors = async () => {
-    try {
-        const {data} = await api.get("/teachers");
-        return data.data;
-    } catch (error) {
-        return [
-            { id: "inst-1", name: "Dr. Sarah Connor" },
-            { id: "inst-2", name: "Prof. Alan Turing" }
-        ];
-    }
+    const {data} = await api.get("/teachers");
+    return data.data;
 };
 
 /**

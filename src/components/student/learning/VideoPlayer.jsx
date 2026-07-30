@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import Cookies from "js-cookie";
+import DOMPurify from "isomorphic-dompurify";
 
 import { getYouTubeVideoId, isYouTubeUrl as isYoutubeUrl } from "@/lib/youtube";
 
@@ -386,7 +387,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                         <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px]">
                             <div 
                                 className="prose prose-invert max-w-none text-white text-base sm:text-lg leading-relaxed flex-1 flex flex-col justify-center select-text"
-                                dangerouslySetInnerHTML={{ __html: slides[slideIndex] }}
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(slides[slideIndex] || "") }}
                             />
                             
                             <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between gap-2">
@@ -425,7 +426,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     ) : (
                         <div 
                             className="prose prose-invert max-w-none p-4 sm:p-8 text-slate-200 text-xs sm:text-sm leading-relaxed font-sans select-text"
-                            dangerouslySetInnerHTML={{ __html: htmlContent }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent || "") }}
                         />
                     )
                 )}

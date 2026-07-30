@@ -26,6 +26,11 @@ export function useCreateLesson() {
                     variables.moduleId,
                 ],
             });
+
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES],
+            });
+
         },
     });
 }

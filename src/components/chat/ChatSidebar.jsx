@@ -11,7 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getMyEnrollments, getEnrollments } from "@/services/enrollment.service";
 import { getCourseById, getCourses } from "@/services/course.service";
 import { getStudents } from "@/services/student.service";
-import { createConversation, getLocalConvs, saveLocalConvs } from "@/features/chat/api/chat.api";
+import { createConversation } from "@/features/chat/api/chat.api";
 
 export default function ChatSidebar() {
   const {
@@ -28,6 +28,7 @@ export default function ChatSidebar() {
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [startChatError, setStartChatError] = useState("");
 
   // Fetch course-related users (classmates/teachers) when in 'users' mode
   useEffect(() => {
@@ -197,26 +198,10 @@ export default function ChatSidebar() {
             }
           }
 
-          const list = Array.from(uniqueUsersMap.values());
-          if (list.length > 0) {
-            setUsers(list);
-          } else {
-            console.log("No real classmates/instructors found in DB, using mock directory fallbacks");
-            setUsers([
-              { id: "mock_user_1", name: "Professor Alan", role: "INSTRUCTOR", email: "alan@lms.com" },
-              { id: "mock_user_2", name: "Sarah Connor", role: "STUDENT", email: "sarah@lms.com" },
-              { id: "mock_user_3", name: "Super Admin", role: "ADMIN", email: "admin@lms.com" },
-              { id: "mock_user_4", name: "Java Expert", role: "INSTRUCTOR", email: "java@lms.com" }
-            ]);
-          }
+          setUsers(Array.from(uniqueUsersMap.values()));
         } catch (err) {
-          console.warn("Failed to load course-related contacts, falling back to mocks:", err);
-          setUsers([
-            { id: "mock_user_1", name: "Professor Alan", role: "INSTRUCTOR", email: "alan@lms.com" },
-            { id: "mock_user_2", name: "Sarah Connor", role: "STUDENT", email: "sarah@lms.com" },
-            { id: "mock_user_3", name: "Super Admin", role: "ADMIN", email: "admin@lms.com" },
-            { id: "mock_user_4", name: "Java Expert", role: "INSTRUCTOR", email: "java@lms.com" }
-          ]);
+          console.warn("Failed to load course-related contacts:", err);
+          setUsers([]);
         } finally {
           setLoadingUsers(false);
         }
@@ -248,6 +233,7 @@ export default function ChatSidebar() {
   }, [users, search, user]);
 
   const handleStartChat = async (selectedUser) => {
+    setStartChatError("");
     try {
       const existing = conversations.find(
         (c) =>
@@ -284,44 +270,10 @@ export default function ChatSidebar() {
       setSidebarMode("chats");
       setSearch("");
     } catch (err) {
-      console.error("createConversation failed! Status:", err.response?.status, "Payload data:", err.response?.data);
-      console.warn("Failed to start backend conversation, falling back to local chat:", err);
-      
-      // Fallback: Create mock conversation locally if API failed (e.g. database mismatch or mock users)
-      const curId = user?.id || user?._id;
-      const tarId = selectedUser.id || selectedUser._id;
-      const sortedIds = [curId, tarId].filter(Boolean).sort().join("_");
-      const mockConvId = `mock_conv_shared_${sortedIds || Date.now()}`;
-
-      const mockConv = {
-        id: mockConvId,
-        name: selectedUser.name,
-        isGroup: false,
-        participants: [
-          selectedUser,
-          { id: curId, name: user?.name || "Me", role: user?.role }
-        ],
-        unread: 0,
-        lastSeen: "Just now",
-        online: onlineUsers?.includes(selectedUser.id) || false,
-        messages: []
-      };
-
-      // Save mock conversation to local storage cache so it persists on reload
-      const localConvs = getLocalConvs() || [];
-      if (!localConvs.some((c) => c.id === mockConv.id)) {
-        saveLocalConvs([mockConv, ...localConvs]);
-      }
-
-      setConversations((prev) => {
-        if (prev.some((c) => c.id === mockConv.id)) {
-          return prev;
-        }
-        return [mockConv, ...prev];
-      });
-      setActiveConversation(mockConv);
-      setSidebarMode("chats");
-      setSearch("");
+      console.error("createConversation failed:", err.response?.status, err.response?.data);
+      setStartChatError(
+        err.response?.data?.message || "Couldn't start this conversation. Please try again."
+      );
     }
   };
 
@@ -342,6 +294,10 @@ export default function ChatSidebar() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
+
+      {startChatError && (
+        <p className="px-4 py-2 text-[11px] font-semibold text-red-400">{startChatError}</p>
+      )}
 
       <div className="flex-1 overflow-y-auto">
         {sidebarMode === "chats" ? (

@@ -12,6 +12,13 @@ const INITIAL_FORM = {
     category: "",
     level: "Beginner",
     thumbnailUrl: "",
+    visibility: "PUBLIC",
+    language: "English",
+    tags: "",
+    certificatesEnabled: false,
+    discussionEnabled: true,
+    dripContentEnabled: false,
+    estimatedLearningHours: 0,
 };
 
 const LEVELS = [
@@ -50,17 +57,24 @@ export default function CourseForm({
                 thumbnailUrl:
                     initialValues.thumbnailUrl ??
                     "",
+                visibility: initialValues.visibility ?? "PUBLIC",
+                language: initialValues.language ?? "English",
+                tags: Array.isArray(initialValues.tags) ? initialValues.tags.join(", ") : (initialValues.tags ?? ""),
+                certificatesEnabled: initialValues.certificatesEnabled ?? false,
+                discussionEnabled: initialValues.discussionEnabled ?? true,
+                dripContentEnabled: initialValues.dripContentEnabled ?? false,
+                estimatedLearningHours: initialValues.estimatedLearningHours ?? 0,
             });
         }
     }, [initialValues]);
 
     const handleChange = (e) => {
-        const {name, value} =
+        const {name, value, type, checked} =
             e.target;
 
         setFormData((prev) => ({
             ...prev,
-            [name]: value,
+            [name]: type === 'checkbox' ? checked : value,
         }));
     };
 
@@ -84,7 +98,14 @@ export default function CourseForm({
         }
 
         setValidationErrors({});
-        onSubmit?.(formData);
+        
+        const payload = {
+            ...formData,
+            tags: formData.tags ? formData.tags.split(",").map(t => t.trim()).filter(Boolean) : [],
+            estimatedLearningHours: formData.estimatedLearningHours ? Number(formData.estimatedLearningHours) : 0,
+        };
+        
+        onSubmit?.(payload);
     };
 
     return (
@@ -223,6 +244,85 @@ export default function CourseForm({
                         </div>
                     </div>
                 )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block mb-2 text-sm font-medium">Visibility</label>
+                        <select
+                            name="visibility"
+                            value={formData.visibility}
+                            onChange={handleChange}
+                            className="w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 outline-none focus:border-orange-500"
+                        >
+                            <option value="PUBLIC">Public</option>
+                            <option value="PRIVATE">Private</option>
+                            <option value="UNLISTED">Unlisted</option>
+                        </select>
+                    </div>
+
+                    <Input
+                        label="Language"
+                        name="language"
+                        value={formData.language}
+                        onChange={handleChange}
+                        placeholder="e.g. English, Spanish"
+                    />
+
+                    <Input
+                        label="Tags (comma separated)"
+                        name="tags"
+                        value={formData.tags}
+                        onChange={handleChange}
+                        placeholder="e.g. React, Web, Frontend"
+                    />
+
+                    <Input
+                        label="Estimated Learning Hours"
+                        name="estimatedLearningHours"
+                        type="number"
+                        min="0"
+                        step="0.5"
+                        value={formData.estimatedLearningHours}
+                        onChange={handleChange}
+                    />
+                </div>
+
+                <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/30 p-5 mt-4">
+                    <h3 className="text-sm font-bold text-slate-300">Course Features</h3>
+                    
+                    <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            name="certificatesEnabled"
+                            checked={formData.certificatesEnabled}
+                            onChange={handleChange}
+                            className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-orange-500 focus:ring-orange-500/20"
+                        />
+                        <span className="text-sm text-slate-300">Enable Certificates</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            name="discussionEnabled"
+                            checked={formData.discussionEnabled}
+                            onChange={handleChange}
+                            className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-orange-500 focus:ring-orange-500/20"
+                        />
+                        <span className="text-sm text-slate-300">Enable Course Discussions</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            name="dripContentEnabled"
+                            checked={formData.dripContentEnabled}
+                            onChange={handleChange}
+                            className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-orange-500 focus:ring-orange-500/20"
+                        />
+                        <span className="text-sm text-slate-300">Enable Drip Content (Scheduled delivery)</span>
+                    </label>
+                </div>
 
                 <div className="flex justify-end gap-4 pt-4">
                     <Button
