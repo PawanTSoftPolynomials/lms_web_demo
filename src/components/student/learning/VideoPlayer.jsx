@@ -5,10 +5,10 @@ import {
     FileText,
     ExternalLink,
     PlayCircle,
-    ChevronLeft,
-    ChevronRight,
     BookOpen,
     Presentation,
+    ChevronLeft,
+    ChevronRight,
 } from "lucide-react";
 
 import { getYouTubeVideoId, isYouTubeUrl as isYoutubeUrl } from "@/lib/youtube";
@@ -18,7 +18,6 @@ const isGoogleSlidesUrl = (url) =>
 
 const getGoogleSlidesEmbedUrl = (url) => {
     if (!url) return "";
-    // Replace edit/pub paths with embed path
     return url.replace(/\/edit(\?.*)?$/, "/embed").replace(/\/pub(\?.*)?$/, "/embed");
 };
 
@@ -35,13 +34,12 @@ const isPdf = (url) => {
 
 const parseSlides = (html) => {
     if (!html) return [];
-    // Split by <hr>, <hr/>, <hr />, or <!-- slide --> comments
     const sections = html.split(/<hr\s*\/?>|<!--\s*slide\s*-->/i);
     return sections.map(s => s.trim()).filter(Boolean);
 };
 
 const VideoPlayer = forwardRef(function VideoPlayer(
-    { content, onTimeUpdate, onEnded, initialTime = 0 },
+    { content, onTimeUpdate, onEnded, onDurationChange, initialTime = 0 },
     ref
 ) {
     const containerRef = useRef(null);
@@ -60,28 +58,23 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
     const initialTimeRef = useRef(initialTime);
 
-    // Latest-callback refs: the YouTube init effect below must only ever
-    // depend on the video itself, never on these. Consumers rarely memoize
-    // onTimeUpdate/onEnded, so depending on them directly tears the YT
-    // player down and rebuilds it on every parent re-render (which happens
-    // ~2x/sec while playing, since onTimeUpdate drives parent state) —
-    // that's why the video looked like it "wasn't playing".
     const onTimeUpdateRef = useRef(onTimeUpdate);
     const onEndedRef = useRef(onEnded);
+    const onDurationChangeRef = useRef(onDurationChange);
     useEffect(() => {
         onTimeUpdateRef.current = onTimeUpdate;
     }, [onTimeUpdate]);
     useEffect(() => {
         onEndedRef.current = onEnded;
     }, [onEnded]);
+    useEffect(() => {
+        onDurationChangeRef.current = onDurationChange;
+    }, [onDurationChange]);
 
-    // Sync initialTimeRef on content change
     useEffect(() => {
         initialTimeRef.current = initialTime;
     }, [videoUrl]);
 
-    // Expose imperative seek control so a transcript (or any other consumer)
-    // can jump the currently playing video without reaching into internals.
     useImperativeHandle(
         ref,
         () => ({
@@ -98,7 +91,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         [isYoutube]
     );
 
-    // YouTube API Integration
+    // YouTube API Integration with responsive width & height
     useEffect(() => {
         if (!isYoutube || !videoUrl) return;
 
@@ -110,6 +103,9 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
         const onPlayerStateChange = (event) => {
             if (event.data === window.YT.PlayerState.PLAYING) {
+                if (player && typeof player.getDuration === "function") {
+                    onDurationChangeRef.current?.(player.getDuration());
+                }
                 intervalId = setInterval(() => {
                     if (player && typeof player.getCurrentTime === "function") {
                         onTimeUpdateRef.current?.(Math.floor(player.getCurrentTime()));
@@ -125,9 +121,9 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
         const initializePlayer = () => {
             if (!containerRef.current) return;
-            containerRef.current.innerHTML = "<div id='yt-player-el'></div>";
+            containerRef.current.innerHTML = "<div id='yt-player-el' class='w-full h-full'></div>";
             player = new window.YT.Player("yt-player-el", {
-                height: "520",
+                height: "100%",
                 width: "100%",
                 videoId: videoId,
                 playerVars: {
@@ -181,8 +177,6 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         };
     }, [videoUrl, isYoutube]);
 
-    // Handle Local Video Initial Resume Time — wait for metadata so
-    // currentTime assignment isn't silently dropped before duration is known.
     useEffect(() => {
         const videoEl = localVideoRef.current;
         if (!videoEl || isYoutube) return;
@@ -201,61 +195,62 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         }
     }, [videoUrl, isYoutube]);
 
-    // Reset slides when content changes
     useEffect(() => {
         setSlideIndex(0);
     }, [content]);
 
     if (!content) {
         return (
-            <div className="flex h-[520px] items-center justify-center rounded-2xl border border-slate-800 bg-slate-900">
-                <div className="text-center">
-                    <PlayCircle className="mx-auto mb-4 h-16 w-16 text-slate-600 animate-pulse" />
-                    <h3 className="text-xl font-semibold text-white">Select a lesson</h3>
-                    <p className="mt-2 text-slate-400">Choose a lesson from the sidebar to begin learning.</p>
+            <div className="flex aspect-video min-h-[220px] max-h-[520px] w-full items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 p-6 text-center">
+                <div>
+                    <PlayCircle className="mx-auto mb-3 h-12 w-12 text-slate-600 animate-pulse" />
+                    <h3 className="text-base sm:text-xl font-semibold text-white">Select a lesson</h3>
+                    <p className="mt-1 text-xs sm:text-sm text-slate-400">Choose a lesson from the sidebar to begin learning.</p>
                 </div>
             </div>
         );
     }
 
-    // Determine slides or reader layout for HTML and files
     const slides = type === "HTML" ? parseSlides(htmlContent) : [];
     const isSlideShow = type === "HTML" && slides.length > 1;
 
     return (
-        <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 flex flex-col">
+        <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 flex flex-col w-full">
             {/* Header */}
-            <div className="border-b border-slate-800 px-6 py-4 flex items-center justify-between bg-slate-950">
-                <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                    {type === "VIDEO" && <PlayCircle className="h-5 w-5 text-orange-500" />}
-                    {isSlideShow && <Presentation className="h-5 w-5 text-orange-500" />}
-                    {type === "HTML" && !isSlideShow && <BookOpen className="h-5 w-5 text-orange-500" />}
-                    {type === "FILE" && <FileText className="h-5 w-5 text-orange-500" />}
-                    {content.title}
+            <div className="border-b border-slate-800 px-4 sm:px-6 py-3.5 flex items-center justify-between bg-slate-950 min-h-[52px]">
+                <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2 truncate pr-2">
+                    {type === "VIDEO" && <PlayCircle className="h-4 w-4 text-orange-500 shrink-0" />}
+                    {isSlideShow && <Presentation className="h-4 w-4 text-orange-500 shrink-0" />}
+                    {type === "HTML" && !isSlideShow && <BookOpen className="h-4 w-4 text-orange-500 shrink-0" />}
+                    {type === "FILE" && <FileText className="h-4 w-4 text-orange-500 shrink-0" />}
+                    <span className="truncate">{content.title}</span>
                 </h2>
                 {isSlideShow && (
-                    <span className="text-sm font-medium text-slate-400 bg-slate-800 px-3 py-1 rounded-full">
-                        Slide {slideIndex + 1} of {slides.length}
+                    <span className="text-xs font-medium text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full shrink-0">
+                        Slide {slideIndex + 1} / {slides.length}
                     </span>
                 )}
             </div>
 
-            {/* Content Area */}
-            <div className="relative min-h-[520px] flex-1 flex flex-col bg-slate-900">
+            {/* Content Area with fluid aspect ratio */}
+            <div className="relative w-full flex-1 flex flex-col bg-slate-900">
                 {/* VIDEO */}
                 {type === "VIDEO" && (
                     isYoutube ? (
-                        <div ref={containerRef} className="h-[520px] w-full bg-black" />
+                        <div ref={containerRef} className="aspect-video w-full max-h-[520px] bg-black" />
                     ) : (
                         <video
                             ref={localVideoRef}
                             controls
                             src={videoUrl}
                             onEnded={onEnded}
+                            onLoadedMetadata={(event) =>
+                                onDurationChange?.(event.currentTarget.duration)
+                            }
                             onTimeUpdate={(event) =>
                                 onTimeUpdate?.(Math.floor(event.currentTarget.currentTime))
                             }
-                            className="h-[520px] w-full bg-black"
+                            className="aspect-video w-full max-h-[520px] bg-black object-contain"
                         />
                     )
                 )}
@@ -265,24 +260,24 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     isPdf(fileUrl) ? (
                         <iframe
                             src={fileUrl}
-                            className="h-[520px] w-full border-none bg-slate-800"
+                            className="h-[320px] sm:h-[420px] md:h-[520px] w-full border-none bg-slate-800"
                             title={content.title}
                         />
                     ) : isOfficeDoc(fileUrl) ? (
                         <iframe
                             src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`}
-                            className="h-[520px] w-full border-none bg-slate-800"
+                            className="h-[320px] sm:h-[420px] md:h-[520px] w-full border-none bg-slate-800"
                             title={content.title}
                         />
                     ) : (
-                        <div className="flex h-[520px] flex-col items-center justify-center gap-6">
-                            <FileText className="h-20 w-20 text-orange-500 animate-bounce" />
-                            <h3 className="text-xl font-semibold text-white">Download Resource</h3>
+                        <div className="flex h-[320px] sm:h-[420px] md:h-[520px] flex-col items-center justify-center gap-4 p-6 text-center">
+                            <FileText className="h-16 w-16 text-orange-500 animate-bounce" />
+                            <h3 className="text-lg font-semibold text-white">Download Resource</h3>
                             <a
                                 href={fileUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="rounded-lg bg-orange-600 px-6 py-3 font-medium text-white transition hover:bg-orange-700 shadow-lg shadow-orange-600/20"
+                                className="rounded-xl bg-orange-600 px-5 py-2.5 min-h-[44px] flex items-center justify-center font-bold text-xs uppercase tracking-wider text-white transition hover:bg-orange-700 shadow-lg"
                             >
                                 Open File
                             </a>
@@ -293,40 +288,40 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                 {/* HTML (Interactive Slide Show OR Document view) */}
                 {type === "HTML" && (
                     isSlideShow ? (
-                        <div className="flex-1 flex flex-col justify-between p-8 min-h-[460px]">
-                            {/* Slide Content */}
+                        <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px]">
                             <div 
-                                className="prose prose-invert max-w-none text-white text-lg leading-relaxed flex-1 flex flex-col justify-center select-text"
+                                className="prose prose-invert max-w-none text-white text-base sm:text-lg leading-relaxed flex-1 flex flex-col justify-center select-text"
                                 dangerouslySetInnerHTML={{ __html: slides[slideIndex] }}
                             />
                             
-                            {/* Navigation Bar */}
-                            <div className="mt-8 pt-4 border-t border-slate-800 flex items-center justify-between">
+                            <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between gap-2">
                                 <button
+                                    type="button"
                                     onClick={() => setSlideIndex(prev => Math.max(0, prev - 1))}
                                     disabled={slideIndex === 0}
-                                    className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg disabled:opacity-50 hover:bg-slate-700 transition"
+                                    className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] bg-slate-800 text-white rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-slate-700 transition"
                                 >
                                     <ChevronLeft className="h-4 w-4" /> Previous
                                 </button>
                                 
-                                {/* Slide indicators dots */}
-                                <div className="flex gap-2">
+                                <div className="flex gap-1.5 overflow-x-auto py-1">
                                     {slides.map((_, i) => (
                                         <button
                                             key={i}
+                                            type="button"
                                             onClick={() => setSlideIndex(i)}
-                                            className={`h-2.5 w-2.5 rounded-full transition-all ${
-                                                i === slideIndex ? "bg-orange-500 w-6" : "bg-slate-700"
+                                            className={`h-2.5 min-w-[10px] rounded-full transition-all ${
+                                                i === slideIndex ? "bg-orange-500 w-6" : "bg-slate-700 w-2.5"
                                             }`}
                                         />
                                     ))}
                                 </div>
 
                                 <button
+                                    type="button"
                                     onClick={() => setSlideIndex(prev => Math.min(slides.length - 1, prev + 1))}
                                     disabled={slideIndex === slides.length - 1}
-                                    className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg disabled:opacity-50 hover:bg-slate-700 transition"
+                                    className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] bg-slate-800 text-white rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-slate-700 transition"
                                 >
                                     Next <ChevronRight className="h-4 w-4" />
                                 </button>
@@ -334,7 +329,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                         </div>
                     ) : (
                         <div 
-                            className="prose prose-invert max-w-none p-8 text-slate-200 leading-relaxed font-sans select-text"
+                            className="prose prose-invert max-w-none p-4 sm:p-8 text-slate-200 text-xs sm:text-sm leading-relaxed font-sans select-text"
                             dangerouslySetInnerHTML={{ __html: htmlContent }}
                         />
                     )
@@ -345,22 +340,22 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     isGoogleSlidesUrl(externalUrl) ? (
                         <iframe
                             src={getGoogleSlidesEmbedUrl(externalUrl)}
-                            className="h-[520px] w-full border-none"
+                            className="h-[320px] sm:h-[420px] md:h-[520px] w-full border-none"
                             allowFullScreen
                             title={content.title}
                         />
                     ) : (
-                        <div className="flex h-[520px] flex-col items-center justify-center gap-6">
-                            <ExternalLink className="h-20 w-20 text-orange-500 animate-pulse" />
-                            <h3 className="text-xl font-semibold text-white">External Resource</h3>
-                            <p className="text-slate-400 text-center max-w-md px-4">
+                        <div className="flex h-[320px] sm:h-[420px] md:h-[520px] flex-col items-center justify-center gap-4 p-6 text-center">
+                            <ExternalLink className="h-16 w-16 text-orange-500 animate-pulse" />
+                            <h3 className="text-lg font-semibold text-white">External Resource</h3>
+                            <p className="text-xs sm:text-sm text-slate-400 max-w-md">
                                 This content is hosted externally. Click below to open it in a new tab.
                             </p>
                             <a
                                 href={externalUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="rounded-lg bg-orange-600 px-6 py-3 font-medium text-white transition hover:bg-orange-700 shadow-lg shadow-orange-600/20"
+                                className="rounded-xl bg-orange-600 px-5 py-2.5 min-h-[44px] flex items-center justify-center font-bold text-xs uppercase tracking-wider text-white transition hover:bg-orange-700 shadow-lg"
                             >
                                 Visit Website
                             </a>

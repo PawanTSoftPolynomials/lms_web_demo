@@ -146,7 +146,7 @@ const TranscriptRow = React.memo(
 
         {/* Compact Margin Timestamp (replaces bullet/pill button) */}
         <span
-          className={`shrink-0 w-11 font-mono text-[11px] pt-0.5 transition-colors ${
+          className={`shrink-0 w-12 font-mono text-[11px] pt-0.5 transition-colors ${
             isActive
               ? "text-orange-400 font-bold"
               : "text-orange-400/60 group-hover:text-orange-400"
@@ -157,7 +157,7 @@ const TranscriptRow = React.memo(
 
         {/* Book Paragraph Text */}
         <p
-          className={`text-[13px] leading-relaxed min-w-0 flex-1 transition-colors ${
+          className={`text-[13px] leading-relaxed min-w-0 flex-1 break-words transition-colors ${
             isActive ? "text-white font-semibold" : "text-slate-300 group-hover:text-slate-100"
           }`}
         >
@@ -171,7 +171,7 @@ const TranscriptRow = React.memo(
             e.stopPropagation();
             onToggleBookmark?.(index);
           }}
-          className={`shrink-0 p-1 transition opacity-0 group-hover:opacity-100 ${
+          className={`shrink-0 p-1 transition opacity-0 pointer-coarse:opacity-100 group-hover:opacity-100 ${
             isBookmarked ? "opacity-100 text-orange-400" : "text-slate-500 hover:text-slate-300"
           }`}
           title={isBookmarked ? "Remove Bookmark" : "Bookmark line"}
