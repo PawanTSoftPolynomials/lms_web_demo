@@ -16,6 +16,7 @@ import VideoPlayer from "@/components/student/learning/VideoPlayer";
 import TranscriptPanel from "@/components/student/learning/TranscriptPanel";
 import LessonTabs from "@/components/student/learning/LessonTabs";
 import CourseContentAccordion from "@/components/student/learning/CourseContentAccordion";
+import QuizExperience from "@/components/student/attempt/QuizExperience";
 import useCompleteLesson from "@/hooks/queries/student/useCompleteLesson";
 import { useCourse, useStudentState, useUpdateStudentState } from "@/hooks/queries/student";
 import { useBookmarks, useCreateBookmark, useDeleteBookmark } from "@/hooks/queries/student/useBookmarks";
@@ -95,6 +96,19 @@ export default function LearnPage() {
   // Mobile tab strip (Overview/Transcript/Notes/Resources/Query/Feedback/Quiz) —
   // desktop shows the same content stacked, unconditionally, via xl: overrides.
   const [activeContentTab, setActiveContentTab] = useState("overview");
+
+  // Active quiz attempt launched from the Quiz tab. Kept as local state (not a
+  // route change) so the Learning Page never unmounts — video, selected lesson,
+  // scroll position, everything is still there the instant this closes.
+  const [activeQuizId, setActiveQuizId] = useState(null);
+  useEffect(() => {
+    if (!activeQuizId || typeof document === "undefined") return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [activeQuizId]);
 
   const { data: bookmarks = [] } = useBookmarks();
   const createBookmarkMutation = useCreateBookmark();
@@ -566,6 +580,7 @@ export default function LearnPage() {
               </div>
               <button
                 type="button"
+                onClick={() => setActiveQuizId(quiz.id)}
                 className="px-4 py-2.5 min-h-[44px] rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-md shrink-0"
               >
                 Start Quiz
@@ -1214,6 +1229,23 @@ export default function LearnPage() {
         </div>
         <ChatWidget />
       </div>
+
+      {/* QUIZ ATTEMPT — same QuizExperience component either way; only the
+          presentation shell changes. Desktop (>= lg): centered modal over a
+          backdrop. Mobile (< lg): the inner panel fills the fixed overlay
+          edge-to-edge, so it reads as a dedicated full-screen quiz page
+          rather than a popup. Local state, not a route change, so the
+          Learning Page underneath (video, lesson, scroll) is untouched and
+          reappears exactly as it was the moment this closes. */}
+      {activeQuizId && (
+        <div className="fixed inset-0 z-[60] bg-black/70 lg:flex lg:items-center lg:justify-center lg:p-4">
+          <div className="h-full w-full overflow-y-auto overscroll-contain bg-[#07080f] lg:h-auto lg:max-h-[90vh] lg:max-w-4xl lg:rounded-2xl lg:border lg:border-slate-800 lg:shadow-2xl">
+            <div className="p-4 sm:p-6">
+              <QuizExperience quizId={activeQuizId} onBack={() => setActiveQuizId(null)} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
