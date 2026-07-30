@@ -296,6 +296,27 @@ export default function LearnPage() {
   // wins, so every section shows stacked regardless of which tab is "active".
   const tabVisibility = (tabId) => (activeContentTab === tabId ? "block" : "hidden");
 
+  // Tap-to-scroll controls for the tab strip, so reaching hidden tabs doesn't
+  // require a swipe gesture.
+  const tabStripRef = useRef(null);
+  const [canScrollTabsLeft, setCanScrollTabsLeft] = useState(false);
+  const [canScrollTabsRight, setCanScrollTabsRight] = useState(false);
+
+  const updateTabScrollState = () => {
+    const el = tabStripRef.current;
+    if (!el) return;
+    setCanScrollTabsLeft(el.scrollLeft > 4);
+    setCanScrollTabsRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  };
+
+  useEffect(() => {
+    updateTabScrollState();
+  }, []);
+
+  const scrollContentTabs = (direction) => {
+    tabStripRef.current?.scrollBy({ left: direction * 160, behavior: "smooth" });
+  };
+
   if (isLoading) {
     return <Loader />;
   }
@@ -643,28 +664,55 @@ export default function LearnPage() {
 
             {/* CONTENT TAB STRIP — mobile & tablet only. Desktop shows every
                 section stacked at once (below), so switching tabs would just
-                add a tap for no benefit there. */}
+                add a tap for no benefit there. Left/right arrows let a student
+                reach the hidden tabs with a tap instead of a swipe. */}
             <div className="row-start-2 xl:hidden">
-              <div className="flex items-center gap-1 overflow-x-auto scrollbar-none border-b border-slate-800/60">
-                {contentTabs.map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = activeContentTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setActiveContentTab(tab.id)}
-                      className={`flex flex-col items-center gap-1 px-3.5 py-2 min-h-[44px] text-[10px] font-bold uppercase tracking-wide transition cursor-pointer border-0 border-b-2 outline-none shrink-0 bg-transparent ${
-                        isActive
-                          ? "text-orange-400 border-orange-500"
-                          : "text-slate-500 border-transparent hover:text-slate-300"
-                      }`}
-                    >
-                      <Icon size={16} />
-                      <span>{tab.label}</span>
-                    </button>
-                  );
-                })}
+              <div className="flex items-center gap-1 border-b border-slate-800/60">
+                <button
+                  type="button"
+                  onClick={() => scrollContentTabs(-1)}
+                  disabled={!canScrollTabsLeft}
+                  className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
+                  aria-label="Scroll tabs left"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+
+                <div
+                  ref={tabStripRef}
+                  onScroll={updateTabScrollState}
+                  className="flex items-center gap-1 overflow-x-auto scrollbar-none flex-1 min-w-0"
+                >
+                  {contentTabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeContentTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setActiveContentTab(tab.id)}
+                        className={`flex flex-col items-center gap-1 px-3.5 py-2 min-h-[44px] text-[10px] font-bold uppercase tracking-wide transition cursor-pointer border-0 border-b-2 outline-none shrink-0 bg-transparent ${
+                          isActive
+                            ? "text-orange-400 border-orange-500"
+                            : "text-slate-500 border-transparent hover:text-slate-300"
+                        }`}
+                      >
+                        <Icon size={16} />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => scrollContentTabs(1)}
+                  disabled={!canScrollTabsRight}
+                  className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
+                  aria-label="Scroll tabs right"
+                >
+                  <ChevronRight size={16} />
+                </button>
               </div>
             </div>
 
