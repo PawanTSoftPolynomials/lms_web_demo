@@ -10,8 +10,8 @@ export default function DashboardLayout({ children, role, title }) {
 
   const [collapsed, setCollapsed] = useState(false);
 
-  // Students navigate via the top header + horizontal sub-nav strip instead of a side rail.
-  const showSidebar = role !== 'STUDENT';
+  // Students and Instructors navigate via top headers or on-page widgets instead of a side rail.
+  const showSidebar = !['STUDENT', 'INSTRUCTOR'].includes(role);
 
   return (
     <div className={`flex min-h-screen ${role === 'INSTRUCTOR' ? 'bg-[#080B11]' : 'bg-slate-950'}`}>

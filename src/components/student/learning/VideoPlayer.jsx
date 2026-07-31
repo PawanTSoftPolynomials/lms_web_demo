@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState, useCallback } from "react";
 import {
     FileText,
     ExternalLink,
@@ -10,28 +10,26 @@ import {
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
+import axios from "axios";
+import Cookies from "js-cookie";
+import DOMPurify from "isomorphic-dompurify";
 
 import { getYouTubeVideoId, isYouTubeUrl as isYoutubeUrl } from "@/lib/youtube";
 
-const isGoogleSlidesUrl = (url) =>
-    Boolean(url?.includes("docs.google.com/presentation"));
-
+const isGoogleSlidesUrl = (url) => Boolean(url?.includes("docs.google.com/presentation"));
 const getGoogleSlidesEmbedUrl = (url) => {
     if (!url) return "";
     return url.replace(/\/edit(\?.*)?$/, "/embed").replace(/\/pub(\?.*)?$/, "/embed");
 };
-
 const isOfficeDoc = (url) => {
     if (!url) return false;
     const lower = url.toLowerCase();
     return lower.endsWith(".ppt") || lower.endsWith(".pptx") || lower.endsWith(".doc") || lower.endsWith(".docx");
 };
-
 const isPdf = (url) => {
     if (!url) return false;
     return url.toLowerCase().endsWith(".pdf");
 };
-
 const parseSlides = (html) => {
     if (!html) return [];
     const sections = html.split(/<hr\s*\/?>|<!--\s*slide\s*-->/i);
@@ -39,14 +37,19 @@ const parseSlides = (html) => {
 };
 
 const VideoPlayer = forwardRef(function VideoPlayer(
-    { content, onTimeUpdate, onEnded, onDurationChange, initialTime = 0 },
+    { content, onTimeUpdate, onEnded, onDurationChange, initialTime = 0, courseId, lessonId: resolvedLessonId },
     ref
 ) {
     const containerRef = useRef(null);
     const playerRef = useRef(null);
     const localVideoRef = useRef(null);
-
     const [slideIndex, setSlideIndex] = useState(0);
+    const [hasStarted, setHasStarted] = useState(false);
+    
+    // Video Analytics state
+    const pingIntervalRef = useRef(null);
+    const lastPingTimeRef = useRef(0);
+    const accumulatedSecondsRef = useRef(0);
 
     const type = content?.type;
     const videoUrl = content?.videoUrl;
@@ -197,7 +200,93 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
     useEffect(() => {
         setSlideIndex(0);
+        setHasStarted(false);
+        accumulatedSecondsRef.current = 0;
+        lastPingTimeRef.current = 0;
+        
+        return () => stopPingTimer();
     }, [content]);
+
+    const stopPingTimer = useCallback(() => {
+        if (pingIntervalRef.current) {
+            clearInterval(pingIntervalRef.current);
+            pingIntervalRef.current = null;
+        }
+    }, []);
+
+    const startPingTimer = useCallback(() => {
+        if (!resolvedLessonId) return;
+        
+        stopPingTimer();
+        pingIntervalRef.current = setInterval(async () => {
+            if (accumulatedSecondsRef.current >= 10) {
+                const watchTimeToSend = accumulatedSecondsRef.current;
+                accumulatedSecondsRef.current = 0; // Reset eagerly
+                
+                try {
+                    const token = Cookies.get("accessToken");
+                    await axios.post(
+                        `${process.env.NEXT_PUBLIC_API_URL}/analytics/video-ping`,
+                        {
+                            lessonId: resolvedLessonId,
+                            courseId,
+                            watchTime: watchTimeToSend
+                        },
+                        {
+                            headers: { Authorization: `Bearer ${token}` }
+                        }
+                    );
+                } catch (error) {
+                    console.error("Failed to ping video analytics:", error);
+                }
+            }
+        }, 10000); // Ping every 10 seconds
+    }, [resolvedLessonId, courseId, stopPingTimer]);
+
+    const handleProgress = (state) => {
+        const { playedSeconds } = state;
+        onTimeUpdate?.(Math.floor(playedSeconds));
+        
+        // Track accumulated seconds for analytics
+        const delta = playedSeconds - lastPingTimeRef.current;
+        if (delta > 0 && delta < 5) { // Avoid huge jumps from seeking
+            accumulatedSecondsRef.current += delta;
+        }
+        lastPingTimeRef.current = playedSeconds;
+    };
+
+    const handlePlay = () => {
+        setHasStarted(true);
+        startPingTimer();
+    };
+
+    const handlePause = () => {
+        stopPingTimer();
+    };
+
+    const handleReady = () => {
+        if (playerRef.current && initialTime > 0 && !hasStarted) {
+            playerRef.current.seekTo(initialTime, "seconds");
+        }
+    };
+
+    const handleEnded = async () => {
+        stopPingTimer();
+        onEnded?.();
+        
+        if (resolvedLessonId) {
+            try {
+                const token = Cookies.get("accessToken");
+                await axios.post(
+                    `${process.env.NEXT_PUBLIC_API_URL}/analytics/video-ping`,
+                    { lessonId: resolvedLessonId, courseId, completed: true },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+            } catch (error) {
+                console.error("Failed to record completion:", error);
+            }
+        }
+    };
 
     if (!content) {
         return (
@@ -292,13 +381,13 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     )
                 )}
 
-                {/* HTML (Interactive Slide Show OR Document view) */}
+                {/* HTML */}
                 {type === "HTML" && (
                     isSlideShow ? (
                         <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px]">
                             <div 
                                 className="prose prose-invert max-w-none text-white text-base sm:text-lg leading-relaxed flex-1 flex flex-col justify-center select-text"
-                                dangerouslySetInnerHTML={{ __html: slides[slideIndex] }}
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(slides[slideIndex] || "") }}
                             />
                             
                             <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between gap-2">
@@ -337,12 +426,12 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     ) : (
                         <div 
                             className="prose prose-invert max-w-none p-4 sm:p-8 text-slate-200 text-xs sm:text-sm leading-relaxed font-sans select-text"
-                            dangerouslySetInnerHTML={{ __html: htmlContent }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent || "") }}
                         />
                     )
                 )}
 
-                {/* EXTERNAL LINK / GOOGLE SLIDES */}
+                {/* EXTERNAL LINK */}
                 {(type === "EXTERNAL" || type === "LINK") && (
                     isGoogleSlidesUrl(externalUrl) ? (
                         <iframe

@@ -17,6 +17,10 @@ export function useImportQuestions() {
             queryClient.resetQueries({
                 queryKey: [QUERY_KEYS.QUIZ, variables.quizId],
             });
+            
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES],
+            });
         },
     });
 }

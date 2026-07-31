@@ -57,24 +57,47 @@ export default function InstructorCoursesPage() {
                     </p>
                 </div>
 
-                <Link
-                    href="/instructor/courses/create"
-                    className="
-            inline-flex
-            items-center
-            justify-center
-            rounded-lg
-            bg-orange-500
-            px-5
-            py-3
-            font-medium
-            text-white
-            transition
-            hover:bg-orange-600
-        "
-                >
-                    Create Course
-                </Link>
+                <div className="flex items-center space-x-3">
+                    <Link
+                        href="/instructor/courses/import"
+                        className="
+                inline-flex
+                items-center
+                justify-center
+                rounded-lg
+                bg-slate-800
+                border
+                border-amber-500/40
+                px-5
+                py-3
+                font-medium
+                text-amber-400
+                transition
+                hover:bg-slate-700
+                hover:border-amber-400
+            "
+                    >
+                        Import Course (ZIP)
+                    </Link>
+                    <Link
+                        href="/instructor/courses/create"
+                        className="
+                inline-flex
+                items-center
+                justify-center
+                rounded-lg
+                bg-orange-500
+                px-5
+                py-3
+                font-medium
+                text-white
+                transition
+                hover:bg-orange-600
+            "
+                    >
+                        Create Course
+                    </Link>
+                </div>
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">

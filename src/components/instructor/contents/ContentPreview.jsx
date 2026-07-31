@@ -7,6 +7,8 @@ import {
     FaCode,
 } from "react-icons/fa";
 
+import DOMPurify from "isomorphic-dompurify";
+
 function getYoutubeEmbedUrl(url) {
     if (!url) return "";
 
@@ -138,8 +140,7 @@ export default function ContentPreview({
                     <div
                         className="prose prose-invert max-w-none"
                         dangerouslySetInnerHTML={{
-                            __html:
-                                content.htmlContent || "",
+                            __html: DOMPurify.sanitize(content.htmlContent || ""),
                         }}
                     />
                 </div>

@@ -18,6 +18,7 @@ import { useLesson } from "@/hooks/queries/instructor/useLesson";
 import { useModule } from "@/hooks/queries/instructor/useModule";
 import { useContents } from "@/hooks/queries/instructor/useContents";
 import { useDeleteContent } from "@/hooks/queries/instructor/useDeleteContent";
+import { useUpdateLesson } from "@/hooks/queries/instructor/useUpdateLesson";
 
 export default function LessonDetailsPage() {
   const params = useParams();
@@ -45,6 +46,21 @@ export default function LessonDetailsPage() {
   } = useContents(lessonId);
 
   const deleteContentMutation = useDeleteContent();
+  const updateLessonMutation = useUpdateLesson();
+
+  const handleTogglePublish = async () => {
+    try {
+      await updateLessonMutation.mutateAsync({
+        lessonId,
+        lessonData: {
+          moduleId: lesson.moduleId,
+          isPublished: !lesson.isPublished,
+        },
+      });
+    } catch (error) {
+      console.error("Failed to update lesson publish status:", error);
+    }
+  };
 
   const handleDeleteContent = async (contentId) => {
     if (!confirm("Delete this content?")) return;
@@ -92,7 +108,13 @@ export default function LessonDetailsPage() {
       )}
 
       {/* Lesson Header Stats Card */}
-      <LessonHeader lesson={lesson} courseId={courseId} moduleId={moduleId} />
+      <LessonHeader
+        lesson={lesson}
+        courseId={courseId}
+        moduleId={moduleId}
+        onTogglePublish={handleTogglePublish}
+        isToggling={updateLessonMutation.isPending}
+      />
 
       {/* Contents Section Header */}
       <div>

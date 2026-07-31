@@ -6,9 +6,23 @@ import { changePassword } from "@/services/auth.service";
 import useAuth from "@/hooks/useAuth";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
+import Loader from "@/components/common/Loader";
+import ProfileForm from "@/components/profile/ProfileForm";
+import { useProfile } from "@/hooks/queries/admin/useProfile";
+import useUpdateProfile from "@/hooks/queries/student/useUpdateProfile";
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const { data: profile, isLoading: profileLoading } = useProfile();
+  const updateProfileMutation = useUpdateProfile();
+
+  const handleUpdateProfile = async (formData) => {
+    try {
+      await updateProfileMutation.mutateAsync(formData);
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+    }
+  };
 
   const [formData, setFormData] = useState({
     currentPassword: "",
@@ -129,8 +143,35 @@ export default function ProfilePage() {
           </Card>
         </div>
 
-        {/* Right Column: Change Password Card (2/3 size) */}
+        {/* Right Column: Edit Profile + Change Password (2/3 size) */}
         <div className="lg:col-span-2 space-y-6">
+          {profileLoading ? (
+            <Card className="p-6 border border-slate-800 bg-slate-900/60 shadow-lg flex justify-center py-12">
+              <Loader />
+            </Card>
+          ) : (
+            <>
+              <ProfileForm
+                profile={profile}
+                onSubmit={handleUpdateProfile}
+                isSubmitting={updateProfileMutation.isPending}
+              />
+
+              {updateProfileMutation.isSuccess && (
+                <p className="text-sm font-semibold text-emerald-400">
+                  Profile updated successfully.
+                </p>
+              )}
+
+              {updateProfileMutation.isError && (
+                <p className="text-sm font-semibold text-red-400">
+                  {updateProfileMutation.error?.response?.data?.message ||
+                    "Failed to update profile."}
+                </p>
+              )}
+            </>
+          )}
+
           <Card className="p-6 border border-slate-800 bg-slate-900/60 shadow-lg">
             <div className="flex items-center gap-2.5 mb-6 border-b border-slate-800/80 pb-4">
               <div className="h-8 w-8 rounded-lg bg-orange-500/10 text-orange-400 flex items-center justify-center">

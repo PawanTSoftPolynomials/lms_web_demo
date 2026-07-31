@@ -7,23 +7,29 @@ export default function PasswordFields({
   confirmPassword,
   onPasswordChange,
   onConfirmPasswordChange,
+  passwordLabel = "New Password",
+  passwordPlaceholder = "Enter new password",
+  confirmPasswordLabel = "Confirm Password",
+  confirmPasswordPlaceholder = "Confirm new password",
 }) {
   return (
     <>
       <AuthInput
-        label="New Password"
+        label={passwordLabel}
         type="password"
         value={password}
-        placeholder="Enter new password"
+        placeholder={passwordPlaceholder}
         onChange={onPasswordChange}
+        required
       />
 
       <AuthInput
-        label="Confirm Password"
+        label={confirmPasswordLabel}
         type="password"
         value={confirmPassword}
-        placeholder="Confirm new password"
+        placeholder={confirmPasswordPlaceholder}
         onChange={onConfirmPasswordChange}
+        required
       />
     </>
   );

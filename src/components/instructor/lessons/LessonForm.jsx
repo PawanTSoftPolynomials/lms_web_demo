@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import RichTextEditor from "@/components/ui/RichTextEditor";
 
 const INITIAL_FORM = {
     title: "",
@@ -86,27 +87,10 @@ export default function LessonForm({
                         Description
                     </label>
 
-                    <textarea
-                        name="description"
+                    <RichTextEditor
                         value={formData.description}
-                        onChange={handleChange}
-                        rows={6}
-                        required
+                        onChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
                         placeholder="Enter lesson description..."
-                        className="
-              w-full
-              resize-none
-              rounded-lg
-              border
-              border-slate-700
-              bg-slate-900
-              px-4
-              py-3
-              text-white
-              outline-none
-              transition
-              focus:border-orange-500
-            "
                     />
                 </div>
 

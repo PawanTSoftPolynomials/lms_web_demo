@@ -21,6 +21,10 @@ export function useCreateQuiz() {
                     variables.courseId,
                 ],
             });
+
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES],
+            });
         },
     });
 }

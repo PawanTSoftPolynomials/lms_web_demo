@@ -7,6 +7,7 @@ import Cookies from "js-cookie";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import RichTextEditor from "@/components/ui/RichTextEditor";
 
 const INITIAL_FORM = {
     title: "",
@@ -310,13 +311,10 @@ export default function ContentForm({
                         <label className="mb-2 block text-sm font-medium text-white">
                             Text / HTML Content
                         </label>
-                        <textarea
-                            name="htmlContent"
-                            rows={10}
+                        <RichTextEditor
                             value={formData.htmlContent}
-                            onChange={handleChange}
+                            onChange={(value) => setFormData(prev => ({ ...prev, htmlContent: value }))}
                             placeholder="Enter text or HTML content here..."
-                            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none focus:border-orange-500"
                         />
                     </div>
                 )}

@@ -55,6 +55,26 @@ export default function RegisterPage() {
       return;
     }
 
+    if (formData.name.trim().length < 2) {
+      setError("Name must be at least 2 characters long.");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!/^[0-9]{10}$/.test(formData.phoneNumber.trim())) {
+      setError("Please enter a valid 10-digit phone number.");
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long.");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match.");
       return;

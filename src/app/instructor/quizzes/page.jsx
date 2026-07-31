@@ -259,12 +259,21 @@ export default function QuizzesPage() {
                 <p className="mt-2 text-slate-400">Create and manage quizzes for your courses.</p>
               </div>
 
-              <Link href="/instructor/quizzes/create">
-                <button className="flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold text-sm px-6 py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95">
-                  <Plus size={16} />
-                  <span>Create Quiz</span>
-                </button>
-              </Link>
+              <div className="flex items-center space-x-3">
+                <Link href="/instructor/questions">
+                  <button className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-400 font-bold text-sm px-5 py-3.5 hover:bg-slate-800 transition">
+                    <FileText size={16} />
+                    <span>Question Repository</span>
+                  </button>
+                </Link>
+
+                <Link href="/instructor/quizzes/create">
+                  <button className="flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold text-sm px-6 py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95">
+                    <Plus size={16} />
+                    <span>Create Quiz</span>
+                  </button>
+                </Link>
+              </div>
             </div>
 
             {/* KPI Metrics Cards */}

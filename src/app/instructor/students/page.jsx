@@ -72,6 +72,18 @@ function StudentsDirectoryContent() {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="min-h-screen text-slate-100 flex items-center justify-center bg-[#080B11]">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <AlertTriangle className="text-red-500" size={24} />
+          <span className="text-xs font-black text-slate-400 uppercase tracking-widest font-mono">Failed to load students</span>
+          <p className="text-[10px] text-slate-500">Please try again later.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen text-slate-100 flex flex-col gap-6 bg-[#080B11] pb-10">
       
@@ -173,7 +185,9 @@ function StudentsDirectoryContent() {
                     </div>
                     <div className="p-3 bg-white/[0.01] border border-[#1A1F35] rounded-xl text-center">
                       <p className="text-[9px] text-slate-500 font-black uppercase">Attendance Rate</p>
-                      <p className="text-lg font-black text-slate-200 mt-1">{selectedStudent.attendanceRate}%</p>
+                      <p className="text-lg font-black text-slate-200 mt-1">
+                        {selectedStudent.attendanceRate != null ? `${selectedStudent.attendanceRate}%` : "N/A"}
+                      </p>
                     </div>
                   </div>
 
@@ -356,7 +370,9 @@ function StudentsDirectoryContent() {
                           <span className="font-bold text-slate-300">{student.progress}%</span>
                         </div>
                       </td>
-                      <td className="py-4 text-center font-bold text-slate-300">{student.attendanceRate}%</td>
+                      <td className="py-4 text-center font-bold text-slate-300">
+                        {student.attendanceRate != null ? `${student.attendanceRate}%` : "N/A"}
+                      </td>
                       <td className="py-4 text-right pr-2">
                         <button
                           onClick={() => handleSelectStudent(student.id)}

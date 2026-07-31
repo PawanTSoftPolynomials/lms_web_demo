@@ -7,23 +7,20 @@ import { HiOutlineLockClosed } from "react-icons/hi2";
 
 import useAuth from "@/hooks/useAuth";
 
-import Loader from "@/components/common/Loader";
-
 import AuthLayout from "@/components/auth/AuthLayout";
 import AuthCard from "@/components/auth/AuthCard";
 import AuthHeader from "@/components/auth/AuthHeader";
 import AuthAlert from "@/components/auth/AuthAlert";
 import AuthInput from "@/components/auth/AuthInput";
 import AuthFooter from "@/components/auth/AuthFooter";
-import Button from "@/components/ui/Button";
-import { useToast } from "@/components/ui/ToastProvider";
+import AuthButton from "@/components/auth/AuthButton";
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
 
   const [formData, setFormData] = useState({
@@ -59,6 +56,7 @@ export default function LoginPage() {
 
     setLoading(true);
     setValidationErrors({});
+    setError("");
 
     try {
       const user = await login({
@@ -66,38 +64,25 @@ export default function LoginPage() {
         password: formData.password,
       });
 
-      console.log("=================================");
-      console.log("Logged in User:", user);
-      console.log("User Role:", user?.role);
-      console.log("Current URL:", window.location.pathname);
-      console.log("=================================");
-
       switch (user.role) {
         case "ADMIN":
-          console.log("Navigating to /admin/dashboard");
           router.replace("/admin/dashboard");
           break;
 
         case "INSTRUCTOR":
-          console.log("Navigating to /instructor/dashboard");
           router.replace("/instructor/dashboard");
           break;
 
         case "STUDENT":
-          console.log("Navigating to /student/dashboard");
           router.replace("/student/dashboard");
           break;
 
         default:
-          console.error("Unknown role:", user.role);
-          showToast(`Unknown role: ${user.role}`, "error", "Login Failed");
+          setError(`Unknown role: ${user.role}`);
+          setLoading(false);
           return;
       }
-
-      console.log("router.replace() executed");
     } catch (error) {
-      console.error("Login Error:", error);
-
       const message = error.response?.data?.message || "Login failed";
 
       if (message === "Verify email first") {
@@ -107,18 +92,10 @@ export default function LoginPage() {
         return;
       }
 
-      showToast("Invalid email or password.", "error", "Login Failed");
-    } finally {
+      setError("Invalid email or password.");
       setLoading(false);
     }
   };
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
-        <Loader />
-      </div>
-    );
-  }
 
   return (
     <AuthLayout>
@@ -130,6 +107,8 @@ export default function LoginPage() {
         />
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
+          <AuthAlert type="error" message={error} />
+
           <div>
             <AuthInput
               label="Email"
@@ -173,9 +152,9 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing In..." : "Login"}
-          </Button>
+          <AuthButton type="submit" loading={loading} loadingText="Signing In...">
+            Login
+          </AuthButton>
 
           <AuthFooter
             question="Don't have an account?"

@@ -112,7 +112,17 @@ export default function CertificatesDashboardPage() {
         {[
           { label: 'Total Granted', value: certificates.length, color: 'text-orange-400', bg: 'bg-orange-500/10' },
           { label: 'Active Programs', value: myCourses.length, color: 'text-teal-400', bg: 'bg-teal-500/10' },
-          { label: 'Verified Averages', value: '100% Validated', color: 'text-emerald-400', bg: 'bg-emerald-500/10', custom: true }
+          {
+            label: 'Issued This Month',
+            value: certificates.filter((cert) => {
+              if (!cert.issuedAt) return false;
+              const issued = new Date(cert.issuedAt);
+              const now = new Date();
+              return issued.getMonth() === now.getMonth() && issued.getFullYear() === now.getFullYear();
+            }).length,
+            color: 'text-emerald-400',
+            bg: 'bg-emerald-500/10',
+          }
         ].map((kpi, idx) => (
           <Card key={idx} className="p-4 bg-[#0D1021] border-[#1A1F35] flex items-center justify-between">
             <div>

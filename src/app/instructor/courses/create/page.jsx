@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import CourseForm from "@/components/courses/CourseForm";
@@ -7,6 +8,7 @@ import { useCreateCourse } from "@/hooks/queries/instructor/useCreateCourse";
 
 export default function CreateCoursePage() {
     const router = useRouter();
+    const [submitError, setSubmitError] = useState("");
 
     const createCourseMutation =
         useCreateCourse();
@@ -14,6 +16,7 @@ export default function CreateCoursePage() {
     const handleSubmit = async (
         values
     ) => {
+        setSubmitError("");
         try {
             await createCourseMutation.mutateAsync(
                 values
@@ -23,7 +26,9 @@ export default function CreateCoursePage() {
                 "/instructor/courses"
             );
         } catch (error) {
-            console.error(error);
+            setSubmitError(
+                error.response?.data?.message || "Failed to create course. Please try again."
+            );
         }
     };
 
@@ -34,6 +39,7 @@ export default function CreateCoursePage() {
                 createCourseMutation.isPending
             }
             onSubmit={handleSubmit}
+            submitError={submitError}
         />
     );
 }

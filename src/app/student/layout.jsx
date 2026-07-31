@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { useAuth } from "@/context/AuthContext";
+import { QaProvider } from "@/context/QaContext";
 import Loader from "@/components/common/Loader";
 
 export default function Layout({ children }) {
@@ -34,12 +35,14 @@ export default function Layout({ children }) {
   const isLearnPage = pathname?.includes("/student/learn/");
 
   if (isLearnPage) {
-    return <>{children}</>;
+    return <QaProvider>{children}</QaProvider>;
   }
 
   return (
-    <DashboardLayout role="STUDENT" title="Student Dashboard">
-      {children}
-    </DashboardLayout>
+    <QaProvider>
+      <DashboardLayout role="STUDENT" title="Student Dashboard">
+        {children}
+      </DashboardLayout>
+    </QaProvider>
   );
 }

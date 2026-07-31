@@ -1,5 +1,6 @@
 'use client';
 
+import DOMPurify from 'isomorphic-dompurify';
 import { useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -15,7 +16,6 @@ import {
   UploadCloud,
   ChevronLeft,
   ChevronRight,
-  CheckCircle2,
   FileText,
   Video,
   Link as LinkIcon,
@@ -260,9 +260,10 @@ export default function ContentDetailsPage() {
         </div>
       </div>
 
-      {/* 2. Main 2-Column Equal Height Layout (Matching User Reference Image) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-        
+      {/* 2. Main Layout: media + tabs, plus a sticky rail for notes/queries/feedback/reviews */}
+      <div className="flex flex-col xl:flex-row gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch flex-1 min-w-0">
+
         {/* LEFT COLUMN: Media Preview Box */}
         <div className="rounded-2xl border border-slate-800 bg-[#0B101D] p-6 shadow-sm flex flex-col justify-between">
           <div>
@@ -278,7 +279,7 @@ export default function ContentDetailsPage() {
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                  {content.description || "This content introduces the key concepts and demonstrates application usage."}
+                  {content.description || "No description provided."}
                 </p>
               </div>
               {durationStr && <span className="text-[10px] font-mono text-slate-400 shrink-0 ml-auto">{durationStr}</span>}
@@ -401,16 +402,8 @@ export default function ContentDetailsPage() {
                   </div>
                   <h3 className="text-lg font-bold text-white mb-1.5">{content.title}</h3>
                   <p className="text-xs text-slate-400 max-w-sm mb-6 leading-relaxed">
-                    {isPresentation ? "Presentation file attached and ready for download." : "Document resource ready."}
+                    No file has been uploaded for this {isPresentation ? "presentation" : "document"} yet.
                   </p>
-                  <a
-                    href="#"
-                    onClick={(e) => { e.preventDefault(); alert("Preparing download..."); }}
-                    className="inline-flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold text-xs px-6 py-3 transition shadow-lg shadow-orange-500/10 active:scale-95 cursor-pointer"
-                  >
-                    <Download size={14} />
-                    <span>Download {isPresentation ? "Presentation" : "Document"}</span>
-                  </a>
                 </div>
               )
             )}
@@ -439,13 +432,12 @@ export default function ContentDetailsPage() {
               </div>
             )}
 
-            {/* Text / HTML */}
-            {isText && (
+            {/* Text / HTML */}            {isText && (
               <div className="rounded-2xl border border-slate-800 bg-[#060913] p-6 min-h-[240px]">
                 {content.htmlContent ? (
                   <div
                     className="prose prose-invert prose-sm max-w-none text-slate-300 leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: content.htmlContent }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content.htmlContent) }}
                   />
                 ) : (
                   <p className="text-slate-400 text-sm text-center py-12">No text content provided.</p>
@@ -479,72 +471,14 @@ export default function ContentDetailsPage() {
               {activeTab === "description" && (
                 <div className="space-y-6">
                   <p className="text-slate-300 text-xs leading-relaxed">
-                    {content.description || "This video introduces key concepts. You will learn what it is, how it works, and how to apply it in real-world scenarios."}
+                    {content.description || "No description provided for this content."}
                   </p>
-                  
-                  <div className="space-y-3">
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">KEY TOPICS COVERED</h4>
-                    <ul className="space-y-2.5">
-                      {[
-                        "Core Lifecycle & Initialization",
-                        "Handling Client Side Inbound Request",
-                        "Managing Dynamic Content Responses",
-                        "Best practices for local configuration"
-                      ].map((topic, idx) => (
-                        <li key={idx} className="flex items-center gap-2.5 text-xs text-slate-200">
-                          <CheckCircle2 size={15} className="text-orange-500 shrink-0" />
-                          <span>{topic}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="pt-4 border-t border-slate-800/80 space-y-3">
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">RESOURCES</h4>
-                    <div className="space-y-3">
-                      {[
-                        { title: "Cheat Sheet", info: "PDF • 245 KB", iconColor: "text-red-400", bg: "bg-red-500/10 border-red-500/20" },
-                        { title: "Lifecycle Diagram", info: "PNG • 128 KB", iconColor: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" }
-                      ].map((res, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-[#060913] hover:border-orange-500/30 transition group cursor-pointer">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className={`h-9 w-9 rounded-lg flex items-center justify-center border shrink-0 ${res.bg} ${res.iconColor}`}>
-                              <FileText size={15} />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-slate-200 group-hover:text-orange-400 transition truncate">{res.title}</p>
-                              <p className="text-[9.5px] text-slate-500 mt-0.5">{res.info}</p>
-                            </div>
-                          </div>
-                          <button className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition cursor-pointer">
-                            <Download size={14} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               )}
 
               {activeTab === "objectives" && (
-                <div className="space-y-4">
-                  <p className="text-slate-300 text-xs leading-relaxed">
-                    By the end of this content session, students should be able to:
-                  </p>
-                  <ul className="space-y-3">
-                    {[
-                      "Implement configuration directives and request parameters.",
-                      "Demonstrate lifecycle hook integrations in real code.",
-                      "Evaluate performance tuning strategies."
-                    ].map((o, i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-xs text-slate-200">
-                        <span className="h-4 w-4 rounded-full bg-orange-500/10 text-orange-400 flex items-center justify-center text-[9px] font-bold mt-0.5 shrink-0 border border-orange-500/20 font-mono">
-                          {i + 1}
-                        </span>
-                        <span className="leading-snug">{o}</span>
-                      </li>
-                    ))}
-                  </ul>
+                <div className="py-6 text-center text-slate-500 text-xs">
+                  Learning objectives haven't been added for this content yet.
                 </div>
               )}
 
@@ -556,6 +490,18 @@ export default function ContentDetailsPage() {
             </div>
           </div>
         </div>
+
+      </div>
+
+      {/* RIGHT RAIL: Notes / Queries / Feedback / Reviews */}
+      <div className="w-full xl:w-[380px] shrink-0">
+        <LessonStickySidebar
+          lessonId={lessonId}
+          courseId={courseId}
+          videoCurrentTime={currentTime}
+          onSeekVideo={handleSeekToSeconds}
+        />
+      </div>
 
       </div>
 

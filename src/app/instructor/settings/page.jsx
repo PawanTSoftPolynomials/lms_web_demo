@@ -1,48 +1,64 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { Save, Bell, Shield, User, Globe, Moon } from 'lucide-react';
+import { Save, Bell, User, Globe, Loader2 } from 'lucide-react';
+import { useInstructorProfile, useUpdateInstructorProfile } from '@/hooks/queries/instructor/useProfile';
+
+const NOTIFICATION_ITEMS = [
+  { key: 'assignmentSubmissions', label: 'Assignment submissions', desc: 'Notify when a student submits an assignment for review' },
+  { key: 'quizCompletions', label: 'Quiz completions', desc: 'Notify when a quiz attempt is submitted by a student' },
+  { key: 'systemAnnouncements', label: 'Institute Announcements', desc: 'Notify of system maintenance and critical administrative announcements' },
+  { key: 'studentMessages', label: 'Student messages', desc: 'Notify of new private messages in the Messaging Center' },
+  { key: 'weeklyDigest', label: 'Weekly learning digest', desc: 'Receive a weekly email summarizing course completion rates and struggling concepts' }
+];
+
+const DEFAULT_NOTIFICATIONS = {
+  assignmentSubmissions: true,
+  quizCompletions: true,
+  systemAnnouncements: true,
+  studentMessages: true,
+  weeklyDigest: false
+};
 
 export default function InstructorSettingsPage() {
   const { user } = useAuth();
-  
-  const [successMsg, setSuccessMsg] = useState('');
-  
-  // Notification states
-  const [notifications, setNotifications] = useState({
-    assignmentSubmissions: true,
-    quizCompletions: true,
-    systemAnnouncements: true,
-    studentMessages: true,
-    weeklyDigest: false
-  });
+  const { data: profile, isLoading } = useInstructorProfile();
+  const updateProfile = useUpdateInstructorProfile();
 
-  // Profile preferences
-  const [preferences, setPreferences] = useState({
-    theme: 'Dark',
-    language: 'English',
-    timezone: 'UTC+5:30 (IST)'
-  });
+  const [successMsg, setSuccessMsg] = useState('');
+  const [notifications, setNotifications] = useState(DEFAULT_NOTIFICATIONS);
+  const [language, setLanguage] = useState('English');
+  const [timezone, setTimezone] = useState('GMT+05:30');
+
+  useEffect(() => {
+    if (!profile?.teacherProfile) return;
+    setNotifications({ ...DEFAULT_NOTIFICATIONS, ...(profile.teacherProfile.notificationPreferences || {}) });
+    setLanguage(profile.teacherProfile.language || 'English');
+    setTimezone(profile.teacherProfile.timezone || 'GMT+05:30');
+  }, [profile]);
 
   const handleToggleNotification = (key) => {
-    setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const handlePreferenceChange = (key, val) => {
-    setPreferences(prev => ({ ...prev, [key]: val }));
+    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const handleSaveSettings = (e) => {
     e.preventDefault();
-    setSuccessMsg('Settings saved successfully!');
-    setTimeout(() => setSuccessMsg(''), 3000);
+    updateProfile.mutate(
+      { notificationPreferences: notifications, language, timezone },
+      {
+        onSuccess: () => {
+          setSuccessMsg('Settings saved successfully!');
+          setTimeout(() => setSuccessMsg(''), 3000);
+        },
+      }
+    );
   };
 
   return (
     <div className="min-h-screen text-slate-100 flex flex-col bg-[#080B11] pb-10">
-      
+
       {/* HEADER */}
       <div className="flex items-center justify-between border-b border-[#1A1F35] pb-4">
         <div>
@@ -58,11 +74,22 @@ export default function InstructorSettingsPage() {
         </Link>
       </div>
 
+      {isLoading ? (
+        <div className="flex justify-center py-16">
+          <Loader2 className="animate-spin text-slate-500" size={24} />
+        </div>
+      ) : (
       <form onSubmit={handleSaveSettings} className="max-w-2xl mt-4 space-y-6">
-        
+
         {successMsg && (
           <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-450 text-xs font-black rounded-xl animate-pulse">
             ✓ {successMsg}
+          </div>
+        )}
+
+        {updateProfile.isError && (
+          <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-black rounded-xl">
+            Failed to save settings. Please try again.
           </div>
         )}
 
@@ -71,7 +98,7 @@ export default function InstructorSettingsPage() {
           <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest font-mono flex items-center gap-2">
             <User size={13} className="text-orange-400" /> Account Profile
           </h2>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-[9.5px] font-black text-slate-500 uppercase tracking-wider">Full Name</label>
@@ -87,7 +114,7 @@ export default function InstructorSettingsPage() {
               <input
                 type="email"
                 disabled
-                value={user?.email || 'instructor@lms.com'}
+                value={user?.email || ''}
                 className="w-full bg-[#080B11] border border-[#1A1F35] text-xs px-3.5 py-2.5 rounded-xl text-slate-400 cursor-not-allowed"
               />
             </div>
@@ -101,13 +128,7 @@ export default function InstructorSettingsPage() {
           </h2>
 
           <div className="divide-y divide-[#1A1F35]/60 space-y-3.5">
-            {[
-              { key: 'assignmentSubmissions', label: 'Assignment submissions', desc: 'Notify when a student submits an assignment for review' },
-              { key: 'quizCompletions', label: 'Quiz completions', desc: 'Notify when a quiz attempt is submitted by a student' },
-              { key: 'systemAnnouncements', label: 'Institute Announcements', desc: 'Notify of system maintenance and critical administrative announcements' },
-              { key: 'studentMessages', label: 'Student messages', desc: 'Notify of new private messages in the Messaging Center' },
-              { key: 'weeklyDigest', label: 'Weekly learning digest', desc: 'Receive a weekly email summarizing course completion rates and struggles concepts' }
-            ].map((item, idx) => (
+            {NOTIFICATION_ITEMS.map((item, idx) => (
               <div key={item.key} className={`flex justify-between items-center gap-4 ${idx > 0 ? 'pt-3.5' : ''}`}>
                 <div>
                   <p className="text-xs font-extrabold text-slate-200">{item.label}</p>
@@ -139,8 +160,8 @@ export default function InstructorSettingsPage() {
             <div className="space-y-1">
               <label className="text-[9.5px] font-black text-slate-500 uppercase tracking-wider">Interface Language</label>
               <select
-                value={preferences.language}
-                onChange={(e) => handlePreferenceChange('language', e.target.value)}
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
                 className="w-full bg-[#080B11] border border-[#1A1F35] text-xs px-3.5 py-2.5 rounded-xl text-slate-200 outline-none focus:border-slate-750"
               >
                 <option value="English">English</option>
@@ -148,24 +169,24 @@ export default function InstructorSettingsPage() {
                 <option value="Spanish">Spanish (Español)</option>
               </select>
             </div>
-            
+
             <div className="space-y-1">
               <label className="text-[9.5px] font-black text-slate-500 uppercase tracking-wider">Timezone</label>
               <select
-                value={preferences.timezone}
-                onChange={(e) => handlePreferenceChange('timezone', e.target.value)}
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
                 className="w-full bg-[#080B11] border border-[#1A1F35] text-xs px-3.5 py-2.5 rounded-xl text-slate-200 outline-none focus:border-slate-750"
               >
-                <option value="UTC+5:30 (IST)">UTC+5:30 (IST)</option>
-                <option value="UTC+0:00 (GMT)">UTC+0:00 (GMT)</option>
-                <option value="UTC-5:00 (EST)">UTC-5:00 (EST)</option>
+                <option value="GMT+05:30">UTC+5:30 (IST)</option>
+                <option value="GMT+00:00">UTC+0:00 (GMT)</option>
+                <option value="GMT-05:00">UTC-5:00 (EST)</option>
               </select>
             </div>
 
             <div className="space-y-1">
               <label className="text-[9.5px] font-black text-slate-500 uppercase tracking-wider">Workspace Theme</label>
               <select
-                value={preferences.theme}
+                value="Dark"
                 disabled
                 className="w-full bg-[#080B11] border border-[#1A1F35] text-xs px-3.5 py-2.5 rounded-xl text-slate-400 cursor-not-allowed outline-none"
               >
@@ -179,13 +200,16 @@ export default function InstructorSettingsPage() {
         <div className="flex justify-end">
           <button
             type="submit"
-            className="flex items-center gap-1.5 px-6 py-3 bg-orange-500 hover:bg-orange-400 text-white rounded-xl text-xs font-black transition cursor-pointer"
+            disabled={updateProfile.isPending}
+            className="flex items-center gap-1.5 px-6 py-3 bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white rounded-xl text-xs font-black transition cursor-pointer"
           >
-            <Save size={13} /> Save Configuration
+            {updateProfile.isPending ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+            {updateProfile.isPending ? 'Saving...' : 'Save Configuration'}
           </button>
         </div>
 
       </form>
+      )}
 
     </div>
   );

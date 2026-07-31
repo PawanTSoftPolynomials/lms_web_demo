@@ -6,12 +6,16 @@ import {
     FaBookOpen,
     FaEdit,
     FaFileAlt,
+    FaRocket,
+    FaUndo,
 } from "react-icons/fa";
 
 export default function LessonHeader({
                                          lesson,
                                          courseId,
                                          moduleId,
+                                         onTogglePublish,
+                                         isToggling = false,
                                      }) {
     return (
         <div
@@ -45,9 +49,20 @@ export default function LessonHeader({
                         </div>
 
                         <div>
-                            <h1 className="text-2xl font-bold text-white tracking-tight">
-                                {lesson.title}
-                            </h1>
+                            <div className="flex items-center gap-2 mb-1">
+                                <h1 className="text-2xl font-bold text-white tracking-tight">
+                                    {lesson.title}
+                                </h1>
+                                <span
+                                    className={`rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
+                                        lesson.isPublished
+                                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                            : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                    }`}
+                                >
+                                    {lesson.isPublished ? "Published" : "Draft"}
+                                </span>
+                            </div>
 
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                                 Lesson Details
@@ -60,9 +75,28 @@ export default function LessonHeader({
                     </p>
                 </div>
 
-                <Link
-                    href={courseId && moduleId ? `/instructor/courses/${courseId}/modules/${moduleId}/lessons/edit/${lesson.id}` : `/instructor/lessons/edit/${lesson.id}`}
-                    className="
+                <div className="flex items-center gap-2 shrink-0">
+                    <button
+                        type="button"
+                        onClick={onTogglePublish}
+                        disabled={isToggling}
+                        className={`inline-flex items-center gap-2 rounded-xl font-extrabold text-xs px-5 py-2.5 transition active:scale-95 shadow-lg disabled:opacity-50 ${
+                            lesson.isPublished
+                                ? "bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30"
+                                : "bg-emerald-500 hover:bg-emerald-600 text-slate-950 shadow-emerald-500/10"
+                        }`}
+                    >
+                        {lesson.isPublished ? <FaUndo size={12} /> : <FaRocket size={12} />}
+                        {isToggling
+                            ? "Updating..."
+                            : lesson.isPublished
+                            ? "Unpublish"
+                            : "Publish Lesson"}
+                    </button>
+
+                    <Link
+                        href={courseId && moduleId ? `/instructor/courses/${courseId}/modules/${moduleId}/lessons/edit/${lesson.id}` : `/instructor/lessons/edit/${lesson.id}`}
+                        className="
             inline-flex
             items-center
             gap-2
@@ -80,11 +114,12 @@ export default function LessonHeader({
             active:scale-95
             shrink-0
           "
-                >
-                    <FaEdit size={12} />
+                    >
+                        <FaEdit size={12} />
 
-                    Edit Lesson
-                </Link>
+                        Edit Lesson
+                    </Link>
+                </div>
             </div>
 
             {/* Stats */}
