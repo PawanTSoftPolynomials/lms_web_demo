@@ -40,67 +40,106 @@ export default function AssignmentCard({ assignment }) {
       })
     : "No due date";
 
+  // Shorter form for the compact mobile card — same dueDate value, just less
+  // text to scan (no year, no time) since space is tighter there.
+  const compactDueDateLabel = dueDate
+    ? new Date(dueDate).toLocaleDateString([], { month: "short", day: "numeric" })
+    : "No due date";
+
+  const courseName = course?.title ?? assignment.courseTitle ?? "Unknown course";
+
   return (
-    <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-xl shadow-black/20 transition hover:-translate-y-1 hover:border-orange-500">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-3 flex-1">
-          <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
-            <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-200">
-              {course?.title ?? assignment.courseTitle ?? "Unknown course"}
-            </span>
+    <>
+      {/* Desktop (xl+): unchanged */}
+      <div className="hidden xl:block rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-xl shadow-black/20 transition hover:-translate-y-1 hover:border-orange-500">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-3 flex-1">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
+              <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-200">
+                {courseName}
+              </span>
 
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${statusStyles[status] ?? "bg-slate-800 text-slate-200"}`}
-            >
-              {status ?? "Unknown"}
-            </span>
-          </div>
-
-          <h3 className="text-xl font-semibold text-white">
-            {title}
-          </h3>
-
-          <p className="text-sm leading-6 text-slate-400 line-clamp-3">
-            {description ?? "No description available."}
-          </p>
-        </div>
-
-        <div className="w-full min-w-44 flex flex-col gap-3 sm:flex">
-          <div className="rounded-2xl bg-slate-950 p-4 text-sm text-slate-300">
-            <div className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 text-orange-500" />
-              <span>Due {dueDateLabel}</span>
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${statusStyles[status] ?? "bg-slate-800 text-slate-200"}`}
+              >
+                {status ?? "Unknown"}
+              </span>
             </div>
 
-            <div className="mt-3 grid gap-2 text-slate-400">
-              {totalQuestions != null && (
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-orange-500" />
-                  <span>{totalQuestions} questions</span>
-                </div>
-              )}
+            <h3 className="text-xl font-semibold text-white">
+              {title}
+            </h3>
 
-              {estimatedTime != null && (
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-orange-500" />
-                  <span>{estimatedTime} min</span>
-                </div>
-              )}
-
-              {resources != null && (
-                <div className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-orange-500" />
-                  <span>{resources} resource{resources !== 1 ? "s" : ""}</span>
-                </div>
-              )}
-            </div>
+            <p className="text-sm leading-6 text-slate-400 line-clamp-3">
+              {description ?? "No description available."}
+            </p>
           </div>
 
-          <Link href={`/student/assignments/${id}`}>
-            <Button className="w-full">{actionLabels[status] ?? "View"}</Button>
-          </Link>
+          <div className="w-full min-w-44 flex flex-col gap-3 sm:flex">
+            <div className="rounded-2xl bg-slate-950 p-4 text-sm text-slate-300">
+              <div className="flex items-center gap-2">
+                <CalendarDays className="h-4 w-4 text-orange-500" />
+                <span>Due {dueDateLabel}</span>
+              </div>
+
+              <div className="mt-3 grid gap-2 text-slate-400">
+                {totalQuestions != null && (
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-orange-500" />
+                    <span>{totalQuestions} questions</span>
+                  </div>
+                )}
+
+                {estimatedTime != null && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-orange-500" />
+                    <span>{estimatedTime} min</span>
+                  </div>
+                )}
+
+                {resources != null && (
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-orange-500" />
+                    <span>{resources} resource{resources !== 1 ? "s" : ""}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Link href={`/student/assignments/${id}`}>
+              <Button className="w-full">{actionLabels[status] ?? "View"}</Button>
+            </Link>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Mobile & tablet: compact, scannable card — title, course, due date,
+          status, and the primary action, nothing else competing for space. */}
+      <div className="xl:hidden rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-2.5 transition-transform duration-200 active:scale-[0.99]">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="min-w-0 flex-1 text-sm font-bold text-white leading-snug line-clamp-2">
+            {title}
+          </h3>
+          <span
+            className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${statusStyles[status] ?? "bg-slate-800 text-slate-200"}`}
+          >
+            {status ?? "Unknown"}
+          </span>
+        </div>
+
+        <p className="truncate text-xs text-slate-400">{courseName}</p>
+
+        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+          <CalendarDays size={13} className="text-orange-500" />
+          <span>Due {compactDueDateLabel}</span>
+        </div>
+
+        <Link href={`/student/assignments/${id}`} className="block">
+          <Button className="w-full py-2.5 min-h-[40px] text-sm">
+            {actionLabels[status] ?? "View"}
+          </Button>
+        </Link>
+      </div>
+    </>
   );
 }

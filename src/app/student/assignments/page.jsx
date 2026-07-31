@@ -1,10 +1,9 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, CalendarDays, ClipboardCheck, Plus } from "lucide-react";
 
-import Loader from "@/components/common/Loader";
 import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
 import AssignmentFilters from "@/components/student/assignments/AssignmentFilters";
@@ -22,12 +21,70 @@ const TABS = [
 const normalizeStatus = (assignment) =>
   assignment.status || assignment.submissionStatus || "Not Submitted";
 
-export default function StudentAssignmentsPage() {
+// Loading state — mirrors the real layout (header, filter bar, a few
+// assignment cards, summary panel) so nothing jumps around once data arrives.
+function AssignmentCardSkeleton() {
+  return (
+    <div className="rounded-2xl xl:rounded-3xl border border-slate-800 bg-slate-900 p-4 xl:p-6 space-y-3">
+      <div className="flex items-center gap-2">
+        <div className="h-5 w-20 rounded-full bg-slate-800 animate-pulse" />
+        <div className="h-5 w-16 rounded-full bg-slate-800 animate-pulse" />
+      </div>
+      <div className="h-5 w-3/4 rounded bg-slate-800 animate-pulse" />
+      <div className="h-4 w-1/2 rounded bg-slate-800 animate-pulse" />
+      <div className="h-10 w-full rounded-xl bg-slate-800 animate-pulse xl:hidden" />
+    </div>
+  );
+}
+
+function AssignmentsPageSkeleton() {
+  return (
+    <div className="space-y-5 xl:space-y-8">
+      <div className="flex items-start gap-3">
+        <div className="h-11 w-11 shrink-0 rounded-xl bg-slate-800 animate-pulse xl:hidden" />
+        <div className="flex-1 space-y-3">
+          <div className="h-8 w-40 rounded-lg bg-slate-800 animate-pulse" />
+          <div className="h-4 w-64 max-w-full rounded bg-slate-800 animate-pulse" />
+          <div className="flex gap-4 pt-1">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-4 w-14 rounded bg-slate-800 animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 xl:gap-6 xl:grid-cols-[2fr_1fr] items-start">
+        <div className="space-y-4 xl:space-y-6">
+          <div className="h-14 rounded-2xl border border-slate-800 bg-slate-900 animate-pulse" />
+          {[1, 2, 3].map((i) => (
+            <AssignmentCardSkeleton key={i} />
+          ))}
+        </div>
+        <div className="space-y-3">
+          <div className="h-24 rounded-3xl border border-slate-800 bg-slate-900 animate-pulse" />
+          <div className="h-16 rounded-3xl border border-slate-800 bg-slate-900 animate-pulse" />
+          <div className="h-16 rounded-3xl border border-slate-800 bg-slate-900 animate-pulse" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// useSearchParams() requires a Suspense boundary (see default export below),
+// so the actual page body lives here rather than in the exported component.
+function AssignmentsPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: assignments = [], isLoading, isError } = useAssignments();
 
+  // Course context arriving from navigation (e.g. My Courses → a course →
+  // Assignments). When present, the Course dimension is already decided by
+  // where the student came from, so the filter for it should not appear.
+  const courseContext = searchParams.get("course") || "";
+  const isCourseScoped = Boolean(courseContext);
+
   const [search, setSearch] = useState("");
-  const [courseFilter, setCourseFilter] = useState("");
+  const [courseFilter, setCourseFilter] = useState(courseContext);
   const [statusFilter, setStatusFilter] = useState("");
   const [sortBy, setSortBy] = useState("due-earliest");
   const [activeTab, setActiveTab] = useState("all");
@@ -39,6 +96,18 @@ export default function StudentAssignmentsPage() {
   const scrollToDeadlines = () => {
     setDeadlinesExpanded(true);
     deadlinesSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  // Course isn't counted here when it arrived from navigation — it's context,
+  // not something the student chose and might want cleared.
+  const hasActiveFilters = Boolean(
+    search.trim() || (!isCourseScoped && courseFilter) || statusFilter || activeTab !== "all"
+  );
+  const clearFilters = () => {
+    setSearch("");
+    if (!isCourseScoped) setCourseFilter("");
+    setStatusFilter("");
+    setActiveTab("all");
   };
 
   const courseOptions = useMemo(
@@ -135,7 +204,7 @@ export default function StudentAssignmentsPage() {
   }, [assignments]);
 
   if (isLoading) {
-    return <Loader />;
+    return <AssignmentsPageSkeleton />;
   }
 
   if (isError) {
@@ -152,14 +221,14 @@ export default function StudentAssignmentsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 xl:space-y-8">
       <div className="flex items-start gap-3">
         {/* Back navigation — mobile & tablet only; desktop's Assignments entry
             doesn't currently have one and wasn't asked to gain one. */}
         <button
           type="button"
           onClick={() => router.back()}
-          className="xl:hidden shrink-0 flex h-11 w-11 items-center justify-center rounded-xl border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition cursor-pointer"
+          className="xl:hidden shrink-0 flex h-11 w-11 items-center justify-center rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors duration-200 cursor-pointer bg-transparent border-0"
         >
           <ArrowLeft size={18} />
         </button>
@@ -167,7 +236,11 @@ export default function StudentAssignmentsPage() {
         <div className="flex-1 min-w-0">
           <PageHeader
             title="Assignments"
-            subtitle="Review, submit, and track all your course assignments."
+            subtitle={
+              isCourseScoped
+                ? `Assignments for ${courseContext}.`
+                : "Review, submit, and track all your course assignments."
+            }
           >
             {/* Desktop (xl+): unchanged pill tabs */}
             <div className="hidden xl:flex flex-wrap items-center gap-2">
@@ -190,9 +263,11 @@ export default function StudentAssignmentsPage() {
               })}
             </div>
 
-            {/* Mobile & tablet: underline-style tab strip, same activeTab state */}
+            {/* Mobile & tablet: underline-style tab strip, same activeTab state.
+                pb-1.5 keeps the visible strip short; min-h-[44px] on each button
+                still guarantees a full-height tap target regardless. */}
             <div className="xl:hidden w-full overflow-x-auto scrollbar-none">
-              <div className="flex items-center gap-6 border-b border-slate-800/80">
+              <div className="flex items-center gap-4 border-b border-slate-800/80">
                 {TABS.map((tab) => {
                   const active = activeTab === tab.value;
                   return (
@@ -200,7 +275,7 @@ export default function StudentAssignmentsPage() {
                       key={tab.value}
                       type="button"
                       onClick={() => setActiveTab(tab.value)}
-                      className={`pb-3 min-h-[44px] text-sm font-semibold whitespace-nowrap border-b-2 transition cursor-pointer bg-transparent border-x-0 border-t-0 ${
+                      className={`relative flex min-h-[44px] items-center pb-1.5 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors duration-200 cursor-pointer bg-transparent border-x-0 border-t-0 ${
                         active
                           ? "text-orange-400 border-orange-500"
                           : "text-slate-400 border-transparent hover:text-slate-200"
@@ -216,8 +291,8 @@ export default function StudentAssignmentsPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[2fr_1fr] items-start">
-        <div className="space-y-6">
+      <div className="grid gap-4 xl:gap-6 xl:grid-cols-[2fr_1fr] items-start">
+        <div className="space-y-4 xl:space-y-6">
           <AssignmentFilters
             search={search}
             setSearch={setSearch}
@@ -228,10 +303,11 @@ export default function StudentAssignmentsPage() {
             sortBy={sortBy}
             setSortBy={setSortBy}
             courseOptions={courseOptions}
+            hideCourseFilter={isCourseScoped}
           />
 
           {filteredAssignments.length > 0 ? (
-            <div className="grid gap-4">
+            <div className="grid gap-3 xl:gap-4">
               {filteredAssignments.map((assignment) => (
                 <AssignmentCard
                   key={assignment.id}
@@ -251,7 +327,9 @@ export default function StudentAssignmentsPage() {
                 </p>
               </Card>
 
-              {/* Mobile & tablet: richer empty state */}
+              {/* Mobile & tablet: context-aware empty state — genuinely no
+                  assignments reads as a celebration; filtered-to-zero offers
+                  a way out instead of a dead end. */}
               <div className="xl:hidden rounded-3xl border border-slate-800 bg-slate-900 p-8 text-center">
                 <div className="relative mx-auto mb-4 h-16 w-16">
                   <Plus size={14} className="absolute -top-2 left-1 text-orange-500/50" />
@@ -261,16 +339,37 @@ export default function StudentAssignmentsPage() {
                     <ClipboardCheck size={28} className="text-orange-500" />
                   </div>
                 </div>
-                <h2 className="text-lg font-bold text-white">No Assignments Found</h2>
-                <p className="mt-1 text-sm text-slate-400">You&apos;re all caught up! Great going.</p>
-                <button
-                  type="button"
-                  onClick={scrollToDeadlines}
-                  className="mt-5 inline-flex items-center gap-2 rounded-xl border border-orange-500/60 px-5 py-2.5 min-h-[44px] text-sm font-bold text-orange-400 hover:bg-orange-500/10 transition cursor-pointer bg-transparent"
-                >
-                  <CalendarDays size={16} />
-                  View Upcoming Deadlines
-                </button>
+
+                {hasActiveFilters ? (
+                  <>
+                    <h2 className="text-lg font-bold text-white">No matches found</h2>
+                    <p className="mt-1 text-sm text-slate-400">
+                      No assignments match your current filters.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={clearFilters}
+                      className="mt-5 inline-flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 px-5 py-2.5 min-h-[44px] text-sm font-bold text-slate-950 transition-colors duration-200 cursor-pointer"
+                    >
+                      Clear Filters
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-lg font-bold text-white">🎉 You&apos;re all caught up!</h2>
+                    <p className="mt-1 text-sm text-slate-400">
+                      No assignments are available right now.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={scrollToDeadlines}
+                      className="mt-5 inline-flex items-center gap-2 rounded-xl border border-orange-500/60 px-5 py-2.5 min-h-[44px] text-sm font-bold text-orange-400 hover:bg-orange-500/10 transition-colors duration-200 cursor-pointer bg-transparent"
+                    >
+                      <CalendarDays size={16} />
+                      View Upcoming Deadlines
+                    </button>
+                  </>
+                )}
               </div>
             </>
           )}
@@ -285,11 +384,19 @@ export default function StudentAssignmentsPage() {
           onViewAll={() => {
             setActiveTab("all");
             setStatusFilter("");
-            setCourseFilter("");
+            if (!isCourseScoped) setCourseFilter("");
             setSearch("");
           }}
         />
       </div>
     </div>
+  );
+}
+
+export default function StudentAssignmentsPage() {
+  return (
+    <Suspense fallback={<AssignmentsPageSkeleton />}>
+      <AssignmentsPageContent />
+    </Suspense>
   );
 }

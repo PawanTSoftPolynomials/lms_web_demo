@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ClipboardList,
@@ -10,7 +10,10 @@ import {
   CalendarCheck,
   Activity,
   HelpCircle,
-  Sparkles
+  Sparkles,
+  ArrowLeft,
+  User,
+  MessageSquare
 } from "lucide-react";
 import ResponsiveQuizPresenter from "@/components/student/quizzes/ResponsiveQuizPresenter";
 
@@ -20,6 +23,18 @@ export default function MyCourseCard({ enrollment }) {
     } = enrollment;
 
     const [quizModalOpen, setQuizModalOpen] = useState(false);
+    // Mobile & tablet: tapping the compact card opens a dedicated full-screen
+    // action menu instead of cramming all 8 links into the small card.
+    const [menuOpen, setMenuOpen] = useState(false);
+
+    useEffect(() => {
+        if (!menuOpen) return;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [menuOpen]);
 
     const links = [
         {
@@ -30,13 +45,13 @@ export default function MyCourseCard({ enrollment }) {
         },
         {
             label: "My Homework",
-            href: `/student/assignments`,
+            href: `/student/assignments?course=${encodeURIComponent(course.title)}`,
             icon: CalendarCheck,
             iconColor: "text-orange-400",
         },
         {
             label: "My Assignment",
-            href: `/student/assignments`,
+            href: `/student/assignments?course=${encodeURIComponent(course.title)}`,
             icon: CalendarCheck,
             iconColor: "text-purple-400",
         },
@@ -78,6 +93,76 @@ export default function MyCourseCard({ enrollment }) {
             setQuizModalOpen(true);
         }
     };
+
+    // Mobile full-screen menu: same destinations/behavior as `links` above,
+    // with a subtitle per row and distinct icon backgrounds — richer chrome
+    // that only makes sense at full-screen size, not in the compact card.
+    const mobileLinks = [
+        {
+            label: "My Learning",
+            subtitle: "Continue your learning",
+            href: `/student/learn/${course.id}`,
+            icon: CalendarCheck,
+            iconColor: "text-blue-400",
+            iconBg: "bg-blue-500/15",
+        },
+        {
+            label: "My Homework",
+            subtitle: "View and submit homework",
+            href: `/student/assignments?course=${encodeURIComponent(course.title)}`,
+            icon: CalendarCheck,
+            iconColor: "text-orange-400",
+            iconBg: "bg-orange-500/15",
+        },
+        {
+            label: "My Assignment",
+            subtitle: "View and submit assignments",
+            href: `/student/assignments?course=${encodeURIComponent(course.title)}`,
+            icon: ClipboardList,
+            iconColor: "text-purple-400",
+            iconBg: "bg-purple-500/15",
+        },
+        {
+            label: "My Test",
+            subtitle: "Take tests and quizzes",
+            href: `/student/quizzes?courseId=${course.id}`,
+            icon: CalendarCheck,
+            iconColor: "text-emerald-400",
+            iconBg: "bg-emerald-500/15",
+        },
+        {
+            label: "My Assessment Activity",
+            subtitle: "Track your assessment activities",
+            href: `/student/quizzes?courseId=${course.id}`,
+            icon: CalendarCheck,
+            iconColor: "text-pink-400",
+            iconBg: "bg-pink-500/15",
+        },
+        {
+            label: "Feedback",
+            subtitle: "View your feedback",
+            href: `/student/feedback`,
+            icon: MessageSquare,
+            iconColor: "text-rose-400",
+            iconBg: "bg-rose-500/15",
+        },
+        {
+            label: "CO Outcome Summary",
+            subtitle: "View CO outcomes and analytics",
+            href: `/student/progress`,
+            icon: BarChart2,
+            iconColor: "text-amber-400",
+            iconBg: "bg-amber-500/15",
+        },
+        {
+            label: "Check Activity Status",
+            subtitle: "Track all your activities",
+            href: `/student/achievements`,
+            icon: Activity,
+            iconColor: "text-cyan-400",
+            iconBg: "bg-cyan-500/15",
+        },
+    ];
 
     const quizOptions = [
         {
@@ -124,7 +209,8 @@ export default function MyCourseCard({ enrollment }) {
 
     return (
         <>
-            <div className="max-w-sm w-full rounded-3xl border border-slate-800/80 bg-slate-900/80 p-4 sm:p-6 shadow-lg flex flex-col justify-between transition-all duration-300 hover:border-slate-700 hover:-translate-y-1 select-none">
+            {/* Desktop (xl+): unchanged dense card, all 8 links inline */}
+            <div className="hidden xl:flex max-w-sm w-full rounded-3xl border border-slate-800/80 bg-slate-900/80 p-4 sm:p-6 shadow-lg flex-col justify-between transition-all duration-300 hover:border-slate-700 hover:-translate-y-1 select-none">
                 {/* Center-aligned Card Header */}
                 <div className="pb-3 text-center border-b border-slate-800/50">
                     <h3 className="text-sm sm:text-base font-black text-white tracking-tight leading-snug truncate" title={course.title}>
@@ -158,6 +244,79 @@ export default function MyCourseCard({ enrollment }) {
                     <HelpCircle size={16} />
                 </div>
             </div>
+
+            {/* Mobile & tablet: compact tap card — just enough to identify the
+                course; the 8 actions live in the full-screen menu instead of
+                being crammed into this card. */}
+            <button
+                type="button"
+                onClick={() => setMenuOpen(true)}
+                className="xl:hidden w-full rounded-2xl border border-slate-800/80 bg-slate-900/80 p-4 shadow-lg flex items-center justify-between gap-3 transition-colors duration-200 hover:border-slate-700 cursor-pointer text-left min-h-[44px]"
+            >
+                <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-black text-white tracking-tight leading-snug truncate" title={course.title}>
+                        {course.title}
+                    </h3>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Theory, Practical
+                    </span>
+                </div>
+                <ChevronRight size={18} className="shrink-0 text-slate-500" />
+            </button>
+
+            {/* Full-screen course action menu — mobile & tablet only. Opened by
+                tapping the compact card above; closes back to this exact list,
+                no route change (matches the Quiz full-screen pattern). */}
+            {menuOpen && (
+                <div className="xl:hidden fixed inset-0 z-[70] bg-[#07080f] overflow-y-auto">
+                    <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-slate-800/60 bg-[#07080f]/95 px-4 py-4 backdrop-blur-md">
+                        <button
+                            type="button"
+                            onClick={() => setMenuOpen(false)}
+                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors duration-200 cursor-pointer"
+                        >
+                            <ArrowLeft size={20} />
+                        </button>
+                        <div className="min-w-0 flex-1">
+                            <h1 className="text-lg font-black text-white tracking-tight truncate">
+                                {course.title}
+                            </h1>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-purple-400 truncate">
+                                Theory, Practical
+                            </p>
+                        </div>
+                        <Link
+                            href="/student/settings"
+                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 transition-colors duration-200"
+                        >
+                            <User size={18} />
+                        </Link>
+                    </div>
+
+                    <div className="space-y-2 px-4 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+                        {mobileLinks.map((link) => {
+                            const Icon = link.icon;
+                            return (
+                                <Link
+                                    key={link.label}
+                                    href={link.href}
+                                    onClick={(e) => handleRowClick(e, link.label)}
+                                    className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 px-3.5 py-2.5 min-h-[44px] transition-colors duration-200 hover:border-slate-700"
+                                >
+                                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${link.iconBg} ${link.iconColor}`}>
+                                        <Icon size={20} className="stroke-[2]" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="text-sm font-bold text-white truncate">{link.label}</h3>
+                                        <p className="text-xs leading-tight text-slate-400 truncate">{link.subtitle}</p>
+                                    </div>
+                                    <ChevronRight size={18} className="shrink-0 text-slate-500" />
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* Responsive Quiz Presenter: Desktop = Modal, Mobile = Full-Screen Dedicated View */}
             <ResponsiveQuizPresenter

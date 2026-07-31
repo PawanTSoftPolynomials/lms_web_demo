@@ -138,96 +138,112 @@ export default function AssignmentSummaryPanel({
         </div>
       </div>
 
-      {/* Mobile & tablet: compact icon-based summary + collapsible sections */}
-      <div className="xl:hidden space-y-4">
-        <div className="rounded-3xl border border-slate-800 bg-slate-900 p-4 shadow-lg shadow-black/20">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-base font-bold text-white">Submission Summary</h2>
+      {/* Mobile & tablet: compact single-row summary + collapsible sections */}
+      <div className="xl:hidden space-y-3">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-white">Submission Summary</h2>
             <button
               type="button"
               onClick={onViewAll}
-              className="flex items-center gap-1 text-sm font-semibold text-orange-400 hover:text-orange-300 transition cursor-pointer bg-transparent border-0 outline-none min-h-[36px]"
+              className="flex items-center gap-1 text-xs font-semibold text-orange-400 hover:text-orange-300 transition-colors duration-200 cursor-pointer bg-transparent border-0 outline-none min-h-[32px]"
             >
-              View All <ChevronRight size={14} />
+              View All <ChevronRight size={13} />
             </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3">
-              <FileText size={18} className="mx-auto text-orange-500" />
-              <p className="mt-1 text-lg font-bold text-white">{pendingCount}</p>
-              <p className="text-xs font-semibold text-orange-400">Pending</p>
+          {/* Single slim row instead of 3 separate stat cards — same numbers,
+              a fraction of the height. */}
+          <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5">
+            <div className="flex items-center gap-1.5">
+              <FileText size={14} className="text-orange-500" />
+              <span className="text-sm font-bold text-white">{pendingCount}</span>
+              <span className="text-xs text-slate-400">Pending</span>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3">
-              <Send size={18} className="mx-auto text-blue-400" />
-              <p className="mt-1 text-lg font-bold text-white">{submittedCount}</p>
-              <p className="text-xs font-semibold text-blue-400">Submitted</p>
+            <span className="h-4 w-px bg-slate-800" />
+            <div className="flex items-center gap-1.5">
+              <Send size={14} className="text-blue-400" />
+              <span className="text-sm font-bold text-white">{submittedCount}</span>
+              <span className="text-xs text-slate-400">Submitted</span>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3">
-              <CheckCircle2 size={18} className="mx-auto text-emerald-400" />
-              <p className="mt-1 text-lg font-bold text-white">{gradedCount}</p>
-              <p className="text-xs font-semibold text-emerald-400">Graded</p>
+            <span className="h-4 w-px bg-slate-800" />
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 size={14} className="text-emerald-400" />
+              <span className="text-sm font-bold text-white">{gradedCount}</span>
+              <span className="text-xs text-slate-400">Graded</span>
             </div>
           </div>
         </div>
 
         <div
           ref={deadlinesSectionRef}
-          className="rounded-3xl border border-slate-800 bg-slate-900 p-4 shadow-lg shadow-black/20"
+          className="rounded-2xl border border-slate-800 bg-slate-900 p-3"
         >
-          <button
-            type="button"
-            onClick={onToggleDeadlines}
-            className="flex w-full items-center gap-3 text-left cursor-pointer bg-transparent border-0 outline-none min-h-[44px]"
-          >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-500/10 text-orange-400">
-              <CalendarDays size={18} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-bold text-white">Upcoming Deadlines</h3>
-              <p className="truncate text-xs text-slate-400">
-                {upcomingDeadlines.length > 0
-                  ? `${upcomingDeadlines.length} due soon`
-                  : "No upcoming deadlines"}
-              </p>
-            </div>
-            <ChevronDown
-              size={18}
-              className={`shrink-0 text-slate-400 transition-transform ${
-                deadlinesExpanded ? "rotate-180" : ""
-              }`}
-            />
-          </button>
+          {upcomingDeadlines.length > 0 ? (
+            <>
+              <button
+                type="button"
+                onClick={onToggleDeadlines}
+                className="flex w-full items-center gap-3 text-left cursor-pointer bg-transparent border-0 outline-none min-h-[44px]"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-500/10 text-orange-400">
+                  <CalendarDays size={16} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-sm font-bold text-white">Upcoming Deadlines</h3>
+                  <p className="truncate text-xs text-slate-400">
+                    {upcomingDeadlines.length} due soon
+                  </p>
+                </div>
+                <ChevronDown
+                  size={18}
+                  className={`shrink-0 text-slate-400 transition-transform duration-200 ${
+                    deadlinesExpanded ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
 
-          {deadlinesExpanded && (
-            <div className="mt-3 space-y-2">
-              {upcomingDeadlines.length > 0 ? (
-                upcomingDeadlines.slice(0, 4).map((assignment) => (
-                  <div key={assignment.id} className="rounded-2xl bg-slate-950 p-3">
-                    <p className="text-sm text-slate-200">{assignment.title}</p>
-                    <p className="mt-1 text-xs text-slate-400">
-                      {assignment.course?.title ?? assignment.courseTitle}
-                    </p>
-                    <p className="mt-1 text-xs text-orange-400">
-                      Due {new Date(assignment.dueDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-slate-400">No upcoming deadlines.</p>
+              {deadlinesExpanded && (
+                <div className="mt-3 space-y-2">
+                  {upcomingDeadlines.slice(0, 4).map((assignment) => (
+                    <div key={assignment.id} className="rounded-xl bg-slate-950 p-3">
+                      <p className="text-sm text-slate-200">{assignment.title}</p>
+                      <p className="mt-1 text-xs text-slate-400">
+                        {assignment.course?.title ?? assignment.courseTitle}
+                      </p>
+                      <p className="mt-1 text-xs text-orange-400">
+                        Due {new Date(assignment.dueDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               )}
+            </>
+          ) : (
+            // Nothing to expand into, so this is a flat info row, not a button —
+            // no chevron pretending there's more content behind it.
+            <div className="flex items-center gap-3 min-h-[36px]">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800/60 text-slate-500">
+                <CalendarDays size={16} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-bold text-white">Upcoming Deadlines</h3>
+                <p className="truncate text-xs text-slate-400">No upcoming deadlines</p>
+              </div>
             </div>
           )}
         </div>
 
-        <div className="rounded-3xl border border-slate-800 bg-slate-900 p-4 shadow-lg shadow-black/20">
+        {/* Quick Tips — secondary info, collapsed by default, last section on
+            the page (after assignments, summary, and deadlines). */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-3">
           <button
             type="button"
             onClick={() => setTipsExpanded((prev) => !prev)}
             className="flex w-full items-center gap-3 text-left cursor-pointer bg-transparent border-0 outline-none min-h-[44px]"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-500/10 text-orange-400">
-              <Lightbulb size={18} />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-500/10 text-orange-400">
+              <Lightbulb size={16} />
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="text-sm font-bold text-white">Quick Tips</h3>
@@ -237,7 +253,7 @@ export default function AssignmentSummaryPanel({
             </div>
             <ChevronDown
               size={18}
-              className={`shrink-0 text-slate-400 transition-transform ${
+              className={`shrink-0 text-slate-400 transition-transform duration-200 ${
                 tipsExpanded ? "rotate-180" : ""
               }`}
             />
