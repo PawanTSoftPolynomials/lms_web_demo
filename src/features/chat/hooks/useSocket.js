@@ -169,7 +169,7 @@ export default function useSocket() {
       socket.off("user:offline");
       socket.disconnect();
     };
-  }, [user]);
+  }, [user, setSocket, setMessages, setConversations, setOnlineUsers]);
 
   return socketService;
 }

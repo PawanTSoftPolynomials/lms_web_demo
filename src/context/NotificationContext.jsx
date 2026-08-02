@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import { useToast } from "@/components/ui/ToastProvider";
 import { getCalendarEvents } from "@/services/calendar.service";
 import Cookies from "js-cookie";
@@ -42,7 +42,7 @@ export const playNotificationChime = () => {
         gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
         osc2.start();
         osc2.stop(audioCtx.currentTime + 0.25);
-      } catch (e) {}
+      } catch {}
     }, 85);
   } catch (e) {
     console.warn("Chime playback bypassed:", e);
@@ -132,7 +132,7 @@ export function NotificationProvider({ children }) {
     initSeenEvents();
   }, [user]);
 
-  const addNotification = (title, message, type = "system", link = "") => {
+  const addNotification = useCallback((title, message, type = "system", link = "") => {
     const newNotif = {
       id: "notif_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
       title,
@@ -154,7 +154,7 @@ export function NotificationProvider({ children }) {
     
     // Trigger screen toast
     showToast(title, type === "quiz" ? "warning" : type === "class" ? "success" : "default");
-  };
+  }, [showToast]);
 
   const markAllRead = async () => {
     try {
@@ -239,7 +239,7 @@ export function NotificationProvider({ children }) {
     return () => {
       socketService.off("new_notification", handleNewNotification);
     };
-  }, [user]);
+  }, [user, showToast]);
 
   // Schedule Observer: check for newly added calendar events periodically
   useEffect(() => {
@@ -298,7 +298,7 @@ export function NotificationProvider({ children }) {
       clearInterval(interval);
       window.removeEventListener("storage", handleStorageChange);
     };
-  }, []);
+  }, [user, addNotification]);
 
   const markEventAsSeen = (eventId) => {
     if (eventId) seenEventIdsRef.current.add(eventId);

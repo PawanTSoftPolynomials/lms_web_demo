@@ -1,8 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, Clock, PlayCircle } from "lucide-react";
-
-import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
+import { ArrowRight } from "lucide-react";
 
 export default function ContinueLearningCard({ enrollment }) {
     if (!enrollment) return null;

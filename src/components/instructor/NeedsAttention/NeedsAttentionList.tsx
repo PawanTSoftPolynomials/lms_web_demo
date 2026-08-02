@@ -49,7 +49,12 @@ export function NeedsAttentionList({ items, isLoading }: NeedsAttentionListProps
                 <li key={item.id}>
                   <Link
                     href={item.href}
-                    className="group flex items-center gap-3 rounded-xl border border-card-border p-3 hover:border-primary/30 hover:bg-surface-muted/40 transition-colors duration-200"
+                    className={cn(
+                      "group flex items-center gap-3 rounded-xl border border-card-border p-3 transition-all duration-200",
+                      "hover:border-primary/30 hover:bg-surface-muted/40",
+                      "dark:border-white/[0.06] dark:bg-white/[0.02]",
+                      "dark:hover:border-orange-500/25 dark:hover:bg-white/[0.045]"
+                    )}
                   >
                     <span
                       className={cn(

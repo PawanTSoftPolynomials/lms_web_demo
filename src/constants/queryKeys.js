@@ -55,6 +55,7 @@ export const QUERY_KEYS = {
     INSTRUCTOR_DASHBOARD: "instructor-dashboard",
 
     INSTRUCTOR_COURSES: "instructor-courses",
+    INSTRUCTOR_COURSES_TABLE: "instructor-courses-table",
     INSTRUCTOR_COURSE: "instructor-course",
 
     MODULES: "modules",
@@ -75,6 +76,15 @@ export const QUERY_KEYS = {
 
     LESSON_NOTES: "lesson-notes",
     LESSON_QUERIES: "lesson-queries",
+    MY_LESSON_QUERIES: "my-lesson-queries",
     DISCUSSIONS: "discussions",
+
+    BATCHES: "batches",
+    MY_BATCHES: "my-batches",
+    EXAMS: "exams",
+    EXAM: "exam",
+    MY_REVIEWS: "my-reviews",
+    RESULTS: "results",
+    ASSESSMENTS: "assessments",
 
 };

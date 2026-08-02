@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { 
-  FileText, Plus, Search, CheckSquare, Edit, Trash2, ArrowLeft, 
-  Clock, Users, BookOpen, AlertCircle, FileArchive, Calendar, Filter, CheckCircle, X, AlertTriangle
+import {
+  FileText, Plus, Edit, Trash2, ArrowLeft,
+  Clock, BookOpen, Calendar, Filter, X
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 import api from "@/lib/axios";
 import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
 import Loader from "@/components/common/Loader";
+import AssessmentForm from "@/components/instructor/AssessmentForm";
 
 export default function InstructorAssignmentsPage() {
   const router = useRouter();
@@ -22,16 +21,7 @@ export default function InstructorAssignmentsPage() {
   const [courseFilter, setCourseFilter] = useState("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState(null);
-
-  // Form States
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [courseId, setCourseId] = useState("");
-  const [totalQuestions, setTotalQuestions] = useState(0);
-  const [estimatedTime, setEstimatedTime] = useState(0);
-  const [resources, setResources] = useState(0);
-  const [isPublished, setIsPublished] = useState(true);
+  const [presetCourseId, setPresetCourseId] = useState("");
 
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -66,7 +56,7 @@ export default function InstructorAssignmentsPage() {
     const paramCourseId = searchParams.get("courseId");
     
     if (action === "create" && eligibleCourses.length > 0 && !hasAutoOpened.current) {
-      setCourseId(paramCourseId || eligibleCourses[0]?.id || "");
+      setPresetCourseId(paramCourseId || eligibleCourses[0]?.id || "");
       setIsFormOpen(true);
       hasAutoOpened.current = true;
     }
@@ -123,30 +113,13 @@ export default function InstructorAssignmentsPage() {
 
   const openCreateForm = () => {
     setEditingAssignment(null);
-    setTitle("");
-    setDescription("");
-    setDueDate("");
-    setCourseId(eligibleCourses[0]?.id || "");
-    setTotalQuestions(0);
-    setEstimatedTime(0);
-    setResources(0);
-    setIsPublished(true);
+    setPresetCourseId(eligibleCourses[0]?.id || "");
     setIsFormOpen(true);
     setErrorMsg("");
   };
 
   const openEditForm = (assignment) => {
     setEditingAssignment(assignment);
-    setTitle(assignment.title);
-    setDescription(assignment.description || "");
-    // Format date to YYYY-MM-DD
-    const dateFormatted = assignment.dueDate ? new Date(assignment.dueDate).toISOString().split("T")[0] : "";
-    setDueDate(dateFormatted);
-    setCourseId(assignment.courseId || assignment.course?.id || "");
-    setTotalQuestions(assignment.totalQuestions || 0);
-    setEstimatedTime(assignment.estimatedTime || 0);
-    setResources(assignment.resources || 0);
-    setIsPublished(assignment.isPublished !== undefined ? assignment.isPublished : true);
     setIsFormOpen(true);
     setErrorMsg("");
   };
@@ -156,23 +129,11 @@ export default function InstructorAssignmentsPage() {
     setEditingAssignment(null);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!courseId) {
+  const handleFormSubmit = (payload) => {
+    if (!payload.courseId) {
       setErrorMsg("Please select a target course.");
       return;
     }
-
-    const payload = {
-      title,
-      description,
-      dueDate,
-      courseId,
-      totalQuestions: Number(totalQuestions),
-      estimatedTime: Number(estimatedTime),
-      resources: Number(resources),
-      isPublished,
-    };
 
     if (editingAssignment) {
       updateMutation.mutate({ id: editingAssignment.id, payload });
@@ -339,124 +300,24 @@ export default function InstructorAssignmentsPage() {
               {editingAssignment ? "Edit Assignment" : "Add Assignment"}
             </h3>
 
-            {errorMsg && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold p-3 rounded-xl mb-4">
-                {errorMsg}
-              </div>
-            )}
+            <div className="flex justify-end mb-2">
+              <button
+                type="button"
+                onClick={closeForm}
+                className="rounded-xl border border-slate-700 px-4 py-2 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Course Selector */}
-              <div>
-                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Select Target Course</label>
-                <select
-                  value={courseId}
-                  onChange={(e) => setCourseId(e.target.value)}
-                  required
-                  disabled={!!editingAssignment}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white outline-none focus:border-orange-500 cursor-pointer disabled:opacity-50"
-                >
-                  <option value="">-- Select Course --</option>
-                  {eligibleCourses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Title */}
-              <Input
-                label="Assignment Title"
-                placeholder="e.g. Intermediate Java Final Project"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-
-              {/* Description */}
-              <div>
-                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Description</label>
-                <textarea
-                  placeholder="Enter assignment directions and instructions..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={4}
-                  required
-                  className="w-full resize-none rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs text-white outline-none focus:border-orange-500"
-                />
-              </div>
-
-              {/* Grid 1: Due Date & Total Questions */}
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Due Date</label>
-                  <input
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    required
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white outline-none focus:border-orange-500 cursor-pointer"
-                  />
-                </div>
-                <Input
-                  label="Total Questions"
-                  type="number"
-                  placeholder="0"
-                  value={totalQuestions}
-                  onChange={(e) => setTotalQuestions(e.target.value)}
-                  required
-                />
-              </div>
-
-              {/* Grid 2: Est. Time & Resources */}
-              <div className="grid gap-4 md:grid-cols-2">
-                <Input
-                  label="Estimated Time (Minutes)"
-                  type="number"
-                  placeholder="0"
-                  value={estimatedTime}
-                  onChange={(e) => setEstimatedTime(e.target.value)}
-                  required
-                />
-                <Input
-                  label="Reference Resources Count"
-                  type="number"
-                  placeholder="0"
-                  value={resources}
-                  onChange={(e) => setResources(e.target.value)}
-                  required
-                />
-              </div>
-
-              {/* Publish Toggle */}
-              <div className="flex items-center gap-3 bg-slate-900/40 p-3 rounded-lg border border-slate-850">
-                <input
-                  type="checkbox"
-                  id="isPublished"
-                  checked={isPublished}
-                  onChange={(e) => setIsPublished(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-orange-500 focus:ring-orange-500 focus:ring-offset-slate-900 cursor-pointer"
-                />
-                <label htmlFor="isPublished" className="text-xs font-semibold text-slate-300 cursor-pointer select-none">
-                  Publish Assignment immediately to enrolled students
-                </label>
-              </div>
-
-              {/* Form Buttons */}
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-850">
-                <button
-                  type="button"
-                  onClick={closeForm}
-                  className="rounded-xl border border-slate-700 px-4 py-2 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                  {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save Assignment"}
-                </Button>
-              </div>
-            </form>
+            <AssessmentForm
+              mode={editingAssignment ? "edit" : "create"}
+              initialValues={editingAssignment || (presetCourseId ? { courseId: presetCourseId } : null)}
+              courses={eligibleCourses}
+              loading={createMutation.isPending || updateMutation.isPending}
+              submitError={errorMsg}
+              onSubmit={handleFormSubmit}
+            />
           </Card>
         </div>
       )}

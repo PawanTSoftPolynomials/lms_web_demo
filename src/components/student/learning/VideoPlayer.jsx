@@ -44,7 +44,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const playerRef = useRef(null);
     const localVideoRef = useRef(null);
     const [slideIndex, setSlideIndex] = useState(0);
-    const [hasStarted, setHasStarted] = useState(false);
+
     
     // Video Analytics state
     const pingIntervalRef = useRef(null);
@@ -76,7 +76,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
     useEffect(() => {
         initialTimeRef.current = initialTime;
-    }, [videoUrl]);
+    }, [videoUrl, initialTime]);
 
     useImperativeHandle(
         ref,
@@ -200,12 +200,11 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
     useEffect(() => {
         setSlideIndex(0);
-        setHasStarted(false);
         accumulatedSecondsRef.current = 0;
         lastPingTimeRef.current = 0;
         
         return () => stopPingTimer();
-    }, [content]);
+    }, [content, stopPingTimer]);
 
     const stopPingTimer = useCallback(() => {
         if (pingIntervalRef.current) {
@@ -214,79 +213,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         }
     }, []);
 
-    const startPingTimer = useCallback(() => {
-        if (!resolvedLessonId) return;
-        
-        stopPingTimer();
-        pingIntervalRef.current = setInterval(async () => {
-            if (accumulatedSecondsRef.current >= 10) {
-                const watchTimeToSend = accumulatedSecondsRef.current;
-                accumulatedSecondsRef.current = 0; // Reset eagerly
-                
-                try {
-                    const token = Cookies.get("accessToken");
-                    await axios.post(
-                        `${process.env.NEXT_PUBLIC_API_URL}/analytics/video-ping`,
-                        {
-                            lessonId: resolvedLessonId,
-                            courseId,
-                            watchTime: watchTimeToSend
-                        },
-                        {
-                            headers: { Authorization: `Bearer ${token}` }
-                        }
-                    );
-                } catch (error) {
-                    console.error("Failed to ping video analytics:", error);
-                }
-            }
-        }, 10000); // Ping every 10 seconds
-    }, [resolvedLessonId, courseId, stopPingTimer]);
 
-    const handleProgress = (state) => {
-        const { playedSeconds } = state;
-        onTimeUpdate?.(Math.floor(playedSeconds));
-        
-        // Track accumulated seconds for analytics
-        const delta = playedSeconds - lastPingTimeRef.current;
-        if (delta > 0 && delta < 5) { // Avoid huge jumps from seeking
-            accumulatedSecondsRef.current += delta;
-        }
-        lastPingTimeRef.current = playedSeconds;
-    };
-
-    const handlePlay = () => {
-        setHasStarted(true);
-        startPingTimer();
-    };
-
-    const handlePause = () => {
-        stopPingTimer();
-    };
-
-    const handleReady = () => {
-        if (playerRef.current && initialTime > 0 && !hasStarted) {
-            playerRef.current.seekTo(initialTime, "seconds");
-        }
-    };
-
-    const handleEnded = async () => {
-        stopPingTimer();
-        onEnded?.();
-        
-        if (resolvedLessonId) {
-            try {
-                const token = Cookies.get("accessToken");
-                await axios.post(
-                    `${process.env.NEXT_PUBLIC_API_URL}/analytics/video-ping`,
-                    { lessonId: resolvedLessonId, courseId, completed: true },
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-            } catch (error) {
-                console.error("Failed to record completion:", error);
-            }
-        }
-    };
 
     if (!content) {
         return (

@@ -12,6 +12,33 @@ export const getCourses = async () => {
     }
 };
 
+/** Real status-breakdown counts (total/published/draft/archived) for the My Courses summary cards. */
+export const getCourseStatusCounts = async () => {
+    const { data } = await api.get("/courses/stats/mine");
+    return data.data ?? data;
+};
+
+/**
+ * Get instructor's courses for the My Courses table/grid — server-side
+ * search, filter, sort, and pagination. Kept separate from getCourses()
+ * above since that function is used everywhere expecting a flat unpaginated
+ * array; this one returns { courses, pagination } for this page only.
+ */
+export const getInstructorCoursesTable = async (filters = {}) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+            params.set(key, value);
+        }
+    });
+
+    const { data } = await api.get(`/courses?${params.toString()}`);
+    return {
+        courses: data.data ?? [],
+        pagination: data.pagination ?? { page: 1, limit: 10, total: data.data?.length ?? 0, totalPages: 1 },
+    };
+};
+
 /**
  * Get Course By ID
  */
@@ -108,5 +135,35 @@ export const getCourseStudents = async (
         `/courses/${courseId}/students`
     );
 
+    return data.data ?? data;
+};
+
+/**
+ * Get Batches For A Single Course
+ */
+export const getCourseBatches = async (courseId) => {
+    const { data } = await api.get(`/courses/${courseId}/batches`);
+    return data.data ?? data;
+};
+
+/**
+ * Get All Batches Across The Instructor's Courses (with optional filters)
+ */
+export const getMyBatches = async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.courseId) params.set("courseId", filters.courseId);
+    if (filters.status) params.set("status", filters.status);
+    if (filters.startDate) params.set("startDate", filters.startDate);
+    if (filters.endDate) params.set("endDate", filters.endDate);
+
+    const { data } = await api.get(`/courses/batches/mine?${params.toString()}`);
+    return data.data ?? data;
+};
+
+/**
+ * Create A Batch For A Course
+ */
+export const createCourseBatch = async (courseId, batchData) => {
+    const { data } = await api.post(`/courses/${courseId}/batches`, batchData);
     return data.data ?? data;
 };
