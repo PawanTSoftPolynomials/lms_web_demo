@@ -76,7 +76,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
     useEffect(() => {
         initialTimeRef.current = initialTime;
-    }, [videoUrl]);
+    }, [videoUrl, initialTime]);
 
     useImperativeHandle(
         ref,
@@ -203,9 +203,9 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         setHasStarted(false);
         accumulatedSecondsRef.current = 0;
         lastPingTimeRef.current = 0;
-        
+
         return () => stopPingTimer();
-    }, [content]);
+    }, [content, stopPingTimer]);
 
     const stopPingTimer = useCallback(() => {
         if (pingIntervalRef.current) {

@@ -24,9 +24,9 @@ export function ContinueEditingCard({ item, isLoading }: ContinueEditingCardProp
         ) : !item ? (
           <EmptyWidgetState icon={PenLine} message="Nothing in progress. Start building a lesson to see it here." />
         ) : (
-          <div className="flex flex-col sm:flex-row sm:items-center gap-5 rounded-2xl border border-card-border bg-surface-muted/40 p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 rounded-2xl border border-card-border dark:border-white/[0.06] bg-surface-muted/40 dark:bg-white/[0.02] p-4 sm:p-5">
             <div className="min-w-0 flex-1 space-y-2">
-              <p className="text-lg font-bold text-foreground leading-snug truncate">{item.lessonTitle}</p>
+              <p className="text-base sm:text-lg font-bold text-foreground leading-snug truncate">{item.lessonTitle}</p>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1.5 min-w-0">
                   <BookOpen className="size-3.5 shrink-0" />
@@ -42,7 +42,7 @@ export function ContinueEditingCard({ item, isLoading }: ContinueEditingCardProp
                 </span>
               </div>
             </div>
-            <Button asChild size="lg" className="shrink-0 gap-1.5 font-bold">
+            <Button asChild size="lg" className="w-full sm:w-auto sm:shrink-0 gap-1.5 font-bold">
               <Link href={item.href}>
                 <PenLine className="size-4" /> Resume Editing
               </Link>

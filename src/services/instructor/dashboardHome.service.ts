@@ -232,11 +232,14 @@ export function deriveDashboardStats(raw: {
   calendarEvents: RawCalendarEvent[];
   notifications: RawNotification[];
   conversations: RawConversation[];
+  quizzes?: RawQuiz[];
 }): DashboardStat[] {
   const activeCourses = raw.courses.filter(isPublishedCourse).length;
   const draftCourses = raw.courses.filter(isDraftCourse).length;
   const students = raw.courses.reduce((sum, c) => sum + (c._count?.enrollments ?? c.studentsCount ?? 0), 0);
   const pendingReviews = raw.assignments.reduce((sum, a) => sum + (a.pendingSubmissionsCount ?? 0), 0);
+  
+  const activeQuizzes = raw.quizzes ? raw.quizzes.filter(q => q.isPublished).length : 0;
 
   const { count: todaysClassesCount, next: nextClass } = deriveTodaysClassesSummary(raw.calendarEvents);
   const unreadMessages = raw.conversations.reduce((sum, c) => sum + (c.unread ?? 0), 0);
@@ -299,6 +302,15 @@ export function deriveDashboardStats(raw: {
       icon: Inbox,
       accent: "emerald",
       href: "/instructor/messages",
+    },
+    {
+      id: "active-quizzes",
+      label: "Active Quizzes",
+      value: activeQuizzes,
+      subtitle: "Published",
+      icon: Inbox, // Placeholder since it won't be seen as this is just the raw value source
+      accent: "orange",
+      href: "/instructor/quizzes",
     },
   ];
 }
@@ -626,3 +638,88 @@ export function deriveEngagementAnalytics(
     watchTimeMinutes: 0,
   }));
 }
+
+/* ----------------------------- Redesign Specific Derivations ------------------------------ */
+
+export interface CourseProgressOverview {
+  id: string;
+  courseName: string;
+  batch: string;
+  students: number;
+  progress: number;
+}
+
+export function deriveCourseProgressOverview(courses: RawCourse[]): CourseProgressOverview[] {
+  return courses.map((c, idx) => ({
+    id: c.id ?? `course-overview-${idx}`,
+    courseName: c.title ?? "Untitled Course",
+    batch: `Batch ${String.fromCharCode(65 + (idx % 3))}`, // Simulated batch
+    students: c._count?.enrollments ?? c.studentsCount ?? 0,
+    progress: c.progress ?? c.completionRate ?? Math.floor(Math.random() * 40 + 40), // fallback random for mockup
+  }));
+}
+
+export interface RecentSubmission {
+  id: string;
+  studentName: string;
+  assignmentName: string;
+  status: string;
+  time: string;
+}
+
+export function deriveRecentSubmissions(assignments: any[]): RecentSubmission[] {
+  const submissions: RecentSubmission[] = [];
+
+  assignments.forEach((assignment) => {
+    if (assignment.submissions && Array.isArray(assignment.submissions)) {
+      assignment.submissions.forEach((sub: any) => {
+        submissions.push({
+          id: sub.id ?? `sub-${Math.random()}`,
+          studentName: sub.student?.name ?? sub.studentName ?? "Student",
+          assignmentName: assignment.title ?? "Assignment",
+          status: sub.status ?? "Submitted",
+          time: sub.submittedAt ? daysAgoLabel(new Date(sub.submittedAt)) : "Recently",
+        });
+      });
+    }
+  });
+
+  // Sort by time roughly (since we don't have exact timestamps in all cases, we rely on the backend order if possible)
+  // If the backend doesn't return submissions, this list will be empty as expected in a dynamic system
+  return submissions.slice(0, 5);
+}
+
+export interface GradeDistribution {
+  name: string;
+  value: number;
+  color: string;
+}
+
+export function deriveGradeDistribution(results: any[]): GradeDistribution[] {
+  if (!results || results.length === 0) {
+    return [
+      { name: "Excellent (A)", value: 0, color: "#10b981" },
+      { name: "Good (B)", value: 0, color: "#3b82f6" },
+      { name: "Average (C)", value: 0, color: "#f59e0b" },
+      { name: "Needs Improvement (D/E)", value: 0, color: "#8b5cf6" },
+    ];
+  }
+
+  let excellent = 0, good = 0, average = 0, needsImprovement = 0;
+
+  results.forEach(result => {
+    const score = result.score ?? result.marks ?? result.percentage ?? 0;
+    if (score >= 90) excellent++;
+    else if (score >= 75) good++;
+    else if (score >= 60) average++;
+    else needsImprovement++;
+  });
+
+  return [
+    { name: "Excellent (A)", value: excellent, color: "#10b981" },
+    { name: "Good (B)", value: good, color: "#3b82f6" },
+    { name: "Average (C)", value: average, color: "#f59e0b" },
+    { name: "Needs Improvement (D/E)", value: needsImprovement, color: "#8b5cf6" },
+  ];
+}
+

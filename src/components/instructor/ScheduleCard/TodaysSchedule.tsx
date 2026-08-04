@@ -56,37 +56,42 @@ export function TodaysSchedule({ events, isLoading }: TodaysScheduleProps) {
             {events.map((event) => (
               <li
                 key={event.id}
-                className="flex items-center gap-3 rounded-xl border border-card-border p-3"
+                className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 rounded-xl border border-card-border dark:border-white/[0.06] dark:bg-white/[0.02] p-3"
               >
-                <span className="w-[52px] shrink-0 text-[11px] font-bold text-foreground tabular-nums">
-                  {event.time}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-foreground truncate">{event.title}</p>
-                  <p className="text-[10.5px] text-muted-foreground mt-0.5 truncate">
-                    {event.courseName}
-                    {event.batch ? ` • ${event.batch}` : ""}
-                  </p>
+                <div className="flex items-start gap-3 min-w-0 flex-1">
+                  <span className="w-[46px] shrink-0 pt-0.5 text-[11px] font-bold text-foreground tabular-nums">
+                    {event.time}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-foreground truncate">{event.title}</p>
+                    <p className="text-[10.5px] text-muted-foreground mt-0.5 truncate">
+                      {event.courseName}
+                      {event.batch ? ` • ${event.batch}` : ""}
+                    </p>
+                  </div>
                 </div>
-                <Badge variant="outline" className="shrink-0 text-[9.5px]">
-                  {TYPE_LABEL[event.type]}
-                </Badge>
-                <span
-                  className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9.5px] font-bold ${STATUS_STYLES[event.status]}`}
-                >
-                  {event.status === "live" && <Radio className="size-2.5" />}
-                  {STATUS_LABEL[event.status]}
-                </span>
-                {event.joinLink && event.status !== "ended" && (
-                  <a
-                    href={event.joinLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 inline-flex items-center gap-1 rounded-lg bg-primary text-primary-foreground text-[10.5px] font-bold px-2.5 py-1.5 hover:opacity-90 transition-opacity"
+
+                <div className="flex items-center flex-wrap gap-1.5 pl-[58px] sm:pl-0 sm:shrink-0">
+                  <Badge variant="outline" className="shrink-0 text-[9.5px]">
+                    {TYPE_LABEL[event.type]}
+                  </Badge>
+                  <span
+                    className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9.5px] font-bold ${STATUS_STYLES[event.status]}`}
                   >
-                    Join <ExternalLink className="size-3" />
-                  </a>
-                )}
+                    {event.status === "live" && <Radio className="size-2.5" />}
+                    {STATUS_LABEL[event.status]}
+                  </span>
+                  {event.joinLink && event.status !== "ended" && (
+                    <a
+                      href={event.joinLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 inline-flex items-center gap-1 rounded-lg bg-primary text-primary-foreground text-[10.5px] font-bold px-2.5 py-1.5 hover:opacity-90 transition-opacity"
+                    >
+                      Join <ExternalLink className="size-3" />
+                    </a>
+                  )}
+                </div>
               </li>
             ))}
           </ol>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Megaphone, Plus, X } from "lucide-react";
 
-import api from "@/lib/axios";
+import { createCourseAnnouncement } from "@/services/announcement.service";
 import { Button } from "@/components/ui/shadcn/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/shadcn/card";
 import { Skeleton } from "@/components/ui/shadcn/skeleton";
@@ -28,8 +28,7 @@ export function AnnouncementsWidget({ announcements, courses, isLoading }: Annou
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const { data } = await api.post(`/courses/${courseId}/announcements`, { title, message: body });
-      return data;
+      return await createCourseAnnouncement(courseId, { title, message: body });
     },
     onSuccess: () => {
       showToast("Announcement posted", "success");

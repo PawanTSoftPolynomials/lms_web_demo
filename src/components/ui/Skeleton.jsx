@@ -30,7 +30,7 @@ export function KPICardSkeleton() {
 }
 
 // 2. Chart Card Skeleton
-export function ChartCardSkeleton({ title = "Loading Chart", height = "h-96" }) {
+export function ChartCardSkeleton({ height = "h-96" }) {
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/60 shadow-sm overflow-hidden">
       <div className="flex justify-between items-center border-b border-slate-800/80 px-6 py-5">

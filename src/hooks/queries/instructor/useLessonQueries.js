@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
     getLessonQueries,
+    getMyLessonQueries,
     replyToLessonQuery,
     updateLessonQueryStatus,
 } from "@/services/lessonQuery.service";
@@ -17,6 +18,15 @@ export function useLessonQueries(lessonId) {
     });
 }
 
+/** Doubts across every course the instructor owns — backs the Q&A nav page. */
+export function useMyLessonQueries(filters = {}) {
+    return useQuery({
+        queryKey: [QUERY_KEYS.MY_LESSON_QUERIES, filters],
+        queryFn: () => getMyLessonQueries(filters),
+        ...defaultQueryOptions,
+    });
+}
+
 export function useReplyToLessonQuery(lessonId) {
     const queryClient = useQueryClient();
 
@@ -25,6 +35,9 @@ export function useReplyToLessonQuery(lessonId) {
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.LESSON_QUERIES, lessonId],
+            });
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.MY_LESSON_QUERIES],
             });
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES],
@@ -41,6 +54,9 @@ export function useUpdateLessonQueryStatus(lessonId) {
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.LESSON_QUERIES, lessonId],
+            });
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.MY_LESSON_QUERIES],
             });
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES],

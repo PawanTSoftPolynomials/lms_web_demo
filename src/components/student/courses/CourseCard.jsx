@@ -45,8 +45,6 @@ export default function CourseCard({ course, enrollment }) {
     certificates,
     reviews,
     modules,
-    quizzes,
-    assignments,
     _count,
   } = courseData;
 

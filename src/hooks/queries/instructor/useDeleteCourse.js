@@ -16,6 +16,10 @@ export function useDeleteCourse() {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.INSTRUCTOR_COURSE],
             });
+
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES_TABLE],
+            });
         },
     });
 }

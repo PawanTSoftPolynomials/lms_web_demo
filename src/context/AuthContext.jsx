@@ -87,6 +87,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     initializeAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Automatic startup dashboard redirects for authenticated users on guest pages

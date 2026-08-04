@@ -3,26 +3,18 @@ import api from "@/lib/axios";
 export const getContents = async (
   lessonId
 ) => {
-  try {
-    const response =
-      await api.get(
-        `/contents?lessonId=${lessonId}`
-      );
+  const response =
+    await api.get(
+      `/contents?lessonId=${lessonId}`
+    );
 
-    const data = response.data?.data ?? response.data;
-    if (Array.isArray(data) && data.length > 0) {
-      return data;
-    }
-    return [
-      { id: "c1", title: "C Programming Tutorial for Beginners", type: "VIDEO" },
-      { id: "c2", title: "Module2_Infographics", type: "PRESENTATION" }
-    ];
-  } catch (e) {
-    return [
-      { id: "c1", title: "C Programming Tutorial for Beginners", type: "VIDEO" },
-      { id: "c2", title: "Module2_Infographics", type: "PRESENTATION" }
-    ];
-  }
+  return response.data?.data ?? response.data ?? [];
+};
+
+/** Instructor-wide contents (no lessonId = every lesson across the instructor's own courses). */
+export const getInstructorContents = async () => {
+  const response = await api.get("/contents");
+  return response.data?.data ?? response.data ?? [];
 };
 
 export const getContentById =
@@ -34,6 +26,18 @@ export const getContentById =
 
     return response.data;
   };
+
+/** Uploads a raw file (PDF/PPT/DOCX/ZIP/Video) and returns its hosted URL, for use as a Content's fileUrl. */
+export const uploadContentFile = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const { data } = await api.post("/contents/upload-file", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+  return data;
+};
 
 export const createContent =
   async (data) => {

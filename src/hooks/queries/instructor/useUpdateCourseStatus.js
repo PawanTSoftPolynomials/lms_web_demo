@@ -26,6 +26,10 @@ export function useUpdateCourseStatus() {
                 ],
             });
 
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES_TABLE],
+            });
+
             // useInstructorCourse (the course detail page) caches under
             // QUERY_KEYS.COURSE, not QUERY_KEYS.INSTRUCTOR_COURSE.
             queryClient.invalidateQueries({

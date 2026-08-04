@@ -12,6 +12,7 @@ const INITIAL_FORM = {
     passingScore: 50,
     startDate: "",
     dueDate: "",
+    shuffleQuestions: false,
 };
 
 function formatDateForInput(isoStr) {
@@ -21,7 +22,7 @@ function formatDateForInput(isoStr) {
         if (isNaN(d.getTime())) return "";
         const pad = (n) => String(n).padStart(2, "0");
         return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    } catch (e) {
+    } catch {
         return "";
     }
 }
@@ -124,6 +125,19 @@ export default function QuizForm({
                         value={formData.passingScore}
                         onChange={handleChange}
                     />
+                </div>
+
+                <div className="flex items-center gap-3 bg-[#05070E] p-3.5 rounded-xl border border-[#1A1F35]">
+                    <input
+                        type="checkbox"
+                        id="shuffleQuestions"
+                        checked={formData.shuffleQuestions}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, shuffleQuestions: e.target.checked }))}
+                        className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-orange-500 focus:ring-orange-500 focus:ring-offset-slate-900 cursor-pointer"
+                    />
+                    <label htmlFor="shuffleQuestions" className="text-xs font-semibold text-slate-300 cursor-pointer select-none">
+                        Randomize question order for each student attempt
+                    </label>
                 </div>
 
                 {/* Scheduling Parameters */}
