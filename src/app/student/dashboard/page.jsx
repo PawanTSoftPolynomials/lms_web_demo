@@ -9,7 +9,6 @@ import {
   CheckCircle,
   Activity,
   Clock,
-  ChevronRight,
   ClipboardList,
   ClipboardCheck,
   Video,
@@ -17,6 +16,7 @@ import {
   Star,
   Play,
   Bookmark as BookmarkIcon,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
@@ -102,6 +102,26 @@ const getEventIcon = (type) => {
   return Clock;
 };
 
+// Mobile "Upcoming (Next 7 Days)" uses its own compact badge palette so the
+// desktop sidebar's existing colors (getBadgeStyle) stay untouched.
+const getMobileEventBadge = (type) => {
+  const t = (type || "").toLowerCase();
+  if (t === "assignment" || t === "deadline") return { label: "Assignment", className: "bg-purple-500/15 text-purple-300" };
+  if (t === "exam") return { label: "Exam", className: "bg-rose-500/15 text-rose-300" };
+  if (t === "quiz") return { label: "Quiz", className: "bg-orange-500/15 text-orange-300" };
+  return { label: "Live Class", className: "bg-blue-500/15 text-blue-300" };
+};
+
+const formatDueIn = (dateObj) => {
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffDays = Math.round((dateObj - startOfToday) / 86400000);
+  const dateLabel = dateObj.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  if (diffDays <= 0) return `Due today • ${dateLabel}`;
+  if (diffDays === 1) return `Due tomorrow • ${dateLabel}`;
+  return `Due in ${diffDays} days • ${dateLabel}`;
+};
+
 function ContinueLearningRow({ enrollment, accentIdx }) {
   const [bookmarked, setBookmarked] = useState(false);
   const course = enrollment.course || {};
@@ -111,14 +131,14 @@ function ContinueLearningRow({ enrollment, accentIdx }) {
   const accent = ROW_ACCENTS[accentIdx % ROW_ACCENTS.length];
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3.5 rounded-xl border border-slate-800/60 bg-slate-950/30 hover:border-slate-700/60 transition">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3.5 rounded-xl border border-[#1A1F35] bg-[#0A0D1B] hover:border-slate-700 transition">
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <div className={`shrink-0 h-10 w-10 rounded-xl ${accent.bg} ${accent.text} border ${accent.border} flex items-center justify-center font-black text-sm`}>
           {course.title?.[0]?.toUpperCase() || "C"}
         </div>
         <div className="min-w-0 flex-1">
-          <h4 className="text-sm font-extrabold text-white truncate">{course.title || "Untitled Course"}</h4>
-          <p className="text-[11px] text-slate-500 truncate mt-0.5">
+          <h4 className="text-xs font-bold text-slate-200 truncate">{course.title || "Untitled Course"}</h4>
+          <p className="text-[10px] text-slate-500 truncate mt-0.5">
             {totalLessons > 0 ? `${completedLessons}/${totalLessons} lessons` : "Self-paced"} &middot; {progress}% complete
           </p>
           <div className="w-full max-w-[220px] h-1.5 rounded-full bg-slate-800 overflow-hidden mt-1.5">
@@ -142,7 +162,7 @@ function ContinueLearningRow({ enrollment, accentIdx }) {
           className={`shrink-0 h-9 w-9 rounded-xl border flex items-center justify-center transition cursor-pointer ${
             bookmarked
               ? "bg-orange-500/15 border-orange-500/30 text-orange-400"
-              : "bg-slate-900/60 border-slate-800 text-slate-500 hover:text-slate-200"
+              : "bg-[#0D1021] border-[#1A1F35] text-slate-500 hover:text-slate-200"
           }`}
         >
           <BookmarkIcon size={14} className={bookmarked ? "fill-orange-400" : ""} />
@@ -162,7 +182,7 @@ function RecommendedCourseCard({ course }) {
   return (
     <Link
       href={`/student/courses/${course.id}`}
-      className="group rounded-xl border border-slate-800/60 bg-slate-950/30 p-4 hover:border-orange-500/40 transition-all flex flex-col gap-2.5 min-w-0"
+      className="group rounded-xl border border-[#1A1F35] bg-[#0A0D1B] p-4 hover:border-orange-500/40 transition-all flex flex-col gap-2.5 min-w-0"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="h-9 w-9 rounded-lg bg-slate-800 flex items-center justify-center shrink-0 text-slate-400">
@@ -177,13 +197,79 @@ function RecommendedCourseCard({ course }) {
       <h4 className="text-sm font-extrabold text-white leading-snug line-clamp-2 group-hover:text-orange-400 transition-colors">
         {course.title}
       </h4>
-      <div className="flex items-center justify-between text-[11px] text-slate-500 font-bold mt-auto pt-1">
+      <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mt-auto pt-1">
         <span className="truncate">{course.level || "Beginner"}</span>
         <span className="flex items-center gap-1 text-amber-400 shrink-0">
           <Star size={11} className="fill-amber-400" /> {rating}
         </span>
       </div>
     </Link>
+  );
+}
+
+// Mobile-only: one compact, equally-sized shortcut button (Quick Actions row).
+function QuickActionButton({ href, icon: Icon, label, color, bg }) {
+  return (
+    <Link
+      href={href}
+      className="flex flex-col items-center justify-center gap-1.5 rounded-xl bg-[#0D1021] border border-[#1A1F35] py-3 min-h-[44px] active:scale-95 transition"
+    >
+      <div className={`h-8 w-8 rounded-full ${bg} flex items-center justify-center`}>
+        <Icon size={15} className={color} />
+      </div>
+      <span className="text-[10px] font-bold text-slate-300">{label}</span>
+    </Link>
+  );
+}
+
+// Mobile-only: the single most-prominent "resume where you left off" card —
+// only the top enrollment, not the full list the desktop sidebar shows.
+function MobileContinueCard({ enrollment }) {
+  const [bookmarked, setBookmarked] = useState(false);
+  const course = enrollment.course || {};
+  const progress = enrollment.progress ?? 0;
+  const completedLessons = enrollment.completedLessons ?? 0;
+  const totalLessons = course.lessons ?? 0;
+  const lessonLabel = totalLessons > 0 ? `Lesson ${Math.min(completedLessons + 1, totalLessons)} of ${totalLessons}` : "Self-paced";
+
+  return (
+    <div className="rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-4">
+      <div className="flex items-center gap-3">
+        <div className="h-12 w-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 font-black text-base shrink-0">
+          {course.title?.[0]?.toUpperCase() || "C"}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-extrabold text-white truncate">{course.title || "Untitled Course"}</h3>
+          <p className="text-[11px] text-slate-500 truncate mt-0.5">{lessonLabel}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setBookmarked((v) => !v)}
+          title={bookmarked ? "Remove bookmark" : "Bookmark course"}
+          className={`shrink-0 h-9 w-9 rounded-full border flex items-center justify-center transition ${
+            bookmarked
+              ? "bg-orange-500/15 border-orange-500/30 text-orange-400"
+              : "bg-[#141930] border-[#1A1F35] text-slate-500"
+          }`}
+        >
+          <BookmarkIcon size={15} className={bookmarked ? "fill-orange-400" : ""} />
+        </button>
+      </div>
+
+      <div className="flex items-center gap-2 mt-3.5">
+        <div className="flex-1 h-2 rounded-full bg-slate-800 overflow-hidden">
+          <div className="h-full rounded-full bg-orange-500 transition-all duration-500" style={{ width: `${progress}%` }} />
+        </div>
+        <span className="text-xs font-black text-white shrink-0">{progress}%</span>
+      </div>
+
+      <Link
+        href={`/student/learn/${enrollment.courseId || course.id}`}
+        className="mt-3.5 flex items-center justify-center gap-2 w-full rounded-xl bg-orange-500 active:bg-orange-600 text-slate-950 font-black text-sm py-3 min-h-[44px] transition"
+      >
+        <Play size={15} className="fill-slate-950" /> Continue
+      </Link>
+    </div>
   );
 }
 
@@ -307,9 +393,32 @@ export default function StudentDashboardPage() {
     [allCourses, enrolledCourseIds]
   );
 
+  // Mobile-only "Upcoming (Next 7 Days)" — a wider window than the desktop
+  // sidebar's "next 30 minutes today" view, computed from the same calendar
+  // data already being fetched above.
+  const mobileUpcomingEvents = useMemo(() => {
+    if (!calendarEvents || calendarEvents.length === 0) return [];
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const sevenDaysOut = new Date(startOfToday);
+    sevenDaysOut.setDate(sevenDaysOut.getDate() + 7);
+
+    return calendarEvents
+      .map((e) => ({ ...e, _date: e.date ? new Date(`${e.date}T00:00:00`) : null }))
+      .filter((e) => e._date && e._date >= startOfToday && e._date < sevenDaysOut)
+      .sort((a, b) => a._date - b._date || (toMinutesSinceMidnight(a.startTime) ?? 0) - (toMinutesSinceMidnight(b.startTime) ?? 0))
+      .slice(0, 4);
+  }, [calendarEvents]);
+
+  const topEnrollment = enrolledCourses[0];
+  const resumeHref = topEnrollment
+    ? `/student/learn/${topEnrollment.courseId || topEnrollment.course?.id}`
+    : "/student/my-courses";
+
   if (isError) {
     return (
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-8 text-center">
+      <div className="rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-8 text-center">
         <h2 className="text-xl font-bold text-red-500">Unable to load student dashboard</h2>
         <p className="mt-2 text-slate-400">Please verify your connection and try again.</p>
       </div>
@@ -317,253 +426,408 @@ export default function StudentDashboardPage() {
   }
 
   return (
-    <div className="space-y-6 pb-16 animate-fade-in duration-300">
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-slate-950/80 p-5 sm:p-8">
-        <div className="absolute -top-10 -right-10 w-56 h-56 rounded-full bg-orange-500/10 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-10 w-56 h-56 rounded-full bg-purple-500/10 blur-3xl pointer-events-none" />
+    <>
+      {/* ============================= MOBILE (true mobile-first layout, not a squeezed desktop) ============================= */}
+      <div className="sm:hidden -mx-3 -mt-3 px-4 pt-4 space-y-4 bg-[#080B11] min-h-[calc(100vh-3.5rem)]">
 
-        <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div className="flex-1 min-w-0">
-            <p className="text-orange-400 text-[11px] sm:text-xs font-black uppercase tracking-widest">Welcome back</p>
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1 flex items-center gap-2">
-              {user?.name ? user.name.split(" ")[0] : "Student"}! <span>👋</span>
+        {/* Welcome Banner */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0B0F1A] to-[#12182B] border border-[#1A1F35] p-4 flex items-center justify-between gap-3">
+          <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-orange-500/10 blur-[50px] pointer-events-none" />
+          <div className="relative z-10 min-w-0">
+            <h1 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+              Hi, {user?.name ? user.name.split(" ")[0] : "Student"}! <span className="animate-wave origin-bottom-right inline-block text-lg">👋</span>
             </h1>
-            <p className="text-slate-400 text-sm mt-2 max-w-md">Let&apos;s continue your learning journey. You&apos;ve got this!</p>
-            <blockquote className="mt-4 border-l-2 border-orange-500/40 pl-3.5 text-xs sm:text-sm text-slate-300 italic max-w-lg leading-relaxed">
-              &quot;{dailyQuote}&quot;
-            </blockquote>
+            <p className="text-slate-400 text-xs mt-1">Let&apos;s continue your learning journey.</p>
           </div>
-
-          <div className="hidden md:flex shrink-0 items-center gap-3">
-            <div className="h-24 w-24 lg:h-28 lg:w-28 rounded-3xl bg-gradient-to-br from-orange-500/15 to-purple-500/15 border border-slate-800 flex items-center justify-center">
-              <GraduationCap size={40} className="text-orange-400" />
-            </div>
-            <div className="flex flex-col gap-3">
-              <div className="h-11 w-11 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-purple-400 shadow-lg">
-                <Trophy size={18} />
-              </div>
-              <div className="h-11 w-11 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-emerald-400 shadow-lg">
-                <CheckCircle size={18} />
-              </div>
-              <div className="h-11 w-11 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-blue-400 shadow-lg">
-                <Activity size={18} />
-              </div>
-            </div>
+          <div className="relative z-10 h-16 w-16 rounded-2xl bg-gradient-to-br from-orange-500/15 to-purple-500/15 border border-[#1A1F35] flex items-center justify-center shrink-0">
+            <GraduationCap size={28} className="text-orange-400" />
           </div>
         </div>
-      </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {statCards.map((s) => (
-          <div
-            key={s.key}
-            className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5 shadow-sm flex items-center gap-3 min-w-0"
-          >
-            <div className={`shrink-0 h-10 w-10 sm:h-12 sm:w-12 rounded-2xl ${s.bg} ${s.color} flex items-center justify-center`}>
-              <s.icon size={18} className="sm:w-5 sm:h-5" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10.5px] sm:text-xs text-slate-400 font-semibold truncate">{s.label}</p>
+        {/* Compact Statistics — all four fit on one row on a 375px screen, no scrolling */}
+        <div className="grid grid-cols-4 gap-2">
+          {statCards.map((s) => (
+            <div key={s.key} className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-2">
+              <div className={`h-6 w-6 rounded-md ${s.bg} flex items-center justify-center mb-1`}>
+                <s.icon size={11} className={s.color} />
+              </div>
               {isDashboardLoading ? (
-                <div className="h-7 w-14 bg-slate-800 rounded animate-pulse mt-1.5" />
+                <div className="h-4 w-8 bg-slate-800 rounded animate-pulse" />
               ) : (
-                <h3 className="text-xl sm:text-2xl lg:text-3xl font-black text-white mt-1 truncate">{s.value}</h3>
+                <p className="text-sm font-black text-white leading-none">{s.value}</p>
               )}
-              {s.progress !== undefined ? (
-                <div className="w-full max-w-[110px] h-1.5 rounded-full bg-slate-800 overflow-hidden mt-2">
-                  <div
-                    className="h-full bg-blue-400 rounded-full transition-all duration-500"
-                    style={{ width: `${s.progress}%` }}
-                  />
-                </div>
-              ) : s.href ? (
-                <Link
-                  href={s.href}
-                  className="text-[10px] sm:text-[11px] font-bold text-orange-400 hover:text-orange-300 transition inline-flex items-center gap-0.5 mt-1.5"
-                >
-                  <span className="truncate">{s.hint}</span> <ChevronRight size={11} className="shrink-0" />
-                </Link>
-              ) : (
-                <p className="text-[10px] sm:text-[11px] text-slate-500 font-semibold mt-1.5 truncate">{s.hint}</p>
-              )}
+              <p className="text-[8.5px] text-slate-400 font-semibold leading-tight mt-1">{s.label}</p>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {/* Main content: Continue Learning / Recommended + sidebar */}
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
-        <div className="space-y-6 min-w-0">
-          {/* Continue Learning */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6 shadow-sm min-w-0">
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <h2 className="text-sm sm:text-base font-black text-white">Continue Learning</h2>
-              <Link
-                href="/student/my-courses"
-                className="text-[11px] sm:text-xs font-bold text-orange-400 hover:text-orange-300 transition inline-flex items-center gap-1 shrink-0"
-              >
-                View all courses <ChevronRight size={13} />
-              </Link>
-            </div>
-
-            {isDashboardLoading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((n) => (
-                  <div key={n} className="h-[74px] rounded-xl bg-slate-950/30 border border-slate-800/60 animate-pulse" />
-                ))}
-              </div>
-            ) : enrolledCourses.length === 0 ? (
-              <div className="py-10 text-center border border-dashed border-slate-800 rounded-xl">
-                <p className="text-xs text-slate-500">You have not enrolled in any courses yet.</p>
-                <Link href="/student/courses" className="inline-block mt-3">
-                  <button className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-slate-950 rounded-xl text-xs font-black uppercase tracking-widest transition cursor-pointer">
-                    Explore Courses
-                  </button>
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {enrolledCourses.slice(0, 5).map((enrollment, idx) => (
-                  <ContinueLearningRow key={enrollment.id || enrollment.courseId || idx} enrollment={enrollment} accentIdx={idx} />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Recommended for You */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6 shadow-sm min-w-0">
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <h2 className="text-sm sm:text-base font-black text-white">Recommended for You</h2>
-              <Link
-                href="/student/courses"
-                className="text-[11px] sm:text-xs font-bold text-orange-400 hover:text-orange-300 transition inline-flex items-center gap-1 shrink-0"
-              >
-                View all <ChevronRight size={13} />
-              </Link>
-            </div>
-
-            {isCoursesLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                {[1, 2, 3].map((n) => (
-                  <div key={n} className="h-[132px] rounded-xl bg-slate-950/30 border border-slate-800/60 animate-pulse" />
-                ))}
-              </div>
-            ) : recommendedCourses.length === 0 ? (
-              <p className="text-xs text-slate-500 py-6 text-center">
-                No new recommendations right now &mdash; you&apos;re enrolled in everything available!
-              </p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                {recommendedCourses.map((course) => (
-                  <RecommendedCourseCard key={course.id} course={course} />
-                ))}
-              </div>
-            )}
+        {/* Quick Actions */}
+        <div>
+          <h2 className="text-sm font-black text-white mb-2.5">Quick Actions</h2>
+          <div className="grid grid-cols-4 gap-2.5">
+            <QuickActionButton href={resumeHref} icon={Play} label="Resume" color="text-orange-400" bg="bg-orange-500/10" />
+            <QuickActionButton href="/student/calendar" icon={CalendarIcon} label="Schedule" color="text-emerald-400" bg="bg-emerald-500/10" />
+            <QuickActionButton href="/student/assignments" icon={ClipboardList} label="Assignments" color="text-purple-400" bg="bg-purple-500/10" />
+            <QuickActionButton href="/student/quizzes" icon={HelpCircle} label="Quiz" color="text-blue-400" bg="bg-blue-500/10" />
           </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6 min-w-0">
-          {/* Upcoming */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm min-w-0">
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-300 flex items-center gap-2">
-                <Clock size={14} className="text-orange-400" /> Upcoming (Next 30 Minutes)
-              </h3>
-              <Link
-                href="/student/calendar"
-                className="text-[10px] font-black text-orange-400 hover:text-orange-300 transition uppercase tracking-wider shrink-0"
-              >
-                View all
-              </Link>
-            </div>
-
-            {isCalendarEventsLoading ? (
-              <div className="space-y-2.5">
-                {[1, 2].map((n) => (
-                  <div key={n} className="h-[54px] rounded-xl bg-slate-950/30 border border-slate-800/60 animate-pulse" />
-                ))}
-              </div>
-            ) : upcomingEvents.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-500 border border-dashed border-slate-800/60 rounded-xl">
-                Nothing scheduled for the rest of today. Check back later.
-              </div>
-            ) : (
-              <div className="space-y-2.5">
-                {upcomingEvents.map((task) => {
-                  const badge = getBadgeStyle(task.type);
-                  const Icon = getEventIcon(task.type);
-                  const timeLabel = task.startTime ? formatTime(task.startTime) : "All Day";
-
-                  return (
-                    <div
-                      key={task.id}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-slate-950/30 border border-slate-800/60 min-w-0"
-                    >
-                      <div className={`shrink-0 h-9 w-9 rounded-lg flex items-center justify-center border ${badge.className}`}>
-                        <Icon size={15} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h5 className="text-xs font-extrabold text-white truncate">{task.title}</h5>
-                        <p className="text-[10px] text-slate-500 truncate mt-0.5">{task.courseName || task.subtitle || badge.label}</p>
-                      </div>
-                      <span className="shrink-0 text-[10px] font-black text-slate-400">{timeLabel}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+        {/* Continue Learning — one prominent card, the most recent enrollment only */}
+        <div>
+          <div className="flex items-center justify-between mb-2.5">
+            <h2 className="text-sm font-black text-white">Continue Learning</h2>
+            <Link href="/student/my-courses" className="text-[11px] text-orange-400 font-bold">
+              View all
+            </Link>
           </div>
 
-          {/* Calendar */}
-          <MiniCalendar role="STUDENT" />
-
-          {/* Recent Achievements */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm min-w-0">
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-300 flex items-center gap-2">
-                <Trophy size={14} className="text-amber-400" /> Recent Achievements
-              </h3>
-              <Link
-                href="/student/achievements"
-                className="text-[10px] font-black text-orange-400 hover:text-orange-300 transition uppercase tracking-wider shrink-0"
-              >
-                View all
+          {isDashboardLoading ? (
+            <div className="h-[168px] rounded-2xl bg-slate-800/50 animate-pulse" />
+          ) : topEnrollment ? (
+            <MobileContinueCard enrollment={topEnrollment} />
+          ) : (
+            <div className="py-8 text-center border border-dashed border-[#1A1F35] rounded-2xl">
+              <p className="text-xs text-slate-500">You have not enrolled in any courses yet.</p>
+              <Link href="/student/courses" className="inline-block mt-3">
+                <button className="px-5 py-2.5 bg-orange-500 text-slate-950 rounded-xl text-xs font-black uppercase tracking-widest transition cursor-pointer">
+                  Explore Courses
+                </button>
               </Link>
             </div>
+          )}
+        </div>
 
-            {isDashboardLoading ? (
-              <div className="space-y-2.5">
-                {[1, 2].map((n) => (
-                  <div key={n} className="h-[54px] rounded-xl bg-slate-950/30 border border-slate-800/60 animate-pulse" />
-                ))}
-              </div>
-            ) : unlockedAchievements.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-500 border border-dashed border-slate-800/60 rounded-xl">
-                Keep learning to unlock your first achievement!
-              </div>
-            ) : (
-              <div className="space-y-2.5">
-                {unlockedAchievements.map((ach) => (
-                  <div key={ach.name} className="flex items-center gap-3 p-3 rounded-xl bg-slate-950/30 border border-slate-800/60 min-w-0">
-                    <div
-                      className={`shrink-0 h-9 w-9 rounded-full ${ach.bg} ${ach.color} border ${ach.border} flex items-center justify-center text-base`}
-                    >
-                      {ach.icon}
+        {/* Upcoming (Next 7 Days) */}
+        <div>
+          <div className="flex items-center justify-between mb-2.5">
+            <h2 className="text-sm font-black text-white">Upcoming (Next 7 Days)</h2>
+            <Link href="/student/calendar" className="text-[11px] text-orange-400 font-bold">
+              View all
+            </Link>
+          </div>
+
+          {isCalendarEventsLoading ? (
+            <div className="space-y-2.5">
+              {[1, 2].map((n) => (
+                <div key={n} className="h-[58px] rounded-xl bg-slate-800/50 animate-pulse" />
+              ))}
+            </div>
+          ) : mobileUpcomingEvents.length === 0 ? (
+            <div className="py-6 text-center text-xs text-slate-500 border border-dashed border-[#1A1F35] rounded-xl">
+              Nothing scheduled this week.
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {mobileUpcomingEvents.map((task) => {
+                const badge = getMobileEventBadge(task.type);
+                const Icon = getEventIcon(task.type);
+                return (
+                  <div key={task.id} className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-3 flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-lg bg-[#141930] border border-[#1A1F35] flex items-center justify-center shrink-0">
+                      <Icon size={16} className="text-slate-300" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h5 className="text-xs font-extrabold text-white truncate">{ach.name}</h5>
-                      <p className="text-[10px] text-slate-500 truncate mt-0.5">{ach.description}</p>
+                      <h4 className="text-xs font-bold text-white truncate">{task.title}</h4>
+                      <p className="text-[10px] text-slate-500 mt-0.5">{formatDueIn(task._date)}</p>
                     </div>
+                    <span className={`shrink-0 text-[9px] font-bold px-2 py-1 rounded-full ${badge.className}`}>
+                      {badge.label}
+                    </span>
                   </div>
-                ))}
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Recommended Courses — horizontal carousel */}
+        <div>
+          <div className="flex items-center justify-between mb-2.5">
+            <h2 className="text-sm font-black text-white">Recommended Courses</h2>
+            <Link href="/student/courses" className="text-[11px] text-orange-400 font-bold">
+              View all
+            </Link>
+          </div>
+
+          {isCoursesLoading ? (
+            <div className="flex gap-3 overflow-x-auto -mx-4 px-4 scrollbar-none">
+              {[1, 2].map((n) => (
+                <div key={n} className="shrink-0 w-[46%] h-[132px] rounded-xl bg-slate-800/50 animate-pulse" />
+              ))}
+            </div>
+          ) : recommendedCourses.length === 0 ? (
+            <p className="text-xs text-slate-500 py-6 text-center">
+              No new recommendations right now.
+            </p>
+          ) : (
+            <div className="flex gap-3 overflow-x-auto -mx-4 px-4 pb-1 snap-x snap-mandatory scrollbar-none">
+              {recommendedCourses.map((course) => (
+                <div key={course.id} className="snap-start shrink-0 w-[46%]">
+                  <RecommendedCourseCard course={course} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ============================= DESKTOP / TABLET (unchanged) ============================= */}
+      <div className="hidden sm:block -m-3 sm:-m-6 min-h-[calc(100vh-3.5rem)] bg-[#080B11] p-3 sm:p-6 pt-0 sm:pt-0">
+      <div className="flex flex-col max-w-[1600px] mx-auto">
+
+        {/* Stat / KPI Strip */}
+        <div className="mt-4 mb-2">
+          <div className="flex flex-wrap md:flex-nowrap items-center gap-3 w-full">
+            {statCards.map((s) => (
+              <div
+                key={s.key}
+                className="flex-1 min-w-[140px] flex items-center gap-3 rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-3 shadow-sm hover:border-slate-700 transition"
+              >
+                <div className={`p-2 rounded-xl ${s.bg} shrink-0`}>
+                  <s.icon size={16} className={s.color} />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p className="text-slate-400 text-[9px] font-bold uppercase tracking-wider truncate">{s.label}</p>
+                  {isDashboardLoading ? (
+                    <div className="h-5 w-10 bg-slate-800 rounded animate-pulse mt-1.5" />
+                  ) : (
+                    <p className="text-lg font-black text-white leading-none mt-1">{s.value}</p>
+                  )}
+
+                  {s.progress !== undefined ? (
+                    <div className="w-full max-w-[110px] h-1.5 rounded-full bg-slate-800 overflow-hidden mt-2">
+                      <div
+                        className="h-full bg-blue-400 rounded-full transition-all duration-500"
+                        style={{ width: `${s.progress}%` }}
+                      />
+                    </div>
+                  ) : s.href ? (
+                    <Link href={s.href} className="text-[9px] font-bold text-orange-400 hover:text-orange-300 transition truncate block mt-1.5">
+                      {s.hint} &rarr;
+                    </Link>
+                  ) : (
+                    <p className="text-[9px] text-slate-500 font-medium truncate mt-1.5">{s.hint}</p>
+                  )}
+                </div>
               </div>
-            )}
+            ))}
+          </div>
+        </div>
+
+        {/* Main grid: content (8/12) + sidebar (4/12) */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mt-4">
+          {/* Left main column */}
+          <div className="xl:col-span-8 flex flex-col gap-6">
+
+            {/* Welcome Hero Card */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0B0F1A] to-[#12182B] border border-[#1A1F35] p-5 shadow-sm flex flex-col md:flex-row items-center justify-between min-h-[140px]">
+              <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-orange-500/10 blur-[60px] pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full bg-purple-500/10 blur-[40px] pointer-events-none" />
+
+              <div className="relative z-10 w-full md:w-2/3 space-y-2">
+                <div className="space-y-0.5">
+                  <p className="text-slate-400 text-xs font-medium">Welcome back,</p>
+                  <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
+                    {user?.name ? user.name.split(" ")[0] : "Student"}! <span className="animate-wave origin-bottom-right inline-block text-xl">👋</span>
+                  </h1>
+                  <p className="text-slate-400 text-xs">Let&apos;s continue your learning journey. You&apos;ve got this!</p>
+                </div>
+
+                <div className="mt-2 p-2.5 rounded-xl bg-orange-500/5 border border-orange-500/20 max-w-lg inline-block">
+                  <p className="text-orange-400 text-xs font-semibold italic">&quot;{dailyQuote}&quot;</p>
+                </div>
+              </div>
+
+              <div className="relative z-10 hidden md:flex w-1/3 justify-end items-center gap-3">
+                <div className="h-24 w-24 lg:h-28 lg:w-28 rounded-3xl bg-gradient-to-br from-orange-500/15 to-purple-500/15 border border-[#1A1F35] flex items-center justify-center shrink-0">
+                  <GraduationCap size={40} className="text-orange-400" />
+                </div>
+                <div className="flex flex-col gap-3">
+                  <div className="h-11 w-11 rounded-2xl bg-[#0D1021] border border-[#1A1F35] flex items-center justify-center text-purple-400 shadow-lg">
+                    <Trophy size={18} />
+                  </div>
+                  <div className="h-11 w-11 rounded-2xl bg-[#0D1021] border border-[#1A1F35] flex items-center justify-center text-emerald-400 shadow-lg">
+                    <CheckCircle size={18} />
+                  </div>
+                  <div className="h-11 w-11 rounded-2xl bg-[#0D1021] border border-[#1A1F35] flex items-center justify-center text-blue-400 shadow-lg">
+                    <Activity size={18} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Continue Learning */}
+            <div className="rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-black text-slate-200">Continue Learning</h3>
+                <Link href="/student/my-courses" className="text-[11px] text-orange-400 font-bold hover:text-orange-300">
+                  View all courses &rarr;
+                </Link>
+              </div>
+
+              {isDashboardLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((n) => (
+                    <div key={n} className="h-[74px] rounded-xl bg-slate-800/50 animate-pulse" />
+                  ))}
+                </div>
+              ) : enrolledCourses.length === 0 ? (
+                <div className="py-10 text-center border border-dashed border-[#1A1F35] rounded-xl">
+                  <p className="text-xs text-slate-500">You have not enrolled in any courses yet.</p>
+                  <Link href="/student/courses" className="inline-block mt-3">
+                    <button className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-slate-950 rounded-xl text-xs font-black uppercase tracking-widest transition cursor-pointer">
+                      Explore Courses
+                    </button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {enrolledCourses.slice(0, 5).map((enrollment, idx) => (
+                    <ContinueLearningRow key={enrollment.id || enrollment.courseId || idx} enrollment={enrollment} accentIdx={idx} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Recommended for You */}
+            <div className="rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-black text-slate-200">Recommended for You</h3>
+                <Link href="/student/courses" className="text-[11px] text-orange-400 font-bold hover:text-orange-300">
+                  View all
+                </Link>
+              </div>
+
+              {isCoursesLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                  {[1, 2, 3].map((n) => (
+                    <div key={n} className="h-[132px] rounded-xl bg-slate-800/50 animate-pulse" />
+                  ))}
+                </div>
+              ) : recommendedCourses.length === 0 ? (
+                <p className="text-xs text-slate-500 py-6 text-center">
+                  No new recommendations right now &mdash; you&apos;re enrolled in everything available!
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                  {recommendedCourses.map((course) => (
+                    <RecommendedCourseCard key={course.id} course={course} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right sidebar column */}
+          <div className="xl:col-span-4 flex flex-col gap-6">
+
+            {/* Upcoming */}
+            <div className="rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-5">
+              <div className="flex items-center justify-between mb-4 border-b border-[#1A1F35] pb-3">
+                <h3 className="text-sm font-black text-slate-200 flex items-center gap-2">
+                  <CalendarIcon size={14} className="text-orange-400" />
+                  Upcoming (Next 30 Min)
+                </h3>
+                <Link href="/student/calendar" className="text-[11px] text-orange-400 font-bold hover:text-orange-300">
+                  View all
+                </Link>
+              </div>
+
+              {isCalendarEventsLoading ? (
+                <div className="space-y-2.5">
+                  {[1, 2].map((n) => (
+                    <div key={n} className="h-[54px] rounded-xl bg-slate-800/50 animate-pulse" />
+                  ))}
+                </div>
+              ) : upcomingEvents.length === 0 ? (
+                <div className="py-6 text-center">
+                  <div className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-2">
+                    <Clock size={16} className="text-slate-500" />
+                  </div>
+                  <p className="text-xs text-slate-400 font-medium">Nothing scheduled for the rest of today</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {upcomingEvents.map((task) => {
+                    const badge = getBadgeStyle(task.type);
+                    const Icon = getEventIcon(task.type);
+                    const timeLabel = task.startTime ? formatTime(task.startTime) : "All Day";
+
+                    return (
+                      <div
+                        key={task.id}
+                        className="p-3 rounded-xl border bg-[#141930] border-[#1A1F35] hover:border-slate-700 transition"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className={`shrink-0 h-9 w-9 rounded-lg flex items-center justify-center border ${badge.className}`}>
+                              <Icon size={15} />
+                            </div>
+                            <div className="min-w-0">
+                              <h4 className="text-xs font-bold text-white truncate">{task.title}</h4>
+                              <p className="text-[10px] text-slate-400 truncate">{task.courseName || task.subtitle || badge.label}</p>
+                            </div>
+                          </div>
+                          <span className="shrink-0 text-[10px] font-black text-sky-400">{timeLabel}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Calendar */}
+            <div className="rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-5">
+              <div className="mb-2">
+                <h3 className="text-sm font-black text-slate-200">Calendar</h3>
+              </div>
+              <div className="dashboard-calendar-wrapper text-white scale-[0.95] origin-top">
+                <MiniCalendar role="STUDENT" />
+              </div>
+            </div>
+
+            {/* Recent Achievements */}
+            <div className="rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-5">
+              <div className="flex items-center justify-between mb-4 border-b border-[#1A1F35] pb-3">
+                <h3 className="text-sm font-black text-slate-200 flex items-center gap-2">
+                  <Trophy size={14} className="text-amber-400" />
+                  Recent Achievements
+                </h3>
+                <Link href="/student/achievements" className="text-[11px] text-orange-400 font-bold hover:text-orange-300">
+                  View all
+                </Link>
+              </div>
+
+              {isDashboardLoading ? (
+                <div className="space-y-2.5">
+                  {[1, 2].map((n) => (
+                    <div key={n} className="h-[54px] rounded-xl bg-slate-800/50 animate-pulse" />
+                  ))}
+                </div>
+              ) : unlockedAchievements.length === 0 ? (
+                <p className="text-xs text-slate-500 text-center py-4">Keep learning to unlock your first achievement!</p>
+              ) : (
+                <div className="space-y-5">
+                  {unlockedAchievements.map((ach) => (
+                    <div key={ach.name} className="flex items-start gap-3">
+                      <div className={`p-2 rounded-lg border ${ach.bg} ${ach.border} shrink-0 flex items-center justify-center text-base`}>
+                        {ach.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-200">{ach.name}</p>
+                        <p className="text-[10px] text-slate-500 line-clamp-1">{ach.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

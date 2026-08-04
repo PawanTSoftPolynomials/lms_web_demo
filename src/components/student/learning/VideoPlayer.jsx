@@ -198,6 +198,13 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         }
     }, [videoUrl, isYoutube]);
 
+    const stopPingTimer = useCallback(() => {
+        if (pingIntervalRef.current) {
+            clearInterval(pingIntervalRef.current);
+            pingIntervalRef.current = null;
+        }
+    }, []);
+
     useEffect(() => {
         setSlideIndex(0);
         setHasStarted(false);
@@ -206,13 +213,6 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
         return () => stopPingTimer();
     }, [content, stopPingTimer]);
-
-    const stopPingTimer = useCallback(() => {
-        if (pingIntervalRef.current) {
-            clearInterval(pingIntervalRef.current);
-            pingIntervalRef.current = null;
-        }
-    }, []);
 
     const startPingTimer = useCallback(() => {
         if (!resolvedLessonId) return;

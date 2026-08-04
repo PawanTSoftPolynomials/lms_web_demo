@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChatWidget } from "@/components/chat";
+import { ChatWidget, ChatButton } from "@/components/chat";
 import Sidebar from "@/components/layouts/Sidebar";
 import DashboardNavbar from "@/components/layouts/DashboardNavbar";
 
@@ -14,7 +14,7 @@ export default function DashboardLayout({ children, role, title }) {
   const showSidebar = !['STUDENT', 'INSTRUCTOR'].includes(role);
 
   return (
-    <div className={`flex min-h-screen ${role === 'INSTRUCTOR' ? 'bg-[#080B11]' : 'bg-slate-950'}`}>
+    <div className={`flex min-h-screen ${['INSTRUCTOR', 'STUDENT'].includes(role) ? 'bg-[#080B11]' : 'bg-slate-950'}`}>
       {showSidebar && (
         <Sidebar
           role={role}
@@ -44,9 +44,10 @@ export default function DashboardLayout({ children, role, title }) {
           setCollapsed={setCollapsed}
         />
 
-        <main className="p-3 sm:p-6 flex-1">{children}</main>
+        <main className={`p-3 sm:p-6 flex-1 ${role === 'STUDENT' ? 'pb-24 sm:pb-6' : ''}`}>{children}</main>
       </div>
       <ChatWidget />
+      <ChatButton />
     </div>
     
   );

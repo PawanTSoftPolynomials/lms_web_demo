@@ -12,6 +12,7 @@ import StudentInformation from "@/components/student/profile/StudentInformation"
 import AccountInformation from "@/components/student/profile/AccountInformation";
 import ProfileActions from "@/components/student/profile/ProfileActions";
 import EditProfileModal from "@/components/student/profile/EditProfileModal";
+import MobileProfileView from "@/components/student/profile/MobileProfileView";
 
 import useProfile from "@/hooks/queries/student/useProfile";
 
@@ -47,7 +48,16 @@ export default function StudentProfilePage() {
 
   return (
       <>
-        <div className="space-y-8">
+        {/* Mobile: compact, reorganized layout (same data/actions as desktop below) */}
+        <div className="sm:hidden">
+          <MobileProfileView
+              profile={profile}
+              onEdit={() => setIsEditModalOpen(true)}
+          />
+        </div>
+
+        {/* Desktop / tablet: unchanged */}
+        <div className="hidden sm:block space-y-8">
           <PageHeader
               title="My Profile"
               subtitle="View and manage your personal information."

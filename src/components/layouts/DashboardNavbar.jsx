@@ -19,7 +19,6 @@ import { useContent } from "@/hooks/queries/instructor/useContent";
 import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
 import { useQuestion } from "@/hooks/queries/instructor/useQuestion";
 
-import StudentDashboardNav from "@/components/layouts/StudentDashboardNav";
 import GlobalSearch from "@/components/layouts/GlobalSearch";
 import { NotificationsMenu, ProfileMenu } from "@/components/layouts/NavUserMenus";
 
@@ -58,7 +57,7 @@ const playNotificationChime = () => {
   }
 };
 
-function ProfileDropdown({ user, onLogoutRequest }) {
+function ProfileDropdown({ user, onLogoutRequest, basePath = "instructor", avatarFallback = "I" }) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -71,12 +70,12 @@ function ProfileDropdown({ user, onLogoutRequest }) {
         }`}
       >
         <span className="h-4 w-4 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center text-[9px] font-black font-mono shrink-0">
-          {user?.name?.[0]?.toUpperCase() || 'I'}
+          {user?.name?.[0]?.toUpperCase() || avatarFallback}
         </span>
         <span className="hidden md:inline truncate max-w-[80px]">{user?.name || "Profile"}</span>
         <span className="hidden md:inline text-[9px] text-slate-550 shrink-0">▼</span>
       </button>
-      
+
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
@@ -86,21 +85,21 @@ function ProfileDropdown({ user, onLogoutRequest }) {
               <p className="text-[8.5px] text-slate-500 truncate">{user?.email}</p>
             </div>
             <Link
-              href="/instructor/profile"
+              href={`/${basePath}/profile`}
               onClick={() => setOpen(false)}
               className="flex items-center px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-slate-100 hover:bg-[#1A1F35] rounded-xl transition"
             >
               👤 My Profile
             </Link>
             <Link
-              href="/instructor/settings"
+              href={`/${basePath}/settings`}
               onClick={() => setOpen(false)}
               className="flex items-center px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-slate-100 hover:bg-[#1A1F35] rounded-xl transition"
             >
               ⚙ Settings
             </Link>
             <Link
-              href="/instructor/settings"
+              href={`/${basePath}/settings`}
               onClick={() => setOpen(false)}
               className="flex items-center px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-slate-100 hover:bg-[#1A1F35] rounded-xl transition"
             >
@@ -438,21 +437,16 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     }
   };
 
-  if (role === 'INSTRUCTOR') {
+  if (role === 'INSTRUCTOR' || role === 'STUDENT') {
+    const basePath = role === 'INSTRUCTOR' ? 'instructor' : 'student';
+    const avatarFallback = role === 'INSTRUCTOR' ? 'I' : 'S';
+
     return (
       <>
       <header className="bg-[#080B11] border-b border-[#1A1F35] px-6 py-3 flex items-center justify-between text-slate-200">
         <div className="flex items-center gap-6">
-          {/* Mobile menu toggle */}
-          <button
-            onClick={() => setOpen?.(true)}
-            className="md:hidden text-xl text-white mr-1"
-          >
-            <FaBars />
-          </button>
-          
           {/* Logo */}
-          <Link href="/instructor/dashboard" className="flex items-center gap-2 font-black text-slate-100 hover:opacity-90">
+          <Link href={`/${basePath}/dashboard`} className="flex items-center gap-2 font-black text-slate-100 hover:opacity-90">
             <span className="text-2xl text-orange-500">🍊</span>
             <div className="flex flex-col">
               <span className="text-sm tracking-wider font-extrabold text-orange-500 leading-none">ORANGE TREE</span>
@@ -468,7 +462,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
         {/* Right side items */}
         <div className="flex items-center gap-4">
-          
+
           {/* Internet Speed */}
           <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold" title="Estimated Download Speed">
              <span className="animate-pulse">📶</span>
@@ -542,7 +536,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
           {/* Profile Dropdown */}
           <div className="relative">
-            <ProfileDropdown onLogoutRequest={() => setShowLogoutModal(true)} user={currentUser} />
+            <ProfileDropdown onLogoutRequest={() => setShowLogoutModal(true)} user={currentUser} basePath={basePath} avatarFallback={avatarFallback} />
           </div>
         </div>
       </header>
@@ -697,9 +691,6 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
             />
           </div>
         </div>
-
-        {/* Secondary dashboard navigation for student layout */}
-        {isStudentRole && <StudentDashboardNav />}
       </header>
 
       {/* Calendar Modal Popup */}
