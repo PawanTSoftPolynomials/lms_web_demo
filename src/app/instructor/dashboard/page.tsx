@@ -3,7 +3,7 @@
 import useAuth from "@/hooks/useAuth";
 import { TooltipProvider } from "@/components/ui/shadcn/tooltip";
 
-import { WelcomeHeroCard } from "@/components/instructor/dashboard/WelcomeHeroCard";
+// import { WelcomeHeroCard } from "@/components/instructor/dashboard/WelcomeHeroCard";
 import { InstructorKPIs } from "@/components/instructor/dashboard/InstructorKPIs";
 import { CourseOverviewTable } from "@/components/instructor/dashboard/CourseOverviewTable";
 import { RecentSubmissionsList } from "@/components/instructor/dashboard/RecentSubmissionsList";
@@ -11,6 +11,7 @@ import { PerformancePieChart } from "@/components/instructor/dashboard/Performan
 import { UpcomingEventsPanel } from "@/components/instructor/dashboard/UpcomingEventsPanel";
 import { DashboardCalendarWidget } from "@/components/instructor/dashboard/DashboardCalendarWidget";
 import { RecentActivitiesSidebar } from "@/components/instructor/dashboard/RecentActivitiesSidebar";
+import { BatchPerformanceOverviewWidget } from "@/components/instructor/dashboard/BatchPerformanceOverviewWidget";
 
 import {
   useDashboardStats,
@@ -72,7 +73,7 @@ export default function InstructorDashboardHomePage() {
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mt-4">
             {/* Left Main Column (occupies 8/12 on large screens) */}
             <div className="xl:col-span-8 flex flex-col gap-6">
-              <WelcomeHeroCard instructorName={user?.name || "Instructor"} />
+              {/* <WelcomeHeroCard instructorName={user?.name || "Instructor"} /> */}
               
               <CourseOverviewTable 
                 courses={courses.data} 
@@ -85,11 +86,13 @@ export default function InstructorDashboardHomePage() {
                   submissions={submissions.data} 
                   isLoading={submissions.isLoading} 
                 />
-                <PerformancePieChart 
-                  data={grades.data} 
-                  isLoading={grades.isLoading} 
+                <PerformancePieChart
+                  data={grades.data}
+                  isLoading={grades.isLoading}
                 />
               </div>
+
+              <BatchPerformanceOverviewWidget />
             </div>
 
             {/* Right Sidebar Column (occupies 4/12 on large screens) */}

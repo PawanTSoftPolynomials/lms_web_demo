@@ -7,6 +7,7 @@ import { useModules } from "@/hooks/queries/instructor/useModules";
 import { useLessons } from "@/hooks/queries/instructor/useLessons";
 import { useCourseBatches } from "@/hooks/queries/instructor/useBatches";
 import { useWorkFilters } from "@/context/WorkFilterContext";
+import { DateRangePicker } from "@/components/ui/DateRangePicker";
 
 const selectClass =
   "w-full bg-[#0D1021] border border-[#1A1F35] text-xs px-3 py-2.5 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-[#0D1021] [&>option]:text-slate-200";
@@ -141,20 +142,15 @@ export default function WorkFilterBar({
         {show("dateRange") && (
           <div>
             <label className={labelClass}>Date Range</label>
-            <div className="flex items-center gap-1.5">
-              <input
-                type="date"
-                value={filters.startDate}
-                onChange={(e) => updateFilter("startDate", e.target.value)}
-                className={selectClass}
-              />
-              <input
-                type="date"
-                value={filters.endDate}
-                onChange={(e) => updateFilter("endDate", e.target.value)}
-                className={selectClass}
-              />
-            </div>
+            <DateRangePicker
+              startDate={filters.startDate}
+              endDate={filters.endDate}
+              onChange={(nextStart, nextEnd) => {
+                updateFilter("startDate", nextStart);
+                updateFilter("endDate", nextEnd);
+              }}
+              triggerClassName="w-full py-2.5"
+            />
           </div>
         )}
       </div>
