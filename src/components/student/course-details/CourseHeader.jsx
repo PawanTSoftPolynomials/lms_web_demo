@@ -24,7 +24,10 @@ export default function CourseHeader({
     const handleEnroll = async () => {
         try {
             await enrollMutation.mutateAsync(course.id);
-            router.push(`/student/learn/${course.id}`);
+            // AI Student Entry Phase: personalize the course before the student
+            // starts it. The entry-assessment page itself offers a "skip for
+            // now" path straight to /student/learn, so this never blocks access.
+            router.push(`/student/entry-assessment/${course.id}`);
         } catch (err) {
             console.error("Enrollment failed:", err);
         }

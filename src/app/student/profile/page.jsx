@@ -9,6 +9,8 @@ import ProfileHeader from "@/components/student/profile/ProfileHeader";
 import ProfileOverview from "@/components/student/profile/ProfileOverview";
 import PersonalInformation from "@/components/student/profile/PersonalInformation";
 import StudentInformation from "@/components/student/profile/StudentInformation";
+import AcademicCareerInformation from "@/components/student/profile/AcademicCareerInformation";
+import LearningPreferences from "@/components/student/profile/LearningPreferences";
 import AccountInformation from "@/components/student/profile/AccountInformation";
 import ProfileActions from "@/components/student/profile/ProfileActions";
 import EditProfileModal from "@/components/student/profile/EditProfileModal";
@@ -70,6 +72,14 @@ export default function StudentProfilePage() {
                 profile={profile}
             />
           </div>
+
+          <AcademicCareerInformation
+              profile={profile}
+          />
+
+          <LearningPreferences
+              profile={profile}
+          />
 
           <AccountInformation
               profile={profile}

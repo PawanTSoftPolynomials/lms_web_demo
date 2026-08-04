@@ -44,6 +44,12 @@ export default function MyCourseCard({ enrollment }) {
             iconColor: "text-blue-400",
         },
         {
+            label: "AI Entry Assessment",
+            href: `/student/entry-assessment/${course.id}`,
+            icon: Sparkles,
+            iconColor: "text-orange-400",
+        },
+        {
             label: "My Homework",
             href: `/student/assignments?course=${encodeURIComponent(course.title)}`,
             icon: CalendarCheck,
@@ -105,6 +111,14 @@ export default function MyCourseCard({ enrollment }) {
             icon: CalendarCheck,
             iconColor: "text-blue-400",
             iconBg: "bg-blue-500/15",
+        },
+        {
+            label: "AI Entry Assessment",
+            subtitle: "Personalize this course to your knowledge level",
+            href: `/student/entry-assessment/${course.id}`,
+            icon: Sparkles,
+            iconColor: "text-orange-400",
+            iconBg: "bg-orange-500/15",
         },
         {
             label: "My Homework",
