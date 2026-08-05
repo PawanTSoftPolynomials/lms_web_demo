@@ -10,11 +10,11 @@ export default function DashboardLayout({ children, role, title }) {
 
   const [collapsed, setCollapsed] = useState(false);
 
-  // Students and Instructors navigate via top headers or on-page widgets instead of a side rail.
-  const showSidebar = !['STUDENT', 'INSTRUCTOR'].includes(role);
+  // Students, Instructors, and Admins navigate via top headers or on-page widgets instead of a side rail.
+  const showSidebar = !['STUDENT', 'INSTRUCTOR', 'ADMIN'].includes(role);
 
   return (
-    <div className={`flex min-h-screen ${role === 'INSTRUCTOR' ? 'bg-[#080B11]' : 'bg-slate-950'}`}>
+    <div className={`flex min-h-screen ${['INSTRUCTOR', 'ADMIN'].includes(role) ? 'bg-[#080B11]' : 'bg-slate-950'}`}>
       {showSidebar && (
         <Sidebar
           role={role}

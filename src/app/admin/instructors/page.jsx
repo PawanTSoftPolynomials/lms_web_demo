@@ -123,13 +123,6 @@ export default function AdminInstructorsPage() {
                             `/admin/instructors/${instructor.id}`
                         )
                     }
-                    onEdit={(
-                        instructor
-                    ) =>
-                        router.push(
-                            `/admin/users/edit/${instructor.user.id}`
-                        )
-                    }
                     onDelete={(
                         instructor
                     ) =>

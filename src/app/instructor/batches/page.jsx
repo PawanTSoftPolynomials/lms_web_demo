@@ -19,6 +19,7 @@ import WorkFilterBar from "@/components/instructor/work/WorkFilterBar";
 import EmptyState from "@/components/ui/EmptyState";
 import KpiTile from "@/components/instructor/batches/KpiTile";
 import BatchCard from "@/components/instructor/batches/BatchCard";
+import CourseMultiSelect from "@/components/instructor/batches/CourseMultiSelect";
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 import { useCreateBatch } from "@/hooks/queries/instructor/useBatches";
 import { useBatchPerformanceOverview } from "@/hooks/queries/instructor/useBatchPerformanceOverview";
@@ -47,7 +48,7 @@ const selectClass =
   "bg-[#0D1021] border border-[#1A1F35] text-xs px-3 py-2.5 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition [&>option]:bg-[#0D1021] [&>option]:text-slate-200";
 
 function CreateBatchForm({ courses, onClose }) {
-  const [courseId, setCourseId] = useState(courses[0]?.id || "");
+  const [courseIds, setCourseIds] = useState([]);
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -55,52 +56,61 @@ function CreateBatchForm({ courses, onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (courseIds.length === 0) return;
     createBatch.mutate(
-      { courseId, batchData: { name, startDate, dueDate: dueDate || undefined } },
+      { name, startDate, dueDate: dueDate || undefined, courseIds },
       { onSuccess: onClose }
     );
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 rounded-xl border border-[#1A1F35] bg-white/[0.02] grid gap-3 sm:grid-cols-4">
-      <select
-        value={courseId}
-        onChange={(e) => setCourseId(e.target.value)}
-        required
-        className="sm:col-span-1 bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-white outline-none focus:border-orange-500"
-      >
-        <option value="">Select course</option>
-        {courses.map((c) => (
-          <option key={c.id} value={c.id}>{c.title}</option>
-        ))}
-      </select>
-      <input
-        type="text"
-        placeholder="Batch name (e.g. Morning Cohort A)"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-        className="sm:col-span-1 bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-white placeholder-slate-500 outline-none focus:border-orange-500"
-      />
-      <input
-        type="date"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-        required
-        className="bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-white outline-none focus:border-orange-500"
-      />
-      <input
-        type="date"
-        value={dueDate}
-        onChange={(e) => setDueDate(e.target.value)}
-        placeholder="End date"
-        className="bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-white outline-none focus:border-orange-500"
-      />
-      <div className="sm:col-span-4 flex justify-end gap-2">
+    <form onSubmit={handleSubmit} className="p-4 rounded-xl border border-[#1A1F35] bg-white/[0.02] grid gap-3 sm:grid-cols-2">
+      <div>
+        <label className="block text-[9.5px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
+          Courses ({courseIds.length} selected)
+        </label>
+        <CourseMultiSelect courses={courses} selectedIds={courseIds} onChange={setCourseIds} />
+      </div>
+
+      <div className="space-y-3">
+        <input
+          type="text"
+          placeholder="Batch name (e.g. Morning Cohort A)"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          className="w-full bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-white placeholder-slate-500 outline-none focus:border-orange-500"
+        />
+        <div className="grid grid-cols-2 gap-3">
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            required
+            className="bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-white outline-none focus:border-orange-500"
+          />
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            placeholder="End date"
+            className="bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-white outline-none focus:border-orange-500"
+          />
+        </div>
+        {courseIds.length === 0 && (
+          <p className="text-[10.5px] text-amber-400">Select at least one course.</p>
+        )}
+      </div>
+
+      <div className="sm:col-span-2 flex justify-end gap-2">
         <button type="button" onClick={onClose} className="px-3.5 py-2 rounded-xl text-[10.5px] font-bold text-slate-400 border border-slate-700 hover:text-white hover:bg-slate-800 transition">
           Cancel
         </button>
-        <button type="submit" disabled={createBatch.isPending} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10.5px] font-black text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-50 transition">
+        <button
+          type="submit"
+          disabled={createBatch.isPending || courseIds.length === 0}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10.5px] font-black text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-50 transition"
+        >
           {createBatch.isPending ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
           Create Batch
         </button>
@@ -211,7 +221,7 @@ function BatchesContent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-black text-white tracking-tight">Batches</h1>
-          <p className="text-xs text-slate-400 mt-1">Manage student cohorts across all your courses.</p>
+          <p className="text-xs text-slate-400 mt-1">Manage student cohorts across one or more courses.</p>
         </div>
         <button
           onClick={() => setShowForm((v) => !v)}

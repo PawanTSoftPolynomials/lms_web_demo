@@ -2,6 +2,7 @@
 
 import {useMemo, useState} from "react";
 import {useRouter} from "next/navigation";
+import {useQueryClient} from "@tanstack/react-query";
 
 import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
@@ -14,9 +15,14 @@ import StudentTable from "@/components/admin/student/StudentTable";
 import {
     useStudents,
 } from "@/hooks/queries/admin/useStudents";
+import { useDeleteUser } from "@/hooks/queries/admin/useUsers";
+import { useConfirm } from "@/context/ConfirmContext";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 export default function AdminStudentsPage() {
     const router = useRouter();
+    const confirm = useConfirm();
+    const queryClient = useQueryClient();
 
     const {
         data: students = [],
@@ -24,6 +30,8 @@ export default function AdminStudentsPage() {
         isError,
         refetch,
     } = useStudents();
+
+    const deleteUserMutation = useDeleteUser();
 
     const [search, setSearch] =
         useState("");
@@ -36,12 +44,12 @@ export default function AdminStudentsPage() {
             return students.filter(
                 (student) => {
                     const matchesSearch =
-                        student.user.name
+                        student.name
                             .toLowerCase()
                             .includes(
                                 search.toLowerCase()
                             ) ||
-                        student.user.email
+                        student.email
                             .toLowerCase()
                             .includes(
                                 search.toLowerCase()
@@ -49,7 +57,7 @@ export default function AdminStudentsPage() {
 
                     const matchesStatus =
                         !status ||
-                        student.user.status ===
+                        student.status ===
                         status;
 
                     return (
@@ -63,6 +71,30 @@ export default function AdminStudentsPage() {
             search,
             status,
         ]);
+
+    const handleDelete = async (student) => {
+        const confirmed = await confirm({
+            title: "Delete Student",
+            message: `Are you sure you want to delete "${student.name}"? This permanently removes their account and all associated data.`,
+            confirmText: "Delete",
+            cancelText: "Cancel",
+        });
+
+        if (!confirmed) return;
+
+        try {
+            await deleteUserMutation.mutateAsync(student.userId);
+
+            // Reflect the deletion immediately instead of waiting on a slow
+            // refetch of this endpoint's heavier per-student computation.
+            queryClient.setQueryData(
+                [QUERY_KEYS.ADMIN_STUDENTS],
+                (old = []) => old.filter((s) => s.id !== student.id)
+            );
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -113,17 +145,7 @@ export default function AdminStudentsPage() {
                             `/admin/students/${student.id}`
                         )
                     }
-                    onEdit={(student) =>
-                        router.push(
-                            `/admin/users/edit/${student.user.id}`
-                        )
-                    }
-                    onDelete={(student) =>
-                        console.log(
-                            "Delete Student:",
-                            student
-                        )
-                    }
+                    onDelete={handleDelete}
                 />
             </Card>
         </div>

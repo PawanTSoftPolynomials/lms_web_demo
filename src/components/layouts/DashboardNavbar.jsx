@@ -58,8 +58,12 @@ const playNotificationChime = () => {
   }
 };
 
-function ProfileDropdown({ user, onLogoutRequest }) {
+function ProfileDropdown({ user, role, onLogoutRequest }) {
   const [open, setOpen] = useState(false);
+  const isAdmin = role === "ADMIN";
+  const profileHref = isAdmin ? "/admin/profile" : "/instructor/profile";
+  const settingsHref = isAdmin ? "/admin/profile" : "/instructor/settings";
+
   return (
     <>
       <button
@@ -71,12 +75,12 @@ function ProfileDropdown({ user, onLogoutRequest }) {
         }`}
       >
         <span className="h-4 w-4 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center text-[9px] font-black font-mono shrink-0">
-          {user?.name?.[0]?.toUpperCase() || 'I'}
+          {user?.name?.[0]?.toUpperCase() || (isAdmin ? 'A' : 'I')}
         </span>
         <span className="hidden md:inline truncate max-w-[80px]">{user?.name || "Profile"}</span>
         <span className="hidden md:inline text-[9px] text-slate-550 shrink-0">▼</span>
       </button>
-      
+
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
@@ -86,21 +90,21 @@ function ProfileDropdown({ user, onLogoutRequest }) {
               <p className="text-[8.5px] text-slate-500 truncate">{user?.email}</p>
             </div>
             <Link
-              href="/instructor/profile"
+              href={profileHref}
               onClick={() => setOpen(false)}
               className="flex items-center px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-slate-100 hover:bg-[#1A1F35] rounded-xl transition"
             >
               👤 My Profile
             </Link>
             <Link
-              href="/instructor/settings"
+              href={settingsHref}
               onClick={() => setOpen(false)}
               className="flex items-center px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-slate-100 hover:bg-[#1A1F35] rounded-xl transition"
             >
               ⚙ Settings
             </Link>
             <Link
-              href="/instructor/settings"
+              href={settingsHref}
               onClick={() => setOpen(false)}
               className="flex items-center px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-slate-100 hover:bg-[#1A1F35] rounded-xl transition"
             >
@@ -434,11 +438,18 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     } else if (n.type === "quiz") {
       router.push(currentUser?.role === "INSTRUCTOR" ? "/instructor/quizzes" : "/student/quizzes");
     } else if (n.type === "course") {
-      router.push(currentUser?.role === "INSTRUCTOR" ? "/instructor/courses" : "/student/courses");
+      router.push(
+        currentUser?.role === "INSTRUCTOR"
+          ? "/instructor/courses"
+          : currentUser?.role === "ADMIN"
+          ? "/admin/courses"
+          : "/student/courses"
+      );
     }
   };
 
-  if (role === 'INSTRUCTOR') {
+  if (role === 'INSTRUCTOR' || role === 'ADMIN') {
+    const dashboardHref = role === 'ADMIN' ? '/admin/dashboard' : '/instructor/dashboard';
     return (
       <>
       <header className="bg-[#080B11] border-b border-[#1A1F35] px-6 py-3 flex items-center justify-between text-slate-200">
@@ -450,9 +461,9 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
           >
             <FaBars />
           </button>
-          
+
           {/* Logo */}
-          <Link href="/instructor/dashboard" className="flex items-center gap-2 font-black text-slate-100 hover:opacity-90">
+          <Link href={dashboardHref} className="flex items-center gap-2 font-black text-slate-100 hover:opacity-90">
             <span className="text-2xl text-orange-500">🍊</span>
             <div className="flex flex-col">
               <span className="text-sm tracking-wider font-extrabold text-orange-500 leading-none">ORANGE TREE</span>
@@ -542,7 +553,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
           {/* Profile Dropdown */}
           <div className="relative">
-            <ProfileDropdown onLogoutRequest={() => setShowLogoutModal(true)} user={currentUser} />
+            <ProfileDropdown onLogoutRequest={() => setShowLogoutModal(true)} user={currentUser} role={role} />
           </div>
         </div>
       </header>

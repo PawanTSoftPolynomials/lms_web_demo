@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
@@ -24,6 +24,12 @@ import {
   BookOpenCheck,
   UserCheck,
   UserX,
+  BookOpen,
+  Plus,
+  Calendar,
+  TrendingUp,
+  Flame,
+  AlertTriangle,
 } from "lucide-react";
 
 import {
@@ -34,11 +40,15 @@ import {
   useBatchDetailDashboard,
   useBatchAnnouncements,
   useCreateBatchAnnouncement,
+  useAddCourseToBatch,
+  useRemoveCourseFromBatch,
 } from "@/hooks/queries/instructor/useBatches";
+import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import Loader from "@/components/common/Loader";
 import DataTable from "@/components/ui/DataTable";
 import BatchActionsMenu from "@/components/instructor/batches/BatchActionsMenu";
+import KpiTile from "@/components/instructor/batches/KpiTile";
 import TrendSparkline from "@/components/instructor/batches/TrendSparkline";
 import { useBatchPerformanceOverview } from "@/hooks/queries/instructor/useBatchPerformanceOverview";
 
@@ -47,6 +57,12 @@ const STUDENT_STATUS_STYLES = {
   "On Track": "bg-sky-500/10 text-sky-400 border-sky-500/20",
   Struggling: "bg-rose-500/10 text-rose-400 border-rose-500/20",
   "Not Started": "bg-slate-800 text-slate-400 border-slate-700",
+};
+
+const BATCH_STATUS_STYLES = {
+  ACTIVE: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  COMPLETED: "bg-sky-500/10 text-sky-400 border-sky-500/20",
+  ARCHIVED: "bg-slate-800 text-slate-400 border-slate-700",
 };
 
 const ACTIVITY_ICON = {
@@ -70,12 +86,29 @@ const MATERIAL_ICON = {
   FILE: FileText,
 };
 
-function Section({ title, icon: Icon, action, children }) {
+function StatusBadge({ status }) {
+  const value = status || "ACTIVE";
   return (
-    <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-5">
+    <span
+      className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${
+        BATCH_STATUS_STYLES[value] || BATCH_STATUS_STYLES.ACTIVE
+      }`}
+    >
+      {value}
+    </span>
+  );
+}
+
+function Section({ title, icon: Icon, iconBg = "bg-orange-500/10", iconColor = "text-orange-400", action, children, className = "" }) {
+  return (
+    <div className={`rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-5 ${className}`}>
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          {Icon && <Icon size={14} className="text-orange-450" />}
+        <div className="flex items-center gap-2.5">
+          {Icon && (
+            <div className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 ${iconBg} ${iconColor}`}>
+              <Icon size={13} />
+            </div>
+          )}
           <h3 className="text-[10.5px] font-black uppercase tracking-widest text-slate-350">{title}</h3>
         </div>
         {action}
@@ -144,7 +177,7 @@ function groupSchedule(items) {
   return Object.entries(groups).filter(([, list]) => list.length > 0);
 }
 
-function AddStudentPanel({ batchId, courseTitle }) {
+function AddStudentPanel({ batchId, courseNames }) {
   const { data: enrollableStudents = [], isLoading: loadingEnrollable } = useEnrollableStudentsForBatch(batchId);
   const addStudent = useAddStudentToBatch();
   const [selectedStudentId, setSelectedStudentId] = useState("");
@@ -155,13 +188,13 @@ function AddStudentPanel({ batchId, courseTitle }) {
   };
 
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row gap-2">
+    <Section title="Add Student" icon={UserPlus} iconBg="bg-emerald-500/10" iconColor="text-emerald-400">
+      <div className="flex flex-col gap-2">
         <select
           value={selectedStudentId}
           onChange={(e) => setSelectedStudentId(e.target.value)}
           disabled={loadingEnrollable || enrollableStudents.length === 0}
-          className="flex-1 bg-[#141930] border border-[#1A1F35] text-xs px-3 py-2.5 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-[#141930] [&>option]:text-slate-200"
+          className="w-full bg-[#141930] border border-[#1A1F35] text-xs px-3 py-2.5 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-[#141930] [&>option]:text-slate-200"
         >
           <option value="">
             {loadingEnrollable
@@ -183,13 +216,13 @@ function AddStudentPanel({ batchId, courseTitle }) {
           className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition"
         >
           {addStudent.isPending ? <Loader2 size={13} className="animate-spin" /> : <UserPlus size={13} />}
-          Add
+          Add to Batch
         </button>
       </div>
-      <p className="text-[10px] text-slate-500 mt-2">
-        Only students already enrolled in {courseTitle || "this course"} can be added to a batch.
+      <p className="text-[10px] text-slate-500 mt-2.5">
+        Only students already enrolled in {courseNames || "this batch's courses"} can be added.
       </p>
-    </div>
+    </Section>
   );
 }
 
@@ -218,6 +251,8 @@ function AnnouncementsPanel({ batchId }) {
     <Section
       title="Batch Announcements"
       icon={Megaphone}
+      iconBg="bg-rose-500/10"
+      iconColor="text-rose-400"
       action={
         <button
           onClick={() => setShowForm((v) => !v)}
@@ -284,6 +319,69 @@ function AnnouncementsPanel({ batchId }) {
   );
 }
 
+function ManageCoursesPanel({ batchId, batchCourses }) {
+  const { data: allCourses = [] } = useInstructorCourses();
+  const addCourse = useAddCourseToBatch();
+  const removeCourse = useRemoveCourseFromBatch();
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+
+  const linkedIds = new Set(batchCourses.map((c) => c.id));
+  const availableCourses = allCourses.filter((c) => !linkedIds.has(c.id));
+
+  const handleAdd = () => {
+    if (!selectedCourseId) return;
+    addCourse.mutate({ batchId, courseId: selectedCourseId }, { onSuccess: () => setSelectedCourseId("") });
+  };
+
+  return (
+    <Section title="Courses" icon={BookOpen} iconBg="bg-blue-500/10" iconColor="text-blue-400">
+      <div className="flex flex-wrap gap-2 mb-3.5">
+        {batchCourses.map((course) => (
+          <span
+            key={course.id}
+            className="inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1.5 rounded-full border border-[#1A1F35] bg-[#141930] text-[11px] font-bold text-slate-200 max-w-full"
+          >
+            <span className="truncate">{course.title}</span>
+            <button
+              type="button"
+              onClick={() => removeCourse.mutate({ batchId, courseId: course.id })}
+              disabled={removeCourse.isPending || batchCourses.length <= 1}
+              title={batchCourses.length <= 1 ? "A batch needs at least one course" : "Remove from batch"}
+              className="h-4 w-4 rounded-full flex items-center justify-center shrink-0 text-slate-500 hover:text-rose-400 hover:bg-rose-500/15 transition disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <X size={10} />
+            </button>
+          </span>
+        ))}
+      </div>
+
+      {availableCourses.length > 0 && (
+        <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-[#1A1F35]">
+          <select
+            value={selectedCourseId}
+            onChange={(e) => setSelectedCourseId(e.target.value)}
+            className="flex-1 bg-[#141930] border border-[#1A1F35] text-xs px-3 py-2.5 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition [&>option]:bg-[#141930] [&>option]:text-slate-200"
+          >
+            <option value="">Add another course...</option>
+            {availableCourses.map((c) => (
+              <option key={c.id} value={c.id}>{c.title}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={!selectedCourseId || addCourse.isPending}
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition"
+          >
+            {addCourse.isPending ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+            Add
+          </button>
+        </div>
+      )}
+    </Section>
+  );
+}
+
 export default function BatchDetailPage() {
   const { batchId } = useParams();
   const { data: batch, isLoading } = useBatchDetail(batchId);
@@ -301,6 +399,11 @@ export default function BatchDetailPage() {
     );
   };
 
+  const courseNames = useMemo(
+    () => (batch?.courses || []).map((c) => c.title).join(", "),
+    [batch]
+  );
+
   if (isLoading) return <Loader />;
 
   if (!batch) {
@@ -308,7 +411,9 @@ export default function BatchDetailPage() {
   }
 
   const students = batch.students || [];
+  const courses = batch.courses || [];
   const performanceBatch = overview?.batches?.find((b) => b.id === batchId);
+  const primaryCourseId = courses[0]?.id;
   const scheduleGroups = dashboard ? groupSchedule(dashboard.upcomingSchedule) : [];
 
   const studentListColumns = [
@@ -374,236 +479,275 @@ export default function BatchDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link
-          href="/instructor/batches"
-          className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-400 hover:text-white transition mb-3"
-        >
-          <ArrowLeft size={13} />
-          Back to Batches
-        </Link>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-black text-white tracking-tight">{batch.name}</h1>
-            <p className="text-xs text-slate-400 mt-1">{batch.course?.title}</p>
+      <Link
+        href="/instructor/batches"
+        className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-400 hover:text-white transition"
+      >
+        <ArrowLeft size={13} />
+        Back to Batches
+      </Link>
+
+      {/* Hero Header */}
+      <div className="relative overflow-hidden rounded-2xl border border-[#1A1F35] bg-gradient-to-br from-[#0D1021] via-[#0D1021] to-[#171224] p-6">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-orange-500/10 rounded-full blur-[110px] pointer-events-none" />
+        <div className="relative flex flex-col lg:flex-row lg:items-start justify-between gap-5">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5 flex-wrap mb-2.5">
+              <h1 className="text-2xl font-black text-white tracking-tight">{batch.name}</h1>
+              <StatusBadge status={batch.status} />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5 mb-3.5">
+              {courses.length > 0 ? (
+                courses.map((c) => (
+                  <span
+                    key={c.id}
+                    className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full"
+                  >
+                    <BookOpen size={10} className="text-orange-400" />
+                    {c.title}
+                  </span>
+                ))
+              ) : (
+                <span className="text-[11px] text-slate-500">No courses linked</span>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 text-[11px] font-bold text-slate-400">
+              <span className="flex items-center gap-1.5">
+                <Calendar size={12} className="text-slate-500" />
+                Started {batch.startDate ? new Date(batch.startDate).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Users size={12} className="text-slate-500" />
+                {students.length} Student{students.length === 1 ? "" : "s"}
+              </span>
+            </div>
           </div>
+
           {performanceBatch && (
-            <div className="sm:w-auto w-full">
-              <BatchActionsMenu batch={performanceBatch} />
+            <div className="lg:w-auto w-full shrink-0">
+              <BatchActionsMenu batch={performanceBatch} hideViewDetails />
             </div>
           )}
         </div>
       </div>
 
-      {/* Overview */}
-      <Section title="Overview" icon={Users}>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div>
-            <p className="text-[9px] text-slate-500 uppercase tracking-wide">Course</p>
-            <p className="text-xs font-bold text-slate-200 mt-1">{batch.course?.title}</p>
-          </div>
-          <div>
-            <p className="text-[9px] text-slate-500 uppercase tracking-wide">Status</p>
-            <p className="text-xs font-bold text-slate-200 mt-1">{batch.status || "ACTIVE"}</p>
-          </div>
-          <div>
-            <p className="text-[9px] text-slate-500 uppercase tracking-wide">Start Date</p>
-            <p className="text-xs font-bold text-slate-200 mt-1">
-              {batch.startDate ? new Date(batch.startDate).toLocaleDateString() : "—"}
-            </p>
-          </div>
-          <div>
-            <p className="text-[9px] text-slate-500 uppercase tracking-wide">Students</p>
-            <p className="text-xs font-bold text-slate-200 mt-1">{students.length}</p>
-          </div>
-        </div>
-      </Section>
+      {/* KPI Strip */}
+      <div className="flex flex-wrap md:flex-nowrap items-center gap-3 w-full">
+        <KpiTile
+          label="Students"
+          value={students.length}
+          icon={Users}
+          iconBg="bg-purple-500/10"
+          iconColor="text-purple-400"
+          bottomText={dashboard ? `${dashboard.studentSummary.active} active` : "Enrolled in batch"}
+        />
+        <KpiTile
+          label="Completion"
+          value={`${performanceBatch?.completion ?? 0}%`}
+          icon={TrendingUp}
+          iconBg="bg-orange-500/10"
+          iconColor="text-orange-400"
+          bottomText="Overall progress"
+        />
+        <KpiTile
+          label="Avg Quiz"
+          value={performanceBatch?.avgQuizScore != null ? `${performanceBatch.avgQuizScore}%` : "N/A"}
+          icon={Award}
+          iconBg="bg-sky-500/10"
+          iconColor="text-sky-400"
+          bottomText="Across batch"
+        />
+        <KpiTile
+          label="Engagement"
+          value={performanceBatch?.engagementStatus ?? "No Data"}
+          icon={Flame}
+          iconBg="bg-rose-500/10"
+          iconColor="text-rose-400"
+          bottomText="Batch health"
+        />
+        <KpiTile
+          label="Need Help"
+          value={dashboard?.studentSummary.needHelp ?? 0}
+          icon={AlertTriangle}
+          iconBg="bg-amber-500/10"
+          iconColor="text-amber-400"
+          bottomText="Low progress"
+        />
+      </div>
 
-      {/* Progress */}
-      {performanceBatch && (
-        <Section title="Progress" icon={BookOpenCheck}>
-          <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
-            <span>Course Completion</span>
-            <span className="text-slate-300 text-xs">{performanceBatch.completion}%</span>
-          </div>
-          <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-orange-500 to-pink-500"
-              style={{ width: `${performanceBatch.completion}%` }}
-            />
-          </div>
-        </Section>
-      )}
-
-      {/* Add Student */}
-      <Section title="Add Student" icon={UserPlus}>
-        <AddStudentPanel batchId={batchId} courseTitle={batch.course?.title} />
-      </Section>
-
-      {/* Student Summary */}
-      {dashboard && (
-        <Section title="Student Summary" icon={Users}>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <SummaryTile icon={Users} label="Total" value={dashboard.studentSummary.total} color="text-slate-400" />
-            <SummaryTile icon={UserCheck} label="Active" value={dashboard.studentSummary.active} color="text-emerald-400" />
-            <SummaryTile icon={CheckCircle2} label="Completed" value={dashboard.studentSummary.completed} color="text-sky-400" />
-            <SummaryTile icon={UserX} label="Need Help" value={dashboard.studentSummary.needHelp} color="text-rose-400" />
-          </div>
-        </Section>
-      )}
-
-      {/* Recent Activity */}
-      <Section title="Recent Activity" icon={CalendarClock}>
-        {loadingDashboard ? (
-          <div className="py-6 text-center text-xs text-slate-500">Loading...</div>
-        ) : !dashboard || dashboard.recentActivity.length === 0 ? (
-          <div className="py-8 text-center">
-            <p className="text-xs font-bold text-slate-500">No activity yet.</p>
-            <p className="text-[10.5px] text-slate-600 mt-1">Lesson completions, submissions, and quiz scores will show up here.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {dashboard.recentActivity.map((item, i) => {
-              const { icon: Icon, color } = ACTIVITY_ICON[item.type];
-              return (
-                <div key={i} className="flex items-start gap-2.5">
-                  <div className={`h-6 w-6 rounded-lg bg-white/[0.03] flex items-center justify-center shrink-0 ${color}`}>
-                    <Icon size={12} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px] leading-snug">{activityText(item)}</p>
-                    <p className="text-[9.5px] text-slate-600 mt-0.5">
-                      {formatDistanceToNow(new Date(item.date), { addSuffix: true })}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </Section>
-
-      {/* Upcoming Schedule */}
-      <Section title="Upcoming Schedule" icon={CalendarClock}>
-        {loadingDashboard ? (
-          <div className="py-6 text-center text-xs text-slate-500">Loading...</div>
-        ) : scheduleGroups.length === 0 ? (
-          <div className="py-8 text-center">
-            <p className="text-xs font-bold text-slate-500">Nothing scheduled.</p>
-            <p className="text-[10.5px] text-slate-600 mt-1">Live sessions, exams, and due dates will appear here.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {scheduleGroups.map(([label, items]) => (
-              <div key={label}>
-                <p className="text-[9.5px] font-black uppercase tracking-wider text-orange-400/80 mb-2">{label}</p>
-                <div className="space-y-2">
-                  {items.map((item) => {
-                    const config = SCHEDULE_ICON[item.type];
-                    const Icon = config.icon;
-                    return (
-                      <div key={item.id} className="flex items-center gap-2.5 p-2.5 rounded-xl border border-[#1A1F35] bg-[#141930]">
-                        <Icon size={13} className={config.color} />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[11px] font-bold text-slate-200 truncate">{item.title}</p>
-                          <p className="text-[9.5px] text-slate-500">{config.label}</p>
-                        </div>
-                        <p className="text-[10px] text-slate-400 shrink-0">
-                          {new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+      {/* Two-column dashboard layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Main column */}
+        <div className="lg:col-span-2 space-y-6">
+          <Section title="Recent Activity" icon={CalendarClock} iconBg="bg-amber-500/10" iconColor="text-amber-400">
+            {loadingDashboard ? (
+              <div className="py-6 text-center text-xs text-slate-500">Loading...</div>
+            ) : !dashboard || dashboard.recentActivity.length === 0 ? (
+              <div className="py-8 text-center">
+                <p className="text-xs font-bold text-slate-500">No activity yet.</p>
+                <p className="text-[10.5px] text-slate-600 mt-1">Lesson completions, submissions, and quiz scores will show up here.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {dashboard.recentActivity.map((item, i) => {
+                  const { icon: Icon, color } = ACTIVITY_ICON[item.type];
+                  return (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <div className={`h-6 w-6 rounded-lg bg-white/[0.03] flex items-center justify-center shrink-0 ${color}`}>
+                        <Icon size={12} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] leading-snug">{activityText(item)}</p>
+                        <p className="text-[9.5px] text-slate-600 mt-0.5">
+                          {formatDistanceToNow(new Date(item.date), { addSuffix: true })}
                         </p>
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
-        )}
-      </Section>
+            )}
+          </Section>
 
-      {/* Batch Performance */}
-      {performanceBatch && (
-        <Section title="Batch Performance" icon={Award}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-            <TrendSparkline label="Completion Trend" data={performanceBatch.trend.completion} color="#ff7a00" />
-            <TrendSparkline label="Quiz Trend" data={performanceBatch.trend.quiz} color="#38bdf8" />
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <SummaryTile icon={Award} label="Avg Quiz" value={performanceBatch.avgQuizScore != null ? `${performanceBatch.avgQuizScore}%` : "N/A"} color="text-orange-400" />
-            <SummaryTile icon={Users} label="Attendance" value="N/A" color="text-slate-500" />
-            <SummaryTile icon={BookOpenCheck} label="Completion" value={`${performanceBatch.completion}%`} color="text-emerald-400" />
-            <SummaryTile icon={CheckCircle2} label="Engagement" value={performanceBatch.engagementStatus} color="text-sky-400" />
-          </div>
-          <div className="mt-3 text-right">
-            <Link href={`/instructor/analytics?courseId=${batch.course?.id}`} className="text-[10.5px] font-bold text-orange-400 hover:text-orange-300 transition">
-              View Full Analytics &rarr;
-            </Link>
-          </div>
-        </Section>
-      )}
-
-      {/* Student List */}
-      <Section title="Student List" icon={Users}>
-        <DataTable
-          columns={studentListColumns}
-          rows={dashboard?.studentList || []}
-          isLoading={loadingDashboard}
-          skeletonRows={4}
-          emptyLabel={
-            <span>
-              No students in this batch yet.
-              <br />
-              Click &quot;Add Student&quot; above to enroll learners.
-            </span>
-          }
-        />
-      </Section>
-
-      {/* Batch Announcements */}
-      <AnnouncementsPanel batchId={batchId} />
-
-      {/* Files & Resources */}
-      <Section title="Files &amp; Resources" icon={FileText}>
-        <p className="text-[10.5px] text-slate-500 -mt-2 mb-3">
-          Materials shared across {batch.course?.title || "this course"} — not exclusive to this batch.
-        </p>
-        {loadingDashboard ? (
-          <div className="py-6 text-center text-xs text-slate-500">Loading...</div>
-        ) : !dashboard || dashboard.courseMaterials.length === 0 ? (
-          <div className="py-8 text-center">
-            <p className="text-xs font-bold text-slate-500">No materials uploaded yet.</p>
-            <p className="text-[10.5px] text-slate-600 mt-1">Upload documents to a lesson and they&apos;ll show up here.</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {dashboard.courseMaterials.map((m) => {
-              const Icon = MATERIAL_ICON[m.type] || Link2;
-              return (
-                <a
-                  key={m.id}
-                  href={m.url || "#"}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-2.5 p-2.5 rounded-xl border border-[#1A1F35] bg-[#141930] hover:border-slate-700 transition"
-                >
-                  <Icon size={14} className="text-orange-400 shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-bold text-slate-200 truncate">{m.title}</p>
-                    <p className="text-[9.5px] text-slate-500 truncate">
-                      {m.moduleTitle} &middot; {m.lessonTitle}
-                    </p>
+          <Section title="Upcoming Schedule" icon={CalendarClock} iconBg="bg-sky-500/10" iconColor="text-sky-400">
+            {loadingDashboard ? (
+              <div className="py-6 text-center text-xs text-slate-500">Loading...</div>
+            ) : scheduleGroups.length === 0 ? (
+              <div className="py-8 text-center">
+                <p className="text-xs font-bold text-slate-500">Nothing scheduled.</p>
+                <p className="text-[10.5px] text-slate-600 mt-1">Live sessions, exams, and due dates will appear here.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {scheduleGroups.map(([label, items]) => (
+                  <div key={label}>
+                    <p className="text-[9.5px] font-black uppercase tracking-wider text-orange-400/80 mb-2">{label}</p>
+                    <div className="space-y-2">
+                      {items.map((item) => {
+                        const config = SCHEDULE_ICON[item.type];
+                        const Icon = config.icon;
+                        return (
+                          <div key={item.id} className="flex items-center gap-2.5 p-2.5 rounded-xl border border-[#1A1F35] bg-[#141930]">
+                            <Icon size={13} className={config.color} />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[11px] font-bold text-slate-200 truncate">{item.title}</p>
+                              <p className="text-[9.5px] text-slate-500">{config.label}</p>
+                            </div>
+                            <p className="text-[10px] text-slate-400 shrink-0">
+                              {new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </a>
-              );
-            })}
-          </div>
-        )}
-      </Section>
+                ))}
+              </div>
+            )}
+          </Section>
+
+          <Section title="Student List" icon={Users} iconBg="bg-purple-500/10" iconColor="text-purple-400">
+            <DataTable
+              columns={studentListColumns}
+              rows={dashboard?.studentList || []}
+              isLoading={loadingDashboard}
+              skeletonRows={4}
+              emptyLabel={
+                <span>
+                  No students in this batch yet.
+                  <br />
+                  Use the Add Student panel to enroll learners.
+                </span>
+              }
+            />
+          </Section>
+
+          <AnnouncementsPanel batchId={batchId} />
+
+          <Section title="Files & Resources" icon={FileText} iconBg="bg-slate-500/10" iconColor="text-slate-400">
+            <p className="text-[10.5px] text-slate-500 -mt-2 mb-3">
+              Materials shared across {courseNames || "this batch's courses"} — not exclusive to this batch.
+            </p>
+            {loadingDashboard ? (
+              <div className="py-6 text-center text-xs text-slate-500">Loading...</div>
+            ) : !dashboard || dashboard.courseMaterials.length === 0 ? (
+              <div className="py-8 text-center">
+                <p className="text-xs font-bold text-slate-500">No materials uploaded yet.</p>
+                <p className="text-[10.5px] text-slate-600 mt-1">Upload documents to a lesson and they&apos;ll show up here.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {dashboard.courseMaterials.map((m) => {
+                  const Icon = MATERIAL_ICON[m.type] || Link2;
+                  return (
+                    <a
+                      key={m.id}
+                      href={m.url || "#"}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-2.5 p-2.5 rounded-xl border border-[#1A1F35] bg-[#141930] hover:border-slate-700 transition"
+                    >
+                      <Icon size={14} className="text-orange-400 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-bold text-slate-200 truncate">{m.title}</p>
+                        <p className="text-[9.5px] text-slate-500 truncate">
+                          {m.moduleTitle} &middot; {m.lessonTitle}
+                        </p>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+          </Section>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          <ManageCoursesPanel batchId={batchId} batchCourses={courses} />
+
+          <AddStudentPanel batchId={batchId} courseNames={courseNames} />
+
+          {performanceBatch && (
+            <Section title="Batch Performance" icon={Award} iconBg="bg-pink-500/10" iconColor="text-pink-400">
+              <div className="space-y-3">
+                <TrendSparkline label="Completion Trend" data={performanceBatch.trend.completion} color="#ff7a00" />
+                <TrendSparkline label="Quiz Trend" data={performanceBatch.trend.quiz} color="#38bdf8" />
+              </div>
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <SummaryTile icon={Users} label="Attendance" value="N/A" color="text-slate-500" />
+                <SummaryTile icon={CheckCircle2} label="Engagement" value={performanceBatch.engagementStatus} color="text-sky-400" />
+              </div>
+              <div className="mt-3 text-right">
+                <Link
+                  href={primaryCourseId ? `/instructor/analytics?courseId=${primaryCourseId}` : "/instructor/analytics"}
+                  className="text-[10.5px] font-bold text-orange-400 hover:text-orange-300 transition"
+                >
+                  View Full Analytics &rarr;
+                </Link>
+              </div>
+            </Section>
+          )}
+
+          {dashboard && (
+            <Section title="Student Summary" icon={BookOpenCheck} iconBg="bg-emerald-500/10" iconColor="text-emerald-400">
+              <div className="grid grid-cols-2 gap-3">
+                <SummaryTile icon={Users} label="Total" value={dashboard.studentSummary.total} color="text-slate-400" />
+                <SummaryTile icon={UserCheck} label="Active" value={dashboard.studentSummary.active} color="text-emerald-400" />
+                <SummaryTile icon={CheckCircle2} label="Completed" value={dashboard.studentSummary.completed} color="text-sky-400" />
+                <SummaryTile icon={UserX} label="Need Help" value={dashboard.studentSummary.needHelp} color="text-rose-400" />
+              </div>
+            </Section>
+          )}
+        </div>
+      </div>
 
       <ConfirmDialog
         open={!!studentPendingRemoval}
         title="Remove Student"
-        message={`Remove ${studentPendingRemoval?.name || "this student"} from ${batch.name}? They'll stay enrolled in the course, just no longer part of this batch.`}
+        message={`Remove ${studentPendingRemoval?.name || "this student"} from ${batch.name}? They'll stay enrolled in their courses, just no longer part of this batch.`}
         confirmText="Remove"
         onConfirm={handleConfirmRemove}
         onCancel={() => setStudentPendingRemoval(null)}

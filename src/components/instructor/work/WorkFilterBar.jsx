@@ -1,6 +1,6 @@
 "use client";
 
-import { Filter, RotateCcw, Check } from "lucide-react";
+import { Filter, RotateCcw } from "lucide-react";
 
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 import { useModules } from "@/hooks/queries/instructor/useModules";
@@ -29,7 +29,7 @@ export default function WorkFilterBar({
   fields = ["course", "batch", "module", "lesson", "status", "dateRange"],
   statusOptions = DEFAULT_STATUS_OPTIONS,
 }) {
-  const { filters, updateFilter, applyFilters, resetFilters } = useWorkFilters();
+  const { filters, updateFilter, resetFilters } = useWorkFilters();
 
   const { data: courses = [], isLoading: loadingCourses } = useInstructorCourses();
   const { data: modules = [], isLoading: loadingModules } = useModules(filters.courseId);
@@ -163,14 +163,6 @@ export default function WorkFilterBar({
         >
           <RotateCcw size={12} />
           Reset
-        </button>
-        <button
-          type="button"
-          onClick={applyFilters}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10.5px] font-black text-white bg-orange-500 hover:bg-orange-600 shadow-sm transition"
-        >
-          <Check size={12} />
-          Apply
         </button>
       </div>
     </div>

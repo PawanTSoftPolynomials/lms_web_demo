@@ -46,16 +46,20 @@ export default function StudentToolbar({
                         All Status
                     </option>
 
-                    <option value="ACTIVE">
-                        Active
+                    <option value="Top Performer">
+                        Top Performer
                     </option>
 
-                    <option value="INACTIVE">
-                        Inactive
+                    <option value="Behind Average">
+                        Behind Average
                     </option>
 
-                    <option value="BLOCKED">
-                        Blocked
+                    <option value="Struggling">
+                        Struggling
+                    </option>
+
+                    <option value="Not Started">
+                        Not Started
                     </option>
                 </select>
             </div>

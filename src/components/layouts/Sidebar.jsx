@@ -62,13 +62,6 @@ export default function Sidebar({
       }
     }
     if (role === "ADMIN") {
-      if (title === "Users") {
-        return [
-          { title: "Manage All Users", href: "/admin/users" },
-          { title: "Student Directory", href: "/admin/students" },
-          { title: "Instructor Directory", href: "/admin/instructors" },
-        ];
-      }
       if (title === "Courses") {
         return [
           { title: "Manage Course Catalog", href: "/admin/courses" },

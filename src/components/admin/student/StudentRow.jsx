@@ -3,25 +3,22 @@
 import UserAvatar from "@/components/admin/users/UserAvatar";
 import ActionMenu from "@/components/menus/ActionMenu";
 
+const STATUS_COLORS = {
+    "Top Performer":
+        "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20",
+    "Behind Average":
+        "bg-amber-500/15 text-amber-400 border border-amber-500/20",
+    "Struggling":
+        "bg-red-500/15 text-red-400 border border-red-500/20",
+    "Not Started":
+        "bg-gray-500/15 text-gray-400 border border-gray-500/20",
+};
+
 export default function StudentRow({
                                        student,
                                        onView,
-                                       onEdit,
                                        onDelete,
                                    }) {
-    const createdAt = new Date(
-        student.createdAt
-    ).toLocaleDateString();
-
-    const statusColors = {
-        ACTIVE:
-            "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20",
-        INACTIVE:
-            "bg-gray-500/15 text-gray-400 border border-gray-500/20",
-        BLOCKED:
-            "bg-red-500/15 text-red-400 border border-red-500/20",
-    };
-
     return (
         <tr
             onClick={() => onView?.(student)}
@@ -31,29 +28,29 @@ export default function StudentRow({
             <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
                     <UserAvatar
-                        name={student.user.name}
+                        name={student.name}
                     />
 
                     <div>
                         <p className="font-medium text-white">
-                            {student.user.name}
+                            {student.name}
                         </p>
 
                         <p className="text-sm text-gray-400">
-                            {student.user.email}
+                            {student.email}
                         </p>
                     </div>
                 </div>
             </td>
 
-            {/* Phone */}
+            {/* Course */}
             <td className="px-6 py-4 text-gray-300">
-                {student.phone || "-"}
+                {student.course || "-"}
             </td>
 
-            {/* Education */}
+            {/* Progress */}
             <td className="px-6 py-4 text-gray-300">
-                {student.education || "-"}
+                {student.progress ?? 0}%
             </td>
 
             {/* Status */}
@@ -66,20 +63,20 @@ export default function StudentRow({
             text-xs
             font-semibold
             ${
-                statusColors[
-                    student.user.status
+                STATUS_COLORS[
+                    student.status
                     ] ||
                 "bg-gray-700 text-white"
             }
           `}
         >
-          {student.user.status}
+          {student.status}
         </span>
             </td>
 
             {/* Joined */}
             <td className="px-6 py-4 text-gray-400">
-                {createdAt}
+                {student.joinedDate || "-"}
             </td>
 
             {/* Actions */}
@@ -90,11 +87,6 @@ export default function StudentRow({
                             label: "View",
                             onClick: () =>
                                 onView?.(student),
-                        },
-                        {
-                            label: "Edit",
-                            onClick: () =>
-                                onEdit?.(student),
                         },
                         {
                             label: "Delete",

@@ -18,10 +18,13 @@ const INITIAL_FILTERS = {
  * Holds the Course/Batch/Module/Lesson/Status/Date filter selection shared by
  * every page under /instructor/work — mounted once in work/layout.jsx so the
  * selection survives navigating between Work pages (Quiz -> Assessment, etc).
+ *
+ * Filters apply immediately on change (no separate Apply step) — `filters`
+ * and `appliedFilters` are kept as two names pointing at the same value so
+ * existing consumers reading either one keep working.
  */
 export function WorkFilterProvider({ children }) {
   const [filters, setFilters] = useState(INITIAL_FILTERS);
-  const [appliedFilters, setAppliedFilters] = useState(INITIAL_FILTERS);
 
   const updateFilter = useCallback((key, value) => {
     setFilters((prev) => {
@@ -38,18 +41,13 @@ export function WorkFilterProvider({ children }) {
     });
   }, []);
 
-  const applyFilters = useCallback(() => {
-    setAppliedFilters(filters);
-  }, [filters]);
-
   const resetFilters = useCallback(() => {
     setFilters(INITIAL_FILTERS);
-    setAppliedFilters(INITIAL_FILTERS);
   }, []);
 
   return (
     <WorkFilterContext.Provider
-      value={{ filters, appliedFilters, updateFilter, applyFilters, resetFilters }}
+      value={{ filters, appliedFilters: filters, updateFilter, resetFilters }}
     >
       {children}
     </WorkFilterContext.Provider>

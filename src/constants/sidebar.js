@@ -26,11 +26,6 @@ export const SIDEBAR_ITEMS = {
             href: "/admin/dashboard",
         },
         {
-            title: "Users",
-            icon: FaUsers,
-            href: "/admin/users",
-        },
-        {
             title: "Students",
             icon: FaUsers,
             href: "/admin/students",
@@ -49,10 +44,6 @@ export const SIDEBAR_ITEMS = {
             title: "Enrollments",
             href: "/admin/enrollments",
             icon: FcGraduationCap,
-        }, {
-            title: "Certificates",
-            href: "/admin/certificates",
-            icon: FaCertificate,
         },
         {
             title: "Calendar",
