@@ -10,6 +10,7 @@ export default function useUpdateProfile() {
     mutationFn: updateProfile,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STUDENT_PROFILE] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PROFILE] });
     },
   });
 }

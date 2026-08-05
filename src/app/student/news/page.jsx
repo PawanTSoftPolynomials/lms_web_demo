@@ -163,30 +163,31 @@ export default function StudentNewsPage() {
   return (
     <div className="space-y-6 pb-16 animate-fade-in duration-300">
       {/* Page Header */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400">
-              <Newspaper size={22} />
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400">
+              <Newspaper size={18} className="sm:hidden" />
+              <Newspaper size={22} className="hidden sm:block" />
             </div>
-            <h1 className="text-2xl font-black text-white tracking-tight">
+            <h1 className="text-lg sm:text-2xl font-black text-white tracking-tight">
               Daily News & Course Updates
             </h1>
           </div>
-          <p className="text-xs text-slate-400 mt-2 max-w-xl">
+          <p className="hidden sm:block text-xs text-slate-400 mt-2 max-w-xl">
             Stay informed with real-time course updates, batch announcements, live session alerts, and platform feature releases.
           </p>
         </div>
 
         {/* Quick Stats Pill */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="px-3.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center">
-            <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider block">Total Updates</span>
-            <span className="text-base font-black text-orange-400">{newsItems.length}</span>
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center">
+            <span className="text-[9px] sm:text-[10px] text-slate-500 uppercase font-black tracking-wider block">Total Updates</span>
+            <span className="text-sm sm:text-base font-black text-orange-400">{newsItems.length}</span>
           </div>
-          <div className="px-3.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center">
-            <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider block">My Courses</span>
-            <span className="text-base font-black text-white">{enrolledCourses.length}</span>
+          <div className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center">
+            <span className="text-[9px] sm:text-[10px] text-slate-500 uppercase font-black tracking-wider block">My Courses</span>
+            <span className="text-sm sm:text-base font-black text-white">{enrolledCourses.length}</span>
           </div>
         </div>
       </div>

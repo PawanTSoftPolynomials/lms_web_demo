@@ -9,6 +9,9 @@ import {
   Activity,
   Lightbulb,
   Sparkles,
+  Home,
+  Layers,
+  MessageSquareText,
 } from "lucide-react";
 
 /**
@@ -19,8 +22,10 @@ import {
  * differ; layout, styling, and behavior are identical to Instructor.
  */
 export const PRIMARY_NAV_ITEMS = [
+  { label: "Home", href: "/student/dashboard", icon: Home, primaryOnMobile: true },
   { label: "My Courses", href: "/student/my-courses", icon: BookOpen, primaryOnMobile: true },
   { label: "My Work", href: "/student/assignments", icon: CheckSquare, primaryOnMobile: true },
+  { label: "Batches", href: "/student/my-courses", icon: Layers, primaryOnMobile: true },
   { label: "Calendar", href: "/student/calendar", icon: Calendar, primaryOnMobile: true },
   { label: "Q/A", href: "/student/qa", icon: MessageSquare, primaryOnMobile: true },
   { label: "Reports", href: "/student/reports", icon: BarChart3, primaryOnMobile: true },
@@ -29,4 +34,5 @@ export const PRIMARY_NAV_ITEMS = [
   { label: "Activity", href: "/student/activity", icon: Activity, primaryOnMobile: true },
   { label: "Suggestions", href: "/student/feedback", icon: Lightbulb, primaryOnMobile: true },
   { label: "AI Recommendations", href: "/student/courses", icon: Sparkles, primaryOnMobile: true },
+  { label: "Feedback", href: "/student/feedback", icon: MessageSquareText, primaryOnMobile: true },
 ];

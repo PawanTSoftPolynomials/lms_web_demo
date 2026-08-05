@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FaArrowLeft, FaBars, FaSignOutAlt } from "react-icons/fa";
 import { PiOrangeDuotone } from "react-icons/pi";
-import { MessageSquare, Calendar, ChevronRight, Bell, BookOpen, Award, CheckCheck } from "lucide-react";
+import { Menu, MessageSquare, Calendar, ChevronRight, Bell, BookOpen, Award, CheckCheck } from "lucide-react";
 import Link from "next/link";
 
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
 import { useNotification } from "@/context/NotificationContext";
+import { useStudentNavDrawer } from "@/context/StudentNavDrawerContext";
 import Modal from "@/components/ui/Modal";
 import MiniCalendar from "@/components/dashboard/MiniCalendar";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
@@ -56,6 +57,23 @@ const playNotificationChime = () => {
     console.warn("Chime playback bypassed:", e);
   }
 };
+
+// Isolated in its own component so its hook call only ever runs while
+// mounted inside <StudentNavDrawerProvider> (Student layout only) — the
+// parent conditionally renders this component for role === 'STUDENT'
+// rather than calling the hook directly in the (Instructor-shared) header.
+function StudentDrawerToggle() {
+  const { toggle } = useStudentNavDrawer();
+  return (
+    <button
+      onClick={toggle}
+      aria-label="Open navigation menu"
+      className="sm:hidden -ml-1 h-9 w-9 flex items-center justify-center rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition"
+    >
+      <Menu size={22} />
+    </button>
+  );
+}
 
 function ProfileDropdown({ user, onLogoutRequest, basePath = "instructor", avatarFallback = "I" }) {
   const [open, setOpen] = useState(false);
@@ -444,7 +462,10 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     return (
       <>
       <header className="bg-[#080B11] border-b border-[#1A1F35] px-6 py-3 flex items-center justify-between text-slate-200">
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 sm:gap-6">
+          {/* Hamburger — Student only, opens the mobile navigation drawer */}
+          {role === 'STUDENT' && <StudentDrawerToggle />}
+
           {/* Logo */}
           <Link href={`/${basePath}/dashboard`} className="flex items-center gap-2 font-black text-slate-100 hover:opacity-90">
             <span className="text-2xl text-orange-500">🍊</span>
