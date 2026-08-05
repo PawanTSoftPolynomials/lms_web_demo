@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   BookOpen,
   CheckSquare,
+  Layers,
   Calendar,
   MessageSquare,
   BarChart3,
@@ -21,6 +22,7 @@ import {
 import { useStudentNavDrawer } from "@/context/StudentNavDrawerContext";
 import useDashboard from "@/hooks/queries/student/useDashboard";
 import useAssignments from "@/hooks/queries/student/useAssignments";
+import { useMyBatches } from "@/hooks/queries/student/useBatches";
 import { useNotification } from "@/context/NotificationContext";
 import { useQa } from "@/context/QaContext";
 import { getCalendarEvents } from "@/services/calendar.service";
@@ -30,6 +32,7 @@ import { getCalendarEvents } from "@/services/calendar.service";
 function useDrawerItems() {
   const { data: dashboardData } = useDashboard();
   const { data: assignments = [] } = useAssignments();
+  const { data: batches = [] } = useMyBatches();
   const { notifications = [] } = useNotification();
   const { pendingCount: qaPendingCount } = useQa();
 
@@ -49,6 +52,7 @@ function useDrawerItems() {
   return [
     { id: "myCourses", label: "My Courses", icon: BookOpen, href: "/student/my-courses", badge: enrolledCount },
     { id: "myWork", label: "My Work", icon: CheckSquare, href: "/student/assignments", badge: pendingAssignmentsCount },
+    { id: "batches", label: "Batches", icon: Layers, href: "/student/batches", badge: batches.length },
     { id: "calendar", label: "Calendar", icon: Calendar, href: "/student/calendar", badge: calendarCount },
     { id: "qa", label: "Q/A", icon: MessageSquare, href: "/student/qa", badge: qaPendingCount },
     { id: "reports", label: "Reports", icon: BarChart3, href: "/student/reports", badge: 0 },
@@ -62,7 +66,7 @@ function useDrawerItems() {
 
 // The Student mobile navigation drawer — opened from the header's hamburger
 // button (see DashboardNavbar) via shared context, instead of its own
-// per-page trigger. Same 10 curated destinations/badges as before.
+// per-page trigger. Curated destinations with live badge counts.
 export default function StudentNavDrawer() {
   const pathname = usePathname();
   const { isOpen, close } = useStudentNavDrawer();

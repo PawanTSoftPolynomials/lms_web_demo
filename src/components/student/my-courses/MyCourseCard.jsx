@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ClipboardList,
@@ -9,23 +9,44 @@ import {
   BarChart2,
   CalendarCheck,
   Activity,
-  HelpCircle,
   Sparkles,
   ArrowLeft,
   User,
-  MessageSquare
+  MessageSquare,
+  MoreVertical,
+  Play,
+  BookOpen,
+  Clock,
 } from "lucide-react";
 import ResponsiveQuizPresenter from "@/components/student/quizzes/ResponsiveQuizPresenter";
 
-export default function MyCourseCard({ enrollment }) {
+const LEVEL_ACCENTS = [
+  { bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/20" },
+  { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/20" },
+  { bg: "bg-emerald-500/10", text: "text-emerald-400", border: "border-emerald-500/20" },
+  { bg: "bg-orange-500/10", text: "text-orange-400", border: "border-orange-500/20" },
+];
+
+export default function MyCourseCard({ enrollment, index = 0, pendingAssignments = 0, nextClass = null }) {
     const {
         course,
     } = enrollment;
+
+    const progress = enrollment.progress ?? 0;
+    const completedLessons = enrollment.completedLessons ?? 0;
+    const totalLessons = course.lessons ?? 0;
+    const isComplete = progress >= 100;
+    const accent = LEVEL_ACCENTS[index % LEVEL_ACCENTS.length];
 
     const [quizModalOpen, setQuizModalOpen] = useState(false);
     // Mobile & tablet: tapping the compact card opens a dedicated full-screen
     // action menu instead of cramming all 8 links into the small card.
     const [menuOpen, setMenuOpen] = useState(false);
+    // Desktop/tablet: the same 8 links, now tucked behind a three-dot overflow
+    // menu so the card's primary surface can show course progress/schedule
+    // info instead.
+    const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
+    const desktopMenuRef = useRef(null);
 
     useEffect(() => {
         if (!menuOpen) return;
@@ -35,6 +56,24 @@ export default function MyCourseCard({ enrollment }) {
             document.body.style.overflow = previousOverflow;
         };
     }, [menuOpen]);
+
+    useEffect(() => {
+        if (!desktopMenuOpen) return;
+        const handlePointerDown = (e) => {
+            if (desktopMenuRef.current && !desktopMenuRef.current.contains(e.target)) {
+                setDesktopMenuOpen(false);
+            }
+        };
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") setDesktopMenuOpen(false);
+        };
+        document.addEventListener("mousedown", handlePointerDown);
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("mousedown", handlePointerDown);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [desktopMenuOpen]);
 
     const links = [
         {
@@ -91,6 +130,7 @@ export default function MyCourseCard({ enrollment }) {
         if (label === "My Test" || label === "My Assessment Activity") {
             e.preventDefault();
             setQuizModalOpen(true);
+            setDesktopMenuOpen(false);
         }
     };
 
@@ -209,66 +249,145 @@ export default function MyCourseCard({ enrollment }) {
 
     return (
         <>
-            {/* Desktop (xl+): unchanged dense card, all 8 links inline */}
-            <div className="hidden xl:flex max-w-sm w-full rounded-3xl border border-slate-800/80 bg-slate-900/80 p-4 sm:p-6 shadow-lg flex-col justify-between transition-all duration-300 hover:border-slate-700 hover:-translate-y-1 select-none">
-                {/* Center-aligned Card Header */}
-                <div className="pb-3 text-center border-b border-slate-800/50">
-                    <h3 className="text-sm sm:text-base font-black text-white tracking-tight leading-snug truncate" title={course.title}>
-                        {course.title}
-                    </h3>
-                    <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block mt-1">
-                        Theory, Practical
-                    </span>
+            {/* Desktop / tablet (sm+): workspace-style course card — thumbnail,
+                progress, next class & pending work up front; the original 8
+                navigation links now live behind the three-dot menu instead of
+                being the card's whole surface. */}
+            <div className="hidden sm:flex flex-col rounded-2xl border border-[#1A1F35] bg-[#0D1021] shadow-sm hover:border-slate-700 hover:-translate-y-0.5 transition-all duration-300">
+                <div className="p-4 flex items-start gap-3 border-b border-[#1A1F35]">
+                    <div className={`h-11 w-11 rounded-xl ${accent.bg} ${accent.text} border ${accent.border} flex items-center justify-center font-black text-sm shrink-0`}>
+                        {course.title?.[0]?.toUpperCase() || <BookOpen size={18} />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-black text-white truncate" title={course.title}>
+                                {course.title}
+                            </h3>
+                            {isComplete && (
+                                <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                    Completed
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-[11px] text-slate-500 truncate mt-0.5 flex items-center gap-1.5">
+                            <User size={11} className="shrink-0" /> {course.instructor || "Instructor TBA"}
+                        </p>
+                    </div>
+
+                    <div className="relative shrink-0" ref={desktopMenuRef}>
+                        <button
+                            type="button"
+                            onClick={() => setDesktopMenuOpen((v) => !v)}
+                            aria-label="More options"
+                            className="h-8 w-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition cursor-pointer"
+                        >
+                            <MoreVertical size={16} />
+                        </button>
+
+                        {desktopMenuOpen && (
+                            <div className="absolute right-0 top-9 z-20 w-56 rounded-2xl border border-[#1A1F35] bg-[#0A0D1B] p-1.5 shadow-2xl">
+                                {links.map((link, idx) => {
+                                    const Icon = link.icon;
+                                    return (
+                                        <Link
+                                            key={idx}
+                                            href={link.href}
+                                            onClick={(e) => {
+                                                handleRowClick(e, link.label);
+                                                if (link.label !== "My Test" && link.label !== "My Assessment Activity") {
+                                                    setDesktopMenuOpen(false);
+                                                }
+                                            }}
+                                            className="flex items-center gap-2.5 text-xs font-bold text-slate-300 hover:text-white transition py-2 px-2.5 rounded-xl hover:bg-white/5"
+                                        >
+                                            <Icon size={15} className={`${link.iconColor} shrink-0`} />
+                                            <span className="truncate">{link.label}</span>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* Single Column Layout formatted to fit card tightly without unused space */}
-                <div className="space-y-1 my-3">
-                    {links.map((link, idx) => {
-                        const Icon = link.icon;
-                        return (
-                            <Link
-                                key={idx}
-                                href={link.href}
-                                onClick={(e) => handleRowClick(e, link.label)}
-                                className="flex items-center gap-2.5 sm:gap-3 text-xs font-bold text-slate-200 hover:text-white transition group py-2 px-2.5 sm:px-3 rounded-xl hover:bg-slate-800/50 border border-transparent hover:border-slate-700/50 min-h-[44px]"
-                            >
-                                <Icon size={16} className={`${link.iconColor} shrink-0 stroke-[2]`} />
-                                <span className="truncate">{link.label}</span>
-                            </Link>
-                        );
-                    })}
+                <div className="p-4 space-y-3">
+                    <div>
+                        <div className="flex items-center justify-between text-xs mb-1.5">
+                            <span className="text-slate-400 font-semibold">Progress</span>
+                            <span className="text-white font-black">{progress}%</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                            <div
+                                className="h-full rounded-full bg-orange-500 transition-all duration-500"
+                                style={{ width: `${progress}%` }}
+                            />
+                        </div>
+                        <p className="text-[10px] text-slate-500 mt-1.5">
+                            {totalLessons > 0 ? `${completedLessons}/${totalLessons} lessons` : "Self-paced"}
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="rounded-lg bg-[#141930] border border-[#1A1F35] p-2">
+                            <p className="text-[9px] text-slate-500 uppercase font-bold tracking-wider flex items-center gap-1">
+                                <Clock size={10} /> Next Class
+                            </p>
+                            <p className="text-xs font-bold text-white mt-1 truncate">
+                                {nextClass ? (nextClass.startTime || "Scheduled") : "Not scheduled"}
+                            </p>
+                        </div>
+                        <div className="rounded-lg bg-[#141930] border border-[#1A1F35] p-2">
+                            <p className="text-[9px] text-slate-500 uppercase font-bold tracking-wider flex items-center gap-1">
+                                <ClipboardList size={10} /> Assignments
+                            </p>
+                            <p className="text-xs font-bold text-white mt-1">
+                                {pendingAssignments > 0 ? `${pendingAssignments} pending` : "All caught up"}
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Bottom Right Help Icon */}
-                <div className="flex justify-end pt-1 text-slate-500 hover:text-white transition select-none">
-                    <HelpCircle size={16} />
+                <div className="p-4 pt-0">
+                    <Link
+                        href={`/student/learn/${course.id}`}
+                        className="flex items-center justify-center gap-2 w-full py-2.5 min-h-[44px] rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xs uppercase tracking-wider transition"
+                    >
+                        <Play size={13} className="fill-slate-950" /> Continue Learning
+                    </Link>
                 </div>
             </div>
 
-            {/* Mobile & tablet: compact tap card — just enough to identify the
-                course; the 8 actions live in the full-screen menu instead of
-                being crammed into this card. */}
+            {/* Mobile: compact tap card showing the same at-a-glance info; the 8
+                actions live in the full-screen menu instead of being crammed in. */}
             <button
                 type="button"
                 onClick={() => setMenuOpen(true)}
-                className="xl:hidden w-full rounded-2xl border border-slate-800/80 bg-slate-900/80 p-4 shadow-lg flex items-center justify-between gap-3 transition-colors duration-200 hover:border-slate-700 cursor-pointer text-left min-h-[44px]"
+                className="sm:hidden w-full rounded-2xl border border-slate-800/80 bg-slate-900/80 p-4 shadow-lg transition-colors duration-200 hover:border-slate-700 cursor-pointer text-left min-h-[44px]"
             >
-                <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-black text-white tracking-tight leading-snug truncate" title={course.title}>
-                        {course.title}
-                    </h3>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Theory, Practical
-                    </span>
+                <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                        <h3 className="text-sm font-black text-white tracking-tight leading-snug truncate" title={course.title}>
+                            {course.title}
+                        </h3>
+                        <span className="text-[10px] font-bold text-slate-400 truncate flex items-center gap-1 mt-0.5">
+                            <User size={10} /> {course.instructor || "Instructor TBA"}
+                        </span>
+                    </div>
+                    <ChevronRight size={18} className="shrink-0 text-slate-500" />
                 </div>
-                <ChevronRight size={18} className="shrink-0 text-slate-500" />
+                <div className="flex items-center gap-2 mt-3">
+                    <div className="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                        <div className="h-full rounded-full bg-orange-500" style={{ width: `${progress}%` }} />
+                    </div>
+                    <span className="text-[10px] font-black text-white shrink-0">{progress}%</span>
+                </div>
             </button>
 
             {/* Full-screen course action menu — mobile & tablet only. Opened by
                 tapping the compact card above; closes back to this exact list,
                 no route change (matches the Quiz full-screen pattern). */}
             {menuOpen && (
-                <div className="xl:hidden fixed inset-0 z-[70] bg-[#07080f] overflow-y-auto">
+                <div className="sm:hidden fixed inset-0 z-[70] bg-[#07080f] overflow-y-auto">
                     <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-slate-800/60 bg-[#07080f]/95 px-4 py-4 backdrop-blur-md">
                         <button
                             type="button"
@@ -282,7 +401,7 @@ export default function MyCourseCard({ enrollment }) {
                                 {course.title}
                             </h1>
                             <p className="text-[10px] font-bold uppercase tracking-widest text-purple-400 truncate">
-                                Theory, Practical
+                                {course.instructor || "Instructor TBA"}
                             </p>
                         </div>
                         <Link
