@@ -116,7 +116,7 @@ export default function InstructorCoursesPage() {
           <div className={view === "table" ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3 md:hidden" : "grid gap-4 sm:grid-cols-2 lg:grid-cols-3"}>
             {isLoading
               ? Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="h-40 rounded-2xl border border-[#1A1F35] bg-white/[0.02] animate-pulse" />
+                  <div key={i} className="h-[380px] rounded-2xl border border-[#1A1F35] bg-white/[0.02] animate-pulse" />
                 ))
               : courses.length === 0
               ? (
@@ -124,7 +124,7 @@ export default function InstructorCoursesPage() {
                   <EmptyState title="No courses match the current filters." />
                 </div>
               )
-              : courses.map((course) => <CourseGridCard key={course.id} course={course} />)}
+              : courses.map((course, index) => <CourseGridCard key={course.id} course={course} index={index} />)}
           </div>
 
           {!isLoading && courses.length > 0 && (

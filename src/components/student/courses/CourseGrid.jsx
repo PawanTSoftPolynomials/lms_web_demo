@@ -22,7 +22,7 @@ export default function CourseGrid({
     }
 
     return (
-        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((item) => {
                 const courseObj = isShowingEnrollmentsOnly ? undefined : item;
                 const enrollmentObj = isShowingEnrollmentsOnly

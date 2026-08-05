@@ -18,6 +18,8 @@ import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
 import useDashboard from "@/hooks/queries/student/useDashboard";
 import useAssignments from "@/hooks/queries/student/useAssignments";
+import useCourses from "@/hooks/queries/student/useCourses";
+import useMyCourses from "@/hooks/queries/student/useMyCourses";
 import { useNotification } from "@/context/NotificationContext";
 import { getCalendarEvents } from "@/services/calendar.service";
 import MyCourseCard from "@/components/student/my-courses/MyCourseCard";
@@ -32,20 +34,26 @@ const toLocalDateString = (date) => {
 
 const isPendingAssignment = (a) => a.status !== "Submitted" && a.status !== "Graded";
 
-const isClassLikeEvent = (type) => {
-  const t = (type || "").toLowerCase();
-  return t === "class" || t === "lecture" || t === "live_class" || t === "session";
-};
-
 export default function MyCoursesPage() {
   const { data: dashboardData, isLoading, isError } = useDashboard();
   const { data: assignments = [] } = useAssignments();
   const { notifications = [] } = useNotification();
+  // The dashboard's enrolledCoursesList only carries a thin course object
+  // (no thumbnail/category/module-quiz counts) — the catalog and enrollments
+  // endpoints fill those gaps for the card, same merge used on Browse Courses.
+  const { data: catalogCourses = [] } = useCourses();
+  const { data: myEnrollments = [] } = useMyCourses();
   const { data: calendarEvents = [] } = useQuery({
     queryKey: ["calendar_events"],
     queryFn: getCalendarEvents,
     staleTime: 1000 * 60 * 5,
   });
+
+  const catalogById = useMemo(() => new Map(catalogCourses.map((c) => [c.id, c])), [catalogCourses]);
+  const lastAccessedByCourseId = useMemo(
+    () => new Map(myEnrollments.map((e) => [e.course?.id || e.courseId, e.lastAccessedAt])),
+    [myEnrollments]
+  );
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -62,21 +70,17 @@ export default function MyCoursesPage() {
     [enrolledCourses]
   );
 
-  const getPendingCount = (course) =>
-    assignments.filter((a) => {
-      if (!isPendingAssignment(a)) return false;
-      return a.course?.id === course.id || a.courseId === course.id || a.course?.title === course.title || a.courseTitle === course.title;
-    }).length;
-
-  const getNextClassForCourse = (course) => {
-    const matches = calendarEvents
-      .filter((e) => isClassLikeEvent(e.type) && e.courseName === course.title && e.date >= todayStr)
-      .sort((a, b) => a.date.localeCompare(b.date) || (a.startTime || "").localeCompare(b.startTime || ""));
-    return matches[0] || null;
-  };
-
   const filteredCourses = useMemo(() => {
-    let list = enrolledCourses.map((e) => ({ ...e, course: e.course || {} }));
+    let list = enrolledCourses.map((e) => {
+      const catalogCourse = catalogById.get(e.course?.id);
+      return {
+        ...e,
+        lastAccessedAt: lastAccessedByCourseId.get(e.course?.id),
+        // Merge in the richer catalog fields, but never let a missing
+        // catalog thumbnail blank out the one the dashboard already gave us.
+        course: { ...e.course, ...catalogCourse, thumbnailUrl: catalogCourse?.thumbnailUrl || e.course?.thumbnailUrl },
+      };
+    });
 
     if (search.trim()) {
       const q = search.trim().toLowerCase();
@@ -98,7 +102,7 @@ export default function MyCoursesPage() {
       sorted.sort((a, b) => (a.course?.title || "").localeCompare(b.course?.title || ""));
     }
     return sorted;
-  }, [enrolledCourses, search, statusFilter, instructorFilter, sortBy]);
+  }, [enrolledCourses, catalogById, lastAccessedByCourseId, search, statusFilter, instructorFilter, sortBy]);
 
   const todaysClassesCount = useMemo(
     () => calendarEvents.filter((e) => e.date === todayStr).length,
@@ -310,14 +314,8 @@ export default function MyCoursesPage() {
                 </div>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
-                  {filteredCourses.map((enrollment, idx) => (
-                    <MyCourseCard
-                      key={enrollment.id}
-                      enrollment={enrollment}
-                      index={idx}
-                      pendingAssignments={getPendingCount(enrollment.course)}
-                      nextClass={getNextClassForCourse(enrollment.course)}
-                    />
+                  {filteredCourses.map((enrollment, index) => (
+                    <MyCourseCard key={enrollment.id} enrollment={enrollment} index={index} />
                   ))}
                 </div>
               )}
