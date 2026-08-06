@@ -1,76 +1,50 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useRouter, usePathname } from "next/navigation";
 import {
+  Home,
   BookOpen,
-  CheckSquare,
-  Layers,
-  Calendar,
-  MessageSquare,
+  GraduationCap,
   BarChart3,
   Newspaper,
-  Megaphone,
-  Activity,
-  Lightbulb,
-  Sparkles,
+  Calendar,
+  MessageSquare,
+  User,
+  Settings,
+  LogOut,
   X,
 } from "lucide-react";
 
 import { useStudentNavDrawer } from "@/context/StudentNavDrawerContext";
-import useDashboard from "@/hooks/queries/student/useDashboard";
-import useAssignments from "@/hooks/queries/student/useAssignments";
-import { useMyBatches } from "@/hooks/queries/student/useBatches";
-import { useNotification } from "@/context/NotificationContext";
-import { useQa } from "@/context/QaContext";
-import { getCalendarEvents } from "@/services/calendar.service";
+import useAuth from "@/hooks/useAuth";
+import Modal from "@/components/ui/Modal";
 
-// Unread/pending counts per section — a Student-only affordance the drawer
-// surfaces that the desktop QuickActionStrip pills don't have.
-function useDrawerItems() {
-  const { data: dashboardData } = useDashboard();
-  const { data: assignments = [] } = useAssignments();
-  const { data: batches = [] } = useMyBatches();
-  const { notifications = [] } = useNotification();
-  const { pendingCount: qaPendingCount } = useQa();
-
-  const { data: calendarEvents = [] } = useQuery({
-    queryKey: ["calendar_events"],
-    queryFn: getCalendarEvents,
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const enrolledCount = dashboardData?.enrolledCoursesList?.length ?? 0;
-  const pendingAssignmentsCount = assignments.filter(
-    (a) => a.status !== "Submitted" && a.status !== "Graded"
-  ).length;
-  const unreadNotificationsCount = notifications.filter((n) => !n.read).length;
-  const calendarCount = calendarEvents.length;
-
-  return [
-    { id: "myCourses", label: "My Courses", icon: BookOpen, href: "/student/my-courses", badge: enrolledCount },
-    { id: "myWork", label: "My Work", icon: CheckSquare, href: "/student/assignments", badge: pendingAssignmentsCount },
-    { id: "batches", label: "Batches", icon: Layers, href: "/student/batches", badge: batches.length },
-    { id: "calendar", label: "Calendar", icon: Calendar, href: "/student/calendar", badge: calendarCount },
-    { id: "qa", label: "Q/A", icon: MessageSquare, href: "/student/qa", badge: qaPendingCount },
-    { id: "reports", label: "Reports", icon: BarChart3, href: "/student/reports", badge: 0 },
-    { id: "news", label: "News", icon: Newspaper, href: "/student/news", badge: 0 },
-    { id: "announcements", label: "Announcements", icon: Megaphone, href: "/student/announcements", badge: unreadNotificationsCount },
-    { id: "recentActivities", label: "Activity", icon: Activity, href: "/student/activity", badge: 0 },
-    { id: "suggestions", label: "Suggestions", icon: Lightbulb, href: "/student/feedback", badge: 0 },
-    { id: "recommendations", label: "AI Recommendations", icon: Sparkles, href: "/student/courses", badge: 0, highlight: true },
-  ];
-}
+// Existing Student routes only — mirrors the same destinations used across
+// the desktop QuickActionStrip / bottom tab bar (see PRIMARY_NAV_ITEMS and
+// StudentBottomNav), just presented as a single mobile drawer list.
+const NAV_ITEMS = [
+  { id: "dashboard", label: "Dashboard", icon: Home, href: "/student/dashboard" },
+  { id: "myLearning", label: "My Learning", icon: BookOpen, href: "/student/progress" },
+  { id: "myCourses", label: "My Courses", icon: GraduationCap, href: "/student/my-courses" },
+  { id: "reports", label: "Reports", icon: BarChart3, href: "/student/reports" },
+  { id: "news", label: "News & Updates", icon: Newspaper, href: "/student/news" },
+  { id: "calendar", label: "Calendar", icon: Calendar, href: "/student/calendar" },
+  { id: "messages", label: "Messages", icon: MessageSquare, href: "/student/messages" },
+  { id: "profile", label: "Profile", icon: User, href: "/student/profile" },
+  { id: "settings", label: "Settings", icon: Settings, href: "/student/settings" },
+];
 
 // The Student mobile navigation drawer — opened from the header's hamburger
 // button (see DashboardNavbar) via shared context, instead of its own
-// per-page trigger. Curated destinations with live badge counts.
+// per-page trigger.
 export default function StudentNavDrawer() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
   const { isOpen, close } = useStudentNavDrawer();
-  const items = useDrawerItems();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const isItemActive = (item) => pathname && pathname.startsWith(item.href);
 
@@ -79,17 +53,30 @@ export default function StudentNavDrawer() {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") close();
     };
+    // Closes the drawer on the mobile browser/hardware back gesture too.
+    const handlePopState = () => close();
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("popstate", handlePopState);
+    };
   }, [isOpen, close]);
+
+  const handleLogout = () => {
+    setShowLogoutModal(false);
+    close();
+    logout();
+    router.push("/login");
+  };
 
   if (!isOpen) return null;
 
   return (
     <>
       <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm sm:hidden" onClick={close} />
-      <div className="fixed top-0 right-0 h-screen w-72 max-w-[85vw] bg-[#090D16] border-l border-slate-800/60 z-[70] sm:hidden flex flex-col shadow-2xl animate-in fade-in slide-in-from-right duration-200">
-        <div className="h-14 px-4 flex items-center justify-between border-b border-slate-800/60 shrink-0">
+      <div className="fixed top-0 left-0 h-screen w-[80%] max-w-xs bg-[#090D16] border-r border-slate-800/60 rounded-r-2xl z-[70] sm:hidden flex flex-col shadow-2xl animate-in fade-in slide-in-from-left duration-200">
+        <div className="h-14 px-5 flex items-center justify-between border-b border-slate-800/60 shrink-0">
           <span className="text-sm font-black text-white tracking-tight">Navigation</span>
           <button
             onClick={close}
@@ -100,8 +87,8 @@ export default function StudentNavDrawer() {
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-2.5 space-y-1">
-          {items.map((item) => {
+        <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+          {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const active = isItemActive(item);
             return (
@@ -109,32 +96,57 @@ export default function StudentNavDrawer() {
                 key={item.id}
                 href={item.href}
                 onClick={close}
-                className={`flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 ${
+                className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 ${
                   active
-                    ? item.highlight
-                      ? "bg-purple-500 text-white font-bold shadow-[0_2px_12px_rgba(168,85,247,0.35)]"
-                      : "bg-orange-500 text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]"
+                    ? "bg-orange-500 text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]"
                     : "text-slate-300 hover:text-white hover:bg-slate-800/50 font-semibold"
                 }`}
               >
-                <span className="flex items-center gap-3">
-                  <Icon size={18} className={active ? (item.highlight ? "text-white" : "text-slate-950") : "text-slate-400"} />
-                  <span className="text-sm">{item.label}</span>
-                </span>
-                {!!item.badge && (
-                  <span
-                    className={`flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
-                      active ? "bg-white/20 text-white" : "bg-orange-500 text-white"
-                    }`}
-                  >
-                    {item.badge > 99 ? "99+" : item.badge}
-                  </span>
-                )}
+                <Icon size={18} className={active ? "text-slate-950" : "text-slate-400"} />
+                <span className="text-sm">{item.label}</span>
               </Link>
             );
           })}
+
+          <div className="my-2 border-t border-slate-800/60" />
+
+          <button
+            type="button"
+            onClick={() => setShowLogoutModal(true)}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 font-semibold transition-all duration-200 cursor-pointer"
+          >
+            <LogOut size={18} className="text-rose-400" />
+            <span className="text-sm">Logout</span>
+          </button>
         </nav>
       </div>
+
+      <Modal
+        open={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        title="Sign Out"
+        size="sm"
+      >
+        <div className="space-y-6 text-center py-2">
+          <p className="text-sm text-slate-400">
+            Are you sure you want to sign out of your account?
+          </p>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setShowLogoutModal(false)}
+              className="px-4 py-2 text-xs font-bold rounded-xl border border-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-750 text-white transition cursor-pointer"
+            >
+              Yes, Logout
+            </button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

@@ -20,10 +20,12 @@ export function StudentNavDrawerProvider({ children }) {
   return <StudentNavDrawerContext.Provider value={value}>{children}</StudentNavDrawerContext.Provider>;
 }
 
+const NOOP_CONTEXT = { isOpen: false, open: () => {}, close: () => {}, toggle: () => {} };
+
+// DashboardNavbar is shared across Student/Instructor/Admin, and only the
+// Student layout wraps it in the provider — so this falls back to inert
+// no-ops instead of throwing when called from a non-Student route.
 export function useStudentNavDrawer() {
   const ctx = useContext(StudentNavDrawerContext);
-  if (!ctx) {
-    throw new Error("useStudentNavDrawer must be used within a StudentNavDrawerProvider");
-  }
-  return ctx;
+  return ctx || NOOP_CONTEXT;
 }

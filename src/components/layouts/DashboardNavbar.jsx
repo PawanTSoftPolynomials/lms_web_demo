@@ -58,28 +58,7 @@ const playNotificationChime = () => {
   }
 };
 
-<<<<<<< HEAD
-// Isolated in its own component so its hook call only ever runs while
-// mounted inside <StudentNavDrawerProvider> (Student layout only) — the
-// parent conditionally renders this component for role === 'STUDENT'
-// rather than calling the hook directly in the (Instructor-shared) header.
-function StudentDrawerToggle() {
-  const { toggle } = useStudentNavDrawer();
-  return (
-    <button
-      onClick={toggle}
-      aria-label="Open navigation menu"
-      className="sm:hidden -ml-1 h-9 w-9 flex items-center justify-center rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition"
-    >
-      <Menu size={22} />
-    </button>
-  );
-}
-
-function ProfileDropdown({ user, onLogoutRequest, basePath = "instructor", avatarFallback = "I" }) {
-=======
 function ProfileDropdown({ user, role, onLogoutRequest }) {
->>>>>>> 5694ab3689a3cb029ecc7211fa263c0429a3eee8
   const [open, setOpen] = useState(false);
   const isAdmin = role === "ADMIN";
   const profileHref = isAdmin ? "/admin/profile" : "/instructor/profile";
@@ -96,11 +75,7 @@ function ProfileDropdown({ user, role, onLogoutRequest }) {
         }`}
       >
         <span className="h-4 w-4 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center text-[9px] font-black font-mono shrink-0">
-<<<<<<< HEAD
-          {user?.name?.[0]?.toUpperCase() || avatarFallback}
-=======
           {user?.name?.[0]?.toUpperCase() || (isAdmin ? 'A' : 'I')}
->>>>>>> 5694ab3689a3cb029ecc7211fa263c0429a3eee8
         </span>
         <span className="hidden md:inline truncate max-w-[80px]">{user?.name || "Profile"}</span>
         <span className="hidden md:inline text-[9px] text-slate-550 shrink-0">▼</span>
@@ -115,33 +90,21 @@ function ProfileDropdown({ user, role, onLogoutRequest }) {
               <p className="text-[8.5px] text-slate-500 truncate">{user?.email}</p>
             </div>
             <Link
-<<<<<<< HEAD
-              href={`/${basePath}/profile`}
-=======
               href={profileHref}
->>>>>>> 5694ab3689a3cb029ecc7211fa263c0429a3eee8
               onClick={() => setOpen(false)}
               className="flex items-center px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-slate-100 hover:bg-[#1A1F35] rounded-xl transition"
             >
               👤 My Profile
             </Link>
             <Link
-<<<<<<< HEAD
-              href={`/${basePath}/settings`}
-=======
               href={settingsHref}
->>>>>>> 5694ab3689a3cb029ecc7211fa263c0429a3eee8
               onClick={() => setOpen(false)}
               className="flex items-center px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-slate-100 hover:bg-[#1A1F35] rounded-xl transition"
             >
               ⚙ Settings
             </Link>
             <Link
-<<<<<<< HEAD
-              href={`/${basePath}/settings`}
-=======
               href={settingsHref}
->>>>>>> 5694ab3689a3cb029ecc7211fa263c0429a3eee8
               onClick={() => setOpen(false)}
               className="flex items-center px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-slate-100 hover:bg-[#1A1F35] rounded-xl transition"
             >
@@ -167,6 +130,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
   const router = useRouter();
   const { logout, user: currentUser } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { open: openStudentNavDrawer } = useStudentNavDrawer();
 
   const pathname = usePathname();
   
@@ -485,21 +449,6 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     }
   };
 
-<<<<<<< HEAD
-  if (role === 'INSTRUCTOR' || role === 'STUDENT') {
-    const basePath = role === 'INSTRUCTOR' ? 'instructor' : 'student';
-    const avatarFallback = role === 'INSTRUCTOR' ? 'I' : 'S';
-
-    return (
-      <>
-      <header className="sticky top-0 z-40 bg-[#080B11] border-b border-[#1A1F35] px-6 py-3 flex items-center justify-between text-slate-200">
-        <div className="flex items-center gap-3 sm:gap-6">
-          {/* Hamburger — Student only, opens the mobile navigation drawer */}
-          {role === 'STUDENT' && <StudentDrawerToggle />}
-
-          {/* Logo */}
-          <Link href={`/${basePath}/dashboard`} className="flex items-center gap-2 font-black text-slate-100 hover:opacity-90">
-=======
   if (role === 'INSTRUCTOR' || role === 'ADMIN') {
     const dashboardHref = role === 'ADMIN' ? '/admin/dashboard' : '/instructor/dashboard';
     return (
@@ -516,7 +465,6 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
           {/* Logo */}
           <Link href={dashboardHref} className="flex items-center gap-2 font-black text-slate-100 hover:opacity-90">
->>>>>>> 5694ab3689a3cb029ecc7211fa263c0429a3eee8
             <span className="text-2xl text-orange-500">🍊</span>
             <div className="flex flex-col">
               <span className="text-sm tracking-wider font-extrabold text-orange-500 leading-none">ORANGE TREE</span>
@@ -606,11 +554,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
           {/* Profile Dropdown */}
           <div className="relative">
-<<<<<<< HEAD
-            <ProfileDropdown onLogoutRequest={() => setShowLogoutModal(true)} user={currentUser} basePath={basePath} avatarFallback={avatarFallback} />
-=======
             <ProfileDropdown onLogoutRequest={() => setShowLogoutModal(true)} user={currentUser} role={role} />
->>>>>>> 5694ab3689a3cb029ecc7211fa263c0429a3eee8
           </div>
         </div>
       </header>
@@ -677,14 +621,24 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
               </button>
             )}
             {isStudentRole && (
-              <Link href="/student/dashboard" className="flex items-center gap-2 shrink-0">
-                <div className="p-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
-                  <PiOrangeDuotone className="text-lg text-orange-500" />
-                </div>
-                <span className="hidden sm:inline text-sm font-black text-white tracking-tight whitespace-nowrap">
-                  Orange Tree <span className="text-orange-500">LMS</span>
-                </span>
-              </Link>
+              <>
+                <button
+                  type="button"
+                  onClick={openStudentNavDrawer}
+                  aria-label="Open navigation menu"
+                  className="sm:hidden shrink-0 flex h-9 w-9 items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-white/[0.06] transition-colors"
+                >
+                  <Menu size={20} aria-hidden="true" />
+                </button>
+                <Link href="/student/dashboard" className="flex items-center gap-2 shrink-0">
+                  <div className="p-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                    <PiOrangeDuotone className="text-lg text-orange-500" />
+                  </div>
+                  <span className="text-sm font-black text-white tracking-tight whitespace-nowrap">
+                    Orange Tree <span className="text-orange-500">LMS</span>
+                  </span>
+                </Link>
+              </>
             )}
             {breadcrumbs.length > 0 ? (
               <div
@@ -717,10 +671,14 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
           <div className="flex gap-2 sm:gap-3 items-center relative shrink-0">
 
-            {/* Global Search: Courses, Assignments, Live Classes, Notes */}
-            {isStudentRole && <GlobalSearch />}
+            {/* Global Search: Courses, Assignments, Live Classes, Notes (hidden on mobile to make room for the hamburger + wordmark) */}
+            {isStudentRole && (
+              <div className="hidden sm:block">
+                <GlobalSearch />
+              </div>
+            )}
 
-            {/* Chat Message Icon */}
+            {/* Chat Message Icon (hidden on mobile for Student — reachable via the nav drawer's Messages item instead) */}
             <button
               onClick={toggleChat}
               className={`
@@ -728,7 +686,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                 rounded-lg
                 transition-all
                 relative
-                flex
+                ${isStudentRole ? "hidden sm:flex" : "flex"}
                 items-center
                 justify-center
                 ${
