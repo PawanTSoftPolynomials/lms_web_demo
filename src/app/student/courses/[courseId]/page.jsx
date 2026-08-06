@@ -3,7 +3,6 @@
 import {use} from "react";
 
 import Loader from "@/components/common/Loader";
-import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
 
 import CourseHeader from "@/components/student/course-details/CourseHeader";
@@ -42,12 +41,7 @@ export default function CourseDetailsPage({
     }
 
     return (
-        <div className="space-y-8">
-            <PageHeader
-                title="Course Details"
-                subtitle="Explore the course curriculum before you start learning."
-            />
-
+        <div className="space-y-4">
             <CourseHeader course={course}/>
 
             <CourseOverview course={course}/>

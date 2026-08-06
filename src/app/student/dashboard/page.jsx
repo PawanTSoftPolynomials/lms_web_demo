@@ -182,25 +182,25 @@ function RecommendedCourseCard({ course }) {
   return (
     <Link
       href={`/student/courses/${course.id}`}
-      className="group rounded-xl border border-[#1A1F35] bg-[#0A0D1B] p-4 hover:border-orange-500/40 transition-all flex flex-col gap-2.5 min-w-0"
+      className="group rounded-xl border border-[#1A1F35] bg-[#0A0D1B] p-2.5 hover:border-orange-500/40 transition-all flex flex-col gap-1 min-w-0"
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="h-9 w-9 rounded-lg bg-slate-800 flex items-center justify-center shrink-0 text-slate-400">
-          <BookOpen size={16} />
+      <div className="flex items-start justify-between gap-1.5">
+        <div className="h-6 w-6 rounded-lg bg-slate-800 flex items-center justify-center shrink-0 text-slate-400">
+          <BookOpen size={11} />
         </div>
         {isNew && (
-          <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/25 shrink-0">
+          <span className="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/25 shrink-0">
             New
           </span>
         )}
       </div>
-      <h4 className="text-sm font-extrabold text-white leading-snug line-clamp-2 group-hover:text-orange-400 transition-colors">
+      <h4 className="text-xs font-extrabold text-white leading-snug line-clamp-2 group-hover:text-orange-400 transition-colors">
         {course.title}
       </h4>
-      <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mt-auto pt-1">
+      <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mt-auto pt-0.5">
         <span className="truncate">{course.level || "Beginner"}</span>
         <span className="flex items-center gap-1 text-amber-400 shrink-0">
-          <Star size={11} className="fill-amber-400" /> {rating}
+          <Star size={10} className="fill-amber-400" /> {rating}
         </span>
       </div>
     </Link>
@@ -389,7 +389,7 @@ export default function StudentDashboardPage() {
     [enrolledCourses]
   );
   const recommendedCourses = useMemo(
-    () => allCourses.filter((c) => !enrolledCourseIds.has(c.id)).slice(0, 3),
+    () => allCourses.filter((c) => !enrolledCourseIds.has(c.id)).slice(0, 4),
     [allCourses, enrolledCourseIds]
   );
 
@@ -552,7 +552,7 @@ export default function StudentDashboardPage() {
           {isCoursesLoading ? (
             <div className="flex gap-3 overflow-x-auto -mx-4 px-4 scrollbar-none">
               {[1, 2].map((n) => (
-                <div key={n} className="shrink-0 w-[46%] h-[132px] rounded-xl bg-slate-800/50 animate-pulse" />
+                <div key={n} className="shrink-0 w-[46%] h-[92px] rounded-xl bg-slate-800/50 animate-pulse" />
               ))}
             </div>
           ) : recommendedCourses.length === 0 ? (
@@ -700,9 +700,9 @@ export default function StudentDashboardPage() {
               </div>
 
               {isCoursesLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                  {[1, 2, 3].map((n) => (
-                    <div key={n} className="h-[132px] rounded-xl bg-slate-800/50 animate-pulse" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {[1, 2, 3, 4].map((n) => (
+                    <div key={n} className="h-[84px] rounded-xl bg-slate-800/50 animate-pulse" />
                   ))}
                 </div>
               ) : recommendedCourses.length === 0 ? (
@@ -710,7 +710,7 @@ export default function StudentDashboardPage() {
                   No new recommendations right now &mdash; you&apos;re enrolled in everything available!
                 </p>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {recommendedCourses.map((course) => (
                     <RecommendedCourseCard key={course.id} course={course} />
                   ))}

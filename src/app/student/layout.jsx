@@ -46,7 +46,7 @@ export default function Layout({ children }) {
     <QaProvider>
       <StudentNavDrawerProvider>
         <DashboardLayout role="STUDENT" title="Student Dashboard">
-          <div className="hidden sm:flex sm:flex-col gap-4 max-w-[1600px] mx-auto mb-6 sticky top-0 z-30 bg-[#080B11]/90 backdrop-blur-md pt-2 pb-2">
+          <div className="hidden sm:flex sm:flex-col gap-4 max-w-[1600px] mx-auto mb-6 sticky top-14 z-30 bg-[#080B11]/90 backdrop-blur-md pt-2 pb-2">
             <StudentDashboardNav />
           </div>
           <div className="max-w-[1600px] mx-auto w-full">

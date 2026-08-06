@@ -461,7 +461,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
     return (
       <>
-      <header className="bg-[#080B11] border-b border-[#1A1F35] px-6 py-3 flex items-center justify-between text-slate-200">
+      <header className="sticky top-0 z-40 bg-[#080B11] border-b border-[#1A1F35] px-6 py-3 flex items-center justify-between text-slate-200">
         <div className="flex items-center gap-3 sm:gap-6">
           {/* Hamburger — Student only, opens the mobile navigation drawer */}
           {role === 'STUDENT' && <StudentDrawerToggle />}

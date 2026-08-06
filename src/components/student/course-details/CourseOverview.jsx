@@ -1,4 +1,25 @@
+import {
+    BookOpen,
+    ListChecks,
+    Video,
+    ClipboardList,
+    Clock,
+    BarChart2,
+} from "lucide-react";
+
 import Card from "@/components/ui/Card";
+
+function formatDuration(hours) {
+    if (!hours || hours <= 0) return "Self-paced";
+
+    const totalMinutes = Math.round(hours * 60);
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+
+    if (h === 0) return `${m}m`;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}m`;
+}
 
 export default function CourseOverview({
                                            course,
@@ -32,69 +53,36 @@ export default function CourseOverview({
     const totalQuizzes =
         course.quizzes?.length || 0;
 
+    const stats = [
+        { icon: BookOpen, value: totalModules, label: "Modules", color: "text-purple-400", bg: "bg-purple-500/10" },
+        { icon: ListChecks, value: totalLessons, label: "Lessons", color: "text-blue-400", bg: "bg-blue-500/10" },
+        { icon: Video, value: totalContents, label: "Contents", color: "text-emerald-400", bg: "bg-emerald-500/10" },
+        { icon: ClipboardList, value: totalQuizzes, label: "Quizzes", color: "text-orange-400", bg: "bg-orange-500/10" },
+        { icon: Clock, value: formatDuration(course.estimatedLearningHours), label: "", color: "text-sky-400", bg: "bg-sky-500/10" },
+        { icon: BarChart2, value: course.level || "—", label: "", color: "text-rose-400", bg: "bg-rose-500/10" },
+    ];
+
     return (
-        <Card className="p-6">
-            <div className="space-y-6">
-                <div>
-                    <h2 className="text-2xl font-semibold text-white">
-                        Course Overview
-                    </h2>
+        <Card className="p-3">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                {stats.map((stat, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                        <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${stat.bg} ${stat.color}`}>
+                            <stat.icon className="h-3.5 w-3.5" />
+                        </span>
 
-                    <p className="mt-2 text-slate-400">
-                        Learn what this course contains before
-                        you begin.
-                    </p>
-                </div>
+                        <span className="text-sm font-semibold text-white">
+                            {stat.value}
+                        </span>
 
-                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-                    <OverviewItem
-                        title="Modules"
-                        value={totalModules}
-                    />
-
-                    <OverviewItem
-                        title="Lessons"
-                        value={totalLessons}
-                    />
-
-                    <OverviewItem
-                        title="Learning Contents"
-                        value={totalContents}
-                    />
-
-                    <OverviewItem
-                        title="Quizzes"
-                        value={totalQuizzes}
-                    />
-                </div>
-
-                <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-                    <h3 className="font-semibold text-white">
-                        About this course
-                    </h3>
-
-                    <p className="mt-3 leading-7 text-slate-400">
-                        {course.description}
-                    </p>
-                </div>
+                        {stat.label && (
+                            <span className="text-xs text-slate-400">
+                                {stat.label}
+                            </span>
+                        )}
+                    </div>
+                ))}
             </div>
         </Card>
-    );
-}
-
-function OverviewItem({
-                          title,
-                          value,
-                      }) {
-    return (
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 text-center">
-            <p className="text-sm text-slate-400">
-                {title}
-            </p>
-
-            <h3 className="mt-2 text-3xl font-bold text-orange-500">
-                {value}
-            </h3>
-        </div>
     );
 }
