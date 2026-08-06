@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getCalendarEvents } from "@/services/calendar.service";
 import Card from "@/components/ui/Card";
-import { FaChevronLeft, FaChevronRight, FaVideo, FaClipboardList, FaBookOpen, FaClock, FaCalendarAlt } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaCalendarAlt } from "react-icons/fa";
 
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",

@@ -15,7 +15,7 @@ export function EmptyWidgetState({
   actionHref,
 }: EmptyWidgetStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-card-border py-8 px-4 text-center">
+    <div className="flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed border-card-border dark:border-white/[0.1] py-8 px-4 text-center">
       <Icon className="size-6 text-muted-foreground/60" />
       <p className="text-xs font-semibold text-muted-foreground max-w-[220px]">{message}</p>
       {actionLabel && actionHref && (

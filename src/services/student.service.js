@@ -15,7 +15,7 @@ export const getStudentProfile = async () => {
   try {
     const { data } = await api.get("/users/profile/me");
     return data.data ?? data;
-  } catch (error) {
+  } catch {
     const { data } = await api.get("/auth/profile");
     return data.data ?? data;
   }
@@ -28,7 +28,7 @@ export const getStudentProgress = async () => {
   try {
     const { data } = await api.get("/progress");
     return data.data ?? data;
-  } catch (error) {
+  } catch {
     return getStudentDashboard();
   }
 };

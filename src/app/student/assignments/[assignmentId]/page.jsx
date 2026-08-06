@@ -8,7 +8,6 @@ import Loader from "@/components/common/Loader";
 import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
 import useAssignment from "@/hooks/queries/student/useAssignment";
 import { submitAssignment } from "@/services/assignment.service";
 

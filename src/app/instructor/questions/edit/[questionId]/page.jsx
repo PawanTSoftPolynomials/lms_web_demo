@@ -21,7 +21,7 @@ export default function EditQuestionPage() {
 
     const updateQuestionMutation = useUpdateQuestion();
 
-    const handleSubmit = async (questionData, action) => {
+    const handleSubmit = async (questionData) => {
         try {
             await updateQuestionMutation.mutateAsync({
                 questionId, quizId: question.quizId, questionData,

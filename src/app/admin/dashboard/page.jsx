@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   FaUsers,
@@ -19,7 +18,6 @@ import AnalyticsChart from "@/components/dashboard/AnalyticsChart";
 import CourseStatusChart from "@/components/dashboard/CourseStatusChart";
 import QuickActions from "@/components/dashboard/QuickActions";
 import RecentUsers from "@/components/dashboard/RecentUsers";
-import Modal from "@/components/ui/Modal";
 
 export default function AdminDashboard() {
   const router = useRouter();

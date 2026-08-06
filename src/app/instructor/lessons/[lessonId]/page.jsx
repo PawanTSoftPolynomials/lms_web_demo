@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
-  Plus,
   Pencil,
   Trash2,
   Eye,

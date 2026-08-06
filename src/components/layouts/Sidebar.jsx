@@ -88,6 +88,7 @@ export default function Sidebar({
         setMobileExpandedMenu(item.title);
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, role]);
 
   return (

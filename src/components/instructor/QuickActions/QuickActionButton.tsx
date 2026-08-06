@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/shadcn/tooltip";
 import type { QuickActionItem } from "./quickActionItems";
 
-export function QuickActionButton({ label, href, icon: Icon, actionType, onClick }: QuickActionItem & { onClick?: () => void }) {
+export function QuickActionButton({ label, href, icon: Icon, onClick }: QuickActionItem & { onClick?: () => void }) {
   const content = (
     <>
       <span className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500/15 to-pink-500/15 text-primary group-hover:from-orange-500/25 group-hover:to-pink-500/25 transition-colors">

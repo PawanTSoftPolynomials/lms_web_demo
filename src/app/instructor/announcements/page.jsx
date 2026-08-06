@@ -23,7 +23,7 @@ export default function InstructorAnnouncementsPage() {
   const [errorMsg, setErrorMsg] = useState("");
 
   // Fetch all instructor courses
-  const { data: courses = [], isLoading, isError } = useQuery({
+  const { data: courses = [], isLoading } = useQuery({
     queryKey: ["instructorCoursesList"],
     queryFn: async () => {
       const { data } = await api.get("/courses");

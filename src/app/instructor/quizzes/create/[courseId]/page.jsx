@@ -19,7 +19,7 @@ export default function CreateQuizPage() {
                 isPublished: action !== "draft"
             };
 
-            const newQuiz = await createQuizMutation.mutateAsync(payload);
+            await createQuizMutation.mutateAsync(payload);
 
             // Sync to Calendar if startDate is provided
             if (payload.startDate) {

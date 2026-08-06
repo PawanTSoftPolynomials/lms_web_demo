@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { FaArrowLeft, FaBars, FaSignOutAlt } from "react-icons/fa";
+import { FaBars } from "react-icons/fa";
 import { PiOrangeDuotone } from "react-icons/pi";
-import { MessageSquare, Calendar, ChevronRight, Bell, BookOpen, Award, CheckCheck } from "lucide-react";
+import { MessageSquare, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 import useAuth from "@/hooks/useAuth";
@@ -22,41 +22,6 @@ import { useQuestion } from "@/hooks/queries/instructor/useQuestion";
 import StudentDashboardNav from "@/components/layouts/StudentDashboardNav";
 import GlobalSearch from "@/components/layouts/GlobalSearch";
 import { NotificationsMenu, ProfileMenu } from "@/components/layouts/NavUserMenus";
-
-// Self-contained high-end chime player using HTML5 AudioContext
-const playNotificationChime = () => {
-  try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
-    // Tone 1: High soft bell note
-    const osc1 = audioCtx.createOscillator();
-    const gain1 = audioCtx.createGain();
-    osc1.connect(gain1);
-    gain1.connect(audioCtx.destination);
-    osc1.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-    gain1.gain.setValueAtTime(0.06, audioCtx.currentTime);
-    gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-    osc1.start();
-    osc1.stop(audioCtx.currentTime + 0.15);
-    
-    // Tone 2: Harmonious resonance
-    setTimeout(() => {
-      try {
-        const osc2 = audioCtx.createOscillator();
-        const gain2 = audioCtx.createGain();
-        osc2.connect(gain2);
-        gain2.connect(audioCtx.destination);
-        osc2.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
-        gain2.gain.setValueAtTime(0.06, audioCtx.currentTime);
-        gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
-        osc2.start();
-        osc2.stop(audioCtx.currentTime + 0.25);
-      } catch (e) {}
-    }, 85);
-  } catch (e) {
-    console.warn("Chime playback bypassed:", e);
-  }
-};
 
 function ProfileDropdown({ user, onLogoutRequest }) {
   const [open, setOpen] = useState(false);
@@ -98,6 +63,13 @@ function ProfileDropdown({ user, onLogoutRequest }) {
               className="flex items-center px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-slate-100 hover:bg-[#1A1F35] rounded-xl transition"
             >
               ⚙ Settings
+            </Link>
+            <Link
+              href="/instructor/settings"
+              onClick={() => setOpen(false)}
+              className="flex items-center px-3 py-2 text-[10px] font-bold text-slate-400 hover:text-slate-100 hover:bg-[#1A1F35] rounded-xl transition"
+            >
+              🛟 Help & Support
             </Link>
             <button
               onClick={() => {
@@ -306,10 +278,29 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
   const [isMounted, setIsMounted] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
+  // Dynamic Header State
+  const [internetSpeed, setInternetSpeed] = useState(null);
+  const [textSize, setTextSize] = useState(16);
+
   // Client-side initialization to prevent hydration mismatch
   useEffect(() => {
     setIsMounted(true);
+    
+    // Init network speed
+    if (navigator.connection) {
+      setInternetSpeed(navigator.connection.downlink);
+      const updateConnectionStatus = () => setInternetSpeed(navigator.connection.downlink);
+      navigator.connection.addEventListener('change', updateConnectionStatus);
+      return () => navigator.connection.removeEventListener('change', updateConnectionStatus);
+    } else {
+      setInternetSpeed(25); // Fallback mock for unsupported browsers
+    }
   }, []);
+
+  const changeTextSize = (size) => {
+    setTextSize(size);
+    document.documentElement.style.fontSize = `${size}px`;
+  };
 
   // Listen to new messages in all background conversations
   useEffect(() => {
@@ -335,7 +326,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
         }
       }
     });
-  }, [conversations, isMounted, isOpen, activeConversation]);
+  }, [conversations, isMounted, isOpen, activeConversation, notifications, addNotification]);
 
   // Listen to new messages in the currently active conversation
   useEffect(() => {
@@ -362,7 +353,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
         );
       }
     }
-  }, [messages, currentUser, isMounted, isOpen, activeConversation]);
+  }, [messages, currentUser, isMounted, isOpen, activeConversation, notifications, addNotification]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -415,7 +406,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
   if (role === 'INSTRUCTOR') {
     return (
       <>
-      <header className="bg-[#080B11] border-b border-[#1A1F35] px-6 py-4 flex items-center justify-between text-slate-200">
+      <header className="bg-[#080B11] border-b border-[#1A1F35] px-6 py-3 flex items-center justify-between text-slate-200">
         <div className="flex items-center gap-6">
           {/* Mobile menu toggle */}
           <button
@@ -427,33 +418,33 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
           
           {/* Logo */}
           <Link href="/instructor/dashboard" className="flex items-center gap-2 font-black text-slate-100 hover:opacity-90">
-            <span className="text-xl">🍊</span>
-            <span className="text-sm tracking-wider font-mono">ORANGE TREE</span>
+            <span className="text-2xl text-orange-500">🍊</span>
+            <div className="flex flex-col">
+              <span className="text-sm tracking-wider font-extrabold text-orange-500 leading-none">ORANGE TREE</span>
+              <span className="text-[9px] text-slate-400 font-medium">Learn. Grow. Succeed.</span>
+            </div>
           </Link>
 
-          {/* Navigation Links with labels */}
-          {/* <nav className="hidden md:flex items-center gap-5 ml-4">
-            <Link href="/instructor/students" className={`text-xs font-bold transition hover:text-slate-100 ${pathname === '/instructor/students' ? 'text-orange-400 font-extrabold' : 'text-slate-400'}`}>
-              My Students
-            </Link>
-            <Link href="/instructor/courses" className={`text-xs font-bold transition hover:text-slate-100 ${pathname === '/instructor/courses' ? 'text-orange-400 font-extrabold' : 'text-slate-400'}`}>
-              My Courses
-            </Link>
-            <Link href="/instructor/announcements" className={`text-xs font-bold transition hover:text-slate-100 ${pathname === '/instructor/announcements' ? 'text-orange-400 font-extrabold' : 'text-slate-400'}`}>
-              News
-            </Link>
-          </nav> */}
+          <div className="hidden lg:flex flex-col ml-4 border-l border-slate-800 pl-4">
+            <span className="text-sm font-bold text-white">Welcome to Orange Tree LMS</span>
+            <span className="text-[10px] text-slate-500">Last Login : {new Date().toLocaleString('en-IN', { hour12: true, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit', second:'2-digit'})}</span>
+          </div>
         </div>
 
-        {/* Search, Notifications & Profile */}
+        {/* Right side items */}
         <div className="flex items-center gap-4">
-          {/* Global Search */}
-          <div className="hidden sm:block relative">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-48 lg:w-60 bg-[#0D1021] border border-[#1A1F35] text-xs px-3.5 py-1.5 rounded-xl outline-none text-slate-200 placeholder-slate-500 focus:border-slate-700 transition-all duration-300"
-            />
+          
+          {/* Internet Speed */}
+          <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold" title="Estimated Download Speed">
+             <span className="animate-pulse">📶</span>
+             <span>{internetSpeed ? `${internetSpeed} Mbps` : 'Calculating...'}</span>
+          </div>
+
+          {/* Text Sizing */}
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0D1021] border border-[#1A1F35] text-slate-300 text-xs font-medium">
+             <button onClick={() => changeTextSize(14)} className={`transition hover:text-white ${textSize === 14 ? 'text-orange-400 font-bold' : ''}`}>A-</button>
+             <button onClick={() => changeTextSize(16)} className={`transition hover:text-white ${textSize === 16 ? 'text-orange-400 font-bold' : ''}`}>A</button>
+             <button onClick={() => changeTextSize(18)} className={`transition hover:text-white ${textSize === 18 ? 'text-orange-400 font-bold' : ''}`}>A+</button>
           </div>
 
           {/* Notifications */}

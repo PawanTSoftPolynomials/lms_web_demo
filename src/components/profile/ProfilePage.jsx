@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Shield, Mail, Key, UserCheck, Lock } from "lucide-react";
+import { Shield, Mail, Key, UserCheck, Lock } from "lucide-react";
 import { changePassword } from "@/services/auth.service";
 import useAuth from "@/hooks/useAuth";
 import Card from "@/components/ui/Card";

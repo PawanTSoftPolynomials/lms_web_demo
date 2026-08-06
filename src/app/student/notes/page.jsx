@@ -3,12 +3,10 @@
 import { useState, useMemo } from "react";
 import {
   FileText,
-  FolderOpen,
   Trash2,
   Star,
   Search,
   Plus,
-  BookOpen,
   X,
   Loader2,
   AlertCircle,

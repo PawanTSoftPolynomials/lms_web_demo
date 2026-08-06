@@ -9,7 +9,6 @@ export default function TrendBadge({
 }) {
   const isPositive = value > 0;
   const isNegative = value < 0;
-  const isNeutral = value === 0;
 
   const Icon = isPositive
     ? FaArrowTrendUp

@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -13,7 +12,6 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
-  HelpCircle,
   Play,
   ArrowLeft,
   Star,
@@ -30,8 +28,6 @@ import { useQuestions } from "@/hooks/queries/instructor/useQuestions";
 import { useDeleteQuestion } from "@/hooks/queries/instructor/useDeleteQuestion";
 
 export default function QuizzesPage() {
-  const router = useRouter();
-
   // Selected Quiz state for Master-Detail pattern
   const [selectedQuiz, setSelectedQuiz] = useState(null);
 
@@ -64,7 +60,6 @@ export default function QuizzesPage() {
   const {
     data: questions = [],
     isLoading: isLoadingQuestions,
-    isError: isErrorQuestions,
     refetch: refetchQuestions,
   } = useQuestions(selectedQuiz?.id);
 

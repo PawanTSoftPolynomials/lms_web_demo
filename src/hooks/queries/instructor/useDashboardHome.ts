@@ -28,6 +28,9 @@ import {
   deriveNeedsAttention,
   deriveRecentActivities,
   deriveUpcomingClasses,
+  deriveCourseProgressOverview,
+  deriveRecentSubmissions,
+  deriveGradeDistribution,
   getAnnouncements,
   getDashboardSummary,
   getTeachingGoals,
@@ -38,6 +41,7 @@ import {
   type RawModule,
   type RawNotification,
   type RawQuiz,
+  type RawResult,
 } from "@/services/instructor/dashboardHome.service";
 
 const asArray = <T,>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);
@@ -116,9 +120,10 @@ export function useDashboardStats() {
   const calendarEvents = useRawCalendarEvents();
   const notifications = useRawNotifications();
   const conversations = useRawConversations();
+  const quizzes = useRawQuizzes();
 
   const isLoading =
-    courses.isLoading || assignments.isLoading || calendarEvents.isLoading || notifications.isLoading || conversations.isLoading;
+    courses.isLoading || assignments.isLoading || calendarEvents.isLoading || notifications.isLoading || conversations.isLoading || quizzes.isLoading;
   const data = useMemo(
     () =>
       deriveDashboardStats({
@@ -127,8 +132,9 @@ export function useDashboardStats() {
         calendarEvents: calendarEvents.data ?? [],
         notifications: notifications.data ?? [],
         conversations: conversations.data ?? [],
+        quizzes: quizzes.data ?? [],
       }),
-    [courses.data, assignments.data, calendarEvents.data, notifications.data, conversations.data]
+    [courses.data, assignments.data, calendarEvents.data, notifications.data, conversations.data, quizzes.data]
   );
 
   return { data, isLoading };
@@ -250,4 +256,35 @@ export function useEngagementAnalytics() {
   const summary = useDashboardSummary();
   const data = useMemo(() => deriveEngagementAnalytics(summary.data), [summary.data]);
   return { data, isLoading: summary.isLoading };
+}
+
+export function useCourseProgressOverview() {
+  const courses = useRawCourses();
+  const data = useMemo(() => deriveCourseProgressOverview(courses.data ?? []), [courses.data]);
+  return { data, isLoading: courses.isLoading };
+}
+
+export function useRecentSubmissions() {
+  const assignments = useRawAssignments();
+  const data = useMemo(() => deriveRecentSubmissions(assignments.data ?? []), [assignments.data]);
+  return { data, isLoading: assignments.isLoading };
+}
+
+// Internal raw hook to fetch results
+const useRawResults = () =>
+  useQuery({
+    queryKey: ["instructor-home", "raw", "results"],
+    queryFn: async () => {
+      // Assuming getResults from results.service.js handles backend API
+      const { getResults } = await import("@/services/results.service");
+      const response = await getResults({});
+      return asArray<RawResult>(Array.isArray(response) ? response : response?.data ?? []);
+    },
+    ...defaultQueryOptions,
+  });
+
+export function useGradeDistribution() {
+  const results = useRawResults();
+  const data = useMemo(() => deriveGradeDistribution(results.data ?? []), [results.data]);
+  return { data, isLoading: results.isLoading };
 }

@@ -10,10 +10,8 @@ import {
   Sparkles,
   Calendar,
   Search,
-  Filter,
   ArrowRight,
   Clock,
-  CheckCircle,
   Video,
   X,
   ExternalLink
@@ -269,7 +267,6 @@ export default function StudentNewsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {filteredNews.map((item) => {
-            const Icon = item.icon;
             return (
               <div
                 key={item.id}

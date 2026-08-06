@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Upload, FileText, X, CheckCircle, Loader2 } from "lucide-react";
+import { Upload, X, CheckCircle, Loader2 } from "lucide-react";
 import Cookies from "js-cookie";
 
 import Card from "@/components/ui/Card";

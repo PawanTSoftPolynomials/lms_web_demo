@@ -1,5 +1,4 @@
 import {
-  FilePlus2,
   FolderPlus,
   Megaphone,
   Plus,

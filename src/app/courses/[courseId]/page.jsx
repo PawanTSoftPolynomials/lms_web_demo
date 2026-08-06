@@ -7,13 +7,10 @@ import {
   User,
   GraduationCap,
   Layers,
-  Award,
   CheckCircle2,
   BarChart2,
   FileText,
   HelpCircle,
-  ShieldCheck,
-  BookOpen,
   PlayCircle
 } from "lucide-react";
 

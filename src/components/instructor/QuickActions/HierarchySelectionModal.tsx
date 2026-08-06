@@ -6,7 +6,6 @@ import Modal from "@/components/ui/Modal";
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 import { useModules } from "@/hooks/queries/instructor/useModules";
 import { useLessons } from "@/hooks/queries/instructor/useLessons";
-import Button from "@/components/ui/Button";
 
 interface HierarchySelectionModalProps {
   open: boolean;
@@ -21,7 +20,7 @@ export function HierarchySelectionModal({ open, onClose, type }: HierarchySelect
   const [selectedModuleId, setSelectedModuleId] = useState("");
   const [selectedLessonId, setSelectedLessonId] = useState("");
 
-  const { data: courses = [], isLoading: loadingCourses } = useInstructorCourses();
+  const { data: courses = [] } = useInstructorCourses();
   const { data: modules = [], isLoading: loadingModules } = useModules(selectedCourseId);
   const { data: lessons = [], isLoading: loadingLessons } = useLessons(selectedModuleId);
 
@@ -71,7 +70,7 @@ export function HierarchySelectionModal({ open, onClose, type }: HierarchySelect
               }}
             >
               <option value="">Select a course...</option>
-              {courses.map((course: any) => (
+              {courses.map((course: { id: string; title: string }) => (
                 <option key={course.id} value={course.id}>
                   {course.title}
                 </option>
@@ -91,7 +90,7 @@ export function HierarchySelectionModal({ open, onClose, type }: HierarchySelect
               disabled={!selectedCourseId || loadingModules}
             >
               <option value="">Select a module...</option>
-              {modules.map((module: any) => (
+              {modules.map((module: { id: string; title: string }) => (
                 <option key={module.id} value={module.id}>
                   {module.title}
                 </option>
@@ -109,7 +108,7 @@ export function HierarchySelectionModal({ open, onClose, type }: HierarchySelect
                 disabled={!selectedModuleId || loadingLessons}
               >
                 <option value="">Select a lesson...</option>
-                {lessons.map((lesson: any) => (
+                {lessons.map((lesson: { id: string; title: string }) => (
                   <option key={lesson.id} value={lesson.id}>
                     {lesson.title}
                   </option>

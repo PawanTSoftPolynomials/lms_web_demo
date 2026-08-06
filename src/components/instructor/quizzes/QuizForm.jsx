@@ -4,14 +4,18 @@ import { useEffect, useState } from "react";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { useModules } from "@/hooks/queries/instructor/useModules";
 
 const INITIAL_FORM = {
+    courseId: "",
+    moduleId: "",
     title: "",
     description: "",
     timeLimit: 30,
     passingScore: 50,
     startDate: "",
     dueDate: "",
+    shuffleQuestions: false,
 };
 
 function formatDateForInput(isoStr) {
@@ -21,7 +25,7 @@ function formatDateForInput(isoStr) {
         if (isNaN(d.getTime())) return "";
         const pad = (n) => String(n).padStart(2, "0");
         return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    } catch (e) {
+    } catch {
         return "";
     }
 }
@@ -31,9 +35,11 @@ export default function QuizForm({
     initialValues = null,
     loading = false,
     onSubmit,
+    courses = null,
 }) {
     const [formData, setFormData] = useState(INITIAL_FORM);
     const [submitAction, setSubmitAction] = useState("draft");
+    const { data: modules = [] } = useModules(formData.courseId);
 
     useEffect(() => {
         if (initialValues) {
@@ -52,14 +58,16 @@ export default function QuizForm({
         setFormData((prev) => ({
             ...prev,
             [name]: name === "timeLimit" || name === "passingScore" ? Number(value) : value,
+            ...(name === "courseId" ? { moduleId: "" } : {}),
         }));
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         const payload = {
             ...formData,
+            moduleId: undefined,
             startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
             dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
         };
@@ -80,6 +88,46 @@ export default function QuizForm({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+                {courses && (
+                    <div className="grid gap-6 md:grid-cols-2">
+                        <div className="space-y-2">
+                            <label className="text-sm text-slate-300">Course</label>
+
+                            <select
+                                name="courseId"
+                                value={formData.courseId}
+                                onChange={handleChange}
+                                required
+                                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-orange-500"
+                            >
+                                <option value="" disabled>Select a course...</option>
+                                {courses.map((c) => (
+                                    <option key={c.id} value={c.id}>{c.title}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm text-slate-300">Module (Optional)</label>
+
+                            <select
+                                name="moduleId"
+                                value={formData.moduleId}
+                                onChange={handleChange}
+                                disabled={!formData.courseId}
+                                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <option value="">
+                                    {formData.courseId ? "Whole course (no specific module)" : "Select a course first..."}
+                                </option>
+                                {modules.map((m) => (
+                                    <option key={m.id} value={m.id}>{m.title}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                )}
+
                 <Input
                     label="Quiz Title"
                     name="title"
@@ -124,6 +172,19 @@ export default function QuizForm({
                         value={formData.passingScore}
                         onChange={handleChange}
                     />
+                </div>
+
+                <div className="flex items-center gap-3 bg-[#05070E] p-3.5 rounded-xl border border-[#1A1F35]">
+                    <input
+                        type="checkbox"
+                        id="shuffleQuestions"
+                        checked={formData.shuffleQuestions}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, shuffleQuestions: e.target.checked }))}
+                        className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-orange-500 focus:ring-orange-500 focus:ring-offset-slate-900 cursor-pointer"
+                    />
+                    <label htmlFor="shuffleQuestions" className="text-xs font-semibold text-slate-300 cursor-pointer select-none">
+                        Randomize question order for each student attempt
+                    </label>
                 </div>
 
                 {/* Scheduling Parameters */}

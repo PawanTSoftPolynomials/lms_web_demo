@@ -4,6 +4,7 @@ import {useParams, useRouter} from "next/navigation";
 
 import Loader from "@/components/common/Loader";
 import LessonForm from "@/components/instructor/lessons/LessonForm";
+import {useToast} from "@/components/ui/ToastProvider";
 
 import {useLessons} from "@/hooks/queries/instructor/useLessons";
 import {useCreateLesson} from "@/hooks/queries/instructor/useCreateLesson";
@@ -11,6 +12,7 @@ import {useCreateLesson} from "@/hooks/queries/instructor/useCreateLesson";
 export default function CreateLessonPage() {
     const {moduleId} = useParams();
     const router = useRouter();
+    const {showToast} = useToast();
 
     const createLessonMutation = useCreateLesson();
 
@@ -37,6 +39,11 @@ export default function CreateLessonPage() {
             );
         } catch (error) {
             console.error(error);
+            showToast(
+                error?.response?.data?.message || "Failed to create lesson.",
+                "error",
+                "Create failed"
+            );
         }
     };
 

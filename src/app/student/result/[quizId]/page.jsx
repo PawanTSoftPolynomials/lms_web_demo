@@ -22,23 +22,6 @@ import PageHeader from "@/components/layouts/PageHeader";
 import Loader from "@/components/common/Loader";
 import useQuizResult from "@/hooks/queries/student/useQuizResult";
 
-const renderMarkdown = (text) => {
-  if (!text) return "";
-  let html = text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-  
-  html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/^### (.*?)$/gm, "<h3 class='text-sm font-bold text-white mt-2 mb-1'>$1</h3>");
-  html = html.replace(/^## (.*?)$/gm, "<h2 class='text-base font-bold text-white mt-3 mb-1.5'>$1</h2>");
-  html = html.replace(/^# (.*?)$/gm, "<h1 class='text-lg font-bold text-white mt-3 mb-1.5'>$1</h1>");
-  html = html.replace(/^\-\s+(.*?)$/gm, "<li class='list-disc list-inside ml-2 text-slate-300'>$1</li>");
-  html = html.replace(/`(.*?)`/g, "<code class='bg-slate-800 px-1 py-0.5 rounded text-orange-400 font-mono text-[11px]'>$1</code>");
-  html = html.split("\n").join("<br/>");
-  return html;
-};
-
 export default function QuizResultPage() {
   const { quizId } = useParams();
   const { data, isLoading, isError } = useQuizResult(quizId);
@@ -307,7 +290,7 @@ export default function QuizResultPage() {
               if (typeof question.options === "string") {
                 try {
                   optionsList = JSON.parse(question.options);
-                } catch (e) {
+                } catch {
                   optionsList = [question.options];
                 }
               } else if (Array.isArray(question.options)) {

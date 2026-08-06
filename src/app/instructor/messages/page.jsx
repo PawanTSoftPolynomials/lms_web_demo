@@ -4,7 +4,7 @@ import { useState, useMemo, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { MessageSquare, Send, Search, ArrowLeft, Users, CheckCheck, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, Search, ArrowLeft, Loader2 } from 'lucide-react';
 import useAuth from '@/hooks/useAuth';
 import {
   getConversations,

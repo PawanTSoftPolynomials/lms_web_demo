@@ -8,7 +8,7 @@ export default function useUpdateProfile() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateProfile,
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.STUDENT_PROFILE] });
     },
   });

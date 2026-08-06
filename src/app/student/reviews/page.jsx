@@ -2,7 +2,7 @@
 
 import { useState, Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ArrowLeft, Star, Edit, Send, Sparkles, MessageSquare, User } from "lucide-react";
+import { ArrowLeft, Star, Edit, Send } from "lucide-react";
 import Link from "next/link";
 
 import Loader from "@/components/common/Loader";

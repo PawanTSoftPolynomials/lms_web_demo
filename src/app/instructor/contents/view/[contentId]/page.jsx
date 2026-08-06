@@ -6,14 +6,12 @@ import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Pencil,
-  Trash2,
   Play,
   Pause,
   Volume2,
   VolumeX,
   Maximize2,
   Download,
-  UploadCloud,
   ChevronLeft,
   ChevronRight,
   FileText,
@@ -21,10 +19,6 @@ import {
   Link as LinkIcon,
   FileCode,
   Presentation,
-  Clock,
-  BookOpen,
-  Layers,
-  CalendarDays,
   ExternalLink,
 } from "lucide-react";
 
