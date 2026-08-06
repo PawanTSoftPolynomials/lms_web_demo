@@ -46,7 +46,7 @@ export default function CoursesSidebar({ nextClass, announcements = [], progress
   return (
     <div className="space-y-4">
       {/* Today's Next Class */}
-      <div className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-4">
+      <div className="rounded-xl bg-card border border-card-border p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-black text-white">Today&apos;s Next Class</h3>
           <Link href="/student/calendar" className="text-[10px] font-bold text-orange-400 hover:text-orange-300 flex items-center gap-0.5">
@@ -55,7 +55,7 @@ export default function CoursesSidebar({ nextClass, announcements = [], progress
         </div>
 
         {nextClass ? (
-          <div className="rounded-lg bg-[#141930] border border-[#1A1F35] p-3">
+          <div className="rounded-lg bg-[#141930] border border-card-border p-3">
             <div className="flex items-center gap-2.5">
               <div className="h-9 w-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
                 <Video size={16} className="text-blue-400" />
@@ -80,14 +80,14 @@ export default function CoursesSidebar({ nextClass, announcements = [], progress
             ) : null}
           </div>
         ) : (
-          <div className="py-5 text-center text-[11px] text-slate-500 border border-dashed border-[#1A1F35] rounded-lg">
+          <div className="py-5 text-center text-[11px] text-slate-500 border border-dashed border-card-border rounded-lg">
             Nothing scheduled for today.
           </div>
         )}
       </div>
 
       {/* Latest Announcements */}
-      <div className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-4">
+      <div className="rounded-xl bg-card border border-card-border p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-black text-white">Announcements</h3>
           <Link href="/student/announcements" className="text-[10px] font-bold text-orange-400 hover:text-orange-300">
@@ -115,7 +115,7 @@ export default function CoursesSidebar({ nextClass, announcements = [], progress
       </div>
 
       {/* Overall Progress */}
-      <div className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-4">
+      <div className="rounded-xl bg-card border border-card-border p-4">
         <h3 className="text-xs font-black text-white mb-3">Overall Progress</h3>
         <div className="flex items-center gap-4">
           <CircularProgress percent={progressSummary.overall} />

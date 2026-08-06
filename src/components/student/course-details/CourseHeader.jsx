@@ -123,7 +123,7 @@ export default function CourseHeader({
     );
 
     return (
-        <Card className="overflow-hidden p-0">
+        <Card padding="p-0" className="overflow-hidden">
             {/* Compact hero (< lg): small thumbnail beside the badges instead of a
                 full-width banner, so the enroll button and curriculum stay near
                 the top of the first viewport on mobile/tablet. */}

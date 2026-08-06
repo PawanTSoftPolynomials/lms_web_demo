@@ -69,7 +69,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
       className="sm:hidden fixed inset-0 z-[80] bg-[#080B11] flex flex-col"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 h-14 border-b border-[#1A1F35] shrink-0">
+      <div className="flex items-center justify-between px-4 h-14 border-b border-card-border shrink-0">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -125,7 +125,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
             value={formData.name}
             onChange={handleChange}
             required
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+            className="w-full bg-card border border-card-border rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
           />
         </div>
 
@@ -151,7 +151,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
             value={formData.phoneNumber}
             onChange={handleChange}
             placeholder="Enter phone number"
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+            className="w-full bg-card border border-card-border rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
           />
         </div>
 
@@ -173,7 +173,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
             value={formData.address}
             onChange={handleChange}
             placeholder="Enter address"
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+            className="w-full bg-card border border-card-border rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
           />
         </div>
 
@@ -187,7 +187,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
             value={formData.education}
             onChange={handleChange}
             placeholder="Enter education background"
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+            className="w-full bg-card border border-card-border rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
           />
         </div>
 
@@ -201,13 +201,13 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
             value={formData.guardianName}
             onChange={handleChange}
             placeholder="Enter guardian name"
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+            className="w-full bg-card border border-card-border rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
           />
         </div>
       </div>
 
       {/* Fixed Save button */}
-      <div className="shrink-0 border-t border-[#1A1F35] p-4">
+      <div className="shrink-0 border-t border-card-border p-4">
         <button
           type="submit"
           disabled={updateProfileMutation.isPending}

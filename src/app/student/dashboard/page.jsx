@@ -431,7 +431,7 @@ export default function StudentDashboardPage() {
   return (
     <>
       {/* ============================= MOBILE (true mobile-first layout, not a squeezed desktop) ============================= */}
-      <div className="sm:hidden -mx-3 -mt-3 px-4 pt-4 space-y-4 bg-[#080B11] min-h-[calc(100vh-3.5rem)]">
+      <div className="sm:hidden space-y-4 bg-[#080B11] min-h-[calc(100vh-3.5rem)]">
 
         {/* Welcome Banner */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0B0F1A] to-[#12182B] border border-[#1A1F35] p-4 flex items-center justify-between gap-3">

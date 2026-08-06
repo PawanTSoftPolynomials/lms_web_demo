@@ -10,8 +10,8 @@ export const COURSE_SECTION_TABS = [
 ];
 
 // Distance (px) from the viewport top a section's start must cross to count
-// as "current" — just below the sticky header (56px) + this bar (~48px).
-const SCROLLSPY_OFFSET = 116;
+// as "current" — just below the sticky mobile header (73px) + this bar (~48px).
+const SCROLLSPY_OFFSET = 121;
 
 // Mobile/tablet only (see CourseHeader's lg breakpoint) — a compact in-page
 // nav so switching between Overview/Modules/Quizzes/Announcements doesn't
@@ -68,7 +68,7 @@ export default function CourseSectionTabs() {
     };
 
     return (
-        <div className="sticky top-14 z-30 rounded-2xl border border-slate-800/80 bg-slate-900/80 backdrop-blur-md shadow-luxury-md lg:hidden">
+        <div className="sticky top-[73px] z-30 rounded-2xl border border-card-border bg-card/90 backdrop-blur-md shadow-luxury-md lg:hidden">
             <div className="flex gap-1 overflow-x-auto scrollbar-none px-2 py-1.5">
                 {COURSE_SECTION_TABS.map((tab) => {
                     const isActive = activeId === tab.id;

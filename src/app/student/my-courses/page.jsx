@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   Layers,
@@ -11,11 +11,13 @@ import {
   Award,
   Search,
   BookOpen,
+  CheckCircle2,
+  Circle,
 } from "lucide-react";
 
 import Loader from "@/components/common/Loader";
 import PageHeader from "@/components/layouts/PageHeader";
-import Card from "@/components/ui/Card";
+import EmptyState from "@/components/ui/EmptyState";
 import useDashboard from "@/hooks/queries/student/useDashboard";
 import useAssignments from "@/hooks/queries/student/useAssignments";
 import useCourses from "@/hooks/queries/student/useCourses";
@@ -35,6 +37,7 @@ const toLocalDateString = (date) => {
 const isPendingAssignment = (a) => a.status !== "Submitted" && a.status !== "Graded";
 
 export default function MyCoursesPage() {
+  const router = useRouter();
   const { data: dashboardData, isLoading, isError } = useDashboard();
   const { data: assignments = [] } = useAssignments();
   const { notifications = [] } = useNotification();
@@ -136,6 +139,17 @@ export default function MyCoursesPage() {
     );
   }, [calendarEvents, todayStr]);
 
+  // Mobile-only compact 2x2 grid. "Draft"/"Archived" aren't real states for a
+  // student's enrollments (those are course-authoring states) — these four
+  // reuse the same real, already-computed progressSummary/stats fields and
+  // the same status colors as the course cards below (amber/emerald/sky/orange).
+  const mobileStats = [
+    { key: "inProgress", label: "In Progress", value: progressSummary.inProgress, icon: TrendingUp, bg: "bg-amber-500/10", color: "text-amber-400" },
+    { key: "completed", label: "Completed", value: progressSummary.completed, icon: CheckCircle2, bg: "bg-emerald-500/10", color: "text-emerald-400" },
+    { key: "notStarted", label: "Not Started", value: progressSummary.notStarted, icon: Circle, bg: "bg-sky-500/10", color: "text-sky-400" },
+    { key: "certificates", label: "Certificates", value: stats.certificatesCount ?? 0, icon: Award, bg: "bg-orange-500/10", color: "text-orange-400" },
+  ];
+
   const kpis = [
     {
       key: "courses",
@@ -190,45 +204,32 @@ export default function MyCoursesPage() {
 
   if (isError) {
     return (
-      <Card className="p-8 text-center">
-        <h2 className="text-xl font-semibold text-white">Unable to load your courses</h2>
-        <p className="mt-2 text-slate-400">Please try again later.</p>
-      </Card>
+      <EmptyState
+        icon={BookOpen}
+        title="Unable to load your courses"
+        description="Please try again later."
+      />
     );
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3 sm:space-y-5">
       <PageHeader title="My Courses" subtitle="Manage and continue your enrolled courses." />
 
       {enrolledCourses.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#1A1F35] bg-[#0D1021] p-12 text-center">
-          <div className="h-14 w-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mx-auto mb-4">
-            <BookOpen size={26} className="text-orange-400" />
-          </div>
-          <h3 className="text-sm font-bold text-white">You haven&apos;t enrolled in any courses yet.</h3>
-          <p className="text-xs text-slate-500 mt-1.5 max-w-sm mx-auto">
-            Browse the course catalog and enroll to see your courses here.
-          </p>
-          <Link href="/student/courses" className="inline-block mt-5">
-            <button className="px-5 py-2.5 min-h-[44px] bg-orange-500 hover:bg-orange-600 text-slate-950 rounded-xl text-xs font-black uppercase tracking-widest transition cursor-pointer">
-              Browse Courses
-            </button>
-          </Link>
-        </div>
+        <EmptyState
+          icon={BookOpen}
+          title="You haven't enrolled in any courses yet."
+          description="Browse the course catalog and enroll to see your courses here."
+          actionText="Browse Courses"
+          onAction={() => router.push("/student/courses")}
+        />
       ) : (
         <>
-          {/* Mobile: compact grid, same card recipe as the Dashboard's stat cards.
-              Odd item count (5) — the last card spans both columns instead of
-              leaving an empty cell in the last row. */}
+          {/* Mobile: compact 2x2 grid, same card recipe as the Dashboard's stat cards. */}
           <div className="grid grid-cols-2 gap-2 sm:hidden">
-            {kpis.map((k, idx) => (
-              <div
-                key={k.key}
-                className={`rounded-xl bg-[#0D1021] border border-[#1A1F35] p-2 ${
-                  idx === kpis.length - 1 && kpis.length % 2 === 1 ? "col-span-2" : ""
-                }`}
-              >
+            {mobileStats.map((k) => (
+              <div key={k.key} className="rounded-xl bg-card border border-card-border p-2">
                 <div className={`h-6 w-6 rounded-md ${k.bg} flex items-center justify-center mb-1`}>
                   <k.icon size={11} className={k.color} />
                 </div>
@@ -243,7 +244,7 @@ export default function MyCoursesPage() {
             {kpis.map((k) => (
               <div
                 key={k.key}
-                className="flex-1 min-w-[140px] flex items-center gap-3 rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-3 shadow-sm hover:border-slate-700 transition"
+                className="flex-1 min-w-[140px] flex items-center gap-3 rounded-2xl bg-card border border-card-border p-3 shadow-sm hover:border-slate-700 transition"
               >
                 <div className={`p-2 rounded-xl ${k.bg} shrink-0`}>
                   <k.icon size={16} className={k.color} />
@@ -257,15 +258,63 @@ export default function MyCoursesPage() {
             ))}
           </div>
 
-          {/* Search + Filters */}
-          <div className="flex flex-col lg:flex-row gap-2.5">
+          {/* Search + Filters — mobile: compact 2-row stack, no horizontal
+              scrolling (search + status filter, then instructor + sort). */}
+          <div className="sm:hidden space-y-2">
+            <div className="flex gap-2">
+              <div className="relative flex-1 min-w-0">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search courses..."
+                  className="w-full bg-card border border-card-border rounded-xl pl-8 pr-3 py-2 text-xs text-white placeholder:text-slate-500 outline-none focus:border-orange-500/50 transition"
+                />
+              </div>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="shrink-0 w-[104px] bg-card border border-card-border rounded-xl px-2.5 py-2 text-[11px] font-semibold text-slate-300 outline-none cursor-pointer"
+              >
+                <option value="all">All Status</option>
+                <option value="in-progress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <select
+                value={instructorFilter}
+                onChange={(e) => setInstructorFilter(e.target.value)}
+                className="flex-1 min-w-0 bg-card border border-card-border rounded-xl px-2.5 py-2 text-[11px] font-semibold text-slate-300 outline-none cursor-pointer"
+              >
+                <option value="all">All Instructors</option>
+                {instructors.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="flex-1 min-w-0 bg-card border border-card-border rounded-xl px-2.5 py-2 text-[11px] font-semibold text-slate-300 outline-none cursor-pointer"
+              >
+                <option value="recent">Sort: Recent</option>
+                <option value="progress">Sort: Progress</option>
+                <option value="name">Sort: Name</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Search + Filters — desktop/tablet: unchanged single row */}
+          <div className="hidden sm:flex sm:flex-col lg:flex-row gap-2.5">
             <div className="relative flex-1 min-w-[200px]">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search courses..."
-                className="w-full bg-[#0D1021] border border-[#1A1F35] rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder:text-slate-500 outline-none focus:border-orange-500/50 transition"
+                className="w-full bg-card border border-card-border rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder:text-slate-500 outline-none focus:border-orange-500/50 transition"
               />
             </div>
 
@@ -273,7 +322,7 @@ export default function MyCoursesPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="shrink-0 bg-[#0D1021] border border-[#1A1F35] rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer"
+                className="shrink-0 bg-card border border-card-border rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer"
               >
                 <option value="all">All Status</option>
                 <option value="in-progress">In Progress</option>
@@ -283,7 +332,7 @@ export default function MyCoursesPage() {
               <select
                 value={instructorFilter}
                 onChange={(e) => setInstructorFilter(e.target.value)}
-                className="shrink-0 bg-[#0D1021] border border-[#1A1F35] rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer"
+                className="shrink-0 bg-card border border-card-border rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer"
               >
                 <option value="all">All Instructors</option>
                 {instructors.map((name) => (
@@ -296,7 +345,7 @@ export default function MyCoursesPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="shrink-0 bg-[#0D1021] border border-[#1A1F35] rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer"
+                className="shrink-0 bg-card border border-card-border rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer"
               >
                 <option value="recent">Sort: Recently Joined</option>
                 <option value="progress">Sort: Progress</option>
@@ -309,13 +358,13 @@ export default function MyCoursesPage() {
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-5 items-start">
             <div className="min-w-0">
               {filteredCourses.length === 0 ? (
-                <div className="py-12 text-center text-xs text-slate-500 border border-dashed border-[#1A1F35] rounded-2xl">
+                <div className="py-12 text-center text-xs text-slate-500 border border-dashed border-card-border rounded-2xl">
                   No courses found matching your search or filters.
                 </div>
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
-                  {filteredCourses.map((enrollment, index) => (
-                    <MyCourseCard key={enrollment.id} enrollment={enrollment} index={index} />
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
+                  {filteredCourses.map((enrollment) => (
+                    <MyCourseCard key={enrollment.id} enrollment={enrollment} />
                   ))}
                 </div>
               )}

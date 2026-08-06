@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Home, BookOpen, GraduationCap, MessageSquare, User } from "lucide-react";
 
 const TABS = [
-  { id: "dashboard", label: "Dashboard", href: "/instructor/dashboard", icon: Home, exact: true },
+  { id: "dashboard", label: "Home", href: "/instructor/dashboard", icon: Home, exact: true },
   { id: "courses", label: "Courses", href: "/instructor/courses", icon: BookOpen },
   { id: "teaching", label: "Teaching", href: "/instructor/batches", icon: GraduationCap },
   { id: "messages", label: "Messages", href: "/instructor/messages", icon: MessageSquare },

@@ -21,7 +21,8 @@ import {
   X,
   ExternalLink
 } from "lucide-react";
-import Card from "@/components/ui/Card";
+import PageHeader from "@/components/layouts/PageHeader";
+import EmptyState from "@/components/ui/EmptyState";
 import Loader from "@/components/common/Loader";
 import useDashboard from "@/hooks/queries/student/useDashboard";
 import { getCalendarEvents } from "@/services/calendar.service";
@@ -78,7 +79,7 @@ function NewsCard({ item, onOpen }) {
       />
       <div
         onClick={() => onOpen(item)}
-        className="flex-1 min-w-0 rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4 hover:border-slate-700 transition duration-200 cursor-pointer group shadow-sm hover:shadow-md"
+        className="flex-1 min-w-0 rounded-2xl border border-card-border bg-card p-4 hover:border-slate-700 transition duration-200 cursor-pointer group shadow-sm hover:shadow-md"
       >
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
           <span className={`text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider border ${item.badgeColor}`}>
@@ -138,7 +139,7 @@ function FeedRow({ row, onOpenNews, onExpandOlder }) {
         <button
           type="button"
           onClick={onExpandOlder}
-          className="flex-1 min-w-0 flex items-center justify-center gap-2 rounded-xl border border-dashed border-slate-800 py-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-500 hover:text-orange-400 hover:border-slate-700 transition cursor-pointer"
+          className="flex-1 min-w-0 flex items-center justify-center gap-2 rounded-xl border border-dashed border-card-border py-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-500 hover:text-orange-400 hover:border-slate-700 transition cursor-pointer"
         >
           <span>Show Older Updates ({row.count})</span>
           <ChevronDown size={13} />
@@ -402,21 +403,10 @@ export default function StudentNewsPage() {
 
   return (
     <div className="space-y-4 pb-16 animate-fade-in duration-300">
-      {/* Page Header */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm">
-        <div className="flex items-center gap-2 sm:gap-2.5">
-          <div className="p-2 sm:p-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400">
-            <Newspaper size={18} className="sm:hidden" />
-            <Newspaper size={22} className="hidden sm:block" />
-          </div>
-          <h1 className="text-lg sm:text-2xl font-black text-white tracking-tight">
-            Daily News & Course Updates
-          </h1>
-        </div>
-        <p className="hidden sm:block text-xs text-slate-400 mt-2 max-w-xl">
-          Stay informed with real-time course updates, batch announcements, live session alerts, and platform feature releases.
-        </p>
-      </div>
+      <PageHeader
+        title="News & Updates"
+        subtitle="Stay informed with real-time course updates, batch announcements, live session alerts, and platform feature releases."
+      />
 
       {/* Control Bar: Categories & Search */}
       <div className="space-y-3">
@@ -469,24 +459,22 @@ export default function StudentNewsPage() {
             placeholder="Search news & updates..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900/80 border border-slate-800/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/50 transition"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-card border border-card-border text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/50 transition"
           />
         </div>
       </div>
 
       {/* News Feed Timeline */}
       {filteredNews.length === 0 ? (
-        <Card className="p-12 text-center border border-slate-800/80 bg-slate-900/40 rounded-2xl">
-          <div className="w-12 h-12 rounded-full bg-slate-800/60 text-slate-400 flex items-center justify-center mx-auto mb-3">
-            <Newspaper size={24} />
-          </div>
-          <h3 className="text-sm font-bold text-slate-200">No News Items Found</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            {searchQuery
+        <EmptyState
+          icon={Newspaper}
+          title="No News Items Found"
+          description={
+            searchQuery
               ? `No updates match "${searchQuery}". Try searching for another course or category.`
-              : "Check back later for fresh daily course updates and batch news."}
-          </p>
-        </Card>
+              : "Check back later for fresh daily course updates and batch news."
+          }
+        />
       ) : (
         <div ref={listContainerRef} className="relative max-w-3xl mx-auto md:mx-0 w-full">
           <div style={{ height: rowVirtualizer.getTotalSize(), width: "100%", position: "relative" }}>
@@ -526,7 +514,7 @@ export default function StudentNewsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-xl max-h-[85vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-5 sm:p-6 shadow-2xl space-y-4 relative text-left"
+            className="w-full max-w-xl max-h-[85vh] overflow-y-auto rounded-2xl border border-card-border bg-card p-5 sm:p-6 shadow-2xl space-y-4 relative text-left"
           >
             <button
               onClick={() => setSelectedNews(null)}
@@ -553,7 +541,7 @@ export default function StudentNewsPage() {
               {selectedNews.title}
             </h2>
 
-            <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-300 leading-relaxed space-y-2">
+            <div className="p-4 rounded-xl bg-slate-950/60 border border-card-border text-xs text-slate-300 leading-relaxed space-y-2">
               <p>{selectedNews.content}</p>
             </div>
 

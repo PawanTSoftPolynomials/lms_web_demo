@@ -49,7 +49,7 @@ function InfoRow({ icon: Icon, label, value, onClick }) {
 }
 
 function QuickActionButton({ href, onClick, icon: Icon, label, disabled }) {
-  const className = `flex flex-col items-center justify-center gap-1.5 rounded-xl bg-[#0D1021] border border-[#1A1F35] py-3 min-h-[44px] transition ${
+  const className = `flex flex-col items-center justify-center gap-1.5 rounded-xl bg-card border border-card-border py-3 min-h-[44px] transition ${
     disabled ? "opacity-40" : "active:scale-95"
   }`;
 
@@ -128,7 +128,7 @@ export default function MobileProfileView({ profile, onEdit }) {
       </button>
 
       {/* Profile Summary Card — horizontal layout */}
-      <div className="rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-4">
+      <div className="rounded-2xl bg-card border border-card-border p-4">
         <div className="flex items-center gap-3">
           <UserAvatar name={profile?.name} avatar={profile?.avatar} size="lg" />
           <div className="min-w-0 flex-1">
@@ -165,7 +165,7 @@ export default function MobileProfileView({ profile, onEdit }) {
       </div>
 
       {/* Profile Completion */}
-      <div className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-3">
+      <div className="rounded-xl bg-card border border-card-border p-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-black text-white">Profile Completion</h3>
           <span className="text-xs font-black text-orange-400">{completionPercent}% Complete</span>
@@ -180,14 +180,14 @@ export default function MobileProfileView({ profile, onEdit }) {
       </div>
 
       {/* Personal Information */}
-      <div className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-3">
+      <div className="rounded-xl bg-card border border-card-border p-3">
         <h3 className="text-xs font-black text-white mb-1 flex items-center gap-2">
           <span className="h-6 w-6 rounded-lg bg-orange-500/10 flex items-center justify-center">
             <User size={12} className="text-orange-400" />
           </span>
           Personal Information
         </h3>
-        <div className="divide-y divide-[#1A1F35]">
+        <div className="divide-y divide-card-border">
           <InfoRow icon={Phone} label="Phone Number" value={profile?.phoneNumber || student.phone} onClick={onEdit} />
           <InfoRow icon={Mail} label="Email Address" value={profile?.email} onClick={onEdit} />
           <InfoRow icon={Calendar} label="Date of Birth" value={dob} onClick={onEdit} />
@@ -196,14 +196,14 @@ export default function MobileProfileView({ profile, onEdit }) {
       </div>
 
       {/* Academic Information */}
-      <div className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-3">
+      <div className="rounded-xl bg-card border border-card-border p-3">
         <h3 className="text-xs font-black text-white mb-1 flex items-center gap-2">
           <span className="h-6 w-6 rounded-lg bg-orange-500/10 flex items-center justify-center">
             <GraduationCap size={12} className="text-orange-400" />
           </span>
           Academic Information
         </h3>
-        <div className="divide-y divide-[#1A1F35]">
+        <div className="divide-y divide-card-border">
           <InfoRow icon={GraduationCap} label="Education" value={student.education} onClick={onEdit} />
           <InfoRow icon={Users} label="Guardian Name" value={student.guardianName} onClick={onEdit} />
           <InfoRow icon={Clock} label="Member Since" value={joinedDate} />
@@ -211,14 +211,14 @@ export default function MobileProfileView({ profile, onEdit }) {
       </div>
 
       {/* Security & Preferences */}
-      <div className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-3">
+      <div className="rounded-xl bg-card border border-card-border p-3">
         <h3 className="text-xs font-black text-white mb-1 flex items-center gap-2">
           <span className="h-6 w-6 rounded-lg bg-orange-500/10 flex items-center justify-center">
             <ShieldCheck size={12} className="text-orange-400" />
           </span>
           Security & Preferences
         </h3>
-        <div className="divide-y divide-[#1A1F35]">
+        <div className="divide-y divide-card-border">
           <div className="flex items-center gap-3 py-2.5 opacity-40" title="Coming soon" aria-disabled="true">
             <Lock size={15} className="text-slate-500 shrink-0" />
             <span className="text-xs text-slate-400 flex-1">Change Password</span>

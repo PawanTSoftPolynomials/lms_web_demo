@@ -43,7 +43,7 @@ export default function DashboardLayout({ children, role, title }) {
           setCollapsed={setCollapsed}
         />
 
-        <main className={`p-3 sm:p-6 flex-1 ${['STUDENT', 'INSTRUCTOR'].includes(role) ? 'pb-24 sm:pb-6' : ''}`}>{children}</main>
+        <main className={`${role === 'STUDENT' ? 'p-4' : 'p-3'} sm:p-6 flex-1 ${['STUDENT', 'INSTRUCTOR'].includes(role) ? 'pb-24 sm:pb-6' : ''}`}>{children}</main>
       </div>
       <ChatWidget />
       <ChatButton />

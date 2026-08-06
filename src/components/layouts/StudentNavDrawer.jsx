@@ -13,19 +13,22 @@ import {
   Settings,
   LogOut,
   X,
+  BarChart3,
 } from "lucide-react";
 
 import { useStudentNavDrawer } from "@/context/StudentNavDrawerContext";
 import useAuth from "@/hooks/useAuth";
 import Modal from "@/components/ui/Modal";
 
-// Secondary navigation only. Dashboard, My Learning, My Courses, Reports and
-// Profile already live in the Bottom Navigation — repeating them here would
-// just duplicate taps the user already has. This drawer complements that bar
-// instead of mirroring it. Routes match the same destinations already used
-// on the desktop QuickActionStrip (see PRIMARY_NAV_ITEMS).
+// Secondary navigation only. Dashboard, My Courses, Calendar, Activity and
+// Profile already live in the Bottom Navigation (see StudentBottomNav's
+// TABS) — repeating them here would just duplicate taps the user already
+// has. Reports has no bottom-nav slot, so it lives here instead. Routes
+// match the same destinations already used on the desktop QuickActionStrip
+// (see PRIMARY_NAV_ITEMS).
 const NAV_ITEMS = [
   { id: "news", label: "News & Updates", icon: Newspaper, href: "/student/news" },
+  { id: "reports", label: "Reports", icon: BarChart3, href: "/student/reports" },
   { id: "calendar", label: "Calendar", icon: Calendar, href: "/student/calendar" },
   { id: "messages", label: "Messages", icon: MessageSquare, href: "/student/messages" },
   { id: "suggestions", label: "Suggestions", icon: Lightbulb, href: "/student/feedback" },

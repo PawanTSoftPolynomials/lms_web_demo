@@ -36,8 +36,8 @@ function EventRow({ event, showDate = false }) {
   const Icon = getEventIcon(event.type);
   const badge = getEventBadge(event.type);
   return (
-    <div className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-3 flex items-center gap-3">
-      <div className="h-9 w-9 rounded-lg bg-[#141930] border border-[#1A1F35] flex items-center justify-center shrink-0">
+    <div className="rounded-xl bg-card border border-card-border p-3 flex items-center gap-3">
+      <div className="h-9 w-9 rounded-lg bg-[#141930] border border-card-border flex items-center justify-center shrink-0">
         <Icon size={16} className="text-slate-300" />
       </div>
       <div className="min-w-0 flex-1">
@@ -112,7 +112,7 @@ export default function MobileCalendarView() {
       <h1 className="text-xl font-black text-white">Calendar</h1>
 
       {/* Today's Schedule */}
-      <div className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-3">
+      <div className="rounded-xl bg-card border border-card-border p-3">
         <h2 className="text-xs font-black text-white mb-2.5">Today&apos;s Schedule</h2>
         {isLoading ? (
           <div className="space-y-2.5">
@@ -121,7 +121,7 @@ export default function MobileCalendarView() {
             ))}
           </div>
         ) : todaySchedule.length === 0 ? (
-          <div className="py-6 text-center text-xs text-slate-500 border border-dashed border-[#1A1F35] rounded-xl">
+          <div className="py-6 text-center text-xs text-slate-500 border border-dashed border-card-border rounded-xl">
             Nothing scheduled for today.
           </div>
         ) : (
@@ -134,7 +134,7 @@ export default function MobileCalendarView() {
       </div>
 
       {/* Upcoming Events */}
-      <div className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-3">
+      <div className="rounded-xl bg-card border border-card-border p-3">
         <h2 className="text-xs font-black text-white mb-2.5">Upcoming Events</h2>
         {isLoading ? (
           <div className="space-y-2.5">
@@ -143,7 +143,7 @@ export default function MobileCalendarView() {
             ))}
           </div>
         ) : upcomingEvents.length === 0 ? (
-          <div className="py-6 text-center text-xs text-slate-500 border border-dashed border-[#1A1F35] rounded-xl">
+          <div className="py-6 text-center text-xs text-slate-500 border border-dashed border-card-border rounded-xl">
             Nothing scheduled for the next 7 days.
           </div>
         ) : (
@@ -156,7 +156,7 @@ export default function MobileCalendarView() {
       </div>
 
       {/* Mini Calendar Preview */}
-      <div className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-3">
+      <div className="rounded-xl bg-card border border-card-border p-3">
         <h2 className="text-xs font-black text-white mb-2.5 flex items-center gap-2">
           <CalendarDays size={14} className="text-orange-400" /> Month Preview
         </h2>

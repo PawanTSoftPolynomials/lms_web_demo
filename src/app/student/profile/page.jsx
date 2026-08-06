@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 
+import { UserX } from "lucide-react";
+
 import Loader from "@/components/common/Loader";
-import Card from "@/components/ui/Card";
+import EmptyState from "@/components/ui/EmptyState";
 import MobileProfileView from "@/components/student/profile/MobileProfileView";
 import MobileEditProfileView from "@/components/student/profile/MobileEditProfileView";
 import DesktopEditProfileView from "@/components/student/profile/DesktopEditProfileView";
@@ -26,14 +28,11 @@ export default function StudentProfilePage() {
 
   if (isError || !profile) {
     return (
-      <Card className="p-10 text-center">
-        <h2 className="text-xl font-semibold text-white">
-          Unable to load profile
-        </h2>
-        <p className="mt-2 text-slate-400">
-          Please refresh the page or try again later.
-        </p>
-      </Card>
+      <EmptyState
+        icon={UserX}
+        title="Unable to load profile"
+        description="Please refresh the page or try again later."
+      />
     );
   }
 

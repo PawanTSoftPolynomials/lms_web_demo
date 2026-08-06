@@ -63,7 +63,7 @@ export default function CourseOverview({
     ];
 
     return (
-        <Card className="p-3">
+        <Card padding="p-3">
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
                 {stats.map((stat, index) => (
                     <div key={index} className="flex items-center gap-2">

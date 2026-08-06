@@ -45,10 +45,10 @@ import { useMyLessonQueries } from "@/hooks/queries/instructor/useLessonQueries"
 // QUICK_ACTION_ITEMS strip (src/components/instructor/QuickActions/quickActionItems.ts),
 // just relabeled to match the compact mobile grid.
 const MOBILE_QUICK_ACTIONS = [
-  { key: "course", label: "Create Course", href: "/instructor/courses/create", icon: Plus, color: "text-orange-400", bg: "bg-orange-500/10" },
-  { key: "quiz", label: "Create Quiz", href: "/instructor/quizzes/create", icon: FolderPlus, color: "text-blue-400", bg: "bg-blue-500/10" },
-  { key: "class", label: "Schedule Class", href: "/instructor/calendar", icon: Video, color: "text-purple-400", bg: "bg-purple-500/10" },
-  { key: "announce", label: "Announcements", href: "/instructor/announcements", icon: Megaphone, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+  { key: "course", label: "Course", href: "/instructor/courses/create", icon: Plus, color: "text-orange-400", bg: "bg-orange-500/10" },
+  { key: "quiz", label: "Quiz", href: "/instructor/quizzes/create", icon: FolderPlus, color: "text-blue-400", bg: "bg-blue-500/10" },
+  { key: "class", label: "Class", href: "/instructor/calendar", icon: Video, color: "text-purple-400", bg: "bg-purple-500/10" },
+  { key: "announce", label: "Announce", href: "/instructor/announcements", icon: Megaphone, color: "text-emerald-400", bg: "bg-emerald-500/10" },
 ];
 
 const SEVERITY_HINT: Record<string, string> = {
@@ -107,8 +107,8 @@ export default function InstructorDashboardHomePage() {
   const mobileStats = [
     { key: "courses", label: "Courses", value: activeCourses, icon: BookOpen, color: "text-orange-400", bg: "bg-orange-500/10" },
     { key: "students", label: "Students", value: totalStudents, icon: Users, color: "text-emerald-400", bg: "bg-emerald-500/10" },
-    { key: "pending", label: "Pending Reviews", value: pendingReviews, icon: ClipboardCheck, color: "text-amber-400", bg: "bg-amber-500/10" },
     { key: "classes", label: "Today's Classes", value: todaysClasses, icon: CalendarClock, color: "text-blue-400", bg: "bg-blue-500/10" },
+    { key: "pending", label: "Pending Reviews", value: pendingReviews, icon: ClipboardCheck, color: "text-amber-400", bg: "bg-amber-500/10" },
   ];
 
   const todaysSchedule = schedule.data?.today || [];
@@ -135,37 +135,41 @@ export default function InstructorDashboardHomePage() {
           </div>
         </div>
 
-        {/* Compact Overview Cards */}
-        <div className="grid grid-cols-2 gap-2.5">
+        {/* Compact Overview Cards — exact reuse of the Student Dashboard's
+            mobile stat card proportions (h-6 w-6 icon chip, p-2, text-sm value),
+            all four in a single row. */}
+        <div className="grid grid-cols-4 gap-2">
           {mobileStats.map((s) => (
-            <div key={s.key} className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-3">
-              <div className={`h-8 w-8 rounded-lg ${s.bg} flex items-center justify-center mb-2`}>
-                <s.icon size={15} className={s.color} />
+            <div key={s.key} className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-2">
+              <div className={`h-6 w-6 rounded-md ${s.bg} flex items-center justify-center mb-1`}>
+                <s.icon size={11} className={s.color} />
               </div>
               {stats.isLoading ? (
-                <div className="h-5 w-10 bg-slate-800 rounded animate-pulse" />
+                <div className="h-4 w-8 bg-slate-800 rounded animate-pulse" />
               ) : (
-                <p className="text-lg font-black text-white leading-none">{s.value}</p>
+                <p className="text-sm font-black text-white leading-none">{s.value}</p>
               )}
-              <p className="text-[10.5px] text-slate-400 font-semibold leading-tight mt-1">{s.label}</p>
+              <p className="text-[8.5px] text-slate-400 font-semibold leading-tight mt-1">{s.label}</p>
             </div>
           ))}
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions — exact reuse of the Student Dashboard's
+            QuickActionButton proportions (icon-over-label, py-3, min-h-[44px]),
+            all four in a single row. */}
         <div>
           <h2 className="text-sm font-black text-white mb-2.5">Quick Actions</h2>
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-4 gap-2.5">
             {MOBILE_QUICK_ACTIONS.map((a) => (
               <Link
                 key={a.key}
                 href={a.href}
-                className="flex items-center gap-3 rounded-xl bg-[#0D1021] border border-[#1A1F35] p-3.5 min-h-[64px] active:scale-[0.98] transition"
+                className="flex flex-col items-center justify-center gap-1.5 rounded-xl bg-[#0D1021] border border-[#1A1F35] py-3 min-h-[44px] active:scale-95 transition"
               >
-                <div className={`h-9 w-9 rounded-full ${a.bg} flex items-center justify-center shrink-0`}>
-                  <a.icon size={16} className={a.color} />
+                <div className={`h-8 w-8 rounded-full ${a.bg} flex items-center justify-center`}>
+                  <a.icon size={15} className={a.color} />
                 </div>
-                <span className="text-xs font-bold text-slate-200 leading-tight">{a.label}</span>
+                <span className="text-[10px] font-bold text-slate-300">{a.label}</span>
               </Link>
             ))}
           </div>

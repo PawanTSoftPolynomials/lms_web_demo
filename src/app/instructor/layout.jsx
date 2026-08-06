@@ -36,7 +36,7 @@ export default function Layout({ children }) {
 
   return (
     <InstructorNavDrawerProvider>
-      <DashboardLayout role="INSTRUCTOR" title="Instructor Dashboard">
+      <DashboardLayout role="INSTRUCTOR" title="Instructor Home">
         <div className="hidden sm:flex sm:flex-col gap-4 max-w-[1600px] mx-auto mb-6 sticky top-0 z-30 bg-[#080B11]/90 backdrop-blur-md pt-2 pb-2">
           <NavigationStrip />
         </div>

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Layers } from "lucide-react";
 
 import Card from "@/components/ui/Card";
+import EmptyState from "@/components/ui/EmptyState";
 import LessonList from "./LessonList";
 
 function formatDuration(totalMinutes) {
@@ -38,16 +39,11 @@ export default function ModuleAccordion({
 
     if (!modules.length) {
         return (
-            <Card className="p-8 text-center">
-                <h3 className="text-lg font-semibold text-white">
-                    No Modules Available
-                </h3>
-
-                <p className="mt-2 text-slate-400">
-                    This course does not contain any
-                    modules yet.
-                </p>
-            </Card>
+            <EmptyState
+                icon={Layers}
+                title="No Modules Available"
+                description="This course does not contain any modules yet."
+            />
         );
     }
 
@@ -72,7 +68,7 @@ export default function ModuleAccordion({
                 </p>
             </div>
 
-            <Card className="divide-y divide-slate-800 p-0">
+            <Card padding="p-0" className="divide-y divide-slate-800">
                 {modules.map((module, index) => {
                     const expanded = expandedModuleId === module.id;
                     const lessonCount = module.lessons?.length || 0;

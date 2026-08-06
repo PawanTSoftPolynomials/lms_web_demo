@@ -22,7 +22,7 @@ const LEARNING_STATUS_STYLES = {
   Completed: { dot: "bg-emerald-400", pill: "bg-emerald-500/15 text-emerald-300 border-emerald-500/25" },
 };
 
-function StatCell({ icon: Icon, value, label }) {
+export function StatCell({ icon: Icon, value, label }) {
   return (
     <div className="flex flex-col items-center justify-center gap-1 py-2.5 px-1.5">
       <Icon size={13} className="text-slate-500" />
@@ -94,7 +94,7 @@ export default function CourseCard({ course, enrollment }) {
   const primaryHref = isEnrolled ? `/student/learn/${id}` : `/student/courses/${id}`;
 
   return (
-    <div className="group relative flex flex-col rounded-2xl border border-[#1A1F35] bg-[#0D1021] overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-orange-500/30 hover:shadow-[0_20px_45px_-20px_rgba(249,115,22,0.25)]">
+    <div className="group relative flex flex-col rounded-2xl border border-card-border bg-card overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-orange-500/30 hover:shadow-[0_20px_45px_-20px_rgba(249,115,22,0.25)]">
       {/* Thumbnail */}
       <div className="relative aspect-video w-full shrink-0 overflow-hidden bg-slate-900">
         {thumbnailUrl ? (
@@ -140,7 +140,7 @@ export default function CourseCard({ course, enrollment }) {
         </div>
 
         <div className="flex items-stretch gap-2">
-          <div className="grid flex-1 grid-cols-3 divide-x divide-[#1A1F35] overflow-hidden rounded-xl border border-[#1A1F35] bg-white/[0.02]">
+          <div className="grid flex-1 grid-cols-3 divide-x divide-card-border overflow-hidden rounded-xl border border-card-border bg-white/[0.02]">
             <StatCell
               icon={Layers}
               value={isEnrolled ? `${completedModules}/${modulesTotal}` : modulesTotal}
@@ -157,7 +157,7 @@ export default function CourseCard({ course, enrollment }) {
               label="Quizzes"
             />
           </div>
-          <div className="flex shrink-0 items-center gap-1.5 rounded-xl border border-[#1A1F35] bg-white/[0.02] px-3 text-[11px] font-bold text-slate-300">
+          <div className="flex shrink-0 items-center gap-1.5 rounded-xl border border-card-border bg-white/[0.02] px-3 text-[11px] font-bold text-slate-300">
             <Clock size={12} className="text-slate-500" />
             {durationLabel}
           </div>
@@ -192,7 +192,7 @@ export default function CourseCard({ course, enrollment }) {
           {isEnrolled && (
             <Link
               href={`/student/courses/${id}`}
-              className="flex items-center justify-center gap-1.5 rounded-xl border border-[#1A1F35] bg-white/[0.03] py-2.5 text-xs font-bold text-slate-300 hover:border-slate-600 hover:text-white transition-all duration-200"
+              className="flex items-center justify-center gap-1.5 rounded-xl border border-card-border bg-white/[0.03] py-2.5 text-xs font-bold text-slate-300 hover:border-slate-600 hover:text-white transition-all duration-200"
             >
               Course Details
             </Link>

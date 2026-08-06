@@ -11,7 +11,7 @@ export default function ReportSummaryCard({
   href,
 }) {
   const body = (
-    <div className="flex items-center gap-2.5 rounded-xl border border-slate-800/80 bg-slate-900/50 px-3 py-2.5 hover:border-slate-700 transition-colors">
+    <div className="flex items-center gap-2.5 rounded-xl border border-card-border bg-card px-3 py-2.5 hover:border-slate-700 transition-colors">
       <div className="shrink-0 h-8 w-8 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-500 flex items-center justify-center">
         <Icon size={15} />
       </div>

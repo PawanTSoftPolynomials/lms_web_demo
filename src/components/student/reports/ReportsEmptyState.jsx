@@ -10,7 +10,7 @@ const PREVIEW_ITEMS = [
 
 export default function ReportsEmptyState() {
   return (
-    <div className="rounded-2xl border border-slate-800/80 bg-slate-900/50 p-6 text-center">
+    <div className="rounded-2xl border border-card-border bg-card p-6 text-center">
       <div className="mx-auto h-11 w-11 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 flex items-center justify-center">
         <GraduationCap size={20} />
       </div>
@@ -24,7 +24,7 @@ export default function ReportsEmptyState() {
         {PREVIEW_ITEMS.map(({ label, icon: Icon }) => (
           <div
             key={label}
-            className="flex items-center gap-2 rounded-xl border border-slate-800/80 bg-slate-950/40 px-3 py-2 text-[11px] font-semibold text-slate-300"
+            className="flex items-center gap-2 rounded-xl border border-card-border bg-slate-950/40 px-3 py-2 text-[11px] font-semibold text-slate-300"
           >
             <Icon size={13} className="text-orange-500 shrink-0" />
             <span className="truncate">{label}</span>
