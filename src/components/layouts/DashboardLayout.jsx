@@ -31,7 +31,6 @@ export default function DashboardLayout({ children, role, title }) {
           flex
           flex-col
           min-w-0
-          overflow-x-hidden
           transition-all
           duration-300
         "
@@ -44,7 +43,7 @@ export default function DashboardLayout({ children, role, title }) {
           setCollapsed={setCollapsed}
         />
 
-        <main className={`p-3 sm:p-6 flex-1 ${role === 'STUDENT' ? 'pb-24 sm:pb-6' : ''}`}>{children}</main>
+        <main className={`p-3 sm:p-6 flex-1 ${['STUDENT', 'INSTRUCTOR'].includes(role) ? 'pb-24 sm:pb-6' : ''}`}>{children}</main>
       </div>
       <ChatWidget />
       <ChatButton />

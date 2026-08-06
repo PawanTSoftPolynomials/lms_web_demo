@@ -464,8 +464,9 @@ export default function StudentDashboardPage() {
           ))}
         </div>
 
-        {/* Quick Actions */}
-        <div>
+        {/* Quick Actions — sticky directly below the fixed header so it stays
+            reachable while the rest of the page scrolls underneath it. */}
+        <div className="sticky top-[73px] z-30 bg-[#080B11]">
           <h2 className="text-sm font-black text-white mb-2.5">Quick Actions</h2>
           <div className="grid grid-cols-4 gap-2.5">
             <QuickActionButton href={resumeHref} icon={Play} label="Resume" color="text-orange-400" bg="bg-orange-500/10" />

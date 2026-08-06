@@ -8,6 +8,9 @@ import Card from "@/components/ui/Card";
 import CourseHeader from "@/components/student/course-details/CourseHeader";
 import CourseOverview from "@/components/student/course-details/CourseOverview";
 import ModuleAccordion from "@/components/student/course-details/ModuleAccordion";
+import CourseSectionTabs from "@/components/student/course-details/CourseSectionTabs";
+import CourseQuizzesSection from "@/components/student/course-details/CourseQuizzesSection";
+import CourseAnnouncementsSection from "@/components/student/course-details/CourseAnnouncementsSection";
 
 import useCourse from "@/hooks/queries/student/useCourse";
 
@@ -42,13 +45,30 @@ export default function CourseDetailsPage({
 
     return (
         <div className="space-y-4">
-            <CourseHeader course={course}/>
+            <CourseSectionTabs/>
 
-            <CourseOverview course={course}/>
+            <div id="course-overview" className="space-y-4 scroll-mt-[112px]">
+                <CourseHeader course={course}/>
 
-            <ModuleAccordion
-                modules={course.modules}
-            />
+                <CourseOverview course={course}/>
+            </div>
+
+            <div id="course-modules" className="scroll-mt-[112px]">
+                <ModuleAccordion
+                    modules={course.modules}
+                />
+            </div>
+
+            {/* New Quizzes/Announcements sections are part of the mobile/tablet
+                tab set (see CourseSectionTabs); desktop keeps its existing
+                Overview + Modules layout unchanged. */}
+            <div id="course-quizzes" className="scroll-mt-[112px] lg:hidden">
+                <CourseQuizzesSection courseId={courseId}/>
+            </div>
+
+            <div id="course-announcements" className="scroll-mt-[112px] lg:hidden">
+                <CourseAnnouncementsSection/>
+            </div>
         </div>
     );
 }

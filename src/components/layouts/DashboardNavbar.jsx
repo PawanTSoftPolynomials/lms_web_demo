@@ -11,6 +11,7 @@ import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
 import { useNotification } from "@/context/NotificationContext";
 import { useStudentNavDrawer } from "@/context/StudentNavDrawerContext";
+import { useInstructorNavDrawer } from "@/context/InstructorNavDrawerContext";
 import Modal from "@/components/ui/Modal";
 import MiniCalendar from "@/components/dashboard/MiniCalendar";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
@@ -131,6 +132,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
   const { logout, user: currentUser } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { open: openStudentNavDrawer } = useStudentNavDrawer();
+  const { open: openInstructorNavDrawer } = useInstructorNavDrawer();
 
   const pathname = usePathname();
   
@@ -453,7 +455,46 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     const dashboardHref = role === 'ADMIN' ? '/admin/dashboard' : '/instructor/dashboard';
     return (
       <>
-      <header className="bg-[#080B11] border-b border-[#1A1F35] px-6 py-3 flex items-center justify-between text-slate-200">
+      <div className="relative">
+      {/* Mobile header — hamburger, compact logo, notification bell, profile avatar.
+          No desktop tabs/breadcrumbs/utilities here; those stay in the sm:flex header below. */}
+      <header className="sm:hidden sticky top-0 z-40 flex items-center justify-between gap-3 bg-[#080B11]/95 backdrop-blur-md border-b border-[#1A1F35] px-4 py-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            type="button"
+            onClick={() => (role === 'INSTRUCTOR' ? openInstructorNavDrawer() : setOpen?.(true))}
+            aria-label="Open navigation menu"
+            className="shrink-0 flex h-9 w-9 items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-white/[0.06] transition-colors"
+          >
+            <Menu size={20} aria-hidden="true" />
+          </button>
+          <Link href={dashboardHref} className="flex items-center gap-2 min-w-0">
+            <span className="text-lg text-orange-500 shrink-0">🍊</span>
+            <span className="text-sm font-black text-white tracking-tight truncate">
+              ORANGE <span className="text-orange-500">TREE</span>
+            </span>
+          </Link>
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowNotifications((prev) => !prev)}
+            aria-label="Notifications"
+            className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-white/[0.06] transition-colors"
+          >
+            <Bell size={18} />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-orange-500 shadow-[0_0_6px_rgba(249,115,22,0.7)]" />
+            )}
+          </button>
+          <div className="relative">
+            <ProfileDropdown onLogoutRequest={() => setShowLogoutModal(true)} user={currentUser} role={role} />
+          </div>
+        </div>
+      </header>
+
+      <header className="hidden sm:flex bg-[#080B11] border-b border-[#1A1F35] px-6 py-3 items-center justify-between text-slate-200">
         <div className="flex items-center gap-6">
           {/* Mobile menu toggle */}
           <button
@@ -512,44 +553,6 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                 </span>
               )}
             </button>
-
-            {showNotifications && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
-                <div className="absolute right-0 top-10 z-50 w-80 rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-4 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150">
-                  <div className="flex items-center justify-between pb-2 border-b border-[#1A1F35] mb-2">
-                    <h3 className="font-black text-xs text-slate-200">Notifications</h3>
-                    {unreadCount > 0 && (
-                      <button onClick={handleMarkAllRead} className="text-[10px] text-orange-400 hover:text-orange-300 font-bold transition">
-                        Mark read
-                      </button>
-                    )}
-                  </div>
-                  <div className="max-h-64 overflow-y-auto space-y-2 pr-0.5">
-                    {notifications.length === 0 ? (
-                      <div className="py-8 text-center text-[10px] text-slate-500">No notifications</div>
-                    ) : (
-                      notifications.slice(0, 5).map((n) => (
-                        <div
-                          key={n.id}
-                          onClick={() => handleNotificationClick(n)}
-                          className={`p-2 rounded-xl border cursor-pointer transition ${
-                            n.read ? "bg-white/[0.01] border-transparent hover:bg-white/[0.03]" : "bg-orange-500/5 border-orange-500/10 hover:bg-orange-500/10"
-                          }`}
-                        >
-                          <div className="flex justify-between items-start gap-1">
-                            <h4 className="font-extrabold text-[10.5px] text-slate-200 truncate">{n.title}</h4>
-                            {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0 mt-1" />}
-                          </div>
-                          <p className="text-[9.5px] text-slate-500 line-clamp-2 mt-0.5 leading-snug">{n.message}</p>
-                          <span className="text-[8px] text-slate-655 block mt-1">{n.time}</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
           </div>
 
           {/* Profile Dropdown */}
@@ -558,6 +561,48 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
           </div>
         </div>
       </header>
+
+      {/* Notifications dropdown — shared by both the mobile and desktop bell
+          triggers above, anchored to the outer `.relative` wrapper so it sits
+          correctly under whichever header is currently visible. */}
+      {showNotifications && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+          <div className="absolute right-3 sm:right-6 top-14 sm:top-16 z-50 w-[calc(100%-1.5rem)] max-w-80 sm:w-80 rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-4 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="flex items-center justify-between pb-2 border-b border-[#1A1F35] mb-2">
+              <h3 className="font-black text-xs text-slate-200">Notifications</h3>
+              {unreadCount > 0 && (
+                <button onClick={handleMarkAllRead} className="text-[10px] text-orange-400 hover:text-orange-300 font-bold transition">
+                  Mark read
+                </button>
+              )}
+            </div>
+            <div className="max-h-64 overflow-y-auto space-y-2 pr-0.5">
+              {notifications.length === 0 ? (
+                <div className="py-8 text-center text-[10px] text-slate-500">No notifications</div>
+              ) : (
+                notifications.slice(0, 5).map((n) => (
+                  <div
+                    key={n.id}
+                    onClick={() => handleNotificationClick(n)}
+                    className={`p-2 rounded-xl border cursor-pointer transition ${
+                      n.read ? "bg-white/[0.01] border-transparent hover:bg-white/[0.03]" : "bg-orange-500/5 border-orange-500/10 hover:bg-orange-500/10"
+                    }`}
+                  >
+                    <div className="flex justify-between items-start gap-1">
+                      <h4 className="font-extrabold text-[10.5px] text-slate-200 truncate">{n.title}</h4>
+                      {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0 mt-1" />}
+                    </div>
+                    <p className="text-[9.5px] text-slate-500 line-clamp-2 mt-0.5 leading-snug">{n.message}</p>
+                    <span className="text-[8px] text-slate-655 block mt-1">{n.time}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </>
+      )}
+      </div>
 
       {/* Logout Confirmation Modal */}
       <Modal
