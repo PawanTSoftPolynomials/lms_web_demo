@@ -29,14 +29,15 @@ function MetricPill({ label, value }) {
 }
 
 function BatchCard({ batch }) {
+  const primaryCourseId = batch.courseIds?.[0];
   return (
     <Link
-      href={`/instructor/analytics?courseId=${batch.courseId}`}
+      href={primaryCourseId ? `/instructor/analytics?courseId=${primaryCourseId}` : "/instructor/analytics"}
       className="block p-4 rounded-xl border border-[#1A1F35] bg-[#141930] hover:border-orange-500/40 transition"
     >
       <div className="min-w-0 mb-3">
         <h4 className="text-xs font-black text-white truncate">{batch.name}</h4>
-        <p className="text-[10px] text-slate-500 mt-0.5 truncate">{batch.courseTitle}</p>
+        <p className="text-[10px] text-slate-500 mt-0.5 truncate">{batch.courseTitles?.join(", ")}</p>
       </div>
 
       <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold mb-3">

@@ -18,7 +18,7 @@ export function exportBatchReportCsv(batch) {
   const headers = ["Metric", "Value"];
   const rows = [
     ["Batch Name", batch.name],
-    ["Course", batch.courseTitle],
+    ["Courses", (batch.courseTitles || []).join(", ")],
     ["Status", batch.status],
     ["Students", batch.studentsCount],
     ["Completion", `${batch.completion}%`],

@@ -8,7 +8,6 @@ import StudentRow from "./StudentRow";
 export default function StudentTable({
                                          students = [],
                                          onView,
-                                         onEdit,
                                          onDelete,
                                      }) {
     if (!students.length) {
@@ -37,11 +36,11 @@ export default function StudentTable({
                         </th>
 
                         <th className="px-6 py-4 font-medium">
-                            Phone
+                            Course
                         </th>
 
                         <th className="px-6 py-4 font-medium">
-                            Education
+                            Progress
                         </th>
 
                         <th className="px-6 py-4 font-medium">
@@ -64,7 +63,6 @@ export default function StudentTable({
                             key={student.id}
                             student={student}
                             onView={onView}
-                            onEdit={onEdit}
                             onDelete={onDelete}
                         />
                     ))}
@@ -83,16 +81,16 @@ export default function StudentTable({
                         <div className="flex items-start justify-between">
                             <div className="flex gap-3">
                                 <UserAvatar
-                                    name={student.user.name}
+                                    name={student.name}
                                 />
 
                                 <div>
                                     <h3 className="font-semibold text-white">
-                                        {student.user.name}
+                                        {student.name}
                                     </h3>
 
                                     <p className="break-all text-xs text-gray-400">
-                                        {student.user.email}
+                                        {student.email}
                                     </p>
                                 </div>
                             </div>
@@ -104,11 +102,6 @@ export default function StudentTable({
                                             label: "View",
                                             onClick: () =>
                                                 onView?.(student),
-                                        },
-                                        {
-                                            label: "Edit",
-                                            onClick: () =>
-                                                onEdit?.(student),
                                         },
                                         {
                                             label: "Delete",
@@ -124,38 +117,31 @@ export default function StudentTable({
                         <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                             <div>
                                 <p className="text-gray-400">
-                                    Phone
+                                    Course
                                 </p>
 
                                 <span className="font-medium text-white">
-                  {student.phone || "-"}
+                  {student.course || "-"}
                 </span>
                             </div>
 
                             <div>
                                 <p className="text-gray-400">
-                                    Status
+                                    Progress
                                 </p>
 
-                                <span
-                                    className={`font-medium ${
-                                        student.user.status ===
-                                        "ACTIVE"
-                                            ? "text-green-400"
-                                            : "text-red-400"
-                                    }`}
-                                >
-                  {student.user.status}
+                                <span className="font-medium text-white">
+                  {student.progress ?? 0}%
                 </span>
                             </div>
 
                             <div className="col-span-2">
                                 <p className="text-gray-400">
-                                    Education
+                                    Status
                                 </p>
 
                                 <span className="text-white">
-                  {student.education || "-"}
+                  {student.status}
                 </span>
                             </div>
 
@@ -165,9 +151,7 @@ export default function StudentTable({
                                 </p>
 
                                 <span className="text-white">
-                  {new Date(
-                      student.createdAt
-                  ).toLocaleDateString()}
+                  {student.joinedDate || "-"}
                 </span>
                             </div>
                         </div>

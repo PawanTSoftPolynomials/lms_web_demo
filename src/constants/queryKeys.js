@@ -33,7 +33,7 @@ export const QUERY_KEYS = {
     ADMIN_USERS: "admin-users",
     ADMIN_USER: "admin-user",
 
-    ADMIN_STUDENTS: "admin-student",
+    ADMIN_STUDENTS: "admin-students",
     ADMIN_STUDENT: "admin-student",
 
     ADMIN_INSTRUCTORS: "admin-instructors",

@@ -6,7 +6,6 @@ import ActionMenu from "@/components/menus/ActionMenu";
 export default function InstructorRow({
                                           instructor,
                                           onView,
-                                          onEdit,
                                           onDelete,
                                       }) {
 
@@ -91,13 +90,6 @@ export default function InstructorRow({
                             label: "View",
                             onClick: () =>
                                 onView?.(
-                                    instructor
-                                ),
-                        },
-                        {
-                            label: "Edit",
-                            onClick: () =>
-                                onEdit?.(
                                     instructor
                                 ),
                         },

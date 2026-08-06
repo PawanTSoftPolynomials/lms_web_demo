@@ -12,6 +12,7 @@ import {
   FileSpreadsheet,
   BarChart2,
   Archive,
+  Trash2,
   Loader2,
 } from "lucide-react";
 
@@ -23,8 +24,8 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/shadcn/dropdown-menu";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import { useUpdateBatchStatus, useStartBatchConversation } from "@/hooks/queries/instructor/useBatches";
-import { getBatchDetailDashboard } from "@/services/course.service";
+import { useUpdateBatchStatus, useDeleteBatch, useStartBatchConversation } from "@/hooks/queries/instructor/useBatches";
+import { getBatchDetailDashboard } from "@/services/batch.service";
 import { exportBatchReportCsv, exportBatchStudentListCsv } from "@/lib/exportBatches";
 
 /**
@@ -32,13 +33,16 @@ import { exportBatchReportCsv, exportBatchStudentListCsv } from "@/lib/exportBat
  * Batch / More) — shared verbatim by the card grid's footer and the
  * detail page's header, so there's one place these actions are wired up.
  */
-export default function BatchActionsMenu({ batch, stopPropagation = true }) {
+export default function BatchActionsMenu({ batch, stopPropagation = true, hideViewDetails = false }) {
   const router = useRouter();
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [exportingStudents, setExportingStudents] = useState(false);
 
   const updateStatus = useUpdateBatchStatus();
+  const deleteBatch = useDeleteBatch();
   const startConversation = useStartBatchConversation();
+  const primaryCourseId = batch.courseIds?.[0] ?? batch.courses?.[0]?.id;
 
   const wrap = (fn) => (e) => {
     if (stopPropagation) e.stopPropagation();
@@ -72,16 +76,29 @@ export default function BatchActionsMenu({ batch, stopPropagation = true }) {
     );
   };
 
+  const handleDelete = () => {
+    deleteBatch.mutate(batch.id, {
+      onSuccess: () => {
+        setConfirmDelete(false);
+        router.push("/instructor/batches");
+      },
+    });
+  };
+
   const btnClass =
     "flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg text-[10.5px] font-bold text-slate-300 border border-slate-800 hover:text-white hover:border-slate-700 transition disabled:opacity-50";
 
   return (
     <div className="flex items-center gap-1.5 w-full" onClick={(e) => stopPropagation && e.stopPropagation()}>
-      <button onClick={wrap(() => router.push(`/instructor/batches/${batch.id}`))} className={btnClass}>
-        <Eye size={12} /> View Details
-      </button>
+      {!hideViewDetails && (
+        <button onClick={wrap(() => router.push(`/instructor/batches/${batch.id}`))} className={btnClass}>
+          <Eye size={12} /> View Details
+        </button>
+      )}
       <button
-        onClick={wrap(() => router.push(`/instructor/analytics?courseId=${batch.courseId}`))}
+        onClick={wrap(() =>
+          router.push(primaryCourseId ? `/instructor/analytics?courseId=${primaryCourseId}` : "/instructor/analytics")
+        )}
         className={btnClass}
       >
         <BarChart2 size={12} /> Analytics
@@ -117,8 +134,11 @@ export default function BatchActionsMenu({ batch, stopPropagation = true }) {
             <Download size={13} /> Download Report
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive" onClick={wrap(() => setConfirmArchive(true))}>
+          <DropdownMenuItem onClick={wrap(() => setConfirmArchive(true))}>
             <Archive size={13} /> {isArchived ? "Unarchive Batch" : "Archive Batch"}
+          </DropdownMenuItem>
+          <DropdownMenuItem variant="destructive" onClick={wrap(() => setConfirmDelete(true))}>
+            <Trash2 size={13} /> Delete Batch
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -135,6 +155,16 @@ export default function BatchActionsMenu({ batch, stopPropagation = true }) {
         onConfirm={handleArchiveToggle}
         onCancel={() => setConfirmArchive(false)}
         loading={updateStatus.isPending}
+      />
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Delete Batch"
+        message={`Permanently delete "${batch.name}"? Students stay enrolled in their courses; this only removes the batch and its cohort grouping.`}
+        confirmText="Delete"
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(false)}
+        loading={deleteBatch.isPending}
       />
     </div>
   );

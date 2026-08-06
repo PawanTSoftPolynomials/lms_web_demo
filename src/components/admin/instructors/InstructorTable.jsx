@@ -6,7 +6,7 @@ import ActionMenu from "@/components/menus/ActionMenu";
 import InstructorRow from "./InstructorRow";
 
 export default function InstructorTable({
-                                            instructors = [], onView, onEdit, onDelete,
+                                            instructors = [], onView, onDelete,
                                         }) {
     if (!instructors.length) {
         return (<div className="flex flex-col items-center justify-center py-16 text-center">
@@ -57,7 +57,6 @@ export default function InstructorTable({
                             key={instructor.id}
                             instructor={instructor}
                             onView={onView}
-                            onEdit={onEdit}
                             onDelete={onDelete}
                         />))}
                     </tbody>
@@ -92,8 +91,6 @@ export default function InstructorTable({
                                 <ActionMenu
                                     items={[{
                                         label: "View", onClick: () => onView?.(instructor),
-                                    }, {
-                                        label: "Edit", onClick: () => onEdit?.(instructor),
                                     }, {
                                         label: "Delete", danger: true, onClick: () => onDelete?.(instructor),
                                     },]}

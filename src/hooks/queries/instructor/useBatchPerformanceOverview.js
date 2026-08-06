@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getBatchPerformanceOverview } from "@/services/course.service";
+import { getBatchPerformanceOverview } from "@/services/batch.service";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { defaultQueryOptions } from "@/lib/queryOptions";
 

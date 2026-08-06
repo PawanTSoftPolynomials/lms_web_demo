@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, TrendingUp, FileCheck2, BookOpenCheck, Flame, Calendar } from "lucide-react";
+import { Users, TrendingUp, BookOpenCheck, Flame, Calendar } from "lucide-react";
 
 import BatchActionsMenu from "@/components/instructor/batches/BatchActionsMenu";
 
@@ -32,17 +32,18 @@ export default function BatchCard({ batch }) {
   return (
     <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-4 flex flex-col gap-3 hover:border-slate-700 transition">
       <div className="min-w-0">
-        <p className="text-[10px] text-slate-500 truncate">{batch.courseTitle}</p>
+        <p className="text-[10px] text-slate-500 truncate" title={batch.courseTitles?.join(", ")}>
+          {batch.courseTitles?.join(", ") || "No courses"}
+        </p>
         <p className="text-sm font-black text-slate-100 truncate">{batch.name}</p>
         <span className="inline-block mt-1 text-[9px] font-bold uppercase tracking-wider text-slate-400">
           {batch.status || "ACTIVE"}
         </span>
       </div>
 
-      <div className="grid grid-cols-5 gap-1.5 py-2.5 border-y border-[#1A1F35]/70">
+      <div className="grid grid-cols-4 gap-1.5 py-2.5 border-y border-[#1A1F35]/70">
         <StatCell icon={Users} label="Students" value={batch.studentsCount} />
         <StatCell icon={TrendingUp} label="Completion" value={`${batch.completion}%`} />
-        <StatCell icon={FileCheck2} label="Avg Quiz" value={batch.avgQuizScore != null ? `${batch.avgQuizScore}%` : "N/A"} />
         <StatCell icon={BookOpenCheck} label="Lessons" value={`${batch.lessonsCompletedPercent}%`} />
         <StatCell
           icon={Flame}
