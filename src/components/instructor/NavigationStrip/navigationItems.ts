@@ -13,7 +13,6 @@ import {
   Lightbulb,
   Megaphone,
   MessageSquareText,
-  MoreHorizontal,
   NotebookPen,
   Newspaper,
   Sparkles,
@@ -39,11 +38,9 @@ export interface NavItem {
 
 /**
  * The single top navigation strip — every instructor destination lives here.
- * Two dropdowns: "Work" groups the course-authoring pages (quiz, assessment,
- * test, question repository, document upload, notes) that share a
- * course/batch/module filter; "More" (placed after News) groups the
- * lower-frequency destinations (Announcements, Analytics, Suggestions,
- * Recommendations, Feedback, Results) to keep the primary row short.
+ * "Work" is the only dropdown, grouping the course-authoring pages (quiz,
+ * assessment, test, question repository, document upload, notes) that share
+ * a course/batch/module filter. Everything else is a flat, wrapping row.
  */
 export const PRIMARY_NAV_ITEMS: NavItem[] = [
   { label: "Home", href: "/instructor/dashboard", icon: Home, primaryOnMobile: true },

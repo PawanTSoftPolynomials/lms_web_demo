@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, Suspense, useEffect } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ArrowLeft, Send, Sparkles, MessageSquare, Star, Smile, Meh, Frown } from "lucide-react";
+import { ArrowLeft, Send, Sparkles, Star, Smile, Meh, Frown } from "lucide-react";
 import Link from "next/link";
 
 import Loader from "@/components/common/Loader";
 import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
 import useCourse from "@/hooks/queries/student/useCourse";
 
 function FeedbackPageContent() {

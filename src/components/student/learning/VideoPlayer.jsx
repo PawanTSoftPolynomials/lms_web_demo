@@ -10,8 +10,6 @@ import {
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
-import axios from "axios";
-import Cookies from "js-cookie";
 import DOMPurify from "isomorphic-dompurify";
 
 import { getYouTubeVideoId, isYouTubeUrl as isYoutubeUrl } from "@/lib/youtube";
@@ -37,20 +35,23 @@ const parseSlides = (html) => {
 };
 
 const VideoPlayer = forwardRef(function VideoPlayer(
-    { content, onTimeUpdate, onEnded, onDurationChange, initialTime = 0, courseId, lessonId: resolvedLessonId },
+    { content, onTimeUpdate, onEnded, onDurationChange, initialTime = 0 },
     ref
 ) {
     const containerRef = useRef(null);
     const playerRef = useRef(null);
     const localVideoRef = useRef(null);
     const [slideIndex, setSlideIndex] = useState(0);
-    const [hasStarted, setHasStarted] = useState(false);
-    
+    const [, setHasStarted] = useState(false);
+
+<<<<<<< HEAD
+=======
     // Video Analytics state
     const pingIntervalRef = useRef(null);
     const lastPingTimeRef = useRef(0);
     const accumulatedSecondsRef = useRef(0);
 
+>>>>>>> 3a2a149af33ddab1101f22c815a2cdd8a794cd7e
     const type = content?.type;
     const videoUrl = content?.videoUrl;
     const fileUrl = content?.fileUrl;
@@ -214,6 +215,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         return () => stopPingTimer();
     }, [content, stopPingTimer]);
 
+<<<<<<< HEAD
     const startPingTimer = useCallback(() => {
         if (!resolvedLessonId) return;
         
@@ -288,6 +290,8 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         }
     };
 
+=======
+>>>>>>> 3a2a149af33ddab1101f22c815a2cdd8a794cd7e
     if (!content) {
         return (
             <div className="flex aspect-video min-h-[220px] max-h-[520px] w-full items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 p-6 text-center">

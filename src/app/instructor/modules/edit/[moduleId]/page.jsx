@@ -6,6 +6,7 @@ import Card from "@/components/ui/Card";
 import Loader from "@/components/common/Loader";
 
 import ModuleForm from "@/components/instructor/modules/ModuleForm";
+import {useToast} from "@/components/ui/ToastProvider";
 
 import {useModule} from "@/hooks/queries/instructor/useModule";
 import {useUpdateModule} from "@/hooks/queries/instructor/useUpdateModule";
@@ -13,6 +14,7 @@ import {useUpdateModule} from "@/hooks/queries/instructor/useUpdateModule";
 export default function EditModulePage() {
     const {moduleId} = useParams();
     const router = useRouter();
+    const {showToast} = useToast();
 
     const {
         data: module, isLoading, isError,
@@ -31,6 +33,11 @@ export default function EditModulePage() {
             router.push(`/instructor/modules/${moduleId}`);
         } catch (error) {
             console.error(error);
+            showToast(
+                error?.response?.data?.message || "Failed to update module.",
+                "error",
+                "Update failed"
+            );
         }
     };
 
@@ -57,6 +64,7 @@ export default function EditModulePage() {
     return (<ModuleForm
         mode="edit"
         initialValues={module}
+        lessonsCount={module.lessons?.length ?? 0}
         loading={updateModuleMutation.isPending}
         onSubmit={handleSubmit}
     />);

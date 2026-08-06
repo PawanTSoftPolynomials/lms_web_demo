@@ -6,6 +6,7 @@ import Card from "@/components/ui/Card";
 import Loader from "@/components/common/Loader";
 
 import LessonForm from "@/components/instructor/lessons/LessonForm";
+import {useToast} from "@/components/ui/ToastProvider";
 
 import {useLesson} from "@/hooks/queries/instructor/useLesson";
 import {useUpdateLesson} from "@/hooks/queries/instructor/useUpdateLesson";
@@ -14,6 +15,7 @@ export default function EditLessonPage() {
     const {lessonId} = useParams();
 
     const router = useRouter();
+    const {showToast} = useToast();
 
     const {
         data: lesson,
@@ -42,6 +44,11 @@ export default function EditLessonPage() {
             );
         } catch (error) {
             console.error(error);
+            showToast(
+                error?.response?.data?.message || "Failed to update lesson.",
+                "error",
+                "Update failed"
+            );
         }
     };
 
@@ -73,6 +80,7 @@ export default function EditLessonPage() {
         <LessonForm
             mode="edit"
             initialValues={lesson}
+            contentsCount={lesson.contents?.length ?? 0}
             loading={
                 updateLessonMutation.isPending
             }

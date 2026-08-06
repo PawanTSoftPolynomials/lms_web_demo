@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { FaArrowLeft, FaBars, FaSignOutAlt } from "react-icons/fa";
+import { FaBars } from "react-icons/fa";
 import { PiOrangeDuotone } from "react-icons/pi";
-import { Menu, MessageSquare, Calendar, ChevronRight, Bell, BookOpen, Award, CheckCheck } from "lucide-react";
+import { MessageSquare, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 import useAuth from "@/hooks/useAuth";
@@ -24,42 +24,7 @@ import { useQuestion } from "@/hooks/queries/instructor/useQuestion";
 import GlobalSearch from "@/components/layouts/GlobalSearch";
 import { NotificationsMenu, ProfileMenu } from "@/components/layouts/NavUserMenus";
 
-// Self-contained high-end chime player using HTML5 AudioContext
-const playNotificationChime = () => {
-  try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
-    // Tone 1: High soft bell note
-    const osc1 = audioCtx.createOscillator();
-    const gain1 = audioCtx.createGain();
-    osc1.connect(gain1);
-    gain1.connect(audioCtx.destination);
-    osc1.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-    gain1.gain.setValueAtTime(0.06, audioCtx.currentTime);
-    gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-    osc1.start();
-    osc1.stop(audioCtx.currentTime + 0.15);
-    
-    // Tone 2: Harmonious resonance
-    setTimeout(() => {
-      try {
-        const osc2 = audioCtx.createOscillator();
-        const gain2 = audioCtx.createGain();
-        osc2.connect(gain2);
-        gain2.connect(audioCtx.destination);
-        osc2.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
-        gain2.gain.setValueAtTime(0.06, audioCtx.currentTime);
-        gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
-        osc2.start();
-        osc2.stop(audioCtx.currentTime + 0.25);
-      } catch (e) {}
-    }, 85);
-  } catch (e) {
-    console.warn("Chime playback bypassed:", e);
-  }
-};
-
-function ProfileDropdown({ user, role, onLogoutRequest }) {
+function ProfileDropdown({ user, onLogoutRequest }) {
   const [open, setOpen] = useState(false);
   const isAdmin = role === "ADMIN";
   const profileHref = isAdmin ? "/admin/profile" : "/instructor/profile";
@@ -455,46 +420,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     const dashboardHref = role === 'ADMIN' ? '/admin/dashboard' : '/instructor/dashboard';
     return (
       <>
-      <div className="relative">
-      {/* Mobile header — hamburger, compact logo, notification bell, profile avatar.
-          No desktop tabs/breadcrumbs/utilities here; those stay in the sm:flex header below. */}
-      <header className="sm:hidden sticky top-0 z-40 flex items-center justify-between gap-3 bg-[#080B11]/95 backdrop-blur-md border-b border-[#1A1F35] px-4 py-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <button
-            type="button"
-            onClick={() => (role === 'INSTRUCTOR' ? openInstructorNavDrawer() : setOpen?.(true))}
-            aria-label="Open navigation menu"
-            className="shrink-0 flex h-9 w-9 items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-white/[0.06] transition-colors"
-          >
-            <Menu size={20} aria-hidden="true" />
-          </button>
-          <Link href={dashboardHref} className="flex items-center gap-2 min-w-0">
-            <span className="text-lg text-orange-500 shrink-0">🍊</span>
-            <span className="text-sm font-black text-white tracking-tight truncate">
-              ORANGE <span className="text-orange-500">TREE</span>
-            </span>
-          </Link>
-        </div>
-
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            type="button"
-            onClick={() => setShowNotifications((prev) => !prev)}
-            aria-label="Notifications"
-            className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-white/[0.06] transition-colors"
-          >
-            <Bell size={18} />
-            {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-orange-500 shadow-[0_0_6px_rgba(249,115,22,0.7)]" />
-            )}
-          </button>
-          <div className="relative">
-            <ProfileDropdown onLogoutRequest={() => setShowLogoutModal(true)} user={currentUser} role={role} />
-          </div>
-        </div>
-      </header>
-
-      <header className="hidden sm:flex bg-[#080B11] border-b border-[#1A1F35] px-6 py-3 items-center justify-between text-slate-200">
+      <header className="bg-[#080B11] border-b border-[#1A1F35] px-6 py-3 flex items-center justify-between text-slate-200">
         <div className="flex items-center gap-6">
           {/* Mobile menu toggle */}
           <button

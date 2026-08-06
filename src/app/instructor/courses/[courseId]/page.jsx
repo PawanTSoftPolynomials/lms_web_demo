@@ -8,20 +8,11 @@ import {
   Pencil,
   Plus,
   GraduationCap,
-  Layers,
-  Star,
   Calendar,
   Clock,
   User,
-  MoreVertical,
-  Settings,
   ChevronRight,
   ChevronDown,
-  BookOpen,
-  TrendingUp,
-  Percent,
-  CheckCircle2,
-  AlertCircle,
   FileText,
   HelpCircle,
   ClipboardList,
@@ -30,18 +21,8 @@ import {
   Rocket,
   Undo2,
 } from "lucide-react";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-} from "recharts";
 
 import Loader from "@/components/common/Loader";
-import Card from "@/components/ui/Card";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
 import { useModules } from "@/hooks/queries/instructor/useModules";
 import { useDeleteModule } from "@/hooks/queries/instructor/useDeleteModule";
@@ -51,15 +32,14 @@ import { useDeleteLesson } from "@/hooks/queries/instructor/useDeleteLesson";
 import { useDeleteContent } from "@/hooks/queries/instructor/useDeleteContent";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import {
-  useStudentEngagement,
-  useConceptMastery,
-} from "@/hooks/queries/instructor/useInstructorDashboard";
+import { useConceptMastery } from "@/hooks/queries/instructor/useInstructorDashboard";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export default function CourseDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const courseId = params.courseId;
+  const { showToast } = useToast();
 
   // React Query Hooks
   const {
@@ -71,7 +51,6 @@ export default function CourseDetailsPage() {
   const {
     data: modules = [],
     isLoading: modulesLoading,
-    isError: modulesError,
   } = useModules(courseId);
 
   const deleteModuleMutation = useDeleteModule();
@@ -81,16 +60,13 @@ export default function CourseDetailsPage() {
   const deleteContentMutation = useDeleteContent();
   const queryClient = useQueryClient();
 
-  const { data: engagementData = [], isLoading: engagementLoading } =
-    useStudentEngagement(courseId);
-
-  const { data: conceptMasteryData = [], isLoading: masteryLoading } =
+  const { data: conceptMasteryData = [] } =
     useConceptMastery(courseId);
 
   // States
   const [expandedModules, setExpandedModules] = useState({});
   const [expandedLessons, setExpandedLessons] = useState({});
-  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [, setActiveDropdown] = useState(null);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -174,10 +150,21 @@ export default function CourseDetailsPage() {
 
   const handleTogglePublish = async () => {
     const nextStatus = course?.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED";
+
+    if (nextStatus === "PUBLISHED" && modules.length === 0) {
+      showToast("Add at least one module before publishing this course.", "error", "Missing content");
+      return;
+    }
+
     try {
       await updateCourseStatusMutation.mutateAsync({ courseId, status: nextStatus });
     } catch (error) {
       console.error("Failed to update course status:", error);
+      showToast(
+        error?.response?.data?.message || "Failed to update course status.",
+        "error",
+        "Publish failed"
+      );
     }
   };
 
@@ -213,10 +200,6 @@ export default function CourseDetailsPage() {
     activeCourse.status === "Published" ||
     activeCourse.status === "PUBLISHED" ||
     activeCourse.isPublished;
-  const lessonsCount = activeModules.reduce(
-    (acc, m) => acc + (m.lessons?.length ?? 0),
-    0,
-  );
   const totalEnrolls =
     activeCourse._count?.enrollments ?? activeCourse.enrollments?.length ?? 0;
 
@@ -318,15 +301,6 @@ export default function CourseDetailsPage() {
               Manage Quizzes
             </button>
             <button
-              onClick={() =>
-                router.push(`/instructor/modules/create/${courseId}`)
-              }
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold text-white bg-orange-500 hover:bg-orange-655 rounded-xl shadow-sm transition"
-            >
-              <Plus size={12} />
-              Add Module
-            </button>
-            <button
               onClick={handleTogglePublish}
               disabled={updateCourseStatusMutation.isPending}
               className={`inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold rounded-xl border transition disabled:opacity-50 ${
@@ -354,59 +328,6 @@ export default function CourseDetailsPage() {
         </div>
       </div>
 
-      {/* 2. KPI Statistics Cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start text-slate-500 mb-2">
-            <p className="text-[9px] font-extrabold uppercase tracking-wider">
-              Total Modules
-            </p>
-            <Layers size={16} className="text-orange-500" />
-          </div>
-          <div>
-            <h4 className="text-2xl font-black tracking-tight text-white leading-none">
-              {activeModules.length}
-            </h4>
-            <p className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider mt-1">
-              Modules added
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start text-slate-500 mb-2">
-            <p className="text-[9px] font-extrabold uppercase tracking-wider">
-              Total Lessons
-            </p>
-            <PlayCircle size={16} className="text-blue-500" />
-          </div>
-          <div>
-            <h4 className="text-2xl font-black tracking-tight text-white leading-none">
-              {lessonsCount}
-            </h4>
-            <p className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider mt-1">
-              Lessons structured
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start text-slate-500 mb-2">
-            <p className="text-[9px] font-extrabold uppercase tracking-wider">
-              Students Enrolled
-            </p>
-            <GraduationCap size={16} className="text-purple-500" />
-          </div>
-          <div>
-            <h4 className="text-2xl font-black tracking-tight text-white leading-none">
-              {totalEnrolls}
-            </h4>
-            <p className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider mt-1">
-              Enrolled learners
-            </p>
-          </div>
-        </div>
-      </div>
       {/* 3. Two-Column Curriculum & Analytics Grid */}
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         
@@ -414,9 +335,20 @@ export default function CourseDetailsPage() {
         <div className="flex-1 min-w-0 w-full">
           {/* 4. Course Curriculum Accordion Section */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm">
-        <h3 className="text-sm font-black uppercase tracking-widest text-slate-350 mb-4 pl-1">
-          Course Syllabus
-        </h3>
+        <div className="flex items-center justify-between mb-4 pl-1">
+          <h3 className="text-sm font-black uppercase tracking-widest text-slate-350">
+            Course Syllabus
+          </h3>
+          <button
+            onClick={() =>
+              router.push(`/instructor/modules/create/${courseId}`)
+            }
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-white bg-orange-500 hover:bg-orange-655 rounded-xl shadow-sm transition"
+          >
+            <Plus size={12} />
+            Add Module
+          </button>
+        </div>
 
         {/* Mobile View Cards (< md) */}
         <div className="space-y-3 block md:hidden">
@@ -930,148 +862,6 @@ export default function CourseDetailsPage() {
 
         {/* Right Column: Analytics Side Widgets (30% width style) */}
         <div className="w-full lg:w-[350px] flex-shrink-0 flex flex-col gap-6">
-                  {/* Student Engagement AreaChart */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm">
-          <h3 className="text-sm font-black uppercase tracking-widest text-slate-350 mb-1">
-            Student Engagement
-          </h3>
-          <p className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider mb-4">
-            Cohort activity footprint trends
-          </p>
-
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={engagementData}
-                margin={{ top: 10, right: 5, left: -20, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient
-                    id="colorEnrollments"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient
-                    id="colorCompletions"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis
-                  dataKey="name"
-                  stroke="#64748b"
-                  fontSize={8}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="#64748b"
-                  fontSize={8}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#020617",
-                    borderColor: "#1e293b",
-                    borderRadius: "12px",
-                    fontSize: "10px",
-                    fontWeight: "bold",
-                    color: "#f8fafc",
-                  }}
-                />
-                <Legend
-                  verticalAlign="top"
-                  height={36}
-                  iconSize={8}
-                  iconType="circle"
-                  style={{ fontSize: "9px", fontWeight: "bold" }}
-                />
-                <Area
-                  type="monotone"
-                  name="Active Students"
-                  dataKey="active"
-                  stroke="#a855f7"
-                  strokeWidth={2}
-                  fill="url(#colorActive)"
-                />
-                <Area
-                  type="monotone"
-                  name="New Enrollments"
-                  dataKey="enrollments"
-                  stroke="#f97316"
-                  strokeWidth={2}
-                  fill="url(#colorEnrollments)"
-                />
-                <Area
-                  type="monotone"
-                  name="Lesson Completion"
-                  dataKey="completions"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  fill="url(#colorCompletions)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Footers */}
-          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-800/40 pt-4 text-center">
-            <div>
-              <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">
-                Active Students
-              </p>
-              <p className="mt-1 text-sm font-bold text-white">
-                {Math.round(
-                  engagementData[engagementData.length - 1]?.active ?? 0,
-                )}
-              </p>
-              <p className="mt-0.5 text-[8px] font-bold text-emerald-400">
-                ↑ {totalEnrolls > 0 ? "15%" : "0%"}
-              </p>
-            </div>
-            <div className="border-l border-slate-850">
-              <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">
-                New Enrollments
-              </p>
-              <p className="mt-1 text-sm font-bold text-white">
-                {Math.round(
-                  engagementData[engagementData.length - 1]?.enrollments ?? 0,
-                )}
-              </p>
-              <p className="mt-0.5 text-[8px] font-bold text-emerald-400">
-                ↑ {totalEnrolls > 0 ? "8%" : "0%"}
-              </p>
-            </div>
-            <div className="border-l border-slate-850">
-              <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">
-                Lessons Done
-              </p>
-              <p className="mt-1 text-sm font-bold text-white">
-                {Math.round(
-                  engagementData[engagementData.length - 1]?.completions ?? 0,
-                )}
-              </p>
-              <p className="mt-0.5 text-[8px] font-bold text-emerald-400">
-                ↑ {totalEnrolls > 0 ? "12%" : "0%"}
-              </p>
-            </div>
-          </div>
-        </div>
                   {/* Concept Mastery Analytics Card */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm flex flex-col justify-between">
           <div>

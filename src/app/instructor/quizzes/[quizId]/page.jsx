@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, use, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Plus,
@@ -11,11 +10,7 @@ import {
   ArrowDown,
   CheckCircle2,
   HelpCircle,
-  Clock,
-  Award,
   RefreshCw,
-  Shuffle,
-  Eye,
   Edit3,
   Check,
   X,
@@ -31,7 +26,6 @@ import {
 export default function InstructorQuizDetailPage({ params }) {
   const resolvedParams = use(params);
   const quizId = resolvedParams.quizId;
-  const router = useRouter();
 
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -86,7 +80,7 @@ export default function InstructorQuizDetailPage({ params }) {
     try {
       const orderedIds = questions.map((q) => q.id);
       await reorderQuizQuestions(quizId, orderedIds);
-    } catch (err) {
+    } catch {
       fetchQuizDetails();
     }
   };

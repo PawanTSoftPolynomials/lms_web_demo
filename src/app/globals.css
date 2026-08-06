@@ -2,6 +2,8 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-slate-50: #fdfdfd;
   --color-slate-100: #f1f1f5;
@@ -192,6 +194,7 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #f97316, #ec4899);
 }
+<<<<<<< HEAD
 
 /* Fully hidden scrollbar for horizontally-scrolling strips (nav bars, chip rows) */
 .scrollbar-none {
@@ -212,3 +215,5 @@ select option {
   background-color: #0d1021;
   color: #e2e2ec;
 }
+=======
+>>>>>>> 3a2a149af33ddab1101f22c815a2cdd8a794cd7e

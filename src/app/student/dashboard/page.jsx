@@ -16,7 +16,7 @@ import {
   Star,
   Play,
   Bookmark as BookmarkIcon,
-  Calendar as CalendarIcon,
+  Sparkles,
 } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
@@ -24,6 +24,7 @@ import { getCalendarEvents } from "@/services/calendar.service";
 
 import useDashboard from "@/hooks/queries/student/useDashboard";
 import useCourses from "@/hooks/queries/student/useCourses";
+import useCourseState from "@/hooks/queries/student/useCourseState";
 import MiniCalendar from "@/components/dashboard/MiniCalendar";
 import RecommendedCoursesCarousel from "@/components/dashboard/RecommendedCoursesCarousel";
 import { useAuth } from "@/context/AuthContext";
@@ -126,10 +127,12 @@ const formatDueIn = (dateObj) => {
 function ContinueLearningRow({ enrollment, accentIdx }) {
   const [bookmarked, setBookmarked] = useState(false);
   const course = enrollment.course || {};
+  const courseId = enrollment.courseId || course.id;
   const progress = enrollment.progress ?? 0;
   const completedLessons = enrollment.completedLessons ?? 0;
   const totalLessons = course.lessons ?? 0;
   const accent = ROW_ACCENTS[accentIdx % ROW_ACCENTS.length];
+  const { data: courseState } = useCourseState(courseId);
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3.5 rounded-xl border border-[#1A1F35] bg-[#0A0D1B] hover:border-slate-700 transition">
@@ -138,8 +141,18 @@ function ContinueLearningRow({ enrollment, accentIdx }) {
           {course.title?.[0]?.toUpperCase() || "C"}
         </div>
         <div className="min-w-0 flex-1">
-          <h4 className="text-xs font-bold text-slate-200 truncate">{course.title || "Untitled Course"}</h4>
-          <p className="text-[10px] text-slate-500 truncate mt-0.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h4 className="text-sm font-extrabold text-white truncate">{course.title || "Untitled Course"}</h4>
+            {courseState && (
+              <span
+                title={`AI-personalized · ${courseState.timeSavedMinutes}m saved`}
+                className="shrink-0 inline-flex items-center gap-1 rounded-full border border-orange-500/20 bg-orange-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-orange-400"
+              >
+                <Sparkles size={9} /> {courseState.knowledgeLevel}
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-slate-500 truncate mt-0.5">
             {totalLessons > 0 ? `${completedLessons}/${totalLessons} lessons` : "Self-paced"} &middot; {progress}% complete
           </p>
           <div className="w-full max-w-[220px] h-1.5 rounded-full bg-slate-800 overflow-hidden mt-1.5">

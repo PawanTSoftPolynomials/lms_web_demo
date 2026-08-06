@@ -10,7 +10,6 @@ import {
   AlertTriangle,
   ArrowLeft,
   X,
-  FileText,
   RefreshCw,
 } from "lucide-react";
 import { uploadQuestionsFile } from "@/services/questionRepository.service";

@@ -7,26 +7,33 @@ import {
   ArrowLeft,
   Plus,
   Trash2,
-  CheckCircle2,
   AlertTriangle,
-  HelpCircle,
   Check,
 } from "lucide-react";
 import { createRepositoryQuestion } from "@/services/questionRepository.service";
+import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
+import { useModules } from "@/hooks/queries/instructor/useModules";
 
 export default function CreateQuestionPage() {
   const router = useRouter();
 
-  const [title, setTitle] = useState("");
   const [question, setQuestion] = useState("");
   const [questionType, setQuestionType] = useState("MCQ_SINGLE");
-  const [subject, setSubject] = useState("Python");
-  const [topic, setTopic] = useState("");
+  const [courseId, setCourseId] = useState("");
+  const [moduleId, setModuleId] = useState("");
   const [difficulty, setDifficulty] = useState("MEDIUM");
   const [marks, setMarks] = useState(1);
   const [negativeMarks, setNegativeMarks] = useState(0);
   const [tags, setTags] = useState("");
   const [explanation, setExplanation] = useState("");
+
+  const { data: courses = [] } = useInstructorCourses();
+  const { data: modules = [] } = useModules(courseId);
+
+  const handleCourseChange = (value) => {
+    setCourseId(value);
+    setModuleId("");
+  };
 
   // Options for MCQ
   const [options, setOptions] = useState([
@@ -82,6 +89,11 @@ export default function CreateQuestionPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!courseId) {
+      setError("Please select a course.");
+      return;
+    }
+
     if (!question.trim()) {
       setError("Question text is required.");
       return;
@@ -122,11 +134,10 @@ export default function CreateQuestionPage() {
 
     try {
       await createRepositoryQuestion({
-        title: title.trim() || question.trim().slice(0, 50),
         question: question.trim(),
         questionType,
-        subject: subject.trim(),
-        topic: topic.trim(),
+        courseId,
+        moduleId: moduleId || null,
         difficulty,
         marks: parseInt(marks, 10),
         negativeMarks: parseFloat(negativeMarks) || 0,
@@ -177,17 +188,40 @@ export default function CreateQuestionPage() {
           <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-5">
             <h3 className="text-base font-bold text-slate-200">Question Content</h3>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                Question Title (Optional Display Title)
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Python List Comprehension Syntax"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:border-amber-500 focus:outline-none"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  Course *
+                </label>
+                <select
+                  value={courseId}
+                  onChange={(e) => handleCourseChange(e.target.value)}
+                  required
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"
+                >
+                  <option value="" disabled>Select a course...</option>
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>{c.title}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  Module (Optional)
+                </label>
+                <select
+                  value={moduleId}
+                  onChange={(e) => setModuleId(e.target.value)}
+                  disabled={!courseId}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <option value="">Whole course (no specific module)</option>
+                  {modules.map((m) => (
+                    <option key={m.id} value={m.id}>{m.title}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div>
@@ -204,7 +238,7 @@ export default function CreateQuestionPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                   Question Type
@@ -220,32 +254,6 @@ export default function CreateQuestionPage() {
                   <option value="SHORT_ANSWER">Short Answer</option>
                   <option value="LONG_ANSWER">Long Answer</option>
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Python"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                  Topic
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Functions"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"
-                />
               </div>
 
               <div>

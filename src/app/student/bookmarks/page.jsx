@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Bookmark,
   Trash2,
   Search,
   ExternalLink,

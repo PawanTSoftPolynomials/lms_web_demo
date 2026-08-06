@@ -84,13 +84,23 @@ export interface RawQuiz {
   courseId?: string;
 }
 
+export interface RawSubmission {
+  id?: string;
+  status?: string;
+  submittedAt?: string;
+  student?: { name?: string };
+  studentName?: string;
+}
+
 export interface RawAssignment {
   id?: string;
+  title?: string;
   status?: string;
   courseId?: string;
   dueDate?: string;
   /** Ungraded submissions for this assignment — real count from the backend, not a status guess. */
   pendingSubmissionsCount?: number;
+  submissions?: RawSubmission[];
 }
 
 export interface RawCalendarEvent {
@@ -238,7 +248,6 @@ export function deriveDashboardStats(raw: {
   const draftCourses = raw.courses.filter(isDraftCourse).length;
   const students = raw.courses.reduce((sum, c) => sum + (c._count?.enrollments ?? c.studentsCount ?? 0), 0);
   const pendingReviews = raw.assignments.reduce((sum, a) => sum + (a.pendingSubmissionsCount ?? 0), 0);
-  
   const activeQuizzes = raw.quizzes ? raw.quizzes.filter(q => q.isPublished).length : 0;
 
   const { count: todaysClassesCount, next: nextClass } = deriveTodaysClassesSummary(raw.calendarEvents);
@@ -667,12 +676,12 @@ export interface RecentSubmission {
   time: string;
 }
 
-export function deriveRecentSubmissions(assignments: any[]): RecentSubmission[] {
+export function deriveRecentSubmissions(assignments: RawAssignment[]): RecentSubmission[] {
   const submissions: RecentSubmission[] = [];
 
   assignments.forEach((assignment) => {
     if (assignment.submissions && Array.isArray(assignment.submissions)) {
-      assignment.submissions.forEach((sub: any) => {
+      assignment.submissions.forEach((sub) => {
         submissions.push({
           id: sub.id ?? `sub-${Math.random()}`,
           studentName: sub.student?.name ?? sub.studentName ?? "Student",
@@ -695,7 +704,13 @@ export interface GradeDistribution {
   color: string;
 }
 
-export function deriveGradeDistribution(results: any[]): GradeDistribution[] {
+export interface RawResult {
+  score?: number;
+  marks?: number;
+  percentage?: number;
+}
+
+export function deriveGradeDistribution(results: RawResult[]): GradeDistribution[] {
   if (!results || results.length === 0) {
     return [
       { name: "Excellent (A)", value: 0, color: "#10b981" },
@@ -722,4 +737,3 @@ export function deriveGradeDistribution(results: any[]): GradeDistribution[] {
     { name: "Needs Improvement (D/E)", value: needsImprovement, color: "#8b5cf6" },
   ];
 }
-

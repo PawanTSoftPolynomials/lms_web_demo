@@ -14,9 +14,13 @@ import {
   Calendar,
   Search,
   ArrowRight,
+<<<<<<< HEAD
   ChevronLeft,
   ChevronRight,
   ChevronDown,
+=======
+  Clock,
+>>>>>>> 3a2a149af33ddab1101f22c815a2cdd8a794cd7e
   Video,
   X,
   ExternalLink
@@ -476,6 +480,7 @@ export default function StudentNewsPage() {
           }
         />
       ) : (
+<<<<<<< HEAD
         <div ref={listContainerRef} className="relative max-w-3xl mx-auto md:mx-0 w-full">
           <div style={{ height: rowVirtualizer.getTotalSize(), width: "100%", position: "relative" }}>
             <span
@@ -499,6 +504,43 @@ export default function StudentNewsPage() {
                   }}
                 >
                   <FeedRow row={row} onOpenNews={setSelectedNews} onExpandOlder={expandOlder} />
+=======
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {filteredNews.map((item) => {
+            return (
+              <div
+                key={item.id}
+                onClick={() => setSelectedNews(item)}
+                className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-5 hover:border-slate-700 transition duration-200 flex flex-col justify-between cursor-pointer group shadow-sm hover:shadow-md"
+              >
+                <div>
+                  {/* Card Header row */}
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <span className={`text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider border ${item.badgeColor}`}>
+                      {item.categoryLabel}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1">
+                      <Clock size={11} className="text-slate-500" />
+                      {item.timestamp}
+                    </span>
+                  </div>
+
+                  {/* Course Tag */}
+                  <div className="text-[10px] font-black text-orange-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+                    <span>{item.courseTag}</span>
+                  </div>
+
+                  {/* News Title */}
+                  <h3 className="text-sm font-bold text-white group-hover:text-orange-400 transition-colors leading-snug line-clamp-2">
+                    {item.title}
+                  </h3>
+
+                  {/* Summary */}
+                  <p className="text-xs text-slate-400 mt-2 line-clamp-3 leading-relaxed">
+                    {item.summary}
+                  </p>
+>>>>>>> 3a2a149af33ddab1101f22c815a2cdd8a794cd7e
                 </div>
               );
             })}

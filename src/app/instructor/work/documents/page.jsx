@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { UploadCloud, Loader2, FileText, Video, Presentation, Archive, File as FileIcon } from "lucide-react";
 
-import WorkFilterBar from "@/components/instructor/work/WorkFilterBar";
+import Card from "@/components/ui/Card";
+import CourseModuleLessonSelect from "@/components/instructor/work/CourseModuleLessonSelect";
 import DataTable from "@/components/ui/DataTable";
-import { useWorkFilters } from "@/context/WorkFilterContext";
 import { useContents } from "@/hooks/queries/instructor/useContents";
 import { useCreateContent } from "@/hooks/queries/instructor/useCreateContent";
 import { uploadContentFile } from "@/services/content.service";
@@ -36,8 +36,8 @@ function inferType(fileName) {
 }
 
 export default function WorkUploadDocumentsPage() {
-  const { appliedFilters } = useWorkFilters();
-  const { lessonId } = appliedFilters;
+  const [selection, setSelection] = useState({ courseId: "", moduleId: "", lessonId: "" });
+  const { lessonId } = selection;
 
   const { data: contents = [], isLoading } = useContents(lessonId);
   const createContent = useCreateContent();
@@ -110,20 +110,25 @@ export default function WorkUploadDocumentsPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <Card className="mx-auto max-w-4xl bg-[#0D1021] border border-[#1A1F35] p-6 sm:p-8 rounded-2xl shadow-2xl space-y-6">
       <div>
-        <h1 className="text-xl font-black text-white tracking-tight">Upload Documents</h1>
-        <p className="text-xs text-slate-400 mt-1">Attach PDFs, presentations, documents, archives, or videos to a lesson.</p>
+        <h1 className="text-3xl font-black text-white tracking-tight">Upload Documents</h1>
+        <p className="mt-2 text-sm text-slate-400">Attach PDFs, presentations, documents, archives, or videos to a lesson.</p>
       </div>
 
-      <WorkFilterBar fields={["course", "module", "lesson"]} />
+      <CourseModuleLessonSelect
+        courseId={selection.courseId}
+        moduleId={selection.moduleId}
+        lessonId={selection.lessonId}
+        onChange={setSelection}
+      />
 
       {!lessonId ? (
-        <div className="rounded-2xl border border-dashed border-[#1A1F35] bg-[#0D1021] py-16 text-center">
-          <p className="text-xs font-bold text-slate-500">Select a Course, Module, and Lesson above and click Apply to upload documents.</p>
+        <div className="rounded-2xl border border-dashed border-[#1A1F35] bg-[#05070E] py-16 text-center">
+          <p className="text-xs font-bold text-slate-500">Select a Course, Module, and Lesson above to upload documents.</p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-5 space-y-5">
+        <div className="rounded-2xl border border-[#1A1F35] bg-[#05070E] p-5 space-y-5">
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold p-3 rounded-xl">{error}</div>
           )}
@@ -137,6 +142,6 @@ export default function WorkUploadDocumentsPage() {
           <DataTable columns={columns} rows={contents} isLoading={isLoading} emptyLabel="No documents uploaded to this lesson yet." />
         </div>
       )}
-    </div>
+    </Card>
   );
 }

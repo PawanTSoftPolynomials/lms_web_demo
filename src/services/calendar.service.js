@@ -7,7 +7,7 @@ export const getCalendarEvents = async () => {
   try {
     const { data } = await api.get("/calendar");
     return Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
-  } catch (error) {
+  } catch {
     // Return empty array if backend calendar endpoint returns no data or fails
     return [];
   }

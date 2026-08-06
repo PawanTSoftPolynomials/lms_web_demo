@@ -14,12 +14,11 @@ import {
 } from 'recharts';
 
 import ChartCard from '@/components/ui/ChartCard';
-import CustomTooltip from '@/components/charts/CustomTooltip';
 import { ChartCardSkeleton } from '@/components/ui/Skeleton';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 export default function StudentEngagement({ courseId }) {
-  const { data: dashboardData, isLoading, isError, error, refetch } = useQuery({
+  const { data: dashboardData, isLoading, isError, refetch } = useQuery({
     queryKey: ['instructorDashboard', courseId],
     queryFn: () => getInstructorDashboard(courseId),
     select: (data) => data?.studentEngagement ?? [],

@@ -34,8 +34,67 @@ export default function MyCourseCard({ enrollment }) {
   const lessonsTotal = course.stats?.lessonsCount ?? course.lessons ?? 0;
   const quizzesTotal = course._count?.quizzes ?? 0;
 
+<<<<<<< HEAD
   const progress = Math.min(100, Math.max(0, Math.round(enrollment.progress ?? 0)));
   const completedLessons = Math.min(lessonsTotal, enrollment.completedLessons ?? 0);
+=======
+    const links = [
+        {
+            label: "My Learning",
+            href: `/student/learn/${course.id}`,
+            icon: CalendarCheck,
+            iconColor: "text-blue-400",
+        },
+        {
+            label: "AI Entry Assessment",
+            href: `/student/entry-assessment/${course.id}`,
+            icon: Sparkles,
+            iconColor: "text-orange-400",
+        },
+        {
+            label: "My Homework",
+            href: `/student/assignments?course=${encodeURIComponent(course.title)}`,
+            icon: CalendarCheck,
+            iconColor: "text-orange-400",
+        },
+        {
+            label: "My Assignment",
+            href: `/student/assignments?course=${encodeURIComponent(course.title)}`,
+            icon: CalendarCheck,
+            iconColor: "text-purple-400",
+        },
+        {
+            label: "My Test",
+            href: `/student/quizzes?courseId=${course.id}`,
+            icon: CalendarCheck,
+            iconColor: "text-emerald-400",
+        },
+        {
+            label: "My Assessment Activity",
+            href: `/student/quizzes?courseId=${course.id}`,
+            icon: CalendarCheck,
+            iconColor: "text-pink-400",
+        },
+        {
+            label: "Feedback",
+            href: `/student/feedback`,
+            icon: CalendarCheck,
+            iconColor: "text-rose-400",
+        },
+        {
+            label: "CO Outcome Summary",
+            href: `/student/progress`,
+            icon: BarChart2,
+            iconColor: "text-amber-400",
+        },
+        {
+            label: "Check Activity Status",
+            href: `/student/achievements`,
+            icon: Activity,
+            iconColor: "text-cyan-400",
+        }
+    ];
+>>>>>>> 3a2a149af33ddab1101f22c815a2cdd8a794cd7e
 
   // No per-module/quiz completion tracking on the backend — approximate from
   // the lesson-completion ratio.
@@ -43,9 +102,89 @@ export default function MyCourseCard({ enrollment }) {
   const completedModules = modulesTotal > 0 ? Math.min(modulesTotal, Math.round(completionRatio * modulesTotal)) : 0;
   const completedQuizzes = quizzesTotal > 0 ? Math.min(quizzesTotal, Math.round(completionRatio * quizzesTotal)) : 0;
 
+<<<<<<< HEAD
   const isComplete = progress >= 100;
   const status = isComplete ? "Completed" : progress > 0 ? "In Progress" : "Enrolled";
   const statusStyle = STATUS_STYLES[status];
+=======
+    // Mobile full-screen menu: same destinations/behavior as `links` above,
+    // with a subtitle per row and distinct icon backgrounds — richer chrome
+    // that only makes sense at full-screen size, not in the compact card.
+    const mobileLinks = [
+        {
+            label: "My Learning",
+            subtitle: "Continue your learning",
+            href: `/student/learn/${course.id}`,
+            icon: CalendarCheck,
+            iconColor: "text-blue-400",
+            iconBg: "bg-blue-500/15",
+        },
+        {
+            label: "AI Entry Assessment",
+            subtitle: "Personalize this course to your knowledge level",
+            href: `/student/entry-assessment/${course.id}`,
+            icon: Sparkles,
+            iconColor: "text-orange-400",
+            iconBg: "bg-orange-500/15",
+        },
+        {
+            label: "My Homework",
+            subtitle: "View and submit homework",
+            href: `/student/assignments?course=${encodeURIComponent(course.title)}`,
+            icon: CalendarCheck,
+            iconColor: "text-orange-400",
+            iconBg: "bg-orange-500/15",
+        },
+        {
+            label: "My Assignment",
+            subtitle: "View and submit assignments",
+            href: `/student/assignments?course=${encodeURIComponent(course.title)}`,
+            icon: ClipboardList,
+            iconColor: "text-purple-400",
+            iconBg: "bg-purple-500/15",
+        },
+        {
+            label: "My Test",
+            subtitle: "Take tests and quizzes",
+            href: `/student/quizzes?courseId=${course.id}`,
+            icon: CalendarCheck,
+            iconColor: "text-emerald-400",
+            iconBg: "bg-emerald-500/15",
+        },
+        {
+            label: "My Assessment Activity",
+            subtitle: "Track your assessment activities",
+            href: `/student/quizzes?courseId=${course.id}`,
+            icon: CalendarCheck,
+            iconColor: "text-pink-400",
+            iconBg: "bg-pink-500/15",
+        },
+        {
+            label: "Feedback",
+            subtitle: "View your feedback",
+            href: `/student/feedback`,
+            icon: MessageSquare,
+            iconColor: "text-rose-400",
+            iconBg: "bg-rose-500/15",
+        },
+        {
+            label: "CO Outcome Summary",
+            subtitle: "View CO outcomes and analytics",
+            href: `/student/progress`,
+            icon: BarChart2,
+            iconColor: "text-amber-400",
+            iconBg: "bg-amber-500/15",
+        },
+        {
+            label: "Check Activity Status",
+            subtitle: "Track all your activities",
+            href: `/student/achievements`,
+            icon: Activity,
+            iconColor: "text-cyan-400",
+            iconBg: "bg-cyan-500/15",
+        },
+    ];
+>>>>>>> 3a2a149af33ddab1101f22c815a2cdd8a794cd7e
 
   const instructorName = course.creator?.name ?? course.instructor ?? "Instructor";
 

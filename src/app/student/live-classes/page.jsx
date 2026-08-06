@@ -5,7 +5,6 @@ import {
   Video,
   Calendar,
   Clock,
-  Users,
   ExternalLink,
   Loader2,
   AlertCircle,

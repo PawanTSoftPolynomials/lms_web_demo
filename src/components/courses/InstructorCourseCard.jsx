@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -12,7 +12,6 @@ import {
   Trash2,
   Rocket,
   Undo2,
-  ChevronRight,
   Eye,
   Settings,
   Layers,
@@ -27,8 +26,6 @@ import {
   AlertCircle,
   Activity,
   Star,
-  Loader2,
-  X,
 } from "lucide-react";
 
 import { useModules } from "@/hooks/queries/instructor/useModules";

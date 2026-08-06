@@ -1,6 +1,6 @@
 "use client";
 
-import { TailSpin, RotatingLines } from "react-loader-spinner";
+import { TailSpin } from "react-loader-spinner";
 
 export default function Loader() {
   return (

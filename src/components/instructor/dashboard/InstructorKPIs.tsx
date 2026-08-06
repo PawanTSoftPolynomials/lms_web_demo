@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Users, ClipboardCheck, HelpCircle, LineChart, ArrowRight, ArrowUpRight } from "lucide-react";
+import { BookOpen, Users, ClipboardCheck, HelpCircle, LineChart, ArrowUpRight } from "lucide-react";
 
 export function InstructorKPIs({
   coursesCount = 0,

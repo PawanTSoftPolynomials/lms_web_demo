@@ -24,6 +24,9 @@ export const QUERY_KEYS = {
     MY_ACHIEVEMENTS: "my-achievements",
     DASHBOARD: "dashboard",
     PROGRESS: "progress",
+    ENTRY_ASSESSMENT: "entry-assessment",
+    COURSE_STATE: "course-state",
+    LEARNING_PATH: "learning-path",
 
     // ==========================
     // Admin

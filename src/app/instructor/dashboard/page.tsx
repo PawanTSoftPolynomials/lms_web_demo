@@ -1,20 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import {
-  BookOpen,
-  Users,
-  ClipboardCheck,
-  CalendarClock,
-  GraduationCap,
-  ChevronRight,
-  Radio,
-  Megaphone,
-  Plus,
-  FolderPlus,
-  Video,
-} from "lucide-react";
-
 import useAuth from "@/hooks/useAuth";
 import { TooltipProvider } from "@/components/ui/shadcn/tooltip";
 
@@ -40,6 +25,7 @@ import {
   useAnnouncementsFeed,
 } from "@/hooks/queries/instructor/useDashboardHome";
 import { useMyLessonQueries } from "@/hooks/queries/instructor/useLessonQueries";
+import { ChevronRight, Link, Radio } from "lucide-react";
 
 // Mobile-only Quick Actions — same destinations/icons as the desktop
 // QUICK_ACTION_ITEMS strip (src/components/instructor/QuickActions/quickActionItems.ts),
@@ -88,10 +74,6 @@ export default function InstructorDashboardHomePage() {
   const courses = useCourseProgressOverview();
   const submissions = useRecentSubmissions();
   const grades = useGradeDistribution();
-  const { data: engagementData } = useEngagementAnalytics();
-  const needsAttention = useNeedsAttention();
-  const announcements = useAnnouncementsFeed();
-  const { data: qaQueries, isLoading: isQaLoading } = useMyLessonQueries({ status: "PENDING" });
 
   // Extract needed KPIs from the stats payload
   const activeCourses = stats.data?.find(s => s.id === "active-courses")?.value || 0;
