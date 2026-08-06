@@ -25,6 +25,7 @@ import { getCalendarEvents } from "@/services/calendar.service";
 import useDashboard from "@/hooks/queries/student/useDashboard";
 import useCourses from "@/hooks/queries/student/useCourses";
 import MiniCalendar from "@/components/dashboard/MiniCalendar";
+import RecommendedCoursesCarousel from "@/components/dashboard/RecommendedCoursesCarousel";
 import { useAuth } from "@/context/AuthContext";
 
 const QUOTES = [
@@ -388,8 +389,10 @@ export default function StudentDashboardPage() {
     () => new Set(enrolledCourses.map((e) => e.courseId || e.course?.id)),
     [enrolledCourses]
   );
+  // Capped well above the visible slide count (4 + peek on desktop) so the
+  // carousel always has real content to scroll to.
   const recommendedCourses = useMemo(
-    () => allCourses.filter((c) => !enrolledCourseIds.has(c.id)).slice(0, 4),
+    () => allCourses.filter((c) => !enrolledCourseIds.has(c.id)).slice(0, 12),
     [allCourses, enrolledCourseIds]
   );
 
@@ -540,35 +543,17 @@ export default function StudentDashboardPage() {
           )}
         </div>
 
-        {/* Recommended Courses — horizontal carousel */}
-        <div>
-          <div className="flex items-center justify-between mb-2.5">
-            <h2 className="text-sm font-black text-white">Recommended Courses</h2>
-            <Link href="/student/courses" className="text-[11px] text-orange-400 font-bold">
-              View all
-            </Link>
-          </div>
-
-          {isCoursesLoading ? (
-            <div className="flex gap-3 overflow-x-auto -mx-4 px-4 scrollbar-none">
-              {[1, 2].map((n) => (
-                <div key={n} className="shrink-0 w-[46%] h-[92px] rounded-xl bg-slate-800/50 animate-pulse" />
-              ))}
-            </div>
-          ) : recommendedCourses.length === 0 ? (
-            <p className="text-xs text-slate-500 py-6 text-center">
-              No new recommendations right now.
-            </p>
-          ) : (
-            <div className="flex gap-3 overflow-x-auto -mx-4 px-4 pb-1 snap-x snap-mandatory scrollbar-none">
-              {recommendedCourses.map((course) => (
-                <div key={course.id} className="snap-start shrink-0 w-[46%]">
-                  <RecommendedCourseCard course={course} />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Recommended Courses — one full card per slide, swipe + dots */}
+        <RecommendedCoursesCarousel
+          title="Recommended Courses"
+          titleClassName="text-sm font-black text-white"
+          headerClassName="mb-2.5"
+          viewAllHref="/student/courses"
+          courses={recommendedCourses}
+          isLoading={isCoursesLoading}
+          renderCard={(course) => <RecommendedCourseCard course={course} />}
+          navVariant="dots"
+        />
       </div>
 
       {/* ============================= DESKTOP / TABLET (unchanged) ============================= */}
@@ -692,30 +677,14 @@ export default function StudentDashboardPage() {
 
             {/* Recommended for You */}
             <div className="rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-black text-slate-200">Recommended for You</h3>
-                <Link href="/student/courses" className="text-[11px] text-orange-400 font-bold hover:text-orange-300">
-                  View all
-                </Link>
-              </div>
-
-              {isCoursesLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {[1, 2, 3, 4].map((n) => (
-                    <div key={n} className="h-[84px] rounded-xl bg-slate-800/50 animate-pulse" />
-                  ))}
-                </div>
-              ) : recommendedCourses.length === 0 ? (
-                <p className="text-xs text-slate-500 py-6 text-center">
-                  No new recommendations right now &mdash; you&apos;re enrolled in everything available!
-                </p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {recommendedCourses.map((course) => (
-                    <RecommendedCourseCard key={course.id} course={course} />
-                  ))}
-                </div>
-              )}
+              <RecommendedCoursesCarousel
+                title="Recommended for You"
+                viewAllHref="/student/courses"
+                courses={recommendedCourses}
+                isLoading={isCoursesLoading}
+                renderCard={(course) => <RecommendedCourseCard course={course} />}
+                emptyMessage="No new recommendations right now — you're enrolled in everything available!"
+              />
             </div>
           </div>
 
