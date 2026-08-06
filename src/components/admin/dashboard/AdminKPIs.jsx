@@ -9,7 +9,15 @@ export function AdminKPIs({
   instructorsCount = 0,
   enrollmentsCount = 0,
   usersCount = 0,
+  trends = {},
 }) {
+  const {
+    newCoursesThisMonth = 0,
+    newStudentsToday = 0,
+    newEnrollmentsToday = 0,
+    newUsersToday = 0,
+  } = trends;
+
   const kpis = [
     {
       label: "Total Courses",
@@ -18,6 +26,7 @@ export function AdminKPIs({
       iconBg: "bg-purple-500/10",
       iconColor: "text-purple-400",
       href: "/admin/courses",
+      delta: newCoursesThisMonth > 0 ? `+${newCoursesThisMonth} this month` : null,
     },
     {
       label: "Total Students",
@@ -26,6 +35,7 @@ export function AdminKPIs({
       iconBg: "bg-emerald-500/10",
       iconColor: "text-emerald-400",
       href: "/admin/students",
+      delta: newStudentsToday > 0 ? `+${newStudentsToday} today` : null,
     },
     {
       label: "Total Instructors",
@@ -42,6 +52,7 @@ export function AdminKPIs({
       iconBg: "bg-orange-500/10",
       iconColor: "text-orange-400",
       href: "/admin/enrollments",
+      delta: newEnrollmentsToday > 0 ? `+${newEnrollmentsToday} today` : null,
     },
     {
       label: "Total Users",
@@ -49,6 +60,7 @@ export function AdminKPIs({
       icon: Users,
       iconBg: "bg-amber-500/10",
       iconColor: "text-amber-400",
+      delta: newUsersToday > 0 ? `+${newUsersToday} today` : null,
     },
   ];
 
@@ -70,6 +82,9 @@ export function AdminKPIs({
                 </Link>
               )}
             </div>
+            {kpi.delta && (
+              <p className="text-[9px] text-emerald-400 font-bold mt-0.5 truncate">{kpi.delta}</p>
+            )}
           </div>
         </div>
       ))}
