@@ -38,10 +38,10 @@ import { ImageCell } from "./cells/ImageCell";
 import { VideoCell } from "./cells/VideoCell";
 import { LinkCell } from "./cells/LinkCell";
 import { DocumentCell } from "./cells/DocumentCell";
-import { useDuplicateContent } from "./contentMutations";
+import { useDuplicateContent, useUpdateContent } from "./contentMutations";
 import { CELL_TYPES } from "./cellTypes";
 import { detectHtmlCellVariant } from "./htmlCellVariant";
-import { computeInsertOrder, sortByOrder } from "./blockOrder";
+import { planInsert, sortByOrder } from "./blockOrder";
 import { getErrorMessage } from "./getErrorMessage";
 import type { CellActionProps, ContentRow } from "./types";
 
@@ -135,7 +135,9 @@ export function LessonComposerPanel({
   const { data: contents = [], isLoading, isError } = useContents(lessonId);
   const [insertOrder, setInsertOrder] = useState<number | null>(null);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [insertingAnchorId, setInsertingAnchorId] = useState<string | null>(null);
   const { duplicate } = useDuplicateContent();
+  const updateContent = useUpdateContent();
   const { showToast } = useToast();
 
   // Selection is "controlled" when a parent passes onSelectCell (the course
@@ -152,6 +154,43 @@ export function LessonComposerPanel({
   };
 
   const openAddCell = (order: number) => setInsertOrder(order);
+
+  /**
+   * "Add Above"/"Add Below": makes room at the target integer `order` slot
+   * (see blockOrder.ts for why shifting — not a fractional order — is what
+   * the backend actually supports), then opens the same Add Content picker
+   * every other insertion uses. Guarded by `insertingAnchorId` since the
+   * shifts are awaited sequentially and a second click mid-sequence would
+   * plan against a now-stale `contents` snapshot.
+   */
+  const handleInsert = async (anchorId: string, position: "above" | "below") => {
+    if (insertingAnchorId) return;
+
+    const plan = planInsert(contents, anchorId, position);
+    if (plan.shifts.length === 0) {
+      openAddCell(plan.insertOrder);
+      return;
+    }
+
+    setInsertingAnchorId(anchorId);
+    try {
+      for (const shift of plan.shifts) {
+        await updateContent.mutateAsync({
+          contentId: shift.contentId,
+          contentData: { order: shift.newOrder, lessonId },
+        });
+      }
+      openAddCell(plan.insertOrder);
+    } catch (error) {
+      showToast(
+        getErrorMessage(error, "Failed to make room for the new block. Nothing was added — try again."),
+        "error",
+        "Insert failed"
+      );
+    } finally {
+      setInsertingAnchorId(null);
+    }
+  };
 
   const [activeFormat, setActiveFormat] = useState({
     blockType: "Paragraph",
@@ -451,8 +490,8 @@ export function LessonComposerPanel({
                   badgeText: badge.text,
                   badgeVariant: badge.variant,
                   onSettingsSelect: onSelectCell ? () => handleSelectCell(content.id) : undefined,
-                  onAddAbove: () => openAddCell(computeInsertOrder(contents, content.id, "above")),
-                  onAddBelow: () => openAddCell(computeInsertOrder(contents, content.id, "below")),
+                  onAddAbove: () => handleInsert(content.id, "above"),
+                  onAddBelow: () => handleInsert(content.id, "below"),
                   isSelected,
                 })}
               </div>
