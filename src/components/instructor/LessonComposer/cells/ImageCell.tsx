@@ -39,7 +39,6 @@ function escapeHtml(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-/** Exported so the "Add Cell" create form can build the same marked-up shape. */
 export function buildImageHtml({ src, alt, caption }: ParsedImage): string {
   const figcaption = caption ? `<figcaption>${escapeHtml(caption)}</figcaption>` : "";
   return `<figure class="${IMAGE_MARKER_CLASS}"><img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" />${figcaption}</figure>`;
@@ -49,8 +48,14 @@ interface ImageCellProps extends CellActionProps {
   content: ContentRow;
 }
 
-/** Renders/edits an Image cell — persisted as `type: "HTML"` (see htmlCellVariant.ts). */
-export function ImageCell({ content, onDuplicate, isDuplicating }: ImageCellProps) {
+export function ImageCell({
+  content,
+  onDuplicate,
+  isDuplicating,
+  badgeText,
+  badgeVariant,
+  onSettingsSelect,
+}: ImageCellProps) {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const parsed = () => parseImageHtml(content.htmlContent);
   const [src, setSrc] = useState(() => parsed().src);
@@ -141,6 +146,9 @@ export function ImageCell({ content, onDuplicate, isDuplicating }: ImageCellProp
       isDeleting={deleteContent.isPending}
       onDuplicate={onDuplicate}
       isDuplicating={isDuplicating}
+      badgeText={badgeText}
+      badgeVariant={badgeVariant}
+      onSettingsSelect={onSettingsSelect}
     >
       {mode === "edit" ? (
         <div className="space-y-3">
@@ -177,7 +185,6 @@ export function ImageCell({ content, onDuplicate, isDuplicating }: ImageCellProp
                   <X className="size-3.5" />
                 </button>
               </div>
-              {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded/external URL, not a static asset */}
               <img src={src} alt={alt} className="max-h-48 rounded-xl border border-card-border object-cover" />
             </div>
           )}
@@ -215,7 +222,6 @@ export function ImageCell({ content, onDuplicate, isDuplicating }: ImageCellProp
         </div>
       ) : view.src ? (
         <figure>
-          {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded/external URL, not a static asset */}
           <img
             src={view.src}
             alt={view.alt}
@@ -232,7 +238,6 @@ export function ImageCell({ content, onDuplicate, isDuplicating }: ImageCellProp
   );
 }
 
-/** The "Add Cell" creation form for an Image block — hosted inside AddCellModal. */
 export function CreateImageForm({ lessonId, order, onCreated, onCancel }: CreateCellFormProps) {
   const [src, setSrc] = useState("");
   const [alt, setAlt] = useState("");
@@ -260,10 +265,11 @@ export function CreateImageForm({ lessonId, order, onCreated, onCancel }: Create
 
   const handleCreate = async () => {
     try {
+      const safeOrder = typeof order === "number" && !isNaN(order) && order > 0 ? order : 1;
       await createContent.mutateAsync({
         lessonId,
         type: "HTML",
-        order,
+        order: safeOrder,
         title: alt || "Image",
         htmlContent: buildImageHtml({ src, alt, caption }),
       });
@@ -308,7 +314,6 @@ export function CreateImageForm({ lessonId, order, onCreated, onCancel }: Create
               <X className="size-3.5" />
             </button>
           </div>
-          {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded URL, not a static asset */}
           <img src={src} alt={alt} className="max-h-48 rounded-xl border border-card-border object-cover" />
         </div>
       )}

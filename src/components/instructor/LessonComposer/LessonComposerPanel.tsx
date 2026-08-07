@@ -163,8 +163,11 @@ export function LessonComposerPanel({
     );
   }
 
-  const nextOrder =
-    contents.length > 0 ? Math.max(...contents.map((c: ContentRow) => c.order || 0)) + 1 : 1;
+  const validOrders = (contents || [])
+    .map((c: ContentRow) => (typeof c.order === "number" && !isNaN(c.order) && c.order > 0 ? c.order : 0))
+    .filter((o: number) => o > 0);
+
+  const nextOrder = validOrders.length > 0 ? Math.max(...validOrders) + 1 : (contents.length > 0 ? contents.length + 1 : 1);
 
   const handleDuplicate = async (content: ContentRow) => {
     setDuplicatingId(content.id);

@@ -16,18 +16,18 @@ import type { CellActionProps, ContentRow, CreateCellFormProps } from "../types"
 
 interface DocumentCellProps extends CellActionProps {
   content: ContentRow;
-  /** The "document" or "presentation" entry from CELL_TYPES — both share this component. */
   cellType: CellTypeDefinition;
 }
 
-/**
- * Renders/edits a `type: "DOCUMENT"` or `type: "PRESENTATION"` Content row.
- * Both types share identical upload/preview behavior in the existing
- * ContentForm and content viewer, so this composer reuses one component for
- * both rather than duplicating it — the `cellType` prop only affects the
- * label/icon shown.
- */
-export function DocumentCell({ content, cellType, onDuplicate, isDuplicating }: DocumentCellProps) {
+export function DocumentCell({
+  content,
+  cellType,
+  onDuplicate,
+  isDuplicating,
+  badgeText,
+  badgeVariant,
+  onSettingsSelect,
+}: DocumentCellProps) {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [title, setTitle] = useState(content.title ?? "");
   const [fileUrl, setFileUrl] = useState(content.fileUrl ?? "");
@@ -111,6 +111,9 @@ export function DocumentCell({ content, cellType, onDuplicate, isDuplicating }: 
       isDeleting={deleteContent.isPending}
       onDuplicate={onDuplicate}
       isDuplicating={isDuplicating}
+      badgeText={badgeText}
+      badgeVariant={badgeVariant}
+      onSettingsSelect={onSettingsSelect}
     >
       {mode === "edit" ? (
         <div className="space-y-3">
@@ -195,13 +198,10 @@ export function DocumentCell({ content, cellType, onDuplicate, isDuplicating }: 
 }
 
 interface CreateFileFormProps extends CreateCellFormProps {
-  /** The "document" / "presentation" / "pdf" entry from CELL_TYPES — all three share this form. */
   cellType: CellTypeDefinition;
-  /** Restricts the file picker, e.g. ".pdf" for the PDF entry. */
   accept?: string;
 }
 
-/** The "Add Cell" creation form shared by Document, Presentation, and PDF blocks — hosted inside AddCellModal. */
 export function CreateFileForm({ lessonId, order, cellType, accept, onCreated, onCancel }: CreateFileFormProps) {
   const [title, setTitle] = useState("");
   const [fileUrl, setFileUrl] = useState("");
@@ -228,10 +228,11 @@ export function CreateFileForm({ lessonId, order, cellType, accept, onCreated, o
 
   const handleCreate = async () => {
     try {
+      const safeOrder = typeof order === "number" && !isNaN(order) && order > 0 ? order : 1;
       await createContent.mutateAsync({
         lessonId,
         type: cellType.contentType,
-        order,
+        order: safeOrder,
         title: title || cellType.label,
         fileUrl,
       });

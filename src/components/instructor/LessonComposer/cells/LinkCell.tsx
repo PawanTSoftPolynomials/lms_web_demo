@@ -19,7 +19,14 @@ interface LinkCellProps extends CellActionProps {
 }
 
 /** Renders/edits a `type: "LINK"` Content row — a link out to an external resource. */
-export function LinkCell({ content, onDuplicate, isDuplicating }: LinkCellProps) {
+export function LinkCell({
+  content,
+  onDuplicate,
+  isDuplicating,
+  badgeText,
+  badgeVariant,
+  onSettingsSelect,
+}: LinkCellProps) {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [title, setTitle] = useState(content.title ?? "");
   const [externalUrl, setExternalUrl] = useState(content.externalUrl ?? "");
@@ -79,6 +86,9 @@ export function LinkCell({ content, onDuplicate, isDuplicating }: LinkCellProps)
       isDeleting={deleteContent.isPending}
       onDuplicate={onDuplicate}
       isDuplicating={isDuplicating}
+      badgeText={badgeText}
+      badgeVariant={badgeVariant}
+      onSettingsSelect={onSettingsSelect}
     >
       {mode === "edit" ? (
         <div className="space-y-3">
@@ -132,7 +142,8 @@ export function CreateLinkForm({ lessonId, order, onCreated, onCancel }: CreateC
 
   const handleCreate = async () => {
     try {
-      await createContent.mutateAsync({ lessonId, type: "LINK", order, title, externalUrl });
+      const safeOrder = typeof order === "number" && !isNaN(order) && order > 0 ? order : 1;
+      await createContent.mutateAsync({ lessonId, type: "LINK", order: safeOrder, title, externalUrl });
       onCreated();
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to add this link."), "error", "Add failed");
