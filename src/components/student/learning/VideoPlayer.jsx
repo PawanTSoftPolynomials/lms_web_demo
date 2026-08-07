@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState, useCallback } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import {
     FileText,
     ExternalLink,
@@ -42,16 +42,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const playerRef = useRef(null);
     const localVideoRef = useRef(null);
     const [slideIndex, setSlideIndex] = useState(0);
-    const [, setHasStarted] = useState(false);
 
-<<<<<<< HEAD
-=======
-    // Video Analytics state
-    const pingIntervalRef = useRef(null);
-    const lastPingTimeRef = useRef(0);
-    const accumulatedSecondsRef = useRef(0);
-
->>>>>>> 3a2a149af33ddab1101f22c815a2cdd8a794cd7e
     const type = content?.type;
     const videoUrl = content?.videoUrl;
     const fileUrl = content?.fileUrl;
@@ -199,99 +190,10 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         }
     }, [videoUrl, isYoutube]);
 
-    const stopPingTimer = useCallback(() => {
-        if (pingIntervalRef.current) {
-            clearInterval(pingIntervalRef.current);
-            pingIntervalRef.current = null;
-        }
-    }, []);
-
     useEffect(() => {
         setSlideIndex(0);
-        setHasStarted(false);
-        accumulatedSecondsRef.current = 0;
-        lastPingTimeRef.current = 0;
+    }, [content]);
 
-        return () => stopPingTimer();
-    }, [content, stopPingTimer]);
-
-<<<<<<< HEAD
-    const startPingTimer = useCallback(() => {
-        if (!resolvedLessonId) return;
-        
-        stopPingTimer();
-        pingIntervalRef.current = setInterval(async () => {
-            if (accumulatedSecondsRef.current >= 10) {
-                const watchTimeToSend = accumulatedSecondsRef.current;
-                accumulatedSecondsRef.current = 0; // Reset eagerly
-                
-                try {
-                    const token = Cookies.get("accessToken");
-                    await axios.post(
-                        `${process.env.NEXT_PUBLIC_API_URL}/analytics/video-ping`,
-                        {
-                            lessonId: resolvedLessonId,
-                            courseId,
-                            watchTime: watchTimeToSend
-                        },
-                        {
-                            headers: { Authorization: `Bearer ${token}` }
-                        }
-                    );
-                } catch (error) {
-                    console.error("Failed to ping video analytics:", error);
-                }
-            }
-        }, 10000); // Ping every 10 seconds
-    }, [resolvedLessonId, courseId, stopPingTimer]);
-
-    const handleProgress = (state) => {
-        const { playedSeconds } = state;
-        onTimeUpdate?.(Math.floor(playedSeconds));
-        
-        // Track accumulated seconds for analytics
-        const delta = playedSeconds - lastPingTimeRef.current;
-        if (delta > 0 && delta < 5) { // Avoid huge jumps from seeking
-            accumulatedSecondsRef.current += delta;
-        }
-        lastPingTimeRef.current = playedSeconds;
-    };
-
-    const handlePlay = () => {
-        setHasStarted(true);
-        startPingTimer();
-    };
-
-    const handlePause = () => {
-        stopPingTimer();
-    };
-
-    const handleReady = () => {
-        if (playerRef.current && initialTime > 0 && !hasStarted) {
-            playerRef.current.seekTo(initialTime, "seconds");
-        }
-    };
-
-    const handleEnded = async () => {
-        stopPingTimer();
-        onEnded?.();
-        
-        if (resolvedLessonId) {
-            try {
-                const token = Cookies.get("accessToken");
-                await axios.post(
-                    `${process.env.NEXT_PUBLIC_API_URL}/analytics/video-ping`,
-                    { lessonId: resolvedLessonId, courseId, completed: true },
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-            } catch (error) {
-                console.error("Failed to record completion:", error);
-            }
-        }
-    };
-
-=======
->>>>>>> 3a2a149af33ddab1101f22c815a2cdd8a794cd7e
     if (!content) {
         return (
             <div className="flex aspect-video min-h-[220px] max-h-[520px] w-full items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 p-6 text-center">

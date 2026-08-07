@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FaBars } from "react-icons/fa";
 import { PiOrangeDuotone } from "react-icons/pi";
-import { MessageSquare, ChevronRight } from "lucide-react";
+import { MessageSquare, ChevronRight, Menu } from "lucide-react";
 import Link from "next/link";
 
 import useAuth from "@/hooks/useAuth";
@@ -24,7 +24,7 @@ import { useQuestion } from "@/hooks/queries/instructor/useQuestion";
 import GlobalSearch from "@/components/layouts/GlobalSearch";
 import { NotificationsMenu, ProfileMenu } from "@/components/layouts/NavUserMenus";
 
-function ProfileDropdown({ user, onLogoutRequest }) {
+function ProfileDropdown({ user, onLogoutRequest, role }) {
   const [open, setOpen] = useState(false);
   const isAdmin = role === "ADMIN";
   const profileHref = isAdmin ? "/admin/profile" : "/instructor/profile";
@@ -528,7 +528,6 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
           </div>
         </>
       )}
-      </div>
 
       {/* Logout Confirmation Modal */}
       <Modal

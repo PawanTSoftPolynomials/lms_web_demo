@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import useAuth from "@/hooks/useAuth";
 import { TooltipProvider } from "@/components/ui/shadcn/tooltip";
 
@@ -25,7 +26,19 @@ import {
   useAnnouncementsFeed,
 } from "@/hooks/queries/instructor/useDashboardHome";
 import { useMyLessonQueries } from "@/hooks/queries/instructor/useLessonQueries";
-import { ChevronRight, Link, Radio } from "lucide-react";
+import {
+  ChevronRight,
+  Radio,
+  Plus,
+  FolderPlus,
+  Video,
+  Megaphone,
+  BookOpen,
+  Users,
+  CalendarClock,
+  ClipboardCheck,
+  GraduationCap,
+} from "lucide-react";
 
 // Mobile-only Quick Actions — same destinations/icons as the desktop
 // QUICK_ACTION_ITEMS strip (src/components/instructor/QuickActions/quickActionItems.ts),
@@ -74,6 +87,10 @@ export default function InstructorDashboardHomePage() {
   const courses = useCourseProgressOverview();
   const submissions = useRecentSubmissions();
   const grades = useGradeDistribution();
+  const engagement = useEngagementAnalytics();
+  const needsAttention = useNeedsAttention();
+  const announcements = useAnnouncementsFeed();
+  const qa = useMyLessonQueries();
 
   // Extract needed KPIs from the stats payload
   const activeCourses = stats.data?.find(s => s.id === "active-courses")?.value || 0;
@@ -82,7 +99,8 @@ export default function InstructorDashboardHomePage() {
   const activeQuizzes = stats.data?.find(s => s.id === "active-quizzes")?.value || 0;
   const todaysClasses = stats.data?.find(s => s.id === "todays-classes")?.value || 0;
 
-  const avgEngagement = engagementData && engagementData.length > 0
+  const engagementData = engagement.data ?? [];
+  const avgEngagement = engagementData.length > 0
     ? Math.round(engagementData.reduce((acc, point) => acc + (point.lessonCompletion || 0), 0) / engagementData.length)
     : 0;
 
@@ -95,7 +113,7 @@ export default function InstructorDashboardHomePage() {
 
   const todaysSchedule = schedule.data?.today || [];
   const pendingActions = needsAttention.data || [];
-  const recentQa = (qaQueries || []).slice(0, 3);
+  const recentQa = (qa.data || []).slice(0, 3);
   const recentAnnouncements = (announcements.data || []).slice(0, 3);
 
   return (
@@ -259,7 +277,7 @@ export default function InstructorDashboardHomePage() {
             <Link href="/instructor/qa" className="text-[11px] text-orange-400 font-bold">View all</Link>
           </div>
 
-          {isQaLoading ? (
+          {qa.isLoading ? (
             <div className="space-y-2.5">
               {[1, 2].map((n) => <div key={n} className="h-[58px] rounded-xl bg-slate-800/50 animate-pulse" />)}
             </div>

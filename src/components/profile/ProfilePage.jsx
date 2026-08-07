@@ -1,16 +1,12 @@
 "use client";
 
-<<<<<<< HEAD
-=======
 import { useState } from "react";
 import { Shield, Mail, Key, UserCheck, Lock } from "lucide-react";
 import { changePassword } from "@/services/auth.service";
 import useAuth from "@/hooks/useAuth";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
->>>>>>> 3a2a149af33ddab1101f22c815a2cdd8a794cd7e
 import Loader from "@/components/common/Loader";
-import Card from "@/components/ui/Card";
 import DesktopEditProfileView from "@/components/student/profile/DesktopEditProfileView";
 import useProfile from "@/hooks/queries/student/useProfile";
 

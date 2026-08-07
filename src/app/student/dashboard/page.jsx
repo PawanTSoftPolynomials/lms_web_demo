@@ -17,6 +17,7 @@ import {
   Play,
   Bookmark as BookmarkIcon,
   Sparkles,
+  CalendarIcon,
 } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
