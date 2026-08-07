@@ -41,6 +41,7 @@ import { DocumentCell } from "./cells/DocumentCell";
 import { useDuplicateContent } from "./contentMutations";
 import { CELL_TYPES } from "./cellTypes";
 import { detectHtmlCellVariant } from "./htmlCellVariant";
+import { computeInsertOrder, sortByOrder } from "./blockOrder";
 import { getErrorMessage } from "./getErrorMessage";
 import type { CellActionProps, ContentRow } from "./types";
 
@@ -132,10 +133,25 @@ export function LessonComposerPanel({
   onSelectCell,
 }: LessonComposerPanelProps) {
   const { data: contents = [], isLoading, isError } = useContents(lessonId);
-  const [addCellOpen, setAddCellOpen] = useState(false);
+  const [insertOrder, setInsertOrder] = useState<number | null>(null);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const { duplicate } = useDuplicateContent();
   const { showToast } = useToast();
+
+  // Selection is "controlled" when a parent passes onSelectCell (the course
+  // page, wiring a Block Settings panel) and falls back to local state
+  // otherwise (the standalone lesson-page toggle) — either way, every block
+  // is selectable, which is what lets touch devices (no hover) reach a
+  // block's Add Above/Below/Duplicate/Delete/Settings controls by tapping it.
+  const [localSelectedId, setLocalSelectedId] = useState<string | null>(null);
+  const effectiveSelectedId = selectedCellId !== undefined ? selectedCellId : localSelectedId;
+
+  const handleSelectCell = (contentId: string) => {
+    setLocalSelectedId(contentId);
+    onSelectCell?.(contentId);
+  };
+
+  const openAddCell = (order: number) => setInsertOrder(order);
 
   const [activeFormat, setActiveFormat] = useState({
     blockType: "Paragraph",
@@ -346,7 +362,7 @@ export function LessonComposerPanel({
           {/* Block Insertion Shortcuts */}
           <button
             type="button"
-            onClick={() => setAddCellOpen(true)}
+            onClick={() => openAddCell(nextOrder)}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
             title="Insert Link"
           >
@@ -355,7 +371,7 @@ export function LessonComposerPanel({
 
           <button
             type="button"
-            onClick={() => setAddCellOpen(true)}
+            onClick={() => openAddCell(nextOrder)}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
             title="Insert Image"
           >
@@ -364,7 +380,7 @@ export function LessonComposerPanel({
 
           <button
             type="button"
-            onClick={() => setAddCellOpen(true)}
+            onClick={() => openAddCell(nextOrder)}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
             title="Insert Video"
           >
@@ -373,7 +389,7 @@ export function LessonComposerPanel({
 
           <button
             type="button"
-            onClick={() => setAddCellOpen(true)}
+            onClick={() => openAddCell(nextOrder)}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
             title="Insert Table"
           >
@@ -382,7 +398,7 @@ export function LessonComposerPanel({
 
           <button
             type="button"
-            onClick={() => setAddCellOpen(true)}
+            onClick={() => openAddCell(nextOrder)}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
             title="Insert Code"
           >
@@ -393,7 +409,7 @@ export function LessonComposerPanel({
         {/* Right Add Cell Button */}
         <button
           type="button"
-          onClick={() => setAddCellOpen(true)}
+          onClick={() => openAddCell(nextOrder)}
           className="flex items-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-3.5 py-1.5 transition shadow-sm cursor-pointer shrink-0"
         >
           <Plus size={14} className="stroke-[3]" />
@@ -404,7 +420,7 @@ export function LessonComposerPanel({
       {/* Canvas */}
       {contents.length === 0 ? (
         <div
-          onClick={() => setAddCellOpen(true)}
+          onClick={() => openAddCell(nextOrder)}
           className="rounded-2xl border-2 border-dashed border-slate-800 hover:border-orange-500/50 bg-slate-950/40 p-12 text-center transition cursor-pointer group"
         >
           <p className="text-sm font-bold text-slate-300 group-hover:text-orange-400 transition">
@@ -416,18 +432,17 @@ export function LessonComposerPanel({
         </div>
       ) : (
         <div className="space-y-4">
-          {contents.map((content: ContentRow) => {
+          {sortByOrder(contents).map((content: ContentRow) => {
             const badge = getBlockBadge(content);
+            const isSelected = effectiveSelectedId === content.id;
 
             return (
               <div
                 key={content.id}
-                onClick={onSelectCell ? () => onSelectCell(content.id) : undefined}
+                onClick={() => handleSelectCell(content.id)}
                 className={cn(
-                  onSelectCell && "cursor-pointer rounded-2xl transition-all duration-150",
-                  onSelectCell &&
-                    selectedCellId === content.id &&
-                    "ring-2 ring-orange-500 ring-offset-2 ring-offset-slate-950"
+                  "cursor-pointer rounded-2xl transition-all duration-150",
+                  isSelected && "ring-2 ring-orange-500 ring-offset-2 ring-offset-slate-950"
                 )}
               >
                 {renderCell(content, {
@@ -435,7 +450,10 @@ export function LessonComposerPanel({
                   isDuplicating: duplicatingId === content.id,
                   badgeText: badge.text,
                   badgeVariant: badge.variant,
-                  onSettingsSelect: onSelectCell ? () => onSelectCell(content.id) : undefined,
+                  onSettingsSelect: onSelectCell ? () => handleSelectCell(content.id) : undefined,
+                  onAddAbove: () => openAddCell(computeInsertOrder(contents, content.id, "above")),
+                  onAddBelow: () => openAddCell(computeInsertOrder(contents, content.id, "below")),
+                  isSelected,
                 })}
               </div>
             );
@@ -445,7 +463,7 @@ export function LessonComposerPanel({
 
       {/* Target UI Bottom Add Content Block Zone */}
       <div
-        onClick={() => setAddCellOpen(true)}
+        onClick={() => openAddCell(nextOrder)}
         className="rounded-2xl border-2 border-dashed border-slate-800 hover:border-orange-500/60 bg-slate-950/30 p-4 text-center transition cursor-pointer group flex items-center justify-center gap-2"
       >
         <Plus size={16} className="text-orange-500 group-hover:scale-110 transition" />
@@ -456,9 +474,11 @@ export function LessonComposerPanel({
 
       <AddCellModal
         lessonId={lessonId}
-        order={nextOrder}
-        open={addCellOpen}
-        onOpenChange={setAddCellOpen}
+        order={insertOrder ?? nextOrder}
+        open={insertOrder !== null}
+        onOpenChange={(open) => {
+          if (!open) setInsertOrder(null);
+        }}
       />
     </div>
   );

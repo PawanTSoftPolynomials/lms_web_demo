@@ -26,6 +26,9 @@ export function LinkCell({
   badgeText,
   badgeVariant,
   onSettingsSelect,
+  onAddAbove,
+  onAddBelow,
+  isSelected,
 }: LinkCellProps) {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [title, setTitle] = useState(content.title ?? "");
@@ -89,6 +92,9 @@ export function LinkCell({
       badgeText={badgeText}
       badgeVariant={badgeVariant}
       onSettingsSelect={onSettingsSelect}
+      onAddAbove={onAddAbove}
+      onAddBelow={onAddBelow}
+      isSelected={isSelected}
     >
       {mode === "edit" ? (
         <div className="space-y-3">

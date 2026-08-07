@@ -31,6 +31,9 @@ export function HeadingCell({
   badgeText,
   badgeVariant,
   onSettingsSelect,
+  onAddAbove,
+  onAddBelow,
+  isSelected,
 }: HeadingCellProps) {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [text, setText] = useState(() => extractHeadingText(content.htmlContent));
@@ -99,6 +102,9 @@ export function HeadingCell({
       badgeText={badgeText}
       badgeVariant={badgeVariant}
       onSettingsSelect={onSettingsSelect}
+      onAddAbove={onAddAbove}
+      onAddBelow={onAddBelow}
+      isSelected={isSelected}
     >
       {mode === "edit" ? (
         <div className="space-y-3">

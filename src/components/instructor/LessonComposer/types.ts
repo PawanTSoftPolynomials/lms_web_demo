@@ -24,6 +24,11 @@ export interface CellActionProps {
   badgeText?: string;
   badgeVariant?: "heading" | "text" | "code" | "image" | "video" | "document" | "default";
   onSettingsSelect?: () => void;
+  /** Opens the existing Add Content picker pre-targeted to insert immediately above/below this block — see blockOrder.ts. */
+  onAddAbove?: () => void;
+  onAddBelow?: () => void;
+  /** True while this block is the Composer's current selection — keeps its hover-only chrome visible without a mouse (the touch-device fallback, since touch has no hover). */
+  isSelected?: boolean;
 }
 
 /** Shared prop contract for every cell type's "Create" form, hosted inside AddCellModal. */

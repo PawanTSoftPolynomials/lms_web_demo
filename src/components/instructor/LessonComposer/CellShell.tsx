@@ -6,6 +6,7 @@ import {
   GripVertical,
   MoreVertical,
   Pencil,
+  Plus,
   Settings,
   Trash2,
   type LucideIcon,
@@ -30,6 +31,10 @@ interface CellShellProps {
   onDuplicate?: () => void;
   isDuplicating?: boolean;
   onSettingsSelect?: () => void;
+  onAddAbove?: () => void;
+  onAddBelow?: () => void;
+  /** Keeps the hover-only chrome visible without a mouse — the touch-device fallback, since touch has no hover. */
+  isSelected?: boolean;
   badgeText?: string;
   badgeVariant?: "heading" | "text" | "code" | "image" | "video" | "document" | "default";
   children: ReactNode;
@@ -56,11 +61,26 @@ export function CellShell({
   onDuplicate,
   isDuplicating = false,
   onSettingsSelect,
+  onAddAbove,
+  onAddBelow,
+  isSelected = false,
   badgeText,
   badgeVariant = "default",
   children,
 }: CellShellProps) {
   const badgeClass = BADGE_STYLES[badgeVariant] || BADGE_STYLES.default;
+
+  // Every hover-only control (drag handle, header actions, Add Above/Below)
+  // shares this: invisible and non-interactive by default so nothing shifts
+  // layout, fades in on hover, and — since touch has no hover — also stays
+  // visible while `isSelected` or actively `edit`ing (tapping a block on a
+  // touch device selects it; see LessonComposerPanel).
+  const showControls = isSelected || mode === "edit";
+  const hoverVisible = cn(
+    "opacity-0 pointer-events-none transition-opacity duration-150",
+    "group-hover:opacity-100 group-hover:pointer-events-auto",
+    showControls && "opacity-100 pointer-events-auto"
+  );
 
   return (
     <div
@@ -69,9 +89,34 @@ export function CellShell({
         mode === "edit" && "ring-2 ring-orange-500/50 border-orange-500/50"
       )}
     >
+      {/* Add Above — top center, fades in over the block's top edge */}
+      {onAddAbove && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddAbove();
+          }}
+          className={cn(
+            "absolute -top-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-slate-800 bg-slate-950 px-2.5 py-1 text-[10px] font-bold text-slate-400 shadow-md transition-colors hover:border-orange-500 hover:bg-orange-500 hover:text-slate-950 cursor-pointer",
+            hoverVisible
+          )}
+          title="Add block above"
+        >
+          <Plus size={11} />
+          Add Above
+        </button>
+      )}
+
       {/* Drag Handle & Type Badge */}
       <div className="flex items-center gap-2 shrink-0 pt-0.5">
-        <div className="flex h-8 w-4 items-center justify-center text-slate-600 group-hover:text-slate-400 cursor-grab active:cursor-grabbing transition">
+        <div
+          className={cn(
+            "flex h-8 w-4 items-center justify-center text-slate-400 cursor-grab active:cursor-grabbing transition",
+            hoverVisible
+          )}
+          title="Drag to reorder"
+        >
           <GripVertical size={16} />
         </div>
 
@@ -103,7 +148,7 @@ export function CellShell({
           </div>
 
           {/* Block Header Quick Actions */}
-          <div className="flex items-center gap-1 shrink-0">
+          <div className={cn("flex items-center gap-1 shrink-0", hoverVisible)}>
             {onSettingsSelect && (
               <button
                 type="button"
@@ -174,6 +219,25 @@ export function CellShell({
         {/* Cell Body */}
         <div>{children}</div>
       </div>
+
+      {/* Add Below — bottom center, fades in over the block's bottom edge */}
+      {onAddBelow && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddBelow();
+          }}
+          className={cn(
+            "absolute -bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-slate-800 bg-slate-950 px-2.5 py-1 text-[10px] font-bold text-slate-400 shadow-md transition-colors hover:border-orange-500 hover:bg-orange-500 hover:text-slate-950 cursor-pointer",
+            hoverVisible
+          )}
+          title="Add block below"
+        >
+          <Plus size={11} />
+          Add Below
+        </button>
+      )}
     </div>
   );
 }

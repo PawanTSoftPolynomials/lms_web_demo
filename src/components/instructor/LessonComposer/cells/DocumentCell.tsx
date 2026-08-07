@@ -27,6 +27,9 @@ export function DocumentCell({
   badgeText,
   badgeVariant,
   onSettingsSelect,
+  onAddAbove,
+  onAddBelow,
+  isSelected,
 }: DocumentCellProps) {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [title, setTitle] = useState(content.title ?? "");
@@ -114,6 +117,9 @@ export function DocumentCell({
       badgeText={badgeText}
       badgeVariant={badgeVariant}
       onSettingsSelect={onSettingsSelect}
+      onAddAbove={onAddAbove}
+      onAddBelow={onAddBelow}
+      isSelected={isSelected}
     >
       {mode === "edit" ? (
         <div className="space-y-3">

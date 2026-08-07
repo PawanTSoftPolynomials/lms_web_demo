@@ -55,6 +55,9 @@ export function ImageCell({
   badgeText,
   badgeVariant,
   onSettingsSelect,
+  onAddAbove,
+  onAddBelow,
+  isSelected,
 }: ImageCellProps) {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const parsed = () => parseImageHtml(content.htmlContent);
@@ -149,6 +152,9 @@ export function ImageCell({
       badgeText={badgeText}
       badgeVariant={badgeVariant}
       onSettingsSelect={onSettingsSelect}
+      onAddAbove={onAddAbove}
+      onAddBelow={onAddBelow}
+      isSelected={isSelected}
     >
       {mode === "edit" ? (
         <div className="space-y-3">
