@@ -1,17 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Pencil,
   Trash2,
   Eye,
-  ArrowLeft
+  ArrowLeft,
+  Table2,
+  LayoutGrid,
 } from "lucide-react";
 
 import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
 import LessonHeader from "@/components/instructor/lessons/LessonHeader";
+import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
 
 import { useLesson } from "@/hooks/queries/instructor/useLesson";
 import { useModule } from "@/hooks/queries/instructor/useModule";
@@ -23,6 +27,15 @@ export default function LessonDetailsPage() {
   const params = useParams();
   const lessonId = params.lessonId;
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Existing table view stays the default/unchanged; Compose is the new
+  // Lesson Composer cell-based view, added alongside it rather than
+  // replacing it. Landing here with ?view=compose (from the "Compose"
+  // action on the Course/Module lesson lists) opens directly into it.
+  const [view, setView] = useState(
+    searchParams.get("view") === "compose" ? "compose" : "table"
+  );
 
   // Fetch lesson details
   const {
@@ -116,13 +129,44 @@ export default function LessonDetailsPage() {
       />
 
       {/* Contents Section Header */}
-      <div>
-        <h2 className="text-3xl font-bold text-white tracking-tight">Contents</h2>
-        <p className="mt-1 text-slate-400">Manage lesson contents.</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold text-white tracking-tight">Contents</h2>
+          <p className="mt-1 text-slate-400">Manage lesson contents.</p>
+        </div>
+
+        <div className="flex items-center gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
+          <button
+            type="button"
+            onClick={() => setView("table")}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+              view === "table"
+                ? "bg-orange-500 text-slate-950"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Table2 size={13} />
+            Table
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("compose")}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+              view === "compose"
+                ? "bg-orange-500 text-slate-950"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <LayoutGrid size={13} />
+            Compose
+          </button>
+        </div>
       </div>
 
+      {view === "compose" && <LessonComposerPanel lessonId={lessonId} />}
+
       {/* Contents List - Tabular Flow */}
-      {!contents.length ? (
+      {view === "table" && (!contents.length ? (
         <Card>
           <div className="py-16 text-center">
             <h3 className="text-2xl font-semibold">No Contents Found</h3>
@@ -219,7 +263,7 @@ export default function LessonDetailsPage() {
             </table>
           </div>
         </div>
-      )}
+      ))}
     </div>
   );
 }

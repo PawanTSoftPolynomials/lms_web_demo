@@ -8,7 +8,8 @@ import {
   Trash2,
   Eye,
   ArrowLeft,
-  BookOpen
+  BookOpen,
+  LayoutGrid
 } from "lucide-react";
 
 import Loader from "@/components/common/Loader";
@@ -168,6 +169,18 @@ export default function ModuleDetailsPage() {
                           className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-orange-400 hover:text-orange-300 hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
                         >
                           <Plus size={12} />
+                        </button>
+                        {/* Compose */}
+                        <button
+                          onClick={() =>
+                            router.push(
+                              `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lesson.id}?view=compose`
+                            )
+                          }
+                          title="Open Composer"
+                          className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-purple-400 hover:text-purple-300 hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
+                        >
+                          <LayoutGrid size={12} />
                         </button>
                         {/* View */}
                         <button

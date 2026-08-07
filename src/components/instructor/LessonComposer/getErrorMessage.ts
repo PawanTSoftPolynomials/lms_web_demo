@@ -1,0 +1,9 @@
+import { isAxiosError } from "axios";
+
+/** Extracts a backend-provided error message from a failed API call, falling back otherwise. */
+export function getErrorMessage(error: unknown, fallback: string): string {
+  if (isAxiosError(error) && typeof error.response?.data?.message === "string") {
+    return error.response.data.message;
+  }
+  return fallback;
+}
