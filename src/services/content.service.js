@@ -1,13 +1,7 @@
 import api from "@/lib/axios";
 
-export const getContents = async (
-  lessonId
-) => {
-  const response =
-    await api.get(
-      `/contents?lessonId=${lessonId}`
-    );
-
+export const getContents = async (lessonId) => {
+  const response = await api.get(`/contents?lessonId=${lessonId}`);
   return response.data?.data ?? response.data ?? [];
 };
 
@@ -17,15 +11,10 @@ export const getInstructorContents = async () => {
   return response.data?.data ?? response.data ?? [];
 };
 
-export const getContentById =
-  async (contentId) => {
-    const response =
-      await api.get(
-        `/contents/${contentId}`
-      );
-
-    return response.data;
-  };
+export const getContentById = async (contentId) => {
+  const response = await api.get(`/contents/${contentId}`);
+  return response.data;
+};
 
 /** Uploads a raw file (PDF/PPT/DOCX/ZIP/Video) and returns its hosted URL, for use as a Content's fileUrl. */
 export const uploadContentFile = async (file) => {
@@ -39,37 +28,26 @@ export const uploadContentFile = async (file) => {
   return data;
 };
 
-export const createContent =
-  async (data) => {
-    const response =
-      await api.post(
-        "/contents",
-        data
-      );
+export const createContent = async (data) => {
+  // Ensure order is ALWAYS sent as an integer in the HTTP request payload
+  const parsedOrder = Number(data?.order);
+  const safeOrder = !isNaN(parsedOrder) && parsedOrder > 0 ? parsedOrder : 1;
 
-    return response.data;
+  const payload = {
+    ...data,
+    order: safeOrder,
   };
 
-export const updateContent =
-  async (
-    contentId,
-    data
-  ) => {
-    const response =
-      await api.put(
-        `/contents/${contentId}`,
-        data
-      );
+  const response = await api.post("/contents", payload);
+  return response.data;
+};
 
-    return response.data;
-  };
+export const updateContent = async (contentId, data) => {
+  const response = await api.put(`/contents/${contentId}`, data);
+  return response.data;
+};
 
-export const deleteContent =
-  async (contentId) => {
-    const response =
-      await api.delete(
-        `/contents/${contentId}`
-      );
-
-    return response.data;
-  };
+export const deleteContent = async (contentId) => {
+  const response = await api.delete(`/contents/${contentId}`);
+  return response.data;
+};
