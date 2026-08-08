@@ -31,6 +31,10 @@ export function useCreateLesson() {
                 queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES],
             });
 
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.COURSE],
+            });
+
         },
     });
 }

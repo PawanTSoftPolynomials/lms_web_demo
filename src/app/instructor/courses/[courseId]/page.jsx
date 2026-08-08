@@ -20,6 +20,7 @@ import {
   Trash2,
   Rocket,
   Undo2,
+  LayoutTemplate,
 } from "lucide-react";
 
 import Loader from "@/components/common/Loader";
@@ -286,6 +287,15 @@ export default function CourseDetailsPage() {
           <div className="flex flex-wrap gap-2 shrink-0">
             <button
               onClick={() =>
+                router.push(`/instructor/courses/${courseId}/composer`)
+              }
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-xl transition"
+            >
+              <LayoutTemplate size={12} />
+              Course Composer
+            </button>
+            <button
+              onClick={() =>
                 router.push(`/instructor/courses/edit/${courseId}`)
               }
               className="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-xl transition"
@@ -339,15 +349,26 @@ export default function CourseDetailsPage() {
           <h3 className="text-sm font-black uppercase tracking-widest text-slate-350">
             Course Syllabus
           </h3>
-          <button
-            onClick={() =>
-              router.push(`/instructor/modules/create/${courseId}`)
-            }
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-white bg-orange-500 hover:bg-orange-655 rounded-xl shadow-sm transition"
-          >
-            <Plus size={12} />
-            Add Module
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() =>
+                router.push(`/instructor/courses/${courseId}/composer`)
+              }
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-slate-400 hover:text-orange-400 transition"
+            >
+              <LayoutTemplate size={12} />
+              Open in Composer
+            </button>
+            <button
+              onClick={() =>
+                router.push(`/instructor/modules/create/${courseId}`)
+              }
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-white bg-orange-500 hover:bg-orange-655 rounded-xl shadow-sm transition"
+            >
+              <Plus size={12} />
+              Add Module
+            </button>
+          </div>
         </div>
 
         {/* Mobile View Cards (< md) */}

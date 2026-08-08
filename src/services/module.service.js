@@ -58,3 +58,15 @@ export const deleteModule =
 
     return response.data;
   };
+
+/** modules: [{ id, order }] — full desired ordering for one course. */
+export const reorderModules =
+  async (modules) => {
+    const response =
+      await api.patch(
+        "/modules/reorder",
+        { modules }
+      );
+
+    return response.data;
+  };

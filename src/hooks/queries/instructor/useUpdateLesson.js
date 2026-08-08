@@ -33,6 +33,10 @@ export function useUpdateLesson() {
                     variables.lessonData.moduleId,
                 ],
             });
+
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.COURSE],
+            });
         },
     });
 }

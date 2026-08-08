@@ -33,6 +33,10 @@ export function useUpdateContent() {
                     variables.contentData.lessonId,
                 ],
             });
+
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.COURSE],
+            });
         },
     });
 }

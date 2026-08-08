@@ -73,3 +73,15 @@ export const deleteContent =
 
     return response.data;
   };
+
+/** contents: [{ id, order }] — full desired ordering for one lesson. */
+export const reorderContents =
+  async (contents) => {
+    const response =
+      await api.patch(
+        "/contents/reorder",
+        { contents }
+      );
+
+    return response.data;
+  };
