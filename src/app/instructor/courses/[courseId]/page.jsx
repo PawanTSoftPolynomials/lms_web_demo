@@ -495,7 +495,7 @@ export default function CourseDetailsPage() {
                           ) : (
                             modLessons.map((lesson, lIdx) => {
                               const isSelected = composeLessonId === lesson.id;
-                              const blockCount = lesson.contents?.length ?? 0;
+                              const blockCount = lesson._count?.contents ?? lesson.contents?.length ?? 0;
 
                               return (
                                 <div
