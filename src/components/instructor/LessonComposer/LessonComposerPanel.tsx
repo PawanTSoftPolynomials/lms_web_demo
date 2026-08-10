@@ -31,7 +31,12 @@ import { useToast } from "@/components/ui/ToastProvider";
 import { useContents } from "@/hooks/queries/instructor/useContents";
 import { cn } from "@/lib/utils";
 
-import { AddCellModal } from "./AddCellModal";
+import dynamic from "next/dynamic";
+
+const AddCellModal = dynamic(
+  () => import("./AddCellModal").then((mod) => mod.AddCellModal),
+  { ssr: false }
+);
 import { TextCell } from "./cells/TextCell";
 import { HeadingCell } from "./cells/HeadingCell";
 import { ImageCell } from "./cells/ImageCell";
