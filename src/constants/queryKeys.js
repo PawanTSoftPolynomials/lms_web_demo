@@ -1,5 +1,10 @@
 export const QUERY_KEYS = {
     // ==========================
+    // Auth
+    // ==========================
+    AUTH_SESSION: "auth-session",
+
+    // ==========================
     // Student
     // ==========================
     COURSES: "courses",
