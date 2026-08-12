@@ -1,72 +1,33 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import {
-  Layers,
-  Video,
-  ClipboardList,
-  TrendingUp,
-  Award,
-  Search,
-  BookOpen,
-  CheckCircle2,
-  Circle,
-} from "lucide-react";
+import { BookOpen, Search } from "lucide-react";
 
-import Loader from "@/components/common/Loader";
-import PageHeader from "@/components/layouts/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
+import MyCourseCard from "@/components/student/my-courses/MyCourseCard";
 import useDashboard from "@/hooks/queries/student/useDashboard";
-import useAssignments from "@/hooks/queries/student/useAssignments";
 import useCourses from "@/hooks/queries/student/useCourses";
 import useMyCourses from "@/hooks/queries/student/useMyCourses";
-import { useNotification } from "@/context/NotificationContext";
-import { getCalendarEvents } from "@/services/calendar.service";
-import MyCourseCard from "@/components/student/my-courses/MyCourseCard";
-import CoursesSidebar from "@/components/student/my-courses/CoursesSidebar";
-
-const toLocalDateString = (date) => {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-};
-
-const isPendingAssignment = (a) => a.status !== "Submitted" && a.status !== "Graded";
 
 export default function MyCoursesPage() {
   const router = useRouter();
-  const { data: dashboardData, isLoading, isError } = useDashboard();
-  const { data: assignments = [] } = useAssignments();
-  const { notifications = [] } = useNotification();
-  // The dashboard's enrolledCoursesList only carries a thin course object
-  // (no thumbnail/category/module-quiz counts) — the catalog and enrollments
-  // endpoints fill those gaps for the card, same merge used on Browse Courses.
+  const { data: dashboardData, isLoading, isError, refetch } = useDashboard();
   const { data: catalogCourses = [] } = useCourses();
   const { data: myEnrollments = [] } = useMyCourses();
-  const { data: calendarEvents = [] } = useQuery({
-    queryKey: ["calendar_events"],
-    queryFn: getCalendarEvents,
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const catalogById = useMemo(() => new Map(catalogCourses.map((c) => [c.id, c])), [catalogCourses]);
-  const lastAccessedByCourseId = useMemo(
-    () => new Map(myEnrollments.map((e) => [e.course?.id || e.courseId, e.lastAccessedAt])),
-    [myEnrollments]
-  );
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [instructorFilter, setInstructorFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
 
-  const enrolledCourses = dashboardData?.enrolledCoursesList ?? [];
-  const stats = dashboardData?.stats ?? {};
+  const enrolledCourses = useMemo(() => dashboardData?.enrolledCoursesList ?? [], [dashboardData]);
 
-  const todayStr = toLocalDateString(new Date());
+  const catalogById = useMemo(() => new Map(catalogCourses.map((c) => [c.id, c])), [catalogCourses]);
+  const lastAccessedByCourseId = useMemo(
+    () => new Map(myEnrollments.map((e) => [e.course?.id || e.courseId, e.lastAccessedAt])),
+    [myEnrollments]
+  );
 
   const instructors = useMemo(
     () => Array.from(new Set(enrolledCourses.map((e) => e.course?.instructor).filter(Boolean))),
@@ -79,15 +40,21 @@ export default function MyCoursesPage() {
       return {
         ...e,
         lastAccessedAt: lastAccessedByCourseId.get(e.course?.id),
-        // Merge in the richer catalog fields, but never let a missing
-        // catalog thumbnail blank out the one the dashboard already gave us.
-        course: { ...e.course, ...catalogCourse, thumbnailUrl: catalogCourse?.thumbnailUrl || e.course?.thumbnailUrl },
+        course: {
+          ...e.course,
+          ...catalogCourse,
+          thumbnailUrl: catalogCourse?.thumbnailUrl || e.course?.thumbnailUrl,
+        },
       };
     });
 
     if (search.trim()) {
       const q = search.trim().toLowerCase();
-      list = list.filter((e) => e.course?.title?.toLowerCase().includes(q));
+      list = list.filter(
+        (e) =>
+          e.course?.title?.toLowerCase().includes(q) ||
+          e.course?.description?.toLowerCase().includes(q)
+      );
     }
     if (statusFilter === "in-progress") {
       list = list.filter((e) => (e.progress ?? 0) < 100);
@@ -107,278 +74,165 @@ export default function MyCoursesPage() {
     return sorted;
   }, [enrolledCourses, catalogById, lastAccessedByCourseId, search, statusFilter, instructorFilter, sortBy]);
 
-  const todaysClassesCount = useMemo(
-    () => calendarEvents.filter((e) => e.date === todayStr).length,
-    [calendarEvents, todayStr]
-  );
+  // Mobile carousel: tracks centered card for pagination dots
+  const sliderRef = useRef(null);
+  const scrollRaf = useRef(null);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const firstCourseId = filteredCourses[0]?.id || filteredCourses[0]?.courseId;
 
-  const pendingAssignmentsCount = useMemo(() => assignments.filter(isPendingAssignment).length, [assignments]);
+  useEffect(() => {
+    sliderRef.current?.scrollTo({ left: 0 });
+    setActiveSlide(0);
+  }, [firstCourseId]);
 
-  const averageProgress = useMemo(() => {
-    if (enrolledCourses.length === 0) return 0;
-    return Math.round(enrolledCourses.reduce((sum, e) => sum + (e.progress ?? 0), 0) / enrolledCourses.length);
-  }, [enrolledCourses]);
+  const handleSliderScroll = (e) => {
+    const el = e.currentTarget;
+    if (scrollRaf.current) return;
+    scrollRaf.current = requestAnimationFrame(() => {
+      scrollRaf.current = null;
+      const center = el.scrollLeft + el.clientWidth / 2;
+      let closest = 0;
+      let closestDist = Infinity;
+      Array.from(el.children).forEach((child, i) => {
+        const dist = Math.abs(child.offsetLeft + child.offsetWidth / 2 - center);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closest = i;
+        }
+      });
+      setActiveSlide(closest);
+    });
+  };
 
-  const progressSummary = useMemo(() => {
-    const completed = enrolledCourses.filter((e) => (e.progress ?? 0) >= 100).length;
-    const notStarted = enrolledCourses.filter((e) => (e.progress ?? 0) === 0).length;
-    const inProgress = enrolledCourses.length - completed - notStarted;
-    return { completed, inProgress, notStarted, overall: averageProgress };
-  }, [enrolledCourses, averageProgress]);
-
-  const announcementNotifications = useMemo(
-    () => notifications.filter((n) => (n.type || "").toUpperCase() === "ANNOUNCEMENT"),
-    [notifications]
-  );
-
-  const sidebarNextClass = useMemo(() => {
-    return (
-      calendarEvents
-        .filter((e) => e.date === todayStr)
-        .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""))[0] || null
-    );
-  }, [calendarEvents, todayStr]);
-
-  // Mobile-only compact 2x2 grid. "Draft"/"Archived" aren't real states for a
-  // student's enrollments (those are course-authoring states) — these four
-  // reuse the same real, already-computed progressSummary/stats fields and
-  // the same status colors as the course cards below (amber/emerald/sky/orange).
-  const mobileStats = [
-    { key: "inProgress", label: "In Progress", value: progressSummary.inProgress, icon: TrendingUp, bg: "bg-amber-500/10", color: "text-amber-400" },
-    { key: "completed", label: "Completed", value: progressSummary.completed, icon: CheckCircle2, bg: "bg-emerald-500/10", color: "text-emerald-400" },
-    { key: "notStarted", label: "Not Started", value: progressSummary.notStarted, icon: Circle, bg: "bg-sky-500/10", color: "text-sky-400" },
-    { key: "certificates", label: "Certificates", value: stats.certificatesCount ?? 0, icon: Award, bg: "bg-orange-500/10", color: "text-orange-400" },
-  ];
-
-  const kpis = [
-    {
-      key: "courses",
-      label: "Active Courses",
-      value: enrolledCourses.length,
-      icon: Layers,
-      bg: "bg-purple-500/10",
-      color: "text-purple-400",
-      subtitle: "Enrolled",
-    },
-    {
-      key: "todayClasses",
-      label: "Today's Classes",
-      value: todaysClassesCount,
-      icon: Video,
-      bg: "bg-blue-500/10",
-      color: "text-blue-400",
-      subtitle: todaysClassesCount > 0 ? "Scheduled today" : "None today",
-    },
-    {
-      key: "assignments",
-      label: "Upcoming Assignments",
-      value: pendingAssignmentsCount,
-      icon: ClipboardList,
-      bg: "bg-amber-500/10",
-      color: "text-amber-400",
-      subtitle: "Pending",
-    },
-    {
-      key: "progress",
-      label: "Avg. Progress",
-      value: `${averageProgress}%`,
-      icon: TrendingUp,
-      bg: "bg-emerald-500/10",
-      color: "text-emerald-400",
-      subtitle: "Across all courses",
-    },
-    {
-      key: "certificates",
-      label: "Certificates",
-      value: stats.certificatesCount ?? 0,
-      icon: Award,
-      bg: "bg-orange-500/10",
-      color: "text-orange-400",
-      subtitle: "Earned",
-    },
-  ];
-
-  if (isLoading) {
-    return <Loader />;
-  }
-
-  if (isError) {
-    return (
-      <EmptyState
-        icon={BookOpen}
-        title="Unable to load your courses"
-        description="Please try again later."
-      />
-    );
-  }
+  const goToSlide = (i) => {
+    const child = sliderRef.current?.children[i];
+    child?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  };
 
   return (
-    <div className="space-y-3 sm:space-y-5">
-      <PageHeader title="My Courses" subtitle="Manage and continue your enrolled courses." />
+    <div className="space-y-4 md:space-y-6">
+      {/* Header & Search / Filters Bar */}
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4">
+        <div className="shrink-0">
+          <h1 className="text-xl md:text-4xl font-bold text-white">
+            My Courses{!isLoading && enrolledCourses.length ? ` (${filteredCourses.length})` : ""}
+          </h1>
+          <p className="hidden md:block text-slate-400 mt-2 text-sm md:text-base">
+            Track your progress and continue learning your enrolled courses.
+          </p>
+        </div>
 
-      {enrolledCourses.length === 0 ? (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:contents">
+          <div className="relative w-full min-w-0 md:max-w-xs">
+            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+            <input
+              type="text"
+              placeholder="Search your courses..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full rounded-xl border border-[#1A1F35] bg-[#0D1021] pl-9 pr-4 py-2 md:py-2.5 text-sm text-slate-200 placeholder-slate-500 outline-none transition focus:border-orange-500/60"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 overflow-x-auto scrollbar-none">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="rounded-xl border border-[#1A1F35] bg-[#0D1021] px-3 py-2 md:py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer hover:border-slate-700 transition"
+            >
+              <option value="all">All Status</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+
+            <select
+              value={instructorFilter}
+              onChange={(e) => setInstructorFilter(e.target.value)}
+              className="rounded-xl border border-[#1A1F35] bg-[#0D1021] px-3 py-2 md:py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer hover:border-slate-700 transition"
+            >
+              <option value="all">All Instructors</option>
+              {instructors.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="rounded-xl border border-[#1A1F35] bg-[#0D1021] px-3 py-2 md:py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer hover:border-slate-700 transition"
+            >
+              <option value="recent">Sort: Recently Joined</option>
+              <option value="progress">Sort: Progress</option>
+              <option value="name">Sort: Name</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {isError ? (
+        <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] py-16 text-center space-y-3">
+          <p className="text-sm font-bold text-slate-300">Unable to load your courses.</p>
+          <button
+            onClick={() => refetch()}
+            className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition"
+          >
+            Retry
+          </button>
+        </div>
+      ) : !isLoading && enrolledCourses.length === 0 ? (
         <EmptyState
           icon={BookOpen}
-          title="You haven't enrolled in any courses yet."
-          description="Browse the course catalog and enroll to see your courses here."
+          title="No Enrolled Courses Yet"
+          description="Browse the course catalog and start learning today."
           actionText="Browse Courses"
           onAction={() => router.push("/student/courses")}
         />
       ) : (
-        <>
-          {/* Mobile: compact 2x2 grid, same card recipe as the Dashboard's stat cards. */}
-          <div className="grid grid-cols-2 gap-2 sm:hidden">
-            {mobileStats.map((k) => (
-              <div key={k.key} className="rounded-xl bg-card border border-card-border p-2">
-                <div className={`h-6 w-6 rounded-md ${k.bg} flex items-center justify-center mb-1`}>
-                  <k.icon size={11} className={k.color} />
-                </div>
-                <p className="text-sm font-black text-white leading-none">{k.value}</p>
-                <p className="text-[8.5px] text-slate-400 font-semibold leading-tight mt-1">{k.label}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Desktop / tablet: full stat row with subtitle */}
-          <div className="hidden sm:flex flex-wrap md:flex-nowrap items-center gap-3 w-full">
-            {kpis.map((k) => (
-              <div
-                key={k.key}
-                className="flex-1 min-w-[140px] flex items-center gap-3 rounded-2xl bg-card border border-card-border p-3 shadow-sm hover:border-slate-700 transition"
-              >
-                <div className={`p-2 rounded-xl ${k.bg} shrink-0`}>
-                  <k.icon size={16} className={k.color} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-slate-400 text-[9px] font-bold uppercase tracking-wider truncate">{k.label}</p>
-                  <p className="text-lg font-black text-white leading-none mt-0.5">{k.value}</p>
-                  <p className="text-[9px] text-slate-500 font-medium mt-1 truncate">{k.subtitle}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Search + Filters — mobile: compact 2-row stack, no horizontal
-              scrolling (search + status filter, then instructor + sort). */}
-          <div className="sm:hidden space-y-2">
-            <div className="flex gap-2">
-              <div className="relative flex-1 min-w-0">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search courses..."
-                  className="w-full bg-card border border-card-border rounded-xl pl-8 pr-3 py-2 text-xs text-white placeholder:text-slate-500 outline-none focus:border-orange-500/50 transition"
-                />
-              </div>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="shrink-0 w-[104px] bg-card border border-card-border rounded-xl px-2.5 py-2 text-[11px] font-semibold text-slate-300 outline-none cursor-pointer"
-              >
-                <option value="all">All Status</option>
-                <option value="in-progress">In Progress</option>
-                <option value="completed">Completed</option>
-              </select>
-            </div>
-            <div className="flex gap-2">
-              <select
-                value={instructorFilter}
-                onChange={(e) => setInstructorFilter(e.target.value)}
-                className="flex-1 min-w-0 bg-card border border-card-border rounded-xl px-2.5 py-2 text-[11px] font-semibold text-slate-300 outline-none cursor-pointer"
-              >
-                <option value="all">All Instructors</option>
-                {instructors.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="flex-1 min-w-0 bg-card border border-card-border rounded-xl px-2.5 py-2 text-[11px] font-semibold text-slate-300 outline-none cursor-pointer"
-              >
-                <option value="recent">Sort: Recent</option>
-                <option value="progress">Sort: Progress</option>
-                <option value="name">Sort: Name</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Search + Filters — desktop/tablet: unchanged single row */}
-          <div className="hidden sm:flex sm:flex-col lg:flex-row gap-2.5">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search courses..."
-                className="w-full bg-card border border-card-border rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder:text-slate-500 outline-none focus:border-orange-500/50 transition"
-              />
-            </div>
-
-            <div className="flex gap-2.5 overflow-x-auto scrollbar-none">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="shrink-0 bg-card border border-card-border rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer"
-              >
-                <option value="all">All Status</option>
-                <option value="in-progress">In Progress</option>
-                <option value="completed">Completed</option>
-              </select>
-
-              <select
-                value={instructorFilter}
-                onChange={(e) => setInstructorFilter(e.target.value)}
-                className="shrink-0 bg-card border border-card-border rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer"
-              >
-                <option value="all">All Instructors</option>
-                {instructors.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="shrink-0 bg-card border border-card-border rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer"
-              >
-                <option value="recent">Sort: Recently Joined</option>
-                <option value="progress">Sort: Progress</option>
-                <option value="name">Sort: Name</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Course Cards + Sidebar */}
-          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-5 items-start">
-            <div className="min-w-0">
-              {filteredCourses.length === 0 ? (
-                <div className="py-12 text-center text-xs text-slate-500 border border-dashed border-card-border rounded-2xl">
-                  No courses found matching your search or filters.
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
-                  {filteredCourses.map((enrollment) => (
-                    <MyCourseCard key={enrollment.id} enrollment={enrollment} />
+        <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] px-3 py-4 md:px-12 md:py-6">
+          <div className="md:max-h-[68vh] md:overflow-y-auto md:pr-1 md:-mr-1">
+            <div
+              ref={sliderRef}
+              onScroll={!isLoading && filteredCourses.length > 0 ? handleSliderScroll : undefined}
+              className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-6 md:pb-0 md:grid md:justify-center md:grid-cols-[repeat(auto-fill,320px)] md:overflow-visible md:snap-none"
+            >
+              {isLoading
+                ? Array.from({ length: 6 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-[90%] shrink-0 max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-80 md:shrink h-64 md:h-[26rem] rounded-2xl border border-slate-200 bg-white/10 animate-pulse"
+                    />
+                  ))
+                : filteredCourses.length === 0
+                ? (
+                  <div className="w-full col-span-full">
+                    <EmptyState title="No courses match your current filters." />
+                  </div>
+                )
+                : filteredCourses.map((enrollment, index) => (
+                    <MyCourseCard key={enrollment.id || enrollment.courseId} enrollment={enrollment} index={index} />
                   ))}
-                </div>
-              )}
             </div>
 
-            <div className="xl:sticky xl:top-4">
-              <CoursesSidebar
-                nextClass={sidebarNextClass}
-                announcements={announcementNotifications}
-                progressSummary={progressSummary}
-              />
-            </div>
+            {!isLoading && filteredCourses.length > 1 && (
+              <div className="flex md:hidden items-center justify-center gap-1.5 pt-3" role="tablist" aria-label="Course slides">
+                {filteredCourses.map((enrollment, i) => (
+                  <button
+                    key={enrollment.id || i}
+                    role="tab"
+                    aria-selected={i === activeSlide}
+                    aria-label={`Go to course slide ${i + 1}`}
+                    onClick={() => goToSlide(i)}
+                    className={`rounded-full transition-all duration-300 ${
+                      i === activeSlide ? "w-2 h-2 bg-orange-500" : "w-1.5 h-1.5 bg-slate-600"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
