@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -93,6 +92,11 @@ export default function MyCourseCard({ enrollment, index = 0 }) {
   const estimatedHours =
     course.estimatedLearningHours ?? (lessonsTotal > 0 ? Math.max(1, Math.round(lessonsTotal * 0.75)) : null);
   const durationLabel = estimatedHours ? `${estimatedHours}h` : "Self-paced";
+
+  const lastAccessedAt = enrollment.lastAccessedAt || enrollment.enrolledAt;
+  const lastAccessedLabel = lastAccessedAt
+    ? formatDistanceToNow(new Date(lastAccessedAt), { addSuffix: true })
+    : "Never";
 
   const goTo = (path) => (e) => {
     e.stopPropagation();
