@@ -92,7 +92,7 @@ export default function BatchActionsMenu({ batch, stopPropagation = true, hideVi
     <div className="flex items-center gap-1.5 w-full" onClick={(e) => stopPropagation && e.stopPropagation()}>
       {!hideViewDetails && (
         <button onClick={wrap(() => router.push(`/instructor/batches/${batch.id}`))} className={btnClass}>
-          <Eye size={12} /> View Details
+          <Eye size={12} /> View Batch
         </button>
       )}
       <button
@@ -103,22 +103,24 @@ export default function BatchActionsMenu({ batch, stopPropagation = true, hideVi
       >
         <BarChart2 size={12} /> Analytics
       </button>
-      <button onClick={wrap(handleMessageBatch)} disabled={startConversation.isPending} className={btnClass}>
-        {startConversation.isPending ? <Loader2 size={12} className="animate-spin" /> : <MessageSquare size={12} />}
-        Message
-      </button>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             onClick={(e) => stopPropagation && e.stopPropagation()}
             title="More actions"
+            aria-label="More actions"
             className="p-2 rounded-lg border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition shrink-0"
           >
             <MoreVertical size={13} />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={wrap(handleMessageBatch)} disabled={startConversation.isPending}>
+            {startConversation.isPending ? <Loader2 size={13} className="animate-spin" /> : <MessageSquare size={13} />}
+            Message Batch
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={wrap(() => router.push(`/instructor/batches/${batch.id}`))}>
             <UserPlus size={13} /> Add Students
           </DropdownMenuItem>
