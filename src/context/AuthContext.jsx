@@ -143,13 +143,21 @@ export const AuthProvider = ({ children }) => {
         "/verify-otp"
       ];
       if (guestRoutes.includes(pathname)) {
-        const dashboardPath =
+        let returnTo = null;
+        if (typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          returnTo = params.get("returnTo") || sessionStorage.getItem("intended_course_return");
+          if (returnTo) {
+            sessionStorage.removeItem("intended_course_return");
+          }
+        }
+        const defaultDashboard =
           user.role === "ADMIN"
             ? "/admin/dashboard"
             : user.role === "INSTRUCTOR"
             ? "/instructor/dashboard"
             : "/student/dashboard";
-        router.replace(dashboardPath);
+        router.replace(returnTo || defaultDashboard);
       }
     }
   }, [user, loading, pathname, router]);

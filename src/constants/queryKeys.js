@@ -11,6 +11,8 @@ export const QUERY_KEYS = {
     COURSE: "course",
     MY_COURSES: "my-courses",
     STUDENT_DASHBOARD: "student-dashboard",
+    PAYMENTS: "payments",
+    PAYMENT_ORDERS: "payment-orders",
     UPCOMING_TASKS: "upcoming-tasks",
     STUDENT_PROFILE: "student-profile",
     STUDENT_PROGRESS: "student-progress",
@@ -100,4 +102,9 @@ export const QUERY_KEYS = {
     RESULTS: "results",
     ASSESSMENTS: "assessments",
 
+    // ==========================
+    // Mentor AI
+    // ==========================
+    MENTOR_CONVERSATIONS: "mentor-conversations",
+    MENTOR_MESSAGES: "mentor-messages",
 };

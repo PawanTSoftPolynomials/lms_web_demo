@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChatWidget, ChatButton } from "@/components/chat";
+import { MentorWidget } from "@/components/mentor";
 import Sidebar from "@/components/layouts/Sidebar";
 import DashboardNavbar from "@/components/layouts/DashboardNavbar";
 
@@ -47,7 +48,7 @@ export default function DashboardLayout({ children, role, title }) {
       </div>
       <ChatWidget />
       <ChatButton />
+      <MentorWidget />
     </div>
-    
   );
 }

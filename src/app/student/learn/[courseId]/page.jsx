@@ -28,6 +28,7 @@ import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
 import { trackCourseAccess } from "@/services/enrollment.service";
 import { ChatWidget } from "@/components/chat";
+import { MentorWidget } from "@/components/mentor";
 import { createConversation } from "@/features/chat/api/chat.api";
 
 import useAuth from "@/hooks/useAuth";
@@ -1235,6 +1236,7 @@ export default function LearnPage() {
           </div>
         </div>
         <ChatWidget />
+        <MentorWidget />
       </div>
 
       {/* QUIZ ATTEMPT — same QuizExperience component either way; only the

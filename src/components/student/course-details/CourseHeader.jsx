@@ -3,12 +3,36 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Star, Clock } from "lucide-react";
+import { Star, Clock, BookOpen } from "lucide-react";
 
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import useMyCourses from "@/hooks/queries/student/useMyCourses";
 import useEnrollCourse from "@/hooks/queries/student/useEnrollCourse";
+
+import useRazorpayCheckout from "@/hooks/useRazorpayCheckout";
+
+// Reusable fallback for course thumbnails: next/image requires a non-empty
+// `src`, and courses aren't guaranteed to have a thumbnailUrl set.
+function CourseThumbnail({ thumbnailUrl, title, className = "" }) {
+    if (!thumbnailUrl) {
+        return (
+            <div className={`flex h-full w-full items-center justify-center bg-slate-900 ${className}`}>
+                <BookOpen className="h-8 w-8 text-slate-700" />
+            </div>
+        );
+    }
+
+    return (
+        <Image
+            src={thumbnailUrl}
+            alt={title}
+            fill
+            unoptimized
+            className={`object-cover ${className}`}
+        />
+    );
+}
 
 function formatDuration(hours) {
     if (!hours || hours <= 0) return "Self-paced";
@@ -27,7 +51,7 @@ export default function CourseHeader({
                                      }) {
     const router = useRouter();
     const { data: myEnrollments = [] } = useMyCourses();
-    const enrollMutation = useEnrollCourse();
+    const { startCheckout, isProcessing, getButtonLabel, errorMsg } = useRazorpayCheckout();
     const [descExpanded, setDescExpanded] = useState(false);
 
     if (!course) return null;
@@ -37,15 +61,14 @@ export default function CourseHeader({
     );
 
     const handleEnroll = async () => {
-        try {
-            await enrollMutation.mutateAsync(course.id);
-            // AI Student Entry Phase: personalize the course before the student
-            // starts it. The entry-assessment page itself offers a "skip for
-            // now" path straight to /student/learn, so this never blocks access.
-            router.push(`/student/entry-assessment/${course.id}`);
-        } catch (err) {
-            console.error("Enrollment failed:", err);
-        }
+        await startCheckout({
+            courseId: course.id,
+            courseTitle: course.title,
+            returnPath: `/student/courses/${course.id}`,
+            onSuccess: () => {
+                router.push(`/student/entry-assessment/${course.id}`);
+            },
+        });
     };
 
     const avgRating = course.stats?.avgRating || 0;
@@ -107,22 +130,31 @@ export default function CourseHeader({
         </div>
     );
 
-    const enrollButton = isEnrolled ? (
-        <Button
-            onClick={() => router.push(`/student/learn/${course.id}`)}
-            className="w-full sm:w-auto px-6 py-3 font-semibold text-base text-white"
-        >
-            Continue Learning
-        </Button>
-    ) : (
-        <Button
-            onClick={handleEnroll}
-            loading={enrollMutation.isPending}
-            disabled={enrollMutation.isPending}
-            className="w-full sm:w-auto px-6 py-3 font-semibold text-base text-white"
-        >
-            Enroll Now
-        </Button>
+    const enrollButton = (
+        <div className="space-y-2">
+            {isEnrolled ? (
+                <Button
+                    onClick={() => router.push(`/student/learn/${course.id}`)}
+                    className="w-full sm:w-auto px-6 py-3 font-semibold text-base text-white bg-orange-500 hover:bg-orange-600"
+                >
+                    Continue Learning
+                </Button>
+            ) : (
+                <Button
+                    onClick={handleEnroll}
+                    loading={isProcessing}
+                    disabled={isProcessing}
+                    className="w-full sm:w-auto px-6 py-3 font-semibold text-base text-white bg-orange-500 hover:bg-orange-600"
+                >
+                    {getButtonLabel("Enroll Now")}
+                </Button>
+            )}
+            {errorMsg && (
+                <p className="text-red-400 text-xs font-semibold mt-1 animate-in fade-in duration-150">
+                    {errorMsg}
+                </p>
+            )}
+        </div>
     );
 
     return (
@@ -133,13 +165,7 @@ export default function CourseHeader({
             <div className="space-y-4 p-6 lg:hidden">
                 <div className="flex items-start gap-3">
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl ring-1 ring-slate-800">
-                        <Image
-                            src={course.thumbnailUrl}
-                            alt={course.title}
-                            fill
-                            unoptimized
-                            className="object-cover"
-                        />
+                        <CourseThumbnail thumbnailUrl={course.thumbnailUrl} title={course.title} />
                     </div>
 
                     <div className="min-w-0 flex-1 pt-1">{badges}</div>
@@ -153,13 +179,7 @@ export default function CourseHeader({
             {/* Desktop (lg+): unchanged side-by-side hero. */}
             <div className="hidden gap-6 lg:grid lg:grid-cols-3">
                 <div className="relative h-full">
-                    <Image
-                        src={course.thumbnailUrl}
-                        alt={course.title}
-                        fill
-                        unoptimized
-                        className="object-cover"
-                    />
+                    <CourseThumbnail thumbnailUrl={course.thumbnailUrl} title={course.title} />
                 </div>
 
                 <div className="space-y-4 p-6 lg:col-span-2">

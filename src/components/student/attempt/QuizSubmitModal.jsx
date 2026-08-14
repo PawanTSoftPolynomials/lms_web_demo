@@ -3,17 +3,17 @@
 import Button from "@/components/ui/Button";
 
 export default function QuizSubmitModal({
-                                            isOpen,
-                                            onClose,
-                                            onConfirm,
-                                            totalQuestions = 0,
-                                            answeredQuestions = 0,
-                                            isSubmitting = false,
-                                        }) {
+    isOpen,
+    onClose,
+    onConfirm,
+    totalQuestions = 0,
+    answeredQuestions = 0,
+    isSubmitting = false,
+}) {
     if (!isOpen) return null;
 
-    const unansweredQuestions =
-        totalQuestions - answeredQuestions;
+    const unansweredQuestions = Math.max(0, totalQuestions - answeredQuestions);
+    const hasUnanswered = unansweredQuestions > 0;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
@@ -21,11 +21,13 @@ export default function QuizSubmitModal({
                 {/* Header */}
                 <div className="border-b border-slate-800 px-6 py-5">
                     <h2 className="text-2xl font-bold text-white">
-                        Submit Quiz
+                        {hasUnanswered ? "Incomplete Quiz Attempt" : "Submit Quiz"}
                     </h2>
 
                     <p className="mt-2 text-slate-400">
-                        Please review your quiz before submitting.
+                        {hasUnanswered
+                            ? "Please answer all questions before submitting your attempt."
+                            : "Please review your quiz before final submission."}
                     </p>
                 </div>
 
@@ -63,10 +65,10 @@ export default function QuizSubmitModal({
                         </div>
                     </div>
 
-                    {unansweredQuestions > 0 && (
-                        <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4">
-                            <p className="font-medium text-yellow-400">
-                                Warning
+                    {hasUnanswered ? (
+                        <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4">
+                            <p className="font-medium text-rose-400">
+                                Action Required
                             </p>
 
                             <p className="mt-2 text-sm text-slate-300">
@@ -78,41 +80,55 @@ export default function QuizSubmitModal({
                                 {unansweredQuestions === 1
                                     ? "question"
                                     : "questions"}
-                                . They will be submitted as unanswered.
+                                . Please answer all questions before submitting.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+                            <p className="font-medium text-emerald-400">
+                                All Questions Answered
+                            </p>
+
+                            <p className="mt-2 text-sm text-slate-300">
+                                Once you submit the quiz, you won't be able to modify your answers.
                             </p>
                         </div>
                     )}
-
-                    <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
-                        <p className="text-slate-300">
-                            Once you submit the quiz, you
-                            won't be able to modify your
-                            answers.
-                        </p>
-                    </div>
                 </div>
 
                 {/* Footer */}
                 <div className="flex justify-end gap-3 border-t border-slate-800 px-6 py-5">
-                    <Button
-                        type="button"
-                        onClick={onClose}
-                        disabled={isSubmitting}
-                        className="bg-slate-700 hover:bg-slate-600"
-                    >
-                        Cancel
-                    </Button>
+                    {hasUnanswered ? (
+                        <Button
+                            type="button"
+                            onClick={onClose}
+                            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+                        >
+                            Back to Questions
+                        </Button>
+                    ) : (
+                        <>
+                            <Button
+                                type="button"
+                                onClick={onClose}
+                                disabled={isSubmitting}
+                                className="bg-slate-700 hover:bg-slate-600"
+                            >
+                                Cancel
+                            </Button>
 
-                    <Button
-                        type="button"
-                        onClick={onConfirm}
-                        disabled={isSubmitting}
-                        className="bg-green-600 hover:bg-green-700"
-                    >
-                        {isSubmitting
-                            ? "Submitting..."
-                            : "Submit Quiz"}
-                    </Button>
+                            <Button
+                                type="button"
+                                onClick={onConfirm}
+                                disabled={isSubmitting}
+                                className="bg-green-600 hover:bg-green-700"
+                            >
+                                {isSubmitting
+                                    ? "Submitting..."
+                                    : "Submit Quiz"}
+                            </Button>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

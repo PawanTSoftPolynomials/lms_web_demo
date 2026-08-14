@@ -73,9 +73,18 @@ export default function LoginPage() {
           router.replace("/instructor/dashboard");
           break;
 
-        case "STUDENT":
-          router.replace("/student/dashboard");
+        case "STUDENT": {
+          let returnTo = null;
+          if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            returnTo = params.get("returnTo") || sessionStorage.getItem("intended_course_return");
+            if (returnTo) {
+              sessionStorage.removeItem("intended_course_return");
+            }
+          }
+          router.replace(returnTo || "/student/dashboard");
           break;
+        }
 
         default:
           setError(`Unknown role: ${user.role}`);
