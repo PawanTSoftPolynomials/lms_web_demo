@@ -14,5 +14,8 @@ export function isYouTubeUrl(url) {
 
 export function getYouTubeEmbedUrl(url) {
   const videoId = getYouTubeVideoId(url);
-  return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+  if (!videoId) return null;
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const originParam = origin ? `?enablejsapi=1&origin=${encodeURIComponent(origin)}` : "";
+  return `https://www.youtube.com/embed/${videoId}${originParam}`;
 }

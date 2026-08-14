@@ -158,7 +158,13 @@ export function LessonComposerPanel({
     onSelectCell?.(contentId);
   };
 
-  const openAddCell = (order: number) => setInsertOrder(order);
+  const openAddCell = (order: number) => {
+    if (!lessonId) {
+      showToast("Please select or create a lesson in the left sidebar first.", "error", "Lesson Required");
+      return;
+    }
+    setInsertOrder(order);
+  };
 
   /**
    * "Add Above"/"Add Below": makes room at the target integer `order` slot
@@ -244,225 +250,193 @@ export function LessonComposerPanel({
     <div className="space-y-5">
       {/* Target UI Toolbar Bar */}
       <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-2xl border border-slate-800 bg-slate-950 p-2 sm:p-2.5 shadow-md text-slate-300">
-        {/* Left Formatting Group */}
-        <div className="flex flex-wrap items-center gap-1">
-          {/* Undo / Redo */}
-          <button
-            type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-            title="Undo"
-          >
-            <Undo size={14} />
-          </button>
-          <button
-            type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-            title="Redo"
-          >
-            <Redo size={14} />
-          </button>
+        {/* Left Formatting Group — Only visible when Text/Markdown is selected or no cell selected */}
+        {(() => {
+          const selectedCell = (contents || []).find((c: ContentRow) => c.id === effectiveSelectedId);
+          const showTextToolbar = !selectedCell || selectedCell.type === "HTML" || selectedCell.type === "TEXT" || selectedCell.type === "HEADING";
+          if (!showTextToolbar) return <div className="text-xs font-semibold text-slate-400 px-2">{selectedCell.title || selectedCell.type} Selected</div>;
+          return (
+            <div className="flex flex-wrap items-center gap-1">
+              {/* Undo / Redo */}
+              <button
+                type="button"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                title="Undo"
+              >
+                <Undo size={14} />
+              </button>
+              <button
+                type="button"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                title="Redo"
+              >
+                <Redo size={14} />
+              </button>
 
-          <div className="h-4 w-px bg-slate-800 mx-1" />
+              <div className="h-4 w-px bg-slate-800 mx-1" />
 
-          {/* Block Type Dropdown */}
-          <select
-            value={activeFormat.blockType}
-            onChange={(e) => setActiveFormat({ ...activeFormat, blockType: e.target.value })}
-            className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-xs font-bold text-white outline-none focus:border-orange-500 cursor-pointer"
-          >
-            <option value="Paragraph">Paragraph</option>
-            <option value="Heading 1">Heading 1 (H1)</option>
-            <option value="Heading 2">Heading 2 (H2)</option>
-            <option value="Heading 3">Heading 3 (H3)</option>
-            <option value="Code">Code Block</option>
-          </select>
+              {/* Block Type Dropdown */}
+              <select
+                value={activeFormat.blockType}
+                onChange={(e) => setActiveFormat({ ...activeFormat, blockType: e.target.value })}
+                className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-xs font-bold text-white outline-none focus:border-orange-500 cursor-pointer"
+              >
+                <option value="Paragraph">Paragraph</option>
+                <option value="Heading 1">Heading 1 (H1)</option>
+                <option value="Heading 2">Heading 2 (H2)</option>
+                <option value="Heading 3">Heading 3 (H3)</option>
+                <option value="Code">Code Block</option>
+              </select>
 
-          <div className="h-4 w-px bg-slate-800 mx-1" />
+              <div className="h-4 w-px bg-slate-800 mx-1" />
 
-          {/* Bold, Italic, Underline, Strikethrough */}
-          <button
-            type="button"
-            onClick={() => setActiveFormat({ ...activeFormat, bold: !activeFormat.bold })}
-            className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition cursor-pointer",
-              activeFormat.bold ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-            )}
-            title="Bold"
-          >
-            <Bold size={14} />
-          </button>
+              {/* Bold, Italic, Underline, Strikethrough */}
+              <button
+                type="button"
+                onClick={() => setActiveFormat({ ...activeFormat, bold: !activeFormat.bold })}
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition cursor-pointer",
+                  activeFormat.bold ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                )}
+                title="Bold"
+              >
+                <Bold size={14} />
+              </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveFormat({ ...activeFormat, italic: !activeFormat.italic })}
-            className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition cursor-pointer",
-              activeFormat.italic ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-            )}
-            title="Italic"
-          >
-            <Italic size={14} />
-          </button>
+              <button
+                type="button"
+                onClick={() => setActiveFormat({ ...activeFormat, italic: !activeFormat.italic })}
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition cursor-pointer",
+                  activeFormat.italic ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                )}
+                title="Italic"
+              >
+                <Italic size={14} />
+              </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveFormat({ ...activeFormat, underline: !activeFormat.underline })}
-            className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition cursor-pointer",
-              activeFormat.underline ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-            )}
-            title="Underline"
-          >
-            <Underline size={14} />
-          </button>
+              <button
+                type="button"
+                onClick={() => setActiveFormat({ ...activeFormat, underline: !activeFormat.underline })}
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition cursor-pointer",
+                  activeFormat.underline ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                )}
+                title="Underline"
+              >
+                <Underline size={14} />
+              </button>
 
-          <button
-            type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-            title="Strikethrough"
-          >
-            <Strikethrough size={14} />
-          </button>
+              <button
+                type="button"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                title="Strikethrough"
+              >
+                <Strikethrough size={14} />
+              </button>
 
-          <div className="h-4 w-px bg-slate-800 mx-1" />
+              <div className="h-4 w-px bg-slate-800 mx-1" />
 
-          {/* Text Color */}
-          <button
-            type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-orange-400 hover:bg-slate-800 transition cursor-pointer font-black text-sm"
-            title="Text Color"
-          >
-            A<span className="text-[9px] translate-y-1">▼</span>
-          </button>
+              {/* Text Color */}
+              <button
+                type="button"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-orange-400 hover:bg-slate-800 transition cursor-pointer font-black text-sm"
+                title="Text Color"
+              >
+                A<span className="text-[9px] translate-y-1">▼</span>
+              </button>
 
-          <div className="h-4 w-px bg-slate-800 mx-1" />
+              <div className="h-4 w-px bg-slate-800 mx-1" />
 
-          {/* Alignment */}
-          <button
-            type="button"
-            onClick={() => setActiveFormat({ ...activeFormat, align: "left" })}
-            className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-lg transition cursor-pointer",
-              activeFormat.align === "left" ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-            )}
-            title="Align Left"
-          >
-            <AlignLeft size={14} />
-          </button>
+              {/* Alignment */}
+              <button
+                type="button"
+                onClick={() => setActiveFormat({ ...activeFormat, align: "left" })}
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-lg transition cursor-pointer",
+                  activeFormat.align === "left" ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                )}
+                title="Align Left"
+              >
+                <AlignLeft size={14} />
+              </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveFormat({ ...activeFormat, align: "center" })}
-            className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-lg transition cursor-pointer",
-              activeFormat.align === "center" ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-            )}
-            title="Align Center"
-          >
-            <AlignCenter size={14} />
-          </button>
+              <button
+                type="button"
+                onClick={() => setActiveFormat({ ...activeFormat, align: "center" })}
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-lg transition cursor-pointer",
+                  activeFormat.align === "center" ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                )}
+                title="Align Center"
+              >
+                <AlignCenter size={14} />
+              </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveFormat({ ...activeFormat, align: "right" })}
-            className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-lg transition cursor-pointer",
-              activeFormat.align === "right" ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-            )}
-            title="Align Right"
-          >
-            <AlignRight size={14} />
-          </button>
+              <button
+                type="button"
+                onClick={() => setActiveFormat({ ...activeFormat, align: "right" })}
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-lg transition cursor-pointer",
+                  activeFormat.align === "right" ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                )}
+                title="Align Right"
+              >
+                <AlignRight size={14} />
+              </button>
 
-          <button
-            type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-            title="Justify"
-          >
-            <AlignJustify size={14} />
-          </button>
+              <button
+                type="button"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                title="Justify"
+              >
+                <AlignJustify size={14} />
+              </button>
 
-          <div className="h-4 w-px bg-slate-800 mx-1" />
+              <div className="h-4 w-px bg-slate-800 mx-1" />
 
-          {/* Lists */}
-          <button
-            type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-            title="Bullet List"
-          >
-            <List size={14} />
-          </button>
+              {/* Lists */}
+              <button
+                type="button"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                title="Bullet List"
+              >
+                <List size={14} />
+              </button>
 
-          <button
-            type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-            title="Numbered List"
-          >
-            <ListOrdered size={14} />
-          </button>
+              <button
+                type="button"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                title="Numbered List"
+              >
+                <ListOrdered size={14} />
+              </button>
+            </div>
+          );
+        })()}
 
-          <div className="h-4 w-px bg-slate-800 mx-1" />
-
-          {/* Block Insertion Shortcuts */}
-          <button
-            type="button"
-            onClick={() => openAddCell(nextOrder)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-            title="Insert Link"
-          >
-            <LinkIcon size={14} />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => openAddCell(nextOrder)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-            title="Insert Image"
-          >
-            <ImageIcon size={14} />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => openAddCell(nextOrder)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-            title="Insert Video"
-          >
-            <VideoIcon size={14} />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => openAddCell(nextOrder)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-            title="Insert Table"
-          >
-            <Table size={14} />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => openAddCell(nextOrder)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-            title="Insert Code"
-          >
-            <Code size={14} />
-          </button>
-        </div>
-
-        {/* Right Add Cell Button */}
+        {/* Right Add Content Button */}
         <button
           type="button"
           onClick={() => openAddCell(nextOrder)}
           className="flex items-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-3.5 py-1.5 transition shadow-sm cursor-pointer shrink-0"
         >
           <Plus size={14} className="stroke-[3]" />
-          <span>Add Block</span>
+          <span>Add Content</span>
         </button>
       </div>
 
       {/* Canvas */}
-      {contents.length === 0 ? (
+      {!lessonId ? (
+        <div className="rounded-2xl border-2 border-dashed border-amber-500/30 bg-amber-500/5 p-12 text-center">
+          <p className="text-sm font-bold text-amber-400">
+            No lesson found for this module.
+          </p>
+          <p className="mt-1 text-xs text-slate-400">
+            Please click <strong className="text-white">+ New Lesson</strong> in the left Course Map sidebar to create a lesson before adding content blocks.
+          </p>
+        </div>
+      ) : contents.length === 0 ? (
         <div
           onClick={() => openAddCell(nextOrder)}
           className="rounded-2xl border-2 border-dashed border-slate-800 hover:border-orange-500/50 bg-slate-950/40 p-12 text-center transition cursor-pointer group"

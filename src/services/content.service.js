@@ -1,3 +1,4 @@
+import Cookies from "js-cookie";
 import api from "@/lib/axios";
 
 export const getContents = async (lessonId) => {
@@ -14,6 +15,29 @@ export const getInstructorContents = async () => {
 export const getContentById = async (contentId) => {
   const response = await api.get(`/contents/${contentId}`);
   return response.data;
+};
+
+/** Uploads a raw file (PDF/PPT/DOCX/ZIP/Video/Image) to Next.js Vercel Blob API route (/api/upload) and returns { url, pathname }. */
+export const uploadFileToVercelBlob = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const token = Cookies.get("accessToken") || (typeof window !== "undefined" ? localStorage.getItem("accessToken") : "");
+
+  const response = await fetch("/api/upload", {
+    method: "POST",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `Upload failed with status ${response.status}`);
+  }
+
+  return await response.json();
 };
 
 /** Uploads a raw file (PDF/PPT/DOCX/ZIP/Video) and returns its hosted URL, for use as a Content's fileUrl. */

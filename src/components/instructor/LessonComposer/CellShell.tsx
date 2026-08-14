@@ -147,49 +147,17 @@ export function CellShell({
             </p>
           </div>
 
-          {/* Block Header Quick Actions */}
-          <div className={cn("flex items-center gap-1 shrink-0", hoverVisible)}>
-            {onSettingsSelect && (
-              <button
-                type="button"
-                onClick={onSettingsSelect}
-                className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                title="Block Settings"
-              >
-                <Settings size={13} />
-              </button>
-            )}
-
-            {onDuplicate && (
-              <button
-                type="button"
-                onClick={onDuplicate}
-                disabled={isDuplicating}
-                className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer disabled:opacity-50"
-                title="Duplicate Block"
-              >
-                <Copy size={13} />
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={onDelete}
-              disabled={isDeleting}
-              className="flex h-7 w-7 items-center justify-center rounded-lg border border-red-500/20 bg-slate-950/60 text-red-400 hover:text-red-300 hover:bg-red-950/40 transition cursor-pointer disabled:opacity-50"
-              title="Delete Block"
-            >
-              <Trash2 size={13} />
-            </button>
-
+          {/* Single Settings Icon Action Button */}
+          <div className={cn("flex items-center shrink-0", hoverVisible)}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
                   className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                  aria-label="More options"
+                  aria-label="Block Settings & Actions"
+                  title="Settings & Actions"
                 >
-                  <MoreVertical size={13} />
+                  <Settings size={14} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -197,10 +165,16 @@ export function CellShell({
                   <Pencil className="size-3.5" />
                   Edit Content
                 </DropdownMenuItem>
+                {onSettingsSelect && (
+                  <DropdownMenuItem onSelect={onSettingsSelect}>
+                    <Settings className="size-3.5" />
+                    Block Settings
+                  </DropdownMenuItem>
+                )}
                 {onDuplicate && (
                   <DropdownMenuItem onSelect={onDuplicate} disabled={isDuplicating}>
                     <Copy className="size-3.5" />
-                    {isDuplicating ? "Duplicating…" : "Duplicate"}
+                    {isDuplicating ? "Duplicating…" : "Duplicate Block"}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem
@@ -209,7 +183,7 @@ export function CellShell({
                   disabled={isDeleting}
                 >
                   <Trash2 className="size-3.5" />
-                  {isDeleting ? "Deleting…" : "Delete"}
+                  {isDeleting ? "Deleting…" : "Delete Block"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
