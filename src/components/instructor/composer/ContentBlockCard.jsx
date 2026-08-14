@@ -5,8 +5,12 @@ import {
   MoreVertical,
   Pencil,
   Plus,
+  Layers,
   ArrowUp,
   ArrowDown,
+  ArrowUpRight,
+  LogOut,
+  Copy,
   Trash2,
   Check,
   X,
@@ -14,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { blockRegistry } from "@/components/instructor/composer/blocks/blockRegistry";
+import MoveTargetModal from "@/components/instructor/composer/MoveTargetModal";
 import { ScopedCss, blockScopeClass } from "@/components/instructor/composer/utils/scopedCss";
 import { toContentPayload } from "@/components/instructor/composer/mappers/contentBlockMapper";
 import { isBackendGradable, buildQuestionPayload, buildQuizPayload } from "@/components/instructor/composer/mappers/quizMapper";
@@ -21,6 +26,8 @@ import { isBackendGradable, buildQuestionPayload, buildQuizPayload } from "@/com
 import { useCreateContent } from "@/hooks/queries/instructor/useCreateContent";
 import { useUpdateContent } from "@/hooks/queries/instructor/useUpdateContent";
 import { useDeleteContent } from "@/hooks/queries/instructor/useDeleteContent";
+import { useMoveContent } from "@/hooks/queries/instructor/useMoveContent";
+import { useDuplicateContent } from "@/hooks/queries/instructor/useDuplicateContent";
 import { useCreateQuiz } from "@/hooks/queries/instructor/useCreateQuiz";
 import { useCreateQuestion } from "@/hooks/queries/instructor/useCreateQuestion";
 import { useUpdateQuestion } from "@/hooks/queries/instructor/useUpdateQuestion";
@@ -33,6 +40,7 @@ export default function ContentBlockCard({
   moduleId,
   courseId,
   lessonTitle,
+  allLessonContents,
   isNew,
   isFirst,
   isLast,
@@ -41,16 +49,22 @@ export default function ContentBlockCard({
   onDeleted,
   onMoveUp,
   onMoveDown,
+  onAddAbove,
   onAddBelow,
 }) {
   const [isEditing, setIsEditing] = useState(Boolean(isNew));
   const [draft, setDraft] = useState(block);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [pendingAddInside, setPendingAddInside] = useState(false);
+  const [moveModalOpen, setMoveModalOpen] = useState(false);
   const menuRef = useRef(null);
+  const nestedLayerRef = useRef(null);
 
   const createContent = useCreateContent();
   const updateContent = useUpdateContent();
   const deleteContent = useDeleteContent();
+  const moveContent = useMoveContent();
+  const duplicateContent = useDuplicateContent();
   const createQuiz = useCreateQuiz();
   const createQuestion = useCreateQuestion();
   const updateQuestion = useUpdateQuestion();
@@ -65,6 +79,17 @@ export default function ContentBlockCard({
     window.addEventListener("click", onOutside);
     return () => window.removeEventListener("click", onOutside);
   }, [menuOpen]);
+
+  // Entering edit mode mounts the nestable EditComponent's forwarded ref a
+  // render after setIsEditing(true) commits, so opening the picker has to
+  // wait for that mount rather than firing synchronously in the click
+  // handler, where the ref would still be null.
+  useEffect(() => {
+    if (pendingAddInside && nestedLayerRef.current) {
+      nestedLayerRef.current.openPicker();
+      setPendingAddInside(false);
+    }
+  }, [pendingAddInside, isEditing]);
 
   if (draft.blockType === "legacy") {
     return (
@@ -87,8 +112,17 @@ export default function ContentBlockCard({
 
   const entry = blockRegistry[draft.blockType];
   const Icon = entry.icon;
+  const isNested = Boolean(draft.parentContentId);
+  const isNestable = Boolean(entry.capabilities?.nestable);
+  const childCount = (allLessonContents || []).filter((c) => c.parentContentId === draft.id).length;
 
   const patchDraft = (patch) => setDraft((prev) => ({ ...prev, ...patch }));
+
+  const handleAddInside = () => {
+    setMenuOpen(false);
+    setIsEditing(true);
+    setPendingAddInside(true);
+  };
 
   const handleSave = async () => {
     try {
@@ -122,8 +156,12 @@ export default function ContentBlockCard({
       const finalDraft = { ...draft, quizLinkage };
       // Strip LessonCanvas-only bookkeeping fields (temp id/order/afterBlockId)
       // before persisting — the real id/order come from the Content row itself.
-      const { id: _id, order: _order, afterBlockId: _afterBlockId, ...blockPayload } = finalDraft;
-      const payload = toContentPayload(blockPayload, { lessonId, order: block.order });
+      const { id: _id, order: _order, afterBlockId: _afterBlockId, parentContentId: _pcid, ...blockPayload } = finalDraft;
+      const payload = toContentPayload(blockPayload, {
+        lessonId,
+        order: block.order,
+        parentContentId: draft.parentContentId ?? null,
+      });
 
       const saved = isNew
         ? await createContent.mutateAsync(payload)
@@ -150,7 +188,10 @@ export default function ContentBlockCard({
     setMenuOpen(false);
     const ok = await confirm({
       title: "Delete block",
-      message: "Delete this content block? This can't be undone.",
+      message:
+        childCount > 0
+          ? `Delete this block and its ${childCount} nested block${childCount > 1 ? "s" : ""}? This can't be undone.`
+          : "Delete this content block? This can't be undone.",
       confirmText: "Delete",
     });
     if (!ok) return;
@@ -166,20 +207,52 @@ export default function ContentBlockCard({
     onDeleted(block.id);
   };
 
+  const handleDuplicate = async () => {
+    setMenuOpen(false);
+    try {
+      await duplicateContent.mutateAsync({ contentId: block.id, lessonId });
+    } catch (error) {
+      toast?.showToast(error?.response?.data?.message || "Failed to duplicate block", "error");
+    }
+  };
+
+  const handleMoveOutside = async () => {
+    setMenuOpen(false);
+    try {
+      await moveContent.mutateAsync({ contentId: block.id, parentContentId: null, lessonId });
+    } catch (error) {
+      toast?.showToast(error?.response?.data?.message || "Failed to move block", "error");
+    }
+  };
+
+  const handleMoveInsidePick = async (targetId) => {
+    setMoveModalOpen(false);
+    try {
+      await moveContent.mutateAsync({ contentId: block.id, parentContentId: targetId, lessonId });
+    } catch (error) {
+      toast?.showToast(error?.response?.data?.message || "Failed to move block", "error");
+    }
+  };
+
   const ViewComponent = entry.ViewComponent;
   const EditComponent = entry.EditComponent;
+  const showHeader = isEditing || menuOpen;
 
   return (
     <div
-      className={`relative rounded-xl border bg-slate-900/50 p-4 transition ${
-        isEditing ? "border-orange-600/60" : "border-slate-800"
+      className={`group relative px-4 py-3.5 transition-colors ${
+        isEditing ? "bg-slate-900/70" : "hover:bg-slate-800/30"
       } ${blockScopeClass(block.id)}`}
     >
       <ScopedCss blockId={block.id} css={draft.cssStyles} />
 
-      <div className="flex items-center justify-between mb-3">
+      <div
+        className={`flex items-center justify-between gap-2 mb-2 transition-opacity ${
+          showHeader ? "" : "opacity-0 group-hover:opacity-100 focus-within:opacity-100"
+        }`}
+      >
         <div className="flex items-center gap-2 min-w-0">
-          <Icon size={14} className="text-orange-400 shrink-0" />
+          <Icon size={13} className="text-orange-400 shrink-0" />
           {isEditing ? (
             <input
               value={draft.title || ""}
@@ -188,7 +261,7 @@ export default function ContentBlockCard({
               className="bg-transparent text-sm font-semibold text-white outline-none border-b border-transparent focus:border-orange-500 min-w-0"
             />
           ) : (
-            <span className="text-sm font-semibold text-white truncate">
+            <span className="text-xs font-semibold text-slate-400 truncate">
               {draft.title || entry.label}
             </span>
           )}
@@ -203,7 +276,7 @@ export default function ContentBlockCard({
             <MoreVertical size={16} />
           </button>
           {menuOpen && (
-            <div className="absolute right-0 mt-1 w-44 rounded-lg border border-slate-800 bg-slate-900 shadow-xl z-20 py-1">
+            <div className="absolute right-0 mt-1 w-48 rounded-lg border border-slate-800 bg-slate-900 shadow-xl z-20 py-1">
               <button
                 type="button"
                 onClick={() => {
@@ -214,16 +287,39 @@ export default function ContentBlockCard({
               >
                 <Pencil size={12} /> Edit
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  onAddBelow();
-                }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
-              >
-                <Plus size={12} /> Add Block Below
-              </button>
+              {isNestable && !isNested && (
+                <button
+                  type="button"
+                  onClick={handleAddInside}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
+                >
+                  <Layers size={12} /> Add Block Inside
+                </button>
+              )}
+              {!isNested && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onAddAbove();
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
+                  >
+                    <Plus size={12} /> Add Block Above
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onAddBelow();
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
+                  >
+                    <Plus size={12} /> Add Block Below
+                  </button>
+                </>
+              )}
               <button
                 type="button"
                 disabled={isFirst}
@@ -246,6 +342,36 @@ export default function ContentBlockCard({
               >
                 <ArrowDown size={12} /> Move Down
               </button>
+              {!isNew && (
+                <button
+                  type="button"
+                  onClick={handleDuplicate}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
+                >
+                  <Copy size={12} /> Duplicate
+                </button>
+              )}
+              {!isNew && !isNested && childCount === 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setMoveModalOpen(true);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
+                >
+                  <ArrowUpRight size={12} /> Move Inside…
+                </button>
+              )}
+              {!isNew && isNested && (
+                <button
+                  type="button"
+                  onClick={handleMoveOutside}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
+                >
+                  <LogOut size={12} /> Move Outside
+                </button>
+              )}
               <hr className="border-slate-800 my-1" />
               <button
                 type="button"
@@ -261,7 +387,18 @@ export default function ContentBlockCard({
 
       {isEditing ? (
         <div className="space-y-4">
-          <EditComponent block={draft} onChange={patchDraft} />
+          {isNestable ? (
+            <EditComponent
+              ref={nestedLayerRef}
+              block={draft}
+              onChange={patchDraft}
+              allLessonContents={allLessonContents}
+              lessonId={lessonId}
+              isNew={isNew}
+            />
+          ) : (
+            <EditComponent block={draft} onChange={patchDraft} />
+          )}
 
           <details className="text-xs">
             <summary className="text-slate-500 cursor-pointer select-none">
@@ -294,9 +431,21 @@ export default function ContentBlockCard({
             </button>
           </div>
         </div>
+      ) : isNestable ? (
+        <ViewComponent block={draft} allLessonContents={allLessonContents} />
       ) : (
-        <ViewComponent block={draft} />
+        <div className="rounded-lg border border-slate-800/80 bg-slate-950/40 p-3">
+          <ViewComponent block={draft} />
+        </div>
       )}
+
+      <MoveTargetModal
+        open={moveModalOpen}
+        onClose={() => setMoveModalOpen(false)}
+        onPick={handleMoveInsidePick}
+        allLessonContents={allLessonContents}
+        excludeId={block.id}
+      />
     </div>
   );
 }

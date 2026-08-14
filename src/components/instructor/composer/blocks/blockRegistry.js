@@ -6,6 +6,11 @@ import {
   BarChart3,
   AppWindow,
   ListChecks,
+  Music,
+  FileBadge,
+  Link as LinkIcon,
+  Code2,
+  AlertTriangle,
 } from "lucide-react";
 
 import TextBlockView from "./TextBlockView";
@@ -22,6 +27,15 @@ import InteractiveBlockView from "./InteractiveBlockView";
 import InteractiveBlockEdit from "./InteractiveBlockEdit";
 import QuizBlockView from "./quiz/QuizBlockView";
 import QuizBlockEdit from "./quiz/QuizBlockEdit";
+import AudioBlockView from "./AudioBlockView";
+import AudioBlockEdit from "./AudioBlockEdit";
+import DocumentBlockView from "./DocumentBlockView";
+import DocumentBlockEdit from "./DocumentBlockEdit";
+import LinkBlockView from "./LinkBlockView";
+import LinkBlockEdit from "./LinkBlockEdit";
+import CodeBlockView from "./CodeBlockView";
+import CodeBlockEdit from "./CodeBlockEdit";
+import UnknownBlockView from "./UnknownBlockView";
 
 export const blockRegistry = {
   text: {
@@ -29,6 +43,7 @@ export const blockRegistry = {
     icon: FileText,
     ViewComponent: TextBlockView,
     EditComponent: TextBlockEdit,
+    capabilities: { nestable: true },
     defaultData: () => ({ blockType: "text", title: "", cssStyles: "", markdown: "" }),
   },
   image: {
@@ -50,6 +65,7 @@ export const blockRegistry = {
     icon: Presentation,
     ViewComponent: SlideshowBlockView,
     EditComponent: SlideshowBlockEdit,
+    capabilities: { nestable: true },
     defaultData: () => ({
       blockType: "slideshow",
       title: "",
@@ -95,6 +111,43 @@ export const blockRegistry = {
       allowedTime: "",
     }),
   },
+  audio: {
+    label: "Audio",
+    icon: Music,
+    ViewComponent: AudioBlockView,
+    EditComponent: AudioBlockEdit,
+    defaultData: () => ({ blockType: "audio", title: "", cssStyles: "", url: "", caption: "" }),
+  },
+  document: {
+    label: "Document",
+    icon: FileBadge,
+    ViewComponent: DocumentBlockView,
+    EditComponent: DocumentBlockEdit,
+    defaultData: () => ({ blockType: "document", title: "", cssStyles: "", url: "" }),
+  },
+  link: {
+    label: "Link",
+    icon: LinkIcon,
+    ViewComponent: LinkBlockView,
+    EditComponent: LinkBlockEdit,
+    defaultData: () => ({ blockType: "link", title: "", cssStyles: "", url: "" }),
+  },
+  code: {
+    label: "Code",
+    icon: Code2,
+    ViewComponent: CodeBlockView,
+    EditComponent: CodeBlockEdit,
+    defaultData: () => ({ blockType: "code", title: "", cssStyles: "", language: "", code: "" }),
+  },
+  // Importer-only artifact — deliberately excluded from BLOCK_TYPE_ORDER so
+  // it never appears in AddBlockModal; read-only in both view and edit mode.
+  unknown: {
+    label: "Unmapped",
+    icon: AlertTriangle,
+    ViewComponent: UnknownBlockView,
+    EditComponent: UnknownBlockView,
+    defaultData: () => ({ blockType: "unknown", title: "", cssStyles: "", status: "UNMAPPED", original: {} }),
+  },
 };
 
-export const BLOCK_TYPE_ORDER = ["text", "image", "video", "slideshow", "chart", "interactive", "quiz"];
+export const BLOCK_TYPE_ORDER = ["text", "image", "video", "slideshow", "chart", "interactive", "quiz", "audio", "document", "link", "code"];

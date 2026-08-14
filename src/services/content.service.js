@@ -85,3 +85,26 @@ export const reorderContents =
 
     return response.data;
   };
+
+/** parentContentId: null promotes the block to top-level; the server computes its new order. */
+export const moveContent =
+  async (contentId, parentContentId) => {
+    const response =
+      await api.patch(
+        `/contents/${contentId}/move`,
+        { parentContentId }
+      );
+
+    return response.data;
+  };
+
+/** Deep-clones a content block (and, one level down, its nested children), inserted right after the original. */
+export const duplicateContent =
+  async (contentId) => {
+    const response =
+      await api.post(
+        `/contents/${contentId}/duplicate`
+      );
+
+    return response.data;
+  };

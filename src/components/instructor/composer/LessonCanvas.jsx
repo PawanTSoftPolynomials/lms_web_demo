@@ -19,12 +19,22 @@ export default function LessonCanvas({ lesson, moduleId, courseId }) {
   const updateLesson = useUpdateLesson();
   const reorderContents = useReorderContents();
 
-  const savedBlocks = useMemo(
+  // All of the lesson's Content rows, mapped and sorted, both top-level and
+  // nested — nested blocks render exclusively through their parent's own
+  // flow/positioned nesting UI, never in this top-level list, but the full
+  // set is threaded down so containers can find their own children without
+  // a separate fetch.
+  const allLessonContents = useMemo(
     () =>
       [...(lesson.contents || [])]
         .sort((a, b) => a.order - b.order)
         .map((row) => fromContentRow(row)),
     [lesson.contents],
+  );
+
+  const savedBlocks = useMemo(
+    () => allLessonContents.filter((b) => !b.parentContentId),
+    [allLessonContents],
   );
 
   const displayList = useMemo(() => {
@@ -103,36 +113,40 @@ export default function LessonCanvas({ lesson, moduleId, courseId }) {
         />
       </div>
 
-      <div className="space-y-3">
-        {displayList.length === 0 && (
-          <div className="rounded-xl border border-dashed border-slate-800 p-8 text-center text-sm text-slate-500">
-            No content blocks yet. Add your first one below.
-          </div>
-        )}
-
-        {displayList.map(({ block, isDraft }, i) => {
-          const savedIndex = savedBlocks.findIndex((b) => b.id === block.id);
-          return (
-            <ContentBlockCard
-              key={block.id}
-              block={block}
-              lessonId={lesson.id}
-              moduleId={moduleId}
-              courseId={courseId}
-              lessonTitle={lesson.title}
-              isNew={isDraft}
-              isFirst={isDraft ? true : savedIndex === 0}
-              isLast={isDraft ? true : savedIndex === savedBlocks.length - 1}
-              onSaved={isDraft ? () => handleDraftSaved(block.id) : () => {}}
-              onCancelNew={() => handleCancelDraft(block.id)}
-              onDeleted={() => {}}
-              onMoveUp={() => moveBlock(savedIndex, -1)}
-              onMoveDown={() => moveBlock(savedIndex, 1)}
-              onAddBelow={() => openAddModal(block.id)}
-            />
-          );
-        })}
-      </div>
+      {displayList.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-slate-800 p-8 text-center text-sm text-slate-500">
+          No content blocks yet. Add your first one below.
+        </div>
+      ) : (
+        <div className="rounded-xl border border-slate-800 bg-slate-900/50 divide-y divide-slate-800/60 overflow-hidden">
+          {displayList.map(({ block, isDraft }) => {
+            const savedIndex = savedBlocks.findIndex((b) => b.id === block.id);
+            return (
+              <ContentBlockCard
+                key={block.id}
+                block={block}
+                lessonId={lesson.id}
+                moduleId={moduleId}
+                courseId={courseId}
+                lessonTitle={lesson.title}
+                allLessonContents={allLessonContents}
+                isNew={isDraft}
+                isFirst={isDraft ? true : savedIndex === 0}
+                isLast={isDraft ? true : savedIndex === savedBlocks.length - 1}
+                onSaved={isDraft ? () => handleDraftSaved(block.id) : () => {}}
+                onCancelNew={() => handleCancelDraft(block.id)}
+                onDeleted={() => {}}
+                onMoveUp={() => moveBlock(savedIndex, -1)}
+                onMoveDown={() => moveBlock(savedIndex, 1)}
+                onAddAbove={() =>
+                  openAddModal(savedIndex > 0 ? savedBlocks[savedIndex - 1].id : null)
+                }
+                onAddBelow={() => openAddModal(block.id)}
+              />
+            );
+          })}
+        </div>
+      )}
 
       <button
         type="button"

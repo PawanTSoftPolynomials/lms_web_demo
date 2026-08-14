@@ -1,38 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Marp } from "@marp-team/marp-core";
-import { marked } from "marked";
 import DOMPurify from "isomorphic-dompurify";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-function renderSlides(markdown) {
-  if (!markdown) return { slides: [], css: "" };
-
-  try {
-    const marp = new Marp({ script: false });
-    const { html, css } = marp.render(markdown);
-
-    if (typeof DOMParser !== "undefined") {
-      const doc = new DOMParser().parseFromString(html, "text/html");
-      const sections = Array.from(doc.querySelectorAll("section"));
-      if (sections.length > 0) {
-        return { slides: sections.map((s) => s.outerHTML), css };
-      }
-    }
-  } catch (error) {
-    console.error("Marp rendering error, falling back to naive split:", error);
-  }
-
-  // Fallback: naive split on a line containing only `---`.
-  const parts = markdown.split(/\n---\n|\n---\r\n/);
-  return {
-    slides: parts.map(
-      (part) => `<section>${DOMPurify.sanitize(marked.parse(part))}</section>`,
-    ),
-    css: "",
-  };
-}
+import { renderSlides } from "@/components/instructor/composer/utils/slideRenderer";
+import NestedBlockLayer from "@/components/instructor/composer/blocks/shared/NestedBlockLayer";
 
 export default function SlideshowBlockView({ block }) {
   const { slides, css } = useMemo(() => renderSlides(block.markdown), [block.markdown]);
@@ -46,10 +18,16 @@ export default function SlideshowBlockView({ block }) {
   return (
     <div className="space-y-3">
       {css && <style>{css}</style>}
-      <div
-        className="rounded-lg border border-slate-800 bg-slate-950/40 p-4 min-h-[220px] overflow-auto"
-        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(slides[current], { ADD_TAGS: ["section"] }) }}
-      />
+      <div className="relative rounded-lg border border-slate-800 bg-slate-950/40 p-4 min-h-[220px] overflow-auto">
+        <div
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(slides[current], { ADD_TAGS: ["section"] }) }}
+        />
+        <NestedBlockLayer
+          block={block}
+          editable={false}
+          filterChildren={(child) => (child.slideIndex ?? 0) === current}
+        />
+      </div>
       <div className="flex items-center justify-between">
         <span className="text-xs text-slate-500">
           Slide {current + 1} of {slides.length}

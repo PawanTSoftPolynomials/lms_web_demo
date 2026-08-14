@@ -80,6 +80,22 @@ export default function LearnPage() {
   }, [course]);
 
   const [selectedLesson, setSelectedLesson] = useState(null);
+
+  // A lesson can hold many Content blocks (Course Composer / AI Course
+  // Importer both create one row per block) — progress tracking (resume
+  // position, auto-advance on end) only makes sense for one of them, so the
+  // first VIDEO block is "primary" (falls back to the first block if the
+  // lesson has no video at all, preserving the single-content behavior).
+  // Every other block still renders, just without progress wiring, in order
+  // below the primary player.
+  const lessonContents = useMemo(() => selectedLesson?.contents || [], [selectedLesson]);
+  const primaryContent = useMemo(() => {
+    return lessonContents.find((c) => c.type === "VIDEO") || lessonContents[0] || null;
+  }, [lessonContents]);
+  const secondaryContents = useMemo(() => {
+    return lessonContents.filter((c) => c.id !== primaryContent?.id);
+  }, [lessonContents, primaryContent]);
+
   const [currentTimestamp, setCurrentTimestamp] = useState(0);
   const [initialTime, setInitialTime] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
@@ -251,13 +267,13 @@ export default function LearnPage() {
         courseId,
         moduleId: selectedLesson.moduleId || null,
         lessonId: selectedLesson.id,
-        contentId: selectedLesson.contents?.[0]?.id || null,
+        contentId: primaryContent?.id || null,
         timestamp: currentTimestamp,
       });
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [selectedLesson, currentTimestamp, courseId, stateRestored]);
+  }, [selectedLesson, currentTimestamp, courseId, stateRestored, primaryContent?.id]);
 
   const markComplete = async () => {
     if (!selectedLesson?.id) return;
@@ -931,12 +947,24 @@ export default function LearnPage() {
 
               <VideoPlayer
                 ref={videoPlayerRef}
-                content={selectedLesson?.contents?.[0]}
+                content={primaryContent}
                 onTimeUpdate={setCurrentTimestamp}
                 onDurationChange={setVideoDuration}
                 onEnded={handleVideoEnded}
                 initialTime={initialTime}
               />
+
+              {/* Every other content block in the lesson (Composer/AI Importer
+                  lessons routinely hold several — text, images, more videos,
+                  links, quizzes) — rendered in order below the primary player,
+                  each independently, no progress-tracking wiring. */}
+              {secondaryContents.length > 0 && (
+                <div className="space-y-4">
+                  {secondaryContents.map((c) => (
+                    <VideoPlayer key={c.id} content={c} />
+                  ))}
+                </div>
+              )}
 
               {/* Compact Previous / Complete / Next — mobile & tablet only, right
                   under the player. Small on purpose: the video stays the focus,

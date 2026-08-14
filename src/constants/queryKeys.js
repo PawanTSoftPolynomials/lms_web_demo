@@ -90,4 +90,7 @@ export const QUERY_KEYS = {
     RESULTS: "results",
     ASSESSMENTS: "assessments",
 
+    COURSE_IMPORT_JOBS: "course-import-jobs",
+    COURSE_IMPORT_JOB: "course-import-job",
+
 };

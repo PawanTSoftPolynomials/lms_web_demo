@@ -16,6 +16,11 @@ export const TYPE_TO_CONTENT_TYPE = {
   chart: "EMBED",
   interactive: "INTERACTIVE_LAB",
   quiz: "EMBED",
+  audio: "AUDIO",
+  document: "DOCUMENT",
+  link: "LINK",
+  code: "CODE",
+  unknown: "FILE",
 };
 
 function renderMarkdownHtml(markdown) {
@@ -24,7 +29,7 @@ function renderMarkdownHtml(markdown) {
 }
 
 /** Converts a local composer block into a Content create/update body. */
-export function toContentPayload(block, { lessonId, order }) {
+export function toContentPayload(block, { lessonId, order, parentContentId }) {
   const payload = {
     lessonId,
     order,
@@ -32,6 +37,13 @@ export function toContentPayload(block, { lessonId, order }) {
     title: block.title || null,
     data: block,
   };
+
+  // Only set when the caller explicitly passes it, so a routine save of an
+  // already-nested (or already-top-level) block never accidentally resets
+  // its parent.
+  if (parentContentId !== undefined) {
+    payload.parentContentId = parentContentId;
+  }
 
   switch (block.blockType) {
     case "text":
@@ -57,6 +69,19 @@ export function toContentPayload(block, { lessonId, order }) {
     case "quiz":
       payload.htmlContent = renderMarkdownHtml(block.question);
       break;
+    case "audio":
+      payload.fileUrl = block.url || null;
+      payload.htmlContent = renderMarkdownHtml(block.caption);
+      break;
+    case "document":
+      payload.fileUrl = block.url || null;
+      break;
+    case "link":
+      payload.externalUrl = block.url || null;
+      break;
+    case "code":
+      payload.htmlContent = block.code || "";
+      break;
     default:
       break;
   }
@@ -72,12 +97,13 @@ export function toContentPayload(block, { lessonId, order }) {
  */
 export function fromContentRow(row) {
   if (row?.data && row.data.blockType) {
-    return { ...row.data, id: row.id, order: row.order };
+    return { ...row.data, id: row.id, order: row.order, parentContentId: row.parentContentId ?? null };
   }
 
   return {
     id: row.id,
     order: row.order,
+    parentContentId: row.parentContentId ?? null,
     blockType: "legacy",
     legacyType: row.type,
     title: row.title,

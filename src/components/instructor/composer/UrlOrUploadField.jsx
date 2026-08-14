@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { UploadCloud, Link as LinkIcon } from "lucide-react";
-import { uploadContentFile } from "@/services/content.service";
+import { uploadFileToBlob } from "@/services/blobUpload.service";
 import { useToast } from "@/components/ui/ToastProvider";
 
-/** Shared upload-or-paste-URL picker used by image/video/interactive block editors. */
+/** Shared upload-or-paste-URL picker used by the image/video/audio/document block editors. */
 export default function UrlOrUploadField({ label, value, onChange, accept }) {
   const [uploading, setUploading] = useState(false);
   const toast = useToast();
@@ -14,13 +14,10 @@ export default function UrlOrUploadField({ label, value, onChange, accept }) {
     if (!file) return;
     setUploading(true);
     try {
-      const result = await uploadContentFile(file);
-      onChange(result.fileUrl);
+      const result = await uploadFileToBlob(file);
+      onChange(result.url);
     } catch (error) {
-      toast?.showToast(
-        error?.response?.data?.message || "Upload failed",
-        "error",
-      );
+      toast?.showToast(error?.message || "Upload failed", "error");
     } finally {
       setUploading(false);
     }

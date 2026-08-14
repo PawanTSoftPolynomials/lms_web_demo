@@ -9,9 +9,13 @@ import {
   ArrowUp,
   ArrowDown,
   Plus,
+  Check,
+  X,
 } from "lucide-react";
 
 import LessonNavItem from "@/components/instructor/composer/LessonNavItem";
+import Modal from "@/components/ui/Modal";
+import Input from "@/components/ui/Input";
 
 import { useUpdateModule } from "@/hooks/queries/instructor/useUpdateModule";
 import { useDeleteModule } from "@/hooks/queries/instructor/useDeleteModule";
@@ -31,8 +35,9 @@ export default function ModuleAccordionItem({
   defaultOpen,
 }) {
   const [open, setOpen] = useState(Boolean(defaultOpen));
-  const [isRenaming, setIsRenaming] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [title, setTitle] = useState(mod.title);
+  const [description, setDescription] = useState(mod.description || "");
   const [addingLesson, setAddingLesson] = useState(false);
   const [newLessonTitle, setNewLessonTitle] = useState("");
 
@@ -44,13 +49,21 @@ export default function ModuleAccordionItem({
 
   const lessons = [...(mod.lessons || [])].sort((a, b) => a.order - b.order);
 
-  const saveRename = () => {
-    setIsRenaming(false);
-    if (!title.trim() || title === mod.title) {
+  const openEditModal = () => {
+    setTitle(mod.title);
+    setDescription(mod.description || "");
+    setEditOpen(true);
+  };
+
+  const saveEdit = () => {
+    if (!title.trim()) {
       setTitle(mod.title);
       return;
     }
-    updateModule.mutate({ moduleId: mod.id, moduleData: { courseId, title } });
+    if (title !== mod.title || description !== (mod.description || "")) {
+      updateModule.mutate({ moduleId: mod.id, moduleData: { courseId, title, description } });
+    }
+    setEditOpen(false);
   };
 
   const handleDelete = async (e) => {
@@ -101,19 +114,7 @@ export default function ModuleAccordionItem({
           <ChevronRight size={14} className="text-slate-500 shrink-0" />
         )}
 
-        {isRenaming ? (
-          <input
-            autoFocus
-            value={title}
-            onClick={(e) => e.stopPropagation()}
-            onChange={(e) => setTitle(e.target.value)}
-            onBlur={saveRename}
-            onKeyDown={(e) => e.key === "Enter" && saveRename()}
-            className="flex-1 min-w-0 bg-slate-800 rounded px-1.5 py-0.5 text-xs outline-none border border-orange-500"
-          />
-        ) : (
-          <span className="flex-1 min-w-0 truncate text-sm font-bold text-white">{mod.title}</span>
-        )}
+        <span className="flex-1 min-w-0 truncate text-sm font-bold text-white">{mod.title}</span>
 
         <div className="hidden group-hover:flex items-center gap-0.5 shrink-0">
           <button
@@ -142,7 +143,7 @@ export default function ModuleAccordionItem({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              setIsRenaming(true);
+              openEditModal();
             }}
             className="p-1 rounded text-slate-500 hover:text-white"
           >
@@ -197,6 +198,39 @@ export default function ModuleAccordionItem({
           )}
         </div>
       )}
+
+      <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit Module" size="sm">
+        <div className="space-y-4">
+          <Input label="Module Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <div className="space-y-2">
+            <label className="text-sm text-slate-300">Subtitle / Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              placeholder="What does this module cover?"
+              className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm outline-none focus:border-orange-500 resize-y"
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={() => setEditOpen(false)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-lg transition"
+            >
+              <X size={12} /> Cancel
+            </button>
+            <button
+              type="button"
+              onClick={saveEdit}
+              disabled={updateModule.isPending}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition disabled:opacity-50"
+            >
+              <Check size={12} /> {updateModule.isPending ? "Saving…" : "Done"}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
