@@ -213,7 +213,8 @@ export default function QuizDetailsPage() {
                         {options.length > 0 && (
                             <div className="mt-8 space-y-4">
                                 {options.map((option, i) => {
-                                    const isCorrect = option === question.correctAnswer;
+                                    const optionText = typeof option === "string" ? option : (option?.optionText || option?.text || String(option));
+                                    const isCorrect = optionText === question.correctAnswer || (typeof option === "object" && option?.isCorrect);
 
                                     return (
                                         <div
@@ -226,7 +227,7 @@ export default function QuizDetailsPage() {
                                                     <span className="mr-1 font-semibold">
                                                         {labels[i]}.
                                                     </span>
-                                                    {option}
+                                                    {optionText}
                                                 </span>
                                             </div>
 

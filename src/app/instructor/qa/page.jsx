@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { HelpCircle, Send, Loader2, CheckCircle2, Clock } from "lucide-react";
+import { useMemo, useState } from "react";
+import { HelpCircle, Search, Send, Loader2, RotateCcw } from "lucide-react";
 
 import { WorkFilterProvider, useWorkFilters } from "@/context/WorkFilterContext";
-import WorkFilterBar from "@/components/instructor/work/WorkFilterBar";
+import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
+import { useModules } from "@/hooks/queries/instructor/useModules";
+import { useLessons } from "@/hooks/queries/instructor/useLessons";
+import { useCourseBatches } from "@/hooks/queries/instructor/useBatches";
+import { DateRangePicker } from "@/components/ui/DateRangePicker";
 import {
   useMyLessonQueries,
   useReplyToLessonQuery,
@@ -15,6 +19,121 @@ const STATUS_OPTIONS = [
   { value: "PENDING", label: "Pending" },
   { value: "ANSWERED", label: "Answered" },
 ];
+
+const STATUS_META = {
+  PENDING: { label: "Unanswered", dot: "bg-amber-400", text: "text-amber-400" },
+  ANSWERED: { label: "Answered", dot: "bg-emerald-400", text: "text-emerald-400" },
+};
+
+const toolbarControlClass =
+  "h-9 bg-[#0D1021] border border-[#1A1F35] text-xs px-3 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-[#0D1021] [&>option]:text-slate-200";
+
+const timeAgo = (iso) => {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const diffMins = Math.round(diffMs / 60000);
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHours = Math.round(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.round(diffHours / 24);
+  return diffDays === 1 ? "Yesterday" : `${diffDays}d ago`;
+};
+
+/** Compact inline replacement for the old bordered WorkFilterBar panel — same
+ * useWorkFilters() context/logic (Course/Batch/Module/Lesson/Status/Date),
+ * just laid out as a single wrapping toolbar row instead of a large grid. */
+function FilterToolbar({ onResetAll }) {
+  const { filters, updateFilter, resetFilters } = useWorkFilters();
+  const { data: courses = [] } = useInstructorCourses();
+  const { data: batches = [] } = useCourseBatches(filters.courseId);
+  const { data: modules = [] } = useModules(filters.courseId);
+  const { data: lessons = [] } = useLessons(filters.moduleId);
+
+  const handleReset = () => {
+    resetFilters();
+    onResetAll();
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <select
+        value={filters.courseId}
+        onChange={(e) => updateFilter("courseId", e.target.value)}
+        className={toolbarControlClass}
+      >
+        <option value="">All Courses</option>
+        {courses.map((c) => (
+          <option key={c.id} value={c.id}>{c.title}</option>
+        ))}
+      </select>
+
+      <select
+        value={filters.batchId}
+        onChange={(e) => updateFilter("batchId", e.target.value)}
+        disabled={!filters.courseId}
+        className={toolbarControlClass}
+      >
+        <option value="">All Batches</option>
+        {batches.map((b) => (
+          <option key={b.id} value={b.id}>{b.name}</option>
+        ))}
+      </select>
+
+      <select
+        value={filters.moduleId}
+        onChange={(e) => updateFilter("moduleId", e.target.value)}
+        disabled={!filters.courseId}
+        className={toolbarControlClass}
+      >
+        <option value="">All Modules</option>
+        {modules.map((m) => (
+          <option key={m.id} value={m.id}>{m.title}</option>
+        ))}
+      </select>
+
+      <select
+        value={filters.lessonId}
+        onChange={(e) => updateFilter("lessonId", e.target.value)}
+        disabled={!filters.moduleId}
+        className={toolbarControlClass}
+      >
+        <option value="">All Lessons</option>
+        {lessons.map((l) => (
+          <option key={l.id} value={l.id}>{l.title}</option>
+        ))}
+      </select>
+
+      <select
+        value={filters.status}
+        onChange={(e) => updateFilter("status", e.target.value)}
+        className={toolbarControlClass}
+      >
+        {STATUS_OPTIONS.map((opt) => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
+
+      <DateRangePicker
+        startDate={filters.startDate}
+        endDate={filters.endDate}
+        onChange={(nextStart, nextEnd) => {
+          updateFilter("startDate", nextStart);
+          updateFilter("endDate", nextEnd);
+        }}
+        triggerClassName="h-9 py-0"
+      />
+
+      <button
+        type="button"
+        onClick={handleReset}
+        className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-slate-400 transition hover:text-white"
+      >
+        <RotateCcw size={12} />
+        Reset
+      </button>
+    </div>
+  );
+}
 
 function ReplyBox({ queryId }) {
   const [reply, setReply] = useState("");
@@ -46,66 +165,136 @@ function ReplyBox({ queryId }) {
   );
 }
 
+function QuestionCard({ query: q }) {
+  const [expanded, setExpanded] = useState(false);
+  const meta = STATUS_META[q.status] || STATUS_META.PENDING;
+  const studentName = q.student?.user?.name || "Student";
+  const contextLabel = [q.lesson?.module?.course?.title, q.lesson?.module?.title, q.lesson?.title]
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <div className="p-4 rounded-xl border border-[#1A1F35] bg-[#0D1021]">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-[10px] text-slate-500 font-semibold truncate min-w-0">{contextLabel}</p>
+        <span className="shrink-0 text-[10px] text-slate-500 font-mono">{timeAgo(q.createdAt)}</span>
+      </div>
+
+      <p className={`text-[13px] font-bold text-slate-100 mt-2 leading-relaxed ${expanded ? "" : "line-clamp-2"}`}>
+        {q.question}
+      </p>
+
+      <p className="text-[10.5px] text-slate-500 mt-2">
+        Student: <span className="text-slate-300 font-semibold">{studentName}</span>
+      </p>
+
+      <div className="flex items-center justify-between gap-3 mt-3 pt-3 border-t border-[#1A1F35]/60">
+        <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold ${meta.text}`}>
+          <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
+          {meta.label}
+        </span>
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="text-[10.5px] font-bold text-orange-400 hover:text-orange-300 transition"
+        >
+          {expanded ? "Hide question ↑" : "View Question →"}
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="mt-3">
+          {q.reply && (
+            <div className="pl-3 border-l-2 border-orange-500/30">
+              <p className="text-[10px] font-black text-orange-400 uppercase tracking-wide">Your reply</p>
+              <p className="text-xs text-slate-300 mt-1">{q.reply}</p>
+            </div>
+          )}
+          {q.status !== "ANSWERED" && <ReplyBox queryId={q.id} />}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function QAContent() {
   const { appliedFilters } = useWorkFilters();
   const { data: queries = [], isLoading } = useMyLessonQueries(appliedFilters);
+  const [search, setSearch] = useState("");
+
+  const filteredQueries = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return queries;
+    return queries.filter((q) => {
+      const haystack = [
+        q.question,
+        q.student?.user?.name,
+        q.lesson?.title,
+        q.lesson?.module?.title,
+        q.lesson?.module?.course?.title,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(term);
+    });
+  }, [queries, search]);
+
+  const hasAnyQuestions = queries.length > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
         <h1 className="text-xl font-black text-white tracking-tight">Q&amp;A</h1>
         <p className="text-xs text-slate-400 mt-1">Student doubts raised across every lesson in your courses.</p>
       </div>
 
-      <WorkFilterBar statusOptions={STATUS_OPTIONS} />
+      <div className="relative">
+        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search questions, students, lessons..."
+          className="w-full h-11 bg-[#0D1021] border border-[#1A1F35] text-sm pl-10 pr-4 rounded-xl outline-none text-slate-200 placeholder-slate-500 focus:border-orange-500/60 transition"
+        />
+      </div>
 
-      <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <HelpCircle size={14} className="text-orange-450" />
-          <h3 className="text-[10.5px] font-black uppercase tracking-widest text-slate-350">{queries.length} Questions</h3>
+      <FilterToolbar onResetAll={() => setSearch("")} />
+
+      <div>
+        <div className="flex items-center justify-between pb-3 border-b border-[#1A1F35]">
+          <h2 className="text-sm font-black text-white tracking-tight">Questions</h2>
+          <span className="text-xs font-bold text-slate-500">{filteredQueries.length}</span>
         </div>
 
-        {isLoading ? (
-          <div className="py-16 flex justify-center"><Loader2 size={20} className="animate-spin text-orange-450" /></div>
-        ) : queries.length === 0 ? (
-          <div className="py-16 text-center text-slate-500 space-y-2">
-            <HelpCircle size={22} className="mx-auto text-slate-600" />
-            <p className="text-xs font-bold">No questions found for the selected filters.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {queries.map((q) => (
-              <div key={q.id} className="p-4 rounded-xl border border-[#1A1F35] bg-white/[0.015]">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[10px] text-slate-500 font-semibold truncate">
-                      {q.lesson?.module?.course?.title} • {q.lesson?.module?.title} • {q.lesson?.title}
-                    </p>
-                    <p className="text-xs font-bold text-slate-200 mt-0.5">{q.student?.user?.name || "Student"}</p>
-                  </div>
-                  <span className={`shrink-0 inline-flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                    q.status === "ANSWERED"
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                      : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                  }`}>
-                    {q.status === "ANSWERED" ? <CheckCircle2 size={9} /> : <Clock size={9} />}
-                    {q.status}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-300 mt-2.5 leading-relaxed">{q.question}</p>
-
-                {q.reply && (
-                  <div className="mt-2.5 pl-3 border-l-2 border-orange-500/30">
-                    <p className="text-[10px] font-black text-orange-400 uppercase tracking-wide">Your reply</p>
-                    <p className="text-xs text-slate-300 mt-1">{q.reply}</p>
-                  </div>
-                )}
-
-                {q.status !== "ANSWERED" && <ReplyBox queryId={q.id} />}
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="mt-4">
+          {isLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-24 animate-pulse bg-slate-800/40 rounded-xl" />
+              ))}
+            </div>
+          ) : filteredQueries.length === 0 ? (
+            <div className="py-10 text-center flex flex-col items-center gap-2">
+              <HelpCircle size={20} className="text-slate-600" />
+              <p className="text-sm font-bold text-slate-300">
+                {hasAnyQuestions ? "No questions match your search or filters." : "No questions yet"}
+              </p>
+              <p className="text-xs text-slate-500 max-w-sm">
+                {hasAnyQuestions
+                  ? "Try adjusting or resetting your search and filters."
+                  : "Student questions will appear here when they raise doubts from your courses."}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredQueries.map((q) => (
+                <QuestionCard key={q.id} query={q} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

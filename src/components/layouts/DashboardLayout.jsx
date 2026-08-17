@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChatWidget } from "@/components/chat";
+import { ChatWidget, ChatButton } from "@/components/chat";
+import { MentorWidget } from "@/components/mentor";
 import Sidebar from "@/components/layouts/Sidebar";
 import DashboardNavbar from "@/components/layouts/DashboardNavbar";
 
@@ -10,11 +11,11 @@ export default function DashboardLayout({ children, role, title }) {
 
   const [collapsed, setCollapsed] = useState(false);
 
-  // Students and Instructors navigate via top headers or on-page widgets instead of a side rail.
-  const showSidebar = !['STUDENT', 'INSTRUCTOR'].includes(role);
+  // Students, Instructors, and Admins navigate via top headers or on-page widgets instead of a side rail.
+  const showSidebar = !['STUDENT', 'INSTRUCTOR', 'ADMIN'].includes(role);
 
   return (
-    <div className={`flex min-h-screen ${role === 'INSTRUCTOR' ? 'bg-[#080B11]' : 'bg-slate-950'}`}>
+    <div className={`flex min-h-screen ${['INSTRUCTOR', 'ADMIN'].includes(role) ? 'bg-[#080B11]' : 'bg-slate-950'}`}>
       {showSidebar && (
         <Sidebar
           role={role}
@@ -31,7 +32,6 @@ export default function DashboardLayout({ children, role, title }) {
           flex
           flex-col
           min-w-0
-          overflow-x-hidden
           transition-all
           duration-300
         "
@@ -44,10 +44,11 @@ export default function DashboardLayout({ children, role, title }) {
           setCollapsed={setCollapsed}
         />
 
-        <main className="p-3 sm:p-6 flex-1">{children}</main>
+        <main className={`${role === 'STUDENT' ? 'p-4' : 'p-3'} sm:p-6 flex-1 ${['STUDENT', 'INSTRUCTOR'].includes(role) ? 'pb-24 sm:pb-6' : ''}`}>{children}</main>
       </div>
       <ChatWidget />
+      <ChatButton />
+      <MentorWidget />
     </div>
-    
   );
 }

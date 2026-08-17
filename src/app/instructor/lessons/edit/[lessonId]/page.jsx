@@ -80,7 +80,12 @@ export default function EditLessonPage() {
         <LessonForm
             mode="edit"
             initialValues={lesson}
-            contentsCount={lesson.contents?.length ?? 0}
+            contentsCount={
+                lesson.topics?.reduce(
+                    (sum, topic) => sum + (topic.contents?.length ?? 0),
+                    0
+                ) ?? 0
+            }
             loading={
                 updateLessonMutation.isPending
             }

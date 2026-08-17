@@ -1,30 +1,171 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
+import { isToday, isYesterday, isThisWeek, format } from "date-fns";
 import {
   Newspaper,
   BookOpen,
   Users,
   Sparkles,
+  FolderOpen,
   Calendar,
   Search,
   ArrowRight,
-  Clock,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
   Video,
   X,
   ExternalLink
 } from "lucide-react";
-import Card from "@/components/ui/Card";
+import PageHeader from "@/components/layouts/PageHeader";
+import EmptyState from "@/components/ui/EmptyState";
 import Loader from "@/components/common/Loader";
 import useDashboard from "@/hooks/queries/student/useDashboard";
 import { getCalendarEvents } from "@/services/calendar.service";
+
+const PAGE_SIZE = 10;
+
+const CATEGORY_TABS = [
+  { key: "ALL", label: "All Updates" },
+  { key: "COURSE", label: "Course Updates" },
+  { key: "BATCH", label: "Batch Updates" },
+  { key: "PLATFORM", label: "Announcements" },
+];
+
+const RECENT_LABELS = new Set(["Today", "Yesterday", "This Week", "Upcoming"]);
+
+function getGroupLabel(date) {
+  if (isToday(date)) return "Today";
+  if (isYesterday(date)) return "Yesterday";
+  if (date.getTime() > Date.now()) return "Upcoming";
+  if (isThisWeek(date, { weekStartsOn: 1 })) return "This Week";
+  return format(date, "MMMM yyyy");
+}
+
+function LoadMoreSentinel({ onVisible }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) onVisible();
+      },
+      { rootMargin: "300px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [onVisible]);
+
+  return (
+    <div ref={ref} className="flex items-center gap-3 sm:gap-4 py-3">
+      <span className="w-[17px] sm:w-[21px] shrink-0" aria-hidden="true" />
+      <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider">Loading more…</span>
+    </div>
+  );
+}
+
+function NewsCard({ item, onOpen }) {
+  return (
+    <div className="relative flex items-start gap-3 sm:gap-4 pb-3">
+      <span
+        aria-hidden="true"
+        className="relative z-10 mt-5 sm:mt-6 h-[17px] w-[17px] sm:h-[21px] sm:w-[21px] shrink-0 rounded-full border-2 border-orange-500 bg-[#080B11]"
+      />
+      <div
+        onClick={() => onOpen(item)}
+        className="flex-1 min-w-0 rounded-2xl border border-card-border bg-card p-4 hover:border-slate-700 transition duration-200 cursor-pointer group shadow-sm hover:shadow-md"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+          <span className={`text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider border ${item.badgeColor}`}>
+            {item.categoryLabel}
+          </span>
+          <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1">
+            <Calendar size={11} className="text-slate-500" />
+            {item.timestamp}
+          </span>
+        </div>
+
+        <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-orange-400 transition-colors leading-snug line-clamp-2">
+          {item.title}
+        </h3>
+
+        <p className="text-xs text-slate-400 mt-1.5 leading-relaxed line-clamp-2">
+          {item.summary}
+        </p>
+
+        <div className="flex items-center gap-1.5 mt-2.5 text-[11px] text-slate-300 border-t border-slate-800/60 pt-2.5">
+          <FolderOpen size={13} className="text-orange-400 shrink-0" />
+          <span className="truncate">{item.courseTag}</span>
+        </div>
+
+        <div className="pt-2.5 mt-2.5 border-t border-slate-800/60 flex items-center justify-between text-xs font-bold">
+          <span className="text-[11px] text-slate-400 group-hover:text-white transition-colors">
+            Click for details
+          </span>
+          <Link
+            href={item.actionLink}
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center gap-1 text-orange-400 hover:text-orange-300 transition text-[11px] font-black uppercase tracking-wider"
+          >
+            <span>START</span>
+            <ArrowRight size={12} />
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeedRow({ row, onOpenNews, onExpandOlder }) {
+  if (row.type === "header") {
+    return (
+      <div className="flex items-center gap-3 sm:gap-4 pt-4 pb-1.5 first:pt-0">
+        <span className="w-[17px] sm:w-[21px] shrink-0" aria-hidden="true" />
+        <h2 className="text-[11px] font-black uppercase tracking-wider text-slate-500">{row.label}</h2>
+      </div>
+    );
+  }
+
+  if (row.type === "olderToggle") {
+    return (
+      <div className="flex items-center gap-3 sm:gap-4 py-2">
+        <span className="w-[17px] sm:w-[21px] shrink-0" aria-hidden="true" />
+        <button
+          type="button"
+          onClick={onExpandOlder}
+          className="flex-1 min-w-0 flex items-center justify-center gap-2 rounded-xl border border-dashed border-card-border py-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-500 hover:text-orange-400 hover:border-slate-700 transition cursor-pointer"
+        >
+          <span>Show Older Updates ({row.count})</span>
+          <ChevronDown size={13} />
+        </button>
+      </div>
+    );
+  }
+
+  if (row.type === "loadMoreSentinel") {
+    return <LoadMoreSentinel onVisible={row.onVisible} />;
+  }
+
+  return <NewsCard item={row.data} onOpen={onOpenNews} />;
+}
 
 export default function StudentNewsPage() {
   const [activeCategory, setActiveCategory] = useState("ALL"); // 'ALL', 'COURSE', 'BATCH', 'PLATFORM'
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedNews, setSelectedNews] = useState(null);
+  const [visibleRecentCount, setVisibleRecentCount] = useState(PAGE_SIZE);
+  const [olderExpanded, setOlderExpanded] = useState(false);
+  const [visibleOlderCount, setVisibleOlderCount] = useState(PAGE_SIZE);
+
+  const tabScrollRef = useRef(null);
+  const listContainerRef = useRef(null);
+  const listOffsetRef = useRef(0);
 
   // Real backend queries
   const { data: dashboardData, isLoading: isDashboardLoading } = useDashboard();
@@ -38,12 +179,18 @@ export default function StudentNewsPage() {
 
   // Generate dynamic + curated news feed related to student's courses and batches
   const newsItems = useMemo(() => {
-    const today = new Date();
-    const todayFormatted = today.toLocaleDateString("en-US", {
+    const now = new Date();
+    const todayFormatted = now.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
     });
+    const makeDate = (daysAgo, hours, minutes) => {
+      const d = new Date(now);
+      d.setDate(d.getDate() - daysAgo);
+      d.setHours(hours, minutes, 0, 0);
+      return d;
+    };
 
     const feed = [
       {
@@ -54,6 +201,7 @@ export default function StudentNewsPage() {
         summary: "We have released 4 new video lessons and 2 practical lab assignments for the Spring Boot & Microservices module.",
         content: "We are excited to announce a major course update! The 'Advanced Microservices with Spring Cloud' module is now live in your enrolled Java Full Stack curriculum. It covers API Gateways, Eureka Service Discovery, and Resilience4j Fault Tolerance with hands-on code labs.",
         timestamp: `${todayFormatted} • 09:30 AM`,
+        date: makeDate(0, 9, 30),
         badgeColor: "bg-orange-500/10 text-orange-400 border-orange-500/30",
         courseTag: enrolledCourses[0]?.course?.title || "Java Full Stack LR-01",
         actionLink: enrolledCourses[0] ? `/student/learn/${enrolledCourses[0].courseId}` : "/student/my-courses",
@@ -68,6 +216,7 @@ export default function StudentNewsPage() {
         summary: "Special live Q&A session with Senior Instructor regarding System Design and Data Structures.",
         content: "Attention all students in Active Batches! A live interactive doubt-clearing session has been scheduled for this Saturday at 4:00 PM IST. Please bring your project questions and assignment queries. Meeting link is active in your Live Classes section.",
         timestamp: `${todayFormatted} • 08:00 AM`,
+        date: makeDate(0, 8, 0),
         badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/30",
         courseTag: "Batch LR-01 Live Class",
         actionLink: "/student/live-classes",
@@ -82,6 +231,7 @@ export default function StudentNewsPage() {
         summary: "Students can now generate custom practice quizzes by topic and track detailed speed metrics.",
         content: "Orange Tree LMS has launched Self-Generate Quiz feature! You can now select any category or difficulty level to test your knowledge with instant AI feedback, detailed answer explanations, and automated progress reports.",
         timestamp: "Yesterday • 04:15 PM",
+        date: makeDate(1, 16, 15),
         badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/30",
         courseTag: "New Platform Feature",
         actionLink: "/student/quizzes",
@@ -96,6 +246,7 @@ export default function StudentNewsPage() {
         summary: "Updated code repositories, React Server Components exercises, and Turbopack build guidelines.",
         content: "All source code examples in the Frontend Architecture section have been updated to support React 19 and Next.js 16 Edge runtime patterns. Re-download project resources from your course lesson view.",
         timestamp: "2 days ago",
+        date: makeDate(2, 12, 0),
         badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
         courseTag: "Frontend Engineering",
         actionLink: "/student/my-courses",
@@ -110,6 +261,7 @@ export default function StudentNewsPage() {
         summary: "Batch LR-01 capstone submission deadline is approaching. Placement mock interviews start next week.",
         content: "Please ensure your capstone assignments are submitted prior to the upcoming Sunday midnight deadline. Mock technical interviews with industry mentors will begin next Monday. Check your calendar for individual interview slots.",
         timestamp: "3 days ago",
+        date: makeDate(3, 12, 0),
         badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/30",
         courseTag: "Placement Drive",
         actionLink: "/student/assignments",
@@ -121,6 +273,7 @@ export default function StudentNewsPage() {
     // Inject any live calendar events as daily batch updates
     if (calendarEvents && calendarEvents.length > 0) {
       calendarEvents.slice(0, 2).forEach((event, idx) => {
+        const parsedDate = new Date(event.date);
         feed.push({
           id: `cal-news-${idx}`,
           category: "BATCH",
@@ -129,6 +282,7 @@ export default function StudentNewsPage() {
           summary: `Scheduled event on ${event.date} (${event.startTime || "All Day"}). ${event.courseName || "Course Schedule"}.`,
           content: `Your batch has a scheduled session '${event.title}' on ${event.date} starting at ${event.startTime || "the specified time"}. Make sure to join on time!`,
           timestamp: `Scheduled for ${event.date}`,
+          date: Number.isNaN(parsedDate.getTime()) ? now : parsedDate,
           badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30",
           courseTag: event.courseName || "Batch Event",
           actionLink: "/student/calendar",
@@ -156,169 +310,199 @@ export default function StudentNewsPage() {
     });
   }, [newsItems, activeCategory, searchQuery]);
 
+  // Split into "recent" (always visible) vs "older" (collapsed behind a toggle)
+  const { recentItems, olderItems } = useMemo(() => {
+    const recent = [];
+    const older = [];
+    for (const item of filteredNews) {
+      const groupLabel = getGroupLabel(item.date);
+      (RECENT_LABELS.has(groupLabel) ? recent : older).push({ ...item, groupLabel });
+    }
+    return { recentItems: recent, olderItems: older };
+  }, [filteredNews]);
+
+  // Reset pagination whenever the filtered set changes
+  useEffect(() => {
+    setVisibleRecentCount(PAGE_SIZE);
+    setOlderExpanded(false);
+    setVisibleOlderCount(PAGE_SIZE);
+  }, [activeCategory, searchQuery]);
+
+  const loadMoreRecent = useCallback(() => {
+    setVisibleRecentCount((c) => Math.min(c + PAGE_SIZE, recentItems.length));
+  }, [recentItems.length]);
+
+  const loadMoreOlder = useCallback(() => {
+    setVisibleOlderCount((c) => Math.min(c + PAGE_SIZE, olderItems.length));
+  }, [olderItems.length]);
+
+  const expandOlder = useCallback(() => setOlderExpanded(true), []);
+
+  // Flatten into virtualizer rows: date headers, cards, the "older" toggle, and load-more sentinels
+  const rows = useMemo(() => {
+    const out = [];
+    let lastLabel = null;
+
+    for (const item of recentItems.slice(0, visibleRecentCount)) {
+      if (item.groupLabel !== lastLabel) {
+        out.push({ type: "header", id: `h-${item.groupLabel}`, label: item.groupLabel });
+        lastLabel = item.groupLabel;
+      }
+      out.push({ type: "item", id: item.id, data: item });
+    }
+
+    if (recentItems.length > visibleRecentCount) {
+      out.push({ type: "loadMoreSentinel", id: "sentinel-recent", onVisible: loadMoreRecent });
+    }
+
+    if (olderItems.length > 0) {
+      if (!olderExpanded) {
+        out.push({ type: "olderToggle", id: "older-toggle", count: olderItems.length });
+      } else {
+        let lastOlderLabel = null;
+        for (const item of olderItems.slice(0, visibleOlderCount)) {
+          if (item.groupLabel !== lastOlderLabel) {
+            out.push({ type: "header", id: `h-older-${item.groupLabel}`, label: item.groupLabel });
+            lastOlderLabel = item.groupLabel;
+          }
+          out.push({ type: "item", id: item.id, data: item });
+        }
+        if (olderItems.length > visibleOlderCount) {
+          out.push({ type: "loadMoreSentinel", id: "sentinel-older", onVisible: loadMoreOlder });
+        }
+      }
+    }
+
+    return out;
+  }, [recentItems, olderItems, visibleRecentCount, olderExpanded, visibleOlderCount, loadMoreRecent, loadMoreOlder]);
+
+  useLayoutEffect(() => {
+    listOffsetRef.current = listContainerRef.current?.offsetTop ?? 0;
+  });
+
+  const rowVirtualizer = useWindowVirtualizer({
+    count: rows.length,
+    estimateSize: (index) => {
+      const row = rows[index];
+      if (!row) return 0;
+      if (row.type === "header") return 32;
+      if (row.type === "olderToggle") return 52;
+      if (row.type === "loadMoreSentinel") return 44;
+      return 190;
+    },
+    overscan: 6,
+    gap: 12,
+    scrollMargin: listOffsetRef.current,
+  });
+
+  const scrollTabs = (direction) => {
+    tabScrollRef.current?.scrollBy({ left: direction * 140, behavior: "smooth" });
+  };
+
   if (isDashboardLoading) return <Loader />;
 
   return (
-    <div className="space-y-6 pb-16 animate-fade-in duration-300">
-      {/* Page Header */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400">
-              <Newspaper size={22} />
-            </div>
-            <h1 className="text-2xl font-black text-white tracking-tight">
-              Daily News & Course Updates
-            </h1>
-          </div>
-          <p className="text-xs text-slate-400 mt-2 max-w-xl">
-            Stay informed with real-time course updates, batch announcements, live session alerts, and platform feature releases.
-          </p>
-        </div>
-
-        {/* Quick Stats Pill */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="px-3.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center">
-            <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider block">Total Updates</span>
-            <span className="text-base font-black text-orange-400">{newsItems.length}</span>
-          </div>
-          <div className="px-3.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center">
-            <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider block">My Courses</span>
-            <span className="text-base font-black text-white">{enrolledCourses.length}</span>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-4 pb-16 animate-fade-in duration-300">
+      <PageHeader
+        title="News & Updates"
+        subtitle="Stay informed with real-time course updates, batch announcements, live session alerts, and platform feature releases."
+      />
 
       {/* Control Bar: Categories & Search */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-        {/* Category Pills */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/80 border border-slate-800/80 overflow-x-auto scrollbar-none">
+      <div className="space-y-3">
+        {/* Quick Action Tabs */}
+        <div className="flex items-center gap-1">
           <button
-            onClick={() => setActiveCategory("ALL")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
-              activeCategory === "ALL"
-                ? "bg-slate-800 text-white shadow-sm border border-slate-700/60"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
+            type="button"
+            onClick={() => scrollTabs(-1)}
+            aria-label="Scroll tabs left"
+            className="shrink-0 p-1 text-slate-500 hover:text-white transition cursor-pointer"
           >
-            All Updates
+            <ChevronLeft size={16} />
           </button>
-          <button
-            onClick={() => setActiveCategory("COURSE")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
-              activeCategory === "COURSE"
-                ? "bg-slate-800 text-white shadow-sm border border-slate-700/60"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
+
+          <div
+            ref={tabScrollRef}
+            className="flex items-center gap-7 overflow-x-auto scrollbar-none scroll-smooth snap-x snap-mandatory py-2"
           >
-            <BookOpen size={13} className="text-orange-400" />
-            <span>Course Updates</span>
-          </button>
+            {CATEGORY_TABS.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveCategory(tab.key)}
+                className={`shrink-0 snap-start whitespace-nowrap text-sm font-semibold pb-1.5 border-b-2 transition cursor-pointer ${
+                  activeCategory === tab.key
+                    ? "text-orange-400 border-orange-500"
+                    : "text-white border-transparent hover:text-orange-300"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
           <button
-            onClick={() => setActiveCategory("BATCH")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
-              activeCategory === "BATCH"
-                ? "bg-slate-800 text-white shadow-sm border border-slate-700/60"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
+            type="button"
+            onClick={() => scrollTabs(1)}
+            aria-label="Scroll tabs right"
+            className="shrink-0 p-1 text-slate-500 hover:text-white transition cursor-pointer"
           >
-            <Users size={13} className="text-blue-400" />
-            <span>Batch Schedules</span>
-          </button>
-          <button
-            onClick={() => setActiveCategory("PLATFORM")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
-              activeCategory === "PLATFORM"
-                ? "bg-slate-800 text-white shadow-sm border border-slate-700/60"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            <Sparkles size={13} className="text-purple-400" />
-            <span>Platform News</span>
+            <ChevronRight size={16} />
           </button>
         </div>
 
         {/* Search Bar */}
-        <div className="relative w-full sm:w-72 shrink-0">
+        <div className="relative w-full">
           <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Search news & updates..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/50 transition"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-card border border-card-border text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/50 transition"
           />
         </div>
       </div>
 
-      {/* News Feed Grid */}
+      {/* News Feed Timeline */}
       {filteredNews.length === 0 ? (
-        <Card className="p-12 text-center border border-slate-800/80 bg-slate-900/40 rounded-2xl">
-          <div className="w-12 h-12 rounded-full bg-slate-800/60 text-slate-400 flex items-center justify-center mx-auto mb-3">
-            <Newspaper size={24} />
-          </div>
-          <h3 className="text-sm font-bold text-slate-200">No News Items Found</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            {searchQuery
+        <EmptyState
+          icon={Newspaper}
+          title="No News Items Found"
+          description={
+            searchQuery
               ? `No updates match "${searchQuery}". Try searching for another course or category.`
-              : "Check back later for fresh daily course updates and batch news."}
-          </p>
-        </Card>
+              : "Check back later for fresh daily course updates and batch news."
+          }
+        />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {filteredNews.map((item) => {
-            return (
-              <div
-                key={item.id}
-                onClick={() => setSelectedNews(item)}
-                className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-5 hover:border-slate-700 transition duration-200 flex flex-col justify-between cursor-pointer group shadow-sm hover:shadow-md"
-              >
-                <div>
-                  {/* Card Header row */}
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className={`text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider border ${item.badgeColor}`}>
-                      {item.categoryLabel}
-                    </span>
-                    <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1">
-                      <Clock size={11} className="text-slate-500" />
-                      {item.timestamp}
-                    </span>
-                  </div>
-
-                  {/* Course Tag */}
-                  <div className="text-[10px] font-black text-orange-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
-                    <span>{item.courseTag}</span>
-                  </div>
-
-                  {/* News Title */}
-                  <h3 className="text-sm font-bold text-white group-hover:text-orange-400 transition-colors leading-snug line-clamp-2">
-                    {item.title}
-                  </h3>
-
-                  {/* Summary */}
-                  <p className="text-xs text-slate-400 mt-2 line-clamp-3 leading-relaxed">
-                    {item.summary}
-                  </p>
+        <div ref={listContainerRef} className="relative max-w-3xl mx-auto md:mx-0 w-full">
+          <div style={{ height: rowVirtualizer.getTotalSize(), width: "100%", position: "relative" }}>
+            <span
+              aria-hidden="true"
+              className="absolute left-[8px] sm:left-[10px] top-0 bottom-0 w-px bg-slate-800"
+            />
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              const row = rows[virtualRow.index];
+              if (!row) return null;
+              return (
+                <div
+                  key={virtualRow.key}
+                  data-index={virtualRow.index}
+                  ref={rowVirtualizer.measureElement}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    transform: `translateY(${virtualRow.start - rowVirtualizer.options.scrollMargin}px)`,
+                  }}
+                >
+                  <FeedRow row={row} onOpenNews={setSelectedNews} onExpandOlder={expandOlder} />
                 </div>
-
-                {/* Footer Link Button */}
-                <div className="pt-4 mt-4 border-t border-slate-800/60 flex items-center justify-between text-xs font-bold text-slate-300">
-                  <span className="text-[11px] text-slate-400 group-hover:text-white transition-colors">
-                    Click for details
-                  </span>
-                  <Link
-                    href={item.actionLink}
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-1 text-orange-400 hover:text-orange-300 transition text-[11px] font-black uppercase tracking-wider"
-                  >
-                    <span>{item.actionLabel}</span>
-                    <ArrowRight size={12} />
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -330,7 +514,7 @@ export default function StudentNewsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-xl rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl space-y-4 relative text-left"
+            className="w-full max-w-xl max-h-[85vh] overflow-y-auto rounded-2xl border border-card-border bg-card p-5 sm:p-6 shadow-2xl space-y-4 relative text-left"
           >
             <button
               onClick={() => setSelectedNews(null)}
@@ -348,15 +532,16 @@ export default function StudentNewsPage() {
               </span>
             </div>
 
-            <div className="text-xs font-bold text-orange-400 uppercase tracking-wider">
-              {selectedNews.courseTag}
+            <div className="flex items-center gap-1.5 text-xs font-bold text-orange-400 uppercase tracking-wider">
+              <FolderOpen size={14} className="shrink-0" />
+              <span>{selectedNews.courseTag}</span>
             </div>
 
             <h2 className="text-lg font-black text-white leading-tight">
               {selectedNews.title}
             </h2>
 
-            <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-300 leading-relaxed space-y-2">
+            <div className="p-4 rounded-xl bg-slate-950/60 border border-card-border text-xs text-slate-300 leading-relaxed space-y-2">
               <p>{selectedNews.content}</p>
             </div>
 

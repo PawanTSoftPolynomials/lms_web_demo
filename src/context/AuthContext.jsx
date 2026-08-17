@@ -11,12 +11,25 @@ import {
   logoutUser,
   getProfile,
 } from "@/services/auth.service";
+import { defaultQueryOptions } from "@/lib/queryOptions";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 const AuthContext = createContext();
 
+// Shared with any future consumer that wants the current identity without
+// re-fetching it (React Query dedupes/caches on this key).
+const AUTH_SESSION_KEY = [QUERY_KEYS.PROFILE];
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  // loading: true only while we genuinely don't know who's asking yet
+  // (no cookie, or a cookie with nothing cached to render with). It no
+  // longer waits on the getProfile() network round-trip in the common case.
   const [loading, setLoading] = useState(true);
+  // isVerifying: background getProfile() confirmation in flight. Never
+  // gates rendering — exposed for optional future UI (e.g. a subtle
+  // "syncing" indicator), unused today.
+  const [isVerifying, setIsVerifying] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
@@ -52,6 +65,32 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   };
 
+  // Confirms the session against the server. Goes through React Query so
+  // concurrent calls dedupe against a single in-flight request instead of
+  // firing multiple uncached getProfile() calls. Never blocks the caller —
+  // it only updates state when it resolves.
+  const verifySession = async () => {
+    setIsVerifying(true);
+    try {
+      const response = await queryClient.fetchQuery({
+        queryKey: AUTH_SESSION_KEY,
+        queryFn: getProfile,
+        ...defaultQueryOptions,
+      });
+      setUser(response.data);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(response.data));
+      }
+      return true;
+    } catch (error) {
+      console.error("Session verification failed:", error);
+      logoutLocal();
+      return false;
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   const initializeAuth = async () => {
     const token = Cookies.get("accessToken");
 
@@ -63,24 +102,26 @@ export const AuthProvider = ({ children }) => {
 
     // Restore cached user from localStorage synchronously to prevent layout flashes
     const cachedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+    let hasCachedUser = false;
     if (cachedUser) {
       try {
         setUser(JSON.parse(cachedUser));
+        hasCachedUser = true;
       } catch (e) {
         console.warn("Authentication recovery from cache failed:", e);
       }
     }
 
-    try {
-      const response = await getProfile();
-      setUser(response.data);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("user", JSON.stringify(response.data));
-      }
-    } catch (error) {
-      console.error("Authentication initialization failed:", error);
-      logoutLocal();
-    } finally {
+    if (hasCachedUser) {
+      // We already know who this browser was last authenticated as — unblock
+      // rendering now and confirm the session with the server in the
+      // background instead of making every page wait on the network.
+      setLoading(false);
+      verifySession();
+    } else {
+      // No cached identity to render with, so we genuinely can't show
+      // role-gated UI safely yet — this (rare) path still waits.
+      await verifySession();
       setLoading(false);
     }
   };
@@ -102,13 +143,21 @@ export const AuthProvider = ({ children }) => {
         "/verify-otp"
       ];
       if (guestRoutes.includes(pathname)) {
-        const dashboardPath =
+        let returnTo = null;
+        if (typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          returnTo = params.get("returnTo") || sessionStorage.getItem("intended_course_return");
+          if (returnTo) {
+            sessionStorage.removeItem("intended_course_return");
+          }
+        }
+        const defaultDashboard =
           user.role === "ADMIN"
             ? "/admin/dashboard"
             : user.role === "INSTRUCTOR"
             ? "/instructor/dashboard"
             : "/student/dashboard";
-        router.replace(dashboardPath);
+        router.replace(returnTo || defaultDashboard);
       }
     }
   }, [user, loading, pathname, router]);
@@ -149,6 +198,10 @@ export const AuthProvider = ({ children }) => {
       sessionStorage.setItem("fresh_login", "true");
     }
 
+    // Seed the same cache key verifySession() reads, so the freshly-logged-in
+    // user isn't immediately re-fetched via another getProfile() call.
+    queryClient.setQueryData(AUTH_SESSION_KEY, { success: true, data: user });
+
     setUser(user);
     return user;
   };
@@ -174,6 +227,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         loading,
+        isVerifying,
         login,
         register,
         logout,

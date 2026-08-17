@@ -3,6 +3,13 @@
 import { CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const getOptionText = (opt) => {
+  if (opt === null || opt === undefined) return "";
+  if (typeof opt === "string") return opt;
+  if (typeof opt === "object") return opt.optionText || opt.text || JSON.stringify(opt);
+  return String(opt);
+};
+
 export default function OptionList({
   options = [],
   selectedAnswer,
@@ -11,13 +18,14 @@ export default function OptionList({
   return (
     <div className="space-y-4">
       {options.map((option, index) => {
-        const isSelected = selectedAnswer === option;
+        const optionText = getOptionText(option);
+        const isSelected = selectedAnswer === optionText || selectedAnswer === option;
 
         return (
           <motion.button
             key={index}
             type="button"
-            onClick={() => onSelect(option)}
+            onClick={() => onSelect(optionText)}
             whileHover={{ scale: 1.01, y: -2 }}
             whileTap={{ scale: 0.99 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -83,7 +91,7 @@ export default function OptionList({
                     : "text-slate-350"
                 }`}
               >
-                {option}
+                {optionText}
               </p>
             </div>
 

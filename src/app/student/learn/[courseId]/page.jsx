@@ -28,6 +28,7 @@ import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
 import { trackCourseAccess } from "@/services/enrollment.service";
 import { ChatWidget } from "@/components/chat";
+import { MentorWidget } from "@/components/mentor";
 import { createConversation } from "@/features/chat/api/chat.api";
 
 import useAuth from "@/hooks/useAuth";
@@ -258,6 +259,12 @@ export default function LearnPage() {
     }
   }, [selectedLesson, stateRestored]);
 
+  // Content now nests under Topic (Lesson -> Topic -> Content), so flatten
+  // every topic's contents back into the flat list this page's UI expects.
+  const selectedLessonContents = useMemo(() => {
+    return (selectedLesson?.topics || []).flatMap((topic) => topic.contents || []);
+  }, [selectedLesson]);
+
   // Sync state back to DB on change (debounced)
   useEffect(() => {
     if (!selectedLesson?.id || !stateRestored) return;
@@ -267,13 +274,13 @@ export default function LearnPage() {
         courseId,
         moduleId: selectedLesson.moduleId || null,
         lessonId: selectedLesson.id,
-        contentId: primaryContent?.id || null,
+        contentId: selectedLessonContents?.[0]?.id || null,
         timestamp: currentTimestamp,
       });
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [selectedLesson, currentTimestamp, courseId, stateRestored, primaryContent?.id]);
+  }, [selectedLesson, selectedLessonContents, currentTimestamp, courseId, stateRestored]);
 
   const markComplete = async () => {
     if (!selectedLesson?.id) return;
@@ -300,10 +307,10 @@ export default function LearnPage() {
   };
 
   const instructorAttachments = useMemo(() => {
-    return (selectedLesson?.contents || []).filter(
+    return selectedLessonContents.filter(
       (c) => c.type === "FILE" || c.type === "DOCUMENT" || c.type === "HTML" || Boolean(c.fileUrl)
     );
-  }, [selectedLesson]);
+  }, [selectedLessonContents]);
 
   const formatResumeTime = (seconds) => {
     const total = Math.max(0, Math.floor(seconds || 0));
@@ -947,7 +954,7 @@ export default function LearnPage() {
 
               <VideoPlayer
                 ref={videoPlayerRef}
-                content={primaryContent}
+                content={selectedLessonContents?.[0]}
                 onTimeUpdate={setCurrentTimestamp}
                 onDurationChange={setVideoDuration}
                 onEnded={handleVideoEnded}
@@ -1263,6 +1270,7 @@ export default function LearnPage() {
           </div>
         </div>
         <ChatWidget />
+        <MentorWidget />
       </div>
 
       {/* QUIZ ATTEMPT — same QuizExperience component either way; only the

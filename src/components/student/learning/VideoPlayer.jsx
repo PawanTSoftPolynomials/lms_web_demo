@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState, useCallback } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import {
     FileText,
     ExternalLink,
@@ -46,12 +46,6 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const playerRef = useRef(null);
     const localVideoRef = useRef(null);
     const [slideIndex, setSlideIndex] = useState(0);
-    const [, setHasStarted] = useState(false);
-
-    // Video Analytics state
-    const pingIntervalRef = useRef(null);
-    const lastPingTimeRef = useRef(0);
-    const accumulatedSecondsRef = useRef(0);
 
     const type = content?.type;
     const videoUrl = content?.videoUrl;
@@ -200,21 +194,9 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         }
     }, [videoUrl, isYoutube]);
 
-    const stopPingTimer = useCallback(() => {
-        if (pingIntervalRef.current) {
-            clearInterval(pingIntervalRef.current);
-            pingIntervalRef.current = null;
-        }
-    }, []);
-
     useEffect(() => {
         setSlideIndex(0);
-        setHasStarted(false);
-        accumulatedSecondsRef.current = 0;
-        lastPingTimeRef.current = 0;
-
-        return () => stopPingTimer();
-    }, [content, stopPingTimer]);
+    }, [content]);
 
     if (!content) {
         return (

@@ -1,11 +1,18 @@
 export const QUERY_KEYS = {
     // ==========================
+    // Auth
+    // ==========================
+    AUTH_SESSION: "auth-session",
+
+    // ==========================
     // Student
     // ==========================
     COURSES: "courses",
     COURSE: "course",
     MY_COURSES: "my-courses",
     STUDENT_DASHBOARD: "student-dashboard",
+    PAYMENTS: "payments",
+    PAYMENT_ORDERS: "payment-orders",
     UPCOMING_TASKS: "upcoming-tasks",
     STUDENT_PROFILE: "student-profile",
     STUDENT_PROGRESS: "student-progress",
@@ -36,7 +43,7 @@ export const QUERY_KEYS = {
     ADMIN_USERS: "admin-users",
     ADMIN_USER: "admin-user",
 
-    ADMIN_STUDENTS: "admin-student",
+    ADMIN_STUDENTS: "admin-students",
     ADMIN_STUDENT: "admin-student",
 
     ADMIN_INSTRUCTORS: "admin-instructors",
@@ -49,6 +56,8 @@ export const QUERY_KEYS = {
     ADMIN_ENROLLMENT: "admin-enrollment",
 
     ADMIN_CERTIFICATES: "admin-certificates",
+
+    ADMIN_CALENDAR_EVENTS: "admin-calendar-events",
 
     PROFILE: "profile",
 
@@ -67,6 +76,9 @@ export const QUERY_KEYS = {
     LESSONS: "lessons",
     LESSON: "lesson",
 
+    TOPICS: "topics",
+    TOPIC: "topic",
+
     CONTENTS: "contents",
     CONTENT: "content",
 
@@ -84,13 +96,20 @@ export const QUERY_KEYS = {
 
     BATCHES: "batches",
     MY_BATCHES: "my-batches",
+    BATCH_DETAIL: "batch-detail",
+    BATCH_ENROLLABLE_STUDENTS: "batch-enrollable-students",
+    BATCH_PERFORMANCE_OVERVIEW: "batch-performance-overview",
+    BATCH_DASHBOARD: "batch-dashboard",
+    BATCH_ANNOUNCEMENTS: "batch-announcements",
     EXAMS: "exams",
     EXAM: "exam",
     MY_REVIEWS: "my-reviews",
     RESULTS: "results",
     ASSESSMENTS: "assessments",
 
-    COURSE_IMPORT_JOBS: "course-import-jobs",
-    COURSE_IMPORT_JOB: "course-import-job",
-
+    // ==========================
+    // Mentor AI
+    // ==========================
+    MENTOR_CONVERSATIONS: "mentor-conversations",
+    MENTOR_MESSAGES: "mentor-messages",
 };

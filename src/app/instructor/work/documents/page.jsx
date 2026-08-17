@@ -36,17 +36,17 @@ function inferType(fileName) {
 }
 
 export default function WorkUploadDocumentsPage() {
-  const [selection, setSelection] = useState({ courseId: "", moduleId: "", lessonId: "" });
-  const { lessonId } = selection;
+  const [selection, setSelection] = useState({ courseId: "", moduleId: "", lessonId: "", topicId: "" });
+  const { topicId } = selection;
 
-  const { data: contents = [], isLoading } = useContents(lessonId);
+  const { data: contents = [], isLoading } = useContents(topicId);
   const createContent = useCreateContent();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
   const handleUpload = async (e) => {
     const files = Array.from(e.target.files || []);
-    if (files.length === 0 || !lessonId) return;
+    if (files.length === 0 || !topicId) return;
 
     setUploading(true);
     setError("");
@@ -55,7 +55,7 @@ export default function WorkUploadDocumentsPage() {
         const { fileUrl } = await uploadContentFile(file);
         const nextOrder = contents.length > 0 ? Math.max(...contents.map((c) => c.order || 0)) + 1 : 1;
         await createContent.mutateAsync({
-          lessonId,
+          topicId,
           order: nextOrder,
           type: inferType(file.name),
           title: file.name,
@@ -113,19 +113,21 @@ export default function WorkUploadDocumentsPage() {
     <Card className="mx-auto max-w-4xl bg-[#0D1021] border border-[#1A1F35] p-6 sm:p-8 rounded-2xl shadow-2xl space-y-6">
       <div>
         <h1 className="text-3xl font-black text-white tracking-tight">Upload Documents</h1>
-        <p className="mt-2 text-sm text-slate-400">Attach PDFs, presentations, documents, archives, or videos to a lesson.</p>
+        <p className="mt-2 text-sm text-slate-400">Attach PDFs, presentations, documents, archives, or videos to a topic.</p>
       </div>
 
       <CourseModuleLessonSelect
         courseId={selection.courseId}
         moduleId={selection.moduleId}
         lessonId={selection.lessonId}
+        topicId={selection.topicId}
+        includeTopic
         onChange={setSelection}
       />
 
-      {!lessonId ? (
+      {!topicId ? (
         <div className="rounded-2xl border border-dashed border-[#1A1F35] bg-[#05070E] py-16 text-center">
-          <p className="text-xs font-bold text-slate-500">Select a Course, Module, and Lesson above to upload documents.</p>
+          <p className="text-xs font-bold text-slate-500">Select a Course, Module, Lesson, and Topic above to upload documents.</p>
         </div>
       ) : (
         <div className="rounded-2xl border border-[#1A1F35] bg-[#05070E] p-5 space-y-5">
@@ -139,7 +141,7 @@ export default function WorkUploadDocumentsPage() {
             <input type="file" multiple className="hidden" onChange={handleUpload} disabled={uploading} accept=".pdf,.ppt,.pptx,.doc,.docx,.zip,.mp4,.mov,.webm" />
           </label>
 
-          <DataTable columns={columns} rows={contents} isLoading={isLoading} emptyLabel="No documents uploaded to this lesson yet." />
+          <DataTable columns={columns} rows={contents} isLoading={isLoading} emptyLabel="No documents uploaded to this topic yet." />
         </div>
       )}
     </Card>

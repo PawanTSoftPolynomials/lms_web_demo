@@ -3,17 +3,24 @@
 import { Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const getOptionText = (opt) => {
+  if (opt === null || opt === undefined) return "";
+  if (typeof opt === "string") return opt;
+  if (typeof opt === "object") return opt.optionText || opt.text || JSON.stringify(opt);
+  return String(opt);
+};
+
 export default function MCQMultiOptionList({
   options = [],
   selectedAnswers = [],
   onSelect,
 }) {
-  const handleToggle = (option) => {
+  const handleToggle = (optionText) => {
     let newAnswers;
-    if (selectedAnswers.includes(option)) {
-      newAnswers = selectedAnswers.filter((ans) => ans !== option);
+    if (selectedAnswers.includes(optionText)) {
+      newAnswers = selectedAnswers.filter((ans) => ans !== optionText);
     } else {
-      newAnswers = [...selectedAnswers, option];
+      newAnswers = [...selectedAnswers, optionText];
     }
     onSelect(newAnswers);
   };
@@ -27,13 +34,14 @@ export default function MCQMultiOptionList({
       </div>
 
       {options.map((option, index) => {
-        const isSelected = selectedAnswers.includes(option);
+        const optionText = getOptionText(option);
+        const isSelected = selectedAnswers.includes(optionText) || selectedAnswers.includes(option);
 
         return (
           <motion.button
             key={index}
             type="button"
-            onClick={() => handleToggle(option)}
+            onClick={() => handleToggle(optionText)}
             whileHover={{ scale: 1.01, y: -2 }}
             whileTap={{ scale: 0.99 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -99,7 +107,7 @@ export default function MCQMultiOptionList({
                     : "text-slate-350"
                 }`}
               >
-                {option}
+                {optionText}
               </p>
             </div>
 

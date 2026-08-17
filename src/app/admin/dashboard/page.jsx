@@ -9,20 +9,26 @@ import {
 } from "react-icons/fa";
 
 import { useDashboard } from "@/hooks/queries/admin/useDashboard";
+import {
+  useCourseOverview,
+  useCourseStatusPie,
+  useRecentActivity,
+} from "@/hooks/queries/admin/useDashboardHome";
 
 import Loader from "@/components/common/Loader";
 
-import DashboardHeader from "@/components/dashboard/common/DashboardHeader";
-import DashboardStatCard from "@/components/dashboard/common/DashboardStatCard";
-import AnalyticsChart from "@/components/dashboard/AnalyticsChart";
-import CourseStatusChart from "@/components/dashboard/CourseStatusChart";
-import QuickActions from "@/components/dashboard/QuickActions";
+import { AdminKPIs } from "@/components/admin/dashboard/AdminKPIs";
+import { CoursePerformanceTable } from "@/components/admin/dashboard/CoursePerformanceTable";
+import { CourseStatusPieChart } from "@/components/admin/dashboard/CourseStatusPieChart";
+import { RecentActivityFeed } from "@/components/admin/dashboard/RecentActivityFeed";
 import RecentUsers from "@/components/dashboard/RecentUsers";
 
 export default function AdminDashboard() {
-  const router = useRouter();
-
   const { data: dashboard, isLoading, isError } = useDashboard();
+
+  const coursePie = useCourseStatusPie(dashboard?.publishedCourses, dashboard?.draftCourses);
+  const recentActivity = useRecentActivity();
+  const upcomingEvents = useUpcomingEvents();
 
   if (isLoading) {
     return (
@@ -40,89 +46,37 @@ export default function AdminDashboard() {
     );
   }
 
-  const analyticsData = [
-    {
-      name: "Users",
-      value: dashboard.totalUsers,
-    },
-    {
-      name: "Students",
-      value: dashboard.totalStudents,
-    },
-    {
-      name: "Instructors",
-      value: dashboard.totalInstructors,
-    },
-    {
-      name: "Courses",
-      value: dashboard.totalCourses,
-    },
-    {
-      name: "Enrollments",
-      value: dashboard.totalEnrollments,
-    },
-  ];
-
   return (
-    <div className="space-y-8">
-      {/* Top Section: Full-width Greeting Banner */}
-      <DashboardHeader name="Admin" />
-
-      {/* KPI Stats Counters (perfectly aligned in 5 columns) */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-        <DashboardStatCard
-          title="Total Users"
-          value={dashboard.totalUsers}
-          icon={<FaUsers />}
-          onClick={() => router.push("/admin/users")}
+    <div className="-m-3 sm:-m-6 min-h-[calc(100vh-3.5rem)] bg-[#080B11] p-3 sm:p-6 pt-0 sm:pt-0">
+      <div className="flex flex-col gap-6 max-w-[1600px] mx-auto mt-4">
+        <AdminKPIs
+          coursesCount={dashboard.totalCourses}
+          studentsCount={dashboard.totalStudents}
+          instructorsCount={dashboard.totalInstructors}
+          enrollmentsCount={dashboard.totalEnrollments}
+          usersCount={dashboard.totalUsers}
+          trends={dashboard.trends}
         />
 
-        <DashboardStatCard
-          title="Courses"
-          value={dashboard.totalCourses}
-          icon={<FaBook />}
-          onClick={() => router.push("/admin/courses")}
+        <CoursePerformanceTable
+          courses={dashboard.coursePerformance}
         />
 
-        <DashboardStatCard
-          title="Students"
-          value={dashboard.totalStudents}
-          icon={<FaUserGraduate />}
-          onClick={() => router.push("/admin/students")}
-        />
-
-        <DashboardStatCard
-          title="Instructors"
-          value={dashboard.totalInstructors}
-          icon={<FaChalkboardTeacher />}
-          onClick={() => router.push("/admin/instructors")}
-        />
-
-        <DashboardStatCard
-          title="Enrollments"
-          value={dashboard.totalEnrollments}
-          icon={<FaUsers />}
-          onClick={() => router.push("/admin/enrollments")}
-        />
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid gap-6 xl:grid-cols-2">
-        <AnalyticsChart title="Platform Overview" data={analyticsData} />
-
-        <CourseStatusChart
-          publishedCourses={dashboard.publishedCourses}
-          draftCourses={dashboard.draftCourses}
-        />
-      </div>
-
-      {/* Bottom Section: QuickActions & RecentUsers side-by-side */}
-      <div className="grid gap-6 lg:grid-cols-3 items-stretch">
-        <div className="lg:col-span-1">
-          <QuickActions />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <TodaySnapshot snapshot={dashboard.todaySnapshot} />
+          <TopInstructor instructor={dashboard.topInstructor} />
+          <UpcomingEvents
+            events={upcomingEvents.data}
+            isLoading={upcomingEvents.isLoading}
+          />
         </div>
 
-        <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <CourseStatusPieChart data={coursePie} />
+          <RecentActivityFeed
+            activity={recentActivity.data}
+            isLoading={recentActivity.isLoading}
+          />
           <RecentUsers users={dashboard.recentUsers} />
         </div>
       </div>

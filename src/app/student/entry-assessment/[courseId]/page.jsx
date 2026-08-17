@@ -222,6 +222,7 @@ export default function EntryAssessmentPage({ params }) {
                         <div className="grid gap-2 sm:grid-cols-2">
                             {q.options.map((option, optionIndex) => {
                                 const selected = answers[q.id] === optionIndex;
+                                const optionText = getOptionText(option);
                                 return (
                                     <button
                                         key={optionIndex}
@@ -233,7 +234,7 @@ export default function EntryAssessmentPage({ params }) {
                                         }`}
                                     >
                                         {selected && <CheckCircle2 className="h-4 w-4 shrink-0 text-orange-500" />}
-                                        <span>{option}</span>
+                                        <span>{optionText}</span>
                                     </button>
                                 );
                             })}
@@ -266,6 +267,13 @@ function Stat({ label, value }) {
 }
 
 /** Per-question breakdown — student's answer vs. the correct one, with the explanation, only shown once evaluated. */
+const getOptionText = (opt) => {
+    if (opt === null || opt === undefined) return "";
+    if (typeof opt === "string") return opt;
+    if (typeof opt === "object") return opt.optionText || opt.text || JSON.stringify(opt);
+    return String(opt);
+};
+
 function AnswerReview({ questions }) {
     if (questions.length === 0) return null;
 
@@ -288,6 +296,7 @@ function AnswerReview({ questions }) {
                         {q.options.map((option, optionIndex) => {
                             const isCorrectOption = optionIndex === q.correctAnswerIndex;
                             const isSelected = optionIndex === q.selectedIndex;
+                            const optionText = getOptionText(option);
                             return (
                                 <div
                                     key={optionIndex}
@@ -299,7 +308,7 @@ function AnswerReview({ questions }) {
                                                 : "border-slate-800 bg-slate-950 text-slate-400"
                                     }`}
                                 >
-                                    {option}
+                                    {optionText}
                                     {isCorrectOption && " ✓"}
                                     {isSelected && !isCorrectOption && " (your answer)"}
                                 </div>

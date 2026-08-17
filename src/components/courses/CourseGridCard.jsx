@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format, formatDistanceToNow } from "date-fns";
 import { BookOpen, Layers, FileText, HelpCircle, Clock, UserRound, CalendarPlus, History, Pencil, ArrowUpRight } from "lucide-react";
@@ -35,12 +36,12 @@ const THEMES = [
 
 function Stat({ icon: Icon, value, label }) {
   return (
-    <div className="flex flex-col items-center gap-1 rounded-lg border border-white/25 bg-white/15 py-2 text-white backdrop-blur-sm">
+    <div className="flex flex-col items-center gap-0.5 md:gap-1 rounded-lg border border-white/25 bg-white/15 py-1 md:py-2 text-white backdrop-blur-sm">
       <div className="flex items-center gap-1.5">
         <Icon size={15} />
-        <p className="text-base font-black tabular-nums">{value}</p>
+        <p className="text-sm md:text-base font-black tabular-nums">{value}</p>
       </div>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-white/70">{label}</p>
+      <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/70">{label}</p>
     </div>
   );
 }
@@ -61,21 +62,22 @@ export default function CourseGridCard({ course, index = 0 }) {
   return (
     <div
       onClick={() => router.push(`/instructor/courses/${course.id}`)}
-      className="group relative flex w-80 flex-col overflow-hidden rounded-2xl shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30 cursor-pointer"
+      className="group relative flex w-[90%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-80 md:shrink flex-col overflow-hidden rounded-2xl shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30 cursor-pointer"
     >
       {/* Dimmed color layer — ~40% less bright/contrasty than the raw gradient, kept behind the content so text stays crisp */}
       <div className={`absolute inset-0 ${theme.gradient} brightness-[0.6] contrast-[0.85]`} />
 
       {/* Content sits in its own stacked layer so it renders above the dimmed background */}
       <div className="relative z-10 flex flex-1 flex-col">
-      {/* Banner */}
-      <div className="relative h-28 shrink-0 overflow-hidden">
+      {/* Banner — shorter on mobile so the thumbnail no longer dominates the card */}
+      <div className="relative h-16 md:h-28 shrink-0 overflow-hidden">
         <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent} z-10`} />
         {course.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={course.thumbnailUrl}
             alt=""
+            loading="lazy"
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
@@ -84,36 +86,36 @@ export default function CourseGridCard({ course, index = 0 }) {
           </div>
         )}
 
-        <span className="absolute top-3 left-3 rounded-md border border-white/30 bg-white/15 backdrop-blur px-2 py-1 text-[11px] font-bold text-white">
+        <span className="absolute top-2 left-2 md:top-3 md:left-3 rounded-md border border-white/30 bg-white/15 backdrop-blur px-2 py-0.5 md:py-1 text-[10px] md:text-[11px] font-bold text-white">
           {course.category || "Uncategorized"}
         </span>
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-2 right-2 md:top-3 md:right-3">
           <CourseStatusBadge status={course.status} />
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2.5 p-4">
+      <div className="flex flex-1 flex-col gap-1.5 md:gap-2.5 p-3 md:p-4">
         <div>
-          <h3 className="text-lg font-black text-white leading-snug line-clamp-1">
+          <h3 className="text-base md:text-lg font-black text-white leading-snug line-clamp-1">
             {course.title}
           </h3>
           {course.description ? (
-            <p className="mt-1 text-[13px] leading-relaxed text-white/80 line-clamp-2">{course.description}</p>
+            <p className="mt-0.5 md:mt-1 text-xs md:text-[13px] leading-relaxed text-white/80 line-clamp-1 md:line-clamp-2">{course.description}</p>
           ) : null}
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1.5 md:gap-2">
           <Stat icon={Layers} value={course._count?.modules ?? 0} label="Modules" />
           <Stat icon={FileText} value={lessonsCount} label="Lessons" />
           <Stat icon={HelpCircle} value={course._count?.quizzes ?? 0} label="Quizzes" />
         </div>
 
-        <div className="flex items-center justify-between gap-2 text-xs">
-          <span className="flex min-w-0 items-center gap-1.5 truncate rounded-lg border border-white/25 bg-white/15 px-2 py-1 text-white backdrop-blur-sm">
+        <div className="flex items-center justify-between gap-2 text-[11px] md:text-xs">
+          <span className="flex min-w-0 items-center gap-1.5 truncate rounded-lg border border-white/25 bg-white/15 px-2 py-0.5 md:py-1 text-white backdrop-blur-sm">
             <UserRound size={13} className="shrink-0 text-white/70" />
             <span className="truncate">{course.creator?.name || "Unknown"}</span>
           </span>
-          <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/25 bg-white/15 px-2 py-1 text-white backdrop-blur-sm">
+          <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/25 bg-white/15 px-2 py-0.5 md:py-1 text-white backdrop-blur-sm">
             <Clock size={13} className="text-white/70" />
             {course.estimatedLearningHours ? `${course.estimatedLearningHours}h` : "—"}
           </span>
@@ -130,17 +132,17 @@ export default function CourseGridCard({ course, index = 0 }) {
           </span>
         </div>
 
-        <div className="mt-auto flex items-center gap-2 pt-1.5">
+        <div className="mt-auto flex items-center gap-2 pt-0.5 md:pt-1.5">
           <button
             onClick={goTo(`/instructor/courses/edit/${course.id}`)}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-[13px] font-extrabold text-white transition hover:bg-white/20"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-3 py-1.5 md:py-2 text-xs md:text-[13px] font-extrabold text-white transition hover:bg-white/20"
           >
             <Pencil size={13} />
             Edit
           </button>
           <button
             onClick={goTo(`/instructor/courses/${course.id}`)}
-            className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-2 text-[13px] font-extrabold transition hover:bg-white/90 active:scale-95 ${theme.viewText}`}
+            className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-1.5 md:py-2 text-xs md:text-[13px] font-extrabold transition hover:bg-white/90 active:scale-95 ${theme.viewText}`}
           >
             View
             <ArrowUpRight size={13} />

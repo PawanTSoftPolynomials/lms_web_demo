@@ -32,6 +32,7 @@ function MessagingCenterContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const studentIdParam = searchParams.get('studentId');
+  const conversationIdParam = searchParams.get('conversationId');
 
   const queryClient = useQueryClient();
 
@@ -71,7 +72,11 @@ function MessagingCenterContent() {
   // Set initial selected conversation ID or search query parameter match
   useEffect(() => {
     if (conversationsList.length > 0) {
-      if (studentIdParam) {
+      if (conversationIdParam) {
+        const match = conversationsList.find(c => c.id === conversationIdParam);
+        if (match) setSelectedConvId(match.id);
+        else setSelectedConvId(conversationsList[0].id);
+      } else if (studentIdParam) {
         const match = conversationsList.find(c => c.id === studentIdParam || c.id === `s${studentIdParam}`);
         if (match) setSelectedConvId(match.id);
         else setSelectedConvId(conversationsList[0].id);
@@ -82,7 +87,7 @@ function MessagingCenterContent() {
         }
       }
     }
-  }, [conversationsList, studentIdParam, selectedConvId]);
+  }, [conversationsList, studentIdParam, conversationIdParam, selectedConvId]);
 
   // --- 2. FETCH REAL MESSAGES FOR SELECTED THREAD ---
   const { data: rawMessagesData, isLoading: loadingMsgs, refetch: refetchMsgs } = useQuery({

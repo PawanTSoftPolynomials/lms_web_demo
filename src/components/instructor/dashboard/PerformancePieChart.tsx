@@ -19,11 +19,11 @@ export function PerformancePieChart({ data, isLoading }: { data: GradeDistributi
       
       <p className="text-[10px] text-slate-500 mb-4">Overall grade distribution across active courses.</p>
 
-      <div className="flex-1 min-h-[160px] relative flex items-center justify-center">
+      <div className="h-[170px] shrink-0 relative flex items-center justify-center">
         {data.length === 0 ? (
           <p className="text-xs text-slate-500">No data available</p>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" debounce={50}>
             <PieChart>
               <Pie
                 data={data}

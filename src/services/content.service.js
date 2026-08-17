@@ -1,31 +1,44 @@
+import Cookies from "js-cookie";
 import api from "@/lib/axios";
 
-export const getContents = async (
-  lessonId
-) => {
-  const response =
-    await api.get(
-      `/contents?lessonId=${lessonId}`
-    );
-
+export const getContents = async (topicId) => {
+  const response = await api.get(`/contents?topicId=${topicId}`);
   return response.data?.data ?? response.data ?? [];
 };
 
-/** Instructor-wide contents (no lessonId = every lesson across the instructor's own courses). */
+/** Instructor-wide contents (no topicId = every topic across the instructor's own courses). */
 export const getInstructorContents = async () => {
   const response = await api.get("/contents");
   return response.data?.data ?? response.data ?? [];
 };
 
-export const getContentById =
-  async (contentId) => {
-    const response =
-      await api.get(
-        `/contents/${contentId}`
-      );
+export const getContentById = async (contentId) => {
+  const response = await api.get(`/contents/${contentId}`);
+  return response.data;
+};
 
-    return response.data;
-  };
+/** Uploads a raw file (PDF/PPT/DOCX/ZIP/Video/Image) to Next.js Vercel Blob API route (/api/upload) and returns { url, pathname }. */
+export const uploadFileToVercelBlob = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const token = Cookies.get("accessToken") || (typeof window !== "undefined" ? localStorage.getItem("accessToken") : "");
+
+  const response = await fetch("/api/upload", {
+    method: "POST",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `Upload failed with status ${response.status}`);
+  }
+
+  return await response.json();
+};
 
 /** Uploads a raw file (PDF/PPT/DOCX/ZIP/Video) and returns its hosted URL, for use as a Content's fileUrl. */
 export const uploadContentFile = async (file) => {
@@ -39,72 +52,26 @@ export const uploadContentFile = async (file) => {
   return data;
 };
 
-export const createContent =
-  async (data) => {
-    const response =
-      await api.post(
-        "/contents",
-        data
-      );
+export const createContent = async (data) => {
+  // Ensure order is ALWAYS sent as an integer in the HTTP request payload
+  const parsedOrder = Number(data?.order);
+  const safeOrder = !isNaN(parsedOrder) && parsedOrder > 0 ? parsedOrder : 1;
 
-    return response.data;
+  const payload = {
+    ...data,
+    order: safeOrder,
   };
 
-export const updateContent =
-  async (
-    contentId,
-    data
-  ) => {
-    const response =
-      await api.put(
-        `/contents/${contentId}`,
-        data
-      );
+  const response = await api.post("/contents", payload);
+  return response.data;
+};
 
-    return response.data;
-  };
+export const updateContent = async (contentId, data) => {
+  const response = await api.put(`/contents/${contentId}`, data);
+  return response.data;
+};
 
-export const deleteContent =
-  async (contentId) => {
-    const response =
-      await api.delete(
-        `/contents/${contentId}`
-      );
-
-    return response.data;
-  };
-
-/** contents: [{ id, order }] — full desired ordering for one lesson. */
-export const reorderContents =
-  async (contents) => {
-    const response =
-      await api.patch(
-        "/contents/reorder",
-        { contents }
-      );
-
-    return response.data;
-  };
-
-/** parentContentId: null promotes the block to top-level; the server computes its new order. */
-export const moveContent =
-  async (contentId, parentContentId) => {
-    const response =
-      await api.patch(
-        `/contents/${contentId}/move`,
-        { parentContentId }
-      );
-
-    return response.data;
-  };
-
-/** Deep-clones a content block (and, one level down, its nested children), inserted right after the original. */
-export const duplicateContent =
-  async (contentId) => {
-    const response =
-      await api.post(
-        `/contents/${contentId}/duplicate`
-      );
-
-    return response.data;
-  };
+export const deleteContent = async (contentId) => {
+  const response = await api.delete(`/contents/${contentId}`);
+  return response.data;
+};

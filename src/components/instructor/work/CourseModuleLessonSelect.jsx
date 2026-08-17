@@ -3,29 +3,34 @@
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 import { useModules } from "@/hooks/queries/instructor/useModules";
 import { useLessons } from "@/hooks/queries/instructor/useLessons";
+import { useTopics } from "@/hooks/queries/instructor/useTopics";
 
 const selectClass =
   "w-full bg-[#0D1021] border border-[#1A1F35] text-xs px-3 py-2.5 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-[#0D1021] [&>option]:text-slate-200";
 const labelClass = "text-[9.5px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block";
 
 /**
- * Inline Course -> Module -> Lesson cascading picker embedded directly in a
- * creation page — no separate "Apply" step; picking a course resets module
- * and lesson, picking a module resets lesson.
+ * Inline Course -> Module -> Lesson (-> Topic) cascading picker embedded
+ * directly in a creation page — no separate "Apply" step; picking a course
+ * resets module/lesson/topic, picking a module resets lesson/topic, picking
+ * a lesson resets topic. `includeTopic` opts in the Topic column for flows
+ * that create Content (which now nests under Topic, not Lesson directly) —
+ * lesson-scoped flows (e.g. Lesson Notes) can leave it off.
  */
-export default function CourseModuleLessonSelect({ courseId, moduleId, lessonId, onChange }) {
+export default function CourseModuleLessonSelect({ courseId, moduleId, lessonId, topicId, includeTopic = false, onChange }) {
   const { data: courses = [], isLoading: loadingCourses } = useInstructorCourses();
   const { data: modules = [], isLoading: loadingModules } = useModules(courseId);
   const { data: lessons = [], isLoading: loadingLessons } = useLessons(moduleId);
+  const { data: topics = [], isLoading: loadingTopics } = useTopics(includeTopic ? lessonId : undefined);
 
   return (
-    <div className="rounded-2xl border border-[#1A1F35] bg-[#05070E] p-4 grid gap-3 sm:grid-cols-3">
+    <div className={`rounded-2xl border border-[#1A1F35] bg-[#05070E] p-4 grid gap-3 ${includeTopic ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
       <div>
         <label className={labelClass}>Course</label>
         <select
           className={selectClass}
           value={courseId}
-          onChange={(e) => onChange({ courseId: e.target.value, moduleId: "", lessonId: "" })}
+          onChange={(e) => onChange({ courseId: e.target.value, moduleId: "", lessonId: "", topicId: "" })}
           disabled={loadingCourses}
         >
           <option value="">-- Select Course --</option>
@@ -39,7 +44,7 @@ export default function CourseModuleLessonSelect({ courseId, moduleId, lessonId,
         <select
           className={selectClass}
           value={moduleId}
-          onChange={(e) => onChange({ courseId, moduleId: e.target.value, lessonId: "" })}
+          onChange={(e) => onChange({ courseId, moduleId: e.target.value, lessonId: "", topicId: "" })}
           disabled={!courseId || loadingModules}
         >
           <option value="">-- Select Module --</option>
@@ -53,7 +58,7 @@ export default function CourseModuleLessonSelect({ courseId, moduleId, lessonId,
         <select
           className={selectClass}
           value={lessonId}
-          onChange={(e) => onChange({ courseId, moduleId, lessonId: e.target.value })}
+          onChange={(e) => onChange({ courseId, moduleId, lessonId: e.target.value, topicId: "" })}
           disabled={!moduleId || loadingLessons}
         >
           <option value="">-- Select Lesson --</option>
@@ -62,6 +67,22 @@ export default function CourseModuleLessonSelect({ courseId, moduleId, lessonId,
           ))}
         </select>
       </div>
+      {includeTopic && (
+        <div>
+          <label className={labelClass}>Topic</label>
+          <select
+            className={selectClass}
+            value={topicId}
+            onChange={(e) => onChange({ courseId, moduleId, lessonId, topicId: e.target.value })}
+            disabled={!lessonId || loadingTopics}
+          >
+            <option value="">-- Select Topic --</option>
+            {topics.map((t) => (
+              <option key={t.id} value={t.id}>{t.title}</option>
+            ))}
+          </select>
+        </div>
+      )}
     </div>
   );
 }

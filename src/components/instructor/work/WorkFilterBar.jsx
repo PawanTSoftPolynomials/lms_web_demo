@@ -1,12 +1,13 @@
 "use client";
 
-import { Filter, RotateCcw, Check } from "lucide-react";
+import { Filter, RotateCcw } from "lucide-react";
 
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 import { useModules } from "@/hooks/queries/instructor/useModules";
 import { useLessons } from "@/hooks/queries/instructor/useLessons";
 import { useCourseBatches } from "@/hooks/queries/instructor/useBatches";
 import { useWorkFilters } from "@/context/WorkFilterContext";
+import { DateRangePicker } from "@/components/ui/DateRangePicker";
 
 const selectClass =
   "w-full bg-[#0D1021] border border-[#1A1F35] text-xs px-3 py-2.5 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-[#0D1021] [&>option]:text-slate-200";
@@ -28,7 +29,7 @@ export default function WorkFilterBar({
   fields = ["course", "batch", "module", "lesson", "status", "dateRange"],
   statusOptions = DEFAULT_STATUS_OPTIONS,
 }) {
-  const { filters, updateFilter, applyFilters, resetFilters } = useWorkFilters();
+  const { filters, updateFilter, resetFilters } = useWorkFilters();
 
   const { data: courses = [], isLoading: loadingCourses } = useInstructorCourses();
   const { data: modules = [], isLoading: loadingModules } = useModules(filters.courseId);
@@ -141,20 +142,15 @@ export default function WorkFilterBar({
         {show("dateRange") && (
           <div>
             <label className={labelClass}>Date Range</label>
-            <div className="flex items-center gap-1.5">
-              <input
-                type="date"
-                value={filters.startDate}
-                onChange={(e) => updateFilter("startDate", e.target.value)}
-                className={selectClass}
-              />
-              <input
-                type="date"
-                value={filters.endDate}
-                onChange={(e) => updateFilter("endDate", e.target.value)}
-                className={selectClass}
-              />
-            </div>
+            <DateRangePicker
+              startDate={filters.startDate}
+              endDate={filters.endDate}
+              onChange={(nextStart, nextEnd) => {
+                updateFilter("startDate", nextStart);
+                updateFilter("endDate", nextEnd);
+              }}
+              triggerClassName="w-full py-2.5"
+            />
           </div>
         )}
       </div>
@@ -167,14 +163,6 @@ export default function WorkFilterBar({
         >
           <RotateCcw size={12} />
           Reset
-        </button>
-        <button
-          type="button"
-          onClick={applyFilters}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10.5px] font-black text-white bg-orange-500 hover:bg-orange-600 shadow-sm transition"
-        >
-          <Check size={12} />
-          Apply
         </button>
       </div>
     </div>

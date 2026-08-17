@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -21,12 +21,33 @@ import Button from "@/components/ui/Button";
 import PageHeader from "@/components/layouts/PageHeader";
 import Loader from "@/components/common/Loader";
 import useQuizResult from "@/hooks/queries/student/useQuizResult";
+import AdaptiveRemediationCard from "@/components/student/AdaptiveRemediationCard";
+
 
 export default function QuizResultPage() {
   const { quizId } = useParams();
   const { data, isLoading, isError } = useQuizResult(quizId);
 
   const submission = data?.data || data;
+
+  // TEMP DIAGNOSTIC — remove after investigation
+  useEffect(() => {
+    console.log("[Adaptive TRACE] T0_RESULT_PAGE_MOUNTED", { quizId, t: performance.now() });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // TEMP DIAGNOSTIC — remove after investigation. Fires once per DISTINCT
+  // react-query data reference (stale cached value on mount, then again if
+  // a background refetch resolves with fresh data) — not once per render.
+  useEffect(() => {
+    if (!data) return;
+    console.log("[Adaptive TRACE] GET_RESULT_RECEIVED", {
+      submissionId: data?.id,
+      answers: data?.answers,
+      quizQuestionsCount: (data?.quiz?.questions || data?.data?.quiz?.questions || []).length,
+      t: performance.now(),
+    });
+  }, [data]);
 
   const parsedAnswers = useMemo(() => {
     if (!submission?.answers) return [];
@@ -170,6 +191,9 @@ export default function QuizResultPage() {
         </div>
       </Card>
 
+      {/* AI Adaptive Learning Tutor Guidance */}
+      <AdaptiveRemediationCard quiz={quiz} submission={submission} conceptScores={conceptScores} />
+
       {/* KPI Performance Grid */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-5">
         <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-md">
@@ -281,7 +305,7 @@ export default function QuizResultPage() {
           {quiz?.questions?.map((question, index) => {
             const qType = question.type || "MCQ_SINGLE";
             const userAnswer = parsedAnswers.find(ans => ans.questionId === question.id);
-            const selectedOption = userAnswer?.selectedOption;
+            const selectedOption = userAnswer?.answer ?? userAnswer?.selectedOption;
             const isCorrect = checkAnswerCorrectness(qType, selectedOption, question.correctAnswer);
             
             // Format option text mapping
@@ -330,12 +354,13 @@ export default function QuizResultPage() {
                     {(qType === "MCQ_SINGLE" || qType === "MCQ_MULTI") && (
                       <div className="grid gap-2.5">
                         {optionsList.map((option, optIdx) => {
+                          const optionText = typeof option === "string" ? option : (option?.optionText || option?.text || String(option));
                           const isSelected = qType === "MCQ_SINGLE" 
-                            ? selectedOption === option
-                            : Array.isArray(selectedOption) && selectedOption.includes(option);
+                            ? selectedOption === optionText || selectedOption === option
+                            : Array.isArray(selectedOption) && (selectedOption.includes(optionText) || selectedOption.includes(option));
                           const isAnswerCorrect = qType === "MCQ_SINGLE"
-                            ? option === question.correctAnswer
-                            : Array.isArray(question.correctAnswer) && question.correctAnswer.includes(option);
+                            ? optionText === question.correctAnswer || (typeof option === "object" && option?.isCorrect)
+                            : Array.isArray(question.correctAnswer) && question.correctAnswer.includes(optionText);
                           
                           let optionStyle = "border-slate-800 bg-slate-950/40 text-slate-400";
                           let badgeIcon = null;
@@ -358,7 +383,7 @@ export default function QuizResultPage() {
                               key={optIdx}
                               className={`flex items-center justify-between rounded-xl border p-3.5 text-xs transition ${optionStyle}`}
                             >
-                              <span className="pr-4 break-words">{option}</span>
+                              <span className="pr-4 break-words">{optionText}</span>
                               {badgeIcon}
                             </div>
                           );
@@ -374,13 +399,14 @@ export default function QuizResultPage() {
                           <div className="flex flex-wrap gap-2">
                             {Array.isArray(selectedOption) && selectedOption.length > 0 ? (
                               selectedOption.map((token, tIdx) => {
-                                const isCorrectPos = Array.isArray(question.correctAnswer) && question.correctAnswer[tIdx] === token;
+                                const tokenText = typeof token === "string" ? token : (token?.optionText || token?.text || String(token));
+                                const isCorrectPos = Array.isArray(question.correctAnswer) && question.correctAnswer[tIdx] === tokenText;
                                 return (
                                   <span key={tIdx} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 ${
-                                    isCorrectPos ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-450 border border-rose-500/20"
+                                    isCorrectPos ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-455 border border-rose-500/20"
                                   }`}>
                                     <span className="text-[9px] opacity-60 font-bold">{tIdx + 1}</span>
-                                    {token}
+                                    {tokenText}
                                   </span>
                                 );
                               })
@@ -394,12 +420,15 @@ export default function QuizResultPage() {
                           <div className="space-y-2 border-t border-slate-900/50 pt-3 mt-2">
                             <span className="text-[10px] text-slate-505 font-bold uppercase tracking-wider">Correct Sequence:</span>
                             <div className="flex flex-wrap gap-2">
-                              {question.correctAnswer.map((token, tIdx) => (
-                                <span key={tIdx} className="bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-slate-700/40">
-                                  <span className="text-[9px] text-slate-500 font-bold">{tIdx + 1}</span>
-                                  {token}
-                                </span>
-                              ))}
+                              {question.correctAnswer.map((token, tIdx) => {
+                                const tokenText = typeof token === "string" ? token : (token?.optionText || token?.text || String(token));
+                                return (
+                                  <span key={tIdx} className="bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-slate-700/40">
+                                    <span className="text-[9px] text-slate-500 font-bold">{tIdx + 1}</span>
+                                    {tokenText}
+                                  </span>
+                                );
+                              })}
                             </div>
                           </div>
                         )}

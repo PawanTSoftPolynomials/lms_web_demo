@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BookOpen, Search } from "lucide-react";
@@ -23,40 +23,86 @@ export default function InstructorCoursesPage() {
 
   const set = (key) => (value) => setFilters((f) => ({ ...f, [key]: value, page: key === "page" ? value : 1 }));
 
+  // Mobile carousel: tracks which card is centered so the pagination dots below
+  // can highlight it. Rides the native scroll-snap — no external state drives
+  // the scroll position itself, we just observe where it landed.
+  const sliderRef = useRef(null);
+  const scrollRaf = useRef(null);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const firstCourseId = courses[0]?.id;
+
+  useEffect(() => {
+    sliderRef.current?.scrollTo({ left: 0 });
+    setActiveSlide(0);
+  }, [firstCourseId]);
+
+  const handleSliderScroll = (e) => {
+    const el = e.currentTarget;
+    if (scrollRaf.current) return;
+    scrollRaf.current = requestAnimationFrame(() => {
+      scrollRaf.current = null;
+      const center = el.scrollLeft + el.clientWidth / 2;
+      let closest = 0;
+      let closestDist = Infinity;
+      Array.from(el.children).forEach((child, i) => {
+        const dist = Math.abs(child.offsetLeft + child.offsetWidth / 2 - center);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closest = i;
+        }
+      });
+      setActiveSlide(closest);
+    });
+  };
+
+  const goToSlide = (i) => {
+    const child = sliderRef.current?.children[i];
+    child?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4">
         <div className="shrink-0">
-          <h1 className="text-3xl md:text-4xl font-bold text-white">My Courses</h1>
-          <p className="text-slate-400 mt-2 text-sm md:text-base">
+          <h1 className="text-xl md:text-4xl font-bold text-white">
+            My Courses{!isLoading && pagination.total ? ` (${pagination.total})` : ""}
+          </h1>
+          <p className="hidden md:block text-slate-400 mt-2 text-sm md:text-base">
             Manage, edit and monitor all your courses from one place.
           </p>
         </div>
 
-        <div className="relative w-full md:max-w-md">
-          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-          <input
-            type="text"
-            placeholder="Search your courses..."
-            value={filters.search}
-            onChange={(e) => set("search")(e.target.value)}
-            className="w-full rounded-xl border border-[#1A1F35] bg-[#0D1021] pl-9 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 outline-none transition focus:border-orange-500/60"
-          />
-        </div>
+        {/* Collapses to direct flex children of the row above at md+ (identical
+            to the original 3-item layout); stays a combined row on mobile so
+            search + actions share one line instead of stacking separately. */}
+        <div className="flex items-center gap-2 md:contents">
+          <div className="relative w-full min-w-0 md:max-w-md">
+            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+            <input
+              type="text"
+              placeholder="Search your courses..."
+              value={filters.search}
+              onChange={(e) => set("search")(e.target.value)}
+              className="w-full rounded-xl border border-[#1A1F35] bg-[#0D1021] pl-9 pr-4 py-2 md:py-2.5 text-sm text-slate-200 placeholder-slate-500 outline-none transition focus:border-orange-500/60"
+            />
+          </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <Link
-            href="/instructor/courses/import"
-            className="inline-flex items-center justify-center rounded-lg bg-slate-800 border border-amber-500/40 px-4 py-2.5 text-xs font-bold text-amber-400 transition hover:bg-slate-700 hover:border-amber-400"
-          >
-            Import (ZIP)
-          </Link>
-          <button
-            onClick={() => router.push("/instructor/courses/create")}
-            className="inline-flex items-center justify-center rounded-lg bg-orange-500 px-5 py-2.5 text-xs font-bold text-white transition hover:bg-orange-600"
-          >
-            + Create Course
-          </button>
+          <div className="flex items-center gap-2 md:gap-3 shrink-0">
+            <Link
+              href="/instructor/courses/import"
+              className="inline-flex items-center justify-center rounded-lg bg-slate-800 border border-amber-500/40 px-3 md:px-4 py-2 md:py-2.5 text-xs font-bold text-amber-400 transition hover:bg-slate-700 hover:border-amber-400 whitespace-nowrap"
+            >
+              <span className="md:hidden">Import</span>
+              <span className="hidden md:inline">Import (ZIP)</span>
+            </Link>
+            <button
+              onClick={() => router.push("/instructor/courses/create")}
+              className="inline-flex items-center justify-center rounded-lg bg-orange-500 px-3 md:px-5 py-2 md:py-2.5 text-xs font-bold text-white transition hover:bg-orange-600 whitespace-nowrap"
+            >
+              <span className="md:hidden">+ Create</span>
+              <span className="hidden md:inline">+ Create Course</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -79,21 +125,50 @@ export default function InstructorCoursesPage() {
           onAction={() => router.push("/instructor/courses/create")}
         />
       ) : (
-        <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] px-8 py-6 md:px-12">
-          <div className="max-h-[68vh] overflow-y-auto pr-1 -mr-1">
-            <div className="grid gap-6 justify-center grid-cols-[repeat(auto-fill,320px)]">
+        <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] px-3 py-4 md:px-12 md:py-6">
+          <div className="md:max-h-[68vh] md:overflow-y-auto md:pr-1 md:-mr-1">
+            {/* Mobile: centered peek carousel — the active card snaps to the middle
+                of the viewport with a small sliver of its neighbors visible on
+                each side (App Store / Apple Music style), one card in focus at a
+                time instead of vertical scrolling. Desktop/tablet keep the
+                original grid, unchanged, via md:grid overriding the flex display. */}
+            <div
+              ref={sliderRef}
+              onScroll={!isLoading && courses.length > 0 ? handleSliderScroll : undefined}
+              className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-6 md:pb-0 md:grid md:justify-center md:grid-cols-[repeat(auto-fill,320px)] md:overflow-visible md:snap-none"
+            >
               {isLoading
                 ? Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="w-80 h-[26rem] rounded-2xl border border-slate-200 bg-white/10 animate-pulse" />
+                    <div
+                      key={i}
+                      className="w-[90%] shrink-0 max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-80 md:shrink h-64 md:h-[26rem] rounded-2xl border border-slate-200 bg-white/10 animate-pulse"
+                    />
                   ))
                 : courses.length === 0
                 ? (
-                  <div className="col-span-full">
+                  <div className="w-full col-span-full">
                     <EmptyState title="No courses match the current filters." />
                   </div>
                 )
                 : courses.map((course, index) => <CourseGridCard key={course.id} course={course} index={index} />)}
             </div>
+
+            {!isLoading && courses.length > 1 && (
+              <div className="flex md:hidden items-center justify-center gap-1.5 pt-3" role="tablist" aria-label="Course slides">
+                {courses.map((course, i) => (
+                  <button
+                    key={course.id}
+                    role="tab"
+                    aria-selected={i === activeSlide}
+                    aria-label={`Go to ${course.title}`}
+                    onClick={() => goToSlide(i)}
+                    className={`rounded-full transition-all duration-300 ${
+                      i === activeSlide ? "w-2 h-2 bg-orange-500" : "w-1.5 h-1.5 bg-slate-600"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {!isLoading && courses.length > 0 && (

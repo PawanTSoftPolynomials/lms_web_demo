@@ -1,95 +1,99 @@
 import {
-    BookOpen,
-    PlayCircle,
+    Video,
     FileText,
-    Clock,
+    Presentation,
+    Image as ImageIcon,
+    Link as LinkIcon,
 } from "lucide-react";
+
+function formatDuration(totalMinutes) {
+    if (!totalMinutes || totalMinutes <= 0) return null;
+
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+
+    if (h === 0) return `${m}m`;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}m`;
+}
+
+const TYPE_META = {
+    VIDEO: { icon: Video, label: "Video" },
+    PRESENTATION: { icon: Presentation, label: "Presentation" },
+    PDF: { icon: FileText, label: "Document" },
+    DOCUMENT: { icon: FileText, label: "Document" },
+    FILE: { icon: FileText, label: "Document" },
+    HTML: { icon: FileText, label: "Article" },
+    TEXT: { icon: FileText, label: "Article" },
+    LINK: { icon: LinkIcon, label: "Link" },
+    EXTERNAL_LINK: { icon: LinkIcon, label: "Link" },
+    IMAGE: { icon: ImageIcon, label: "Image" },
+};
+
+// Priority order when a lesson mixes content types — the first match wins as
+// the row's headline icon/label (e.g. a lesson with both a video and a PDF
+// reads as "Video").
+const TYPE_PRIORITY = [
+    "VIDEO",
+    "PRESENTATION",
+    "PDF",
+    "DOCUMENT",
+    "FILE",
+    "HTML",
+    "TEXT",
+    "LINK",
+    "EXTERNAL_LINK",
+    "IMAGE",
+];
+
+function getLessonMeta(lesson) {
+    const contents = (lesson.topics || []).flatMap((topic) => topic.contents || []);
+
+    const totalDuration = contents.reduce(
+        (sum, content) => sum + (content.duration || 0),
+        0
+    );
+
+    const presentTypes = new Set(contents.map((content) => content.type));
+    const primaryType = TYPE_PRIORITY.find((type) => presentTypes.has(type));
+    const meta = TYPE_META[primaryType] || { icon: FileText, label: "Lesson" };
+
+    return { ...meta, duration: formatDuration(totalDuration) };
+}
 
 export default function LessonList({
                                        lessons = [],
                                    }) {
     if (!lessons.length) {
         return (
-            <div className="rounded-lg border border-dashed border-slate-700 p-5 text-center">
-                <p className="text-sm text-slate-400">
-                    No lessons available in this module.
-                </p>
-            </div>
+            <p className="px-4 py-3 text-xs text-slate-500">
+                No lessons available in this module.
+            </p>
         );
     }
 
     return (
-        <div className="space-y-3">
-            {lessons.map((lesson, index) => {
-                const contentCount =
-                    lesson.contents?.length || 0;
-
-                const videoCount =
-                    lesson.contents?.filter(
-                        (content) => content.type === "VIDEO"
-                    ).length || 0;
-
-                const documentCount =
-                    lesson.contents?.filter(
-                        (content) =>
-                            content.type === "FILE" ||
-                            content.type === "HTML"
-                    ).length || 0;
+        <div className="divide-y divide-slate-800/60">
+            {lessons.map((lesson) => {
+                const { icon: Icon, label, duration } = getLessonMeta(lesson);
 
                 return (
                     <div
                         key={lesson.id}
-                        className="rounded-xl border border-slate-800 bg-slate-900 p-4 transition hover:border-orange-500/40"
+                        className="flex items-center justify-between gap-3 px-4 py-3.5"
                     >
-                        <div className="flex items-start justify-between gap-4">
-                            <div className="flex gap-3">
-                                <div className="mt-1 rounded-lg bg-orange-500/10 p-2 text-orange-500">
-                                    <BookOpen className="h-5 w-5" />
-                                </div>
+                        <div className="flex min-w-0 items-center gap-2.5">
+                            <Icon className="h-4 w-4 shrink-0 text-orange-500" />
 
-                                <div>
-                                    <h4 className="font-semibold text-white">
-                                        Lesson {index + 1}: {lesson.title}
-                                    </h4>
-
-                                    <p className="mt-1 text-sm text-slate-400">
-                                        {lesson.description}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {!lesson.isPublished && (
-                                <span className="rounded-full bg-yellow-500/10 px-3 py-1 text-xs font-medium text-yellow-400">
-                  Draft
-                </span>
-                            )}
+                            <span className="truncate text-sm text-slate-200">
+                                {lesson.title}
+                            </span>
                         </div>
 
-                        <div className="mt-4 flex flex-wrap gap-4 text-sm text-slate-400">
-                            <div className="flex items-center gap-2">
-                                <PlayCircle className="h-4 w-4 text-orange-500" />
-                                <span>
-                  {videoCount} Video
-                                    {videoCount !== 1 ? "s" : ""}
-                </span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-orange-500" />
-                                <span>
-                  {documentCount} Resource
-                                    {documentCount !== 1 ? "s" : ""}
-                </span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <Clock className="h-4 w-4 text-orange-500" />
-                                <span>
-                  {contentCount} Content Item
-                                    {contentCount !== 1 ? "s" : ""}
-                </span>
-                            </div>
-                        </div>
+                        <span className="shrink-0 text-xs text-slate-500">
+                            {label}
+                            {duration ? ` • ${duration}` : ""}
+                        </span>
                     </div>
                 );
             })}

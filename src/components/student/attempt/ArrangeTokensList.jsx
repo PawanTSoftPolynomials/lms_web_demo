@@ -3,6 +3,13 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { RefreshCw } from "lucide-react";
 
+const getTokenText = (opt) => {
+  if (opt === null || opt === undefined) return "";
+  if (typeof opt === "string") return opt;
+  if (typeof opt === "object") return opt.optionText || opt.text || JSON.stringify(opt);
+  return String(opt);
+};
+
 export default function ArrangeTokensList({
   options = [],
   selectedOrder = [],
@@ -10,10 +17,9 @@ export default function ArrangeTokensList({
 }) {
   const arrangedSequence = Array.isArray(selectedOrder) ? selectedOrder : [];
 
-
-
   const handlePoolClick = (token) => {
-    onOrderChange([...arrangedSequence, token]);
+    const text = getTokenText(token);
+    onOrderChange([...arrangedSequence, text]);
   };
 
   const handleSequenceClick = (token, idx) => {
@@ -27,7 +33,7 @@ export default function ArrangeTokensList({
   };
 
   const handleAutoArrange = () => {
-    onOrderChange([...options]);
+    onOrderChange(options.map(getTokenText));
   };
 
   return (
@@ -69,25 +75,28 @@ export default function ArrangeTokensList({
               <span className="text-sm text-slate-450 italic">Tap the options below to arrange them here.</span>
             </motion.div>
           ) : (
-            arrangedSequence.map((token, index) => (
-              <motion.button
-                layout
-                key={`${token}_seq_${index}`}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                type="button"
-                onClick={() => handleSequenceClick(token, index)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-orange-500 to-pink-500 text-slate-950 px-4 py-2.5 rounded-xl text-sm font-extrabold flex items-center gap-2 shadow-lg shadow-orange-500/15 hover:shadow-orange-500/30 transition-shadow cursor-pointer select-none"
-              >
-                <span className="text-[10px] bg-slate-950/20 px-2 py-0.5 rounded-md text-slate-950/80 font-black">
-                  {index + 1}
-                </span>
-                <span>{token}</span>
-              </motion.button>
-            ))
+            arrangedSequence.map((token, index) => {
+              const tokenText = getTokenText(token);
+              return (
+                <motion.button
+                  layout
+                  key={`${tokenText}_seq_${index}`}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                  type="button"
+                  onClick={() => handleSequenceClick(tokenText, index)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-gradient-to-r from-orange-500 to-pink-500 text-slate-950 px-4 py-2.5 rounded-xl text-sm font-extrabold flex items-center gap-2 shadow-lg shadow-orange-500/15 hover:shadow-orange-500/30 transition-shadow cursor-pointer select-none"
+                >
+                  <span className="text-[10px] bg-slate-950/20 px-2 py-0.5 rounded-md text-slate-950/80 font-black">
+                    {index + 1}
+                  </span>
+                  <span>{tokenText}</span>
+                </motion.button>
+              );
+            })
           )}
         </AnimatePresence>
       </div>
@@ -102,20 +111,18 @@ export default function ArrangeTokensList({
         <div className="min-h-[60px] rounded-2xl border border-slate-800/80 bg-slate-900/30 p-4 flex flex-wrap gap-2.5">
           <AnimatePresence>
             {options.map((token, index) => {
-              // Check how many times this token has been placed in the sequence
-              const selectionCount = arrangedSequence.filter(t => t === token).length;
-              const originalCount = options.filter(t => t === token).length;
-              
-              // We render all options, but fade out / disable those already selected
+              const tokenText = getTokenText(token);
+              const selectionCount = arrangedSequence.filter(t => t === tokenText).length;
+              const originalCount = options.map(getTokenText).filter(t => t === tokenText).length;
               const isSelected = selectionCount >= originalCount;
 
               return (
                 <motion.button
                   layout
-                  key={`${token}_pool_${index}`}
+                  key={`${tokenText}_pool_${index}`}
                   disabled={isSelected}
                   type="button"
-                  onClick={() => handlePoolClick(token)}
+                  onClick={() => handlePoolClick(tokenText)}
                   whileHover={isSelected ? {} : { scale: 1.05, y: -1 }}
                   whileTap={isSelected ? {} : { scale: 0.95 }}
                   className={`
@@ -127,7 +134,7 @@ export default function ArrangeTokensList({
                     }
                   `}
                 >
-                  {token}
+                  {tokenText}
                 </motion.button>
               );
             })}

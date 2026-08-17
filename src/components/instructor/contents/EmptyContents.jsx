@@ -8,7 +8,7 @@ import {
 } from "react-icons/fa";
 
 export default function EmptyContents({
-                                          lessonId,
+                                          topicId,
                                       }) {
     return (
         <div
@@ -48,14 +48,14 @@ export default function EmptyContents({
             </h2>
 
             <p className="mt-3 max-w-lg text-slate-400">
-                This lesson doesn't have any learning content yet.
+                This topic doesn't have any learning content yet.
                 Add videos, PDFs, external links, or HTML content
                 to help students learn.
             </p>
 
-            {lessonId && (
+            {topicId && (
                 <Link
-                    href={`/instructor/contents/create/${lessonId}`}
+                    href={`/instructor/contents/create/${topicId}`}
                     className="
             mt-8
             inline-flex

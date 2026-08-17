@@ -4,11 +4,11 @@ import { getContents, getInstructorContents } from "@/services/content.service";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { defaultQueryOptions } from "@/lib/queryOptions";
 
-export function useContents(lessonId) {
+export function useContents(topicId) {
     return useQuery({
-        queryKey: [QUERY_KEYS.CONTENTS, lessonId],
-        queryFn: () => getContents(lessonId),
-        enabled: !!lessonId,
+        queryKey: [QUERY_KEYS.CONTENTS, topicId],
+        queryFn: () => getContents(topicId),
+        enabled: !!topicId,
         ...defaultQueryOptions,
     });
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Fragment } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Eye,
@@ -14,18 +14,27 @@ import {
   ChevronRight,
   ChevronDown,
   FileText,
-  HelpCircle,
-  ClipboardList,
-  PlayCircle,
   Trash2,
   Rocket,
   Undo2,
-  LayoutTemplate,
+  LayoutGrid,
+  X,
+  BookOpen,
+  Settings2,
+  SlidersHorizontal,
+  BarChart3,
+  Search,
+  Home,
+  CheckCircle2,
+  ClipboardList,
 } from "lucide-react";
 
 import Loader from "@/components/common/Loader";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
 import { useModules } from "@/hooks/queries/instructor/useModules";
+import { useUpdateCourse } from "@/hooks/queries/instructor/useUpdateCourse";
+import { useUpdateModule } from "@/hooks/queries/instructor/useUpdateModule";
+import { useUpdateLesson } from "@/hooks/queries/instructor/useUpdateLesson";
 import { useDeleteModule } from "@/hooks/queries/instructor/useDeleteModule";
 import { useDeleteCourse } from "@/hooks/queries/instructor/useDeleteCourse";
 import { useUpdateCourseStatus } from "@/hooks/queries/instructor/useUpdateCourseStatus";
@@ -35,10 +44,31 @@ import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useConceptMastery } from "@/hooks/queries/instructor/useInstructorDashboard";
 import { useToast } from "@/components/ui/ToastProvider";
+import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
+import { BlockSettingsPanel } from "@/components/instructor/LessonComposer/BlockSettingsPanel";
+
+import { CourseComposerHeader } from "@/components/instructor/courses/CourseComposerHeader";
+import { CourseComposerSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
+import { CourseOverviewView } from "@/components/instructor/courses/CourseOverviewView";
+import { LessonOverviewView } from "@/components/instructor/courses/LessonOverviewView";
+import { ModuleCellComposer } from "@/components/instructor/courses/ModuleCellComposer";
+import { AddCellTypeModal } from "@/components/instructor/courses/AddCellTypeModal";
+import { DynamicEditFormModal } from "@/components/instructor/courses/DynamicEditFormModal";
+
+/** Finds a lesson and its parent module by lessonId across all modules */
+function findModuleAndLessonById(modules, lessonId) {
+  if (!modules || !lessonId) return { module: null, lesson: null };
+  for (const mod of modules) {
+    const found = (mod.lessons || []).find((l) => l.id === lessonId);
+    if (found) return { module: mod, lesson: found };
+  }
+  return { module: null, lesson: null };
+}
 
 export default function CourseDetailsPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const courseId = params.courseId;
   const { showToast } = useToast();
 
@@ -61,111 +91,145 @@ export default function CourseDetailsPage() {
   const deleteContentMutation = useDeleteContent();
   const queryClient = useQueryClient();
 
-  const { data: conceptMasteryData = [] } =
-    useConceptMastery(courseId);
+  const { data: conceptMasteryData = [] } = useConceptMastery(courseId);
 
-  // States
-  const [expandedModules, setExpandedModules] = useState({});
-  const [expandedLessons, setExpandedLessons] = useState({});
-  const [, setActiveDropdown] = useState(null);
+  // Global View Mode: 'rendered' | 'edit' (Matching composerV2.js)
+  const [globalMode, setGlobalMode] = useState("rendered");
 
-  // Close dropdown on click outside
+  // Active Workspace Selection: 'course' | 'lesson' | 'module' | 'topic'
+  const [composerMode, setComposerMode] = useState("course");
+  const [composeLessonId, setComposeLessonId] = useState(searchParams.get("compose") || null);
+  const [composeModuleId, setComposeModuleId] = useState(null);
+  const [composeTopicId, setComposeTopicId] = useState(null);
+  const [selectedCellId, setSelectedCellId] = useState(null);
+
+  // Edit Mode for Metadata Headers
+  const [isEditingCourse, setIsEditingCourse] = useState(false);
+  const [isEditingLesson, setIsEditingLesson] = useState(false);
+  const [isEditingModule, setIsEditingModule] = useState(false);
+
+  // Editable Form States
+  const [courseForm, setCourseForm] = useState({});
+  const [lessonForm, setLessonForm] = useState({});
+  const [moduleForm, setModuleForm] = useState({});
+
+  // Modals state
+  const [isAddCellModalOpen, setIsAddCellModalOpen] = useState(false);
+  const [addCellInsertOrder, setAddCellInsertOrder] = useState(1);
+  const [addCellPosition, setAddCellPosition] = useState("below");
+
+  const [isDynamicEditFormOpen, setIsDynamicEditFormOpen] = useState(false);
+  const [activeEditingCell, setActiveEditingCell] = useState(null);
+
+  // Mobile Drawer State
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const updateCourseMutation = useUpdateCourse();
+  const updateModuleMutation = useUpdateModule();
+  const updateLessonMutation = useUpdateLesson();
+
+  // Sync course data into form state
   useEffect(() => {
-    const handleOutsideClick = () => setActiveDropdown(null);
-    window.addEventListener("click", handleOutsideClick);
-    return () => window.removeEventListener("click", handleOutsideClick);
-  }, []);
-
-  // handlers
-  const toggleModule = (modId) => {
-    setExpandedModules((prev) => ({
-      ...prev,
-      [modId]: !prev[modId],
-    }));
-  };
-
-  const toggleLesson = (lessonId) => {
-    setExpandedLessons((prev) => ({
-      ...prev,
-      [lessonId]: !prev[lessonId],
-    }));
-  };
-
-  const handleDelete = async (e, mod) => {
-    e.stopPropagation();
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this module and all its lessons?",
-      )
-    ) {
-      return;
+    if (course) {
+      setCourseForm({
+        title: course.title || "",
+        subtitle: course.subtitle || course.shortDescription || "",
+        description: course.description || "",
+        category: course.category || "",
+        level: course.level || "Beginner",
+        thumbnailUrl: course.thumbnailUrl || "",
+        duration: course.duration || "",
+        audience: course.audience || "",
+        author: course.author || course.creator?.name || "",
+      });
     }
+  }, [course]);
+
+  // Selection Handlers
+  const handleSelectCourseOverview = () => {
+    setComposerMode("course");
+    setComposeLessonId(null);
+    setComposeModuleId(null);
+    setMobileSidebarOpen(false);
+  };
+
+  const handleSelectLesson = (lessonId) => {
+    setComposeLessonId(lessonId);
+    setComposerMode("lesson");
+
+    const { lesson: foundLesson, module: foundModule } = findModuleAndLessonById(modules, lessonId);
+    if (foundLesson) {
+      setLessonForm({
+        title: foundLesson.title || "",
+        subtitle: foundLesson.subtitle || "",
+        summary: foundLesson.summary || foundLesson.description || "",
+      });
+      if (foundModule) {
+        setComposeModuleId(foundModule.id);
+      }
+    }
+    setMobileSidebarOpen(false);
+  };
+
+  const handleSelectModule = (mod, lessonId = null) => {
+    setComposeModuleId(mod.id);
+    setComposerMode("module");
+    if (lessonId) {
+      setComposeLessonId(lessonId);
+    }
+    setModuleForm({
+      title: mod.title || "",
+      subtitle: mod.subtitle || mod.description || "",
+    });
+    setMobileSidebarOpen(false);
+  };
+
+  const handleSelectTopic = (topicId, lessonId, moduleId) => {
+    setComposeTopicId(topicId);
+    setComposeLessonId(lessonId);
+    setComposeModuleId(moduleId);
+    setComposerMode("topic");
+    setMobileSidebarOpen(false);
+  };
+
+  const { module: composingModule, lesson: composingLesson } =
+    findModuleAndLessonById(modules, composeLessonId);
+
+  const activeModuleObj = composingModule || modules.find((m) => m.id === composeModuleId);
+  const composingTopic = composingLesson?.topics?.find((t) => t.id === composeTopicId);
+
+  // Delete Handlers
+  const handleDeleteModule = async (e, mod) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this module and all its contents?")) return;
     try {
       await deleteModuleMutation.mutateAsync(mod.id);
-    } catch (error) {
-      console.error(error);
+      showToast("Module deleted successfully", "success");
+      handleSelectCourseOverview();
+    } catch (err) {
+      showToast("Failed to delete module", "error");
     }
   };
 
   const handleDeleteLesson = async (e, lesson, moduleId) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this lesson?")) return;
     try {
       await deleteLessonMutation.mutateAsync({ lessonId: lesson.id, moduleId });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.MODULES, courseId],
-      });
-    } catch (error) {
-      console.error("Failed to delete lesson:", error);
-    }
-  };
-
-  const handleDeleteContent = async (e, content, lessonId) => {
-    e.stopPropagation();
-    if (!window.confirm("Are you sure you want to delete this content?")) return;
-    try {
-      await deleteContentMutation.mutateAsync({ contentId: content.id, lessonId });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.MODULES, courseId],
-      });
-    } catch (error) {
-      console.error("Failed to delete content:", error);
-    }
-  };
-
-  const handleCourseDelete = async () => {
-    if (
-      !window.confirm(
-        `Are you sure you want to delete this course? All associated modules, lessons, and content will be permanently removed.`,
-      )
-    ) {
-      return;
-    }
-    try {
-      await deleteCourseMutation.mutateAsync(courseId);
-      router.push("/instructor/courses");
-    } catch (error) {
-      console.error("Failed to delete course:", error);
+      showToast("Lesson deleted successfully", "success");
+      handleSelectCourseOverview();
+    } catch (err) {
+      showToast("Failed to delete lesson", "error");
     }
   };
 
   const handleTogglePublish = async () => {
     const nextStatus = course?.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED";
-
-    if (nextStatus === "PUBLISHED" && modules.length === 0) {
-      showToast("Add at least one module before publishing this course.", "error", "Missing content");
-      return;
-    }
-
     try {
       await updateCourseStatusMutation.mutateAsync({ courseId, status: nextStatus });
-    } catch (error) {
-      console.error("Failed to update course status:", error);
-      showToast(
-        error?.response?.data?.message || "Failed to update course status.",
-        "error",
-        "Publish failed"
-      );
+      showToast(`Course is now ${nextStatus.toLowerCase()}`, "success");
+    } catch (err) {
+      showToast("Failed to update status", "error");
     }
   };
 
@@ -182,7 +246,7 @@ export default function CourseDetailsPage() {
       <div className="max-w-md mx-auto my-20 p-8 text-center bg-[#0D1021] border border-[#1A1F35] rounded-2xl space-y-4">
         <h2 className="text-xl font-bold text-white">Course Not Found</h2>
         <p className="text-xs text-slate-400">
-          The requested course could not be loaded from the database.
+          The requested course could not be loaded.
         </p>
         <Link
           href="/instructor/courses"
@@ -194,779 +258,176 @@ export default function CourseDetailsPage() {
     );
   }
 
-  const activeCourse = course;
-  const activeModules = modules || [];
-
-  const isPublished =
-    activeCourse.status === "Published" ||
-    activeCourse.status === "PUBLISHED" ||
-    activeCourse.isPublished;
-  const totalEnrolls =
-    activeCourse._count?.enrollments ?? activeCourse.enrollments?.length ?? 0;
+  const isPublished = course.status === "PUBLISHED" || course.status === "Published";
 
   return (
-    <div className="space-y-6 pb-16 animate-fade-in duration-300">
-      {/* 1. Course Header Card */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-4 flex-1 min-w-0">
-            {/* Logo */}
-            <div className="h-16 w-16 overflow-hidden rounded-xl bg-white border border-slate-200 shrink-0 flex items-center justify-center p-1.5 shadow-sm">
-              {activeCourse.thumbnailUrl ? (
-                <img
-                  src={activeCourse.thumbnailUrl}
-                  alt={activeCourse.title}
-                  className="h-full w-full object-contain"
-                />
-              ) : (
-                <GraduationCap className="text-3xl text-slate-500" />
-              )}
-            </div>
+    <div className="space-y-4 pb-16 animate-fade-in duration-300">
+      {/* 1. APP HEADER (Matching composerV2.html app-header) */}
+      <CourseComposerHeader
+        course={course}
+        courseId={courseId}
+        globalMode={globalMode}
+        onToggleGlobalMode={() => setGlobalMode(globalMode === "rendered" ? "edit" : "rendered")}
+        onSaveCourse={async () => {
+          try {
+            await updateCourseMutation.mutateAsync({ courseId, courseData: courseForm });
+            showToast("Course saved successfully!", "success", "Saved");
+          } catch (err) {
+            showToast("Failed to save course", "error");
+          }
+        }}
+        onImportCourse={() => router.push("/instructor/courses/import")}
+        isSaving={updateCourseMutation.isPending}
+        isPublished={isPublished}
+        onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+      />
 
-            {/* Header Details */}
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <span className="rounded-xl bg-purple-500/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-purple-400 border border-purple-500/20">
-                  {activeCourse.category}
-                </span>
-                <span
-                  className={`rounded-xl px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
-                    isPublished
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                      : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                  }`}
-                >
-                  {activeCourse.status}
-                </span>
-              </div>
-
-              <h1 className="text-lg font-bold text-white tracking-tight leading-snug truncate">
-                {activeCourse.title}
-              </h1>
-
-              {/* Sub-Metadata Footer Row */}
-              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[9px] font-bold text-slate-500 uppercase tracking-wider">
-                <div className="flex items-center gap-1">
-                  <User size={12} className="text-purple-400" />
-                  <span>
-                    Instructor:{" "}
-                    {activeCourse.creator?.name ?? "Prasad Kulkarni"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Calendar size={12} className="text-purple-400" />
-                  <span>
-                    Created:{" "}
-                    {new Date(
-                      activeCourse.createdAt ?? "2026-07-01",
-                    ).toLocaleDateString("en-US", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock size={12} className="text-purple-400" />
-                  <span>
-                    Last updated:{" "}
-                    {new Date(
-                      activeCourse.updatedAt ?? "2026-07-20",
-                    ).toLocaleDateString("en-US", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Actions buttons */}
-          <div className="flex flex-wrap gap-2 shrink-0">
-            <button
-              onClick={() =>
-                router.push(`/instructor/courses/${courseId}/composer`)
-              }
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-xl transition"
-            >
-              <LayoutTemplate size={12} />
-              Course Composer
-            </button>
-            <button
-              onClick={() =>
-                router.push(`/instructor/courses/edit/${courseId}`)
-              }
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-xl transition"
-            >
-              <Pencil size={12} />
-              Edit Course
-            </button>
-            <button
-              onClick={() => router.push(`/instructor/quizzes/${courseId}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-xl transition"
-            >
-              <ClipboardList size={12} />
-              Manage Quizzes
-            </button>
-            <button
-              onClick={handleTogglePublish}
-              disabled={updateCourseStatusMutation.isPending}
-              className={`inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold rounded-xl border transition disabled:opacity-50 ${
-                isPublished
-                  ? "text-amber-400 hover:text-amber-300 bg-amber-950/30 hover:bg-amber-900/50 border-amber-800/60"
-                  : "text-emerald-400 hover:text-emerald-300 bg-emerald-950/30 hover:bg-emerald-900/50 border-emerald-800/60"
-              }`}
-            >
-              {isPublished ? <Undo2 size={12} /> : <Rocket size={12} />}
-              {updateCourseStatusMutation.isPending
-                ? "Updating..."
-                : isPublished
-                ? "Unpublish Course"
-                : "Publish Course"}
-            </button>
-            <button
-              onClick={handleCourseDelete}
-              disabled={deleteCourseMutation.isPending}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold text-red-400 hover:text-red-300 bg-red-950/40 hover:bg-red-900/60 border border-red-800/60 rounded-xl transition disabled:opacity-50"
-            >
-              <Trash2 size={12} />
-              {deleteCourseMutation.isPending ? "Deleting..." : "Delete Course"}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Two-Column Curriculum & Analytics Grid */}
-      <div className="flex flex-col lg:flex-row gap-6 items-start">
-        
-        {/* Left Column: Course Syllabus (Primary Section, 70% width style) */}
-        <div className="flex-1 min-w-0 w-full">
-          {/* 4. Course Curriculum Accordion Section */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm">
-        <div className="flex items-center justify-between mb-4 pl-1">
-          <h3 className="text-sm font-black uppercase tracking-widest text-slate-350">
-            Course Syllabus
-          </h3>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() =>
-                router.push(`/instructor/courses/${courseId}/composer`)
-              }
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-slate-400 hover:text-orange-400 transition"
-            >
-              <LayoutTemplate size={12} />
-              Open in Composer
-            </button>
-            <button
-              onClick={() =>
-                router.push(`/instructor/modules/create/${courseId}`)
-              }
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-white bg-orange-500 hover:bg-orange-655 rounded-xl shadow-sm transition"
-            >
-              <Plus size={12} />
-              Add Module
-            </button>
-          </div>
+      {/* 2. MAIN WORKSPACE CONTAINER (composer-container grid: 320px sidebar + notebook main workspace) */}
+      <div className="flex flex-col lg:flex-row gap-5 items-start">
+        {/* Left Sidebar Panel (Desktop + Mobile Slide-out Drawer) */}
+        <div
+          className={`${
+            mobileSidebarOpen ? "fixed inset-y-0 left-0 z-50 w-80 bg-slate-950 p-4 shadow-2xl block" : "hidden lg:block"
+          } w-full lg:w-[320px] shrink-0`}
+        >
+          <CourseComposerSidebar
+            modules={modules}
+            composerMode={composerMode}
+            composeModuleId={composeModuleId}
+            composeLessonId={composeLessonId}
+            composeTopicId={composeTopicId}
+            onSelectCourseOverview={handleSelectCourseOverview}
+            onSelectLesson={handleSelectLesson}
+            onSelectModule={handleSelectModule}
+            onSelectTopic={handleSelectTopic}
+            onAddLesson={(targetModuleId) => router.push(`/instructor/lessons/create/${targetModuleId || composeModuleId || modules[0]?.id || courseId}`)}
+            onAddModule={() => router.push(`/instructor/modules/create/${courseId}`)}
+            onAddTopic={(lessonId) => router.push(`/instructor/topics/create/${lessonId}`)}
+            onDeleteLesson={handleDeleteLesson}
+            onDeleteModule={handleDeleteModule}
+          />
         </div>
 
-        {/* Mobile View Cards (< md) */}
-        <div className="space-y-3 block md:hidden">
-          {activeModules.length === 0 ? (
-            <div className="py-8 text-center text-slate-500 text-xs font-bold uppercase tracking-wider">
-              No Modules Structuring This Course.
+        {/* Center Main Workspace Notebook Area */}
+        <main className="flex-1 min-w-0 w-full space-y-4">
+          {/* Workspace Header & Breadcrumbs */}
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
+            <div>
+              <div className="text-xs font-semibold text-orange-400 mb-0.5">
+                {composerMode === "course" && `Course Overview`}
+                {composerMode === "lesson" && `Lesson: ${composingLesson?.title || "Lesson Overview"}`}
+                {composerMode === "module" && `Module: ${activeModuleObj?.title || "Module Cells"}`}
+                {composerMode === "topic" && `Topic: ${composingTopic?.title || "Topic Composer"}`}
+              </div>
+              <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                {composerMode === "course" && (course.title || "Course Overview Header")}
+                {composerMode === "lesson" && (composingLesson?.title || "Lesson Overview Header")}
+                {composerMode === "module" && (activeModuleObj?.title || "Module Cells Notebook")}
+                {composerMode === "topic" && (composingTopic?.title || "Topic Cells Notebook")}
+              </h2>
             </div>
-          ) : (
-            activeModules.map((mod, idx) => {
-              const modExpanded = !!expandedModules[mod.id];
-              const modLessons = mod.lessons || [];
+          </div>
 
+          {/* Notebook Workspace Dynamic View */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6 shadow-xl">
+            {composerMode === "course" && (
+              <CourseOverviewView
+                course={course}
+                courseForm={courseForm}
+                setCourseForm={setCourseForm}
+                isEditing={isEditingCourse || globalMode === "edit"}
+                setIsEditing={setIsEditingCourse}
+                onSaveCourseMeta={async () => {
+                  try {
+                    await updateCourseMutation.mutateAsync({ courseId, courseData: courseForm });
+                    setIsEditingCourse(false);
+                    showToast("Course details updated!", "success", "Saved");
+                  } catch (err) {
+                    showToast("Failed to save course", "error");
+                  }
+                }}
+                isSaving={updateCourseMutation.isPending}
+                modules={modules}
+                onSelectModule={handleSelectModule}
+                onAddModule={() => router.push(`/instructor/modules/create/${courseId}`)}
+              />
+            )}
+
+            {composerMode === "lesson" && (
+              <LessonOverviewView
+                lesson={composingLesson}
+                lessonForm={lessonForm}
+                setLessonForm={setLessonForm}
+                isEditing={isEditingLesson || globalMode === "edit"}
+                setIsEditing={setIsEditingLesson}
+                onSaveLessonMeta={async () => {
+                  try {
+                    await updateLessonMutation.mutateAsync({
+                      lessonId: composeLessonId,
+                      lessonData: { ...lessonForm, moduleId: composeModuleId },
+                    });
+                    setIsEditingLesson(false);
+                    showToast("Lesson updated!", "success", "Saved");
+                  } catch (err) {
+                    showToast("Failed to save lesson", "error");
+                  }
+                }}
+                isSaving={updateLessonMutation.isPending}
+                modules={modules.filter((m) =>
+                  (m.lessons || []).some((l) => l.id === composeLessonId)
+                )}
+                onSelectModule={handleSelectModule}
+                onAddModule={() => router.push(`/instructor/modules/create/${courseId}`)}
+              />
+            )}
+
+            {composerMode === "module" && activeModuleObj && (() => {
+              const effectiveLesson =
+                composingLesson ||
+                activeModuleObj.lessons?.[0] ||
+                modules.flatMap((m) => m.lessons || [])[0];
+              const effectiveTopicId = effectiveLesson?.topics?.[0]?.id;
               return (
-                <div key={mod.id} className="rounded-xl border border-slate-800 bg-slate-950/40 p-3 space-y-2">
-                  {/* Module Header Card */}
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <button onClick={() => toggleModule(mod.id)} className="text-slate-400 p-0.5 cursor-pointer">
-                        {modExpanded ? <ChevronDown size={14} className="text-orange-500" /> : <ChevronRight size={14} />}
-                      </button>
-                      <span className="h-5 w-5 rounded bg-orange-500/10 text-orange-500 flex items-center justify-center text-[10px] font-black shrink-0">M</span>
-                      <button
-                        onClick={() => router.push(`/instructor/courses/${courseId}/modules/${mod.id}`)}
-                        className="font-bold text-slate-100 text-xs text-left truncate cursor-pointer hover:text-orange-400 transition"
-                      >
-                        Module {idx + 1}: {mod.title}
-                      </button>
-                    </div>
-                    <span className={`rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-wider border shrink-0 ${
-                      mod.isPublished ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                    }`}>
-                      {mod.isPublished ? "Published" : "Draft"}
-                    </span>
-                  </div>
-
-                  {/* Sub Info & Actions Row */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-400 pl-7 pt-1.5 border-t border-slate-800/40">
-                    <span>{modLessons.length} Lessons &bull; {modLessons.length ? `${modLessons.length * 15} min` : "45 min"}</span>
-                    
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => router.push(`/instructor/lessons/create/${mod.id}`)}
-                        title="Add Lesson"
-                        className="p-1.5 rounded-lg border border-slate-800 text-orange-400 bg-slate-900 hover:bg-slate-800 transition cursor-pointer"
-                      >
-                        <Plus size={11} />
-                      </button>
-                      <button
-                        onClick={() => router.push(`/instructor/courses/${courseId}/modules/${mod.id}`)}
-                        title="View Module"
-                        className="p-1.5 rounded-lg border border-slate-800 text-slate-300 bg-slate-900 hover:bg-slate-800 transition cursor-pointer"
-                      >
-                        <Eye size={11} />
-                      </button>
-                      <button
-                        onClick={() => router.push(`/instructor/modules/edit/${mod.id}`)}
-                        title="Edit Module"
-                        className="p-1.5 rounded-lg border border-slate-800 text-slate-300 bg-slate-900 hover:bg-slate-800 transition cursor-pointer"
-                      >
-                        <Pencil size={11} />
-                      </button>
-                      <button
-                        onClick={(e) => handleDelete(e, mod)}
-                        title="Delete Module"
-                        className="p-1.5 rounded-lg border border-red-500/30 text-red-400 bg-slate-900 hover:bg-red-950/30 transition cursor-pointer"
-                      >
-                        <Trash2 size={11} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Lessons Mobile List */}
-                  {modExpanded && (
-                    <div className="pl-3 pt-2 space-y-2 border-l border-orange-500/20 ml-2">
-                      {modLessons.length === 0 ? (
-                        <p className="text-[10px] text-slate-500 py-1">No lessons added to this module.</p>
-                      ) : (
-                        modLessons.map((lesson, lIdx) => {
-                          const lessonExpanded = !!expandedLessons[lesson.id];
-                          const lessonContents = lesson.contents || [];
-
-                          return (
-                            <div key={lesson.id} className="rounded-lg border border-slate-800/60 bg-slate-900/60 p-2.5 space-y-1.5">
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-1.5 min-w-0">
-                                  <button onClick={() => toggleLesson(lesson.id)} className="text-slate-400 p-0.5 cursor-pointer">
-                                    {lessonExpanded ? <ChevronDown size={12} className="text-orange-500" /> : <ChevronRight size={12} />}
-                                  </button>
-                                  <FileText size={12} className="text-purple-400 shrink-0" />
-                                  <button
-                                    onClick={() => router.push(`/instructor/lessons/${lesson.id}`)}
-                                    className="font-semibold text-slate-200 text-[11px] text-left truncate cursor-pointer hover:text-orange-400 transition"
-                                  >
-                                    Lesson {lIdx + 1}: {lesson.title}
-                                  </button>
-                                </div>
-                                <span className={`rounded-full px-1.5 py-0.5 text-[7.5px] font-black uppercase tracking-wider border shrink-0 ${
-                                  lesson.isPublished ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                                }`}>
-                                  {lesson.isPublished ? "Published" : "Draft"}
-                                </span>
-                              </div>
-
-                              <div className="flex flex-wrap items-center justify-between gap-1 text-[9px] text-slate-400 pl-4 pt-1 border-t border-slate-800/40">
-                                <span>{lessonContents.length} Contents &bull; {lessonContents.length ? `${lessonContents.length * 15} min` : "0 min"}</span>
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={() => router.push(`/instructor/contents/create/${lesson.id}`)}
-                                    title="Add Content"
-                                    className="p-1 rounded border border-slate-800 text-orange-400 bg-slate-950 cursor-pointer"
-                                  >
-                                    <Plus size={10} />
-                                  </button>
-                                  <button
-                                    onClick={() => router.push(`/instructor/lessons/${lesson.id}`)}
-                                    title="View Lesson"
-                                    className="p-1 rounded border border-slate-800 text-slate-300 bg-slate-950 cursor-pointer"
-                                  >
-                                    <Eye size={10} />
-                                  </button>
-                                  <button
-                                    onClick={() => router.push(`/instructor/lessons/edit/${lesson.id}`)}
-                                    title="Edit Lesson"
-                                    className="p-1 rounded border border-slate-800 text-slate-300 bg-slate-950 cursor-pointer"
-                                  >
-                                    <Pencil size={10} />
-                                  </button>
-                                  <button
-                                    onClick={(e) => handleDeleteLesson(e, lesson, mod.id)}
-                                    title="Delete Lesson"
-                                    className="p-1 rounded border border-red-500/30 text-red-400 bg-slate-950 cursor-pointer"
-                                  >
-                                    <Trash2 size={10} />
-                                  </button>
-                                </div>
-                              </div>
-
-                              {/* Content list under lesson */}
-                              {lessonExpanded && (
-                                <div className="pl-3 pt-1.5 space-y-1 border-l border-purple-500/20 ml-2">
-                                  {lessonContents.length === 0 ? (
-                                    <p className="text-[9px] text-slate-500">No contents added.</p>
-                                  ) : (
-                                    lessonContents.map((c, cIdx) => (
-                                      <div key={c.id} className="flex items-center justify-between text-[10px] text-slate-300 py-1 border-b border-slate-800/30">
-                                        <Link href={`/instructor/contents/view/${c.id}`} className="hover:text-orange-400 truncate max-w-[170px]">
-                                          Content {cIdx + 1}: {c.title}
-                                        </Link>
-                                        <span className="text-[8px] uppercase text-slate-500 bg-slate-950 px-1 rounded border border-slate-800">{c.type}</span>
-                                      </div>
-                                    ))
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
-                </div>
+                <LessonComposerPanel
+                  topicId={effectiveTopicId}
+                  selectedCellId={selectedCellId}
+                  onSelectCell={setSelectedCellId}
+                />
               );
-            })
-          )}
-        </div>
+            })()}
 
-        {/* Desktop View Table (>= md) */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full min-w-[650px] text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-800 text-[10px] font-black text-slate-500 uppercase tracking-wider">
-                <th className="pb-3 pl-3 pr-2">Module / Lesson / Content</th>
-                <th className="pb-3 text-center w-28 whitespace-nowrap px-2">Items / Type</th>
-                <th className="pb-3 text-center w-24 whitespace-nowrap px-2">Duration</th>
-                <th className="pb-3 text-center w-24 whitespace-nowrap px-2">Status</th>
-                <th className="pb-3 text-left w-36 uppercase whitespace-nowrap pl-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-850/40">
-              {activeModules.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="py-12 text-center text-slate-500 text-xs font-bold uppercase tracking-wider"
-                  >
-                    No Modules Structuring This Course.
-                  </td>
-                </tr>
-              ) : (
-                activeModules.map((mod, idx) => {
-                  const modExpanded = !!expandedModules[mod.id];
-                  const modLessons = mod.lessons || [];
-
-                  return (
-                    <Fragment key={mod.id}>
-                      {/* Module Header Row */}
-                      <tr className="border-b border-slate-800/40 hover:bg-slate-800/10 bg-slate-900/10 transition duration-150 align-middle">
-                        <td className="py-2.5 pl-3 pr-2">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => toggleModule(mod.id)}
-                              className="text-slate-500 hover:text-white p-0.5 rounded transition cursor-pointer"
-                            >
-                              {modExpanded ? (
-                                <ChevronDown size={14} className="text-orange-500" />
-                              ) : (
-                                <ChevronRight size={14} />
-                              )}
-                            </button>
-                            <span className="h-5 w-5 rounded bg-orange-500/10 text-orange-500 flex items-center justify-center text-[10px] font-black shrink-0">
-                              M
-                            </span>
-                            <button
-                              onClick={() =>
-                                router.push(
-                                  `/instructor/courses/${courseId}/modules/${mod.id}`,
-                                )
-                              }
-                              className="font-extrabold text-slate-100 hover:text-orange-400 text-left transition text-xs cursor-pointer truncate max-w-xs"
-                            >
-                              Module {idx + 1}: {mod.title}
-                            </button>
-                          </div>
-                        </td>
-                        <td className="py-2.5 text-center whitespace-nowrap px-2">
-                          <span className="rounded-full border border-slate-805 bg-slate-950/80 px-2.5 py-0.5 text-[9px] font-bold text-slate-400">
-                            {modLessons.length} Lessons
-                          </span>
-                        </td>
-                        <td className="py-2.5 text-center font-extrabold text-slate-400 text-xs whitespace-nowrap px-2">
-                          {modLessons.length
-                            ? `${modLessons.length * 15} min`
-                            : "45 min"}
-                        </td>
-                        <td className="py-2.5 text-center whitespace-nowrap px-2">
-                          <span
-                            className={`inline-flex rounded-full px-2.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider border ${
-                              mod.isPublished
-                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                            }`}
-                          >
-                            {mod.isPublished ? "Published" : "Draft"}
-                          </span>
-                        </td>
-                        <td className="py-2.5 text-left pl-2 whitespace-nowrap">
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <button
-                              onClick={() =>
-                                router.push(
-                                  `/instructor/lessons/create/${mod.id}`,
-                                )
-                              }
-                              title="Add Lesson"
-                              className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-orange-400 hover:text-orange-300 hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
-                            >
-                              <Plus size={12} />
-                            </button>
-                            <button
-                              onClick={() =>
-                                router.push(
-                                  `/instructor/courses/${courseId}/modules/${mod.id}`,
-                                )
-                              }
-                              title="View Module"
-                              className="p-1 rounded-lg border border-slate-800 bg-slate-950/40 text-slate-400 hover:text-white hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
-                            >
-                              <Eye size={12} />
-                            </button>
-                            <button
-                              onClick={() =>
-                                router.push(
-                                  `/instructor/modules/edit/${mod.id}`,
-                                )
-                              }
-                              title="Edit Module"
-                              className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-slate-400 hover:text-white hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
-                            >
-                              <Pencil size={12} />
-                            </button>
-                            <button
-                              onClick={(e) => handleDelete(e, mod)}
-                              title="Delete Module"
-                              className="p-1 rounded-lg border border-red-500/30 bg-slate-955/40 text-red-405 hover:text-red-300 hover:bg-red-955/20 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-
-                      {/* Render Lessons if module is expanded */}
-                      {modExpanded && (
-                        modLessons.length === 0 ? (
-                          <tr className="border-b border-slate-800/20 bg-slate-950/5">
-                            <td colSpan={5} className="py-2.5 pl-10 text-[9px] text-slate-500 uppercase font-semibold">
-                              No lessons added to this module.
-                            </td>
-                          </tr>
-                        ) : (
-                          modLessons.map((lesson, lIdx) => {
-                            const lessonExpanded = !!expandedLessons[lesson.id];
-                            const lessonContents = lesson.contents || [];
-
-                            return (
-                              <Fragment key={lesson.id}>
-                                {/* Lesson Row */}
-                                <tr className="border-b border-slate-800/30 hover:bg-slate-800/20 bg-slate-950/5 transition duration-150 align-middle">
-                                  <td className="py-2 pl-8 pr-2">
-                                    <div className="flex items-center gap-2">
-                                      <button
-                                        onClick={() => toggleLesson(lesson.id)}
-                                        className="text-slate-500 hover:text-white p-0.5 rounded transition cursor-pointer"
-                                      >
-                                        {lessonExpanded ? (
-                                          <ChevronDown size={12} className="text-orange-500" />
-                                        ) : (
-                                          <ChevronRight size={12} />
-                                        )}
-                                      </button>
-                                      <FileText size={13} className="text-purple-400 shrink-0" />
-                                      <button
-                                        onClick={() =>
-                                          router.push(
-                                            `/instructor/lessons/${lesson.id}`,
-                                          )
-                                        }
-                                        className="font-bold text-slate-300 hover:text-orange-400 text-left transition text-xs cursor-pointer truncate max-w-xs"
-                                      >
-                                        Lesson {lIdx + 1}: {lesson.title}
-                                      </button>
-                                    </div>
-                                  </td>
-                                  <td className="py-2 text-center whitespace-nowrap px-2">
-                                    <span className="rounded-full border border-slate-805 bg-slate-950/80 px-2.5 py-0.5 text-[8.5px] font-bold text-slate-400">
-                                      {lessonContents.length} Contents
-                                    </span>
-                                  </td>
-                                  <td className="py-2 text-center font-extrabold text-slate-400 text-xs whitespace-nowrap px-2">
-                                    {lessonContents.length
-                                      ? `${lessonContents.length * 15} min`
-                                      : "0 min"}
-                                  </td>
-                                  <td className="py-2 text-center whitespace-nowrap px-2">
-                                    <span
-                                      className={`inline-flex rounded-full px-2.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider border ${
-                                        lesson.isPublished
-                                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                          : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                                      }`}
-                                    >
-                                      {lesson.isPublished ? "Published" : "Draft"}
-                                    </span>
-                                  </td>
-                                  <td className="py-2 text-left pl-2 whitespace-nowrap">
-                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                      <button
-                                        onClick={() =>
-                                          router.push(
-                                            `/instructor/contents/create/${lesson.id}`,
-                                          )
-                                        }
-                                        title="Add Content"
-                                        className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-orange-400 hover:text-orange-300 hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
-                                      >
-                                        <Plus size={12} />
-                                      </button>
-                                      <button
-                                        onClick={() =>
-                                          router.push(
-                                            `/instructor/lessons/${lesson.id}`,
-                                          )
-                                        }
-                                        title="View Lesson"
-                                        className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-slate-400 hover:text-white hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
-                                      >
-                                        <Eye size={12} />
-                                      </button>
-                                      <button
-                                        onClick={() =>
-                                          router.push(
-                                            `/instructor/lessons/edit/${lesson.id}`,
-                                          )
-                                        }
-                                        title="Edit Lesson"
-                                        className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-slate-400 hover:text-white hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
-                                      >
-                                        <Pencil size={12} />
-                                      </button>
-                                      <button
-                                        onClick={(e) =>
-                                          handleDeleteLesson(e, lesson, mod.id)
-                                        }
-                                        title="Delete Lesson"
-                                        className="p-1 rounded-lg border border-red-500/30 bg-slate-955/40 text-red-400 hover:text-red-300 hover:bg-red-955/20 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
-                                      >
-                                        <Trash2 size={12} />
-                                      </button>
-                                    </div>
-                                  </td>
-                                </tr>
-
-                                {/* Render Contents if lesson is expanded */}
-                                {lessonExpanded && (
-                                  lessonContents.length === 0 ? (
-                                    <tr className="border-b border-slate-800/10 bg-slate-950/10">
-                                      <td colSpan={5} className="py-2 pl-16 text-[9px] text-slate-500 uppercase font-semibold">
-                                        No contents added to this lesson.
-                                      </td>
-                                    </tr>
-                                  ) : (
-                                    lessonContents.map((content, cIdx) => {
-                                      let ContentIcon = HelpCircle;
-                                      let iconColor = "text-slate-400";
-                                      
-                                      const typeUpper = (content.type || "").toUpperCase();
-                                      if (typeUpper.includes("VIDEO")) {
-                                        ContentIcon = PlayCircle;
-                                        iconColor = "text-red-400";
-                                      } else if (typeUpper.includes("QUIZ") || typeUpper.includes("TEST")) {
-                                        ContentIcon = ClipboardList;
-                                        iconColor = "text-emerald-450";
-                                      } else if (typeUpper.includes("DOC") || typeUpper.includes("PDF") || typeUpper.includes("FILE")) {
-                                        ContentIcon = FileText;
-                                        iconColor = "text-blue-450";
-                                      }
-
-                                      return (
-                                        <tr key={content.id} className="border-b border-slate-800/10 hover:bg-slate-800/10 bg-slate-950/10 transition duration-150 align-middle">
-                                          <td className="py-1.5 pl-14 pr-2">
-                                            <div className="flex items-center gap-2">
-                                              <ContentIcon size={12} className={`${iconColor} shrink-0`} />
-                                              <span className="text-[9px] text-slate-500 font-bold shrink-0">
-                                                Content {cIdx + 1}:
-                                              </span>
-                                              <Link
-                                                href={`/instructor/contents/view/${content.id}`}
-                                                className="text-xs font-semibold text-slate-300 hover:text-orange-400 transition truncate max-w-xs"
-                                              >
-                                                {content.title}
-                                              </Link>
-                                            </div>
-                                          </td>
-                                          <td className="py-1.5 text-center whitespace-nowrap px-2">
-                                            <span className="rounded bg-slate-900 border border-slate-800 px-1.5 py-0.5 text-[8px] font-bold text-slate-450 uppercase tracking-wide">
-                                              {content.type}
-                                            </span>
-                                          </td>
-                                          <td className="py-1.5 text-center font-extrabold text-slate-500 text-xs whitespace-nowrap px-2">
-                                            —
-                                          </td>
-                                          <td className="py-1.5 text-center whitespace-nowrap px-2">
-                                            <span className="rounded-full px-2.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider bg-slate-950/40 text-slate-500 border border-slate-800/40">
-                                              Active
-                                            </span>
-                                          </td>
-                                          <td className="py-1.5 text-left pl-2 whitespace-nowrap">
-                                            <div className="flex items-center gap-1.5 mt-0.5">
-                                              <button
-                                                onClick={() =>
-                                                  router.push(
-                                                    `/instructor/contents/view/${content.id}`,
-                                                  )
-                                                }
-                                                title="View Content"
-                                                className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-slate-400 hover:text-white hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
-                                              >
-                                                <Eye size={12} />
-                                              </button>
-                                              <button
-                                                onClick={() =>
-                                                  router.push(
-                                                    `/instructor/contents/edit/${content.id}`,
-                                                  )
-                                                }
-                                                title="Edit Content"
-                                                className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-slate-400 hover:text-white hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
-                                              >
-                                                <Pencil size={12} />
-                                              </button>
-                                              <button
-                                                onClick={(e) =>
-                                                  handleDeleteContent(e, content, lesson.id)
-                                                }
-                                                title="Delete Content"
-                                                className="p-1 rounded-lg border border-red-500/30 bg-slate-955/40 text-red-400 hover:text-red-300 hover:bg-red-955/20 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
-                                              >
-                                                <Trash2 size={12} />
-                                              </button>
-                                            </div>
-                                          </td>
-                                        </tr>
-                                      );
-                                    })
-                                  )
-                                )}
-                              </Fragment>
-                            );
-                          })
-                        )
-                      )}
-                    </Fragment>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-        </div>
-
-        {/* Right Column: Analytics Side Widgets (30% width style) */}
-        <div className="w-full lg:w-[350px] flex-shrink-0 flex flex-col gap-6">
-                  {/* Concept Mastery Analytics Card */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="text-sm font-black uppercase tracking-widest text-slate-350">
-                Concept Mastery
-              </h3>
-              <button
-                onClick={() =>
-                  router.push(`/instructor/courses/analytics/${courseId}`)
-                }
-                className="text-[9px] font-black text-orange-400 hover:text-orange-500 uppercase tracking-widest transition"
-              >
-                View Details
-              </button>
-            </div>
-            <p className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider mb-4">
-              Student understanding of key concepts in this course
-            </p>
-
-            <div className="space-y-3">
-              {conceptMasteryData.map((concept, index) => {
-                const isStrong = concept.rate >= 70;
-                const isWeak = concept.rate < 40;
-
-                return (
-                  <div key={index} className="space-y-1">
-                    <div className="flex items-center justify-between text-[10px] font-bold">
-                      <span className="text-slate-300">{concept.name}</span>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-slate-500 font-medium">
-                          ({concept.mastered ?? 0}/
-                          {(concept.total ?? totalEnrolls) || 100})
-                        </span>
-                        <span
-                          className={
-                            isStrong
-                              ? "text-purple-400"
-                              : isWeak
-                                ? "text-amber-400"
-                                : "text-slate-400"
-                          }
-                        >
-                          {concept.rate}%
-                        </span>
-                      </div>
-                    </div>
-                    {/* Progress Bar */}
-                    <div className="h-1.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-850">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          isStrong
-                            ? "bg-purple-500"
-                            : isWeak
-                              ? "bg-amber-500/85"
-                              : "bg-blue-500/80"
-                        }`}
-                        style={{ width: `${concept.rate}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            {composerMode === "topic" && (
+              <LessonComposerPanel
+                topicId={composeTopicId}
+                selectedCellId={selectedCellId}
+                onSelectCell={setSelectedCellId}
+              />
+            )}
           </div>
-
-          <div className="mt-4 pt-3.5 border-t border-slate-800/40 flex items-center justify-between">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-              Average Mastery Rate
-            </span>
-            <span className="text-lg font-bold text-purple-400 tracking-tight">
-              {conceptMasteryData.length > 0
-                ? Math.round(
-                    conceptMasteryData.reduce((sum, c) => sum + c.rate, 0) /
-                      conceptMasteryData.length,
-                  )
-                : 0}
-              %
-            </span>
-          </div>
-        </div>
-        </div>
-
+        </main>
       </div>
+
+      {/* Modals Sheet & Property Editor Popups */}
+      <AddCellTypeModal
+        isOpen={isAddCellModalOpen}
+        onClose={() => setIsAddCellModalOpen(false)}
+        position={addCellPosition}
+        setPosition={setAddCellPosition}
+        onConfirmAddCell={(cellType, pos) => {
+          setIsAddCellModalOpen(false);
+          showToast(`Added ${cellType} cell ${pos}!`, "success");
+        }}
+      />
+
+      <DynamicEditFormModal
+        isOpen={isDynamicEditFormOpen}
+        onClose={() => setIsDynamicEditFormOpen(false)}
+        cellData={activeEditingCell}
+        onSave={(data) => {
+          setIsDynamicEditFormOpen(false);
+          showToast("Properties saved!", "success");
+        }}
+      />
     </div>
   );
 }

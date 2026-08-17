@@ -2,9 +2,7 @@
 
 import {
     Users,
-    UserCheck,
-    UserX,
-    ShieldBan,
+    CircleDashed,
 } from "lucide-react";
 
 import DashboardStatCard from "@/components/dashboard/common/DashboardStatCard";
@@ -15,29 +13,15 @@ export default function StudentStats({
     const totalStudents =
         students.length;
 
-    const activeStudents =
+    const notStartedStudents =
         students.filter(
             (student) =>
-                student.user.status ===
-                "ACTIVE"
-        ).length;
-
-    const inactiveStudents =
-        students.filter(
-            (student) =>
-                student.user.status ===
-                "INACTIVE"
-        ).length;
-
-    const blockedStudents =
-        students.filter(
-            (student) =>
-                student.user.status ===
-                "BLOCKED"
+                student.status ===
+                "Not Started"
         ).length;
 
     return (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <DashboardStatCard
                 title="Total Students"
                 value={totalStudents}
@@ -45,21 +29,9 @@ export default function StudentStats({
             />
 
             <DashboardStatCard
-                title="Active"
-                value={activeStudents}
-                icon={<UserCheck/>}
-            />
-
-            <DashboardStatCard
-                title="Inactive"
-                value={inactiveStudents}
-                icon={<UserX/>}
-            />
-
-            <DashboardStatCard
-                title="Blocked"
-                value={blockedStudents}
-                icon={<ShieldBan/>}
+                title="Not Started"
+                value={notStartedStudents}
+                icon={<CircleDashed/>}
             />
         </div>
     );

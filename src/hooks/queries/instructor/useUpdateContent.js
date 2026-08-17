@@ -20,18 +20,24 @@ export function useUpdateContent() {
             ),
 
         onSuccess: (_, variables) => {
+            // refetchType: "all" forces an immediate background refetch even
+            // for queries with no currently-mounted observer — otherwise the
+            // data is only marked stale and won't actually refresh until
+            // that page is hard-reloaded.
             queryClient.invalidateQueries({
                 queryKey: [
                     QUERY_KEYS.CONTENT,
                     variables.contentId,
                 ],
+                refetchType: "all",
             });
 
             queryClient.invalidateQueries({
                 queryKey: [
                     QUERY_KEYS.CONTENTS,
-                    variables.contentData.lessonId,
+                    variables.contentData.topicId,
                 ],
+                refetchType: "all",
             });
 
             queryClient.invalidateQueries({

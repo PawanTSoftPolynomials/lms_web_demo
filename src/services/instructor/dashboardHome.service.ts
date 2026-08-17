@@ -248,7 +248,6 @@ export function deriveDashboardStats(raw: {
   const draftCourses = raw.courses.filter(isDraftCourse).length;
   const students = raw.courses.reduce((sum, c) => sum + (c._count?.enrollments ?? c.studentsCount ?? 0), 0);
   const pendingReviews = raw.assignments.reduce((sum, a) => sum + (a.pendingSubmissionsCount ?? 0), 0);
-
   const activeQuizzes = raw.quizzes ? raw.quizzes.filter(q => q.isPublished).length : 0;
 
   const { count: todaysClassesCount, next: nextClass } = deriveTodaysClassesSummary(raw.calendarEvents);
