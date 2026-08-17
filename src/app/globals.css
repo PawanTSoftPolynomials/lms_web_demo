@@ -2,6 +2,8 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-slate-50: #fdfdfd;
   --color-slate-100: #f1f1f5;
@@ -191,24 +193,4 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #f97316, #ec4899);
-}
-
-/* Fully hidden scrollbar for horizontally-scrolling strips (nav bars, chip rows) */
-.scrollbar-none {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
-}
-
-.scrollbar-none::-webkit-scrollbar {
-  display: none; /* Chrome/Safari/Edge */
-}
-
-/* Force dark mode styling on native OS dropdowns */
-select {
-  color-scheme: dark;
-}
-
-select option {
-  background-color: #0d1021;
-  color: #e2e2ec;
 }

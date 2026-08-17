@@ -4,8 +4,11 @@ import { useState } from "react";
 
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { useCourseBatches } from "@/hooks/queries/instructor/useBatches";
 
 const INITIAL_FORM = {
+  courseId: "",
+  batchId: "",
   title: "",
   duration: 60,
   startDate: "",
@@ -16,24 +19,28 @@ const INITIAL_FORM = {
 
 /**
  * "Test" create form (backend: Exam model, extended in Phase 0 with
- * batchId + instructions). Course/Batch are resolved by the Work filter bar
- * and passed in as courseId/batchId — this form only covers the test's own
- * fields.
+ * batchId + instructions). When `lockedCourseId` isn't given, Course and
+ * Batch are picked directly in this form instead of via an external filter.
  */
-export default function ExamForm({ courseId, batchId, loading = false, submitError = "", onSubmit }) {
-  const [formData, setFormData] = useState(INITIAL_FORM);
+export default function ExamForm({ courses = null, lockedCourseId = null, loading = false, submitError = "", onSubmit }) {
+  const [formData, setFormData] = useState({ ...INITIAL_FORM, courseId: lockedCourseId || "" });
+
+  const { data: batches = [] } = useCourseBatches(formData.courseId || undefined);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+      ...(name === "courseId" ? { batchId: "" } : {}),
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit?.({
       ...formData,
-      courseId,
-      batchId: batchId || null,
+      batchId: formData.batchId || null,
       duration: Number(formData.duration),
       startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
       dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
@@ -45,6 +52,41 @@ export default function ExamForm({ courseId, batchId, loading = false, submitErr
       {submitError && (
         <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold p-3 rounded-xl">
           {submitError}
+        </div>
+      )}
+
+      {!lockedCourseId && courses && (
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Target Course</label>
+            <select
+              name="courseId"
+              value={formData.courseId}
+              onChange={handleChange}
+              required
+              className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white outline-none focus:border-orange-500"
+            >
+              <option value="">-- Select Course --</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>{c.title}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Batch (optional)</label>
+            <select
+              name="batchId"
+              value={formData.batchId}
+              onChange={handleChange}
+              disabled={!formData.courseId}
+              className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white outline-none focus:border-orange-500 disabled:opacity-50"
+            >
+              <option value="">All Batches</option>
+              {batches.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
       )}
 

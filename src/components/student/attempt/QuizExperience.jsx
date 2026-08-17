@@ -85,20 +85,39 @@ export default function QuizExperience({ quizId, onBack }) {
         useSubmitQuiz();
 
     const handleSubmitQuiz = () => {
+        if (answeredQuestions < questions.length) {
+            return;
+        }
+
+        const submitPayload = {
+            quizId,
+            answers: Object.entries(
+                answers
+            ).map(
+                ([questionId, selectedOption]) => ({
+                    questionId,
+                    answer: selectedOption,
+                })
+            ),
+        };
+
+        // TEMP DIAGNOSTIC — remove after investigation
+        console.log("[Adaptive TRACE] SUBMIT_PAYLOAD", {
+            answers: submitPayload.answers,
+            t: performance.now(),
+        });
+
         submitQuizMutation.mutate(
+            submitPayload,
             {
-                quizId,
-                answers: Object.entries(
-                    answers
-                ).map(
-                    ([questionId, selectedOption]) => ({
-                        questionId,
-                        selectedOption,
-                    })
-                ),
-            },
-            {
-                onSuccess: () => {
+                onSuccess: (data) => {
+                    // TEMP DIAGNOSTIC — remove after investigation
+                    console.log("[Adaptive TRACE] SUBMIT_RESPONSE", {
+                        submissionId: data?.id,
+                        answers: data?.answers,
+                        t: performance.now(),
+                    });
+
                     setShowSubmitModal(false);
 
                     router.push(
@@ -140,7 +159,7 @@ export default function QuizExperience({ quizId, onBack }) {
                 <QuizHeader quiz={quiz} onBack={onBack} />
 
                 <QuizTimer
-                    duration={quiz.timeLimit}
+                    duration={quiz?.timeLimit || quiz?.duration || 15}
                     onTimeUp={handleTimeUp}
                 />
 

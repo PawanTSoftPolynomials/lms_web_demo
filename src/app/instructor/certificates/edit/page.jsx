@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Award, ArrowLeft, CheckCircle2, User, BookOpen, Calendar, Edit3, Search } from "lucide-react";
+import { ArrowLeft, CheckCircle2, User, BookOpen, Calendar, Edit3, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import useAuth from "@/hooks/useAuth";

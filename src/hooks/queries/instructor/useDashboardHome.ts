@@ -41,6 +41,7 @@ import {
   type RawModule,
   type RawNotification,
   type RawQuiz,
+  type RawResult,
 } from "@/services/instructor/dashboardHome.service";
 
 const asArray = <T,>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);
@@ -277,7 +278,7 @@ const useRawResults = () =>
       // Assuming getResults from results.service.js handles backend API
       const { getResults } = await import("@/services/results.service");
       const response = await getResults({});
-      return asArray<any>(Array.isArray(response) ? response : response?.data ?? []);
+      return asArray<RawResult>(Array.isArray(response) ? response : response?.data ?? []);
     },
     ...defaultQueryOptions,
   });
@@ -287,4 +288,3 @@ export function useGradeDistribution() {
   const data = useMemo(() => deriveGradeDistribution(results.data ?? []), [results.data]);
   return { data, isLoading: results.isLoading };
 }
-

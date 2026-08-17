@@ -1,227 +1,222 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { formatDistanceToNow } from "date-fns";
 import {
-  ClipboardList,
-  ChevronRight,
-  CheckCircle,
-  BarChart2,
-  CalendarCheck,
-  Activity,
-  HelpCircle,
-  Sparkles
+  BookOpen,
+  Layers,
+  ClipboardCheck,
+  Clock,
+  UserRound,
+  History,
+  Play,
+  ArrowUpRight,
 } from "lucide-react";
-import ResponsiveQuizPresenter from "@/components/student/quizzes/ResponsiveQuizPresenter";
 
-export default function MyCourseCard({ enrollment }) {
-    const {
-        course,
-    } = enrollment;
+const STATUS_ACCENT = {
+  Enrolled: "from-sky-300 via-sky-300/60 to-transparent",
+  "In Progress": "from-amber-300 via-amber-300/60 to-transparent",
+  Completed: "from-emerald-300 via-emerald-300/60 to-transparent",
+};
 
-    const [quizModalOpen, setQuizModalOpen] = useState(false);
+const STATUS_STYLES = {
+  Enrolled: { dot: "bg-sky-300", pill: "bg-sky-500/20 text-sky-50 border-white/30" },
+  "In Progress": { dot: "bg-amber-300", pill: "bg-amber-500/20 text-amber-50 border-white/30" },
+  Completed: { dot: "bg-emerald-300", pill: "bg-emerald-500/20 text-emerald-50 border-white/30" },
+};
 
-    const links = [
-        {
-            label: "My Learning",
-            href: `/student/learn/${course.id}`,
-            icon: CalendarCheck,
-            iconColor: "text-blue-400",
-        },
-        {
-            label: "My Homework",
-            href: `/student/assignments`,
-            icon: CalendarCheck,
-            iconColor: "text-orange-400",
-        },
-        {
-            label: "My Assignment",
-            href: `/student/assignments`,
-            icon: CalendarCheck,
-            iconColor: "text-purple-400",
-        },
-        {
-            label: "My Test",
-            href: `/student/quizzes?courseId=${course.id}`,
-            icon: CalendarCheck,
-            iconColor: "text-emerald-400",
-        },
-        {
-            label: "My Assessment Activity",
-            href: `/student/quizzes?courseId=${course.id}`,
-            icon: CalendarCheck,
-            iconColor: "text-pink-400",
-        },
-        {
-            label: "Feedback",
-            href: `/student/feedback`,
-            icon: CalendarCheck,
-            iconColor: "text-rose-400",
-        },
-        {
-            label: "CO Outcome Summary",
-            href: `/student/progress`,
-            icon: BarChart2,
-            iconColor: "text-amber-400",
-        },
-        {
-            label: "Check Activity Status",
-            href: `/student/achievements`,
-            icon: Activity,
-            iconColor: "text-cyan-400",
-        }
-    ];
+/**
+ * Same cycled color palette as the instructor "My Courses" grid card
+ * (CourseGridCard) so both roles share one visual language — kept as its
+ * own copy since the two cards' data shapes (and future edits) diverge.
+ */
+const THEMES = [
+  { gradient: "bg-gradient-to-br from-cyan-500 to-blue-700", viewText: "text-blue-800" },
+  { gradient: "bg-gradient-to-br from-orange-500 to-red-700", viewText: "text-red-800" },
+  { gradient: "bg-gradient-to-br from-amber-500 to-amber-700", viewText: "text-amber-900" },
+  { gradient: "bg-gradient-to-br from-pink-500 to-pink-700", viewText: "text-pink-800" },
+  { gradient: "bg-gradient-to-br from-violet-500 to-purple-700", viewText: "text-violet-900" },
+  { gradient: "bg-gradient-to-br from-emerald-500 to-green-700", viewText: "text-green-900" },
+  { gradient: "bg-gradient-to-br from-indigo-500 to-indigo-700", viewText: "text-indigo-900" },
+  { gradient: "bg-gradient-to-br from-teal-500 to-teal-700", viewText: "text-teal-900" },
+  { gradient: "bg-gradient-to-br from-rose-500 to-rose-700", viewText: "text-rose-800" },
+  { gradient: "bg-gradient-to-br from-fuchsia-500 to-fuchsia-700", viewText: "text-fuchsia-900" },
+  { gradient: "bg-gradient-to-br from-lime-600 to-green-700", viewText: "text-green-900" },
+  { gradient: "bg-gradient-to-br from-sky-500 to-sky-700", viewText: "text-sky-900" },
+];
 
-    const handleRowClick = (e, label) => {
-        if (label === "My Test" || label === "My Assessment Activity") {
-            e.preventDefault();
-            setQuizModalOpen(true);
-        }
-    };
+function Stat({ icon: Icon, value, label }) {
+  return (
+    <div className="flex flex-col items-center gap-0.5 md:gap-1 rounded-lg border border-white/25 bg-white/15 py-1 md:py-2 text-white backdrop-blur-sm">
+      <div className="flex items-center gap-1.5">
+        <Icon size={15} />
+        <p className="text-sm md:text-base font-black tabular-nums">{value}</p>
+      </div>
+      <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/70">{label}</p>
+    </div>
+  );
+}
 
-    const quizOptions = [
-        {
-            id: "new",
-            title: "New Quizzes",
-            desc: "View and attempt recently assigned quizzes for this course.",
-            href: `/student/quizzes?courseId=${course.id}&tab=new`,
-            icon: ClipboardList,
-            border: "border-purple-500/20",
-            bg: "bg-purple-500/10",
-            color: "text-purple-400"
-        },
-        {
-            id: "completed",
-            title: "Completed",
-            desc: "Review your submitted quizzes, scores, and correct answers.",
-            href: `/student/quizzes?courseId=${course.id}&tab=completed`,
-            icon: CheckCircle,
-            border: "border-emerald-500/20",
-            bg: "bg-emerald-500/10",
-            color: "text-emerald-400"
-        },
-        {
-            id: "self_generate",
-            title: "Self Generate",
-            desc: "Create custom practice quizzes from your course question banks.",
-            href: `/student/quizzes?courseId=${course.id}&tab=self_generate`,
-            icon: Sparkles,
-            border: "border-amber-500/20",
-            bg: "bg-amber-500/10",
-            color: "text-amber-400"
-        },
-        {
-            id: "reports",
-            title: "Reports",
-            desc: "Analyze your average scores, passing rates, and performance trends.",
-            href: `/student/quizzes?courseId=${course.id}&tab=reports`,
-            icon: BarChart2,
-            border: "border-blue-500/20",
-            bg: "bg-blue-500/10",
-            color: "text-blue-400"
-        }
-    ];
+/** My Courses grid card for students — same bold gradient shell as the
+ *  instructor CourseGridCard (banner, translucent stat pills, audit row,
+ *  edit/view-style actions), driven by enrollment + progress data. */
+export default function MyCourseCard({ enrollment, course: rawCourse, index = 0 }) {
+  const router = useRouter();
+  const course = enrollment?.course || rawCourse;
 
-    return (
-        <>
-            <div className="max-w-sm w-full rounded-3xl border border-slate-800/80 bg-slate-900/80 p-4 sm:p-6 shadow-lg flex flex-col justify-between transition-all duration-300 hover:border-slate-700 hover:-translate-y-1 select-none">
-                {/* Center-aligned Card Header */}
-                <div className="pb-3 text-center border-b border-slate-800/50">
-                    <h3 className="text-sm sm:text-base font-black text-white tracking-tight leading-snug truncate" title={course.title}>
-                        {course.title}
-                    </h3>
-                    <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block mt-1">
-                        Theory, Practical
-                    </span>
-                </div>
+  if (!course) return null;
 
-                {/* Single Column Layout formatted to fit card tightly without unused space */}
-                <div className="space-y-1 my-3">
-                    {links.map((link, idx) => {
-                        const Icon = link.icon;
-                        return (
-                            <Link
-                                key={idx}
-                                href={link.href}
-                                onClick={(e) => handleRowClick(e, link.label)}
-                                className="flex items-center gap-2.5 sm:gap-3 text-xs font-bold text-slate-200 hover:text-white transition group py-2 px-2.5 sm:px-3 rounded-xl hover:bg-slate-800/50 border border-transparent hover:border-slate-700/50 min-h-[44px]"
-                            >
-                                <Icon size={16} className={`${link.iconColor} shrink-0 stroke-[2]`} />
-                                <span className="truncate">{link.label}</span>
-                            </Link>
-                        );
-                    })}
-                </div>
+  const isEnrolled = Boolean(enrollment);
 
-                {/* Bottom Right Help Icon */}
-                <div className="flex justify-end pt-1 text-slate-500 hover:text-white transition select-none">
-                    <HelpCircle size={16} />
-                </div>
+  const modulesTotal = Array.isArray(course.modules) ? course.modules.length : (course._count?.modules ?? 0);
+  const lessonsTotal = Array.isArray(course.modules)
+    ? course.modules.reduce((acc, m) => acc + (Array.isArray(m.lessons) ? m.lessons.length : 0), 0)
+    : (course.stats?.lessonsCount ?? course.lessons ?? course._count?.lessons ?? 0);
+  const quizzesTotal = Array.isArray(course.quizzes) ? course.quizzes.length : (course._count?.quizzes ?? 0);
+
+  const progress = Math.min(100, Math.max(0, Math.round(enrollment?.progress ?? 0)));
+  const completedLessons = Math.min(lessonsTotal, enrollment?.completedLessons ?? 0);
+
+  const completionRatio = lessonsTotal > 0 ? completedLessons / lessonsTotal : progress / 100;
+  const completedModules = modulesTotal > 0 ? Math.min(modulesTotal, Math.round(completionRatio * modulesTotal)) : 0;
+  const completedQuizzes = quizzesTotal > 0 ? Math.min(quizzesTotal, Math.round(completionRatio * quizzesTotal)) : 0;
+
+  const isComplete = isEnrolled && progress >= 100;
+  const status = isEnrolled ? (isComplete ? "Completed" : progress > 0 ? "In Progress" : "Enrolled") : (course.level || "Available");
+  const statusStyle = isEnrolled ? STATUS_STYLES[status] : { dot: "bg-orange-400", pill: "bg-orange-500/20 text-orange-200 border-orange-500/30" };
+  const accent = isEnrolled ? STATUS_ACCENT[status] : "from-orange-400 via-orange-400/60 to-transparent";
+  const theme = THEMES[index % THEMES.length];
+
+  const instructorName = course.creator?.name ?? course.instructor ?? "Instructor";
+
+  const estimatedHours =
+    course.estimatedLearningHours ?? (lessonsTotal > 0 ? Math.max(1, Math.round(lessonsTotal * 0.75)) : null);
+  const durationLabel = estimatedHours ? `${estimatedHours}h` : "Self-paced";
+
+  const lastAccessedAt = enrollment?.lastAccessedAt || enrollment?.enrolledAt;
+  const lastAccessedLabel = lastAccessedAt
+    ? formatDistanceToNow(new Date(lastAccessedAt), { addSuffix: true })
+    : "Never";
+
+  const goTo = (path) => (e) => {
+    e.stopPropagation();
+    router.push(path);
+  };
+
+  return (
+    <div
+      onClick={() => router.push(`/student/courses/${course.id}`)}
+      className="group relative flex w-full shrink-0 flex-col overflow-hidden rounded-2xl shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30 cursor-pointer border border-white/10"
+    >
+      {/* Dimmed color layer */}
+      <div className={`absolute inset-0 ${theme.gradient} brightness-[0.6] contrast-[0.85]`} />
+
+      <div className="relative z-10 flex flex-1 flex-col">
+        {/* Banner */}
+        <div className="relative h-28 md:h-32 shrink-0 overflow-hidden">
+          <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent} z-10`} />
+          {course.thumbnailUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={course.thumbnailUrl}
+              alt=""
+              loading="lazy"
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="relative flex h-full w-full items-center justify-center">
+              <BookOpen size={36} className="text-white/20" />
             </div>
+          )}
 
-            {/* Responsive Quiz Presenter: Desktop = Modal, Mobile = Full-Screen Dedicated View */}
-            <ResponsiveQuizPresenter
-                isOpen={quizModalOpen}
-                onClose={() => setQuizModalOpen(false)}
-                title="Quiz Center"
-                subtitle={`Select an option for ${course.title}.`}
+          <span className="absolute top-2 left-2 md:top-3 md:left-3 rounded-md border border-white/30 bg-white/15 backdrop-blur px-2 py-0.5 md:py-1 text-[10px] md:text-[11px] font-bold text-white">
+            {course.category || "General"}
+          </span>
+
+          <span
+            className={`absolute top-2 right-2 md:top-3 md:right-3 inline-flex items-center gap-1.5 rounded-md border backdrop-blur px-2 py-0.5 md:py-1 text-[10px] md:text-[11px] font-bold ${statusStyle.pill}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`} />
+            {status}
+          </span>
+        </div>
+
+        <div className="flex flex-1 flex-col gap-2 md:gap-2.5 p-3 md:p-4">
+          <div>
+            <h3 className="text-base md:text-lg font-black text-white leading-snug line-clamp-1">
+              {course.title}
+            </h3>
+            {course.description ? (
+              <p className="mt-0.5 md:mt-1 text-xs md:text-[13px] leading-relaxed text-white/80 line-clamp-2">
+                {course.description}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="grid grid-cols-3 gap-1.5 md:gap-2">
+            <Stat icon={Layers} value={isEnrolled ? `${completedModules}/${modulesTotal}` : modulesTotal} label="Modules" />
+            <Stat icon={BookOpen} value={isEnrolled ? `${completedLessons}/${lessonsTotal}` : lessonsTotal} label="Lessons" />
+            <Stat icon={ClipboardCheck} value={isEnrolled ? `${completedQuizzes}/${quizzesTotal}` : quizzesTotal} label="Quizzes" />
+          </div>
+
+          <div className="flex items-center justify-between gap-2 text-[11px] md:text-xs">
+            <span className="flex min-w-0 items-center gap-1.5 truncate rounded-lg border border-white/25 bg-white/15 px-2 py-0.5 md:py-1 text-white backdrop-blur-sm">
+              <UserRound size={13} className="shrink-0 text-white/70" />
+              <span className="truncate">{instructorName}</span>
+            </span>
+            <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/25 bg-white/15 px-2 py-0.5 md:py-1 text-white backdrop-blur-sm">
+              <Clock size={13} className="text-white/70" />
+              {durationLabel}
+            </span>
+          </div>
+
+          {isEnrolled ? (
+            <>
+              <div>
+                <div className="flex items-center justify-between text-[10.5px] md:text-[11px] font-bold text-white/80 mb-1">
+                  <span>Progress</span>
+                  <span className="text-white">{progress}% Complete</span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/20">
+                  <div
+                    className="h-full rounded-full bg-white transition-all duration-500 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-white/70">
+                <span className="flex items-center gap-1.5">
+                  <History size={13} className="text-white/60" />
+                  Last active: {lastAccessedLabel}
+                </span>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-between text-xs text-white/90 pt-1">
+              <span className="font-semibold text-white/80">Course Level</span>
+              <span className="font-bold text-orange-300">{course.level || "All Levels"}</span>
+            </div>
+          )}
+
+          <div className="mt-auto flex items-center gap-2 pt-1 md:pt-2">
+            <button
+              onClick={goTo(`/student/courses/${course.id}`)}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-xs md:text-[13px] font-extrabold text-white transition hover:bg-white/20 cursor-pointer"
             >
-                {/* MOBILE VIEW (< sm): 2 x 2 Responsive Action Grid */}
-                <div className="grid grid-cols-2 gap-2.5 sm:hidden">
-                    {quizOptions.map((opt) => {
-                        const Icon = opt.icon;
-                        return (
-                            <Link
-                                key={opt.id}
-                                href={opt.href}
-                                onClick={() => setQuizModalOpen(false)}
-                                className="flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-800 bg-slate-900/90 hover:bg-slate-850 hover:border-slate-700 active:scale-[0.97] active:border-orange-500 transition-all duration-150 min-h-[100px] text-center shadow-md select-none group cursor-pointer"
-                            >
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${opt.border} ${opt.bg} ${opt.color} mb-2 shadow-sm shrink-0 group-active:border-orange-400`}>
-                                    <Icon size={20} className="stroke-[2]" />
-                                </div>
-                                <span className="text-xs font-black text-white tracking-tight leading-tight">
-                                    {opt.title}
-                                </span>
-                            </Link>
-                        );
-                    })}
-                </div>
-
-                {/* DESKTOP VIEW (>= sm): Standard Detailed Card Grid */}
-                <div className="hidden sm:grid grid-cols-2 gap-4 text-left">
-                    {quizOptions.map((opt) => {
-                        const Icon = opt.icon;
-                        return (
-                            <Link
-                                key={opt.id}
-                                href={opt.href}
-                                onClick={() => setQuizModalOpen(false)}
-                                className="flex flex-col justify-between p-5 rounded-2xl border border-slate-800/85 bg-slate-950/20 hover:bg-slate-950/60 hover:border-slate-700/80 hover:-translate-y-0.5 transition duration-300 group cursor-pointer"
-                            >
-                                <div className="space-y-3">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${opt.border} ${opt.bg} ${opt.color}`}>
-                                        <Icon size={18} className="stroke-[2]" />
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition">
-                                            {opt.title}
-                                        </h4>
-                                        <p className="text-[11px] text-slate-400 leading-relaxed font-semibold mt-1">
-                                            {opt.desc}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-end mt-4 pt-3 border-t border-slate-800/40">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-orange-500 transition-colors flex items-center gap-1">
-                                        Open <ChevronRight size={10} className="stroke-[2.5]" />
-                                    </span>
-                                </div>
-                            </Link>
-                        );
-                    })}
-                </div>
-            </ResponsiveQuizPresenter>
-        </>
-    );
+              Details
+              <ArrowUpRight size={13} />
+            </button>
+            <button
+              onClick={goTo(isEnrolled ? `/student/learn/${course.id}` : `/student/courses/${course.id}`)}
+              className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-2 text-xs md:text-[13px] font-extrabold transition hover:bg-white/90 active:scale-95 cursor-pointer ${theme.viewText}`}
+            >
+              <Play size={13} className="fill-current" />
+              {isEnrolled ? (isComplete ? "Review" : "Continue") : "Enroll Now"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

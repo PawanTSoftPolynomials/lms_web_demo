@@ -243,7 +243,7 @@ export default function CurriculumModule({
                                             <div
                                                 className="rounded-full bg-blue-500/10 px-3 py-1 text-sm text-blue-400">
 
-                                                {lesson.contents?.length || 0} Contents
+                                                {(lesson.topics || []).reduce((sum, topic) => sum + (topic.contents?.length || 0), 0)} Contents
 
                                             </div>
 
@@ -261,9 +261,11 @@ export default function CurriculumModule({
                                     </div>
 
                                     <div className="mt-6 rounded-xl bg-slate-950/40 p-4 space-y-3">
-                                        {lesson.contents?.length ? (
+                                        {(() => {
+                                            const lessonContents = (lesson.topics || []).flatMap((topic) => topic.contents || []);
+                                            return lessonContents.length ? (
 
-                                            lesson.contents.map(
+                                            lessonContents.map(
                                                 (content) => (
                                                     <div
                                                         key={content.id}
@@ -363,7 +365,8 @@ export default function CurriculumModule({
 
                                             </div>
 
-                                        )}
+                                        );
+                                        })()}
 
                                     </div>
 

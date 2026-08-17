@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { CheckSquare, MonitorPlay, HelpCircle } from "lucide-react";
 import type { ActivityItem } from "@/types/instructor-dashboard";
 

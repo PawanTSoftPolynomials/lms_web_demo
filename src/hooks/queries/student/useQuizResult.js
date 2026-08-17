@@ -17,5 +17,11 @@ export default function useQuizResult(
             getQuizResult(quizId),
         enabled: !!quizId,
         ...defaultQueryOptions,
+        // Scoped override: a retake invalidates this query before the result
+        // page remounts (useSubmitQuiz.js), so this specific query must
+        // refetch stale data on mount instead of silently serving the
+        // previous attempt's cached submission.answers. Other queries keep
+        // defaultQueryOptions' refetchOnMount: false unchanged.
+        refetchOnMount: true,
     });
 }

@@ -1,5 +1,6 @@
 import { getCourseById } from "@/services/course.service";
 import Link from "next/link";
+import CourseBuyButton from "@/components/student/course-details/CourseBuyButton";
 import {
   ChevronRight,
   Clock,
@@ -7,13 +8,10 @@ import {
   User,
   GraduationCap,
   Layers,
-  Award,
   CheckCircle2,
   BarChart2,
   FileText,
   HelpCircle,
-  ShieldCheck,
-  BookOpen,
   PlayCircle
 } from "lucide-react";
 
@@ -235,16 +233,15 @@ export default async function CoursePage({ params }) {
 
               {/* Price Details */}
               <div className="space-y-1">
-                <h3 className="text-3xl font-black text-white">₹4,999.00</h3>
+                <h3 className="text-3xl font-black text-white">
+                  {course.store
+                    ? `₹${(course.store.discountPrice > 0 ? course.store.discountPrice : course.store.price).toLocaleString("en-IN")}`
+                    : "₹4,999.00"}
+                </h3>
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Full Access Price</p>
               </div>
 
-              <Link
-                href={`/login?redirect=/courses/${course.id}`}
-                className="block text-center w-full rounded-xl bg-orange-500 hover:bg-orange-655 text-slate-950 font-black uppercase tracking-widest text-xs py-4 transition"
-              >
-                Buy Course
-              </Link>
+              <CourseBuyButton courseId={course.id} courseTitle={course.title} />
               
               <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider text-center">
                 Instant access to lessons, quizzes, and live feeds

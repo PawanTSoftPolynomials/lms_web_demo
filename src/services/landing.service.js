@@ -5,7 +5,9 @@ import api from "@/lib/axios";
  */
 export const getLandingData = async () => {
   try {
-    const { data } = await api.get("/public/landing-data");
+    // Longer timeout than the global default: the free-tier backend host
+    // can take 20-30s to wake up from a cold start after being idle.
+    const { data } = await api.get("/public/landing-data", { timeout: 40000 });
     return data.data;
   } catch (error) {
     console.error("Error fetching landing data, using mock fallback:", error);

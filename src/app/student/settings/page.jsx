@@ -2,20 +2,6 @@
 
 import { useState, useEffect } from "react";
 import {
-  User as UserIcon,
-  Mail,
-  Phone,
-  Calendar,
-  MapPin,
-  FileText,
-  Sliders,
-  Settings,
-  Bell,
-  Lock,
-  Globe,
-  Sun,
-  Eye,
-  LogOut,
   Smartphone,
   Laptop,
   Loader2,
@@ -30,7 +16,7 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const { data: userProfile, isLoading, isError } = useProfile();
+  const { data: userProfile, isLoading } = useProfile();
   const updateProfileMutation = useUpdateProfile();
 
   // Form states matching mock screenshots

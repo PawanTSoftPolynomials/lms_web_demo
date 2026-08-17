@@ -1,11 +1,18 @@
 export const QUERY_KEYS = {
     // ==========================
+    // Auth
+    // ==========================
+    AUTH_SESSION: "auth-session",
+
+    // ==========================
     // Student
     // ==========================
     COURSES: "courses",
     COURSE: "course",
     MY_COURSES: "my-courses",
     STUDENT_DASHBOARD: "student-dashboard",
+    PAYMENTS: "payments",
+    PAYMENT_ORDERS: "payment-orders",
     UPCOMING_TASKS: "upcoming-tasks",
     STUDENT_PROFILE: "student-profile",
     STUDENT_PROGRESS: "student-progress",
@@ -24,6 +31,9 @@ export const QUERY_KEYS = {
     MY_ACHIEVEMENTS: "my-achievements",
     DASHBOARD: "dashboard",
     PROGRESS: "progress",
+    ENTRY_ASSESSMENT: "entry-assessment",
+    COURSE_STATE: "course-state",
+    LEARNING_PATH: "learning-path",
 
     // ==========================
     // Admin
@@ -66,6 +76,9 @@ export const QUERY_KEYS = {
     LESSONS: "lessons",
     LESSON: "lesson",
 
+    TOPICS: "topics",
+    TOPIC: "topic",
+
     CONTENTS: "contents",
     CONTENT: "content",
 
@@ -94,4 +107,9 @@ export const QUERY_KEYS = {
     RESULTS: "results",
     ASSESSMENTS: "assessments",
 
+    // ==========================
+    // Mentor AI
+    // ==========================
+    MENTOR_CONVERSATIONS: "mentor-conversations",
+    MENTOR_MESSAGES: "mentor-messages",
 };

@@ -355,7 +355,7 @@ export default function CalendarView({ role }) {
 
       {viewMode === "month" ? (
         /* Calendar Month Grid View */
-        <Card className="p-0 overflow-hidden border border-slate-800 bg-slate-900/20 backdrop-blur-md">
+        <Card padding="p-0" className="overflow-hidden bg-slate-900/20 backdrop-blur-md">
           {/* Weekday Labels Header */}
           <div className="grid grid-cols-7 border-b border-slate-800 bg-slate-900/80 select-none">
             {WEEKDAYS.map((day) => (
@@ -448,7 +448,7 @@ export default function CalendarView({ role }) {
         /* Calendar Chronological List View */
         <div className="space-y-4">
           {filteredEvents.length === 0 ? (
-            <Card className="p-12 text-center border border-slate-800">
+            <Card padding="p-12" className="text-center">
               <FaCalendarAlt className="mx-auto text-4xl text-slate-600 mb-4" />
               <h3 className="text-lg font-bold text-white">No scheduled activities found</h3>
               <p className="text-slate-400 text-sm mt-1">
@@ -463,7 +463,8 @@ export default function CalendarView({ role }) {
                   <Card
                     key={event.id || event._id}
                     onClick={(e) => openViewEventModal(event, e)}
-                    className="p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-orange-500/40 cursor-pointer transition border border-slate-800 bg-slate-900/30 backdrop-blur-sm"
+                    padding="p-5"
+                    className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-orange-500/40 cursor-pointer transition bg-slate-900/30 backdrop-blur-sm"
                   >
                     <div className="flex items-start gap-4">
                       <div className={`p-3.5 rounded-xl border ${getEventBadgeClass(event.type)}`}>

@@ -11,7 +11,7 @@ export default function useSubmitQuiz() {
         mutationFn: ({ quizId, answers }) =>
             submitQuiz(quizId, answers),
 
-        onSuccess: (_, variables) => {
+        onSuccess: (data, variables) => {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.QUIZZES],
             });

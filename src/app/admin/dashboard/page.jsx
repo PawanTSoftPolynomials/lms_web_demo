@@ -1,18 +1,27 @@
 "use client";
 
-import Loader from "@/components/common/Loader";
+import { useRouter } from "next/navigation";
+import {
+  FaUsers,
+  FaBook,
+  FaUserGraduate,
+  FaChalkboardTeacher,
+} from "react-icons/fa";
 
 import { useDashboard } from "@/hooks/queries/admin/useDashboard";
-import { useCourseStatusPie, useRecentActivity, useUpcomingEvents } from "@/hooks/queries/admin/useDashboardHome";
+import {
+  useCourseOverview,
+  useCourseStatusPie,
+  useRecentActivity,
+} from "@/hooks/queries/admin/useDashboardHome";
+
+import Loader from "@/components/common/Loader";
 
 import { AdminKPIs } from "@/components/admin/dashboard/AdminKPIs";
 import { CoursePerformanceTable } from "@/components/admin/dashboard/CoursePerformanceTable";
 import { CourseStatusPieChart } from "@/components/admin/dashboard/CourseStatusPieChart";
-import { RecentUsers } from "@/components/admin/dashboard/RecentUsers";
 import { RecentActivityFeed } from "@/components/admin/dashboard/RecentActivityFeed";
-import { TodaySnapshot } from "@/components/admin/dashboard/TodaySnapshot";
-import { TopInstructor } from "@/components/admin/dashboard/TopInstructor";
-import { UpcomingEvents } from "@/components/admin/dashboard/UpcomingEvents";
+import RecentUsers from "@/components/dashboard/RecentUsers";
 
 export default function AdminDashboard() {
   const { data: dashboard, isLoading, isError } = useDashboard();

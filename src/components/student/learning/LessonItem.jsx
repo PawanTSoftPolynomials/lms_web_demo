@@ -80,14 +80,18 @@ export default function LessonItem({
                     )}
 
                     <div className="mt-3 flex items-center gap-4 text-xs text-slate-500">
-                        {lesson.contents?.length > 0 && (
-                            <span>
-                {lesson.contents.length} Content
-                                {lesson.contents.length > 1
-                                    ? "s"
-                                    : ""}
+                        {(() => {
+                            const contentCount = (lesson.topics || []).reduce(
+                                (sum, topic) => sum + (topic.contents?.length ?? 0),
+                                0
+                            );
+                            return contentCount > 0 && (
+                                <span>
+                {contentCount} Content
+                                    {contentCount > 1 ? "s" : ""}
               </span>
-                        )}
+                            );
+                        })()}
 
                         {completed && (
                             <span className="font-medium text-green-500">

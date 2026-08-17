@@ -4,18 +4,13 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  UploadCloud,
   FileArchive,
   CheckCircle2,
   AlertTriangle,
   ArrowLeft,
-  BookOpen,
   Folder,
   FileText,
-  Video,
-  File,
   RefreshCw,
-  Info,
 } from "lucide-react";
 import api from "@/lib/axios";
 

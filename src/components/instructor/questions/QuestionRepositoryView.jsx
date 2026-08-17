@@ -4,24 +4,18 @@ import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Search,
-  Filter,
   Plus,
   UploadCloud,
   Copy,
   Trash2,
   Archive,
-  Edit3,
   Eye,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   HelpCircle,
-  BookOpen,
-  Layers,
-  Sparkles,
   RefreshCw,
   X,
-  FileText,
   Tag,
   Check,
   ClipboardList,
@@ -34,6 +28,8 @@ import {
   archiveRepositoryQuestion,
   duplicateRepositoryQuestion,
 } from "@/services/questionRepository.service";
+import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
+import { useModules } from "@/hooks/queries/instructor/useModules";
 
 /**
  * The Question Repository list/search/CRUD view — rendered by both the
@@ -48,11 +44,19 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
 
   // Filters
   const [search, setSearch] = useState("");
-  const [subject, setSubject] = useState("");
-  const [topic, setTopic] = useState("");
+  const [courseId, setCourseId] = useState("");
+  const [moduleId, setModuleId] = useState("");
   const [difficulty, setDifficulty] = useState("");
   const [questionType, setQuestionType] = useState("");
   const [status, setStatus] = useState("ACTIVE");
+
+  const { data: courses = [] } = useInstructorCourses();
+  const { data: modules = [] } = useModules(courseId);
+
+  const handleCourseChange = (value) => {
+    setCourseId(value);
+    setModuleId("");
+  };
 
   // Selection & Preview
   const [selectedIds, setSelectedIds] = useState([]);
@@ -64,8 +68,8 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
     try {
       const response = await getRepositoryQuestions({
         search,
-        subject,
-        topic,
+        courseId,
+        moduleId,
         difficulty,
         questionType,
         status,
@@ -88,7 +92,7 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
     } finally {
       setLoading(false);
     }
-  }, [search, subject, topic, difficulty, questionType, status, pagination.page, pagination.limit]);
+  }, [search, courseId, moduleId, difficulty, questionType, status, pagination.page, pagination.limit]);
 
   useEffect(() => {
     fetchQuestions();
@@ -96,8 +100,8 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
 
   const handleResetFilters = () => {
     setSearch("");
-    setSubject("");
-    setTopic("");
+    setCourseId("");
+    setModuleId("");
     setDifficulty("");
     setQuestionType("");
     setStatus("ACTIVE");
@@ -160,7 +164,7 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
     for (const id of selectedIds) {
       try {
         await archiveRepositoryQuestion(id);
-      } catch (e) {}
+      } catch {}
     }
     setSelectedIds([]);
     setFeedbackMessage("Selected questions archived.");
@@ -172,7 +176,7 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
     for (const id of selectedIds) {
       try {
         await deleteRepositoryQuestion(id);
-      } catch (e) {}
+      } catch {}
     }
     setSelectedIds([]);
     setFeedbackMessage("Selected questions processed.");
@@ -273,31 +277,42 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
 
         {/* Filter Bar */}
         <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
             {/* Search Input */}
             <div className="sm:col-span-2 relative">
               <Search className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
               <input
                 type="text"
-                placeholder="Search questions, topics, tags..."
+                placeholder="Search questions, tags..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"
               />
             </div>
 
-            {/* Subject Filter */}
+            {/* Course Filter */}
             <select
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
+              value={courseId}
+              onChange={(e) => handleCourseChange(e.target.value)}
               className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:border-amber-500 focus:outline-none"
             >
-              <option value="">All Subjects</option>
-              <option value="Python">Python</option>
-              <option value="Web Development">Web Development</option>
-              <option value="Database">Database</option>
-              <option value="Java">Java</option>
-              <option value="General">General</option>
+              <option value="">All Courses</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>{c.title}</option>
+              ))}
+            </select>
+
+            {/* Module Filter */}
+            <select
+              value={moduleId}
+              onChange={(e) => setModuleId(e.target.value)}
+              disabled={!courseId}
+              className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:border-amber-500 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <option value="">All Modules</option>
+              {modules.map((m) => (
+                <option key={m.id} value={m.id}>{m.title}</option>
+              ))}
             </select>
 
             {/* Difficulty Filter */}
@@ -409,8 +424,10 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
                   />
                   <span>Question Details</span>
                 </div>
-                <div className="flex items-center space-x-8 pr-4">
-                  <span className="w-20 text-center">Marks</span>
+                <div className="flex items-center space-x-6 pr-4">
+                  <span className="w-28 text-center">Type</span>
+                  <span className="w-20 text-center">Difficulty</span>
+                  <span className="w-16 text-center">Marks</span>
                   <span className="w-24 text-center">Usage</span>
                   <span className="w-24 text-right">Actions</span>
                 </div>
@@ -420,7 +437,7 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
               {questions.map((q) => (
                 <div
                   key={q.id}
-                  className="px-6 py-4 flex items-center justify-between hover:bg-slate-900/40 transition group"
+                  className="px-6 py-2.5 flex items-center justify-between hover:bg-slate-900/40 transition group"
                 >
                   <div className="flex items-start space-x-4 max-w-3xl">
                     <input
@@ -432,15 +449,11 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
 
                     <div className="space-y-1.5">
                       <div className="flex items-center space-x-2 flex-wrap gap-y-1">
-                        <span className={`px-2 py-0.5 rounded border text-[10px] font-mono uppercase ${getTypeBadge(q.questionType)}`}>
-                          {q.questionType}
-                        </span>
-                        <span className={`px-2 py-0.5 rounded border text-[10px] font-mono uppercase ${getDifficultyBadge(q.difficulty)}`}>
-                          {q.difficulty}
-                        </span>
-                        <span className="text-xs font-semibold text-slate-300 bg-slate-800 px-2 py-0.5 rounded">
-                          {q.subject || "General"} • {q.topic || "General"}
-                        </span>
+                        {q.course?.title && (
+                          <span className="text-xs font-semibold text-slate-300 bg-slate-800 px-2 py-0.5 rounded">
+                            {q.course.title}{q.module?.title ? ` • ${q.module.title}` : ""}
+                          </span>
+                        )}
                         {q.status === "ARCHIVED" && (
                           <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-mono">
                             ARCHIVED
@@ -448,11 +461,9 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
                         )}
                       </div>
 
-                      <h4 className="text-sm font-semibold text-slate-100 group-hover:text-amber-400 transition">
-                        {q.title || q.question.slice(0, 60)}
+                      <h4 className="text-sm font-semibold text-slate-100 group-hover:text-amber-400 transition line-clamp-2">
+                        {q.question}
                       </h4>
-
-                      <p className="text-xs text-slate-400 line-clamp-1">{q.question}</p>
 
                       {q.tags && (
                         <div className="flex items-center space-x-1 text-[11px] text-slate-500">
@@ -464,8 +475,20 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
                   </div>
 
                   {/* Right Meta & Actions */}
-                  <div className="flex items-center space-x-8 pr-2 shrink-0">
+                  <div className="flex items-center space-x-6 pr-2 shrink-0">
+                    <div className="w-28 text-center">
+                      <span className={`px-2 py-0.5 rounded border text-[10px] font-mono uppercase ${getTypeBadge(q.questionType)}`}>
+                        {q.questionType}
+                      </span>
+                    </div>
+
                     <div className="w-20 text-center">
+                      <span className={`px-2 py-0.5 rounded border text-[10px] font-mono uppercase ${getDifficultyBadge(q.difficulty)}`}>
+                        {q.difficulty}
+                      </span>
+                    </div>
+
+                    <div className="w-16 text-center">
                       <span className="text-xs font-mono font-bold text-amber-400">{q.marks} pts</span>
                     </div>
 
@@ -561,12 +584,11 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
                 {previewQuestion.difficulty}
               </span>
               <span className="text-xs font-semibold text-slate-300">
-                {previewQuestion.subject} • {previewQuestion.topic}
+                {previewQuestion.course?.title || "No Course"}{previewQuestion.module?.title ? ` • ${previewQuestion.module.title}` : ""}
               </span>
             </div>
 
             <div>
-              <h3 className="text-lg font-bold text-slate-100">{previewQuestion.title}</h3>
               <p className="text-sm text-slate-300 mt-2 bg-slate-950/80 p-4 rounded-2xl border border-slate-800 whitespace-pre-line">
                 {previewQuestion.question}
               </p>

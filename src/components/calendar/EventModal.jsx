@@ -4,11 +4,10 @@ import { useState, useEffect } from "react";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import Select from "@/components/ui/Select";
 import { getCourses } from "@/services/course.service";
 import { getInstructors } from "@/services/instructor.service";
 import { createCalendarEvent, deleteCalendarEvent } from "@/services/calendar.service";
-import { FaTrash, FaVideo, FaClipboardList, FaBookOpen, FaClock, FaMapMarkerAlt, FaUsers } from "react-icons/fa";
+import { FaTrash, FaVideo, FaClipboardList, FaBookOpen, FaClock, FaUsers } from "react-icons/fa";
 import { useNotification } from "@/context/NotificationContext";
 
 export default function EventModal({
@@ -164,7 +163,7 @@ export default function EventModal({
       await deleteCalendarEvent(event.id || event._id);
       onSave();
       onClose();
-    } catch (err) {
+    } catch {
       setError("Failed to delete event.");
     } finally {
       setLoading(false);

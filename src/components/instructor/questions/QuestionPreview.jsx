@@ -54,9 +54,10 @@ export default function QuestionPreview({
                     {Array.isArray(question.options) &&
                         question.options.map(
                             (option, index) => {
+                                const optionText = typeof option === "string" ? option : (option?.optionText || option?.text || String(option));
                                 const isCorrect =
-                                    option ===
-                                    question.correctAnswer;
+                                    optionText ===
+                                    question.correctAnswer || (typeof option === "object" && option?.isCorrect);
 
                                 return (
                                     <div
@@ -99,7 +100,7 @@ export default function QuestionPreview({
                                             </span>
 
                                             <span className="text-white">
-                                                {option}
+                                                {optionText}
                                             </span>
                                         </div>
 

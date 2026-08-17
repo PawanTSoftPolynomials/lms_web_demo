@@ -182,8 +182,10 @@ export default function LessonHeader({
                     </div>
 
                     <p className="mt-1 text-xl font-black text-slate-200">
-                        {lesson.contents?.length ??
-                            0}
+                        {lesson.topics?.reduce(
+                            (sum, topic) => sum + (topic.contents?.length ?? 0),
+                            0
+                        ) ?? 0}
                     </p>
                 </div>
             </div>

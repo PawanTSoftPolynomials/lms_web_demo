@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Search,
-  Filter,
   CheckCircle2,
   ArrowLeft,
   X,
@@ -13,10 +12,7 @@ import {
   HelpCircle,
   Clock,
   Award,
-  Layers,
   RefreshCw,
-  Trash2,
-  Check,
 } from "lucide-react";
 import {
   getRepositoryQuestions,
@@ -41,9 +37,9 @@ export default function ImportQuestionsToQuizPage({ params }) {
   // Filters
   const [search, setSearch] = useState("");
   const [subject, setSubject] = useState("");
-  const [topic, setTopic] = useState("");
+  const [topic] = useState("");
   const [difficulty, setDifficulty] = useState("");
-  const [questionType, setQuestionType] = useState("");
+  const [questionType] = useState("");
 
   // Selected Repository Questions for Import
   const [selectedQuestions, setSelectedQuestions] = useState([]);
@@ -98,19 +94,6 @@ export default function ImportQuestionsToQuizPage({ params }) {
 
   const handleClearSelection = () => {
     setSelectedQuestions([]);
-  };
-
-  // Select by Difficulty
-  const handleSelectByDifficulty = (diff) => {
-    const matching = repositoryQuestions.filter((q) => q.difficulty === diff);
-    setSelectedQuestions((prev) => {
-      const prevIds = new Set(prev.map((q) => q.id));
-      const combined = [...prev];
-      matching.forEach((m) => {
-        if (!prevIds.has(m.id)) combined.push(m);
-      });
-      return combined;
-    });
   };
 
   // Random Selection Tool

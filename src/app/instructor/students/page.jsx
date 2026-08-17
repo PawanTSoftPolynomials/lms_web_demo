@@ -4,22 +4,41 @@ import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Users, ChevronLeft, Search, CheckCircle, Clock, Award,
-  AlertTriangle, ArrowLeft, Mail, Book, FileText, Calendar, Loader2
+  Search,
+  AlertTriangle, ArrowLeft, Loader2, Info
 } from 'lucide-react';
 
 import { useStudents } from '@/hooks/queries/instructor/useStudents';
+import { useInstructorCourses } from '@/hooks/queries/instructor/useInstructorCourses';
+import { useCourseBatches } from '@/hooks/queries/instructor/useBatches';
 
 function StudentsDirectoryContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
   const { data: students = [], isLoading, isError } = useStudents();
+  const { data: courses = [] } = useInstructorCourses();
 
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [courseFilter, setCourseFilter] = useState('All');
+  const [batchFilter, setBatchFilter] = useState('All');
   const [activeTab, setActiveTab] = useState('Progress'); // Progress | Assignments | Certificates
+
+  const selectedCourse = courseFilter === 'All' ? null : courses.find((c) => c.id === courseFilter);
+
+  // Batches for the selected course only — the API doesn't (yet) link a
+  // student record to a batch, so this list is informational/for future use
+  // rather than something we can filter the table by.
+  const { data: courseBatches = [], isLoading: loadingBatches } = useCourseBatches(
+    courseFilter !== 'All' ? courseFilter : undefined
+  );
+
+  const handleCourseFilterChange = (value) => {
+    setCourseFilter(value);
+    setBatchFilter('All');
+  };
 
   // Parse studentId parameter from URL (drilldown from dashboard)
   useEffect(() => {
@@ -36,12 +55,14 @@ function StudentsDirectoryContent() {
       const matchesSearch = (student.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                             (student.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                             (student.course || '').toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       const matchesStatus = statusFilter === 'All' || student.status === statusFilter;
-      
-      return isStudentRole && matchesSearch && matchesStatus;
+      const matchesCourse = courseFilter === 'All' || student.course === selectedCourse?.title;
+      // Batch isn't matched here — student records don't carry batch membership yet.
+
+      return isStudentRole && matchesSearch && matchesStatus && matchesCourse;
     });
-  }, [students, searchQuery, statusFilter]);
+  }, [students, searchQuery, statusFilter, courseFilter, selectedCourse]);
 
   // Selected student details object
   const selectedStudent = useMemo(() => {
@@ -318,6 +339,44 @@ function StudentsDirectoryContent() {
                   {filter}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Controls: Course & Batch Filters */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="w-full sm:w-64">
+              <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Course</label>
+              <select
+                value={courseFilter}
+                onChange={(e) => handleCourseFilterChange(e.target.value)}
+                className="w-full bg-white/[0.02] border border-[#1A1F35] text-xs px-3.5 py-2 rounded-xl outline-none text-slate-200 focus:border-slate-700 transition cursor-pointer"
+              >
+                <option value="All">All Courses</option>
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>{c.title}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="w-full sm:w-64">
+              <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Batch</label>
+              <select
+                value={batchFilter}
+                onChange={(e) => setBatchFilter(e.target.value)}
+                disabled={courseFilter === 'All' || loadingBatches}
+                className="w-full bg-white/[0.02] border border-[#1A1F35] text-xs px-3.5 py-2 rounded-xl outline-none text-slate-200 focus:border-slate-700 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <option value="All">{courseFilter === 'All' ? 'Select a course first' : 'All Batches'}</option>
+                {courseBatches.map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+              {batchFilter !== 'All' && (
+                <p className="flex items-center gap-1 text-[9px] text-slate-500 mt-1.5">
+                  <Info size={10} className="shrink-0" />
+                  Batch rosters aren&apos;t linked to students yet — this doesn&apos;t narrow the list below.
+                </p>
+              )}
             </div>
           </div>
 

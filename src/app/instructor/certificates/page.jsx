@@ -2,8 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Award, ArrowLeft, Search, Plus, Trash2, ShieldAlert, Award as AwardIcon, CheckCircle2, User, BookOpen, Calendar, HelpCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Award, ArrowLeft, Search, Plus, Trash2, ShieldAlert, Award as AwardIcon } from 'lucide-react';
 import Link from 'next/link';
 import useAuth from '@/hooks/useAuth';
 import api from '@/lib/axios';
@@ -14,7 +13,6 @@ import Loader from '@/components/common/Loader';
 import { getCertificates, deleteCertificate } from '@/services/certificate.service';
 
 export default function CertificatesDashboardPage() {
-  const router = useRouter();
   const { user } = useAuth();
   const qc = useQueryClient();
 

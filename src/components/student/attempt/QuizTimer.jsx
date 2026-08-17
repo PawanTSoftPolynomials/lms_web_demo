@@ -4,16 +4,21 @@ import { useEffect, useMemo, useState } from "react";
 import { Clock } from "lucide-react";
 
 export default function QuizTimer({
-                                      duration = 0,
+                                      duration = 15,
                                       onTimeUp,
                                   }) {
+    const effectiveDuration = useMemo(() => {
+        const num = Number(duration);
+        return !isNaN(num) && num > 0 ? num : 15;
+    }, [duration]);
+
     const [timeLeft, setTimeLeft] = useState(
-        duration * 60
+        effectiveDuration * 60
     );
 
     useEffect(() => {
-        setTimeLeft(duration * 60);
-    }, [duration]);
+        setTimeLeft(effectiveDuration * 60);
+    }, [effectiveDuration]);
 
     useEffect(() => {
         if (timeLeft <= 0) {

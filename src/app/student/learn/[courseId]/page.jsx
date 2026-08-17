@@ -12,6 +12,8 @@ import {
 import { FaSignOutAlt } from "react-icons/fa";
 
 import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel";
+import CoursePersonalizationCard from "@/components/student/learning/CoursePersonalizationCard";
+import PersonalizedPathCard from "@/components/student/learning/PersonalizedPathCard";
 import VideoPlayer from "@/components/student/learning/VideoPlayer";
 import TranscriptPanel from "@/components/student/learning/TranscriptPanel";
 import LessonTabs from "@/components/student/learning/LessonTabs";
@@ -26,6 +28,7 @@ import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
 import { trackCourseAccess } from "@/services/enrollment.service";
 import { ChatWidget } from "@/components/chat";
+import { MentorWidget } from "@/components/mentor";
 import { createConversation } from "@/features/chat/api/chat.api";
 
 import useAuth from "@/hooks/useAuth";
@@ -240,6 +243,12 @@ export default function LearnPage() {
     }
   }, [selectedLesson, stateRestored]);
 
+  // Content now nests under Topic (Lesson -> Topic -> Content), so flatten
+  // every topic's contents back into the flat list this page's UI expects.
+  const selectedLessonContents = useMemo(() => {
+    return (selectedLesson?.topics || []).flatMap((topic) => topic.contents || []);
+  }, [selectedLesson]);
+
   // Sync state back to DB on change (debounced)
   useEffect(() => {
     if (!selectedLesson?.id || !stateRestored) return;
@@ -249,13 +258,13 @@ export default function LearnPage() {
         courseId,
         moduleId: selectedLesson.moduleId || null,
         lessonId: selectedLesson.id,
-        contentId: selectedLesson.contents?.[0]?.id || null,
+        contentId: selectedLessonContents?.[0]?.id || null,
         timestamp: currentTimestamp,
       });
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [selectedLesson, currentTimestamp, courseId, stateRestored]);
+  }, [selectedLesson, selectedLessonContents, currentTimestamp, courseId, stateRestored]);
 
   const markComplete = async () => {
     if (!selectedLesson?.id) return;
@@ -282,10 +291,10 @@ export default function LearnPage() {
   };
 
   const instructorAttachments = useMemo(() => {
-    return (selectedLesson?.contents || []).filter(
+    return selectedLessonContents.filter(
       (c) => c.type === "FILE" || c.type === "DOCUMENT" || c.type === "HTML" || Boolean(c.fileUrl)
     );
-  }, [selectedLesson]);
+  }, [selectedLessonContents]);
 
   const formatResumeTime = (seconds) => {
     const total = Math.max(0, Math.floor(seconds || 0));
@@ -354,7 +363,11 @@ export default function LearnPage() {
   // by the desktop stacked layout (all shown at once) — so there is a single
   // source of truth per tab, not two copies that can drift out of sync.
   const overviewPanel = (
-    <div className="rounded-3xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl p-4 sm:p-5 space-y-3">
+    <div className="space-y-4">
+      <CoursePersonalizationCard courseId={courseId} />
+      <PersonalizedPathCard courseId={courseId} />
+
+      <div className="rounded-3xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl p-4 sm:p-5 space-y-3">
       <h4 className="text-xs font-black uppercase tracking-widest text-slate-300">About this lesson</h4>
       <div className="space-y-1.5">
         <p
@@ -398,6 +411,7 @@ export default function LearnPage() {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 
@@ -924,7 +938,7 @@ export default function LearnPage() {
 
               <VideoPlayer
                 ref={videoPlayerRef}
-                content={selectedLesson?.contents?.[0]}
+                content={selectedLessonContents?.[0]}
                 onTimeUpdate={setCurrentTimestamp}
                 onDurationChange={setVideoDuration}
                 onEnded={handleVideoEnded}
@@ -1228,6 +1242,7 @@ export default function LearnPage() {
           </div>
         </div>
         <ChatWidget />
+        <MentorWidget />
       </div>
 
       {/* QUIZ ATTEMPT — same QuizExperience component either way; only the

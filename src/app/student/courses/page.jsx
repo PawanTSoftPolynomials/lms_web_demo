@@ -22,15 +22,24 @@ export default function StudentCoursesPage() {
     const [category, setCategory] = useState("");
     const [level, setLevel] = useState("");
 
+    const enrolledCourseIds = useMemo(() => {
+        return new Set((myEnrollments || []).map((e) => e.courseId || e.course?.id).filter(Boolean));
+    }, [myEnrollments]);
+
+    const availableCourses = useMemo(() => {
+        return courses.filter((course) => !enrolledCourseIds.has(course.id));
+    }, [courses, enrolledCourseIds]);
+
     const categories = useMemo(() => {
-        return [...new Set(courses.map((course) => course.category).filter(Boolean))];
-    }, [courses]);
+        return [...new Set(availableCourses.map((course) => course.category).filter(Boolean))];
+    }, [availableCourses]);
 
     const levels = useMemo(() => {
-        return [...new Set(courses.map((course) => course.level).filter(Boolean))];
-    }, [courses]);
+        return [...new Set(availableCourses.map((course) => course.level).filter(Boolean))];
+    }, [availableCourses]);
+
     const filteredCourses = useMemo(() => {
-        return courses.filter((course) => {
+        return availableCourses.filter((course) => {
             const matchesSearch =
                 course.title
                     .toLowerCase()
@@ -51,8 +60,7 @@ export default function StudentCoursesPage() {
                 matchesLevel
             );
         });
-    }, [courses, search, category, level]);
-    console.log(filteredCourses);
+    }, [availableCourses, search, category, level]);
 
     const activeFilters = [
         search,

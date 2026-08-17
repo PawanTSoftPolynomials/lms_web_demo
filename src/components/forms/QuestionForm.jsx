@@ -17,8 +17,6 @@ import {
 } from "lucide-react";
 
 import Card from "@/components/ui/Card";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
 
 import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
@@ -51,7 +49,7 @@ export default function QuestionForm({
   // Queries for dynamic breadcrumbs & title headers
   const { data: quiz } = useQuiz(quizId, { enabled: !!quizId });
   const finalCourseId = courseId || quiz?.courseId;
-  const { data: course } = useInstructorCourse(finalCourseId, { enabled: !!finalCourseId });
+  useInstructorCourse(finalCourseId, { enabled: !!finalCourseId });
 
   // Form State
   const [formData, setFormData] = useState(INITIAL_FORM);

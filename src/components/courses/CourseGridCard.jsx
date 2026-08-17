@@ -1,57 +1,154 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
-import { BookOpen, Users, Layers, FileText } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
+import { BookOpen, Layers, FileText, HelpCircle, Clock, UserRound, CalendarPlus, History, Pencil, ArrowUpRight } from "lucide-react";
 
 import CourseStatusBadge from "@/components/courses/CourseStatusBadge";
-import CourseActionsMenu from "@/components/courses/CourseActionsMenu";
 
-/** Compact grid card for the My Courses grid view — deliberately not a marketplace-style card. */
-export default function CourseGridCard({ course }) {
+const STATUS_ACCENT = {
+  PUBLISHED: "from-white via-white/60 to-transparent",
+  DRAFT: "from-white/50 via-white/30 to-transparent",
+  ARCHIVED: "from-red-900 via-red-900/60 to-transparent",
+};
+
+/**
+ * Bold gradient per card — one hue, cycled by grid index so every card in view is a
+ * different color. The gradient itself stays at a normal, identifiable saturation;
+ * `brightness`/`contrast` filters are applied on a separate background layer (not on
+ * the text) to knock the perceived intensity down by ~40% without graying out content.
+ */
+const THEMES = [
+  { gradient: "bg-gradient-to-br from-cyan-500 to-blue-700", viewText: "text-blue-800" },
+  { gradient: "bg-gradient-to-br from-orange-500 to-red-700", viewText: "text-red-800" },
+  { gradient: "bg-gradient-to-br from-amber-500 to-amber-700", viewText: "text-amber-900" },
+  { gradient: "bg-gradient-to-br from-pink-500 to-pink-700", viewText: "text-pink-800" },
+  { gradient: "bg-gradient-to-br from-violet-500 to-purple-700", viewText: "text-violet-900" },
+  { gradient: "bg-gradient-to-br from-emerald-500 to-green-700", viewText: "text-green-900" },
+  { gradient: "bg-gradient-to-br from-indigo-500 to-indigo-700", viewText: "text-indigo-900" },
+  { gradient: "bg-gradient-to-br from-teal-500 to-teal-700", viewText: "text-teal-900" },
+  { gradient: "bg-gradient-to-br from-rose-500 to-rose-700", viewText: "text-rose-800" },
+  { gradient: "bg-gradient-to-br from-fuchsia-500 to-fuchsia-700", viewText: "text-fuchsia-900" },
+  { gradient: "bg-gradient-to-br from-lime-600 to-green-700", viewText: "text-green-900" },
+  { gradient: "bg-gradient-to-br from-sky-500 to-sky-700", viewText: "text-sky-900" },
+];
+
+function Stat({ icon: Icon, value, label }) {
+  return (
+    <div className="flex flex-col items-center gap-0.5 md:gap-1 rounded-lg border border-white/25 bg-white/15 py-1 md:py-2 text-white backdrop-blur-sm">
+      <div className="flex items-center gap-1.5">
+        <Icon size={15} />
+        <p className="text-sm md:text-base font-black tabular-nums">{value}</p>
+      </div>
+      <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/70">{label}</p>
+    </div>
+  );
+}
+
+/** My Courses grid card — banner, stats, duration, creator, audit fields, description, edit/view actions. */
+export default function CourseGridCard({ course, index = 0 }) {
   const router = useRouter();
+
+  const lessonsCount = course.modules?.reduce((sum, m) => sum + (m.lessons?.length ?? 0), 0) ?? course.stats?.lessonsCount ?? 0;
+  const accent = STATUS_ACCENT[course.status] || STATUS_ACCENT.DRAFT;
+  const theme = THEMES[index % THEMES.length];
+
+  const goTo = (path) => (e) => {
+    e.stopPropagation();
+    router.push(path);
+  };
 
   return (
     <div
       onClick={() => router.push(`/instructor/courses/${course.id}`)}
-      className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-4 flex flex-col gap-3 hover:border-slate-700 transition cursor-pointer"
+      className="group relative flex w-[90%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-80 md:shrink flex-col overflow-hidden rounded-2xl shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30 cursor-pointer"
     >
-      <div className="flex items-center gap-3">
-        <div className="h-11 w-11 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 overflow-hidden">
-          {course.thumbnailUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={course.thumbnailUrl} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <BookOpen size={17} className="text-slate-500" />
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold text-slate-200 truncate">{course.title}</p>
-          <p className="text-[10px] text-slate-500 truncate">{course.category || "Uncategorized"}</p>
-        </div>
-        <CourseStatusBadge status={course.status} />
-      </div>
+      {/* Dimmed color layer — ~40% less bright/contrasty than the raw gradient, kept behind the content so text stays crisp */}
+      <div className={`absolute inset-0 ${theme.gradient} brightness-[0.6] contrast-[0.85]`} />
 
-      <div className="grid grid-cols-3 gap-2 text-center py-2 border-y border-[#1A1F35]/70">
-        <div>
-          <p className="text-[13px] font-black text-slate-200 flex items-center justify-center gap-1"><Users size={11} className="text-slate-500" />{course._count?.enrollments ?? 0}</p>
-          <p className="text-[9px] text-slate-500 uppercase tracking-wide mt-0.5">Students</p>
-        </div>
-        <div>
-          <p className="text-[13px] font-black text-slate-200 flex items-center justify-center gap-1"><Layers size={11} className="text-slate-500" />{course._count?.modules ?? 0}</p>
-          <p className="text-[9px] text-slate-500 uppercase tracking-wide mt-0.5">Modules</p>
-        </div>
-        <div>
-          <p className="text-[13px] font-black text-slate-200 flex items-center justify-center gap-1"><FileText size={11} className="text-slate-500" />{course.stats?.lessonsCount ?? 0}</p>
-          <p className="text-[9px] text-slate-500 uppercase tracking-wide mt-0.5">Lessons</p>
-        </div>
-      </div>
+      {/* Content sits in its own stacked layer so it renders above the dimmed background */}
+      <div className="relative z-10 flex flex-1 flex-col">
+      {/* Banner — shorter on mobile so the thumbnail no longer dominates the card */}
+      <div className="relative h-16 md:h-28 shrink-0 overflow-hidden">
+        <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent} z-10`} />
+        {course.thumbnailUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={course.thumbnailUrl}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="relative flex h-full w-full items-center justify-center">
+            <BookOpen size={36} className="text-white/20" />
+          </div>
+        )}
 
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] text-slate-500">
-          {course.updatedAt ? `Updated ${formatDistanceToNow(new Date(course.updatedAt), { addSuffix: true })}` : "—"}
+        <span className="absolute top-2 left-2 md:top-3 md:left-3 rounded-md border border-white/30 bg-white/15 backdrop-blur px-2 py-0.5 md:py-1 text-[10px] md:text-[11px] font-bold text-white">
+          {course.category || "Uncategorized"}
         </span>
-        <CourseActionsMenu course={course} />
+        <div className="absolute top-2 right-2 md:top-3 md:right-3">
+          <CourseStatusBadge status={course.status} />
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-1.5 md:gap-2.5 p-3 md:p-4">
+        <div>
+          <h3 className="text-base md:text-lg font-black text-white leading-snug line-clamp-1">
+            {course.title}
+          </h3>
+          {course.description ? (
+            <p className="mt-0.5 md:mt-1 text-xs md:text-[13px] leading-relaxed text-white/80 line-clamp-1 md:line-clamp-2">{course.description}</p>
+          ) : null}
+        </div>
+
+        <div className="grid grid-cols-3 gap-1.5 md:gap-2">
+          <Stat icon={Layers} value={course._count?.modules ?? 0} label="Modules" />
+          <Stat icon={FileText} value={lessonsCount} label="Lessons" />
+          <Stat icon={HelpCircle} value={course._count?.quizzes ?? 0} label="Quizzes" />
+        </div>
+
+        <div className="flex items-center justify-between gap-2 text-[11px] md:text-xs">
+          <span className="flex min-w-0 items-center gap-1.5 truncate rounded-lg border border-white/25 bg-white/15 px-2 py-0.5 md:py-1 text-white backdrop-blur-sm">
+            <UserRound size={13} className="shrink-0 text-white/70" />
+            <span className="truncate">{course.creator?.name || "Unknown"}</span>
+          </span>
+          <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/25 bg-white/15 px-2 py-0.5 md:py-1 text-white backdrop-blur-sm">
+            <Clock size={13} className="text-white/70" />
+            {course.estimatedLearningHours ? `${course.estimatedLearningHours}h` : "—"}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between text-[11px] text-white/70">
+          <span className="flex items-center gap-1.5">
+            <CalendarPlus size={13} className="text-white/60" />
+            {course.createdAt ? format(new Date(course.createdAt), "MMM d, yyyy") : "—"}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <History size={13} className="text-white/60" />
+            {course.updatedAt ? formatDistanceToNow(new Date(course.updatedAt), { addSuffix: true }) : "—"}
+          </span>
+        </div>
+
+        <div className="mt-auto flex items-center gap-2 pt-0.5 md:pt-1.5">
+          <button
+            onClick={goTo(`/instructor/courses/edit/${course.id}`)}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-3 py-1.5 md:py-2 text-xs md:text-[13px] font-extrabold text-white transition hover:bg-white/20"
+          >
+            <Pencil size={13} />
+            Edit
+          </button>
+          <button
+            onClick={goTo(`/instructor/courses/${course.id}`)}
+            className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-1.5 md:py-2 text-xs md:text-[13px] font-extrabold transition hover:bg-white/90 active:scale-95 ${theme.viewText}`}
+          >
+            View
+            <ArrowUpRight size={13} />
+          </button>
+        </div>
+      </div>
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { forwardRef } from "react";
 import "react-quill-new/dist/quill.snow.css";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), {
@@ -31,7 +30,7 @@ const formats = [
   "code-block",
 ];
 
-const RichTextEditor = forwardRef(({ value, onChange, placeholder }, ref) => {
+const RichTextEditor = ({ value, onChange, placeholder }) => {
   return (
     <div className="rich-text-editor">
       <style>{`
@@ -76,8 +75,6 @@ const RichTextEditor = forwardRef(({ value, onChange, placeholder }, ref) => {
       />
     </div>
   );
-});
-
-RichTextEditor.displayName = "RichTextEditor";
+};
 
 export default RichTextEditor;

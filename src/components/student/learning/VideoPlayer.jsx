@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState, useCallback } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import {
     FileText,
     ExternalLink,
@@ -10,8 +10,6 @@ import {
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
-import axios from "axios";
-import Cookies from "js-cookie";
 import DOMPurify from "isomorphic-dompurify";
 
 import { getYouTubeVideoId, isYouTubeUrl as isYoutubeUrl } from "@/lib/youtube";
@@ -37,19 +35,13 @@ const parseSlides = (html) => {
 };
 
 const VideoPlayer = forwardRef(function VideoPlayer(
-    { content, onTimeUpdate, onEnded, onDurationChange, initialTime = 0, courseId, lessonId: resolvedLessonId },
+    { content, onTimeUpdate, onEnded, onDurationChange, initialTime = 0 },
     ref
 ) {
     const containerRef = useRef(null);
     const playerRef = useRef(null);
     const localVideoRef = useRef(null);
     const [slideIndex, setSlideIndex] = useState(0);
-
-    
-    // Video Analytics state
-    const pingIntervalRef = useRef(null);
-    const lastPingTimeRef = useRef(0);
-    const accumulatedSecondsRef = useRef(0);
 
     const type = content?.type;
     const videoUrl = content?.videoUrl;
@@ -200,20 +192,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
     useEffect(() => {
         setSlideIndex(0);
-        accumulatedSecondsRef.current = 0;
-        lastPingTimeRef.current = 0;
-        
-        return () => stopPingTimer();
-    }, [content, stopPingTimer]);
-
-    const stopPingTimer = useCallback(() => {
-        if (pingIntervalRef.current) {
-            clearInterval(pingIntervalRef.current);
-            pingIntervalRef.current = null;
-        }
-    }, []);
-
-
+    }, [content]);
 
     if (!content) {
         return (

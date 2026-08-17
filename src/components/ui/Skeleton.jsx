@@ -12,7 +12,7 @@ function Pulse({ className = '', children }) {
 // 1. KPI Card Skeleton
 export function KPICardSkeleton() {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-8 shadow-sm min-h-[220px] flex flex-col justify-between">
+    <div className="rounded-2xl border border-card-border bg-card p-8 shadow-sm min-h-[220px] flex flex-col justify-between">
       <div className="flex justify-between items-start">
         <div className="space-y-3 w-2/3">
           <Pulse className="h-4 w-24" />
@@ -32,7 +32,7 @@ export function KPICardSkeleton() {
 // 2. Chart Card Skeleton
 export function ChartCardSkeleton({ height = "h-96" }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 shadow-sm overflow-hidden">
+    <div className="rounded-2xl border border-card-border bg-card shadow-sm overflow-hidden">
       <div className="flex justify-between items-center border-b border-slate-800/80 px-6 py-5">
         <div className="space-y-2">
           <Pulse className="h-5 w-32" />
@@ -58,7 +58,7 @@ export function ChartCardSkeleton({ height = "h-96" }) {
 // 3. Course Progress Grid Skeleton
 export function CourseProgressSkeleton() {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm overflow-hidden space-y-4">
+    <div className="rounded-2xl border border-card-border bg-card p-6 shadow-sm overflow-hidden space-y-4">
       <div className="flex justify-between items-center border-b border-slate-850 pb-4">
         <div className="space-y-2">
           <Pulse className="h-5 w-40" />
@@ -98,7 +98,7 @@ export function CourseProgressSkeleton() {
 // 4. Action Card Skeleton
 export function ActionCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-4 shadow-sm">
+    <div className="rounded-2xl border border-card-border bg-card p-5 space-y-4 shadow-sm">
       <div className="flex justify-between items-start">
         <Pulse className="h-10 w-10 rounded-xl" />
         <Pulse className="h-6 w-12 rounded-full" />

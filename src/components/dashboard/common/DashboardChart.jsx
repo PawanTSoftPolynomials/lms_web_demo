@@ -1,7 +1,6 @@
 "use client";
 
 import DashboardSection from "@/components/dashboard/common/DashboardSection";
-import ChartTooltip from "@/components/dashboard/components/ChartTooltip";
 
 
 export default function DashboardChart({

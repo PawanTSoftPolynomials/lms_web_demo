@@ -1,9 +1,9 @@
-import CourseCard from "./CourseCard";
+import MyCourseCard from "@/components/student/my-courses/MyCourseCard";
 
 export default function CourseGrid({
-                                       courses = [],
-                                       enrollments = [],
-                                   }) {
+    courses = [],
+    enrollments = [],
+}) {
     const isShowingEnrollmentsOnly = courses.length === 0 && enrollments.length > 0;
     const items = isShowingEnrollmentsOnly ? enrollments : courses;
 
@@ -15,25 +15,26 @@ export default function CourseGrid({
                 </h3>
 
                 <p className="mt-2 text-slate-400">
-                    Try adjusting your filters or check back later.
+                    You have enrolled in all available courses or no courses match your filter criteria.
                 </p>
             </div>
         );
     }
 
     return (
-        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {items.map((item) => {
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((item, idx) => {
                 const courseObj = isShowingEnrollmentsOnly ? undefined : item;
                 const enrollmentObj = isShowingEnrollmentsOnly
                     ? item
                     : enrollments.find((e) => e.courseId === item.id || e.course?.id === item.id);
 
                 return (
-                    <CourseCard
-                        key={item.id}
+                    <MyCourseCard
+                        key={item.id || idx}
                         course={courseObj}
                         enrollment={enrollmentObj}
+                        index={idx}
                     />
                 );
             })}

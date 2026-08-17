@@ -14,11 +14,16 @@ export function useDeleteLesson() {
             deleteLesson(lessonId),
 
         onSuccess: (_, variables) => {
+            // refetchType: "all" forces an immediate background refetch even
+            // for queries with no currently-mounted observer — otherwise the
+            // data is only marked stale and won't actually refresh until
+            // that page is hard-reloaded.
             queryClient.invalidateQueries({
                 queryKey: [
                     QUERY_KEYS.LESSONS,
                     variables.moduleId,
                 ],
+                refetchType: "all",
             });
 
             queryClient.removeQueries({
@@ -28,8 +33,16 @@ export function useDeleteLesson() {
                 ],
             });
 
+            // Keep the Course Composer sidebar's Module -> Lesson -> Topic
+            // tree (MODULES, plural) in sync too.
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.MODULES],
+                refetchType: "all",
+            });
+
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES],
+                refetchType: "all",
             });
 
         },

@@ -20,11 +20,16 @@ export function useUpdateLesson() {
             ),
 
         onSuccess: (_, variables) => {
+            // refetchType: "all" forces an immediate background refetch even
+            // for queries with no currently-mounted observer — otherwise the
+            // data is only marked stale and won't actually refresh until
+            // that page is hard-reloaded.
             queryClient.invalidateQueries({
                 queryKey: [
                     QUERY_KEYS.LESSON,
                     variables.lessonId,
                 ],
+                refetchType: "all",
             });
 
             queryClient.invalidateQueries({
@@ -32,6 +37,14 @@ export function useUpdateLesson() {
                     QUERY_KEYS.LESSONS,
                     variables.lessonData.moduleId,
                 ],
+                refetchType: "all",
+            });
+
+            // Keep the Course Composer sidebar's Module -> Lesson -> Topic
+            // tree (MODULES, plural) in sync too.
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.MODULES],
+                refetchType: "all",
             });
         },
     });

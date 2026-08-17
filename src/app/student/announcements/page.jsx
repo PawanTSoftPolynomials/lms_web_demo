@@ -6,12 +6,10 @@ import {
   Megaphone,
   CheckCheck,
   Bell,
-  Info,
   AlertCircle,
   Clock,
   Sparkles,
   Search,
-  Filter,
   CheckCircle2
 } from "lucide-react";
 import Card from "@/components/ui/Card";
@@ -28,7 +26,7 @@ export default function StudentAnnouncementsPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch notifications
-  const { data: notifications = [], isLoading, isError } = useQuery({
+  const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["notifications"],
     queryFn: getNotifications,
     staleTime: 1000 * 60 * 2, // 2 minutes

@@ -7,7 +7,6 @@ import {
   Send,
   Phone,
   Video as VideoIcon,
-  MoreVertical,
   Plus,
   Paperclip,
   Image as ImageIcon,

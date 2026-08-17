@@ -3,9 +3,9 @@
 import { useRef, useState } from "react";
 import { Edit3, Trash2, Save, Loader2, StickyNote } from "lucide-react";
 
-import WorkFilterBar from "@/components/instructor/work/WorkFilterBar";
+import Card from "@/components/ui/Card";
+import CourseModuleLessonSelect from "@/components/instructor/work/CourseModuleLessonSelect";
 import NotesEditor from "@/components/instructor/NotesEditor";
-import { useWorkFilters } from "@/context/WorkFilterContext";
 import {
   useLessonNotes,
   useCreateLessonNote,
@@ -14,8 +14,8 @@ import {
 } from "@/hooks/queries/instructor/useLessonNotes";
 
 export default function WorkNotesPage() {
-  const { appliedFilters } = useWorkFilters();
-  const { lessonId } = appliedFilters;
+  const [selection, setSelection] = useState({ courseId: "", moduleId: "", lessonId: "" });
+  const { lessonId } = selection;
 
   const { data: notes = [], isLoading } = useLessonNotes(lessonId);
   const createNote = useCreateLessonNote();
@@ -55,21 +55,26 @@ export default function WorkNotesPage() {
   const isSaving = createNote.isPending || updateNote.isPending;
 
   return (
-    <div className="space-y-6">
+    <Card className="mx-auto max-w-5xl bg-[#0D1021] border border-[#1A1F35] p-6 sm:p-8 rounded-2xl shadow-2xl space-y-6">
       <div>
-        <h1 className="text-xl font-black text-white tracking-tight">Notes</h1>
-        <p className="text-xs text-slate-400 mt-1">Write private lesson notes with rich formatting, images, and file attachments.</p>
+        <h1 className="text-3xl font-black text-white tracking-tight">Notes</h1>
+        <p className="mt-2 text-sm text-slate-400">Write private lesson notes with rich formatting, images, and file attachments.</p>
       </div>
 
-      <WorkFilterBar fields={["course", "module", "lesson"]} />
+      <CourseModuleLessonSelect
+        courseId={selection.courseId}
+        moduleId={selection.moduleId}
+        lessonId={selection.lessonId}
+        onChange={setSelection}
+      />
 
       {!lessonId ? (
-        <div className="rounded-2xl border border-dashed border-[#1A1F35] bg-[#0D1021] py-16 text-center">
-          <p className="text-xs font-bold text-slate-500">Select a Course, Module, and Lesson above and click Apply to write notes.</p>
+        <div className="rounded-2xl border border-dashed border-[#1A1F35] bg-[#05070E] py-16 text-center">
+          <p className="text-xs font-bold text-slate-500">Select a Course, Module, and Lesson above to write notes.</p>
         </div>
       ) : (
         <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
-          <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-5 space-y-4">
+          <div className="rounded-2xl border border-[#1A1F35] bg-[#05070E] p-5 space-y-4">
             <h3 className="text-[10.5px] font-black uppercase tracking-widest text-slate-350">
               {editingId ? "Edit Note" : "New Note"}
             </h3>
@@ -110,7 +115,7 @@ export default function WorkNotesPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-5 space-y-3">
+          <div className="rounded-2xl border border-[#1A1F35] bg-[#05070E] p-5 space-y-3">
             <h3 className="text-[10.5px] font-black uppercase tracking-widest text-slate-350">
               Notes for this Lesson ({notes.length})
             </h3>
@@ -151,6 +156,6 @@ export default function WorkNotesPage() {
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }

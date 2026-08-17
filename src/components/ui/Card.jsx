@@ -1,6 +1,7 @@
 export default function Card({
   children,
   className = "",
+  padding = "p-6",
   onClick,
 }) {
   return (
@@ -9,11 +10,11 @@ export default function Card({
       className={`
         rounded-2xl
         border
-        border-slate-800/80
-        bg-slate-900/50
+        border-card-border
+        bg-card
         backdrop-blur-md
         shadow-luxury-md
-        p-6
+        ${padding}
         ${onClick ? "cursor-pointer" : ""}
         ${className}
       `}

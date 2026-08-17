@@ -3,7 +3,6 @@ import {
     FaUsers,
     FaBook,
     FaClipboardList,
-    FaGraduationCap,
     FaUserCircle,
     FaCalendarAlt,
     FaVideo,

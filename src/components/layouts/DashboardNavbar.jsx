@@ -2,14 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { FaArrowLeft, FaBars, FaSignOutAlt } from "react-icons/fa";
+import { FaBars } from "react-icons/fa";
 import { PiOrangeDuotone } from "react-icons/pi";
-import { MessageSquare, Calendar, ChevronRight, Bell, BookOpen, Award, CheckCheck } from "lucide-react";
+import { MessageSquare, ChevronRight, Menu } from "lucide-react";
 import Link from "next/link";
 
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
 import { useNotification } from "@/context/NotificationContext";
+import { useStudentNavDrawer } from "@/context/StudentNavDrawerContext";
+import { useInstructorNavDrawer } from "@/context/InstructorNavDrawerContext";
 import Modal from "@/components/ui/Modal";
 import MiniCalendar from "@/components/dashboard/MiniCalendar";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
@@ -19,46 +21,10 @@ import { useContent } from "@/hooks/queries/instructor/useContent";
 import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
 import { useQuestion } from "@/hooks/queries/instructor/useQuestion";
 
-import StudentDashboardNav from "@/components/layouts/StudentDashboardNav";
 import GlobalSearch from "@/components/layouts/GlobalSearch";
 import { NotificationsMenu, ProfileMenu } from "@/components/layouts/NavUserMenus";
 
-// Self-contained high-end chime player using HTML5 AudioContext
-const playNotificationChime = () => {
-  try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
-    // Tone 1: High soft bell note
-    const osc1 = audioCtx.createOscillator();
-    const gain1 = audioCtx.createGain();
-    osc1.connect(gain1);
-    gain1.connect(audioCtx.destination);
-    osc1.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-    gain1.gain.setValueAtTime(0.06, audioCtx.currentTime);
-    gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-    osc1.start();
-    osc1.stop(audioCtx.currentTime + 0.15);
-    
-    // Tone 2: Harmonious resonance
-    setTimeout(() => {
-      try {
-        const osc2 = audioCtx.createOscillator();
-        const gain2 = audioCtx.createGain();
-        osc2.connect(gain2);
-        gain2.connect(audioCtx.destination);
-        osc2.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
-        gain2.gain.setValueAtTime(0.06, audioCtx.currentTime);
-        gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
-        osc2.start();
-        osc2.stop(audioCtx.currentTime + 0.25);
-      } catch (e) {}
-    }, 85);
-  } catch (e) {
-    console.warn("Chime playback bypassed:", e);
-  }
-};
-
-function ProfileDropdown({ user, role, onLogoutRequest }) {
+function ProfileDropdown({ user, onLogoutRequest, role }) {
   const [open, setOpen] = useState(false);
   const isAdmin = role === "ADMIN";
   const profileHref = isAdmin ? "/admin/profile" : "/instructor/profile";
@@ -130,6 +96,8 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
   const router = useRouter();
   const { logout, user: currentUser } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { open: openStudentNavDrawer } = useStudentNavDrawer();
+  const { open: openInstructorNavDrawer } = useInstructorNavDrawer();
 
   const pathname = usePathname();
   
@@ -479,7 +447,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
         {/* Right side items */}
         <div className="flex items-center gap-4">
-          
+
           {/* Internet Speed */}
           <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold" title="Estimated Download Speed">
              <span className="animate-pulse">📶</span>
@@ -511,44 +479,6 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                 </span>
               )}
             </button>
-
-            {showNotifications && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
-                <div className="absolute right-0 top-10 z-50 w-80 rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-4 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150">
-                  <div className="flex items-center justify-between pb-2 border-b border-[#1A1F35] mb-2">
-                    <h3 className="font-black text-xs text-slate-200">Notifications</h3>
-                    {unreadCount > 0 && (
-                      <button onClick={handleMarkAllRead} className="text-[10px] text-orange-400 hover:text-orange-300 font-bold transition">
-                        Mark read
-                      </button>
-                    )}
-                  </div>
-                  <div className="max-h-64 overflow-y-auto space-y-2 pr-0.5">
-                    {notifications.length === 0 ? (
-                      <div className="py-8 text-center text-[10px] text-slate-500">No notifications</div>
-                    ) : (
-                      notifications.slice(0, 5).map((n) => (
-                        <div
-                          key={n.id}
-                          onClick={() => handleNotificationClick(n)}
-                          className={`p-2 rounded-xl border cursor-pointer transition ${
-                            n.read ? "bg-white/[0.01] border-transparent hover:bg-white/[0.03]" : "bg-orange-500/5 border-orange-500/10 hover:bg-orange-500/10"
-                          }`}
-                        >
-                          <div className="flex justify-between items-start gap-1">
-                            <h4 className="font-extrabold text-[10.5px] text-slate-200 truncate">{n.title}</h4>
-                            {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0 mt-1" />}
-                          </div>
-                          <p className="text-[9.5px] text-slate-500 line-clamp-2 mt-0.5 leading-snug">{n.message}</p>
-                          <span className="text-[8px] text-slate-655 block mt-1">{n.time}</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
           </div>
 
           {/* Profile Dropdown */}
@@ -557,6 +487,47 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
           </div>
         </div>
       </header>
+
+      {/* Notifications dropdown — shared by both the mobile and desktop bell
+          triggers above, anchored to the outer `.relative` wrapper so it sits
+          correctly under whichever header is currently visible. */}
+      {showNotifications && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+          <div className="absolute right-3 sm:right-6 top-14 sm:top-16 z-50 w-[calc(100%-1.5rem)] max-w-80 sm:w-80 rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-4 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="flex items-center justify-between pb-2 border-b border-[#1A1F35] mb-2">
+              <h3 className="font-black text-xs text-slate-200">Notifications</h3>
+              {unreadCount > 0 && (
+                <button onClick={handleMarkAllRead} className="text-[10px] text-orange-400 hover:text-orange-300 font-bold transition">
+                  Mark read
+                </button>
+              )}
+            </div>
+            <div className="max-h-64 overflow-y-auto space-y-2 pr-0.5">
+              {notifications.length === 0 ? (
+                <div className="py-8 text-center text-[10px] text-slate-500">No notifications</div>
+              ) : (
+                notifications.slice(0, 5).map((n) => (
+                  <div
+                    key={n.id}
+                    onClick={() => handleNotificationClick(n)}
+                    className={`p-2 rounded-xl border cursor-pointer transition ${
+                      n.read ? "bg-white/[0.01] border-transparent hover:bg-white/[0.03]" : "bg-orange-500/5 border-orange-500/10 hover:bg-orange-500/10"
+                    }`}
+                  >
+                    <div className="flex justify-between items-start gap-1">
+                      <h4 className="font-extrabold text-[10.5px] text-slate-200 truncate">{n.title}</h4>
+                      {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0 mt-1" />}
+                    </div>
+                    <p className="text-[9.5px] text-slate-500 line-clamp-2 mt-0.5 leading-snug">{n.message}</p>
+                    <span className="text-[8px] text-slate-655 block mt-1">{n.time}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Logout Confirmation Modal */}
       <Modal
@@ -620,14 +591,24 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
               </button>
             )}
             {isStudentRole && (
-              <Link href="/student/dashboard" className="flex items-center gap-2 shrink-0">
-                <div className="p-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
-                  <PiOrangeDuotone className="text-lg text-orange-500" />
-                </div>
-                <span className="hidden sm:inline text-sm font-black text-white tracking-tight whitespace-nowrap">
-                  Orange Tree <span className="text-orange-500">LMS</span>
-                </span>
-              </Link>
+              <>
+                <button
+                  type="button"
+                  onClick={openStudentNavDrawer}
+                  aria-label="Open navigation menu"
+                  className="sm:hidden shrink-0 flex h-9 w-9 items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-white/[0.06] transition-colors"
+                >
+                  <Menu size={20} aria-hidden="true" />
+                </button>
+                <Link href="/student/dashboard" className="flex items-center gap-2 shrink-0">
+                  <div className="p-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                    <PiOrangeDuotone className="text-lg text-orange-500" />
+                  </div>
+                  <span className="text-sm font-black text-white tracking-tight whitespace-nowrap">
+                    Orange Tree <span className="text-orange-500">LMS</span>
+                  </span>
+                </Link>
+              </>
             )}
             {breadcrumbs.length > 0 ? (
               <div
@@ -660,10 +641,14 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
           <div className="flex gap-2 sm:gap-3 items-center relative shrink-0">
 
-            {/* Global Search: Courses, Assignments, Live Classes, Notes */}
-            {isStudentRole && <GlobalSearch />}
+            {/* Global Search: Courses, Assignments, Live Classes, Notes (hidden on mobile to make room for the hamburger + wordmark) */}
+            {isStudentRole && (
+              <div className="hidden sm:block">
+                <GlobalSearch />
+              </div>
+            )}
 
-            {/* Chat Message Icon */}
+            {/* Chat Message Icon (hidden on mobile for Student — reachable via the nav drawer's Messages item instead) */}
             <button
               onClick={toggleChat}
               className={`
@@ -671,7 +656,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                 rounded-lg
                 transition-all
                 relative
-                flex
+                ${isStudentRole ? "hidden sm:flex" : "flex"}
                 items-center
                 justify-center
                 ${
@@ -708,9 +693,6 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
             />
           </div>
         </div>
-
-        {/* Secondary dashboard navigation for student layout */}
-        {isStudentRole && <StudentDashboardNav />}
       </header>
 
       {/* Calendar Modal Popup */}
