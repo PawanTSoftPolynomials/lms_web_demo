@@ -38,8 +38,19 @@ export const getEntryAssessmentResult = async (courseId) => {
 /**
  * Per-course AI personalization baseline (knowledge level, concept
  * mastery/mode/time, time saved) — backs the dashboard widget.
+ *
+ * 404 means the student hasn't completed (or skipped) the entry assessment
+ * for this course, which is a normal, expected state rather than an error —
+ * resolve to null instead of throwing so React Query caches it as ordinary
+ * data (respecting staleTime/gcTime) instead of an error it re-attempts on
+ * every remount.
  */
 export const getCourseState = async (courseId) => {
-    const { data } = await api.get(`/student-state/course/${courseId}`);
-    return data.data;
+    try {
+        const { data } = await api.get(`/student-state/course/${courseId}`);
+        return data.data;
+    } catch (error) {
+        if (error?.response?.status === 404) return null;
+        throw error;
+    }
 };
