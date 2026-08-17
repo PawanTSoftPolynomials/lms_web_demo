@@ -51,6 +51,7 @@ export default function CourseHeader({
                                      }) {
     const router = useRouter();
     const { data: myEnrollments = [] } = useMyCourses();
+    const enrollMutation = useEnrollCourse();
     const { startCheckout, isProcessing, getButtonLabel, errorMsg } = useRazorpayCheckout();
     const [descExpanded, setDescExpanded] = useState(false);
 
@@ -61,14 +62,30 @@ export default function CourseHeader({
     );
 
     const handleEnroll = async () => {
-        await startCheckout({
-            courseId: course.id,
-            courseTitle: course.title,
-            returnPath: `/student/courses/${course.id}`,
-            onSuccess: () => {
+        const store = course.store;
+        const effectivePrice = store
+            ? (store.discountPrice !== null && store.discountPrice !== undefined && store.discountPrice > 0
+                ? store.discountPrice
+                : (store.price || 0))
+            : 0;
+
+        if (effectivePrice <= 0) {
+            try {
+                await enrollMutation.mutateAsync(course.id);
                 router.push(`/student/entry-assessment/${course.id}`);
-            },
-        });
+            } catch (err) {
+                console.error("Free enrollment failed:", err);
+            }
+        } else {
+            await startCheckout({
+                courseId: course.id,
+                courseTitle: course.title,
+                returnPath: `/student/courses/${course.id}`,
+                onSuccess: () => {
+                    router.push(`/student/entry-assessment/${course.id}`);
+                },
+            });
+        }
     };
 
     const avgRating = course.stats?.avgRating || 0;

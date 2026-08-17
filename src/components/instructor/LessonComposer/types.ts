@@ -13,6 +13,7 @@ export interface ContentRow {
   videoUrl?: string | null;
   fileUrl?: string | null;
   htmlContent?: string | null;
+  body?: string | null;
   externalUrl?: string | null;
   duration?: number | null;
 }

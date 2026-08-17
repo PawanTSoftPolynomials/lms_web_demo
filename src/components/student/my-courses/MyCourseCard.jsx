@@ -60,40 +60,40 @@ function Stat({ icon: Icon, value, label }) {
 /** My Courses grid card for students — same bold gradient shell as the
  *  instructor CourseGridCard (banner, translucent stat pills, audit row,
  *  edit/view-style actions), driven by enrollment + progress data. */
-export default function MyCourseCard({ enrollment, index = 0 }) {
+export default function MyCourseCard({ enrollment, course: rawCourse, index = 0 }) {
   const router = useRouter();
-  const { course } = enrollment;
+  const course = enrollment?.course || rawCourse;
 
   if (!course) return null;
 
-  const modulesTotal = course._count?.modules ?? 0;
-  const lessonsTotal = course.stats?.lessonsCount ?? course.lessons ?? 0;
-  const quizzesTotal = course._count?.quizzes ?? 0;
+  const isEnrolled = Boolean(enrollment);
 
-  const progress = Math.min(100, Math.max(0, Math.round(enrollment.progress ?? 0)));
-  const completedLessons = Math.min(lessonsTotal, enrollment.completedLessons ?? 0);
+  const modulesTotal = Array.isArray(course.modules) ? course.modules.length : (course._count?.modules ?? 0);
+  const lessonsTotal = Array.isArray(course.modules)
+    ? course.modules.reduce((acc, m) => acc + (Array.isArray(m.lessons) ? m.lessons.length : 0), 0)
+    : (course.stats?.lessonsCount ?? course.lessons ?? course._count?.lessons ?? 0);
+  const quizzesTotal = Array.isArray(course.quizzes) ? course.quizzes.length : (course._count?.quizzes ?? 0);
 
-  // No per-module/quiz completion tracking on the backend — approximate from
-  // the lesson-completion ratio.
+  const progress = Math.min(100, Math.max(0, Math.round(enrollment?.progress ?? 0)));
+  const completedLessons = Math.min(lessonsTotal, enrollment?.completedLessons ?? 0);
+
   const completionRatio = lessonsTotal > 0 ? completedLessons / lessonsTotal : progress / 100;
   const completedModules = modulesTotal > 0 ? Math.min(modulesTotal, Math.round(completionRatio * modulesTotal)) : 0;
   const completedQuizzes = quizzesTotal > 0 ? Math.min(quizzesTotal, Math.round(completionRatio * quizzesTotal)) : 0;
 
-  const isComplete = progress >= 100;
-  const status = isComplete ? "Completed" : progress > 0 ? "In Progress" : "Enrolled";
-  const statusStyle = STATUS_STYLES[status];
-  const accent = STATUS_ACCENT[status];
+  const isComplete = isEnrolled && progress >= 100;
+  const status = isEnrolled ? (isComplete ? "Completed" : progress > 0 ? "In Progress" : "Enrolled") : (course.level || "Available");
+  const statusStyle = isEnrolled ? STATUS_STYLES[status] : { dot: "bg-orange-400", pill: "bg-orange-500/20 text-orange-200 border-orange-500/30" };
+  const accent = isEnrolled ? STATUS_ACCENT[status] : "from-orange-400 via-orange-400/60 to-transparent";
   const theme = THEMES[index % THEMES.length];
 
   const instructorName = course.creator?.name ?? course.instructor ?? "Instructor";
 
-  // Prefer the course's own estimated hours; fall back to a lesson-count
-  // heuristic (0.75 hr/lesson), same as CourseCard.
   const estimatedHours =
     course.estimatedLearningHours ?? (lessonsTotal > 0 ? Math.max(1, Math.round(lessonsTotal * 0.75)) : null);
   const durationLabel = estimatedHours ? `${estimatedHours}h` : "Self-paced";
 
-  const lastAccessedAt = enrollment.lastAccessedAt || enrollment.enrolledAt;
+  const lastAccessedAt = enrollment?.lastAccessedAt || enrollment?.enrolledAt;
   const lastAccessedLabel = lastAccessedAt
     ? formatDistanceToNow(new Date(lastAccessedAt), { addSuffix: true })
     : "Never";
@@ -106,14 +106,14 @@ export default function MyCourseCard({ enrollment, index = 0 }) {
   return (
     <div
       onClick={() => router.push(`/student/courses/${course.id}`)}
-      className="group relative flex w-[90%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-80 md:shrink flex-col overflow-hidden rounded-2xl shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30 cursor-pointer"
+      className="group relative flex w-full shrink-0 flex-col overflow-hidden rounded-2xl shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30 cursor-pointer border border-white/10"
     >
-      {/* Dimmed color layer — same ~40% brightness/contrast knockdown as the instructor card */}
+      {/* Dimmed color layer */}
       <div className={`absolute inset-0 ${theme.gradient} brightness-[0.6] contrast-[0.85]`} />
 
       <div className="relative z-10 flex flex-1 flex-col">
         {/* Banner */}
-        <div className="relative h-16 md:h-28 shrink-0 overflow-hidden">
+        <div className="relative h-28 md:h-32 shrink-0 overflow-hidden">
           <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent} z-10`} />
           {course.thumbnailUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -130,7 +130,7 @@ export default function MyCourseCard({ enrollment, index = 0 }) {
           )}
 
           <span className="absolute top-2 left-2 md:top-3 md:left-3 rounded-md border border-white/30 bg-white/15 backdrop-blur px-2 py-0.5 md:py-1 text-[10px] md:text-[11px] font-bold text-white">
-            {course.category || "Uncategorized"}
+            {course.category || "General"}
           </span>
 
           <span
@@ -141,22 +141,22 @@ export default function MyCourseCard({ enrollment, index = 0 }) {
           </span>
         </div>
 
-        <div className="flex flex-1 flex-col gap-1.5 md:gap-2.5 p-3 md:p-4">
+        <div className="flex flex-1 flex-col gap-2 md:gap-2.5 p-3 md:p-4">
           <div>
             <h3 className="text-base md:text-lg font-black text-white leading-snug line-clamp-1">
               {course.title}
             </h3>
             {course.description ? (
-              <p className="mt-0.5 md:mt-1 text-xs md:text-[13px] leading-relaxed text-white/80 line-clamp-1 md:line-clamp-2">
+              <p className="mt-0.5 md:mt-1 text-xs md:text-[13px] leading-relaxed text-white/80 line-clamp-2">
                 {course.description}
               </p>
             ) : null}
           </div>
 
           <div className="grid grid-cols-3 gap-1.5 md:gap-2">
-            <Stat icon={Layers} value={`${completedModules}/${modulesTotal}`} label="Modules" />
-            <Stat icon={BookOpen} value={`${completedLessons}/${lessonsTotal}`} label="Lessons" />
-            <Stat icon={ClipboardCheck} value={`${completedQuizzes}/${quizzesTotal}`} label="Quizzes" />
+            <Stat icon={Layers} value={isEnrolled ? `${completedModules}/${modulesTotal}` : modulesTotal} label="Modules" />
+            <Stat icon={BookOpen} value={isEnrolled ? `${completedLessons}/${lessonsTotal}` : lessonsTotal} label="Lessons" />
+            <Stat icon={ClipboardCheck} value={isEnrolled ? `${completedQuizzes}/${quizzesTotal}` : quizzesTotal} label="Quizzes" />
           </div>
 
           <div className="flex items-center justify-between gap-2 text-[11px] md:text-xs">
@@ -170,40 +170,49 @@ export default function MyCourseCard({ enrollment, index = 0 }) {
             </span>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between text-[10.5px] md:text-[11px] font-bold text-white/80 mb-1">
-              <span>Progress</span>
-              <span className="text-white">{progress}% Complete</span>
-            </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/20">
-              <div
-                className="h-full rounded-full bg-white transition-all duration-500 ease-out"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
+          {isEnrolled ? (
+            <>
+              <div>
+                <div className="flex items-center justify-between text-[10.5px] md:text-[11px] font-bold text-white/80 mb-1">
+                  <span>Progress</span>
+                  <span className="text-white">{progress}% Complete</span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/20">
+                  <div
+                    className="h-full rounded-full bg-white transition-all duration-500 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
 
-          <div className="flex items-center justify-between text-[11px] text-white/70">
-            <span className="flex items-center gap-1.5">
-              <History size={13} className="text-white/60" />
-              Last active: {lastAccessedLabel}
-            </span>
-          </div>
+              <div className="flex items-center justify-between text-[11px] text-white/70">
+                <span className="flex items-center gap-1.5">
+                  <History size={13} className="text-white/60" />
+                  Last active: {lastAccessedLabel}
+                </span>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-between text-xs text-white/90 pt-1">
+              <span className="font-semibold text-white/80">Course Level</span>
+              <span className="font-bold text-orange-300">{course.level || "All Levels"}</span>
+            </div>
+          )}
 
-          <div className="mt-auto flex items-center gap-2 pt-0.5 md:pt-1.5">
+          <div className="mt-auto flex items-center gap-2 pt-1 md:pt-2">
             <button
               onClick={goTo(`/student/courses/${course.id}`)}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-3 py-1.5 md:py-2 text-xs md:text-[13px] font-extrabold text-white transition hover:bg-white/20"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-3 py-2 text-xs md:text-[13px] font-extrabold text-white transition hover:bg-white/20 cursor-pointer"
             >
               Details
               <ArrowUpRight size={13} />
             </button>
             <button
-              onClick={goTo(`/student/learn/${course.id}`)}
-              className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-1.5 md:py-2 text-xs md:text-[13px] font-extrabold transition hover:bg-white/90 active:scale-95 ${theme.viewText}`}
+              onClick={goTo(isEnrolled ? `/student/learn/${course.id}` : `/student/courses/${course.id}`)}
+              className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-2 text-xs md:text-[13px] font-extrabold transition hover:bg-white/90 active:scale-95 cursor-pointer ${theme.viewText}`}
             >
               <Play size={13} className="fill-current" />
-              {isComplete ? "Review" : "Continue"}
+              {isEnrolled ? (isComplete ? "Review" : "Continue") : "Enroll Now"}
             </button>
           </div>
         </div>
