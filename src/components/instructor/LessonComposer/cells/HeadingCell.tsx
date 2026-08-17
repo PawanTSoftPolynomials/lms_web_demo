@@ -60,7 +60,7 @@ export function HeadingCell({
         contentData: {
           title: text,
           htmlContent: buildHeadingHtml({ ...parseHeadingDesign(content.htmlContent), text }),
-          lessonId: content.lessonId,
+          topicId: content.topicId,
         },
       });
       setMode("view");
@@ -78,7 +78,7 @@ export function HeadingCell({
     if (!confirmed) return;
 
     try {
-      await deleteContent.mutateAsync({ contentId: content.id, lessonId: content.lessonId });
+      await deleteContent.mutateAsync({ contentId: content.id, topicId: content.topicId });
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to delete this heading."), "error", "Delete failed");
     }
@@ -143,7 +143,7 @@ export function HeadingCell({
 }
 
 /** The "Add Cell" creation form for a Heading block — hosted inside AddCellModal. */
-export function CreateHeadingForm({ lessonId, order, onCreated, onCancel }: CreateCellFormProps) {
+export function CreateHeadingForm({ topicId, order, onCreated, onCancel }: CreateCellFormProps) {
   const [text, setText] = useState("");
 
   const createContent = useCreateContent();
@@ -152,7 +152,7 @@ export function CreateHeadingForm({ lessonId, order, onCreated, onCancel }: Crea
   const handleCreate = async () => {
     try {
       await createContent.mutateAsync({
-        lessonId,
+        topicId,
         type: "HTML",
         order,
         title: text,

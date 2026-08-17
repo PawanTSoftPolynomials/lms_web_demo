@@ -133,7 +133,7 @@ export default function ModuleDetailsPage() {
                     key={lesson.id}
                     onClick={() =>
                       router.push(
-                        `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lesson.id}`
+                        `/instructor/lessons/${lesson.id}`
                       )
                     }
                     className="border-b border-slate-800/50 hover:bg-slate-850/40 transition-all duration-200 text-sm text-slate-300 cursor-pointer group"
@@ -158,14 +158,14 @@ export default function ModuleDetailsPage() {
                     {/* Actions cell */}
                     <td className="p-5 pr-6 text-left" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-start gap-1.5 mt-0.5">
-                        {/* Add Content */}
+                        {/* Manage Topics */}
                         <button
                           onClick={() =>
                             router.push(
-                              `/instructor/contents/create/${lesson.id}`
+                              `/instructor/lessons/${lesson.id}`
                             )
                           }
-                          title="Add Content"
+                          title="Manage Topics"
                           className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-orange-400 hover:text-orange-300 hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
                         >
                           <Plus size={12} />
@@ -174,10 +174,10 @@ export default function ModuleDetailsPage() {
                         <button
                           onClick={() =>
                             router.push(
-                              `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lesson.id}?view=compose`
+                              `/instructor/lessons/${lesson.id}`
                             )
                           }
-                          title="Open Composer"
+                          title="Manage Topics"
                           className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-purple-400 hover:text-purple-300 hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
                         >
                           <LayoutGrid size={12} />
@@ -186,7 +186,7 @@ export default function ModuleDetailsPage() {
                         <button
                           onClick={() =>
                             router.push(
-                              `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lesson.id}`
+                              `/instructor/lessons/${lesson.id}`
                             )
                           }
                           title="View Lesson"
@@ -198,7 +198,7 @@ export default function ModuleDetailsPage() {
                         <button
                           onClick={() =>
                             router.push(
-                              `/instructor/courses/${courseId}/modules/${moduleId}/lessons/edit/${lesson.id}`
+                              `/instructor/lessons/edit/${lesson.id}`
                             )
                           }
                           title="Edit Lesson"

@@ -96,10 +96,11 @@ export default function CourseDetailsPage() {
   // Global View Mode: 'rendered' | 'edit' (Matching composerV2.js)
   const [globalMode, setGlobalMode] = useState("rendered");
 
-  // Active Workspace Selection: 'course' | 'lesson' | 'module'
+  // Active Workspace Selection: 'course' | 'lesson' | 'module' | 'topic'
   const [composerMode, setComposerMode] = useState("course");
   const [composeLessonId, setComposeLessonId] = useState(searchParams.get("compose") || null);
   const [composeModuleId, setComposeModuleId] = useState(null);
+  const [composeTopicId, setComposeTopicId] = useState(null);
   const [selectedCellId, setSelectedCellId] = useState(null);
 
   // Edit Mode for Metadata Headers
@@ -183,10 +184,19 @@ export default function CourseDetailsPage() {
     setMobileSidebarOpen(false);
   };
 
+  const handleSelectTopic = (topicId, lessonId, moduleId) => {
+    setComposeTopicId(topicId);
+    setComposeLessonId(lessonId);
+    setComposeModuleId(moduleId);
+    setComposerMode("topic");
+    setMobileSidebarOpen(false);
+  };
+
   const { module: composingModule, lesson: composingLesson } =
     findModuleAndLessonById(modules, composeLessonId);
 
   const activeModuleObj = composingModule || modules.find((m) => m.id === composeModuleId);
+  const composingTopic = composingLesson?.topics?.find((t) => t.id === composeTopicId);
 
   // Delete Handlers
   const handleDeleteModule = async (e, mod) => {
@@ -285,11 +295,14 @@ export default function CourseDetailsPage() {
             composerMode={composerMode}
             composeModuleId={composeModuleId}
             composeLessonId={composeLessonId}
+            composeTopicId={composeTopicId}
             onSelectCourseOverview={handleSelectCourseOverview}
             onSelectLesson={handleSelectLesson}
             onSelectModule={handleSelectModule}
+            onSelectTopic={handleSelectTopic}
             onAddLesson={(targetModuleId) => router.push(`/instructor/lessons/create/${targetModuleId || composeModuleId || modules[0]?.id || courseId}`)}
             onAddModule={() => router.push(`/instructor/modules/create/${courseId}`)}
+            onAddTopic={(lessonId) => router.push(`/instructor/topics/create/${lessonId}`)}
             onDeleteLesson={handleDeleteLesson}
             onDeleteModule={handleDeleteModule}
           />
@@ -304,11 +317,13 @@ export default function CourseDetailsPage() {
                 {composerMode === "course" && `Course Overview`}
                 {composerMode === "lesson" && `Lesson: ${composingLesson?.title || "Lesson Overview"}`}
                 {composerMode === "module" && `Module: ${activeModuleObj?.title || "Module Cells"}`}
+                {composerMode === "topic" && `Topic: ${composingTopic?.title || "Topic Composer"}`}
               </div>
               <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
                 {composerMode === "course" && (course.title || "Course Overview Header")}
                 {composerMode === "lesson" && (composingLesson?.title || "Lesson Overview Header")}
                 {composerMode === "module" && (activeModuleObj?.title || "Module Cells Notebook")}
+                {composerMode === "topic" && (composingTopic?.title || "Topic Cells Notebook")}
               </h2>
             </div>
           </div>
@@ -349,7 +364,7 @@ export default function CourseDetailsPage() {
                   try {
                     await updateLessonMutation.mutateAsync({
                       lessonId: composeLessonId,
-                      lessonData: lessonForm,
+                      lessonData: { ...lessonForm, moduleId: composeModuleId },
                     });
                     setIsEditingLesson(false);
                     showToast("Lesson updated!", "success", "Saved");
@@ -367,15 +382,27 @@ export default function CourseDetailsPage() {
             )}
 
             {composerMode === "module" && activeModuleObj && (() => {
-              const effectiveLessonId = composeLessonId || activeModuleObj.lessons?.[0]?.id || modules.flatMap(m => m.lessons || [])[0]?.id;
+              const effectiveLesson =
+                composingLesson ||
+                activeModuleObj.lessons?.[0] ||
+                modules.flatMap((m) => m.lessons || [])[0];
+              const effectiveTopicId = effectiveLesson?.topics?.[0]?.id;
               return (
                 <LessonComposerPanel
-                  lessonId={effectiveLessonId}
+                  topicId={effectiveTopicId}
                   selectedCellId={selectedCellId}
                   onSelectCell={setSelectedCellId}
                 />
               );
             })()}
+
+            {composerMode === "topic" && (
+              <LessonComposerPanel
+                topicId={composeTopicId}
+                selectedCellId={selectedCellId}
+                onSelectCell={setSelectedCellId}
+              />
+            )}
           </div>
         </main>
       </div>

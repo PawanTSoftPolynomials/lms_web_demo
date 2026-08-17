@@ -9,13 +9,15 @@ import {
   Layers,
   Users,
   TrendingUp,
-  Percent,
-  ClipboardList,
   AlertTriangle,
+  SlidersHorizontal,
+  RotateCcw,
+  ChevronDown,
 } from "lucide-react";
 
 import { WorkFilterProvider, useWorkFilters } from "@/context/WorkFilterContext";
-import WorkFilterBar from "@/components/instructor/work/WorkFilterBar";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/shadcn/popover";
+import { DateRangePicker } from "@/components/ui/DateRangePicker";
 import EmptyState from "@/components/ui/EmptyState";
 import KpiTile from "@/components/instructor/batches/KpiTile";
 import BatchCard from "@/components/instructor/batches/BatchCard";
@@ -44,8 +46,8 @@ const STUDENT_COUNT_OPTIONS = [
   { value: "1", label: "1+ students" },
 ];
 
-const selectClass =
-  "bg-[#0D1021] border border-[#1A1F35] text-xs px-3 py-2.5 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition [&>option]:bg-[#0D1021] [&>option]:text-slate-200";
+const toolbarControlClass =
+  "h-9 bg-[#0D1021] border border-[#1A1F35] text-xs px-3 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition [&>option]:bg-[#0D1021] [&>option]:text-slate-200";
 
 function CreateBatchForm({ courses, onClose }) {
   const [courseIds, setCourseIds] = useState([]);
@@ -121,7 +123,7 @@ function CreateBatchForm({ courses, onClose }) {
 
 function BatchStatsRow({ stats }) {
   return (
-    <div className="flex flex-wrap md:flex-nowrap items-center gap-3 w-full">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <KpiTile
         label="Total Batches"
         value={stats.totalBatches}
@@ -139,7 +141,7 @@ function BatchStatsRow({ stats }) {
         bottomText="Across all batches"
       />
       <KpiTile
-        label="Avg Completion"
+        label="Avg. Progress"
         value={`${stats.avgCompletion}%`}
         icon={TrendingUp}
         iconBg="bg-orange-500/10"
@@ -147,29 +149,123 @@ function BatchStatsRow({ stats }) {
         bottomText="Overall progress"
       />
       <KpiTile
-        label="Avg Attendance"
-        value="N/A"
-        icon={Percent}
-        iconBg="bg-slate-500/10"
-        iconColor="text-slate-400"
-        bottomText="Not tracked"
-      />
-      <KpiTile
-        label="Assignments Due"
-        value={stats.pendingAssignmentReviews}
-        icon={ClipboardList}
-        iconBg="bg-blue-500/10"
-        iconColor="text-blue-400"
-        bottomText="Needs review"
-      />
-      <KpiTile
         label="At-Risk Students"
         value={stats.atRiskStudentsCount}
         icon={AlertTriangle}
         iconBg="bg-rose-500/10"
         iconColor="text-rose-400"
-        bottomText="Low progress"
+        bottomText="Needs attention"
       />
+    </div>
+  );
+}
+
+/** Compact inline replacement for the old bordered WorkFilterBar panel — same
+ * useWorkFilters() context/logic, just laid out as a single toolbar row. */
+function FilterToolbar({ minCompletion, setMinCompletion, minStudents, setMinStudents }) {
+  const { filters, updateFilter, resetFilters } = useWorkFilters();
+  const { data: courses = [] } = useInstructorCourses();
+
+  const hasAdvancedFilters = Boolean(minCompletion || minStudents);
+  const hasAnyFilter = hasAdvancedFilters || filters.courseId || filters.status || filters.startDate || filters.endDate;
+
+  const handleReset = () => {
+    resetFilters();
+    setMinCompletion("");
+    setMinStudents("");
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <select
+        value={filters.courseId}
+        onChange={(e) => updateFilter("courseId", e.target.value)}
+        className={toolbarControlClass}
+      >
+        <option value="">All Courses</option>
+        {courses.map((c) => (
+          <option key={c.id} value={c.id}>{c.title}</option>
+        ))}
+      </select>
+
+      <select
+        value={filters.status}
+        onChange={(e) => updateFilter("status", e.target.value)}
+        className={toolbarControlClass}
+      >
+        {STATUS_OPTIONS.map((opt) => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
+
+      <DateRangePicker
+        startDate={filters.startDate}
+        endDate={filters.endDate}
+        onChange={(nextStart, nextEnd) => {
+          updateFilter("startDate", nextStart);
+          updateFilter("endDate", nextEnd);
+        }}
+        triggerClassName="h-9 py-0"
+      />
+
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={`${toolbarControlClass} relative inline-flex items-center gap-1.5 pr-2.5`}
+          >
+            <SlidersHorizontal size={12} className="text-slate-400" />
+            More Filters
+            <ChevronDown size={12} className="text-slate-500" />
+            {hasAdvancedFilters && (
+              <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-orange-500" aria-hidden />
+            )}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-64 p-3.5">
+          <div className="space-y-3">
+            <div>
+              <label className="block text-[9.5px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
+                Completion
+              </label>
+              <select
+                value={minCompletion}
+                onChange={(e) => setMinCompletion(e.target.value)}
+                className={`${toolbarControlClass} w-full`}
+              >
+                {COMPLETION_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[9.5px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
+                Batch Size
+              </label>
+              <select
+                value={minStudents}
+                onChange={(e) => setMinStudents(e.target.value)}
+                className={`${toolbarControlClass} w-full`}
+              >
+                {STUDENT_COUNT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      {hasAnyFilter && (
+        <button
+          type="button"
+          onClick={handleReset}
+          className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-slate-400 transition hover:text-white"
+        >
+          <RotateCcw size={12} />
+          Reset
+        </button>
+      )}
     </div>
   );
 }
@@ -217,15 +313,15 @@ function BatchesContent() {
   }, [batches, appliedFilters.status, minCompletion, minStudents]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-7">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-black text-white tracking-tight">Batches</h1>
-          <p className="text-xs text-slate-400 mt-1">Manage student cohorts across one or more courses.</p>
+          <h1 className="text-2xl font-black text-white tracking-tight">Batches</h1>
+          <p className="text-sm text-slate-400 mt-1.5">Manage and monitor your student cohorts across courses.</p>
         </div>
         <button
           onClick={() => setShowForm((v) => !v)}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black text-white bg-orange-500 hover:bg-orange-600 shadow-sm transition"
+          className="inline-flex shrink-0 items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black text-white bg-orange-500 hover:bg-orange-600 shadow-sm transition"
         >
           {showForm ? <X size={13} /> : <Plus size={13} />}
           {showForm ? "Cancel" : "Create Batch"}
@@ -236,57 +332,60 @@ function BatchesContent() {
 
       {showForm && <CreateBatchForm courses={courses} onClose={() => setShowForm(false)} />}
 
-      <div className="relative">
-        <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by batch name, student, or course..."
-          className="w-full bg-[#0D1021] border border-[#1A1F35] text-xs pl-10 pr-4 py-3 rounded-xl outline-none text-slate-200 placeholder-slate-500 focus:border-orange-500/60 transition"
+      <div className="space-y-3">
+        <div className="relative">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search batches, students or courses..."
+            className="w-full h-11 bg-[#0D1021] border border-[#1A1F35] text-sm pl-10 pr-4 rounded-xl outline-none text-slate-200 placeholder-slate-500 focus:border-orange-500/60 transition"
+          />
+        </div>
+
+        <FilterToolbar
+          minCompletion={minCompletion}
+          setMinCompletion={setMinCompletion}
+          minStudents={minStudents}
+          setMinStudents={setMinStudents}
         />
       </div>
 
-      <WorkFilterBar fields={["course", "status", "dateRange"]} statusOptions={STATUS_OPTIONS} />
+      <div>
+        <div className="flex items-center justify-between mb-3.5">
+          <h2 className="text-sm font-black text-white tracking-tight">Your Batches</h2>
+          <span className="text-xs font-bold text-slate-500">
+            {filteredBatches.length} batch{filteredBatches.length === 1 ? "" : "es"}
+          </span>
+        </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <select value={minCompletion} onChange={(e) => setMinCompletion(e.target.value)} className={selectClass}>
-          {COMPLETION_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
-        <select value={minStudents} onChange={(e) => setMinStudents(e.target.value)} className={selectClass}>
-          {STUDENT_COUNT_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-64 animate-pulse bg-slate-800/50 rounded-2xl" />
+            ))}
+          </div>
+        ) : filteredBatches.length === 0 ? (
+          <EmptyState
+            icon={Layers}
+            title={batches.length === 0 ? "No batches yet" : "No batches match your filters"}
+            description={
+              batches.length === 0
+                ? "Create your first batch to start organizing students into cohorts."
+                : "Try adjusting your search or filters."
+            }
+            actionText={batches.length === 0 ? "Create Batch" : undefined}
+            onAction={batches.length === 0 ? () => setShowForm(true) : undefined}
+          />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            {filteredBatches.map((batch) => (
+              <BatchCard key={batch.id} batch={batch} />
+            ))}
+          </div>
+        )}
       </div>
-
-      {isLoading ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-64 animate-pulse bg-slate-800/50 rounded-2xl" />
-          ))}
-        </div>
-      ) : filteredBatches.length === 0 ? (
-        <EmptyState
-          icon={Layers}
-          title={batches.length === 0 ? "No batches yet" : "No batches match your filters"}
-          description={
-            batches.length === 0
-              ? "Create your first batch to start organizing students into cohorts."
-              : "Try adjusting your search or filters."
-          }
-          actionText={batches.length === 0 ? "Create Batch" : undefined}
-          onAction={batches.length === 0 ? () => setShowForm(true) : undefined}
-        />
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
-          {filteredBatches.map((batch) => (
-            <BatchCard key={batch.id} batch={batch} />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

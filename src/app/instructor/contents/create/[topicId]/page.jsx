@@ -9,7 +9,7 @@ import {useContents} from "@/hooks/queries/instructor/useContents";
 import {useCreateContent} from "@/hooks/queries/instructor/useCreateContent";
 
 export default function CreateContentPage() {
-    const {lessonId} = useParams();
+    const {topicId} = useParams();
     const router = useRouter();
     const searchParams = useSearchParams();
     const typeParam = searchParams.get("type");
@@ -20,7 +20,7 @@ export default function CreateContentPage() {
     const {
         data: contents = [],
         isLoading,
-    } = useContents(lessonId);
+    } = useContents(topicId);
 
     const handleSubmit = async (
         values
@@ -38,7 +38,7 @@ export default function CreateContentPage() {
         try {
             await createContentMutation.mutateAsync({
                 ...values,
-                lessonId,
+                topicId,
                 order: nextOrder,
 
                 ...(values.type ===
@@ -50,7 +50,7 @@ export default function CreateContentPage() {
             });
 
             router.push(
-                `/instructor/lessons/${lessonId}`
+                `/instructor/topics/${topicId}`
             );
         } catch (error) {
             console.error(error);

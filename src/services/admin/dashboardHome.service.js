@@ -1,19 +1,4 @@
 /**
- * Platform-wide course list -> the "Course Overview" table on the admin
- * home page.
- */
-export function deriveCourseOverview(courses) {
-  return (courses ?? []).map((c, idx) => ({
-    id: c.id ?? `course-${idx}`,
-    title: c.title ?? "Untitled Course",
-    category: c.category ?? "General",
-    level: c.level ?? "—",
-    status: c.status ?? "DRAFT",
-    students: c._count?.enrollments ?? 0,
-  }));
-}
-
-/**
  * Published vs. draft split -> the "Course Status" donut chart.
  */
 export function deriveCourseStatusPie(publishedCourses = 0, draftCourses = 0) {
@@ -62,4 +47,18 @@ export function deriveRecentActivity(enrollments, certificates) {
     .sort((a, b) => b.at - a.at)
     .slice(0, 8)
     .map((event) => ({ ...event, time: daysAgoLabel(event.at) }));
+}
+
+/**
+ * Platform-wide calendar events -> the "Upcoming Events" widget. The
+ * /calendar endpoint already returns every event for an ADMIN caller, so
+ * this just filters out anything in the past and takes the nearest few.
+ */
+export function deriveUpcomingEvents(events) {
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  return (events ?? [])
+    .filter((e) => e.date >= todayStr)
+    .sort((a, b) => a.date.localeCompare(b.date) || (a.startTime ?? "").localeCompare(b.startTime ?? ""))
+    .slice(0, 6);
 }

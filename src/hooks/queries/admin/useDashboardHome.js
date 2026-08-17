@@ -3,19 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 
 import { defaultQueryOptions } from "@/lib/queryOptions";
 import { getCertificates } from "@/services/certificate.service";
+import { getCalendarEvents } from "@/services/calendar.service";
 import {
-  deriveCourseOverview,
   deriveCourseStatusPie,
   deriveRecentActivity,
+  deriveUpcomingEvents,
 } from "@/services/admin/dashboardHome.service";
-import { useCourses } from "./useCourses";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useEnrollments } from "./useEnrollments";
-
-export function useCourseOverview() {
-  const courses = useCourses();
-  const data = useMemo(() => deriveCourseOverview(courses.data), [courses.data]);
-  return { data, isLoading: courses.isLoading };
-}
 
 export function useCourseStatusPie(publishedCourses, draftCourses) {
   return useMemo(
@@ -40,4 +35,14 @@ export function useRecentActivity() {
     [enrollments.data, certificates.data]
   );
   return { data, isLoading };
+}
+
+export function useUpcomingEvents() {
+  const query = useQuery({
+    queryKey: [QUERY_KEYS.ADMIN_CALENDAR_EVENTS],
+    queryFn: getCalendarEvents,
+    ...defaultQueryOptions,
+  });
+  const data = useMemo(() => deriveUpcomingEvents(query.data), [query.data]);
+  return { data, isLoading: query.isLoading };
 }

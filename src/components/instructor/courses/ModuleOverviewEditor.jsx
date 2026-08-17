@@ -111,7 +111,7 @@ export function ModuleOverviewEditor({
                     Lesson {lIdx + 1}
                   </span>
                   <span className="text-[10px] text-slate-500 font-bold">
-                    {l._count?.contents ?? l.contents?.length ?? 0} Content Blocks
+                    {(l.topics || []).reduce((sum, topic) => sum + (topic._count?.contents ?? topic.contents?.length ?? 0), 0)} Content Blocks
                   </span>
                 </div>
                 <h4 className="text-sm font-bold text-white group-hover:text-orange-400 transition truncate">

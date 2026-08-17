@@ -28,6 +28,7 @@ import ActionMenu from "@/components/menus/ActionMenu";
 
 import { useContent } from "@/hooks/queries/instructor/useContent";
 import { useDeleteContent } from "@/hooks/queries/instructor/useDeleteContent";
+import { useTopic } from "@/hooks/queries/instructor/useTopic";
 import { useLesson } from "@/hooks/queries/instructor/useLesson";
 import { useModule } from "@/hooks/queries/instructor/useModule";
 import { useContents } from "@/hooks/queries/instructor/useContents";
@@ -92,15 +93,17 @@ export default function ContentDetailsPage() {
 
   // ── Queries ────────────────────────────────────────────────────────────────
   const { data: content, isLoading, isError } = useContent(contentId);
-  const { data: lesson }      = useLesson(content?.lessonId, { enabled: !!content?.lessonId });
+  const { data: topic }       = useTopic(content?.topicId, { enabled: !!content?.topicId });
+  const { data: lesson }      = useLesson(topic?.lessonId, { enabled: !!topic?.lessonId });
   const { data: moduleData }  = useModule(lesson?.moduleId,  { enabled: !!lesson?.moduleId  });
 
-  const lessonId = params.lessonId || content?.lessonId;
+  const topicId  = params.topicId || content?.topicId;
+  const lessonId = params.lessonId || topic?.lessonId;
   const moduleId = params.moduleId || lesson?.moduleId;
   const courseId = params.courseId || moduleData?.courseId;
 
   const { data: course }       = useInstructorCourse(courseId, { enabled: !!courseId });
-  const { data: contents = [] }= useContents(lessonId, { enabled: !!lessonId });
+  const { data: contents = [] }= useContents(topicId, { enabled: !!topicId });
   const deleteContentMutation  = useDeleteContent();
 
   const currentIndex = contents.findIndex((c) => c.id === contentId);
@@ -111,8 +114,8 @@ export default function ContentDetailsPage() {
   const handleDelete = async () => {
     if (!window.confirm(`Delete "${content?.title}"?`)) return;
     try {
-      await deleteContentMutation.mutateAsync({ contentId, lessonId: content.lessonId });
-      router.push(`/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`);
+      await deleteContentMutation.mutateAsync({ contentId, topicId: content.topicId });
+      router.push(`/instructor/topics/${topicId}`);
     } catch (err) {
       console.error(err);
     }
@@ -157,9 +160,7 @@ export default function ContentDetailsPage() {
 
   const navTo = (c) => {
     if (!c) return;
-    router.push(
-      `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/${c.id}`
-    );
+    router.push(`/instructor/contents/view/${c.id}`);
   };
 
   // ── Guards ─────────────────────────────────────────────────────────────────
@@ -219,10 +220,10 @@ export default function ContentDetailsPage() {
       <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-5 shadow-xl">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => router.push(`/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`)}
+            <button
+              onClick={() => router.push(`/instructor/topics/${topicId}`)}
               className="flex h-10 w-10 items-center justify-center rounded-full bg-[#05070E] border border-[#1A1F35] text-slate-300 hover:text-white hover:border-orange-500 transition cursor-pointer"
-              title="Back to Lesson Details"
+              title="Back to Topic Details"
             >
               <ArrowLeft size={16} />
             </button>
@@ -235,8 +236,8 @@ export default function ContentDetailsPage() {
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
-            <button 
-              onClick={() => router.push(`/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/edit/${content.id}`)}
+            <button
+              onClick={() => router.push(`/instructor/contents/edit/${content.id}`)}
               className="flex items-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 px-4 py-2 text-xs font-black text-slate-950 transition shadow-lg shadow-orange-500/10 cursor-pointer"
             >
               <Pencil size={13} />

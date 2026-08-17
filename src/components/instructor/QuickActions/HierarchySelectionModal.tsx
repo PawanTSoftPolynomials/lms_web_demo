@@ -6,6 +6,7 @@ import Modal from "@/components/ui/Modal";
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 import { useModules } from "@/hooks/queries/instructor/useModules";
 import { useLessons } from "@/hooks/queries/instructor/useLessons";
+import { useTopics } from "@/hooks/queries/instructor/useTopics";
 
 interface HierarchySelectionModalProps {
   open: boolean;
@@ -19,15 +20,18 @@ export function HierarchySelectionModal({ open, onClose, type }: HierarchySelect
   const [selectedCourseId, setSelectedCourseId] = useState("");
   const [selectedModuleId, setSelectedModuleId] = useState("");
   const [selectedLessonId, setSelectedLessonId] = useState("");
+  const [selectedTopicId, setSelectedTopicId] = useState("");
 
   const { data: courses = [] } = useInstructorCourses();
   const { data: modules = [], isLoading: loadingModules } = useModules(selectedCourseId);
   const { data: lessons = [], isLoading: loadingLessons } = useLessons(selectedModuleId);
+  const { data: topics = [], isLoading: loadingTopics } = useTopics(selectedLessonId);
 
   const handleClose = () => {
     setSelectedCourseId("");
     setSelectedModuleId("");
     setSelectedLessonId("");
+    setSelectedTopicId("");
     onClose();
   };
 
@@ -35,13 +39,13 @@ export function HierarchySelectionModal({ open, onClose, type }: HierarchySelect
     if (type === "create-lesson" && selectedModuleId) {
       router.push(`/instructor/lessons/create/${selectedModuleId}`);
       handleClose();
-    } else if (type === "upload-content" && selectedLessonId) {
-      router.push(`/instructor/contents/create/${selectedLessonId}`);
+    } else if (type === "upload-content" && selectedTopicId) {
+      router.push(`/instructor/contents/create/${selectedTopicId}`);
       handleClose();
     }
   };
 
-  const isContinueDisabled = type === "create-lesson" ? !selectedModuleId : !selectedLessonId;
+  const isContinueDisabled = type === "create-lesson" ? !selectedModuleId : !selectedTopicId;
 
   return (
     <Modal
@@ -54,7 +58,7 @@ export function HierarchySelectionModal({ open, onClose, type }: HierarchySelect
         <p className="text-sm text-slate-400">
           {type === "create-lesson"
             ? "Please select the course and module where you want to create the lesson."
-            : "Please select the course, module, and lesson where you want to upload content."}
+            : "Please select the course, module, lesson, and topic where you want to upload content."}
         </p>
 
         <div className="space-y-4">
@@ -86,6 +90,7 @@ export function HierarchySelectionModal({ open, onClose, type }: HierarchySelect
               onChange={(e) => {
                 setSelectedModuleId(e.target.value);
                 setSelectedLessonId("");
+                setSelectedTopicId("");
               }}
               disabled={!selectedCourseId || loadingModules}
             >
@@ -104,13 +109,35 @@ export function HierarchySelectionModal({ open, onClose, type }: HierarchySelect
               <select
                 className="w-full bg-[#0D1021] border border-[#1A1F35] text-sm px-4 py-2.5 rounded-xl outline-none text-slate-200 focus:border-orange-500 transition-colors disabled:opacity-50"
                 value={selectedLessonId}
-                onChange={(e) => setSelectedLessonId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedLessonId(e.target.value);
+                  setSelectedTopicId("");
+                }}
                 disabled={!selectedModuleId || loadingLessons}
               >
                 <option value="">Select a lesson...</option>
                 {lessons.map((lesson: { id: string; title: string }) => (
                   <option key={lesson.id} value={lesson.id}>
                     {lesson.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {type === "upload-content" && (
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-300">Select Topic</label>
+              <select
+                className="w-full bg-[#0D1021] border border-[#1A1F35] text-sm px-4 py-2.5 rounded-xl outline-none text-slate-200 focus:border-orange-500 transition-colors disabled:opacity-50"
+                value={selectedTopicId}
+                onChange={(e) => setSelectedTopicId(e.target.value)}
+                disabled={!selectedLessonId || loadingTopics}
+              >
+                <option value="">Select a topic...</option>
+                {topics.map((topic: { id: string; title: string }) => (
+                  <option key={topic.id} value={topic.id}>
+                    {topic.title}
                   </option>
                 ))}
               </select>

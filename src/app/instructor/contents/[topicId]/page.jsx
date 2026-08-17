@@ -11,14 +11,14 @@ import ContentGrid from "@/components/instructor/contents/ContentGrid";
 import {useContents} from "@/hooks/queries/instructor/useContents";
 import {useDeleteContent} from "@/hooks/queries/instructor/useDeleteContent";
 
-export default function LessonContentsPage() {
-    const {lessonId} = useParams();
+export default function TopicContentsPage() {
+    const {topicId} = useParams();
 
     const {
         data: contents = [],
         isLoading,
         isError,
-    } = useContents(lessonId);
+    } = useContents(topicId);
 
     const deleteContentMutation =
         useDeleteContent();
@@ -37,7 +37,7 @@ export default function LessonContentsPage() {
         try {
             await deleteContentMutation.mutateAsync({
                 contentId,
-                lessonId,
+                topicId,
             });
         } catch (error) {
             console.error(error);
@@ -78,12 +78,12 @@ export default function LessonContentsPage() {
                     </h1>
 
                     <p className="mt-2 text-slate-400">
-                        Manage lesson contents.
+                        Manage topic contents.
                     </p>
                 </div>
 
                 <Link
-                    href={`/instructor/contents/create/${lessonId}`}
+                    href={`/instructor/contents/create/${topicId}`}
                     className="
             rounded-xl
             bg-orange-600
@@ -100,7 +100,7 @@ export default function LessonContentsPage() {
 
             <ContentGrid
                 contents={contents}
-                lessonId={lessonId}
+                topicId={topicId}
                 onDelete={handleDelete}
             />
         </div>

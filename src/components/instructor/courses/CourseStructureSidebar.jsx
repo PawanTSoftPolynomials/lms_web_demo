@@ -201,8 +201,10 @@ export function CourseStructureSidebar({
                       modLessons.map((lesson, lIdx) => {
                         const isLessonSelected =
                           composerMode === "lesson" && composeLessonId === lesson.id;
-                        const blockCount =
-                          lesson._count?.contents ?? lesson.contents?.length ?? 0;
+                        const blockCount = (lesson.topics || []).reduce(
+                          (sum, topic) => sum + (topic._count?.contents ?? topic.contents?.length ?? 0),
+                          0
+                        );
 
                         return (
                           <div

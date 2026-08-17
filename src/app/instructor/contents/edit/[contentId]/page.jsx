@@ -30,7 +30,7 @@ export default function EditContentPage() {
                 contentId,
                 contentData: {
                     ...values,
-                    lessonId: content.lessonId,
+                    topicId: content.topicId,
                     order: content.order,
 
                     ...(values.type === "VIDEO" && {
@@ -40,7 +40,7 @@ export default function EditContentPage() {
             });
 
             router.push(
-                `/instructor/contents/${contentId}`
+                `/instructor/contents/view/${contentId}`
             );
         } catch (error) {
             console.error(error);

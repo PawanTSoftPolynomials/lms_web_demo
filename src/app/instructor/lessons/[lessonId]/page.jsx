@@ -1,85 +1,59 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
+  Plus,
   Pencil,
   Trash2,
   Eye,
   ArrowLeft,
-  Table2,
-  LayoutGrid,
+  BookOpen,
+  LayoutGrid
 } from "lucide-react";
 
 import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
-import LessonHeader from "@/components/instructor/lessons/LessonHeader";
-import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
 
 import { useLesson } from "@/hooks/queries/instructor/useLesson";
 import { useModule } from "@/hooks/queries/instructor/useModule";
-import { useContents } from "@/hooks/queries/instructor/useContents";
-import { useDeleteContent } from "@/hooks/queries/instructor/useDeleteContent";
-import { useUpdateLesson } from "@/hooks/queries/instructor/useUpdateLesson";
+import { useTopics } from "@/hooks/queries/instructor/useTopics";
+import { useDeleteTopic } from "@/hooks/queries/instructor/useDeleteTopic";
 
 export default function LessonDetailsPage() {
   const params = useParams();
   const lessonId = params.lessonId;
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  // Existing table view stays the default/unchanged; Compose is the new
-  // Lesson Composer cell-based view, added alongside it rather than
-  // replacing it. Landing here with ?view=compose (from the "Compose"
-  // action on the Course/Module lesson lists) opens directly into it.
-  const [view, setView] = useState(
-    searchParams.get("view") === "compose" ? "compose" : "table"
-  );
-
-  // Fetch lesson details
+  // Fetch lesson detail info
   const {
     data: lesson,
     isLoading: lessonLoading,
     isError: lessonError,
   } = useLesson(lessonId);
 
-  // Fetch parent module for course configuration
-  const { data: moduleData } = useModule(lesson?.moduleId, { enabled: !!lesson?.moduleId });
-
   const moduleId = params.moduleId || lesson?.moduleId;
+
+  // Fetch parent module for course configuration
+  const { data: moduleData } = useModule(moduleId, { enabled: !!moduleId });
+
   const courseId = params.courseId || moduleData?.courseId;
 
-  // Fetch contents inside this lesson
+  // Fetch topics inside this lesson
   const {
-    data: contents = [],
-    isLoading: contentLoading,
-    isError: contentError,
-  } = useContents(lessonId);
+    data: topics = [],
+    isLoading: topicsLoading,
+    isError: topicsError,
+  } = useTopics(lessonId);
 
-  const deleteContentMutation = useDeleteContent();
-  const updateLessonMutation = useUpdateLesson();
+  const deleteTopicMutation = useDeleteTopic();
 
-  const handleTogglePublish = async () => {
-    try {
-      await updateLessonMutation.mutateAsync({
-        lessonId,
-        lessonData: {
-          moduleId: lesson.moduleId,
-          isPublished: !lesson.isPublished,
-        },
-      });
-    } catch (error) {
-      console.error("Failed to update lesson publish status:", error);
-    }
-  };
-
-  const handleDeleteContent = async (contentId) => {
-    if (!confirm("Delete this content?")) return;
+  const handleDelete = async (topicId) => {
+    if (!confirm("Delete this topic?")) return;
 
     try {
-      await deleteContentMutation.mutateAsync({
-        contentId,
+      await deleteTopicMutation.mutateAsync({
+        topicId,
         lessonId,
       });
     } catch (error) {
@@ -87,7 +61,7 @@ export default function LessonDetailsPage() {
     }
   };
 
-  if (lessonLoading || contentLoading) {
+  if (lessonLoading || topicsLoading) {
     return (
       <div className="flex justify-center py-20">
         <Loader />
@@ -95,7 +69,7 @@ export default function LessonDetailsPage() {
     );
   }
 
-  if (lessonError || contentError || !lesson) {
+  if (lessonError || topicsError || !lesson) {
     return (
       <Card>
         <div className="py-16 text-center">
@@ -111,7 +85,7 @@ export default function LessonDetailsPage() {
       {/* Back Button */}
       {courseId && moduleId && (
         <Link
-          href={`/instructor/courses/${courseId}/modules/${moduleId}`}
+          href={`/instructor/modules/${moduleId}`}
           className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition"
         >
           <ArrowLeft size={14} />
@@ -119,151 +93,142 @@ export default function LessonDetailsPage() {
         </Link>
       )}
 
-      {/* Lesson Header Stats Card */}
-      <LessonHeader
-        lesson={lesson}
-        courseId={courseId}
-        moduleId={moduleId}
-        onTogglePublish={handleTogglePublish}
-        isToggling={updateLessonMutation.isPending}
-      />
-
-      {/* Contents Section Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-white tracking-tight">Contents</h2>
-          <p className="mt-1 text-slate-400">Manage lesson contents.</p>
+      {/* Lesson Header Card */}
+      <div className="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-950 p-5 shadow-lg">
+        <div className="flex items-center gap-3 mb-2.5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500/10 text-orange-400 shrink-0">
+            <BookOpen size={18} />
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">
+            {lesson.title}
+          </h1>
         </div>
-
-        <div className="flex items-center gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
-          <button
-            type="button"
-            onClick={() => setView("table")}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-              view === "table"
-                ? "bg-orange-500 text-slate-950"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            <Table2 size={13} />
-            Table
-          </button>
-          <button
-            type="button"
-            onClick={() => setView("compose")}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-              view === "compose"
-                ? "bg-orange-500 text-slate-950"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            <LayoutGrid size={13} />
-            Compose
-          </button>
-        </div>
+        <p className="text-sm text-slate-400 leading-relaxed max-w-4xl">
+          {lesson.description}
+        </p>
       </div>
 
-      {view === "compose" && <LessonComposerPanel lessonId={lessonId} />}
+      {/* Topics Section Header */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold text-white tracking-tight">Topics</h2>
+          <p className="mt-1 text-slate-400">Manage topics and contents.</p>
+        </div>
 
-      {/* Contents List - Tabular Flow */}
-      {view === "table" && (!contents.length ? (
+        <Link
+          href={`/instructor/topics/create/${lessonId}`}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xs px-4 py-2.5 transition shadow-sm"
+        >
+          <Plus size={14} className="stroke-[3]" />
+          New Topic
+        </Link>
+      </div>
+
+      {/* Topics List - Tabular Flow */}
+      {topics.length === 0 ? (
         <Card>
           <div className="py-16 text-center">
-            <h3 className="text-2xl font-semibold">No Contents Found</h3>
-            <p className="mt-2 text-slate-400">Add your first content.</p>
+            <h3 className="text-2xl font-semibold">No Topics Found</h3>
+            <p className="mt-2 text-slate-400">Create your first topic.</p>
           </div>
         </Card>
       ) : (
         <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800/80 rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[500px] text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-800 bg-slate-900/40 text-slate-400 text-xs font-bold uppercase tracking-wider">
-                  <th className="p-5 pl-6">Content Title</th>
-                  <th className="p-5">Type</th>
-                  <th className="p-5 pr-6 text-left">ACTIONS</th>
+                  <th className="p-5 pl-6">Topic Title</th>
+                  <th className="p-5 whitespace-nowrap">Type</th>
+                  <th className="p-5 pr-6 text-left whitespace-nowrap">ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
-                {contents.map((content) => {
-                  const type = content.type || "VIDEO";
-                  return (
-                    <tr
-                      key={content.id}
-                      onClick={() =>
-                        router.push(
-                          `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/${content.id}`
-                        )
-                      }
-                      className="border-b border-slate-800/50 hover:bg-slate-850/40 transition-all duration-200 text-sm text-slate-300 cursor-pointer group"
-                    >
-                      {/* Content Title */}
-                      <td className="p-5 pl-6 max-w-xl">
-                        <p className="font-bold text-white group-hover:text-orange-400 transition-colors leading-snug truncate">
-                          {content.title}
-                        </p>
-                      </td>
+                {topics.map((topic) => (
+                  <tr
+                    key={topic.id}
+                    onClick={() =>
+                      router.push(`/instructor/topics/${topic.id}`)
+                    }
+                    className="border-b border-slate-800/50 hover:bg-slate-850/40 transition-all duration-200 text-sm text-slate-300 cursor-pointer group"
+                  >
+                    {/* Topic Title & Description */}
+                    <td className="p-5 pl-6 max-w-xl">
+                      <p className="font-bold text-white group-hover:text-orange-400 transition-colors leading-snug truncate">
+                        {topic.title}
+                      </p>
+                      <p className="text-xs text-slate-500 leading-normal truncate mt-0.5 max-w-2xl">
+                        {topic.description || "No description provided."}
+                      </p>
+                    </td>
 
-                      {/* Content Type Badge */}
-                      <td className="p-5">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold leading-none border ${
-                            type === "VIDEO"
-                              ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                              : type === "DOCUMENT"
-                              ? "bg-green-500/10 text-green-400 border-green-500/20"
-                              : "bg-purple-500/10 text-purple-400 border-purple-500/20"
-                          }`}
+                    {/* Topic Type Label */}
+                    <td className="p-5">
+                      <span className="inline-flex rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 px-2.5 py-1 text-xs font-semibold leading-none">
+                        Topic
+                      </span>
+                    </td>
+
+                    {/* Actions cell */}
+                    <td className="p-5 pr-6 text-left" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-start gap-1.5 mt-0.5">
+                        {/* Add Content */}
+                        <button
+                          onClick={() =>
+                            router.push(`/instructor/contents/create/${topic.id}`)
+                          }
+                          title="Add Content"
+                          className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-orange-400 hover:text-orange-300 hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
                         >
-                          {type}
-                        </span>
-                      </td>
-
-                      {/* Actions cell */}
-                      <td className="p-5 pr-6 text-left" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-start gap-1.5 mt-0.5">
-                          {/* View */}
-                          <button
-                            onClick={() =>
-                              router.push(
-                                `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/${content.id}`
-                              )
-                            }
-                            title="View Content"
-                            className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-slate-400 hover:text-white hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
-                          >
-                            <Eye size={12} />
-                          </button>
-                          {/* Edit */}
-                          <button
-                            onClick={() =>
-                              router.push(
-                                `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/contents/edit/${content.id}`
-                              )
-                            }
-                            title="Edit Content"
-                            className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-slate-400 hover:text-white hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
-                          >
-                            <Pencil size={12} />
-                          </button>
-                          {/* Delete */}
-                          <button
-                            onClick={() => handleDeleteContent(content.id)}
-                            title="Delete Content"
-                            className="p-1 rounded-lg border border-red-500/30 bg-slate-955/40 text-red-400 hover:text-red-300 hover:bg-red-955/20 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                          <Plus size={12} />
+                        </button>
+                        {/* Compose */}
+                        <button
+                          onClick={() =>
+                            router.push(`/instructor/topics/${topic.id}?view=compose`)
+                          }
+                          title="Open Composer"
+                          className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-purple-400 hover:text-purple-300 hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
+                        >
+                          <LayoutGrid size={12} />
+                        </button>
+                        {/* View */}
+                        <button
+                          onClick={() =>
+                            router.push(`/instructor/topics/${topic.id}`)
+                          }
+                          title="View Topic"
+                          className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-slate-400 hover:text-white hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
+                        >
+                          <Eye size={12} />
+                        </button>
+                        {/* Edit */}
+                        <button
+                          onClick={() =>
+                            router.push(`/instructor/topics/edit/${topic.id}`)
+                          }
+                          title="Edit Topic"
+                          className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-slate-400 hover:text-white hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
+                        >
+                          <Pencil size={12} />
+                        </button>
+                        {/* Delete */}
+                        <button
+                          onClick={() => handleDelete(topic.id)}
+                          title="Delete Topic"
+                          className="p-1 rounded-lg border border-red-500/30 bg-slate-955/40 text-red-400 hover:text-red-300 hover:bg-red-955/20 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </div>
-      ))}
+      )}
     </div>
   );
 }

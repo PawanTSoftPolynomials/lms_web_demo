@@ -57,6 +57,8 @@ export const QUERY_KEYS = {
 
     ADMIN_CERTIFICATES: "admin-certificates",
 
+    ADMIN_CALENDAR_EVENTS: "admin-calendar-events",
+
     PROFILE: "profile",
 
     // ==========================
@@ -73,6 +75,9 @@ export const QUERY_KEYS = {
 
     LESSONS: "lessons",
     LESSON: "lesson",
+
+    TOPICS: "topics",
+    TOPIC: "topic",
 
     CONTENTS: "contents",
     CONTENT: "content",

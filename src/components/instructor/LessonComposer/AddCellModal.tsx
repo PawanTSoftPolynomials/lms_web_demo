@@ -21,7 +21,7 @@ import { CELL_TYPES, type CellTypeId } from "./cellTypes";
 import type { CreateCellFormProps } from "./types";
 
 interface AddCellModalProps {
-  lessonId: string;
+  topicId: string;
   /** Pre-computed `max(existing order) + 1`, shared by whichever type ends up being added. */
   order: number;
   open: boolean;
@@ -51,7 +51,7 @@ const AVAILABLE_TYPES = CELL_TYPES.filter((cellType) => cellType.supportedByApiT
  * live API today (`supportedByApiToday`) — Interactive Embed is excluded
  * (see cellTypes.ts for why).
  */
-export function AddCellModal({ lessonId, order, open, onOpenChange }: AddCellModalProps) {
+export function AddCellModal({ topicId, order, open, onOpenChange }: AddCellModalProps) {
   const [selectedId, setSelectedId] = useState<CellTypeId | null>(null);
 
   const close = () => {
@@ -109,10 +109,10 @@ export function AddCellModal({ lessonId, order, open, onOpenChange }: AddCellMod
               })}
             </div>
           ) : SimpleForm ? (
-            <SimpleForm lessonId={lessonId} order={order} onCreated={close} onCancel={() => setSelectedId(null)} />
+            <SimpleForm topicId={topicId} order={order} onCreated={close} onCancel={() => setSelectedId(null)} />
           ) : isFileType ? (
             <CreateFileForm
-              lessonId={lessonId}
+              topicId={topicId}
               order={order}
               cellType={selectedCellType}
               accept={selectedId ? FILE_TYPE_ACCEPT[selectedId] : undefined}

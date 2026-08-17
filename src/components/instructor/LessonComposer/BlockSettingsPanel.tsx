@@ -23,7 +23,7 @@ import { buildHeadingHtml, parseHeadingDesign, type HeadingDesign, type TextAlig
 import type { ContentRow } from "./types";
 
 interface BlockSettingsPanelProps {
-  lessonId: string;
+  topicId: string;
   selectedCellId: string | null;
   onClose: () => void;
 }
@@ -110,7 +110,7 @@ function BlockDesignForm({ content, onDeleteBlock }: BlockDesignFormProps) {
         contentData: {
           htmlContent: updatedHtml,
           title: textContent,
-          lessonId: content.lessonId,
+          topicId: content.topicId,
         },
       });
       showToast("Block settings updated.", "success", "Saved");
@@ -263,8 +263,8 @@ function BlockDesignForm({ content, onDeleteBlock }: BlockDesignFormProps) {
   );
 }
 
-export function BlockSettingsPanel({ lessonId, selectedCellId, onClose }: BlockSettingsPanelProps) {
-  const { data: contents = [] } = useContents(lessonId);
+export function BlockSettingsPanel({ topicId, selectedCellId, onClose }: BlockSettingsPanelProps) {
+  const { data: contents = [] } = useContents(topicId);
   const deleteContentMutation = useDeleteContent();
   const { showToast } = useToast();
 
@@ -281,7 +281,7 @@ export function BlockSettingsPanel({ lessonId, selectedCellId, onClose }: BlockS
     if (!selected) return;
     if (!window.confirm("Are you sure you want to delete this block?")) return;
     try {
-      await deleteContentMutation.mutateAsync({ contentId: selected.id, lessonId });
+      await deleteContentMutation.mutateAsync({ contentId: selected.id, topicId });
       showToast("Block deleted successfully.", "success", "Deleted");
     } catch (error) {
       showToast("Failed to delete block.", "error", "Error");

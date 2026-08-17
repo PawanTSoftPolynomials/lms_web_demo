@@ -88,7 +88,7 @@ export function VideoCell({
     try {
       await updateContent.mutateAsync({
         contentId: content.id,
-        contentData: { title, videoUrl, lessonId: content.lessonId },
+        contentData: { title, videoUrl, topicId: content.topicId },
       });
       setMode("view");
     } catch (error) {
@@ -105,7 +105,7 @@ export function VideoCell({
     if (!confirmed) return;
 
     try {
-      await deleteContent.mutateAsync({ contentId: content.id, lessonId: content.lessonId });
+      await deleteContent.mutateAsync({ contentId: content.id, topicId: content.topicId });
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to delete this video."), "error", "Delete failed");
     }
@@ -257,7 +257,7 @@ export function VideoCell({
   );
 }
 
-export function CreateVideoForm({ lessonId, order, onCreated, onCancel }: CreateCellFormProps) {
+export function CreateVideoForm({ topicId, order, onCreated, onCancel }: CreateCellFormProps) {
   const [title, setTitle] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -291,12 +291,12 @@ export function CreateVideoForm({ lessonId, order, onCreated, onCancel }: Create
   };
 
   const handleCreate = async () => {
-    if (!lessonId) {
+    if (!topicId) {
       showToast("Please select or create a lesson in the left sidebar first.", "error", "Lesson Required");
       return;
     }
     try {
-      await createContent.mutateAsync({ lessonId, type: "VIDEO", order, title, videoUrl });
+      await createContent.mutateAsync({ topicId, type: "VIDEO", order, title, videoUrl });
       onCreated();
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to add this video."), "error", "Add failed");

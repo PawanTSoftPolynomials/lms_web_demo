@@ -18,7 +18,7 @@ import {
 import Loader from "@/components/common/Loader";
 
 import { AdminKPIs } from "@/components/admin/dashboard/AdminKPIs";
-import { CourseOverviewTable } from "@/components/admin/dashboard/CourseOverviewTable";
+import { CoursePerformanceTable } from "@/components/admin/dashboard/CoursePerformanceTable";
 import { CourseStatusPieChart } from "@/components/admin/dashboard/CourseStatusPieChart";
 import { RecentActivityFeed } from "@/components/admin/dashboard/RecentActivityFeed";
 import RecentUsers from "@/components/dashboard/RecentUsers";
@@ -26,9 +26,9 @@ import RecentUsers from "@/components/dashboard/RecentUsers";
 export default function AdminDashboard() {
   const { data: dashboard, isLoading, isError } = useDashboard();
 
-  const courseOverview = useCourseOverview();
   const coursePie = useCourseStatusPie(dashboard?.publishedCourses, dashboard?.draftCourses);
   const recentActivity = useRecentActivity();
+  const upcomingEvents = useUpcomingEvents();
 
   if (isLoading) {
     return (
@@ -55,12 +55,21 @@ export default function AdminDashboard() {
           instructorsCount={dashboard.totalInstructors}
           enrollmentsCount={dashboard.totalEnrollments}
           usersCount={dashboard.totalUsers}
+          trends={dashboard.trends}
         />
 
-        <CourseOverviewTable
-          courses={courseOverview.data}
-          isLoading={courseOverview.isLoading}
+        <CoursePerformanceTable
+          courses={dashboard.coursePerformance}
         />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <TodaySnapshot snapshot={dashboard.todaySnapshot} />
+          <TopInstructor instructor={dashboard.topInstructor} />
+          <UpcomingEvents
+            events={upcomingEvents.data}
+            isLoading={upcomingEvents.isLoading}
+          />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <CourseStatusPieChart data={coursePie} />

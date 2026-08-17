@@ -157,8 +157,8 @@ export function DocumentCell({
   const handleSave = async () => {
     try {
       const payload = presentationMode === "slideshow"
-        ? { title: title || "Interactive Presentation", htmlContent: JSON.stringify(slides), fileUrl: "", lessonId: content.lessonId }
-        : { title: title || "Uploaded File Presentation", fileUrl, htmlContent: "", lessonId: content.lessonId };
+        ? { title: title || "Interactive Presentation", htmlContent: JSON.stringify(slides), fileUrl: "", topicId: content.topicId }
+        : { title: title || "Uploaded File Presentation", fileUrl, htmlContent: "", topicId: content.topicId };
 
       await updateContent.mutateAsync({
         contentId: content.id,
@@ -179,7 +179,7 @@ export function DocumentCell({
     if (!confirmed) return;
 
     try {
-      await deleteContent.mutateAsync({ contentId: content.id, lessonId: content.lessonId });
+      await deleteContent.mutateAsync({ contentId: content.id, topicId: content.topicId });
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to delete this file."), "error", "Delete failed");
     }
@@ -698,7 +698,7 @@ interface CreateFileFormProps extends CreateCellFormProps {
   accept?: string;
 }
 
-export function CreateFileForm({ lessonId, order, cellType, accept, onCreated, onCancel }: CreateFileFormProps) {
+export function CreateFileForm({ topicId, order, cellType, accept, onCreated, onCancel }: CreateFileFormProps) {
   const [presentationMode, setPresentationMode] = useState<"slideshow" | "upload">("slideshow");
   const [title, setTitle] = useState("");
   const [fileUrl, setFileUrl] = useState("");
@@ -766,7 +766,7 @@ export function CreateFileForm({ lessonId, order, cellType, accept, onCreated, o
   };
 
   const handleCreate = async () => {
-    if (!lessonId) {
+    if (!topicId) {
       showToast("Please select or create a lesson in the left sidebar first.", "error", "Lesson Required");
       return;
     }
@@ -774,7 +774,7 @@ export function CreateFileForm({ lessonId, order, cellType, accept, onCreated, o
       const safeOrder = typeof order === "number" && !isNaN(order) && order > 0 ? order : 1;
       const payload = presentationMode === "slideshow"
         ? {
-            lessonId,
+            topicId,
             type: cellType.contentType,
             order: safeOrder,
             title: title || `${cellType.label} Slideshow`,
@@ -782,7 +782,7 @@ export function CreateFileForm({ lessonId, order, cellType, accept, onCreated, o
             fileUrl: "",
           }
         : {
-            lessonId,
+            topicId,
             type: cellType.contentType,
             order: safeOrder,
             title: title || `${cellType.label} File`,

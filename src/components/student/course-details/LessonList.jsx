@@ -47,7 +47,7 @@ const TYPE_PRIORITY = [
 ];
 
 function getLessonMeta(lesson) {
-    const contents = lesson.contents || [];
+    const contents = (lesson.topics || []).flatMap((topic) => topic.contents || []);
 
     const totalDuration = contents.reduce(
         (sum, content) => sum + (content.duration || 0),

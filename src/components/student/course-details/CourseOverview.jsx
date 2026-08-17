@@ -44,7 +44,10 @@ export default function CourseOverview({
                 (module.lessons?.reduce(
                     (lessonCount, lesson) =>
                         lessonCount +
-                        (lesson.contents?.length || 0),
+                        (lesson.topics?.reduce(
+                            (topicCount, topic) => topicCount + (topic.contents?.length || 0),
+                            0
+                        ) || 0),
                     0
                 ) || 0),
             0

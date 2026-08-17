@@ -7,7 +7,7 @@
 export interface ContentRow {
   id: string;
   order: number;
-  lessonId: string;
+  topicId: string;
   type: string;
   title?: string | null;
   videoUrl?: string | null;
@@ -34,7 +34,7 @@ export interface CellActionProps {
 
 /** Shared prop contract for every cell type's "Create" form, hosted inside AddCellModal. */
 export interface CreateCellFormProps {
-  lessonId: string;
+  topicId: string;
   /** Pre-computed `max(existing order) + 1`, matching the pattern already used by every other create flow in this app. */
   order: number;
   onCreated: () => void;

@@ -7,6 +7,7 @@ import LessonForm from "@/components/instructor/lessons/LessonForm";
 import {useToast} from "@/components/ui/ToastProvider";
 
 import {useLessons} from "@/hooks/queries/instructor/useLessons";
+import {useModule} from "@/hooks/queries/instructor/useModule";
 import {useCreateLesson} from "@/hooks/queries/instructor/useCreateLesson";
 
 export default function CreateLessonPage() {
@@ -18,8 +19,16 @@ export default function CreateLessonPage() {
 
     const {
         data: lessons = [],
-        isLoading,
+        isLoading: lessonsLoading,
     } = useLessons(moduleId);
+
+    const {data: moduleData, isLoading: moduleLoading} = useModule(moduleId);
+
+    // moduleData is needed to redirect back to the Course Composer on
+    // success — wait for it to resolve before allowing submission,
+    // otherwise a fast submit races ahead of it and silently falls back to
+    // the old standalone-module-page redirect.
+    const isLoading = lessonsLoading || moduleLoading;
 
     const handleSubmit = async (values) => {
         const nextOrder =
@@ -34,8 +43,14 @@ export default function CreateLessonPage() {
                 order: nextOrder,
             });
 
+            // Return to the Course Composer (the primary screen instructors
+            // manage the Course -> Module -> Lesson -> Topic -> Content tree
+            // from), same as module creation already does, instead of the
+            // standalone module page.
             router.push(
-                `/instructor/modules/${moduleId}`
+                moduleData?.courseId
+                    ? `/instructor/courses/${moduleData.courseId}`
+                    : `/instructor/modules/${moduleId}`
             );
         } catch (error) {
             console.error(error);

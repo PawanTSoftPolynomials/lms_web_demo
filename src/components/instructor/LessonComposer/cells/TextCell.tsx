@@ -56,7 +56,7 @@ export function TextCell({
     try {
       await updateContent.mutateAsync({
         contentId: content.id,
-        contentData: { title, htmlContent, lessonId: content.lessonId },
+        contentData: { title, htmlContent, topicId: content.topicId },
       });
       setMode("view");
     } catch (error) {
@@ -73,7 +73,7 @@ export function TextCell({
     if (!confirmed) return;
 
     try {
-      await deleteContent.mutateAsync({ contentId: content.id, lessonId: content.lessonId });
+      await deleteContent.mutateAsync({ contentId: content.id, topicId: content.topicId });
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to delete this block."), "error", "Delete failed");
     }
@@ -133,7 +133,7 @@ export function TextCell({
 }
 
 /** The "Add Cell" creation form for a Text block — hosted inside AddCellModal. */
-export function CreateTextForm({ lessonId, order, onCreated, onCancel }: CreateCellFormProps) {
+export function CreateTextForm({ topicId, order, onCreated, onCancel }: CreateCellFormProps) {
   const [title, setTitle] = useState("");
   const [htmlContent, setHtmlContent] = useState("");
 
@@ -142,7 +142,7 @@ export function CreateTextForm({ lessonId, order, onCreated, onCancel }: CreateC
 
   const handleCreate = async () => {
     try {
-      await createContent.mutateAsync({ lessonId, type: "HTML", order, title, htmlContent });
+      await createContent.mutateAsync({ topicId, type: "HTML", order, title, htmlContent });
       onCreated();
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to add this text block."), "error", "Add failed");

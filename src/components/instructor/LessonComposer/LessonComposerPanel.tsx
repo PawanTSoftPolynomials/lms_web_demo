@@ -51,7 +51,7 @@ import { getErrorMessage } from "./getErrorMessage";
 import type { CellActionProps, ContentRow } from "./types";
 
 interface LessonComposerPanelProps {
-  lessonId: string;
+  topicId: string;
   selectedCellId?: string | null;
   onSelectCell?: (contentId: string) => void;
 }
@@ -133,11 +133,11 @@ function renderCell(content: ContentRow, actionProps: CellActionProps) {
 }
 
 export function LessonComposerPanel({
-  lessonId,
+  topicId,
   selectedCellId,
   onSelectCell,
 }: LessonComposerPanelProps) {
-  const { data: contents = [], isLoading, isError } = useContents(lessonId);
+  const { data: contents = [], isLoading, isError } = useContents(topicId);
   const [insertOrder, setInsertOrder] = useState<number | null>(null);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [insertingAnchorId, setInsertingAnchorId] = useState<string | null>(null);
@@ -159,8 +159,8 @@ export function LessonComposerPanel({
   };
 
   const openAddCell = (order: number) => {
-    if (!lessonId) {
-      showToast("Please select or create a lesson in the left sidebar first.", "error", "Lesson Required");
+    if (!topicId) {
+      showToast("Please select or create a topic in the left sidebar first.", "error", "Topic Required");
       return;
     }
     setInsertOrder(order);
@@ -188,7 +188,7 @@ export function LessonComposerPanel({
       for (const shift of plan.shifts) {
         await updateContent.mutateAsync({
           contentId: shift.contentId,
-          contentData: { order: shift.newOrder, lessonId },
+          contentData: { order: shift.newOrder, topicId },
         });
       }
       openAddCell(plan.insertOrder);
@@ -427,13 +427,13 @@ export function LessonComposerPanel({
       </div>
 
       {/* Canvas */}
-      {!lessonId ? (
+      {!topicId ? (
         <div className="rounded-2xl border-2 border-dashed border-amber-500/30 bg-amber-500/5 p-12 text-center">
           <p className="text-sm font-bold text-amber-400">
-            No lesson found for this module.
+            No topic found for this lesson.
           </p>
           <p className="mt-1 text-xs text-slate-400">
-            Please click <strong className="text-white">+ New Lesson</strong> in the left Course Map sidebar to create a lesson before adding content blocks.
+            Please click <strong className="text-white">+ New Topic</strong> in the left Course Map sidebar to create a topic before adding content blocks.
           </p>
         </div>
       ) : contents.length === 0 ? (
@@ -491,7 +491,7 @@ export function LessonComposerPanel({
       </div>
 
       <AddCellModal
-        lessonId={lessonId}
+        topicId={topicId}
         order={insertOrder ?? nextOrder}
         open={insertOrder !== null}
         onOpenChange={(open) => {

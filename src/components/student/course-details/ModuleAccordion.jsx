@@ -22,10 +22,15 @@ function getModuleDuration(module) {
     return (module.lessons || []).reduce(
         (sum, lesson) =>
             sum +
-            (lesson.contents?.reduce(
-                (contentSum, content) => contentSum + (content.duration || 0),
+            (lesson.topics || []).reduce(
+                (topicSum, topic) =>
+                    topicSum +
+                    (topic.contents?.reduce(
+                        (contentSum, content) => contentSum + (content.duration || 0),
+                        0
+                    ) || 0),
                 0
-            ) || 0),
+            ),
         0
     );
 }

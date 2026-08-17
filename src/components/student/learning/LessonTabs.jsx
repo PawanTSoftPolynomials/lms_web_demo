@@ -71,7 +71,9 @@ export default function LessonTabs({ lesson, course }) {
     );
   }
 
-  const instructorAttachments = (lesson.contents || []).filter(
+  const lessonContents = (lesson.topics || []).flatMap((topic) => topic.contents || []);
+
+  const instructorAttachments = lessonContents.filter(
     (c) =>
       c.type === "FILE" ||
       c.type === "DOCUMENT" ||
@@ -79,7 +81,7 @@ export default function LessonTabs({ lesson, course }) {
       Boolean(c.fileUrl)
   );
 
-  const instructorHtmlNotes = (lesson.contents || [])
+  const instructorHtmlNotes = lessonContents
     .filter((c) => c.type === "HTML" && c.htmlContent)
     .map((c) => c.htmlContent)
     .join("<br/>");

@@ -1,12 +1,12 @@
 import Cookies from "js-cookie";
 import api from "@/lib/axios";
 
-export const getContents = async (lessonId) => {
-  const response = await api.get(`/contents?lessonId=${lessonId}`);
+export const getContents = async (topicId) => {
+  const response = await api.get(`/contents?topicId=${topicId}`);
   return response.data?.data ?? response.data ?? [];
 };
 
-/** Instructor-wide contents (no lessonId = every lesson across the instructor's own courses). */
+/** Instructor-wide contents (no topicId = every topic across the instructor's own courses). */
 export const getInstructorContents = async () => {
   const response = await api.get("/contents");
   return response.data?.data ?? response.data ?? [];

@@ -5,13 +5,13 @@ import EmptyContents from "./EmptyContents";
 
 export default function ContentGrid({
                                         contents = [],
-                                        lessonId,
+                                        topicId,
                                         onDelete,
                                     }) {
     if (!contents.length) {
         return (
             <EmptyContents
-                lessonId={lessonId}
+                topicId={topicId}
             />
         );
     }

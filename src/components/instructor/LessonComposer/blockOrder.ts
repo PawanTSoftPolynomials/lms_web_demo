@@ -11,7 +11,7 @@ export interface InsertPlan {
   /**
    * Existing rows that must be moved to `newOrder` first, in this exact
    * order — highest original `order` first. `Content` has a
-   * `@@unique([lessonId, order])` constraint, so shifting low-to-high would
+   * `@@unique([topicId, order])` constraint, so shifting low-to-high would
    * transiently collide with the row already sitting at the target value;
    * highest-first never does, because each row only ever moves into a slot
    * its higher neighbor has already vacated.

@@ -7,20 +7,31 @@ export function CourseComposerSidebar({
   composerMode,
   composeModuleId,
   composeLessonId,
+  composeTopicId,
   onSelectCourseOverview,
   onSelectLesson,
   onSelectModule,
+  onSelectTopic,
   onAddLesson,
   onAddModule,
+  onAddTopic,
   onDeleteLesson,
   onDeleteModule,
 }) {
   const [expandedModules, setExpandedModules] = useState({});
+  const [expandedLessons, setExpandedLessons] = useState({});
 
   const toggleModuleAccordion = (moduleId) => {
     setExpandedModules((prev) => ({
       ...prev,
       [moduleId]: !prev[moduleId],
+    }));
+  };
+
+  const toggleLessonAccordion = (lessonId) => {
+    setExpandedLessons((prev) => ({
+      ...prev,
+      [lessonId]: !prev[lessonId],
     }));
   };
 
@@ -36,7 +47,7 @@ export function CourseComposerSidebar({
 
       {/* Subtitle instructions */}
       <div className="text-[11px] text-slate-400 leading-snug mb-3">
-        Course → Modules → Lessons → Contents
+        Course → Modules → Lessons → Topics → Contents
       </div>
 
       {/* New Module Button */}
@@ -108,29 +119,93 @@ export function CourseComposerSidebar({
                       </div>
                     ) : (
                       modLessons.map((lesson, lIdx) => {
-                        const isLessonActive = composeLessonId === lesson.id;
+                        const isLessonActive = composerMode === "lesson" && composeLessonId === lesson.id;
+                        const isLessonExpanded = expandedLessons[lesson.id] !== false;
+                        const lessonTopics = lesson.topics || [];
+
                         return (
                           <div
                             key={lesson.id}
-                            className={`sidebar-nav-item flex items-center justify-between px-2.5 py-1.5 rounded-lg transition cursor-pointer text-xs ${
-                              isLessonActive
-                                ? "active bg-orange-500/20 text-orange-400 font-bold border-l-2 border-orange-500"
-                                : "text-slate-400 hover:text-white hover:bg-slate-900"
-                            }`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onSelectLesson(lesson.id);
-                            }}
+                            className="rounded-lg overflow-hidden border border-transparent"
                           >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-xs">📖</span>
-                              <span className="truncate text-[11px] leading-snug">
-                                Lesson {lIdx + 1}: {lesson.title}
+                            <div
+                              className={`sidebar-nav-item flex items-center justify-between px-2.5 py-1.5 rounded-lg transition cursor-pointer text-xs ${
+                                isLessonActive
+                                  ? "active bg-orange-500/20 text-orange-400 font-bold border-l-2 border-orange-500"
+                                  : "text-slate-400 hover:text-white hover:bg-slate-900"
+                              }`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onSelectLesson(lesson.id);
+                                toggleLessonAccordion(lesson.id);
+                              }}
+                            >
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="text-[9px] text-orange-500/80">{isLessonExpanded ? "▼" : "▶"}</span>
+                                <span className="text-xs">📖</span>
+                                <span className="truncate text-[11px] leading-snug">
+                                  Lesson {lIdx + 1}: {lesson.title}
+                                </span>
+                              </div>
+                              <span className="text-[9px] text-slate-500">
+                                {lessonTopics.length} topic{lessonTopics.length === 1 ? "" : "s"}
                               </span>
                             </div>
-                            <span className="text-[9px] text-slate-500">
-                              {lesson.contents?.length ?? 0} cells
-                            </span>
+
+                            {/* Lesson Topics Sub-accordion — indented one full level further
+                                than the Lesson row, with its own left rail, so it visually
+                                reads as Module > Lesson > Topic, not three flat siblings. */}
+                            {isLessonExpanded && (
+                              <div className="mt-1 ml-4 pl-3 py-1.5 space-y-1 border-l-2 border-orange-500/25 bg-black/20 rounded-r-lg">
+                                <div className="text-[8.5px] font-black uppercase tracking-widest text-slate-600 px-1">
+                                  Topics
+                                </div>
+                                {lessonTopics.length === 0 ? (
+                                  <div className="py-1.5 text-center text-[9.5px] text-slate-500 italic">
+                                    No topics in this lesson.
+                                  </div>
+                                ) : (
+                                  lessonTopics.map((topic, tIdx) => {
+                                    const isTopicActive = composerMode === "topic" && composeTopicId === topic.id;
+                                    return (
+                                      <div
+                                        key={topic.id}
+                                        className={`sidebar-nav-item flex items-center justify-between px-2 py-1.5 rounded-lg transition cursor-pointer text-[11px] ${
+                                          isTopicActive
+                                            ? "active bg-orange-500/20 text-orange-400 font-bold border-l-2 border-orange-500"
+                                            : "text-slate-400 hover:text-white hover:bg-slate-900"
+                                        }`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          onSelectTopic?.(topic.id, lesson.id, mod.id);
+                                        }}
+                                      >
+                                        <div className="flex items-center gap-1.5 min-w-0">
+                                          <span className="text-[10px]">🗂️</span>
+                                          <span className="truncate leading-snug">
+                                            {tIdx + 1}. {topic.title}
+                                          </span>
+                                        </div>
+                                        <span className="text-[9px] text-slate-500 shrink-0">
+                                          {topic._count?.contents ?? 0} cells
+                                        </span>
+                                      </div>
+                                    );
+                                  })
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onAddTopic?.(lesson.id);
+                                  }}
+                                  className="w-full mt-0.5 flex items-center justify-center gap-1 py-1 rounded text-[9.5px] font-bold text-orange-400 hover:bg-orange-500/10 transition cursor-pointer"
+                                >
+                                  <span>+ Add Topic</span>
+                                </button>
+                              </div>
+                            )}
                           </div>
                         );
                       })
@@ -142,7 +217,7 @@ export function CourseComposerSidebar({
                         e.stopPropagation();
                         onAddLesson?.(mod.id);
                       }}
-                      className="w-full mt-1 flex items-center justify-center gap-1 py-1 rounded text-[10px] font-bold text-orange-400 hover:bg-orange-500/10 transition cursor-pointer"
+                      className="w-full mt-2 pt-2 border-t border-dashed border-slate-800 flex items-center justify-center gap-1 py-1 rounded text-[10px] font-bold text-orange-400 hover:bg-orange-500/10 transition cursor-pointer"
                     >
                       <span>+ Add Lesson</span>
                     </button>

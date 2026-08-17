@@ -123,7 +123,7 @@ export function ImageCell({
         contentData: {
           title: alt || content.title || "Image",
           htmlContent: buildImageHtml({ src, alt, caption }),
-          lessonId: content.lessonId,
+          topicId: content.topicId,
         },
       });
       setMode("view");
@@ -141,7 +141,7 @@ export function ImageCell({
     if (!confirmed) return;
 
     try {
-      await deleteContent.mutateAsync({ contentId: content.id, lessonId: content.lessonId });
+      await deleteContent.mutateAsync({ contentId: content.id, topicId: content.topicId });
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to delete this image."), "error", "Delete failed");
     }
@@ -291,7 +291,7 @@ export function ImageCell({
   );
 }
 
-export function CreateImageForm({ lessonId, order, onCreated, onCancel }: CreateCellFormProps) {
+export function CreateImageForm({ topicId, order, onCreated, onCancel }: CreateCellFormProps) {
   const [src, setSrc] = useState("");
   const [alt, setAlt] = useState("");
   const [caption, setCaption] = useState("");
@@ -326,14 +326,14 @@ export function CreateImageForm({ lessonId, order, onCreated, onCancel }: Create
   };
 
   const handleCreate = async () => {
-    if (!lessonId) {
+    if (!topicId) {
       showToast("Please select or create a lesson in the left sidebar first.", "error", "Lesson Required");
       return;
     }
     try {
       const safeOrder = typeof order === "number" && !isNaN(order) && order > 0 ? order : 1;
       await createContent.mutateAsync({
-        lessonId,
+        topicId,
         type: "HTML",
         order: safeOrder,
         title: alt || "Image",

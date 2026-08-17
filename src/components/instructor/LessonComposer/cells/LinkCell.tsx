@@ -86,7 +86,7 @@ export function LinkCell({
     try {
       await updateContent.mutateAsync({
         contentId: content.id,
-        contentData: { title, externalUrl, lessonId: content.lessonId },
+        contentData: { title, externalUrl, topicId: content.topicId },
       });
       setMode("view");
     } catch (error) {
@@ -103,7 +103,7 @@ export function LinkCell({
     if (!confirmed) return;
 
     try {
-      await deleteContent.mutateAsync({ contentId: content.id, lessonId: content.lessonId });
+      await deleteContent.mutateAsync({ contentId: content.id, topicId: content.topicId });
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to delete this link."), "error", "Delete failed");
     }
@@ -236,7 +236,7 @@ export function LinkCell({
   );
 }
 
-export function CreateLinkForm({ lessonId, order, onCreated, onCancel }: CreateCellFormProps) {
+export function CreateLinkForm({ topicId, order, onCreated, onCancel }: CreateCellFormProps) {
   const [title, setTitle] = useState("");
   const [externalUrl, setExternalUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -270,12 +270,12 @@ export function CreateLinkForm({ lessonId, order, onCreated, onCancel }: CreateC
   };
 
   const handleCreate = async () => {
-    if (!lessonId) {
+    if (!topicId) {
       showToast("Please select or create a lesson in the left sidebar first.", "error", "Lesson Required");
       return;
     }
     try {
-      await createContent.mutateAsync({ lessonId, type: "LINK", order, title, externalUrl });
+      await createContent.mutateAsync({ topicId, type: "LINK", order, title, externalUrl });
       onCreated();
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to add this link."), "error", "Add failed");
