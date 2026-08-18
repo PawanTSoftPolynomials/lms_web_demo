@@ -54,3 +54,14 @@ export const deleteTopic =
 
     return response.data;
   };
+
+export const reorderTopics =
+  async (lessonId, topics) => {
+    const response =
+      await api.patch(
+        "/topics/reorder",
+        { lessonId, topics }
+      );
+
+    return response.data;
+  };

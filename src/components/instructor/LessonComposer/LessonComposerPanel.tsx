@@ -1,27 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  AlignCenter,
-  AlignJustify,
-  AlignLeft,
-  AlignRight,
-  Bold,
   Code,
   FileText,
   Image as ImageIcon,
-  Italic,
+  Layers,
   Link as LinkIcon,
-  List,
-  ListOrdered,
   MoreHorizontal,
-  Plus,
-  Redo,
-  Strikethrough,
   Table,
   Type,
-  Underline,
-  Undo,
   Video as VideoIcon,
 } from "lucide-react";
 
@@ -54,6 +42,8 @@ interface LessonComposerPanelProps {
   topicId: string;
   selectedCellId?: string | null;
   onSelectCell?: (contentId: string) => void;
+  /** Bump this (e.g. a counter) to immediately open the Add Content picker for the current topic — used by the Course Map's "Add Content" action so it never has to navigate to a separate page. */
+  autoOpenAddSignal?: number;
 }
 
 /** Determines block badge representation (label & color variant) for target UI */
@@ -74,15 +64,21 @@ function getBlockBadge(content: ContentRow): { text: string; variant: "heading" 
       }
       return { text: "P", variant: "text" };
     }
+    case "IMAGE":
+      return { text: "IMG", variant: "image" };
     case "VIDEO":
       return { text: "VID", variant: "video" };
     case "LINK":
       return { text: "LINK", variant: "default" };
     case "DOCUMENT":
-    case "PRESENTATION":
+    case "FILE":
       return { text: "DOC", variant: "document" };
+    case "PRESENTATION":
+      return { text: "SLIDE", variant: "document" };
+    case "CODE":
+      return { text: "</>", variant: "code" };
     default:
-      return { text: "BLOCK", variant: "default" };
+      return { text: (content.type || "FILE").toUpperCase().slice(0, 4), variant: "default" };
   }
 }
 
@@ -98,15 +94,27 @@ function renderCell(content: ContentRow, actionProps: CellActionProps) {
         default:
           return <TextCell content={content} {...actionProps} />;
       }
+    case "IMAGE":
+      return <ImageCell content={content} {...actionProps} />;
     case "VIDEO":
       return <VideoCell content={content} {...actionProps} />;
     case "LINK":
       return <LinkCell content={content} {...actionProps} />;
     case "DOCUMENT":
+    case "FILE":
       return (
         <DocumentCell
           content={content}
-          cellType={CELL_TYPES.find((c) => c.id === "document")!}
+          cellType={
+            CELL_TYPES.find((c) => c.id === "document") || {
+              id: "document",
+              label: "Document",
+              description: "An uploaded document or file.",
+              icon: FileText,
+              contentType: "DOCUMENT",
+              supportedByApiToday: true,
+            }
+          }
           {...actionProps}
         />
       );
@@ -114,20 +122,36 @@ function renderCell(content: ContentRow, actionProps: CellActionProps) {
       return (
         <DocumentCell
           content={content}
-          cellType={CELL_TYPES.find((c) => c.id === "presentation")!}
+          cellType={
+            CELL_TYPES.find((c) => c.id === "presentation") || {
+              id: "presentation",
+              label: "Presentation",
+              description: "A presentation slide deck or PPTX file.",
+              icon: Layers,
+              contentType: "PRESENTATION",
+              supportedByApiToday: true,
+            }
+          }
           {...actionProps}
         />
       );
     default:
+      if (content.htmlContent) {
+        return <TextCell content={content} {...actionProps} />;
+      }
       return (
-        <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-950 p-5">
-          <p className="text-sm font-semibold text-white">
-            Unsupported content type: {content.type}
-          </p>
-          <p className="mt-1 text-xs text-slate-400">
-            {content.title || "Untitled"}
-          </p>
-        </div>
+        <DocumentCell
+          content={content}
+          cellType={{
+            id: "document",
+            label: content.type ? content.type.charAt(0) + content.type.slice(1).toLowerCase() : "File",
+            description: "Uploaded file resource.",
+            icon: FileText,
+            contentType: (content.type as any) || "DOCUMENT",
+            supportedByApiToday: true,
+          }}
+          {...actionProps}
+        />
       );
   }
 }
@@ -136,6 +160,7 @@ export function LessonComposerPanel({
   topicId,
   selectedCellId,
   onSelectCell,
+  autoOpenAddSignal,
 }: LessonComposerPanelProps) {
   const { data: contents = [], isLoading, isError } = useContents(topicId);
   const [insertOrder, setInsertOrder] = useState<number | null>(null);
@@ -203,13 +228,24 @@ export function LessonComposerPanel({
     }
   };
 
-  const [activeFormat, setActiveFormat] = useState({
-    blockType: "Paragraph",
-    bold: false,
-    italic: false,
-    underline: false,
-    align: "left",
-  });
+  const validOrders = (contents || [])
+    .map((c: ContentRow) => (typeof c.order === "number" && !isNaN(c.order) && c.order > 0 ? c.order : 0))
+    .filter((o: number) => o > 0);
+
+  const nextOrder = validOrders.length > 0 ? Math.max(...validOrders) + 1 : (contents.length > 0 ? contents.length + 1 : 1);
+
+  // Lets the Course Map's "Add Content" action open this topic's Add
+  // Content picker immediately, without a second click once the topic
+  // becomes the active composer view.
+  const handledAutoOpenSignal = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (autoOpenAddSignal === undefined || autoOpenAddSignal === null) return;
+    if (isLoading) return;
+    if (handledAutoOpenSignal.current === autoOpenAddSignal) return;
+    handledAutoOpenSignal.current = autoOpenAddSignal;
+    openAddCell(nextOrder);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpenAddSignal, isLoading]);
 
   if (isLoading) {
     return (
@@ -229,12 +265,6 @@ export function LessonComposerPanel({
     );
   }
 
-  const validOrders = (contents || [])
-    .map((c: ContentRow) => (typeof c.order === "number" && !isNaN(c.order) && c.order > 0 ? c.order : 0))
-    .filter((o: number) => o > 0);
-
-  const nextOrder = validOrders.length > 0 ? Math.max(...validOrders) + 1 : (contents.length > 0 ? contents.length + 1 : 1);
-
   const handleDuplicate = async (content: ContentRow) => {
     setDuplicatingId(content.id);
     try {
@@ -248,184 +278,6 @@ export function LessonComposerPanel({
 
   return (
     <div className="space-y-5">
-      {/* Target UI Toolbar Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-2xl border border-slate-800 bg-slate-950 p-2 sm:p-2.5 shadow-md text-slate-300">
-        {/* Left Formatting Group — Only visible when Text/Markdown is selected or no cell selected */}
-        {(() => {
-          const selectedCell = (contents || []).find((c: ContentRow) => c.id === effectiveSelectedId);
-          const showTextToolbar = !selectedCell || selectedCell.type === "HTML" || selectedCell.type === "TEXT" || selectedCell.type === "HEADING";
-          if (!showTextToolbar) return <div className="text-xs font-semibold text-slate-400 px-2">{selectedCell.title || selectedCell.type} Selected</div>;
-          return (
-            <div className="flex flex-wrap items-center gap-1">
-              {/* Undo / Redo */}
-              <button
-                type="button"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                title="Undo"
-              >
-                <Undo size={14} />
-              </button>
-              <button
-                type="button"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                title="Redo"
-              >
-                <Redo size={14} />
-              </button>
-
-              <div className="h-4 w-px bg-slate-800 mx-1" />
-
-              {/* Block Type Dropdown */}
-              <select
-                value={activeFormat.blockType}
-                onChange={(e) => setActiveFormat({ ...activeFormat, blockType: e.target.value })}
-                className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-xs font-bold text-white outline-none focus:border-orange-500 cursor-pointer"
-              >
-                <option value="Paragraph">Paragraph</option>
-                <option value="Heading 1">Heading 1 (H1)</option>
-                <option value="Heading 2">Heading 2 (H2)</option>
-                <option value="Heading 3">Heading 3 (H3)</option>
-                <option value="Code">Code Block</option>
-              </select>
-
-              <div className="h-4 w-px bg-slate-800 mx-1" />
-
-              {/* Bold, Italic, Underline, Strikethrough */}
-              <button
-                type="button"
-                onClick={() => setActiveFormat({ ...activeFormat, bold: !activeFormat.bold })}
-                className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition cursor-pointer",
-                  activeFormat.bold ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                )}
-                title="Bold"
-              >
-                <Bold size={14} />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveFormat({ ...activeFormat, italic: !activeFormat.italic })}
-                className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition cursor-pointer",
-                  activeFormat.italic ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                )}
-                title="Italic"
-              >
-                <Italic size={14} />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveFormat({ ...activeFormat, underline: !activeFormat.underline })}
-                className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition cursor-pointer",
-                  activeFormat.underline ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                )}
-                title="Underline"
-              >
-                <Underline size={14} />
-              </button>
-
-              <button
-                type="button"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                title="Strikethrough"
-              >
-                <Strikethrough size={14} />
-              </button>
-
-              <div className="h-4 w-px bg-slate-800 mx-1" />
-
-              {/* Text Color */}
-              <button
-                type="button"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-orange-400 hover:bg-slate-800 transition cursor-pointer font-black text-sm"
-                title="Text Color"
-              >
-                A<span className="text-[9px] translate-y-1">▼</span>
-              </button>
-
-              <div className="h-4 w-px bg-slate-800 mx-1" />
-
-              {/* Alignment */}
-              <button
-                type="button"
-                onClick={() => setActiveFormat({ ...activeFormat, align: "left" })}
-                className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-lg transition cursor-pointer",
-                  activeFormat.align === "left" ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                )}
-                title="Align Left"
-              >
-                <AlignLeft size={14} />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveFormat({ ...activeFormat, align: "center" })}
-                className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-lg transition cursor-pointer",
-                  activeFormat.align === "center" ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                )}
-                title="Align Center"
-              >
-                <AlignCenter size={14} />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveFormat({ ...activeFormat, align: "right" })}
-                className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-lg transition cursor-pointer",
-                  activeFormat.align === "right" ? "bg-orange-500 text-slate-950" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                )}
-                title="Align Right"
-              >
-                <AlignRight size={14} />
-              </button>
-
-              <button
-                type="button"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                title="Justify"
-              >
-                <AlignJustify size={14} />
-              </button>
-
-              <div className="h-4 w-px bg-slate-800 mx-1" />
-
-              {/* Lists */}
-              <button
-                type="button"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                title="Bullet List"
-              >
-                <List size={14} />
-              </button>
-
-              <button
-                type="button"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                title="Numbered List"
-              >
-                <ListOrdered size={14} />
-              </button>
-            </div>
-          );
-        })()}
-
-        {/* Right Add Content Button */}
-        <button
-          type="button"
-          onClick={() => openAddCell(nextOrder)}
-          className="flex items-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-3.5 py-1.5 transition shadow-sm cursor-pointer shrink-0"
-        >
-          <Plus size={14} className="stroke-[3]" />
-          <span>Add Content</span>
-        </button>
-      </div>
-
       {/* Canvas */}
       {!topicId ? (
         <div className="rounded-2xl border-2 border-dashed border-amber-500/30 bg-amber-500/5 p-12 text-center">
@@ -445,22 +297,24 @@ export function LessonComposerPanel({
             No content in this lesson yet.
           </p>
           <p className="mt-1 text-xs text-slate-500">
-            Click here or use the toolbar above to add your first content block.
+            Click here to add your first content block.
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="rounded-2xl border border-slate-800/80 bg-slate-950/60 p-6 sm:p-8 md:p-10 shadow-lg space-y-2">
           {sortByOrder(contents).map((content: ContentRow) => {
             const badge = getBlockBadge(content);
             const isSelected = effectiveSelectedId === content.id;
+            const isHeadingBlock = badge.variant === "heading";
 
             return (
               <div
                 key={content.id}
                 onClick={() => handleSelectCell(content.id)}
                 className={cn(
-                  "cursor-pointer rounded-2xl transition-all duration-150",
-                  isSelected && "ring-2 ring-orange-500 ring-offset-2 ring-offset-slate-950"
+                  "cursor-pointer transition-all duration-150 rounded-xl",
+                  isHeadingBlock && "pt-4 sm:pt-6 border-t border-slate-800/60 first:pt-0 first:border-t-0 mt-3 first:mt-0",
+                  isSelected && "ring-2 ring-orange-500/80 ring-offset-2 ring-offset-slate-950"
                 )}
               >
                 {renderCell(content, {
@@ -478,17 +332,6 @@ export function LessonComposerPanel({
           })}
         </div>
       )}
-
-      {/* Target UI Bottom Add Content Block Zone */}
-      <div
-        onClick={() => openAddCell(nextOrder)}
-        className="rounded-2xl border-2 border-dashed border-slate-800 hover:border-orange-500/60 bg-slate-950/30 p-4 text-center transition cursor-pointer group flex items-center justify-center gap-2"
-      >
-        <Plus size={16} className="text-orange-500 group-hover:scale-110 transition" />
-        <span className="text-xs font-black uppercase tracking-wider text-slate-400 group-hover:text-orange-400 transition">
-          Add Content Block
-        </span>
-      </div>
 
       <AddCellModal
         topicId={topicId}

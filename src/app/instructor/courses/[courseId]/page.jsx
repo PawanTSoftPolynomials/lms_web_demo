@@ -27,33 +27,38 @@ import {
   Home,
   CheckCircle2,
   ClipboardList,
+  PanelLeftOpen,
 } from "lucide-react";
 
 import Loader from "@/components/common/Loader";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
 import { useModules } from "@/hooks/queries/instructor/useModules";
 import { useUpdateCourse } from "@/hooks/queries/instructor/useUpdateCourse";
-import { useUpdateModule } from "@/hooks/queries/instructor/useUpdateModule";
 import { useUpdateLesson } from "@/hooks/queries/instructor/useUpdateLesson";
 import { useDeleteModule } from "@/hooks/queries/instructor/useDeleteModule";
 import { useDeleteCourse } from "@/hooks/queries/instructor/useDeleteCourse";
-import { useUpdateCourseStatus } from "@/hooks/queries/instructor/useUpdateCourseStatus";
+import { usePublishCourse } from "@/hooks/queries/instructor/usePublishCourse";
+import { useUnpublishCourse } from "@/hooks/queries/instructor/useUnpublishCourse";
+import { useArchiveCourse } from "@/hooks/queries/instructor/useArchiveCourse";
+import { useRestoreCourse } from "@/hooks/queries/instructor/useRestoreCourse";
 import { useDeleteLesson } from "@/hooks/queries/instructor/useDeleteLesson";
+import { useDeleteTopic } from "@/hooks/queries/instructor/useDeleteTopic";
 import { useDeleteContent } from "@/hooks/queries/instructor/useDeleteContent";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useConceptMastery } from "@/hooks/queries/instructor/useInstructorDashboard";
 import { useToast } from "@/components/ui/ToastProvider";
 import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
-import { BlockSettingsPanel } from "@/components/instructor/LessonComposer/BlockSettingsPanel";
+import { validateCoursePublish, duplicateCourse } from "@/services/course.service";
 
 import { CourseComposerHeader } from "@/components/instructor/courses/CourseComposerHeader";
 import { CourseComposerSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
 import { CourseOverviewView } from "@/components/instructor/courses/CourseOverviewView";
 import { LessonOverviewView } from "@/components/instructor/courses/LessonOverviewView";
-import { ModuleCellComposer } from "@/components/instructor/courses/ModuleCellComposer";
-import { AddCellTypeModal } from "@/components/instructor/courses/AddCellTypeModal";
-import { DynamicEditFormModal } from "@/components/instructor/courses/DynamicEditFormModal";
+import { EntityFormModal } from "@/components/instructor/courses/EntityFormModal";
+import { PublishValidationModal } from "@/components/instructor/courses/PublishValidationModal";
+import { UnpublishModal } from "@/components/instructor/courses/UnpublishModal";
+import { DeleteCourseModal } from "@/components/instructor/courses/DeleteCourseModal";
 
 /** Finds a lesson and its parent module by lessonId across all modules */
 function findModuleAndLessonById(modules, lessonId) {
@@ -86,14 +91,20 @@ export default function CourseDetailsPage() {
 
   const deleteModuleMutation = useDeleteModule();
   const deleteCourseMutation = useDeleteCourse();
-  const updateCourseStatusMutation = useUpdateCourseStatus();
+  const publishCourseMutation = usePublishCourse();
+  const unpublishCourseMutation = useUnpublishCourse();
+  const archiveCourseMutation = useArchiveCourse();
+  const restoreCourseMutation = useRestoreCourse();
   const deleteLessonMutation = useDeleteLesson();
+  const deleteTopicMutation = useDeleteTopic();
   const deleteContentMutation = useDeleteContent();
+  const updateCourseMutation = useUpdateCourse();
+  const updateLessonMutation = useUpdateLesson();
   const queryClient = useQueryClient();
 
   const { data: conceptMasteryData = [] } = useConceptMastery(courseId);
 
-  // Global View Mode: 'rendered' | 'edit' (Matching composerV2.js)
+  // Global View Mode: 'rendered' | 'edit'
   const [globalMode, setGlobalMode] = useState("rendered");
 
   // Active Workspace Selection: 'course' | 'lesson' | 'module' | 'topic'
@@ -106,27 +117,34 @@ export default function CourseDetailsPage() {
   // Edit Mode for Metadata Headers
   const [isEditingCourse, setIsEditingCourse] = useState(false);
   const [isEditingLesson, setIsEditingLesson] = useState(false);
-  const [isEditingModule, setIsEditingModule] = useState(false);
 
   // Editable Form States
   const [courseForm, setCourseForm] = useState({});
   const [lessonForm, setLessonForm] = useState({});
-  const [moduleForm, setModuleForm] = useState({});
 
-  // Modals state
-  const [isAddCellModalOpen, setIsAddCellModalOpen] = useState(false);
-  const [addCellInsertOrder, setAddCellInsertOrder] = useState(1);
-  const [addCellPosition, setAddCellPosition] = useState("below");
+  // Module/Lesson/Topic modal
+  const [entityModalState, setEntityModalState] = useState(null);
+  const openEntityModal = (config) => setEntityModalState(config);
+  const closeEntityModal = () => setEntityModalState(null);
 
-  const [isDynamicEditFormOpen, setIsDynamicEditFormOpen] = useState(false);
-  const [activeEditingCell, setActiveEditingCell] = useState(null);
+  // Lifecycle Modal States
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [publishValidation, setPublishValidation] = useState(null);
+  const [isValidatingPublish, setIsValidatingPublish] = useState(false);
+
+  const [unpublishModalOpen, setUnpublishModalOpen] = useState(false);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteHasStudentData, setDeleteHasStudentData] = useState(false);
+
+  // Auto-open signal for Add Content picker
+  const [autoOpenAddSignal, setAutoOpenAddSignal] = useState(0);
 
   // Mobile Drawer State
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  const updateCourseMutation = useUpdateCourse();
-  const updateModuleMutation = useUpdateModule();
-  const updateLessonMutation = useUpdateLesson();
+  // Desktop Course Map collapse state
+  const [isCourseMapOpen, setIsCourseMapOpen] = useState(true);
 
   // Sync course data into form state
   useEffect(() => {
@@ -177,10 +195,6 @@ export default function CourseDetailsPage() {
     if (lessonId) {
       setComposeLessonId(lessonId);
     }
-    setModuleForm({
-      title: mod.title || "",
-      subtitle: mod.subtitle || mod.description || "",
-    });
     setMobileSidebarOpen(false);
   };
 
@@ -192,13 +206,51 @@ export default function CourseDetailsPage() {
     setMobileSidebarOpen(false);
   };
 
+  const handleSelectContent = (content, topic, lesson, mod) => {
+    setComposeTopicId(topic.id);
+    setComposeLessonId(lesson.id);
+    setComposeModuleId(mod.id);
+    setComposerMode("topic");
+    setSelectedCellId(content.id);
+    setMobileSidebarOpen(false);
+  };
+
+  const handleAddContentFromSidebar = (topicId, lessonId, moduleId) => {
+    setComposeTopicId(topicId);
+    if (lessonId) setComposeLessonId(lessonId);
+    if (moduleId) setComposeModuleId(moduleId);
+    setComposerMode("topic");
+    setAutoOpenAddSignal((n) => n + 1);
+    setMobileSidebarOpen(false);
+  };
+
+  const handleEntityCreated = ({ entity, parentId, moduleId, created }) => {
+    if (!created?.id) return;
+    if (entity === "module") {
+      setComposeModuleId(created.id);
+      setComposeLessonId(null);
+      setComposeTopicId(null);
+      setComposerMode("module");
+    } else if (entity === "lesson") {
+      setComposeModuleId(parentId);
+      setComposeLessonId(created.id);
+      setComposeTopicId(null);
+      setComposerMode("lesson");
+    } else if (entity === "topic") {
+      if (moduleId) setComposeModuleId(moduleId);
+      setComposeLessonId(parentId);
+      setComposeTopicId(created.id);
+      setComposerMode("topic");
+    }
+  };
+
   const { module: composingModule, lesson: composingLesson } =
     findModuleAndLessonById(modules, composeLessonId);
 
   const activeModuleObj = composingModule || modules.find((m) => m.id === composeModuleId);
   const composingTopic = composingLesson?.topics?.find((t) => t.id === composeTopicId);
 
-  // Delete Handlers
+  // Delete Handlers for structural children
   const handleDeleteModule = async (e, mod) => {
     if (e) e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this module and all its contents?")) return;
@@ -223,13 +275,133 @@ export default function CourseDetailsPage() {
     }
   };
 
-  const handleTogglePublish = async () => {
-    const nextStatus = course?.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED";
+  const handleDeleteTopic = async (e, topic, lessonId) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this topic and all its contents?")) return;
     try {
-      await updateCourseStatusMutation.mutateAsync({ courseId, status: nextStatus });
-      showToast(`Course is now ${nextStatus.toLowerCase()}`, "success");
+      await deleteTopicMutation.mutateAsync({ topicId: topic.id, lessonId });
+      showToast("Topic deleted successfully", "success");
+      if (composeTopicId === topic.id) {
+        setComposeTopicId(null);
+        setComposerMode("lesson");
+      }
     } catch (err) {
-      showToast("Failed to update status", "error");
+      showToast("Failed to delete topic", "error");
+    }
+  };
+
+  const handleDeleteContent = async (e, content, topicId) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this content?")) return;
+    try {
+      await deleteContentMutation.mutateAsync({ contentId: content.id, topicId });
+      showToast("Content deleted successfully", "success");
+      if (selectedCellId === content.id) setSelectedCellId(null);
+    } catch (err) {
+      showToast("Failed to delete content", "error");
+    }
+  };
+
+  // --- LIFECYCLE ACTION HANDLERS ---
+
+  // 1. Publish Modal & Handler
+  const handleOpenPublishModal = async () => {
+    setPublishModalOpen(true);
+    setIsValidatingPublish(true);
+    try {
+      const valData = await validateCoursePublish(courseId);
+      setPublishValidation(valData);
+    } catch (err) {
+      showToast("Failed to validate course for publish", "error");
+    } finally {
+      setIsValidatingPublish(false);
+    }
+  };
+
+  const handleConfirmPublish = async () => {
+    try {
+      await publishCourseMutation.mutateAsync(courseId);
+      setPublishModalOpen(false);
+      showToast("Course published successfully!", "success", "Published");
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || "Failed to publish course";
+      showToast(msg, "error");
+    }
+  };
+
+  // 2. Unpublish Modal & Handler
+  const handleOpenUnpublishModal = () => {
+    setUnpublishModalOpen(true);
+  };
+
+  const handleConfirmUnpublish = async () => {
+    try {
+      await unpublishCourseMutation.mutateAsync(courseId);
+      setUnpublishModalOpen(false);
+      showToast("Course unpublished (set to DRAFT)", "success", "Unpublished");
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || "Failed to unpublish course";
+      showToast(msg, "error");
+    }
+  };
+
+  // 3. Delete Modal & Handler
+  const handleOpenDeleteModal = () => {
+    setDeleteHasStudentData(false);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDeleteCourse = async () => {
+    try {
+      await deleteCourseMutation.mutateAsync(courseId);
+      setDeleteModalOpen(false);
+      showToast("Course deleted successfully", "success");
+      router.push("/instructor/courses");
+    } catch (err) {
+      const errRes = err?.response?.data;
+      if (errRes?.code === "COURSE_HAS_STUDENT_DATA" || errRes?.hasStudentData) {
+        setDeleteHasStudentData(true);
+      } else {
+        const msg = errRes?.message || err?.message || "Failed to delete course";
+        showToast(msg, "error");
+      }
+    }
+  };
+
+  // 4. Archive Handler
+  const handleConfirmArchiveCourse = async () => {
+    try {
+      await archiveCourseMutation.mutateAsync(courseId);
+      setDeleteModalOpen(false);
+      showToast("Course archived successfully", "success");
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || "Failed to archive course";
+      showToast(msg, "error");
+    }
+  };
+
+  // 5. Restore Handler
+  const handleConfirmRestoreCourse = async () => {
+    try {
+      await restoreCourseMutation.mutateAsync(courseId);
+      showToast("Course restored to DRAFT successfully", "success");
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || "Failed to restore course";
+      showToast(msg, "error");
+    }
+  };
+
+  // 6. Duplicate Handler
+  const handleDuplicateCourse = async () => {
+    try {
+      const res = await duplicateCourse(courseId);
+      const newCourse = res?.data || res;
+      showToast("Course duplicated successfully!", "success");
+      if (newCourse?.id) {
+        router.push(`/instructor/courses/${newCourse.id}`);
+      }
+    } catch (err) {
+      showToast("Failed to duplicate course", "error");
     }
   };
 
@@ -258,11 +430,18 @@ export default function CourseDetailsPage() {
     );
   }
 
-  const isPublished = course.status === "PUBLISHED" || course.status === "Published";
+  const isPublished = course.status === "PUBLISHED";
+
+  const courseMapEffectivelyOpen = mobileSidebarOpen || isCourseMapOpen;
+  const sidebarWrapperClassName = mobileSidebarOpen
+    ? "fixed inset-y-0 left-0 z-50 w-80 bg-slate-950 p-4 shadow-2xl block shrink-0"
+    : `hidden lg:block shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${
+        isCourseMapOpen ? "w-full lg:w-[320px]" : "w-full lg:w-0"
+      }`;
 
   return (
     <div className="space-y-4 pb-16 animate-fade-in duration-300">
-      {/* 1. APP HEADER (Matching composerV2.html app-header) */}
+      {/* 1. APP HEADER */}
       <CourseComposerHeader
         course={course}
         courseId={courseId}
@@ -278,33 +457,48 @@ export default function CourseDetailsPage() {
         }}
         onImportCourse={() => router.push("/instructor/courses/import")}
         isSaving={updateCourseMutation.isPending}
-        isPublished={isPublished}
+        onPublishClick={handleOpenPublishModal}
+        onUnpublishClick={handleOpenUnpublishModal}
+        onDuplicateClick={handleDuplicateCourse}
+        onArchiveClick={handleConfirmArchiveCourse}
+        onRestoreClick={handleConfirmRestoreCourse}
+        onDeleteClick={handleOpenDeleteModal}
         onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
       />
 
-      {/* 2. MAIN WORKSPACE CONTAINER (composer-container grid: 320px sidebar + notebook main workspace) */}
-      <div className="flex flex-col lg:flex-row gap-5 items-start">
-        {/* Left Sidebar Panel (Desktop + Mobile Slide-out Drawer) */}
-        <div
-          className={`${
-            mobileSidebarOpen ? "fixed inset-y-0 left-0 z-50 w-80 bg-slate-950 p-4 shadow-2xl block" : "hidden lg:block"
-          } w-full lg:w-[320px] shrink-0`}
-        >
+      {/* 2. MAIN WORKSPACE CONTAINER */}
+      <div className="relative flex flex-col lg:flex-row gap-5 items-start">
+        {/* Left Sidebar Panel */}
+        <div className={sidebarWrapperClassName}>
           <CourseComposerSidebar
             modules={modules}
             composerMode={composerMode}
             composeModuleId={composeModuleId}
             composeLessonId={composeLessonId}
             composeTopicId={composeTopicId}
+            selectedCellId={selectedCellId}
+            isOpen={courseMapEffectivelyOpen}
+            onToggleOpen={() => setIsCourseMapOpen((v) => !v)}
             onSelectCourseOverview={handleSelectCourseOverview}
             onSelectLesson={handleSelectLesson}
             onSelectModule={handleSelectModule}
             onSelectTopic={handleSelectTopic}
-            onAddLesson={(targetModuleId) => router.push(`/instructor/lessons/create/${targetModuleId || composeModuleId || modules[0]?.id || courseId}`)}
-            onAddModule={() => router.push(`/instructor/modules/create/${courseId}`)}
-            onAddTopic={(lessonId) => router.push(`/instructor/topics/create/${lessonId}`)}
+            onSelectContent={handleSelectContent}
+            onAddModule={() => openEntityModal({ entity: "module", mode: "create", courseId })}
+            onEditModule={(mod) => openEntityModal({ entity: "module", mode: "edit", entityData: mod })}
+            onAddLesson={(targetModuleId) =>
+              openEntityModal({ entity: "lesson", mode: "create", parentId: targetModuleId || composeModuleId || modules[0]?.id })
+            }
+            onEditLesson={(lesson, moduleId) => openEntityModal({ entity: "lesson", mode: "edit", entityData: lesson, parentId: moduleId })}
+            onAddTopic={(lessonId) => openEntityModal({ entity: "topic", mode: "create", parentId: lessonId })}
+            onEditTopic={(topic, lessonId, moduleId) =>
+              openEntityModal({ entity: "topic", mode: "edit", entityData: topic, parentId: lessonId, moduleId })
+            }
+            onAddContent={handleAddContentFromSidebar}
             onDeleteLesson={handleDeleteLesson}
             onDeleteModule={handleDeleteModule}
+            onDeleteTopic={handleDeleteTopic}
+            onDeleteContent={handleDeleteContent}
           />
         </div>
 
@@ -312,19 +506,32 @@ export default function CourseDetailsPage() {
         <main className="flex-1 min-w-0 w-full space-y-4">
           {/* Workspace Header & Breadcrumbs */}
           <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-            <div>
-              <div className="text-xs font-semibold text-orange-400 mb-0.5">
-                {composerMode === "course" && `Course Overview`}
-                {composerMode === "lesson" && `Lesson: ${composingLesson?.title || "Lesson Overview"}`}
-                {composerMode === "module" && `Module: ${activeModuleObj?.title || "Module Cells"}`}
-                {composerMode === "topic" && `Topic: ${composingTopic?.title || "Topic Composer"}`}
+            <div className="flex items-center gap-3">
+              {!isCourseMapOpen && !mobileSidebarOpen && (
+                <button
+                  type="button"
+                  onClick={() => setIsCourseMapOpen(true)}
+                  className="hidden lg:flex shrink-0 h-9 w-9 items-center justify-center rounded-full border border-orange-500/50 bg-slate-900 text-orange-400 shadow-md transition hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-300 cursor-pointer"
+                  aria-label="Show course map"
+                  title="Show course map"
+                >
+                  <PanelLeftOpen size={16} />
+                </button>
+              )}
+              <div>
+                <div className="text-xs font-semibold text-orange-400 mb-0.5">
+                  {composerMode === "course" && `Course Overview`}
+                  {composerMode === "lesson" && `Lesson: ${composingLesson?.title || "Lesson Overview"}`}
+                  {composerMode === "module" && `Module: ${activeModuleObj?.title || "Module Cells"}`}
+                  {composerMode === "topic" && `Topic: ${composingTopic?.title || "Topic Composer"}`}
+                </div>
+                <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                  {composerMode === "course" && (course.title || "Course Overview Header")}
+                  {composerMode === "lesson" && (composingLesson?.title || "Lesson Overview Header")}
+                  {composerMode === "module" && (activeModuleObj?.title || "Module Cells Notebook")}
+                  {composerMode === "topic" && (composingTopic?.title || "Topic Cells Notebook")}
+                </h2>
               </div>
-              <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
-                {composerMode === "course" && (course.title || "Course Overview Header")}
-                {composerMode === "lesson" && (composingLesson?.title || "Lesson Overview Header")}
-                {composerMode === "module" && (activeModuleObj?.title || "Module Cells Notebook")}
-                {composerMode === "topic" && (composingTopic?.title || "Topic Cells Notebook")}
-              </h2>
             </div>
           </div>
 
@@ -349,7 +556,7 @@ export default function CourseDetailsPage() {
                 isSaving={updateCourseMutation.isPending}
                 modules={modules}
                 onSelectModule={handleSelectModule}
-                onAddModule={() => router.push(`/instructor/modules/create/${courseId}`)}
+                onAddModule={() => openEntityModal({ entity: "module", mode: "create", courseId })}
               />
             )}
 
@@ -377,7 +584,7 @@ export default function CourseDetailsPage() {
                   (m.lessons || []).some((l) => l.id === composeLessonId)
                 )}
                 onSelectModule={handleSelectModule}
-                onAddModule={() => router.push(`/instructor/modules/create/${courseId}`)}
+                onAddModule={() => openEntityModal({ entity: "module", mode: "create", courseId })}
               />
             )}
 
@@ -401,32 +608,51 @@ export default function CourseDetailsPage() {
                 topicId={composeTopicId}
                 selectedCellId={selectedCellId}
                 onSelectCell={setSelectedCellId}
+                autoOpenAddSignal={autoOpenAddSignal}
               />
             )}
           </div>
         </main>
       </div>
 
-      {/* Modals Sheet & Property Editor Popups */}
-      <AddCellTypeModal
-        isOpen={isAddCellModalOpen}
-        onClose={() => setIsAddCellModalOpen(false)}
-        position={addCellPosition}
-        setPosition={setAddCellPosition}
-        onConfirmAddCell={(cellType, pos) => {
-          setIsAddCellModalOpen(false);
-          showToast(`Added ${cellType} cell ${pos}!`, "success");
-        }}
+      {/* Module/Lesson/Topic create+edit modal */}
+      <EntityFormModal
+        state={entityModalState}
+        onClose={closeEntityModal}
+        onCreated={handleEntityCreated}
       />
 
-      <DynamicEditFormModal
-        isOpen={isDynamicEditFormOpen}
-        onClose={() => setIsDynamicEditFormOpen(false)}
-        cellData={activeEditingCell}
-        onSave={(data) => {
-          setIsDynamicEditFormOpen(false);
-          showToast("Properties saved!", "success");
-        }}
+      {/* Publish Validation Modal */}
+      <PublishValidationModal
+        isOpen={publishModalOpen}
+        onClose={() => setPublishModalOpen(false)}
+        onPublish={handleConfirmPublish}
+        validation={publishValidation}
+        isValidating={isValidatingPublish}
+        isPublishing={publishCourseMutation.isPending}
+        courseTitle={course?.title}
+      />
+
+      {/* Unpublish Confirmation Modal */}
+      <UnpublishModal
+        isOpen={unpublishModalOpen}
+        onClose={() => setUnpublishModalOpen(false)}
+        onUnpublish={handleConfirmUnpublish}
+        isUnpublishing={unpublishCourseMutation.isPending}
+        courseTitle={course?.title}
+      />
+
+      {/* Delete / Archive Safety Modal */}
+      <DeleteCourseModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirmDelete={handleConfirmDeleteCourse}
+        onConfirmArchive={handleConfirmArchiveCourse}
+        isDeleting={deleteCourseMutation.isPending}
+        isArchiving={archiveCourseMutation.isPending}
+        courseTitle={course?.title}
+        hasStudentData={deleteHasStudentData}
+        isPublished={isPublished}
       />
     </div>
   );

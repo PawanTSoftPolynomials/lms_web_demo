@@ -54,3 +54,14 @@ export const deleteLesson =
 
     return response.data;
   };
+
+export const reorderLessons =
+  async (moduleId, lessons) => {
+    const response =
+      await api.patch(
+        "/lessons/reorder",
+        { moduleId, lessons }
+      );
+
+    return response.data;
+  };

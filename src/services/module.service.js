@@ -58,3 +58,14 @@ export const deleteModule =
 
     return response.data;
   };
+
+export const reorderModules =
+  async (courseId, modules) => {
+    const response =
+      await api.patch(
+        "/modules/reorder",
+        { courseId, modules }
+      );
+
+    return response.data;
+  };

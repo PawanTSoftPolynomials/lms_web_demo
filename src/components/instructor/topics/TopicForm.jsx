@@ -19,6 +19,7 @@ export default function TopicForm({
                                        loading = false,
                                        contentsCount = 0,
                                        onSubmit,
+                                       compact = false,
                                    }) {
     const [formData, setFormData] =
         useState(INITIAL_FORM);
@@ -56,22 +57,7 @@ export default function TopicForm({
         onSubmit?.(formData);
     };
 
-    return (
-        <Card className="mx-auto max-w-4xl">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-white">
-                    {mode === "create"
-                        ? "Create Topic"
-                        : "Edit Topic"}
-                </h1>
-
-                <p className="mt-2 text-slate-400">
-                    {mode === "create"
-                        ? "Add a new topic to this lesson."
-                        : "Update topic details."}
-                </p>
-            </div>
-
+    const formBody = (
             <form
                 onSubmit={handleSubmit}
                 className="space-y-6"
@@ -137,6 +123,29 @@ export default function TopicForm({
                     </Button>
                 </div>
             </form>
+    );
+
+    if (compact) {
+        return formBody;
+    }
+
+    return (
+        <Card className="mx-auto max-w-4xl">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold text-white">
+                    {mode === "create"
+                        ? "Create Topic"
+                        : "Edit Topic"}
+                </h1>
+
+                <p className="mt-2 text-slate-400">
+                    {mode === "create"
+                        ? "Add a new topic to this lesson."
+                        : "Update topic details."}
+                </p>
+            </div>
+
+            {formBody}
         </Card>
     );
 }

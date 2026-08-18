@@ -1,15 +1,9 @@
 "use client";
 
 import { useState, type ComponentType } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Layers, Upload } from "lucide-react";
 
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/shadcn/sheet";
+import Modal from "@/components/ui/Modal";
 
 import { CreateTextForm } from "./cells/TextCell";
 import { CreateHeadingForm } from "./cells/HeadingCell";
@@ -46,50 +40,66 @@ const FILE_TYPES: CellTypeId[] = ["document", "presentation", "pdf"];
 const AVAILABLE_TYPES = CELL_TYPES.filter((cellType) => cellType.supportedByApiToday);
 
 /**
- * The "Add Cell" picker + per-type creation form, opened from the Canvas
- * toolbar. Only lists cell types that can actually be created against the
+ * The "Add Content" picker + per-type creation form — a single centered
+ * modal (same Modal primitive as the Module/Lesson/Topic create/edit
+ * modals), opened from the Canvas toolbar, the empty-state, Add Above/Add
+ * Below on any existing block, and the Course Map sidebar's "Add Content"
+ * action. Only lists cell types that can actually be created against the
  * live API today (`supportedByApiToday`) — Interactive Embed is excluded
  * (see cellTypes.ts for why).
  */
 export function AddCellModal({ topicId, order, open, onOpenChange }: AddCellModalProps) {
   const [selectedId, setSelectedId] = useState<CellTypeId | null>(null);
+  // Presentation only: which of the two presentation workflows the
+  // instructor picked, chosen as its own step so CreateFileForm never has
+  // to ask the same question again.
+  const [presentationChoice, setPresentationChoice] = useState<"slideshow" | "upload" | null>(null);
 
   const close = () => {
     onOpenChange(false);
     setSelectedId(null);
+    setPresentationChoice(null);
   };
 
   const selectedCellType = selectedId ? CELL_TYPES.find((c) => c.id === selectedId) ?? null : null;
   const SimpleForm = selectedId ? SIMPLE_FORMS[selectedId] : undefined;
   const isFileType = selectedId ? FILE_TYPES.includes(selectedId) : false;
+  const isPresentation = selectedId === "presentation";
+  const awaitingPresentationChoice = isPresentation && presentationChoice === null;
+
+  const title = !selectedCellType
+    ? "Add Content"
+    : awaitingPresentationChoice
+      ? "Add Presentation"
+      : `Add ${selectedCellType.label}`;
+
+  const handleBack = () => {
+    if (awaitingPresentationChoice || !isPresentation) {
+      setSelectedId(null);
+      setPresentationChoice(null);
+    } else {
+      // Presentation, past the choice step — back goes to the choice, not the type grid.
+      setPresentationChoice(null);
+    }
+  };
 
   return (
-    <Sheet
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) close();
-      }}
-    >
-      <SheetContent side="right" className="flex w-full flex-col overflow-y-auto sm:max-w-md">
-        <SheetHeader>
-          {selectedCellType && (
-            <button
-              type="button"
-              onClick={() => setSelectedId(null)}
-              className="mb-1 flex items-center gap-1.5 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <ArrowLeft className="size-3.5" />
-              Back
-            </button>
-          )}
-          <SheetTitle>{selectedCellType ? `Add ${selectedCellType.label}` : "Add Cell"}</SheetTitle>
-          <SheetDescription>
-            {selectedCellType ? selectedCellType.description : "Choose a block type to add to this lesson."}
-          </SheetDescription>
-        </SheetHeader>
+    <Modal open={open} onClose={close} title={title} size="lg">
+      <div className="max-h-[70vh] overflow-y-auto -mx-1 px-1">
+        {selectedCellType && (
+          <button
+            type="button"
+            onClick={handleBack}
+            className="mb-3 flex items-center gap-1.5 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+          >
+            <ArrowLeft className="size-3.5" />
+            Back
+          </button>
+        )}
 
-        <div className="flex-1 overflow-y-auto px-4 pb-4">
-          {!selectedCellType ? (
+        {!selectedCellType ? (
+          <>
+            <p className="mb-4 text-xs text-muted-foreground">Choose what you want to add.</p>
             <div className="grid grid-cols-2 gap-3">
               {AVAILABLE_TYPES.map((cellType) => {
                 const Icon = cellType.icon;
@@ -98,7 +108,7 @@ export function AddCellModal({ topicId, order, open, onOpenChange }: AddCellModa
                     key={cellType.id}
                     type="button"
                     onClick={() => setSelectedId(cellType.id)}
-                    className="flex flex-col items-start gap-2 rounded-xl border border-card-border bg-card p-4 text-left transition-colors hover:border-primary/50 hover:bg-muted"
+                    className="flex flex-col items-start gap-2 rounded-xl border border-card-border bg-card p-4 text-left transition-colors hover:border-primary/50 hover:bg-muted cursor-pointer"
                   >
                     <span className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500/15 to-pink-500/15 text-primary">
                       <Icon className="size-4" />
@@ -108,20 +118,50 @@ export function AddCellModal({ topicId, order, open, onOpenChange }: AddCellModa
                 );
               })}
             </div>
-          ) : SimpleForm ? (
-            <SimpleForm topicId={topicId} order={order} onCreated={close} onCancel={() => setSelectedId(null)} />
-          ) : isFileType ? (
-            <CreateFileForm
-              topicId={topicId}
-              order={order}
-              cellType={selectedCellType}
-              accept={selectedId ? FILE_TYPE_ACCEPT[selectedId] : undefined}
-              onCreated={close}
-              onCancel={() => setSelectedId(null)}
-            />
-          ) : null}
-        </div>
-      </SheetContent>
-    </Sheet>
+          </>
+        ) : awaitingPresentationChoice ? (
+          <>
+            <p className="mb-4 text-xs text-muted-foreground">How do you want to create it?</p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setPresentationChoice("slideshow")}
+                className="flex flex-col items-start gap-2 rounded-xl border border-card-border bg-card p-4 text-left transition-colors hover:border-primary/50 hover:bg-muted cursor-pointer"
+              >
+                <span className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500/15 to-pink-500/15 text-primary">
+                  <Layers className="size-4" />
+                </span>
+                <span className="text-sm font-bold text-foreground">Create Slides</span>
+                <span className="text-xs text-muted-foreground">Build the presentation inside the LMS.</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPresentationChoice("upload")}
+                className="flex flex-col items-start gap-2 rounded-xl border border-card-border bg-card p-4 text-left transition-colors hover:border-primary/50 hover:bg-muted cursor-pointer"
+              >
+                <span className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500/15 to-pink-500/15 text-primary">
+                  <Upload className="size-4" />
+                </span>
+                <span className="text-sm font-bold text-foreground">Upload PPTX</span>
+                <span className="text-xs text-muted-foreground">Upload an existing PowerPoint file.</span>
+              </button>
+            </div>
+          </>
+        ) : SimpleForm ? (
+          <SimpleForm topicId={topicId} order={order} onCreated={close} onCancel={() => setSelectedId(null)} />
+        ) : isFileType ? (
+          <CreateFileForm
+            topicId={topicId}
+            order={order}
+            cellType={selectedCellType}
+            accept={selectedId ? FILE_TYPE_ACCEPT[selectedId] : undefined}
+            presentationMode={presentationChoice ?? undefined}
+            onCreated={close}
+            onCancel={() => setSelectedId(null)}
+          />
+        ) : null}
+      </div>
+    </Modal>
   );
 }

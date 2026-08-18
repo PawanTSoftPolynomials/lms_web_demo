@@ -244,7 +244,7 @@ export function deriveDashboardStats(raw: {
   conversations: RawConversation[];
   quizzes?: RawQuiz[];
 }): DashboardStat[] {
-  const activeCourses = raw.courses.filter(isPublishedCourse).length;
+  const totalCourses = raw.courses.length;
   const draftCourses = raw.courses.filter(isDraftCourse).length;
   const students = raw.courses.reduce((sum, c) => sum + (c._count?.enrollments ?? c.studentsCount ?? 0), 0);
   const pendingReviews = raw.assignments.reduce((sum, a) => sum + (a.pendingSubmissionsCount ?? 0), 0);
@@ -258,9 +258,9 @@ export function deriveDashboardStats(raw: {
   return [
     {
       id: "active-courses",
-      label: "Active Courses",
-      value: activeCourses,
-      subtitle: "Published & live",
+      label: "My Courses",
+      value: totalCourses,
+      subtitle: "Draft, published & archived",
       icon: BookOpen,
       accent: "orange",
       href: "/instructor/courses",

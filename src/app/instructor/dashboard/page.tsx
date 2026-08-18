@@ -93,7 +93,7 @@ export default function InstructorDashboardHomePage() {
   const qa = useMyLessonQueries();
 
   // Extract needed KPIs from the stats payload
-  const activeCourses = stats.data?.find(s => s.id === "active-courses")?.value || 0;
+  const totalCourses = stats.data?.find(s => s.id === "active-courses")?.value || 0;
   const totalStudents = stats.data?.find(s => s.id === "students")?.value || 0;
   const pendingReviews = stats.data?.find(s => s.id === "pending-reviews")?.value || 0;
   const activeQuizzes = stats.data?.find(s => s.id === "active-quizzes")?.value || 0;
@@ -105,7 +105,7 @@ export default function InstructorDashboardHomePage() {
     : 0;
 
   const mobileStats = [
-    { key: "courses", label: "Courses", value: activeCourses, icon: BookOpen, color: "text-orange-400", bg: "bg-orange-500/10" },
+    { key: "courses", label: "Courses", value: totalCourses, icon: BookOpen, color: "text-orange-400", bg: "bg-orange-500/10" },
     { key: "students", label: "Students", value: totalStudents, icon: Users, color: "text-emerald-400", bg: "bg-emerald-500/10" },
     { key: "classes", label: "Today's Classes", value: todaysClasses, icon: CalendarClock, color: "text-blue-400", bg: "bg-blue-500/10" },
     { key: "pending", label: "Pending Reviews", value: pendingReviews, icon: ClipboardCheck, color: "text-amber-400", bg: "bg-amber-500/10" },
@@ -348,7 +348,7 @@ export default function InstructorDashboardHomePage() {
 
           <div className="mt-4 mb-2">
             <InstructorKPIs
-              coursesCount={Number(activeCourses)}
+              coursesCount={Number(totalCourses)}
               studentsCount={Number(totalStudents)}
               pendingAssignments={Number(pendingReviews)}
               activeQuizzes={Number(activeQuizzes)}

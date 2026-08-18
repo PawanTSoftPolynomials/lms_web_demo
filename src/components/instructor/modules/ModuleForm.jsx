@@ -18,6 +18,7 @@ export default function ModuleForm({
                                        loading = false,
                                        lessonsCount = 0,
                                        onSubmit,
+                                       compact = false,
                                    }) {
     const [formData, setFormData] =
         useState(INITIAL_FORM);
@@ -55,22 +56,7 @@ export default function ModuleForm({
         onSubmit?.(formData);
     };
 
-    return (
-        <Card className="mx-auto max-w-4xl">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold">
-                    {mode === "create"
-                         ? "Create Module"
-                         : "Edit Module"}
-                </h1>
-
-                <p className="mt-2 text-slate-400">
-                    {mode === "create"
-                        ? "Organize your course by adding a new module."
-                        : "Update the module information."}
-                </p>
-            </div>
-
+    const formBody = (
             <form
                 onSubmit={handleSubmit}
                 className="space-y-6"
@@ -152,6 +138,29 @@ export default function ModuleForm({
                     </Button>
                 </div>
             </form>
+    );
+
+    if (compact) {
+        return formBody;
+    }
+
+    return (
+        <Card className="mx-auto max-w-4xl">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold">
+                    {mode === "create"
+                         ? "Create Module"
+                         : "Edit Module"}
+                </h1>
+
+                <p className="mt-2 text-slate-400">
+                    {mode === "create"
+                        ? "Organize your course by adding a new module."
+                        : "Update the module information."}
+                </p>
+            </div>
+
+            {formBody}
         </Card>
     );
 }

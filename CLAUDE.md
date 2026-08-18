@@ -1,273 +1,79 @@
-Orange Tree LMS — Frontend
+# CLAUDE.md — Frontend Guidelines (lms_web_demo)
 
-Read this file before modifying frontend code.
+## Project Overview
 
-Project
+Orange Tree LMS Frontend is a Next.js 16 App Router application built with React 19, Tailwind CSS v4, TanStack React Query v5, and Axios. It serves three user roles: **ADMIN**, **INSTRUCTOR**, and **STUDENT**.
 
-Orange Tree LMS frontend is the Next.js application for the LMS roles:
+## Folder Structure
 
-ADMIN
-
-INSTRUCTOR
-
-STUDENT
-
-The frontend consumes the existing backend APIs. Do not change backend contracts simply to make frontend implementation easier.
-
-Stack
-
-Next.js 16 App Router
-
-React 19
-
-JavaScript / JSX
-
-Tailwind CSS v4
-
-TanStack React Query
-
-Axios
-
-Context API where required
-
-Recharts
-
-React Icons
-
-Frontend architecture
-
-Use the existing project conventions:
-
+```text
 src/
-├── app/
-├── components/
+├── app/                        # Next.js App Router pages
+│   ├── admin/                  # Admin portal (/admin/courses, /admin/dashboard, etc.)
+│   ├── instructor/             # Instructor portal (/instructor/courses, /instructor/dashboard, etc.)
+│   ├── student/                # Student portal (/student/courses, /student/learn/[courseId], etc.)
+│   ├── courses/[courseId]/     # Student public course details page
+│   ├── login/, register/       # Auth pages
+│   └── page.tsx, layout.tsx    # Root landing & layout
+├── components/                 # UI components
+│   ├── common/, ui/            # Reusable UI primitives (Button, Card, Input, Modal, Loader)
+│   ├── instructor/             # Instructor composer components (CourseComposerHeader, etc.)
+│   └── student/                # Student components (CourseBuyButton, etc.)
 ├── hooks/
-│ └── queries/
-│ ├── admin/
-│ ├── instructor/
-│ └── student/
-├── services/
-├── lib/
-└── constants/
-
-Rules
-
-Pages must not call APIs directly.
-
-API calls belong in services/.
-
-Server-state fetching belongs in React Query hooks.
-
-Query keys belong in the existing query-key/constants convention.
-
-Reuse existing components before creating new ones.
-
-Do not create duplicate components such as Button2, CourseCardV2, or NewModal.
-
-Do not introduce another state-management library when React Query/Context is sufficient.
-
-Keep business logic out of page JSX.
-
-Do not refactor unrelated code.
-
-Do not change backend APIs without an explicit requirement.
-
-Use mock data only when the backend contract genuinely does not exist.
-
-Role boundaries
-
-ADMIN
-
-The Admin UI may manage:
-
-Course price
-
-Discount price
-
-Currency
-
-Course review
-
-Publish
-
-Unpublish
-
-Archive
-
-INSTRUCTOR
-
-The Instructor UI may manage:
-
-Course creation
-
-Own course content
-
-Modules
-
-Lessons
-
-Quizzes
-
-Course metadata
-
-The Instructor UI must not provide controls for:
-
-Setting price
-
-Changing price
-
-Setting discount
-
-Changing discount
-
-Store pricing
-
-Publishing
-
-Unpublishing
-
-Archiving
-
-Hiding a control is not a security mechanism. Backend RBAC remains authoritative.
-
-STUDENT
-
-Student UI must:
-
-Display the actual Store price.
-
-Show BUY COURSE only for a valid paid course.
-
-Show Pricing unavailable when Store pricing is missing/invalid.
-
-Show CONTINUE LEARNING after successful enrollment.
-
-Use VIEW COURSE for recommended courses.
-
-Pricing rules
-
-A course is purchasable only when:
-
-Store exists
-AND price > 0
-AND isFree = false
-
-Never display a hardcoded fallback price such as ₹4,999.
-
-The frontend must not send authoritative payment values:
-
-amount
-price
-discountPrice
-userId
-
-For payment order creation, send only the required course identifier according to the existing API contract.
-
-Payment flow
-
-Keep:
-
-Course Details
-→ BUY COURSE
-→ POST /payments/orders
-→ Razorpay Checkout
-→ POST /payments/verify
-→ Enrollment ACTIVE
-→ CONTINUE LEARNING
-
-Do not create direct Razorpay checkout logic inside recommendation cards.
-
-Do not manually mark payment as successful.
-
-Do not manually create enrollment from frontend state.
-
-UI/UX rules
-
-Follow the existing Orange Tree LMS design system.
-
-Reuse existing components.
-
-Keep UI clean, minimal, responsive, and consistent.
-
-Do not introduce arbitrary styling when an existing component/pattern exists.
-
-Preserve accessibility.
-
-Inputs require labels.
-
-Keyboard focus must remain visible.
-
-Async errors must be understandable.
-
-Do not rely only on color for status.
-
-React Query
-
-Use the existing:
-
-services/
-hooks/queries/
-constants/queryKeys
-lib/queryOptions
-
-pattern.
-
-Do not put direct Axios calls inside components/pages.
-
-Working procedure
-
-Before changing code:
-
-Inspect the relevant page.
-
-Inspect the related service.
-
-Inspect the related React Query hook.
-
-Search for an existing reusable component.
-
-Check the existing API contract.
-
-Make the smallest change necessary.
-
-Test the affected flow.
-
-Report exact files changed.
-
-Do not
-
-Do not:
-
-Add free-course UI.
-
-Add instructor price proposal UI.
-
-Add price approval UI.
-
-Add price history UI.
-
-Add fake price fallbacks.
-
-Add direct checkout to recommendation cards.
-
-Change Razorpay architecture without an actual defect.
-
-Change Enrollment architecture without an actual defect.
-
-Rewrite shared components for an unrelated feature.
-
-Reformat unrelated files.
-
-Testing
-
-Run the project's available checks before declaring completion.
-
-Where available:
-
-npm test
-npm run lint
-npm run build
-
-Payment verification must also be tested through the project's payment test flow.
-
-Never claim a test passed unless it was actually executed.
+│   ├── queries/                # TanStack React Query custom hooks
+│   │   ├── admin/              # Admin React Query hooks (useCourses, useDashboard, etc.)
+│   │   ├── instructor/         # Instructor React Query hooks (useTopics, useModules, etc.)
+│   │   └── student/            # Student React Query hooks (useCourses, useMyCourses, etc.)
+│   └── useAuth.js, useRazorpayCheckout.js
+├── services/                   # API layer (Axios wrappers)
+│   ├── topic.service.js, course.service.js, module.service.js, lesson.service.js
+│   ├── store.service.js, payment.service.js, enrollment.service.js
+│   └── admin/, instructor/, student/ sub-services
+├── lib/                        # Axios instance (`axios.js`), query options
+└── constants/                  # `queryKeys.js`, navigation, config
+```
+
+## Canonical Course Hierarchy
+
+```text
+Course
+  └── Module
+      └── Lesson
+          └── Topic
+              └── Content
+```
+
+- **CURRENT STATE**: `Topic` is implemented in Prisma schema, backend API routes (`/topics`), frontend service (`topic.service.js`), instructor query hooks (`useTopics`, `useCreateTopic`, etc.), Instructor Course Composer (`setComposerMode("topic")`), and Student Learning Player (which flattens `selectedLesson?.topics` into contents).
+- **TARGET STATE**: Fully seamless Topic-level management across all instructor composer modals and student navigation views.
+
+## Role Boundaries & RBAC Rules
+
+### ADMIN
+- Responsible for: Setting/updating course pricing, discount pricing, Store pricing, reviewing courses, publishing courses, unpublishing courses, archiving courses.
+- **Current Defect**: Admin course detail page (`/admin/courses/[courseId]`) lacks Store pricing controls UI.
+
+### INSTRUCTOR
+- Responsible for: Creating courses, editing owned course content, managing modules, lessons, topics, content items, quizzes, and course metadata.
+- **Forbidden Actions**: Must NOT set prices, change prices, set discounts, change discounts, modify Store pricing, or publish courses.
+- **Current Defect**: Instructor course composer page (`/instructor/courses/[courseId]`) contains a `handleTogglePublish` button allowing instructors to trigger course status publication. This control must be removed.
+
+### STUDENT
+- Responsible for: Browsing published courses, viewing details, purchasing valid paid courses, accessing enrolled courses.
+- **Current Defect**: Student course details page (`/courses/[courseId]`) contains a hardcoded price fallback (`₹4,999.00`) when Store pricing is missing. This must be replaced with a `Pricing unavailable` state that disables purchase.
+
+## Data-Fetching & State Architecture
+
+1. **API Service Layer**: All HTTP calls must be placed inside `src/services/`. Pages/components must NEVER call Axios directly.
+2. **Server State**: Use TanStack React Query hooks from `src/hooks/queries/`.
+3. **Query Keys**: Standardized in `src/constants/queryKeys.js`.
+4. **No Direct Checkout**: Recommendation cards must navigate to course details via `VIEW COURSE`. Direct Razorpay launch from recommendation cards is strictly forbidden.
+5. **No Frontend Price Trust**: The frontend sends ONLY `{ courseId }` when initiating payment orders. It must NEVER send price or amount parameters.
+
+## Available Scripts
+
+```bash
+npm run dev      # Launch Next.js dev server
+npm run build    # Build production bundle
+npm run start    # Start production server
+npm run lint     # Run ESLint checks
+```

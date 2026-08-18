@@ -75,3 +75,8 @@ export const deleteContent = async (contentId) => {
   const response = await api.delete(`/contents/${contentId}`);
   return response.data;
 };
+
+export const reorderContents = async (contents) => {
+  const response = await api.patch("/contents/reorder", { contents });
+  return response.data;
+};

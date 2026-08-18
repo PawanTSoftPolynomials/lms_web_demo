@@ -1,8 +1,18 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* `prose` documents (imported lesson content, instructor notes, etc.) can
+   contain tables wider than the viewport — let the table itself scroll
+   horizontally instead of overflowing the page. */
+.prose table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}
 
 @theme {
   --color-slate-50: #fdfdfd;

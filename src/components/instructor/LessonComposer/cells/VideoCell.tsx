@@ -228,10 +228,15 @@ export function VideoCell({
         </div>
       ) : content.videoUrl ? (
         <div className="space-y-3 py-1">
-          {/* Controlled Playable Video Player (Centered, 16:9 Aspect Ratio) */}
+          {/* Controlled Playable Video Player. YouTube embeds are always
+              16:9 by convention, so that case keeps a fixed aspect-ratio
+              frame. An uploaded file's real aspect ratio is unknown ahead of
+              time, so it sizes itself to its own natural dimensions instead
+              of being forced into a 16:9 box — forcing one there just
+              letterboxes non-16:9 footage into a tiny, mostly-black frame. */}
           <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-xl border border-slate-800 bg-black shadow-lg">
-            <div className="relative aspect-video w-full">
-              {embedUrl ? (
+            {embedUrl ? (
+              <div className="relative aspect-video w-full">
                 <iframe
                   src={embedUrl}
                   title={content.title || "Video Player"}
@@ -239,15 +244,15 @@ export function VideoCell({
                   allowFullScreen
                   className="absolute inset-0 h-full w-full rounded-xl border-0"
                 />
-              ) : (
-                <video
-                  src={getDisplayUrl(content.videoUrl)}
-                  controls
-                  preload="metadata"
-                  className="absolute inset-0 h-full w-full rounded-xl object-contain"
-                />
-              )}
-            </div>
+              </div>
+            ) : (
+              <video
+                src={getDisplayUrl(content.videoUrl)}
+                controls
+                preload="metadata"
+                className="block w-full h-auto max-h-[70vh] rounded-xl"
+              />
+            )}
           </div>
         </div>
       ) : (

@@ -92,7 +92,7 @@ export function HeadingCell({
     <CellShell
       icon={CELL_TYPE.icon}
       typeLabel={CELL_TYPE.label}
-      title={displayText || "Untitled heading"}
+      title={content.title || ""}
       mode={mode}
       onEdit={handleEdit}
       onDelete={handleDelete}
@@ -126,11 +126,13 @@ export function HeadingCell({
         </div>
       ) : displayText ? (
         <ViewTag
-          className="font-bold text-foreground"
+          className="font-bold tracking-tight text-slate-100"
           style={{
             textAlign: design.align,
-            color: design.color,
-            fontSize: design.fontSize ? `${design.fontSize}px` : "1.25rem",
+            color: design.color || undefined,
+            fontSize: design.fontSize ? `${design.fontSize}px` : ViewTag === "h1" ? "1.5rem" : ViewTag === "h2" ? "1.25rem" : ViewTag === "h3" ? "1.125rem" : "1rem",
+            marginTop: ViewTag === "h1" || ViewTag === "h2" ? "1rem" : "0.5rem",
+            marginBottom: "0.5rem",
           }}
         >
           {displayText}

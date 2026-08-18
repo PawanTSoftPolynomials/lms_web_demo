@@ -69,12 +69,12 @@ export function CellShell({
   children,
 }: CellShellProps) {
   const badgeClass = BADGE_STYLES[badgeVariant] || BADGE_STYLES.default;
+  const isTextOrHeading = badgeVariant === "text" || badgeVariant === "heading" || typeLabel.toLowerCase().includes("text") || typeLabel.toLowerCase().includes("heading");
 
   // Every hover-only control (drag handle, header actions, Add Above/Below)
   // shares this: invisible and non-interactive by default so nothing shifts
   // layout, fades in on hover, and — since touch has no hover — also stays
-  // visible while `isSelected` or actively `edit`ing (tapping a block on a
-  // touch device selects it; see LessonComposerPanel).
+  // visible while `isSelected` or actively `edit`ing.
   const showControls = isSelected || mode === "edit";
   const hoverVisible = cn(
     "opacity-0 pointer-events-none transition-opacity duration-150",
@@ -85,8 +85,11 @@ export function CellShell({
   return (
     <div
       className={cn(
-        "group relative flex items-start gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-5 shadow-sm transition-all duration-200 hover:border-slate-700/80 hover:bg-slate-900/90",
-        mode === "edit" && "ring-2 ring-orange-500/50 border-orange-500/50"
+        "group relative flex items-start gap-3 transition-all duration-200",
+        isTextOrHeading && mode === "view"
+          ? "rounded-xl border border-transparent bg-transparent hover:border-slate-800/80 hover:bg-slate-900/40 p-2.5 sm:p-3.5"
+          : "rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-5 shadow-sm hover:border-slate-700/80 hover:bg-slate-900/90",
+        mode === "edit" && "rounded-2xl border-orange-500/50 bg-slate-900/95 ring-2 ring-orange-500/50 p-4 sm:p-5"
       )}
     >
       {/* Add Above — top center, fades in over the block's top edge */}
@@ -122,48 +125,95 @@ export function CellShell({
 
         <div
           className={cn(
-            "flex h-9 w-9 items-center justify-center rounded-xl font-extrabold text-xs border shadow-sm shrink-0",
-            badgeClass
+            "flex h-8 w-8 items-center justify-center rounded-lg font-extrabold text-xs border shadow-sm shrink-0 transition-opacity",
+            badgeClass,
+            isTextOrHeading && mode === "view" && !showControls ? "opacity-0 group-hover:opacity-100" : "opacity-100"
           )}
         >
           {badgeText ? (
-            <span className="text-[11px] font-black uppercase">{badgeText}</span>
+            <span className="text-[10px] font-black uppercase">{badgeText}</span>
           ) : (
-            <Icon size={16} />
+            <Icon size={15} />
           )}
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0 space-y-3">
-        {/* Header Metadata */}
-        <div className="flex items-center justify-between gap-3 border-b border-slate-800/60 pb-2.5">
-          <div className="min-w-0">
-            <h4 className="truncate text-xs font-bold text-slate-200">
-              {title || "Untitled Block"}
-            </h4>
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              {typeLabel}
-            </p>
-          </div>
+      <div className="flex-1 min-w-0 space-y-2">
+        {/* Header Metadata — shown for named/file blocks OR when editing */}
+        {(title || !isTextOrHeading || mode === "edit") && (
+          <div className="flex items-center justify-between gap-3 border-b border-slate-800/60 pb-2">
+            <div className="min-w-0">
+              <h4 className="truncate text-xs font-bold text-slate-200">
+                {title || (isTextOrHeading ? "Text Block" : "Untitled Block")}
+              </h4>
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                {typeLabel}
+              </p>
+            </div>
 
-          {/* Single Settings Icon Action Button */}
-          <div className={cn("flex items-center shrink-0", hoverVisible)}>
+            {/* Block Action Menu */}
+            <div className={cn("flex items-center shrink-0", hoverVisible)}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                    aria-label="Block Settings & Actions"
+                    title="Settings & Actions"
+                  >
+                    <Settings size={14} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onSelect={onEdit} disabled={mode === "edit"}>
+                    <Pencil className="size-3.5" />
+                    Edit Block
+                  </DropdownMenuItem>
+                  {onSettingsSelect && (
+                    <DropdownMenuItem onSelect={onSettingsSelect}>
+                      <Settings className="size-3.5" />
+                      Block Settings
+                    </DropdownMenuItem>
+                  )}
+                  {onDuplicate && (
+                    <DropdownMenuItem onSelect={onDuplicate} disabled={isDuplicating}>
+                      <Copy className="size-3.5" />
+                      {isDuplicating ? "Duplicating…" : "Duplicate Block"}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onSelect={onDelete}
+                    disabled={isDeleting}
+                  >
+                    <Trash2 className="size-3.5" />
+                    {isDeleting ? "Deleting…" : "Delete Block"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        )}
+
+        {/* Floating Actions when header is suppressed in text view mode */}
+        {isTextOrHeading && !title && mode === "view" && (
+          <div className={cn("absolute top-2 right-2 flex items-center shrink-0 z-10", hoverVisible)}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                  className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-800 bg-slate-950/80 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer shadow-sm"
                   aria-label="Block Settings & Actions"
                   title="Settings & Actions"
                 >
-                  <Settings size={14} />
+                  <Settings size={12} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={onEdit} disabled={mode === "edit"}>
+                <DropdownMenuItem onSelect={onEdit}>
                   <Pencil className="size-3.5" />
-                  Edit Content
+                  Edit Block
                 </DropdownMenuItem>
                 {onSettingsSelect && (
                   <DropdownMenuItem onSelect={onSettingsSelect}>
@@ -188,7 +238,7 @@ export function CellShell({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </div>
+        )}
 
         {/* Cell Body */}
         <div>{children}</div>

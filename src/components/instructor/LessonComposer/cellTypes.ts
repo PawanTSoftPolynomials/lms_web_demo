@@ -149,16 +149,19 @@ export function getCellTypeForContent(content: ContentRow): CellTypeDefinition |
   switch (content.type) {
     case "HTML":
       return CELL_TYPES.find((c) => c.id === detectHtmlCellVariant(content.htmlContent));
+    case "IMAGE":
+      return CELL_TYPES.find((c) => c.id === "image");
     case "VIDEO":
       return CELL_TYPES.find((c) => c.id === "video");
     case "LINK":
       return CELL_TYPES.find((c) => c.id === "link");
     case "DOCUMENT":
-      return CELL_TYPES.find((c) => c.id === "document");
+    case "FILE":
+      return CELL_TYPES.find((c) => c.id === "document") || CELL_TYPES.find((c) => c.id === "pdf");
     case "PRESENTATION":
       return CELL_TYPES.find((c) => c.id === "presentation");
     default:
-      return undefined;
+      return CELL_TYPES.find((c) => c.id === "document") || CELL_TYPES.find((c) => c.id === "text");
   }
 }
 

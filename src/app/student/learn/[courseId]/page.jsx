@@ -15,6 +15,7 @@ import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel
 import CoursePersonalizationCard from "@/components/student/learning/CoursePersonalizationCard";
 import PersonalizedPathCard from "@/components/student/learning/PersonalizedPathCard";
 import VideoPlayer from "@/components/student/learning/VideoPlayer";
+import { groupLessonContentForDocumentView } from "@/lib/contentDocument";
 import TranscriptPanel from "@/components/student/learning/TranscriptPanel";
 import LessonTabs from "@/components/student/learning/LessonTabs";
 import CourseContentAccordion from "@/components/student/learning/CourseContentAccordion";
@@ -249,6 +250,15 @@ export default function LearnPage() {
     return (selectedLesson?.topics || []).flatMap((topic) => topic.contents || []);
   }, [selectedLesson]);
 
+  // Imported courses store each markdown block (heading/paragraph/table/...)
+  // as its own HTML content row — dozens per lesson. Merge consecutive HTML
+  // rows into one flowing document item instead of showing (or dropping) one
+  // generic card per block; every other content type is untouched.
+  const documentGroupedContents = useMemo(
+    () => groupLessonContentForDocumentView(selectedLessonContents),
+    [selectedLessonContents]
+  );
+
   // Sync state back to DB on change (debounced)
   useEffect(() => {
     if (!selectedLesson?.id || !stateRestored) return;
@@ -290,9 +300,12 @@ export default function LearnPage() {
     videoPlayerRef.current?.seekTo(seconds);
   };
 
+  // HTML-type rows are the lesson's written document body (rendered inline
+  // by the content viewer above, not listed here) — Resources only lists
+  // genuine downloadable files.
   const instructorAttachments = useMemo(() => {
     return selectedLessonContents.filter(
-      (c) => c.type === "FILE" || c.type === "DOCUMENT" || c.type === "HTML" || Boolean(c.fileUrl)
+      (c) => c.type === "FILE" || c.type === "DOCUMENT" || Boolean(c.fileUrl)
     );
   }, [selectedLessonContents]);
 
@@ -938,12 +951,25 @@ export default function LearnPage() {
 
               <VideoPlayer
                 ref={videoPlayerRef}
-                content={selectedLessonContents?.[0]}
+                content={documentGroupedContents?.[0]}
                 onTimeUpdate={setCurrentTimestamp}
                 onDurationChange={setVideoDuration}
                 onEnded={handleVideoEnded}
                 initialTime={initialTime}
               />
+
+              {/* Remaining lesson content beyond the primary block above — e.g. a
+                  video intro followed by a full written lecture, or several
+                  documents/links in one lesson. Each keeps its own natural
+                  rendering (document flow, embedded file, link card) and simply
+                  stacks below rather than being dropped or shown as a card grid. */}
+              {documentGroupedContents.length > 1 && (
+                <div className="space-y-4">
+                  {documentGroupedContents.slice(1).map((item, idx) => (
+                    <VideoPlayer key={item.id || idx} content={item} />
+                  ))}
+                </div>
+              )}
 
               {/* Compact Previous / Complete / Next — mobile & tablet only, right
                   under the player. Small on purpose: the video stays the focus,

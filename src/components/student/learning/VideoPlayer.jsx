@@ -213,15 +213,18 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 flex flex-col w-full">
             {/* Header — skipped for VIDEO: the lesson title already shows above the
                 player, and the video's own thumbnail/embed carries its title too,
-                so this bar was just a third repeat of the same text. Still shown
-                for other content types (slide counter, file/doc title). */}
-            {type !== "VIDEO" && (
+                so this bar was just a third repeat of the same text. Also skipped
+                when there's genuinely no title to show and it's not a slideshow
+                (e.g. a merged document block from an import with no block title) —
+                an icon-only bar with nothing next to it isn't useful, and we don't
+                invent a fake title just to fill it. */}
+            {type !== "VIDEO" && (content.title || isSlideShow) && (
             <div className="border-b border-slate-800 px-4 sm:px-6 py-3.5 flex items-center justify-between bg-slate-950 min-h-[52px]">
                 <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2 truncate pr-2">
                     {isSlideShow && <Presentation className="h-4 w-4 text-orange-500 shrink-0" />}
                     {type === "HTML" && !isSlideShow && <BookOpen className="h-4 w-4 text-orange-500 shrink-0" />}
                     {type === "FILE" && <FileText className="h-4 w-4 text-orange-500 shrink-0" />}
-                    <span className="truncate">{content.title}</span>
+                    {content.title && <span className="truncate">{content.title}</span>}
                 </h2>
                 {isSlideShow && (
                     <span className="text-xs font-medium text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full shrink-0">
@@ -330,8 +333,8 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                             </div>
                         </div>
                     ) : (
-                        <div 
-                            className="prose prose-invert max-w-none p-4 sm:p-8 text-slate-200 text-xs sm:text-sm leading-relaxed font-sans select-text"
+                        <div
+                            className="prose prose-invert prose-sm sm:prose-base max-w-none p-4 sm:p-8 text-slate-200 leading-relaxed font-sans select-text"
                             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent || "") }}
                         />
                     )

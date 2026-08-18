@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format, formatDistanceToNow } from "date-fns";
-import { BookOpen, Layers, FileText, HelpCircle, Clock, UserRound, CalendarPlus, History, Pencil, ArrowUpRight } from "lucide-react";
+import { BookOpen, Layers, FileText, HelpCircle, Clock, UserRound, CalendarPlus, History, Pencil, ArrowUpRight, Download, Loader2 } from "lucide-react";
 
 import CourseStatusBadge from "@/components/courses/CourseStatusBadge";
+import { exportCourse } from "@/services/course.service";
 
 const STATUS_ACCENT = {
   PUBLISHED: "from-white via-white/60 to-transparent",
@@ -49,6 +51,7 @@ function Stat({ icon: Icon, value, label }) {
 /** My Courses grid card — banner, stats, duration, creator, audit fields, description, edit/view actions. */
 export default function CourseGridCard({ course, index = 0 }) {
   const router = useRouter();
+  const [exporting, setExporting] = useState(false);
 
   const lessonsCount = course.modules?.reduce((sum, m) => sum + (m.lessons?.length ?? 0), 0) ?? course.stats?.lessonsCount ?? 0;
   const accent = STATUS_ACCENT[course.status] || STATUS_ACCENT.DRAFT;
@@ -57,6 +60,36 @@ export default function CourseGridCard({ course, index = 0 }) {
   const goTo = (path) => (e) => {
     e.stopPropagation();
     router.push(path);
+  };
+
+  const handleExport = async (e) => {
+    e.stopPropagation();
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const res = await exportCourse(course.id);
+      const blob = new Blob([res.data], { type: "application/zip" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      
+      let filename = `course-${course.id}.zip`;
+      const cd = res.headers["content-disposition"];
+      if (cd) {
+        const match = cd.match(/filename="?([^"]+)"?/);
+        if (match && match[1]) filename = match[1];
+      }
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export failed:", err);
+      alert(err?.response?.data?.message || err?.message || "Failed to export course ZIP.");
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -141,6 +174,14 @@ export default function CourseGridCard({ course, index = 0 }) {
             Edit
           </button>
           <button
+            onClick={handleExport}
+            disabled={exporting}
+            title="Export Course ZIP"
+            className="inline-flex items-center justify-center p-2 rounded-xl border border-white/30 bg-white/10 text-white transition hover:bg-white/20 disabled:opacity-50"
+          >
+            {exporting ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+          </button>
+          <button
             onClick={goTo(`/instructor/courses/${course.id}`)}
             className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-1.5 md:py-2 text-xs md:text-[13px] font-extrabold transition hover:bg-white/90 active:scale-95 ${theme.viewText}`}
           >
@@ -153,3 +194,4 @@ export default function CourseGridCard({ course, index = 0 }) {
     </div>
   );
 }
+

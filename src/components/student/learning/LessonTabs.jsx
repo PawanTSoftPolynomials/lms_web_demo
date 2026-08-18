@@ -1,6 +1,5 @@
 "use client";
 
-import DOMPurify from "isomorphic-dompurify";
 import { useState, useEffect } from "react";
 import {
   FileText,
@@ -73,18 +72,15 @@ export default function LessonTabs({ lesson, course }) {
 
   const lessonContents = (lesson.topics || []).flatMap((topic) => topic.contents || []);
 
+  // HTML-type rows are the lesson's written document body, already rendered
+  // inline by the main content viewer — only genuine downloadable files
+  // belong in this attachments list.
   const instructorAttachments = lessonContents.filter(
     (c) =>
       c.type === "FILE" ||
       c.type === "DOCUMENT" ||
-      c.type === "HTML" ||
       Boolean(c.fileUrl)
   );
-
-  const instructorHtmlNotes = lessonContents
-    .filter((c) => c.type === "HTML" && c.htmlContent)
-    .map((c) => c.htmlContent)
-    .join("<br/>");
 
   const tabs = [
     {
@@ -193,18 +189,8 @@ export default function LessonTabs({ lesson, course }) {
               </span>
             </div>
 
-            {/* Section 1: Instructor Class Notes & Uploaded Attachments */}
+            {/* Section 1: Uploaded File Attachments */}
             <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-3">
-              {/* Written HTML Notes */}
-              {instructorHtmlNotes && (
-                <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 text-xs text-slate-200 leading-relaxed">
-                  <div
-                    className="prose prose-invert max-w-none text-slate-200"
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(instructorHtmlNotes || "") }}
-                  />
-                </div>
-              )}
-
               {/* Uploaded File Attachments Grid */}
               {instructorAttachments.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">

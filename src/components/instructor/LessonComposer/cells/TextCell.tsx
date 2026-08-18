@@ -83,7 +83,7 @@ export function TextCell({
     <CellShell
       icon={CELL_TYPE.icon}
       typeLabel={CELL_TYPE.label}
-      title={content.title || "Untitled text block"}
+      title={content.title || ""}
       mode={mode}
       onEdit={handleEdit}
       onDelete={handleDelete}
@@ -121,10 +121,130 @@ export function TextCell({
           </div>
         </div>
       ) : htmlContent ? (
-        <div
-          className="prose prose-invert prose-sm max-w-none text-muted-foreground"
-          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }}
-        />
+        <div className="prose prose-invert prose-sm max-w-none text-slate-200 leading-relaxed overflow-x-auto">
+          <style>{`
+            .prose h1 {
+              font-size: 1.5rem;
+              font-weight: 800;
+              color: #f8fafc;
+              margin-top: 1.5rem;
+              margin-bottom: 0.75rem;
+              letter-spacing: -0.02em;
+            }
+            .prose h2 {
+              font-size: 1.25rem;
+              font-weight: 700;
+              color: #f59e0b;
+              margin-top: 1.5rem;
+              margin-bottom: 0.75rem;
+              letter-spacing: -0.01em;
+              padding-bottom: 0.375rem;
+              border-bottom: 1px solid #1e293b;
+            }
+            .prose h3 {
+              font-size: 1.125rem;
+              font-weight: 700;
+              color: #f8fafc;
+              margin-top: 1.25rem;
+              margin-bottom: 0.625rem;
+              letter-spacing: -0.01em;
+            }
+            .prose h4 {
+              font-size: 1rem;
+              font-weight: 600;
+              color: #e2e8f0;
+              margin-top: 1rem;
+              margin-bottom: 0.5rem;
+            }
+            .prose p {
+              color: #cbd5e1;
+              line-height: 1.7;
+              margin-bottom: 0.875rem;
+              font-size: 0.9375rem;
+            }
+            .prose p:last-child {
+              margin-bottom: 0;
+            }
+            .prose strong, .prose b {
+              color: #f8fafc;
+              font-weight: 600;
+            }
+            .prose ul, .prose ol {
+              padding-left: 1.25rem;
+              margin-top: 0.5rem;
+              margin-bottom: 0.875rem;
+            }
+            .prose ul {
+              list-style-type: disc;
+            }
+            .prose ol {
+              list-style-type: decimal;
+            }
+            .prose li {
+              color: #cbd5e1;
+              margin-bottom: 0.375rem;
+              line-height: 1.6;
+              font-size: 0.9375rem;
+            }
+            .prose blockquote {
+              border-left: 3px solid #f59e0b;
+              padding-left: 1rem;
+              margin-top: 1rem;
+              margin-bottom: 1rem;
+              font-style: italic;
+              color: #94a3b8;
+              background-color: rgba(245, 158, 11, 0.04);
+              border-radius: 0 0.5rem 0.5rem 0;
+            }
+            .prose a {
+              color: #fbbf24;
+              text-decoration: underline;
+              text-underline-offset: 3px;
+              transition: color 0.15s ease;
+            }
+            .prose a:hover {
+              color: #f59e0b;
+            }
+            .prose a:empty {
+              display: none;
+            }
+            .prose table {
+              width: 100%;
+              border-collapse: separate;
+              border-spacing: 0;
+              margin-top: 1.25rem;
+              margin-bottom: 1.25rem;
+              border-radius: 0.75rem;
+              border: 1px solid #334155;
+              overflow: hidden;
+              background-color: #020617;
+            }
+            .prose th {
+              background-color: #0f172a;
+              color: #f59e0b;
+              font-weight: 700;
+              font-size: 0.75rem;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+              padding: 0.75rem 1rem;
+              border-bottom: 1px solid #334155;
+              text-align: left;
+            }
+            .prose td {
+              padding: 0.75rem 1rem;
+              border-bottom: 1px solid #1e293b;
+              color: #e2e8f0;
+              font-size: 0.875rem;
+            }
+            .prose tr:last-child td {
+              border-bottom: none;
+            }
+            .prose tr:hover td {
+              background-color: #0f172a;
+            }
+          `}</style>
+          <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }} />
+        </div>
       ) : (
         <p className="text-sm italic text-muted-foreground">No text content yet.</p>
       )}

@@ -98,6 +98,46 @@ export const deleteCourse = async (
 };
 
 /**
+ * Validate Course For Publish
+ */
+export const validateCoursePublish = async (courseId) => {
+    const { data } = await api.get(`/courses/${courseId}/publish-validation`);
+    return data.data ?? data;
+};
+
+/**
+ * Publish Course
+ */
+export const publishCourse = async (courseId) => {
+    const { data } = await api.post(`/courses/${courseId}/publish`);
+    return data;
+};
+
+/**
+ * Unpublish Course
+ */
+export const unpublishCourse = async (courseId) => {
+    const { data } = await api.post(`/courses/${courseId}/unpublish`);
+    return data;
+};
+
+/**
+ * Archive Course
+ */
+export const archiveCourse = async (courseId) => {
+    const { data } = await api.post(`/courses/${courseId}/archive`);
+    return data;
+};
+
+/**
+ * Restore Archived Course to DRAFT
+ */
+export const restoreCourse = async (courseId) => {
+    const { data } = await api.post(`/courses/${courseId}/restore`);
+    return data;
+};
+
+/**
  * Update Course Status
  */
 export const updateCourseStatus = async (
@@ -166,4 +206,13 @@ export const getMyBatches = async (filters = {}) => {
 export const createCourseBatch = async (courseId, batchData) => {
     const { data } = await api.post(`/courses/${courseId}/batches`, batchData);
     return data.data ?? data;
+};
+
+/**
+ * Export Course ZIP package
+ */
+export const exportCourse = async (courseId) => {
+    return api.get(`/courses/${courseId}/export`, {
+        responseType: "blob"
+    });
 };

@@ -13,9 +13,12 @@ class SocketService {
         auth: {
           token,
         },
-        transports: ["websocket", "polling"],
       }
     );
+
+    this.socket.on("connect_error", (err) => {
+      console.warn("[socket] connection failed:", err.message);
+    });
 
     return this.socket;
   }

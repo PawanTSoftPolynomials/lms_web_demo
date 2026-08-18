@@ -117,7 +117,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     
     for (let i = 0; i < segments.length; i++) {
       const seg = segments[i];
-      if (seg === "courses" && segments[i + 1] && !["create", "edit"].includes(segments[i + 1])) {
+      if (seg === "courses" && segments[i + 1] && !["create", "edit", "import"].includes(segments[i + 1])) {
         result.courseId = segments[i + 1];
       }
       if (seg === "modules" && segments[i + 1] && !["create", "edit"].includes(segments[i + 1])) {
