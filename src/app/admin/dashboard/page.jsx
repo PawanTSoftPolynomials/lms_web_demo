@@ -13,6 +13,7 @@ import {
   useCourseOverview,
   useCourseStatusPie,
   useRecentActivity,
+  useUpcomingEvents,
 } from "@/hooks/queries/admin/useDashboardHome";
 
 import Loader from "@/components/common/Loader";

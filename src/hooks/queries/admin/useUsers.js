@@ -72,12 +72,27 @@ export function useUpdateUserRole() {
             updateUserRole(userId, role),
 
         onSuccess: () => {
+            // A role change moves the user between the Students/Instructors
+            // lists (and the Admin list), so every one of those views needs
+            // to refetch even if it isn't the actively-mounted query.
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.ADMIN_USERS],
+                refetchType: "all",
             });
 
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.ADMIN_USER],
+                refetchType: "all",
+            });
+
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.ADMIN_STUDENTS],
+                refetchType: "all",
+            });
+
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.ADMIN_INSTRUCTORS],
+                refetchType: "all",
             });
         },
     });

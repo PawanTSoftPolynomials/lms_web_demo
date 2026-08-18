@@ -9,6 +9,7 @@ export default function StudentTable({
                                          students = [],
                                          onView,
                                          onDelete,
+                                         onChangeRole,
                                      }) {
     if (!students.length) {
         return (
@@ -64,6 +65,7 @@ export default function StudentTable({
                             student={student}
                             onView={onView}
                             onDelete={onDelete}
+                            onChangeRole={onChangeRole}
                         />
                     ))}
                     </tbody>
@@ -102,6 +104,11 @@ export default function StudentTable({
                                             label: "View",
                                             onClick: () =>
                                                 onView?.(student),
+                                        },
+                                        {
+                                            label: "Change Role",
+                                            onClick: () =>
+                                                onChangeRole?.(student),
                                         },
                                         {
                                             label: "Delete",

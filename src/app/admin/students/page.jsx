@@ -11,6 +11,7 @@ import Loader from "@/components/common/Loader";
 import StudentStats from "@/components/admin/student/StudentStats";
 import StudentToolbar from "@/components/admin/student/StudentToolbar";
 import StudentTable from "@/components/admin/student/StudentTable";
+import ChangeRoleModal from "@/components/admin/users/ChangeRoleModal";
 
 import {
     useStudents,
@@ -38,6 +39,9 @@ export default function AdminStudentsPage() {
 
     const [status, setStatus] =
         useState("");
+
+    const [roleModalTarget, setRoleModalTarget] =
+        useState(null);
 
     const filteredStudents =
         useMemo(() => {
@@ -146,8 +150,22 @@ export default function AdminStudentsPage() {
                         )
                     }
                     onDelete={handleDelete}
+                    onChangeRole={setRoleModalTarget}
                 />
             </Card>
+
+            <ChangeRoleModal
+                open={!!roleModalTarget}
+                onClose={() => setRoleModalTarget(null)}
+                user={
+                    roleModalTarget && {
+                        userId: roleModalTarget.userId,
+                        name: roleModalTarget.name,
+                        email: roleModalTarget.email,
+                        currentRole: "STUDENT",
+                    }
+                }
+            />
         </div>
     );
 }

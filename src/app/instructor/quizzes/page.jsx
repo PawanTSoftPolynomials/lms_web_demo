@@ -250,7 +250,7 @@ export default function QuizzesPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-4xl font-bold text-white tracking-tight">Quizzes</h1>
+                <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight">Quizzes</h1>
                 <p className="mt-2 text-slate-400">Create and manage quizzes for your courses.</p>
               </div>
 
@@ -503,7 +503,7 @@ export default function QuizzesPage() {
                   </span>
 
                   {/* Pagination Controls */}
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center flex-wrap justify-center gap-1.5">
                     <button
                       disabled={currentPage === 1}
                       onClick={() => handlePageChange(currentPage - 1)}
@@ -571,7 +571,7 @@ export default function QuizzesPage() {
                     <span>&gt;</span>
                     <span className="text-orange-400">{selectedQuiz.title}</span>
                   </div>
-                  <h1 className="text-4xl font-bold text-white tracking-tight">Quiz Questions</h1>
+                  <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight">Quiz Questions</h1>
                   <div className="flex flex-wrap gap-2.5 items-center mt-2">
                     <span className="text-slate-500 text-xs font-semibold">
                       Course: <span className="text-slate-300 font-bold">{selectedQuiz.course?.title || "Standalone"}</span>
@@ -757,7 +757,7 @@ export default function QuizzesPage() {
                   </span>
 
                   {/* Pagination Controls */}
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center flex-wrap justify-center gap-1.5">
                     <button
                       disabled={qCurrentPage === 1}
                       onClick={() => handleQPageChange(qCurrentPage - 1)}

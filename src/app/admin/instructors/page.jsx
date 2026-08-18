@@ -10,6 +10,7 @@ import Loader from "@/components/common/Loader";
 import InstructorStats from "@/components/admin/instructors/InstructorStats";
 import InstructorToolbar from "@/components/admin/instructors/InstructorToolbar";
 import InstructorTable from "@/components/admin/instructors/InstructorTable";
+import ChangeRoleModal from "@/components/admin/users/ChangeRoleModal";
 
 import { useInstructors } from "@/hooks/queries/admin/useInstructors";
 
@@ -28,6 +29,9 @@ export default function AdminInstructorsPage() {
 
     const [status, setStatus] =
         useState("");
+
+    const [roleModalTarget, setRoleModalTarget] =
+        useState(null);
 
     const filteredInstructors =
         useMemo(() => {
@@ -131,8 +135,22 @@ export default function AdminInstructorsPage() {
                             instructor
                         )
                     }
+                    onChangeRole={setRoleModalTarget}
                 />
             </Card>
+
+            <ChangeRoleModal
+                open={!!roleModalTarget}
+                onClose={() => setRoleModalTarget(null)}
+                user={
+                    roleModalTarget && {
+                        userId: roleModalTarget.user.id,
+                        name: roleModalTarget.user.name,
+                        email: roleModalTarget.user.email,
+                        currentRole: "INSTRUCTOR",
+                    }
+                }
+            />
         </div>
     );
 }

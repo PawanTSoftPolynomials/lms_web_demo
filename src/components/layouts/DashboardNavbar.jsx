@@ -12,6 +12,7 @@ import useChat from "@/hooks/useChat";
 import { useNotification } from "@/context/NotificationContext";
 import { useStudentNavDrawer } from "@/context/StudentNavDrawerContext";
 import { useInstructorNavDrawer } from "@/context/InstructorNavDrawerContext";
+import { useAdminNavDrawer } from "@/context/AdminNavDrawerContext";
 import Modal from "@/components/ui/Modal";
 import MiniCalendar from "@/components/dashboard/MiniCalendar";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
@@ -98,6 +99,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { open: openStudentNavDrawer } = useStudentNavDrawer();
   const { open: openInstructorNavDrawer } = useInstructorNavDrawer();
+  const { open: openAdminNavDrawer } = useAdminNavDrawer();
 
   const pathname = usePathname();
   
@@ -418,14 +420,20 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
   if (role === 'INSTRUCTOR' || role === 'ADMIN') {
     const dashboardHref = role === 'ADMIN' ? '/admin/dashboard' : '/instructor/dashboard';
+    const openRoleNavDrawer = role === 'ADMIN' ? openAdminNavDrawer : openInstructorNavDrawer;
     return (
       <>
       <header className="bg-[#080B11] border-b border-[#1A1F35] px-6 py-3 flex items-center justify-between text-slate-200">
         <div className="flex items-center gap-6">
-          {/* Mobile menu toggle */}
+          {/* Mobile menu toggle — opens the role's nav drawer (see
+              Instructor/AdminNavDrawer); this used to call the unrelated
+              `setOpen` prop, which controls a Sidebar that never renders for
+              these roles, so the button silently did nothing on mobile. */}
           <button
-            onClick={() => setOpen?.(true)}
-            className="md:hidden text-xl text-white mr-1"
+            type="button"
+            onClick={openRoleNavDrawer}
+            aria-label="Open navigation menu"
+            className="sm:hidden text-xl text-white mr-1"
           >
             <FaBars />
           </button>

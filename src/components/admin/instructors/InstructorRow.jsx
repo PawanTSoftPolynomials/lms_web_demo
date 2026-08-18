@@ -7,6 +7,7 @@ export default function InstructorRow({
                                           instructor,
                                           onView,
                                           onDelete,
+                                          onChangeRole,
                                       }) {
 
     const statusColors = {
@@ -90,6 +91,13 @@ export default function InstructorRow({
                             label: "View",
                             onClick: () =>
                                 onView?.(
+                                    instructor
+                                ),
+                        },
+                        {
+                            label: "Change Role",
+                            onClick: () =>
+                                onChangeRole?.(
                                     instructor
                                 ),
                         },
