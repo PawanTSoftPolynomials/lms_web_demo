@@ -243,7 +243,7 @@ export default function QuestionForm({
   };
 
   const handleCancel = () => {
-    router.push(finalCourseId ? `/instructor/courses/${finalCourseId}/quizzes` : "/instructor/quizzes");
+    router.push("/instructor/quizzes");
   };
 
   return (

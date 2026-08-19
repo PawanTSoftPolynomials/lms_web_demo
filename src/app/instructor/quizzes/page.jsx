@@ -20,6 +20,7 @@ import {
 
 import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
+import { useToast } from "@/components/ui/ToastProvider";
 
 import { useQuizzes } from "@/hooks/queries/instructor/useQuizzes";
 import { useDeleteQuiz } from "@/hooks/queries/instructor/useDeleteQuiz";
@@ -28,6 +29,8 @@ import { useQuestions } from "@/hooks/queries/instructor/useQuestions";
 import { useDeleteQuestion } from "@/hooks/queries/instructor/useDeleteQuestion";
 
 export default function QuizzesPage() {
+  const { showToast } = useToast();
+
   // Selected Quiz state for Master-Detail pattern
   const [selectedQuiz, setSelectedQuiz] = useState(null);
 
@@ -77,9 +80,15 @@ export default function QuizzesPage() {
         quizId,
         courseId,
       });
+      showToast("Quiz deleted successfully", "success");
       refetchQuizzes();
     } catch (error) {
       console.error("Failed to delete quiz:", error);
+      showToast(
+        error?.response?.data?.message || "Failed to delete quiz.",
+        "error",
+        "Delete Failed"
+      );
     }
   };
 
@@ -94,9 +103,15 @@ export default function QuizzesPage() {
         questionId,
         quizId: selectedQuiz.id,
       });
+      showToast("Question deleted successfully", "success");
       refetchQuestions();
     } catch (error) {
       console.error("Failed to delete question:", error);
+      showToast(
+        error?.response?.data?.message || "Failed to delete question.",
+        "error",
+        "Delete Failed"
+      );
     }
   };
 
@@ -470,7 +485,7 @@ export default function QuizzesPage() {
                                   </button>
                                 </Link>
                                 
-                                <Link href={`/instructor/courses/${quiz.courseId}/quizzes/edit/${quiz.id}`}>
+                                <Link href={`/instructor/quizzes/edit/${quiz.id}`}>
                                   <button className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Edit Quiz Details">
                                     <Edit size={14} />
                                   </button>
@@ -719,13 +734,13 @@ export default function QuizzesPage() {
                             <td className="p-5 pr-6">
                               <div className="flex items-center justify-center gap-2">
                                 {/* View */}
-                                <Link href={`/instructor/courses/${selectedQuiz.courseId}/quizzes/${selectedQuiz.id}/questions/view/${q.id}`}>
+                                <Link href={`/instructor/questions/view/${q.id}`}>
                                   <button className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-white transition">
                                     <Eye size={14} />
                                   </button>
                                 </Link>
                                 {/* Edit */}
-                                <Link href={`/instructor/courses/${selectedQuiz.courseId}/quizzes/${selectedQuiz.id}/questions/edit/${q.id}`}>
+                                <Link href={`/instructor/questions/edit/${q.id}`}>
                                   <button className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-white transition">
                                     <Edit size={14} />
                                   </button>

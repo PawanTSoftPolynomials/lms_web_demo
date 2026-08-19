@@ -208,14 +208,14 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     // Add Modules parent and Module details
     if (hasModules || hasLessons || hasContents) {
       if (moduleData) {
-        breadcrumbs.push({ label: moduleData.title, href: `/${role}/courses/${courseId}/modules/${moduleData.id}` });
+        breadcrumbs.push({ label: moduleData.title, href: `/${role}/modules/${moduleData.id}` });
       }
     }
 
     // Add Lessons parent and Lesson details
     if (hasLessons || hasContents) {
       if (lessonData) {
-        breadcrumbs.push({ label: lessonData.title, href: `/${role}/courses/${courseId}/modules/${lessonData.moduleId}/lessons/${lessonData.id}` });
+        breadcrumbs.push({ label: lessonData.title, href: `/${role}/lessons/${lessonData.id}` });
       }
     }
 
@@ -228,11 +228,9 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
     // Add Quiz parent and Quiz details
     if (hasQuizzes || hasQuestions) {
-      const quizzesHref = courseId ? `/${role}/courses/${courseId}/quizzes` : `/${role}/quizzes`;
-      breadcrumbs.push({ label: "QUIZZES", href: quizzesHref });
+      breadcrumbs.push({ label: "QUIZZES", href: `/${role}/quizzes` });
       if (quizData) {
-        const quizHref = courseId ? `/${role}/courses/${courseId}/quizzes/${quizData.id}` : `/${role}/quizzes/view/${quizData.id}`;
-        breadcrumbs.push({ label: quizData.title, href: quizHref });
+        breadcrumbs.push({ label: quizData.title, href: `/${role}/quizzes/view/${quizData.id}` });
       }
     }
 
