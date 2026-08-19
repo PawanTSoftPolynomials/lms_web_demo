@@ -196,7 +196,7 @@ export function CourseOverviewView({
                     onClick={() => onSelectModule(mod)}
                   >
                     <img
-                      src={mod.thumbnailUrl || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop"}
+                      src={getDisplayUrl(mod.thumbnailUrl) || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop"}
                       alt={mod.title}
                       className="w-full h-28 object-cover"
                     />

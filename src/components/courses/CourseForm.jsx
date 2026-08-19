@@ -5,6 +5,7 @@ import {useEffect, useState} from "react";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { getDisplayUrl } from "@/lib/blob";
 
 const INITIAL_FORM = {
     title: "",
@@ -237,7 +238,7 @@ export default function CourseForm({
 
                         <div className="aspect-video h-48 w-auto max-w-md bg-slate-950 rounded-xl overflow-hidden border border-slate-700/60 shadow-luxury-md">
                             <img
-                                src={formData.thumbnailUrl}
+                                src={getDisplayUrl(formData.thumbnailUrl)}
                                 alt="Thumbnail Preview"
                                 className="h-full w-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
                             />

@@ -13,6 +13,8 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 
+import { getDisplayUrl } from "@/lib/blob";
+
 const STATUS_ACCENT = {
   Enrolled: "from-sky-300 via-sky-300/60 to-transparent",
   "In Progress": "from-amber-300 via-amber-300/60 to-transparent",
@@ -118,7 +120,7 @@ export default function MyCourseCard({ enrollment, course: rawCourse, index = 0 
           {course.thumbnailUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={course.thumbnailUrl}
+              src={getDisplayUrl(course.thumbnailUrl)}
               alt=""
               loading="lazy"
               className="h-full w-full object-cover transition duration-500 group-hover:scale-105"

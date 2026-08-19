@@ -8,6 +8,7 @@ import { BookOpen, Layers, FileText, HelpCircle, Clock, UserRound, CalendarPlus,
 
 import CourseStatusBadge from "@/components/courses/CourseStatusBadge";
 import { exportCourse } from "@/services/course.service";
+import { getDisplayUrl } from "@/lib/blob";
 
 const STATUS_ACCENT = {
   PUBLISHED: "from-white via-white/60 to-transparent",
@@ -108,7 +109,7 @@ export default function CourseGridCard({ course, index = 0 }) {
         {course.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={course.thumbnailUrl}
+            src={getDisplayUrl(course.thumbnailUrl)}
             alt=""
             loading="lazy"
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"

@@ -1,6 +1,7 @@
 import { getCourseById } from "@/services/course.service";
 import Link from "next/link";
 import CourseBuyButton from "@/components/student/course-details/CourseBuyButton";
+import { getDisplayUrl } from "@/lib/blob";
 import {
   ChevronRight,
   Clock,
@@ -222,7 +223,7 @@ export default async function CoursePage({ params }) {
               <div className="h-44 w-full overflow-hidden rounded-xl bg-slate-800 border border-slate-800/80 relative flex items-center justify-center">
                 {course.thumbnailUrl ? (
                   <img
-                    src={course.thumbnailUrl}
+                    src={getDisplayUrl(course.thumbnailUrl)}
                     alt={course.title}
                     className="h-full w-full object-cover"
                   />

@@ -27,6 +27,7 @@ import {
   Activity,
   Star,
 } from "lucide-react";
+import { getDisplayUrl } from "@/lib/blob";
 
 import { useModules } from "@/hooks/queries/instructor/useModules";
 import { useDeleteCourse } from "@/hooks/queries/instructor/useDeleteCourse";
@@ -220,7 +221,7 @@ export default function InstructorCourseCard({ course }) {
               >
                 {course.thumbnailUrl ? (
                   <img
-                    src={course.thumbnailUrl}
+                    src={getDisplayUrl(course.thumbnailUrl)}
                     alt=""
                     className="h-full w-full object-cover"
                   />

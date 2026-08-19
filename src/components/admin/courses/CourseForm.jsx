@@ -5,6 +5,7 @@ import Image from "next/image";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { getDisplayUrl } from "@/lib/blob";
 
 
 const getInitialFormData = (values = {}) => ({
@@ -157,7 +158,7 @@ export default function CourseForm({
                 {formData.thumbnailUrl && (
                     <div className="overflow-hidden rounded-xl border border-white/10">
                         <Image
-                            src={course.thumbnailUrl}
+                            src={getDisplayUrl(course.thumbnailUrl)}
                             alt={course.title}
                             fill
                             className="object-cover"

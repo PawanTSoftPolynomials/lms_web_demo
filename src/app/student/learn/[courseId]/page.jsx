@@ -16,6 +16,7 @@ import CoursePersonalizationCard from "@/components/student/learning/CoursePerso
 import PersonalizedPathCard from "@/components/student/learning/PersonalizedPathCard";
 import VideoPlayer from "@/components/student/learning/VideoPlayer";
 import { groupLessonContentForDocumentView } from "@/lib/contentDocument";
+import { getDisplayUrl } from "@/lib/blob";
 import TranscriptPanel from "@/components/student/learning/TranscriptPanel";
 import LessonTabs from "@/components/student/learning/LessonTabs";
 import CourseContentAccordion from "@/components/student/learning/CourseContentAccordion";
@@ -1178,7 +1179,7 @@ export default function LearnPage() {
                 {course.thumbnailUrl && (
                   <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border border-slate-800 bg-slate-900/60 flex-shrink-0 flex items-center justify-center">
                     <img
-                      src={course.thumbnailUrl}
+                      src={getDisplayUrl(course.thumbnailUrl)}
                       alt={course.title}
                       className="object-contain w-12 h-12 sm:w-14 sm:h-14"
                     />

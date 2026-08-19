@@ -6,6 +6,7 @@ import { Settings, Layers, Users, Star } from "lucide-react";
 
 import DifficultyBadge from "./DifficultyBadge";
 import CourseMetaItem from "./CourseMetaItem";
+import { getDisplayUrl } from "@/lib/blob";
 
 export default function FeaturedCourseCard({ course }) {
   if (!course) return null;
@@ -39,7 +40,7 @@ export default function FeaturedCourseCard({ course }) {
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950/20 p-10">
               <div className="relative h-20 w-20">
                 <Image
-                  src={course.thumbnailUrl}
+                  src={getDisplayUrl(course.thumbnailUrl)}
                   alt={course.title}
                   fill
                   unoptimized
@@ -49,7 +50,7 @@ export default function FeaturedCourseCard({ course }) {
             </div>
           ) : (
             <Image
-              src={course.thumbnailUrl}
+              src={getDisplayUrl(course.thumbnailUrl)}
               alt={course.title}
               fill
               unoptimized

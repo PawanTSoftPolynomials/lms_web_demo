@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import useMyCourses from "@/hooks/queries/student/useMyCourses";
 import useEnrollCourse from "@/hooks/queries/student/useEnrollCourse";
+import { getDisplayUrl } from "@/lib/blob";
 
 import useRazorpayCheckout from "@/hooks/useRazorpayCheckout";
 
@@ -25,7 +26,7 @@ function CourseThumbnail({ thumbnailUrl, title, className = "" }) {
 
     return (
         <Image
-            src={thumbnailUrl}
+            src={getDisplayUrl(thumbnailUrl)}
             alt={title}
             fill
             unoptimized

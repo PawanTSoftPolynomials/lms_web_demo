@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import {FaBook} from "react-icons/fa";
+import { getDisplayUrl } from "@/lib/blob";
 
 export default function CourseHeader({course}) {
     return (<div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
@@ -10,7 +11,7 @@ export default function CourseHeader({course}) {
                 <div className="flex gap-5">
                     <div className="h-28 w-44 overflow-hidden rounded-xl bg-slate-800">
                         {course.thumbnailUrl ? (<img
-                                src={course.thumbnailUrl}
+                                src={getDisplayUrl(course.thumbnailUrl)}
                                 alt={course.title}
                                 className="h-full w-full object-cover"
                             />) : (<div className="flex h-full items-center justify-center">
