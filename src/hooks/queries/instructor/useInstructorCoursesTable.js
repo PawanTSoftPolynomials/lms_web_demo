@@ -12,5 +12,7 @@ export function useInstructorCoursesTable(filters = {}) {
     queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES_TABLE, filters],
     queryFn: () => getInstructorCoursesTable(filters),
     ...defaultQueryOptions,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }

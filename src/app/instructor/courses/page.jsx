@@ -18,6 +18,11 @@ export default function InstructorCoursesPage() {
 
   const { data, isLoading, isError, refetch } = useInstructorCoursesTable(filters);
 
+  // Always refetch fresh courses list on page mount
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
+
   const courses = data?.courses || [];
   const pagination = data?.pagination || { page: 1, limit: 10, total: 0, totalPages: 1 };
 

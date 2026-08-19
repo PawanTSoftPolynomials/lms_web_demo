@@ -3,6 +3,7 @@
 import { useState, useEffect, Fragment } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import api from "@/lib/axios";
 import {
   Eye,
   Pencil,
@@ -481,8 +482,9 @@ export default function CourseDetailsPage() {
         }
 
         sessionStorage.removeItem("imported_course_draft");
-        queryClient.invalidateQueries([QUERY_KEYS.INSTRUCTOR_COURSES]);
-        queryClient.invalidateQueries([QUERY_KEYS.INSTRUCTOR_COURSES_TABLE]);
+        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
+        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES_TABLE] });
+        await queryClient.resetQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES_TABLE] });
 
         showToast("Course saved and created successfully!", "success", "Saved");
         router.push(`/instructor/courses/${persistedCourseId}`);
@@ -555,6 +557,9 @@ export default function CourseDetailsPage() {
   const handleConfirmDeleteCourse = async () => {
     try {
       await deleteCourseMutation.mutateAsync(courseId);
+      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
+      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES_TABLE] });
+      await queryClient.resetQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES_TABLE] });
       setDeleteModalOpen(false);
       showToast("Course deleted successfully", "success");
       router.push("/instructor/courses");
