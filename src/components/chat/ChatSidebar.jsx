@@ -237,7 +237,7 @@ export default function ChatSidebar() {
     try {
       const existing = conversations.find(
         (c) =>
-          !c.isGroup &&
+          c.type !== "GROUP" &&
           c.participants?.some((p) => {
             const pId = p.userId || p.user?.id || p.id;
             const pEmail = p.user?.email || p.email;

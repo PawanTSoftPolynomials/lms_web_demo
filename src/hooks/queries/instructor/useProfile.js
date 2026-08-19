@@ -6,7 +6,7 @@ import { defaultQueryOptions } from "@/lib/queryOptions";
 
 export function useInstructorProfile() {
     return useQuery({
-        queryKey: [QUERY_KEYS.PROFILE],
+        queryKey: [QUERY_KEYS.INSTRUCTOR_PROFILE],
         queryFn: getProfile,
         ...defaultQueryOptions,
     });
@@ -18,6 +18,8 @@ export function useUpdateInstructorProfile() {
     return useMutation({
         mutationFn: updateProfile,
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_PROFILE] });
+            // Also refresh the navbar's cached identity (name/avatar/etc.).
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PROFILE] });
         },
     });

@@ -18,6 +18,7 @@ export default function StudentRow({
                                        student,
                                        onView,
                                        onDelete,
+                                       onChangeRole,
                                    }) {
     return (
         <tr
@@ -87,6 +88,11 @@ export default function StudentRow({
                             label: "View",
                             onClick: () =>
                                 onView?.(student),
+                        },
+                        {
+                            label: "Change Role",
+                            onClick: () =>
+                                onChangeRole?.(student),
                         },
                         {
                             label: "Delete",

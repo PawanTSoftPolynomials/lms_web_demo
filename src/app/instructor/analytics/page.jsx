@@ -4,12 +4,20 @@ import { useEffect, useState, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart2, Video } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 
 import api from "@/lib/axios";
 import Card from "@/components/ui/Card";
 import Loader from "@/components/common/Loader";
-import StudentEngagement from "@/components/instructor/dashboard/StudentEngagement";
 import ConceptMastery from "@/components/tables/ConceptMastery";
+
+// Dynamically imported so recharts (bundled once per dynamic() boundary
+// instead of once per static-import route) is shared across every
+// chart-bearing page rather than duplicated in each one's own chunk.
+const StudentEngagement = dynamic(() => import("@/components/instructor/dashboard/StudentEngagement"), {
+  ssr: false,
+  loading: () => <div className="h-64 animate-pulse bg-slate-800/50 rounded-2xl" />,
+});
 
 function InstructorAnalyticsContent() {
   const searchParams = useSearchParams();

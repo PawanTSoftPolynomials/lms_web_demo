@@ -4,49 +4,39 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import {
-  Newspaper,
+  GraduationCap,
+  BarChart3,
   Calendar,
-  MessageSquare,
-  Lightbulb,
-  Sparkles,
-  LifeBuoy,
   Settings,
+  LifeBuoy,
   LogOut,
   X,
-  BarChart3,
-  Store,
 } from "lucide-react";
 
-import { useStudentNavDrawer } from "@/context/StudentNavDrawerContext";
+import { useAdminNavDrawer } from "@/context/AdminNavDrawerContext";
 import useAuth from "@/hooks/useAuth";
 import Modal from "@/components/ui/Modal";
 
-// Secondary navigation only. Dashboard, My Courses, Calendar, Activity and
-// Profile already live in the Bottom Navigation (see StudentBottomNav's
-// TABS) — repeating them here would just duplicate taps the user already
-// has. Reports has no bottom-nav slot, so it lives here instead. Routes
-// match the same destinations already used on the desktop QuickActionStrip
-// (see PRIMARY_NAV_ITEMS).
+// Secondary navigation only. Home, Students, Instructors, Courses and Profile
+// already live in the Bottom Navigation — repeating them here would just
+// duplicate taps the user already has. This drawer complements that bar
+// instead of mirroring it. Mirrors InstructorNavDrawer's structure.
 const NAV_ITEMS = [
-  { id: "store", label: "Store", icon: Store, href: "/student/store" },
-  { id: "news", label: "News & Updates", icon: Newspaper, href: "/student/news" },
-  { id: "reports", label: "Reports", icon: BarChart3, href: "/student/reports" },
-  { id: "calendar", label: "Calendar", icon: Calendar, href: "/student/calendar" },
-  { id: "messages", label: "Messages", icon: MessageSquare, href: "/student/messages" },
-  { id: "suggestions", label: "Suggestions", icon: Lightbulb, href: "/student/feedback" },
-  { id: "aiRecommendations", label: "AI Recommendations", icon: Sparkles, href: "/student/courses" },
-  { id: "help", label: "Help & Support", icon: LifeBuoy, href: "/student/settings" },
-  { id: "settings", label: "Settings", icon: Settings, href: "/student/settings" },
+  { id: "enrollments", label: "Enrollments", icon: GraduationCap, href: "/admin/enrollments" },
+  { id: "analytics", label: "Analytics", icon: BarChart3, href: "/admin/analytics" },
+  { id: "calendar", label: "Calendar", icon: Calendar, href: "/admin/calendar" },
+  { id: "settings", label: "Settings", icon: Settings, href: "/admin/profile" },
+  { id: "help", label: "Help & Support", icon: LifeBuoy, href: "/admin/profile" },
 ];
 
-// The Student mobile navigation drawer — opened from the header's hamburger
+// The Admin mobile navigation drawer — opened from the header's hamburger
 // button (see DashboardNavbar) via shared context, instead of its own
 // per-page trigger.
-export default function StudentNavDrawer() {
+export default function AdminNavDrawer() {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
-  const { isOpen, close } = useStudentNavDrawer();
+  const { isOpen, close } = useAdminNavDrawer();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const isItemActive = (item) => pathname && pathname.startsWith(item.href);
@@ -56,7 +46,6 @@ export default function StudentNavDrawer() {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") close();
     };
-    // Closes the drawer on the mobile browser/hardware back gesture too.
     const handlePopState = () => close();
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("popstate", handlePopState);

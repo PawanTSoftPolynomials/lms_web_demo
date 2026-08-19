@@ -1,13 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Shield, Mail, Key, UserCheck, Lock } from "lucide-react";
-import { changePassword } from "@/services/auth.service";
-import useAuth from "@/hooks/useAuth";
 import Card from "@/components/ui/Card";
-import Input from "@/components/ui/Input";
 import Loader from "@/components/common/Loader";
-import DesktopEditProfileView from "@/components/student/profile/DesktopEditProfileView";
+import InstructorProfileView from "@/components/instructor/profile/InstructorProfileView";
 import useProfile from "@/hooks/queries/student/useProfile";
 
 export default function ProfilePage() {
@@ -30,5 +25,5 @@ export default function ProfilePage() {
     );
   }
 
-  return <DesktopEditProfileView profile={profile} onRefresh={refetch} />;
+  return <InstructorProfileView profile={profile} onRefresh={refetch} />;
 }

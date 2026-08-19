@@ -6,6 +6,9 @@ import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { useAuth } from "@/context/AuthContext";
 import Loader from "@/components/common/Loader";
 import { NavigationStrip } from "@/components/admin/NavigationStrip/NavigationStrip";
+import AdminBottomNav from "@/components/layouts/AdminBottomNav";
+import AdminNavDrawer from "@/components/layouts/AdminNavDrawer";
+import { AdminNavDrawerProvider } from "@/context/AdminNavDrawerContext";
 
 export default function Layout({ children }) {
   const router = useRouter();
@@ -32,13 +35,17 @@ export default function Layout({ children }) {
   }
 
   return (
-    <DashboardLayout role="ADMIN" title="Admin Dashboard">
-      <div className="flex flex-col gap-4 max-w-[1600px] mx-auto mb-6 sticky top-0 z-30 bg-[#080B11]/90 backdrop-blur-md pt-2 pb-2">
-        <NavigationStrip />
-      </div>
-      <div className="max-w-[1600px] mx-auto w-full">
-        {children}
-      </div>
-    </DashboardLayout>
+    <AdminNavDrawerProvider>
+      <DashboardLayout role="ADMIN" title="Admin Dashboard">
+        <div className="flex flex-col gap-4 max-w-[1600px] mx-auto mb-6 sticky top-0 z-30 bg-[#080B11]/90 backdrop-blur-md pt-2 pb-2">
+          <NavigationStrip />
+        </div>
+        <div className="max-w-[1600px] mx-auto w-full">
+          {children}
+        </div>
+      </DashboardLayout>
+      <AdminBottomNav />
+      <AdminNavDrawer />
+    </AdminNavDrawerProvider>
   );
 }

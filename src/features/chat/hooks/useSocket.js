@@ -11,6 +11,7 @@ export default function useSocket() {
     setMessages,
     setConversations,
     setOnlineUsers,
+    setTypingUsers,
     activeConversation,
   } = useChat();
 
@@ -46,8 +47,11 @@ export default function useSocket() {
         socket.emit("leave_conversation", activeConversation.id);
         console.log(`🔌 Emitted leave_conversation for room: ${activeConversation.id}`);
       }
+      // Stale typing state from the conversation being left should never
+      // bleed into whichever conversation is opened next.
+      setTypingUsers((prev) => prev.filter((t) => t.conversationId !== activeConversation?.id));
     };
-  }, [user, activeConversation?.id]);
+  }, [user, activeConversation?.id, setTypingUsers]);
 
   // Main socket connections and event listeners
   useEffect(() => {
@@ -159,6 +163,21 @@ export default function useSocket() {
       );
     });
 
+    socket.on("typing_start", ({ conversationId, user: typingUser }) => {
+      setTypingUsers((prev) => {
+        if (prev.some((t) => t.conversationId === conversationId && t.userId === typingUser.id)) {
+          return prev;
+        }
+        return [...prev, { conversationId, userId: typingUser.id, name: typingUser.name }];
+      });
+    });
+
+    socket.on("typing_stop", ({ conversationId, user: typingUser }) => {
+      setTypingUsers((prev) =>
+        prev.filter((t) => !(t.conversationId === conversationId && t.userId === typingUser.id))
+      );
+    });
+
     return () => {
       socket.off("message:new");
       socket.off("receive_message");
@@ -167,9 +186,11 @@ export default function useSocket() {
       socket.off("conversation:created");
       socket.off("user:online");
       socket.off("user:offline");
+      socket.off("typing_start");
+      socket.off("typing_stop");
       socket.disconnect();
     };
-  }, [user, setSocket, setMessages, setConversations, setOnlineUsers]);
+  }, [user, setSocket, setMessages, setConversations, setOnlineUsers, setTypingUsers]);
 
   return socketService;
 }

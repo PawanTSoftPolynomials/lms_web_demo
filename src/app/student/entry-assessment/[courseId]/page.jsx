@@ -38,11 +38,9 @@ export default function EntryAssessmentPage({ params }) {
     const goToCourse = () => router.push(`/student/learn/${courseId}`);
 
     const handleStart = async () => {
-        try {
-            await generateMutation.mutateAsync();
-        } catch (err) {
-            console.error("Failed to generate entry assessment:", err);
-        }
+        // Expected failures (e.g. 422 "not enough content") are surfaced via
+        // generateMutation.isError below — nothing further to do here.
+        await generateMutation.mutateAsync().catch(() => {});
     };
 
     const handleSelect = (questionId, optionIndex) => {
@@ -55,11 +53,8 @@ export default function EntryAssessmentPage({ params }) {
     );
 
     const handleSubmit = async () => {
-        try {
-            await submitMutation.mutateAsync(answers);
-        } catch (err) {
-            console.error("Failed to submit entry assessment:", err);
-        }
+        // Expected failures are surfaced via submitMutation.isError below.
+        await submitMutation.mutateAsync(answers).catch(() => {});
     };
 
     if (isLoading) {
@@ -87,6 +82,12 @@ export default function EntryAssessmentPage({ params }) {
                         </p>
                     </div>
 
+                    {generateMutation.isError && (
+                        <p className="text-sm text-red-400">
+                            {generateMutation.error?.response?.data?.message || "Failed to start the assessment. Please try again."}
+                        </p>
+                    )}
+
                     <Button onClick={handleStart} loading={generateMutation.isPending} disabled={generateMutation.isPending} className="mx-auto px-8 py-3">
                         Start Assessment
                     </Button>
@@ -108,6 +109,16 @@ export default function EntryAssessmentPage({ params }) {
                     <p className="text-slate-400">Something went wrong loading your entry assessment.</p>
                     <Button onClick={() => refetch()} className="mt-4">Try again</Button>
                 </Card>
+            </div>
+        );
+    }
+
+    // ---- Generating: assessment requested by another tab/request, still in progress ----
+    if (current.status === "GENERATING") {
+        return (
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+                <Loader />
+                <p className="text-slate-400">Generating your assessment questions...</p>
             </div>
         );
     }
@@ -243,7 +254,12 @@ export default function EntryAssessmentPage({ params }) {
                 ))}
             </div>
 
-            <div className="sticky bottom-4 flex justify-center">
+            <div className="sticky bottom-4 flex flex-col items-center gap-2">
+                {submitMutation.isError && (
+                    <p className="text-sm text-red-400">
+                        {submitMutation.error?.response?.data?.message || "Failed to submit your assessment. Please try again."}
+                    </p>
+                )}
                 <Button
                     onClick={handleSubmit}
                     loading={submitMutation.isPending}

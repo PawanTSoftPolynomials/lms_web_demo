@@ -12,7 +12,8 @@ import {
     FaTrophy,
     FaEnvelope,
     FaCog,
-    FaChartBar
+    FaChartBar,
+    FaStore
 } from "react-icons/fa";
 import {FcGraduationCap} from "react-icons/fc";
 import {FaCertificate} from "react-icons/fa6";
@@ -121,6 +122,11 @@ export const SIDEBAR_ITEMS = {
             title: "Courses",
             icon: FaBook,
             href: "/student/courses",
+        },
+        {
+            title: "Store",
+            icon: FaStore,
+            href: "/student/store",
         },
         {
             title: "Live Classes",

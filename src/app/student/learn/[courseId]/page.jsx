@@ -495,7 +495,7 @@ export default function LearnPage() {
           return;
         }
         const matched = conversations.find(c =>
-          !c.isGroup && c.participants?.some(p => {
+          c.type !== "GROUP" && c.participants?.some(p => {
             const pId = p.userId || p.user?.id || p.id;
             return pId === instId;
           })

@@ -10,6 +10,7 @@ export const QUERY_KEYS = {
     COURSES: "courses",
     COURSE: "course",
     MY_COURSES: "my-courses",
+    STORE_COURSES: "store-courses",
     STUDENT_DASHBOARD: "student-dashboard",
     PAYMENTS: "payments",
     PAYMENT_ORDERS: "payment-orders",
@@ -60,11 +61,14 @@ export const QUERY_KEYS = {
     ADMIN_CALENDAR_EVENTS: "admin-calendar-events",
 
     PROFILE: "profile",
+    ADMIN_PROFILE: "admin-profile",
+    INSTRUCTOR_PROFILE: "instructor-profile",
 
     // ==========================
     // Instructor
     // ==========================
     INSTRUCTOR_DASHBOARD: "instructor-dashboard",
+    TEACHER_INSIGHTS: "teacher-insights",
 
     INSTRUCTOR_COURSES: "instructor-courses",
     INSTRUCTOR_COURSES_TABLE: "instructor-courses-table",
