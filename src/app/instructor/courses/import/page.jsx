@@ -11,8 +11,6 @@ import {
   CheckCircle2,
   AlertTriangle,
   ArrowLeft,
-  Folder,
-  FileText,
   RefreshCw,
   ListTree,
   File,
@@ -224,13 +222,37 @@ export default function CourseImportPage() {
     return trimmed;
   };
 
+  /**
+   * Canonical import JSON has no `id` fields — modules/lessons/topics/contents only get real
+   * ids once actually inserted into the DB. The Course Composer draft view keys and matches
+   * every row by `.id` (React list keys, select/delete/reorder handlers), so without this every
+   * row would share the same `undefined` id. Assigns a stable client-side id to any row missing one.
+   */
+  const withDraftIds = (modules = []) =>
+    modules.map((mod) => ({
+      ...mod,
+      id: mod.id || crypto.randomUUID(),
+      lessons: (mod.lessons || []).map((lesson) => ({
+        ...lesson,
+        id: lesson.id || crypto.randomUUID(),
+        topics: (lesson.topics || []).map((topic) => ({
+          ...topic,
+          id: topic.id || crypto.randomUUID(),
+          contents: (topic.contents || []).map((content) => ({
+            ...content,
+            id: content.id || crypto.randomUUID(),
+          })),
+        })),
+      })),
+    }));
+
   /** Normalizes parsed job into a temporary client draft and navigates directly to Course Composer without creating DB rows */
   const prepareDraftAndNavigate = (targetJob) => {
     try {
       const canonical = targetJob.canonicalJson || {};
       const metadata = canonical.metadata || {};
       const settings = canonical.settings || {};
-      const modules = Array.isArray(canonical.modules) ? canonical.modules : [];
+      const modules = withDraftIds(Array.isArray(canonical.modules) ? canonical.modules : []);
       const assetMap = canonical.assetMap || {};
 
       const draftPayload = {
@@ -678,7 +700,6 @@ export default function CourseImportPage() {
       </div>
 
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Messages */}
         {errorMsg && (
           <div className="p-5 rounded-2xl bg-rose-950/70 border border-rose-800/80 text-rose-200 text-sm space-y-3">
             <div className="flex items-center justify-between">

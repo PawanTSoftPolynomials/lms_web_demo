@@ -45,6 +45,10 @@ export function useDeleteContent() {
                 refetchType: "all",
             });
 
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.COURSE],
+            });
+
         },
     });
 }

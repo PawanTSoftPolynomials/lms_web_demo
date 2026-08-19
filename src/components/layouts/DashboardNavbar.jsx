@@ -24,6 +24,7 @@ import { useQuestion } from "@/hooks/queries/instructor/useQuestion";
 
 import GlobalSearch from "@/components/layouts/GlobalSearch";
 import { NotificationsMenu, ProfileMenu } from "@/components/layouts/NavUserMenus";
+import { ThemeSwitcher } from "@/components/ui/shadcn/theme-switcher";
 
 function ProfileDropdown({ user, onLogoutRequest, role }) {
   const [open, setOpen] = useState(false);
@@ -208,14 +209,14 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     // Add Modules parent and Module details
     if (hasModules || hasLessons || hasContents) {
       if (moduleData) {
-        breadcrumbs.push({ label: moduleData.title, href: `/${role}/courses/${courseId}/modules/${moduleData.id}` });
+        breadcrumbs.push({ label: moduleData.title, href: `/${role}/modules/${moduleData.id}` });
       }
     }
 
     // Add Lessons parent and Lesson details
     if (hasLessons || hasContents) {
       if (lessonData) {
-        breadcrumbs.push({ label: lessonData.title, href: `/${role}/courses/${courseId}/modules/${lessonData.moduleId}/lessons/${lessonData.id}` });
+        breadcrumbs.push({ label: lessonData.title, href: `/${role}/lessons/${lessonData.id}` });
       }
     }
 
@@ -228,11 +229,9 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
     // Add Quiz parent and Quiz details
     if (hasQuizzes || hasQuestions) {
-      const quizzesHref = courseId ? `/${role}/courses/${courseId}/quizzes` : `/${role}/quizzes`;
-      breadcrumbs.push({ label: "QUIZZES", href: quizzesHref });
+      breadcrumbs.push({ label: "QUIZZES", href: `/${role}/quizzes` });
       if (quizData) {
-        const quizHref = courseId ? `/${role}/courses/${courseId}/quizzes/${quizData.id}` : `/${role}/quizzes/view/${quizData.id}`;
-        breadcrumbs.push({ label: quizData.title, href: quizHref });
+        breadcrumbs.push({ label: quizData.title, href: `/${role}/quizzes/view/${quizData.id}` });
       }
     }
 
@@ -469,6 +468,9 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
              <button onClick={() => changeTextSize(18)} className={`transition hover:text-white ${textSize === 18 ? 'text-orange-400 font-bold' : ''}`}>A+</button>
           </div>
 
+          {/* Theme Switcher */}
+          <ThemeSwitcher />
+
           {/* Notifications */}
           <div className="relative">
             <button
@@ -682,6 +684,9 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                 </span>
               )}
             </button>
+
+            {/* Theme Switcher */}
+            <ThemeSwitcher />
 
             {/* Notifications */}
             <NotificationsMenu

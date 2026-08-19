@@ -44,6 +44,9 @@ interface LessonComposerPanelProps {
   onSelectCell?: (contentId: string) => void;
   /** Bump this (e.g. a counter) to immediately open the Add Content picker for the current topic — used by the Course Map's "Add Content" action so it never has to navigate to a separate page. */
   autoOpenAddSignal?: number;
+  draftContents?: ContentRow[];
+  isDraftMode?: boolean;
+  onUpdateDraftContents?: (contents: ContentRow[]) => void;
 }
 
 /** Determines block badge representation (label & color variant) for target UI */
@@ -161,8 +164,15 @@ export function LessonComposerPanel({
   selectedCellId,
   onSelectCell,
   autoOpenAddSignal,
+  draftContents,
+  isDraftMode = false,
+  onUpdateDraftContents,
 }: LessonComposerPanelProps) {
-  const { data: contents = [], isLoading, isError } = useContents(topicId);
+  const { data: apiContents = [], isLoading: isApiLoading, isError: isApiError } = useContents(isDraftMode ? "" : topicId);
+
+  const contents: ContentRow[] = isDraftMode ? (draftContents || []) : (apiContents || []);
+  const isLoading = isDraftMode ? false : isApiLoading;
+  const isError = isDraftMode ? false : isApiError;
   const [insertOrder, setInsertOrder] = useState<number | null>(null);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [insertingAnchorId, setInsertingAnchorId] = useState<string | null>(null);

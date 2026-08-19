@@ -152,6 +152,34 @@ export default function CourseDetailsPage() {
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
 
+  // Ensures all modules, lessons, topics, and contents have non-empty string IDs in draft mode
+  const ensureDraftIds = (modules = []) =>
+    modules.map((mod, mIdx) => {
+      const modId = mod.id || `draft-mod-${mIdx + 1}`;
+      return {
+        ...mod,
+        id: modId,
+        lessons: (mod.lessons || []).map((les, lIdx) => {
+          const lesId = les.id || `draft-les-${mIdx + 1}-${lIdx + 1}`;
+          return {
+            ...les,
+            id: lesId,
+            topics: (les.topics || []).map((top, tIdx) => {
+              const topId = top.id || `draft-top-${mIdx + 1}-${lIdx + 1}-${tIdx + 1}`;
+              return {
+                ...top,
+                id: topId,
+                contents: (top.contents || []).map((cnt, cIdx) => ({
+                  ...cnt,
+                  id: cnt.id || `draft-cnt-${mIdx + 1}-${lIdx + 1}-${tIdx + 1}-${cIdx + 1}`,
+                })),
+              };
+            }),
+          };
+        }),
+      };
+    });
+
   // Load temporary draft from sessionStorage if in draft mode
   useEffect(() => {
     if (isDraftMode) {
@@ -160,7 +188,7 @@ export default function CourseDetailsPage() {
         if (raw) {
           const parsed = JSON.parse(raw);
           setDraftData(parsed);
-          setDraftModules(parsed.modules || []);
+          setDraftModules(ensureDraftIds(parsed.modules || []));
           setCourseForm({
             title: parsed.metadata?.title || "Imported Course",
             subtitle: parsed.metadata?.description || "",
@@ -665,6 +693,7 @@ export default function CourseDetailsPage() {
             onDeleteModule={handleDeleteModule}
             onDeleteTopic={handleDeleteTopic}
             onDeleteContent={handleDeleteContent}
+            isDraftMode={isDraftMode}
           />
         </div>
 
@@ -769,12 +798,15 @@ export default function CourseDetailsPage() {
                 composingLesson ||
                 activeModuleObj.lessons?.[0] ||
                 effectiveModules.flatMap((m) => m.lessons || [])[0];
-              const effectiveTopicId = effectiveLesson?.topics?.[0]?.id;
+              const effectiveTopic = effectiveLesson?.topics?.[0];
+              const effectiveTopicId = effectiveTopic?.id;
               return (
                 <LessonComposerPanel
                   topicId={effectiveTopicId}
                   selectedCellId={selectedCellId}
                   onSelectCell={setSelectedCellId}
+                  draftContents={isDraftMode ? effectiveTopic?.contents || [] : undefined}
+                  isDraftMode={isDraftMode}
                 />
               );
             })()}
@@ -785,6 +817,8 @@ export default function CourseDetailsPage() {
                 selectedCellId={selectedCellId}
                 onSelectCell={setSelectedCellId}
                 autoOpenAddSignal={autoOpenAddSignal}
+                draftContents={isDraftMode ? composingTopic?.contents || [] : undefined}
+                isDraftMode={isDraftMode}
               />
             )}
           </div>

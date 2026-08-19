@@ -38,6 +38,10 @@ export function useUpdateCourse() {
                     QUERY_KEYS.INSTRUCTOR_DASHBOARD,
                 ],
             });
+
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.COURSE, variables.courseId],
+            });
         },
     });
 }

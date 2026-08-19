@@ -9,11 +9,14 @@ import QuizForm from "@/components/instructor/quizzes/QuizForm";
 
 import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
 import { useUpdateQuiz } from "@/hooks/queries/instructor/useUpdateQuiz";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export default function EditQuizPage() {
     const { quizId } = useParams();
 
     const router = useRouter();
+
+    const { showToast } = useToast();
 
     const {
         data: quiz,
@@ -36,11 +39,18 @@ export default function EditQuizPage() {
                 },
             });
 
+            showToast("Quiz updated successfully", "success");
+
             router.push(
                 `/instructor/quizzes/view/${quizId}`
             );
         } catch (error) {
             console.error(error);
+            showToast(
+                error?.response?.data?.message || "Failed to update quiz.",
+                "error",
+                "Update Failed"
+            );
         }
     };
 

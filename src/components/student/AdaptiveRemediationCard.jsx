@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { AlertTriangle, RefreshCw, ArrowRight, CheckCircle2 } from "lucide-react";
 
 import Button from "@/components/ui/Button";
@@ -21,11 +20,20 @@ import { getStrategyCopy, getContinueLabel } from "@/components/student/adaptive
 const isRemediationStrategyName = (strategyName) =>
   strategyName === "MISCONCEPTION_REMEDIATION" || strategyName === "CONCEPT_REMEDIATION";
 
-export default function AdaptiveRemediationCard({ quiz, submission, conceptScores }) {
-  const router = useRouter();
+// One card = one independent remediation chain for ONE incorrect question.
+// The parent (result/[quizId]/page.jsx) renders exactly one of these at a
+// time — the active item in its incorrect-questions queue — and advances to
+// the next one only when this card calls onComplete(). This component never
+// scans quiz.questions itself and knows nothing about the queue; it just
+// resolves its own single question and reports back when it's done.
+export default function AdaptiveRemediationCard({ quiz, question, onComplete }) {
   const inProgressKeyRef = useRef("");
   const completedKeyRef = useRef("");
   const abortControllerRef = useRef(null);
+  // Guards against firing onComplete twice for the same mount (e.g. a
+  // double-click on a continue button) — the queue must advance exactly once
+  // per resolved question.
+  const hasFiredCompleteRef = useRef(false);
 
   // Never reset except by a genuine requestKey change (new answer/retake) —
   // bounds the adaptive loop to "max 1 verification question per remediation cycle"
@@ -38,7 +46,6 @@ export default function AdaptiveRemediationCard({ quiz, submission, conceptScore
   const [adaptiveData, setAdaptiveData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
   const [streamedText, setStreamedText] = useState("");
   const [isStreamingActive, setIsStreamingActive] = useState(false);
 
@@ -103,57 +110,28 @@ export default function AdaptiveRemediationCard({ quiz, submission, conceptScore
     }
   };
 
-  // 1. Derive dynamic context & incorrect questionId from actual submission data
+  // 1. Derive dynamic context from the single incorrect question this card owns
   const targetIncorrectItem = useMemo(() => {
-    if (!quiz?.questions || !submission?.answers) return null;
-    
-    let parsedAnswers = [];
-    if (typeof submission.answers === "string") {
-      try {
-        parsedAnswers = JSON.parse(submission.answers);
-      } catch {
-        parsedAnswers = [];
-      }
-    } else if (Array.isArray(submission.answers)) {
-      parsedAnswers = submission.answers;
-    }
+    if (!question) return null;
 
-    if (!Array.isArray(parsedAnswers) || parsedAnswers.length === 0) return null;
+    return {
+      questionId: question.id,
+      question: question.question,
+      studentAns: String(question.studentAnswer),
+      message: `The student answered "${question.studentAnswer}" for question "${question.question}". Provide remediation for the detected misconception.`,
+    };
+  }, [question]);
 
-    // Find first incorrect question response to extract questionId and construct message
-    for (const q of quiz.questions) {
-      const ans = parsedAnswers.find((a) => a.questionId === q.id || a.id === q.id);
-      const studentAns = ans?.answer ?? ans?.selectedOption;
-      if (
-        studentAns &&
-        q.correctAnswer &&
-        String(studentAns).trim().toLowerCase() !== String(q.correctAnswer).trim().toLowerCase()
-      ) {
-        return {
-          questionId: q.id,
-          question: q.question,
-          studentAns: String(studentAns),
-          message: `The student answered "${studentAns}" for question "${q.question}". Provide remediation for the detected misconception.`
-        };
-      }
-    }
-
-    return null;
-  }, [quiz, submission]);
-
-  // 2. Authoritative Knowledge Component (KC) resolution based on the student's actual incorrect question
+  // 2. Authoritative Knowledge Component (KC) resolution based on this card's question
   const targetKc = useMemo(() => {
-    if (!quiz || !targetIncorrectItem?.questionId) return null;
+    if (!question) return null;
 
-    const incorrectQuestion = quiz.questions?.find((q) => q && q.id === targetIncorrectItem.questionId);
-    if (!incorrectQuestion) return null;
-
-    if (incorrectQuestion.topic && incorrectQuestion.topic.trim()) {
-      return incorrectQuestion.topic.trim();
+    if (question.topic && question.topic.trim()) {
+      return question.topic.trim();
     }
 
-    return `question:${incorrectQuestion.id}`;
-  }, [quiz, targetIncorrectItem]);
+    return `question:${question.id}`;
+  }, [question]);
 
   // 3. Orchestration identity — answer-aware.
   const normalizedStudentAnswer = useMemo(
@@ -491,10 +469,21 @@ export default function AdaptiveRemediationCard({ quiz, submission, conceptScore
     }
   };
 
+  // Reports "this item's remediation is resolved" to the parent exactly
+  // once. Only ever called from a user-driven continue action AFTER the
+  // existing decision/verification logic has already determined the
+  // strategy is no longer MISCONCEPTION_REMEDIATION/CONCEPT_REMEDIATION —
+  // never on explanation load, verification start, or answer submission.
+  const fireComplete = () => {
+    if (hasFiredCompleteRef.current) return;
+    hasFiredCompleteRef.current = true;
+    onComplete?.();
+  };
+
   // Primary CTA on the Quick Check result. What it does is entirely driven
   // by the decision engine's nextDecision — this function only decides HOW
   // to present that: loop back into another explanation, reveal the practice
-  // question, or navigate on.
+  // question, or report this item as resolved to the parent queue.
   const handleResultContinue = () => {
     const nextStrategy = verificationResult?.nextDecision?.strategy;
 
@@ -505,16 +494,13 @@ export default function AdaptiveRemediationCard({ quiz, submission, conceptScore
 
     setNextActionStarted(true);
 
+    // ADVANCE means there's no follow-up practice question to show — this
+    // item is fully resolved. INDEPENDENT_PRACTICE still has a practice
+    // question to show first; that question's own Continue button reports
+    // completion once the student has engaged with it.
     if (nextStrategy === "ADVANCE") {
-      handleNavigateNext();
+      fireComplete();
     }
-  };
-
-  const handleNavigateNext = () => {
-    if (isNavigating) return;
-    setIsNavigating(true);
-    const targetUrl = quiz?.courseId ? `/student/learn/${quiz.courseId}` : "/student/courses";
-    router.push(targetUrl);
   };
 
   if (!targetKc) {
@@ -773,7 +759,7 @@ export default function AdaptiveRemediationCard({ quiz, submission, conceptScore
         {nextActionStarted && isAdvanceStrategy && (
           <p className="text-xs text-slate-400 flex items-center gap-2">
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-            Taking you to the next lesson...
+            Moving on...
           </p>
         )}
 
@@ -791,6 +777,8 @@ export default function AdaptiveRemediationCard({ quiz, submission, conceptScore
             result={practiceResult}
             correctFeedback="Nice work — that's correct."
             incorrectFeedback="Close — let's keep practicing."
+            onContinue={fireComplete}
+            continueLabel="Continue"
           />
         )}
       </div>
@@ -818,14 +806,13 @@ export default function AdaptiveRemediationCard({ quiz, submission, conceptScore
           </div>
 
           <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-3 flex-wrap">
-            <span className="text-xs text-slate-400">Ready for the next lesson in your course?</span>
+            <span className="text-xs text-slate-400">Ready to continue?</span>
             <Button
-              onClick={handleNavigateNext}
-              disabled={isNavigating}
+              onClick={fireComplete}
               className="min-h-[38px] px-4 py-2 text-xs font-bold uppercase tracking-wider bg-emerald-500 hover:bg-emerald-600 text-slate-950 border-0"
             >
               <span className="flex items-center gap-1.5">
-                <span>{quiz?.courseId ? "Continue to next concept" : "Explore courses"}</span>
+                <span>Continue</span>
                 <ArrowRight size={14} />
               </span>
             </Button>
@@ -845,12 +832,21 @@ export default function AdaptiveRemediationCard({ quiz, submission, conceptScore
           result={practiceResult}
           correctFeedback="Nice work — that's correct."
           incorrectFeedback="Close — let's keep practicing."
+          onContinue={fireComplete}
+          continueLabel="Continue"
         />
       ) : (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
-          <p className="text-[10px] text-orange-400/90 font-bold uppercase tracking-wider mb-1">Your Learning Plan</p>
-          <p className="text-sm font-medium text-white">{copy.heading}</p>
-          <p className="text-xs text-slate-400 mt-1">{copy.body}</p>
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 space-y-3">
+          <div>
+            <p className="text-[10px] text-orange-400/90 font-bold uppercase tracking-wider mb-1">Your Learning Plan</p>
+            <p className="text-sm font-medium text-white">{copy.heading}</p>
+            <p className="text-xs text-slate-400 mt-1">{copy.body}</p>
+          </div>
+          <div className="pt-2 border-t border-slate-800/70 flex justify-end">
+            <Button onClick={fireComplete} className="min-h-[34px] px-3 py-1.5 text-xs">
+              Continue
+            </Button>
+          </div>
         </div>
       )}
     </div>

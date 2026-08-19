@@ -45,6 +45,10 @@ export function useCreateContent() {
                 refetchType: "all",
             });
 
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.COURSE],
+            });
+
         },
     });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -90,9 +90,40 @@ export default function QuizResultPage() {
     if (type === "SELF_ASSESSMENT") {
       return typeof selected === "string" && selected.trim().length > 0;
     }
-    
+
     return false;
   };
+
+  // ALL incorrectly-answered questions (not just the first) — one entry per
+  // question the student actually answered wrong, each carrying its own
+  // studentAnswer. Reuses checkAnswerCorrectness (the same helper the
+  // Detailed Question Review list below uses) so "wrong" means the same
+  // thing in both places. Drives one independent AdaptiveRemediationCard per
+  // question further down.
+  const incorrectQuestions = useMemo(() => {
+    const quizQuestions = submission?.quiz?.questions;
+    if (!quizQuestions || parsedAnswers.length === 0) return [];
+
+    return quizQuestions.reduce((acc, question) => {
+      const qType = question.type || "MCQ_SINGLE";
+      const userAnswer = parsedAnswers.find((ans) => ans.questionId === question.id);
+      const selectedOption = userAnswer?.answer ?? userAnswer?.selectedOption;
+
+      if (selectedOption === undefined || selectedOption === null) return acc;
+      if (checkAnswerCorrectness(qType, selectedOption, question.correctAnswer)) return acc;
+
+      acc.push({ ...question, studentAnswer: selectedOption });
+      return acc;
+    }, []);
+  }, [submission, parsedAnswers]);
+
+  // Sequential adaptive queue: only one remediation is ever mounted at a
+  // time (incorrectQuestions[activeRemediationIndex]). It advances by
+  // exactly one step ONLY when that card calls onComplete() — i.e. only
+  // after ITS OWN existing decision/verification logic decides the strategy
+  // is no longer MISCONCEPTION_REMEDIATION/CONCEPT_REMEDIATION. Once the
+  // index reaches the end of the queue, a completion state shows instead.
+  const [activeRemediationIndex, setActiveRemediationIndex] = useState(0);
 
   if (isLoading) {
     return <Loader />;
@@ -191,8 +222,36 @@ export default function QuizResultPage() {
         </div>
       </Card>
 
-      {/* AI Adaptive Learning Tutor Guidance */}
-      <AdaptiveRemediationCard quiz={quiz} submission={submission} conceptScores={conceptScores} />
+      {/* AI Adaptive Learning Tutor Guidance — sequential: one remediation
+          shown at a time, advancing only when the active one reports it's
+          resolved (see activeRemediationIndex above). */}
+      {incorrectQuestions.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-white">Adaptive Learning</h3>
+            {activeRemediationIndex < incorrectQuestions.length && (
+              <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400">
+                Remediation {activeRemediationIndex + 1} of {incorrectQuestions.length}
+              </span>
+            )}
+          </div>
+
+          {activeRemediationIndex < incorrectQuestions.length ? (
+            <AdaptiveRemediationCard
+              key={incorrectQuestions[activeRemediationIndex].id}
+              quiz={quiz}
+              submission={submission}
+              question={incorrectQuestions[activeRemediationIndex]}
+              conceptScores={conceptScores}
+              onComplete={() => setActiveRemediationIndex((i) => i + 1)}
+            />
+          ) : (
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-950/10 p-5 text-sm text-emerald-300">
+              All identified concepts reviewed.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* KPI Performance Grid */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-5">

@@ -12,6 +12,7 @@ import {
   HelpCircle,
   RefreshCw,
   Edit3,
+  Pencil,
   Check,
   X,
   BookOpen,
@@ -190,6 +191,14 @@ export default function InstructorQuizDetailPage({ params }) {
 
           <div className="flex items-center space-x-3 w-full md:w-auto justify-end">
             <Link
+              href={`/instructor/questions/create/${quizId}`}
+              className="px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-amber-500/50 text-slate-200 text-xs font-bold transition flex items-center space-x-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Write New Question</span>
+            </Link>
+
+            <Link
               href={`/instructor/quizzes/${quizId}/import-questions`}
               className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 text-xs font-bold shadow-lg shadow-amber-500/20 transition flex items-center space-x-1.5"
             >
@@ -306,6 +315,14 @@ export default function InstructorQuizDetailPage({ params }) {
                       )}
 
                       <div className="flex items-center space-x-1 border-l border-slate-800 pl-3">
+                        <Link
+                          href={`/instructor/questions/edit/${q.id}`}
+                          className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-amber-400"
+                          title="Edit Question"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Link>
+
                         <button
                           onClick={() => handleMoveQuestion(idx, -1)}
                           disabled={idx === 0}

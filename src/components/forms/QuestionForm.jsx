@@ -69,15 +69,14 @@ export default function QuestionForm({
 
   useEffect(() => {
     if (initialValues) {
-      // A fetched question record carries the backend's field names
-      // (questionType, subject, uppercase difficulty) — .type/.concept
-      // only exist on this form's own submissionData, never on a record
-      // read back from the API, so falling back to them here always missed.
+      // The API returns `questionType` (Prisma's real column) and an
+      // uppercase `difficulty` (EASY/MEDIUM/HARD) — reading the wrong
+      // shapes here (`type`, title-case difficulty) silently reset every
+      // edited question back to MCQ_SINGLE/Medium regardless of what was
+      // actually stored, and dropped MATCH_PAIRS/ARRANGE_TOKENS state below.
       const type = initialValues.questionType ?? initialValues.type ?? "MCQ_SINGLE";
-      const difficulty =
-        DIFFICULTY_LABEL_BY_DB_VALUE[(initialValues.difficulty ?? "").toUpperCase()] ||
-        initialValues.difficulty ||
-        "Medium";
+      const rawDifficulty = initialValues.difficulty ?? "MEDIUM";
+      const difficulty = rawDifficulty.charAt(0).toUpperCase() + rawDifficulty.slice(1).toLowerCase();
 
       setFormData({
         type,
@@ -85,7 +84,7 @@ export default function QuestionForm({
         options: initialValues.options ?? ["", "", "", ""],
         correctAnswer: initialValues.correctAnswer ?? "",
         marks: initialValues.marks ?? 5,
-        concept: initialValues.subject ?? initialValues.concept ?? "",
+        concept: initialValues.concept ?? initialValues.tags ?? "",
         difficulty,
         explanation: initialValues.explanation ?? "",
         shuffleOptions: initialValues.shuffleOptions ?? false
@@ -267,7 +266,7 @@ export default function QuestionForm({
   };
 
   const handleCancel = () => {
-    router.push(finalCourseId ? `/instructor/courses/${finalCourseId}/quizzes` : "/instructor/quizzes");
+    router.push("/instructor/quizzes");
   };
 
   return (

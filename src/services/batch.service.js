@@ -138,6 +138,15 @@ export const getBatchDetailDashboard = async (batchId) => {
 };
 
 /**
+ * Quizzes assigned to this batch, each with the batch roster's attempt
+ * status/score for it — the "which students attempted which quizzes" trace.
+ */
+export const getBatchQuizzes = async (batchId) => {
+    const { data } = await api.get(`/batches/${batchId}/quizzes`);
+    return data.data ?? data;
+};
+
+/**
  * Batch-scoped announcements.
  */
 export const getBatchAnnouncements = async (batchId) => {

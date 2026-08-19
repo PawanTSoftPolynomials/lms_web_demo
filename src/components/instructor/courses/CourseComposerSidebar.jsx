@@ -206,8 +206,13 @@ function TopicContentRows({
   onDeleteContent,
   role = "INSTRUCTOR",
   completedLessonIds = [],
+  isDraftMode = false,
 }) {
-  const { data: contents = [], isLoading, isError } = useContents(topic.id);
+  const { data: apiContents = [], isLoading: isApiLoading, isError: isApiError } = useContents(isDraftMode ? "" : topic.id);
+
+  const contents = isDraftMode ? (topic?.contents || []) : (apiContents || []);
+  const isLoading = isDraftMode ? false : isApiLoading;
+  const isError = isDraftMode ? false : isApiError;
   const { duplicate } = useDuplicateContent();
   const reorderContents = useReorderContents();
   const { showToast } = useToast();
@@ -328,6 +333,7 @@ export function CourseComposerSidebar({
   onDeleteContent,
   role = "INSTRUCTOR",
   completedLessonIds = [],
+  isDraftMode = false,
 }) {
   const [expandedModules, setExpandedModules] = useState({});
   const [expandedLessons, setExpandedLessons] = useState({});
@@ -669,6 +675,7 @@ export function CourseComposerSidebar({
                                             onSelectContent={onSelectContent}
                                             onDeleteContent={onDeleteContent}
                                             role={role}
+                                            isDraftMode={isDraftMode}
                                           />
                                         </Collapsible>
                                       </div>
