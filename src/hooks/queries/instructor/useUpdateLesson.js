@@ -46,6 +46,10 @@ export function useUpdateLesson() {
                 queryKey: [QUERY_KEYS.MODULES],
                 refetchType: "all",
             });
+
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.COURSE],
+            });
         },
     });
 }

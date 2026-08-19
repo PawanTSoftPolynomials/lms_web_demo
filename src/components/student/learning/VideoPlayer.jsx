@@ -9,6 +9,10 @@ import {
     Presentation,
     ChevronLeft,
     ChevronRight,
+    Code2,
+    Music,
+    AppWindow,
+    ListChecks,
 } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
 
@@ -206,8 +210,10 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         );
     }
 
-    const slides = type === "HTML" ? parseSlides(htmlContent) : [];
-    const isSlideShow = type === "HTML" && slides.length > 1;
+    const isHtmlLike = type === "HTML" || type === "PRESENTATION";
+    const isFileLike = type === "FILE" || type === "DOCUMENT";
+    const slides = isHtmlLike ? parseSlides(htmlContent) : [];
+    const isSlideShow = isHtmlLike && slides.length > 1;
 
     return (
         <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 flex flex-col w-full">
@@ -219,8 +225,13 @@ const VideoPlayer = forwardRef(function VideoPlayer(
             <div className="border-b border-slate-800 px-4 sm:px-6 py-3.5 flex items-center justify-between bg-slate-950 min-h-[52px]">
                 <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2 truncate pr-2">
                     {isSlideShow && <Presentation className="h-4 w-4 text-orange-500 shrink-0" />}
-                    {type === "HTML" && !isSlideShow && <BookOpen className="h-4 w-4 text-orange-500 shrink-0" />}
-                    {type === "FILE" && <FileText className="h-4 w-4 text-orange-500 shrink-0" />}
+                    {isHtmlLike && !isSlideShow && <BookOpen className="h-4 w-4 text-orange-500 shrink-0" />}
+                    {isFileLike && <FileText className="h-4 w-4 text-orange-500 shrink-0" />}
+                    {type === "IMAGE" && <FileText className="h-4 w-4 text-orange-500 shrink-0" />}
+                    {type === "AUDIO" && <Music className="h-4 w-4 text-orange-500 shrink-0" />}
+                    {type === "CODE" && <Code2 className="h-4 w-4 text-orange-500 shrink-0" />}
+                    {type === "INTERACTIVE_LAB" && <AppWindow className="h-4 w-4 text-orange-500 shrink-0" />}
+                    {type === "EMBED" && <ListChecks className="h-4 w-4 text-orange-500 shrink-0" />}
                     <span className="truncate">{content.title}</span>
                 </h2>
                 {isSlideShow && (
@@ -257,8 +268,8 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     )
                 )}
 
-                {/* FILE (PDFs / PPTs / Docs / Resources) */}
-                {type === "FILE" && (
+                {/* FILE / DOCUMENT (PDFs / PPTs / Docs / Resources) */}
+                {isFileLike && (
                     isPdf(fileUrl) ? (
                         <iframe
                             src={fileUrl}
@@ -287,8 +298,64 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     )
                 )}
 
-                {/* HTML */}
-                {type === "HTML" && (
+                {/* IMAGE */}
+                {type === "IMAGE" && (
+                    <div className="flex flex-col items-center gap-3 p-4 sm:p-8">
+                        <img
+                            src={fileUrl}
+                            alt={content.title || "Lesson image"}
+                            className="max-w-full max-h-[520px] rounded-xl shadow-sm mx-auto"
+                        />
+                        {htmlContent && (
+                            <div
+                                className="prose prose-invert prose-sm max-w-none text-center select-text"
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }}
+                            />
+                        )}
+                    </div>
+                )}
+
+                {/* AUDIO */}
+                {type === "AUDIO" && (
+                    <div className="flex h-[220px] flex-col items-center justify-center gap-4 p-6">
+                        <Music className="h-16 w-16 text-orange-500" />
+                        <audio controls src={fileUrl} className="w-full max-w-md" />
+                    </div>
+                )}
+
+                {/* CODE */}
+                {type === "CODE" && (
+                    <pre className="m-4 sm:m-8 rounded-xl border border-slate-800 bg-slate-950/60 px-4 py-3 overflow-auto text-xs sm:text-sm text-slate-200 select-text">
+                        <code dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent || "") }} />
+                    </pre>
+                )}
+
+                {/* INTERACTIVE_LAB (genuine embedded widgets/tools, not video) */}
+                {type === "INTERACTIVE_LAB" && (
+                    externalUrl ? (
+                        <iframe
+                            src={externalUrl}
+                            className="h-[320px] sm:h-[420px] md:h-[520px] w-full border-none bg-white"
+                            title={content.title}
+                        />
+                    ) : (
+                        <div className="flex h-[220px] items-center justify-center text-sm text-slate-500">No embed URL set</div>
+                    )
+                )}
+
+                {/* EMBED (quiz block preview — the graded quiz itself lives under Quizzes) */}
+                {type === "EMBED" && (
+                    <div className="p-4 sm:p-8 space-y-3">
+                        <div
+                            className="prose prose-invert prose-sm max-w-none select-text"
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent || "") }}
+                        />
+                        <p className="text-xs text-slate-500">This is a quiz question preview — take the graded quiz from the Quizzes section.</p>
+                    </div>
+                )}
+
+                {/* HTML / PRESENTATION */}
+                {isHtmlLike && (
                     isSlideShow ? (
                         <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px]">
                             <div 
@@ -338,7 +405,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                 )}
 
                 {/* EXTERNAL LINK */}
-                {(type === "EXTERNAL" || type === "LINK") && (
+                {(type === "EXTERNAL_LINK" || type === "LINK") && (
                     isGoogleSlidesUrl(externalUrl) ? (
                         <iframe
                             src={getGoogleSlidesEmbedUrl(externalUrl)}

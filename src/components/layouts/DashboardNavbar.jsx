@@ -24,6 +24,7 @@ import { useQuestion } from "@/hooks/queries/instructor/useQuestion";
 
 import GlobalSearch from "@/components/layouts/GlobalSearch";
 import { NotificationsMenu, ProfileMenu } from "@/components/layouts/NavUserMenus";
+import { ThemeSwitcher } from "@/components/ui/shadcn/theme-switcher";
 
 function ProfileDropdown({ user, onLogoutRequest, role }) {
   const [open, setOpen] = useState(false);
@@ -467,6 +468,9 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
              <button onClick={() => changeTextSize(18)} className={`transition hover:text-white ${textSize === 18 ? 'text-orange-400 font-bold' : ''}`}>A+</button>
           </div>
 
+          {/* Theme Switcher */}
+          <ThemeSwitcher />
+
           {/* Notifications */}
           <div className="relative">
             <button
@@ -680,6 +684,9 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                 </span>
               )}
             </button>
+
+            {/* Theme Switcher */}
+            <ThemeSwitcher />
 
             {/* Notifications */}
             <NotificationsMenu

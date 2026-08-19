@@ -49,6 +49,7 @@ export default function CreateQuizPage() {
     return (
         <QuizForm
             mode="create"
+            lockedCourseId={courseId}
             onSubmit={handleSubmit}
             loading={createQuizMutation.isPending}
         />

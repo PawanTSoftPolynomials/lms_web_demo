@@ -47,6 +47,10 @@ export function useCreateLesson() {
                 refetchType: "all",
             });
 
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.COURSE],
+            });
+
         },
     });
 }

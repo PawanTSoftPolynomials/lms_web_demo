@@ -1,0 +1,111 @@
+"use client";
+
+import { useState } from "react";
+import { Settings, Plus, BookOpen } from "lucide-react";
+
+import ModuleAccordionItem from "@/components/instructor/composer/ModuleAccordionItem";
+import { useCreateModule } from "@/hooks/queries/instructor/useCreateModule";
+import { useReorderModules } from "@/hooks/queries/instructor/useReorderModules";
+
+export default function ComposerSidebar({
+  course,
+  courseId,
+  selectedLessonId,
+  view,
+  onSelectLesson,
+  onSelectSettings,
+}) {
+  const [addingModule, setAddingModule] = useState(false);
+  const [newModuleTitle, setNewModuleTitle] = useState("");
+
+  const createModule = useCreateModule();
+  const reorderModules = useReorderModules();
+
+  const modules = [...(course.modules || [])].sort((a, b) => a.order - b.order);
+
+  const handleAddModule = () => {
+    if (!newModuleTitle.trim()) return;
+    const nextOrder = modules.length > 0 ? Math.max(...modules.map((m) => m.order)) + 1 : 1;
+    createModule.mutate({ courseId, title: newModuleTitle, order: nextOrder });
+    setNewModuleTitle("");
+    setAddingModule(false);
+  };
+
+  const moveModule = (index, direction) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= modules.length) return;
+
+    const reordered = [...modules];
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(targetIndex, 0, moved);
+
+    reorderModules.mutate({
+      courseId,
+      modules: reordered.map((m, i) => ({ id: m.id, order: i + 1 })),
+    });
+  };
+
+  return (
+    <aside className="w-full lg:w-80 shrink-0 space-y-3">
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-md p-4 space-y-3">
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">
+          Course Map
+        </p>
+
+        <button
+          type="button"
+          onClick={onSelectSettings}
+          className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm font-bold transition ${
+            view === "settings"
+              ? "bg-orange-500/10 text-orange-400"
+              : "text-slate-300 hover:bg-slate-800/60"
+          }`}
+        >
+          <Settings size={14} /> Course Settings
+        </button>
+
+        <div className="space-y-1.5 max-h-[65vh] overflow-y-auto pr-1">
+          {modules.length === 0 && (
+            <p className="text-xs text-slate-600 px-2 py-3 flex items-center gap-1.5">
+              <BookOpen size={12} /> No modules yet
+            </p>
+          )}
+          {modules.map((mod, i) => (
+            <ModuleAccordionItem
+              key={mod.id}
+              module={mod}
+              courseId={courseId}
+              isFirst={i === 0}
+              isLast={i === modules.length - 1}
+              selectedLessonId={view === "lesson" ? selectedLessonId : null}
+              onSelectLesson={onSelectLesson}
+              onMoveModuleUp={() => moveModule(i, -1)}
+              onMoveModuleDown={() => moveModule(i, 1)}
+              defaultOpen={(mod.lessons || []).some((l) => l.id === selectedLessonId)}
+            />
+          ))}
+        </div>
+
+        {addingModule ? (
+          <input
+            autoFocus
+            value={newModuleTitle}
+            onChange={(e) => setNewModuleTitle(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAddModule()}
+            onBlur={() => !newModuleTitle.trim() && setAddingModule(false)}
+            placeholder="Module title…"
+            className="w-full bg-slate-800 rounded-lg px-2.5 py-2 text-sm outline-none border border-orange-500"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setAddingModule(true)}
+            className="w-full inline-flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-lg transition"
+          >
+            <Plus size={12} /> Add Module
+          </button>
+        )}
+      </div>
+    </aside>
+  );
+}
