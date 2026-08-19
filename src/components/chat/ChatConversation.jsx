@@ -21,7 +21,12 @@ export default function ChatConversation() {
     setMessages,
     messages,
     setConfirmDialog,
+    typingUsers,
   } = useChat();
+
+  const isRecipientTyping = typingUsers.some(
+    (t) => t.conversationId === activeConversation?.id && t.userId !== currentUser?.id
+  );
 
   const { loadMessages } = useMessages();
   const [showMenu, setShowMenu] = useState(false);
@@ -44,7 +49,11 @@ export default function ChatConversation() {
     const currentUserId = currentUser?.id || currentUser?._id;
     return p && pId !== currentUserId && pEmail !== currentUser?.email;
   });
-  const role = recipient?.role || recipient?.user?.role || activeConversation?.role || (activeConversation?.isGroup ? "GROUP" : "STUDENT");
+  const isGroup = activeConversation?.type === "GROUP";
+  const role = recipient?.role || recipient?.user?.role || activeConversation?.role || (isGroup ? "GROUP" : "STUDENT");
+  const displayName = isGroup
+    ? activeConversation?.name || "Unknown Conversation"
+    : recipient?.user?.name || recipient?.name || activeConversation?.name || "Unknown Conversation";
 
   const getRoleBadgeStyle = (userRole) => {
     const formatted = (userRole || "").toUpperCase();
@@ -98,7 +107,7 @@ export default function ChatConversation() {
         <div>
 
           <h2 className="font-semibold text-white flex items-center gap-2">
-            <span>{activeConversation.name || "Unknown Conversation"}</span>
+            <span>{displayName}</span>
             {role && (
               <span className={`
                 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider
@@ -109,8 +118,10 @@ export default function ChatConversation() {
             )}
           </h2>
 
-          <p className="text-xs text-slate-400">
-            {activeConversation.online
+          <p className={`text-xs ${isRecipientTyping ? "text-orange-400 font-semibold" : "text-slate-400"}`}>
+            {isRecipientTyping
+              ? "Typing..."
+              : activeConversation.online
               ? "Online"
               : activeConversation.lastSeen}
           </p>

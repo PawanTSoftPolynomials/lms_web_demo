@@ -11,7 +11,7 @@ import { defaultQueryOptions } from "@/lib/queryOptions";
 export function useProfile() {
     return useQuery({
         queryKey: [
-            QUERY_KEYS.PROFILE,
+            QUERY_KEYS.ADMIN_PROFILE,
         ],
         queryFn: getProfile,
         ...defaultQueryOptions,

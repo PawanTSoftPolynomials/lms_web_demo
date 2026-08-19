@@ -11,6 +11,7 @@ import {
   Sparkles,
   Home,
   Layers,
+  Store,
 } from "lucide-react";
 
 /**
@@ -23,6 +24,7 @@ import {
 export const PRIMARY_NAV_ITEMS = [
   { label: "Home", href: "/student/dashboard", icon: Home, primaryOnMobile: true },
   { label: "My Courses", href: "/student/my-courses", icon: BookOpen, primaryOnMobile: true },
+  { label: "Store", href: "/student/store", icon: Store, primaryOnMobile: true },
   { label: "My Work", href: "/student/assignments", icon: CheckSquare, primaryOnMobile: true },
   { label: "Batches", href: "/student/batches", icon: Layers, primaryOnMobile: true },
   { label: "Calendar", href: "/student/calendar", icon: Calendar, primaryOnMobile: true },

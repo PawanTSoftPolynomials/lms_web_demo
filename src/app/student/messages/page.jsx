@@ -51,12 +51,26 @@ function MessagesPageContent() {
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // For direct chats, prefer the other participant's real name over the
+  // conversation's stored `name` (which is only meaningful for GROUP chats).
+  const getConversationDisplayName = (conv) => {
+    if (!conv) return "Unknown Conversation";
+    if (conv.type === "GROUP") return conv.name || "Chat Room";
+    const currentUserId = currentUser?.id || currentUser?._id;
+    const recipient = conv.participants?.find((p) => {
+      const pId = p?.userId || p?.user?.id || p?.id;
+      const pEmail = p?.user?.email || p?.email;
+      return p && pId !== currentUserId && pEmail !== currentUser?.email;
+    });
+    return recipient?.user?.name || recipient?.name || conv.name || "Chat Room";
+  };
+
   const unreadCountTotal = useMemo(() => {
     return conversations.filter(c => (c.unread || c.unreadCount || 0) > 0).length;
   }, [conversations]);
 
   const groupsCountTotal = useMemo(() => {
-    return conversations.filter(c => c.isGroup).length;
+    return conversations.filter(c => c.type === "GROUP").length;
   }, [conversations]);
 
   // Auto-select or create conversation with course instructor on mount/change
@@ -66,7 +80,10 @@ function MessagesPageContent() {
     const findAndSelectConversation = async () => {
       // Find direct conversation with this instructorId
       const matched = conversations.find(c =>
-        !c.isGroup && c.participants?.some(p => p.id === instructorId || p._id === instructorId)
+        c.type !== "GROUP" && c.participants?.some(p => {
+          const pId = p.userId || p.user?.id || p.id;
+          return pId === instructorId;
+        })
       );
 
       if (matched) {
@@ -140,15 +157,17 @@ function MessagesPageContent() {
     } else if (activeCategory === "favourites") {
       list = list.filter(c => c.isFavorite || c.favorite);
     } else if (activeCategory === "groups") {
-      list = list.filter(c => c.isGroup);
+      list = list.filter(c => c.type === "GROUP");
     } else if (activeCategory === "direct") {
-      list = list.filter(c => !c.isGroup);
+      list = list.filter(c => c.type !== "GROUP");
     } else if (activeCategory === "archived") {
       list = list.filter(c => c.isArchived || c.archived);
     }
 
     return list;
   }, [conversations, searchQuery, activeCategory]);
+
+  const activeConversationName = getConversationDisplayName(activeConversation);
 
   return (
     <div className="bg-[#f8f9fa] h-[calc(100vh-4rem)] p-6 -m-6 flex gap-4 overflow-hidden font-sans">
@@ -306,6 +325,7 @@ function MessagesPageContent() {
           ) : filteredConversations.length > 0 ? (
             filteredConversations.map((conv) => {
               const isActive = activeConversation?.id === conv.id;
+              const displayName = getConversationDisplayName(conv);
               return (
                 <div
                   key={conv.id}
@@ -317,12 +337,12 @@ function MessagesPageContent() {
                   }`}
                 >
                   <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700 border border-indigo-200 flex-shrink-0 text-sm">
-                    {conv.name?.charAt(0).toUpperCase() || "U"}
+                    {displayName.charAt(0).toUpperCase()}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
-                      <h4 className="text-xs font-black text-slate-800 truncate">{conv.name || "Chat Room"}</h4>
+                      <h4 className="text-xs font-black text-slate-800 truncate">{displayName}</h4>
                       <span className="text-[8px] text-slate-400 flex-shrink-0 ml-1">{conv.time || "10:30 AM"}</span>
                     </div>
                     <p className="text-[10px] text-slate-505 truncate mt-0.5">{conv.lastMessage || "No messages yet."}</p>
@@ -353,10 +373,10 @@ function MessagesPageContent() {
                   <ArrowLeft size={14} />
                 </button>
                 <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700 border border-indigo-200 text-sm">
-                  {activeConversation.name?.charAt(0).toUpperCase()}
+                  {activeConversationName.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-xs font-black text-slate-805 leading-none">{activeConversation.name}</h3>
+                  <h3 className="text-xs font-black text-slate-805 leading-none">{activeConversationName}</h3>
                   <span className="text-[9px] text-emerald-500 font-bold mt-1 block">● Online</span>
                 </div>
               </div>
@@ -449,9 +469,9 @@ function MessagesPageContent() {
         <div className="hidden md:flex w-72 bg-white border border-slate-100 rounded-2xl flex flex-col h-full shadow-[0_2px_8px_rgba(0,0,0,0.015)] overflow-hidden p-5 flex-shrink-0">
           <div className="text-center pb-4 border-b border-slate-100">
             <div className="h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center font-black text-xl text-indigo-700 border border-indigo-200 mx-auto mb-3">
-              {activeConversation.name?.charAt(0).toUpperCase()}
+              {activeConversationName.charAt(0).toUpperCase()}
             </div>
-            <h4 className="text-xs font-black text-slate-805 leading-none">{activeConversation.name}</h4>
+            <h4 className="text-xs font-black text-slate-805 leading-none">{activeConversationName}</h4>
             <span className="text-[9px] text-slate-400 mt-2 block">Instructor • Computer Science</span>
           </div>
 

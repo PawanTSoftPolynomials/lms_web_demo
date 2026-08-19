@@ -10,6 +10,7 @@ export const QUERY_KEYS = {
     COURSES: "courses",
     COURSE: "course",
     MY_COURSES: "my-courses",
+    STORE_COURSES: "store-courses",
     STUDENT_DASHBOARD: "student-dashboard",
     PAYMENTS: "payments",
     PAYMENT_ORDERS: "payment-orders",
@@ -59,12 +60,23 @@ export const QUERY_KEYS = {
 
     ADMIN_CALENDAR_EVENTS: "admin-calendar-events",
 
+    // Identity-check cache only (AuthContext's own session query) -- page-level
+    // profile reads must use their own role-scoped key below, never this one:
+    // AuthContext's getProfile (auth.service, GET /auth/profile) returns the
+    // raw {success,message,data} wrapper, not the unwrapped user object that
+    // profile.service's getProfile (GET /users/profile/me) returns. Sharing
+    // this key with a page-level read means whichever query populates the
+    // cache first "wins" for up to staleTime (5 min, refetchOnMount:false),
+    // silently serving the wrong shape to the other.
     PROFILE: "profile",
+    ADMIN_PROFILE: "admin-profile",
+    INSTRUCTOR_PROFILE: "instructor-profile",
 
     // ==========================
     // Instructor
     // ==========================
     INSTRUCTOR_DASHBOARD: "instructor-dashboard",
+    TEACHER_INSIGHTS: "teacher-insights",
 
     INSTRUCTOR_COURSES: "instructor-courses",
     INSTRUCTOR_COURSES_TABLE: "instructor-courses-table",

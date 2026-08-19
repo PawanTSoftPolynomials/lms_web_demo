@@ -1,28 +1,17 @@
 import useChat from "@/hooks/useChat";
+import socketService from "@/services/socket.service";
 
 export default function useTyping() {
   const { activeConversation } = useChat();
 
   const startTyping = async () => {
     if (!activeConversation) return;
-    
-    try {
-      // TODO: Implement typing indicator to API
-      // const response = await chatService.setTyping(activeConversation.id, true);
-    } catch (error) {
-      console.error("Error starting typing indicator:", error);
-    }
+    socketService.emit("typing_start", { conversationId: activeConversation.id });
   };
 
   const stopTyping = async () => {
     if (!activeConversation) return;
-    
-    try {
-      // TODO: Implement stop typing indicator to API
-      // const response = await chatService.setTyping(activeConversation.id, false);
-    } catch (error) {
-      console.error("Error stopping typing indicator:", error);
-    }
+    socketService.emit("typing_stop", { conversationId: activeConversation.id });
   };
 
   return { startTyping, stopTyping };

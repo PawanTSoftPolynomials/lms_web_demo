@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import {
   FaUsers,
   FaBook,
@@ -20,9 +21,18 @@ import Loader from "@/components/common/Loader";
 
 import { AdminKPIs } from "@/components/admin/dashboard/AdminKPIs";
 import { CoursePerformanceTable } from "@/components/admin/dashboard/CoursePerformanceTable";
-import { CourseStatusPieChart } from "@/components/admin/dashboard/CourseStatusPieChart";
 import { RecentActivityFeed } from "@/components/admin/dashboard/RecentActivityFeed";
+import { TodaySnapshot } from "@/components/admin/dashboard/TodaySnapshot";
+import { TopInstructor } from "@/components/admin/dashboard/TopInstructor";
+import { UpcomingEvents } from "@/components/admin/dashboard/UpcomingEvents";
 import RecentUsers from "@/components/dashboard/RecentUsers";
+
+// Dynamically imported so recharts is bundled once via this shared
+// dynamic() boundary instead of duplicated into this route's own chunk.
+const CourseStatusPieChart = dynamic(
+  () => import("@/components/admin/dashboard/CourseStatusPieChart").then((m) => m.CourseStatusPieChart),
+  { ssr: false, loading: () => <div className="h-48 animate-pulse bg-slate-800/50 rounded-2xl" /> }
+);
 
 export default function AdminDashboard() {
   const { data: dashboard, isLoading, isError } = useDashboard();

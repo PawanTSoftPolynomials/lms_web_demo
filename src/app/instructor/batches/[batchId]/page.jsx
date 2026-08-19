@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { formatDistanceToNow } from "date-fns";
 import {
   ArrowLeft,
@@ -49,8 +50,14 @@ import Loader from "@/components/common/Loader";
 import DataTable from "@/components/ui/DataTable";
 import BatchActionsMenu from "@/components/instructor/batches/BatchActionsMenu";
 import KpiTile from "@/components/instructor/batches/KpiTile";
-import TrendSparkline from "@/components/instructor/batches/TrendSparkline";
 import { useBatchPerformanceOverview } from "@/hooks/queries/instructor/useBatchPerformanceOverview";
+
+// Dynamically imported so recharts is bundled once via this shared
+// dynamic() boundary instead of duplicated into this route's own chunk.
+const TrendSparkline = dynamic(() => import("@/components/instructor/batches/TrendSparkline"), {
+  ssr: false,
+  loading: () => <div className="h-16 animate-pulse bg-slate-800/50 rounded-xl" />,
+});
 
 const STUDENT_STATUS_STYLES = {
   "Top Performer": "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",

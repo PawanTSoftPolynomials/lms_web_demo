@@ -12,6 +12,17 @@ export const getCourses = async () => {
     }
 };
 
+/**
+ * Every published course for the student Store, with pricing included.
+ * GET /courses defaults to limit=10 (pagination for the admin/instructor
+ * table views) -- the Store needs the full catalog, so this requests a
+ * generously high limit explicitly instead of reusing getCourses() above.
+ */
+export const getStoreCourses = async () => {
+    const {data} = await api.get("/courses?limit=200&status=PUBLISHED&sortBy=newest");
+    return data.data ?? data;
+};
+
 /** Real status-breakdown counts (total/published/draft/archived) for the My Courses summary cards. */
 export const getCourseStatusCounts = async () => {
     const { data } = await api.get("/courses/stats/mine");

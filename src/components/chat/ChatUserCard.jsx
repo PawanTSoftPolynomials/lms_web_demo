@@ -5,9 +5,6 @@ import { useAuth } from "@/context/AuthContext";
 export default function ChatUserCard({ conversation, active, onClick }) {
   const { user: currentUser } = useAuth();
   
-  // Get initials or fallback
-  const name = conversation?.name || "Unknown User";
-  
   // Find other participant (recipient)
   const recipient = conversation?.participants?.find((p) => {
     const pId = p?.userId || p?.user?.id || p?.id;
@@ -15,7 +12,14 @@ export default function ChatUserCard({ conversation, active, onClick }) {
     const currentUserId = currentUser?.id || currentUser?._id;
     return p && pId !== currentUserId && pEmail !== currentUser?.email;
   });
-  const role = recipient?.role || recipient?.user?.role || conversation?.role || (conversation?.isGroup ? "GROUP" : "STUDENT");
+  const isGroup = conversation?.type === "GROUP";
+  const role = recipient?.role || recipient?.user?.role || conversation?.role || (isGroup ? "GROUP" : "STUDENT");
+
+  // For direct chats, prefer the recipient's real name over the conversation's
+  // stored name (mirrors the backend's own DIRECT-conversation naming logic).
+  const name = isGroup
+    ? conversation?.name || "Unknown User"
+    : recipient?.user?.name || recipient?.name || conversation?.name || "Unknown User";
 
   // Format last message text
   const lastMessage = conversation?.lastMessage || 

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import useAuth from "@/hooks/useAuth";
 import { TooltipProvider } from "@/components/ui/shadcn/tooltip";
 
@@ -8,7 +9,6 @@ import { TooltipProvider } from "@/components/ui/shadcn/tooltip";
 import { InstructorKPIs } from "@/components/instructor/dashboard/InstructorKPIs";
 import { CourseOverviewTable } from "@/components/instructor/dashboard/CourseOverviewTable";
 import { RecentSubmissionsList } from "@/components/instructor/dashboard/RecentSubmissionsList";
-import { PerformancePieChart } from "@/components/instructor/dashboard/PerformancePieChart";
 import { UpcomingEventsPanel } from "@/components/instructor/dashboard/UpcomingEventsPanel";
 import { DashboardCalendarWidget } from "@/components/instructor/dashboard/DashboardCalendarWidget";
 import { RecentActivitiesSidebar } from "@/components/instructor/dashboard/RecentActivitiesSidebar";
@@ -39,6 +39,13 @@ import {
   ClipboardCheck,
   GraduationCap,
 } from "lucide-react";
+
+// Dynamically imported so recharts is bundled once via this shared
+// dynamic() boundary instead of duplicated into this route's own chunk.
+const PerformancePieChart = dynamic(
+  () => import("@/components/instructor/dashboard/PerformancePieChart").then((m) => m.PerformancePieChart),
+  { ssr: false, loading: () => <div className="h-48 animate-pulse bg-slate-800/50 rounded-2xl" /> }
+);
 
 // Mobile-only Quick Actions — same destinations/icons as the desktop
 // QUICK_ACTION_ITEMS strip (src/components/instructor/QuickActions/quickActionItems.ts),

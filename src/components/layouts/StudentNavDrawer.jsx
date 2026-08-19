@@ -14,6 +14,7 @@ import {
   LogOut,
   X,
   BarChart3,
+  Store,
 } from "lucide-react";
 
 import { useStudentNavDrawer } from "@/context/StudentNavDrawerContext";
@@ -27,6 +28,7 @@ import Modal from "@/components/ui/Modal";
 // match the same destinations already used on the desktop QuickActionStrip
 // (see PRIMARY_NAV_ITEMS).
 const NAV_ITEMS = [
+  { id: "store", label: "Store", icon: Store, href: "/student/store" },
   { id: "news", label: "News & Updates", icon: Newspaper, href: "/student/news" },
   { id: "reports", label: "Reports", icon: BarChart3, href: "/student/reports" },
   { id: "calendar", label: "Calendar", icon: Calendar, href: "/student/calendar" },

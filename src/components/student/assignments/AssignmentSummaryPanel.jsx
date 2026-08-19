@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import {
   CalendarDays,
   CheckCircle2,
@@ -11,7 +12,12 @@ import {
   Send,
 } from "lucide-react";
 
-import DoughnutChartCard from "@/components/dashboard/common/DoughnutChartCard";
+// Dynamically imported so recharts is bundled once via this shared
+// dynamic() boundary instead of duplicated into this route's own chunk.
+const DoughnutChartCard = dynamic(() => import("@/components/dashboard/common/DoughnutChartCard"), {
+  ssr: false,
+  loading: () => <div className="h-48 animate-pulse bg-slate-800/50 rounded-2xl" />,
+});
 
 const statusColors = {
   "Not Submitted": "#ef4444",

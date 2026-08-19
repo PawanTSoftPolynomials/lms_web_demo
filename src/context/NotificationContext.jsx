@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/ToastProvider";
 import { getCalendarEvents } from "@/services/calendar.service";
 import Cookies from "js-cookie";
@@ -49,12 +50,31 @@ export const playNotificationChime = () => {
   }
 };
 
+// Shared query key for this context's own calendar polling (mount seed +
+// 60s interval). Routing both through React Query means the interval tick
+// that lands within staleTime of the mount fetch (or of each other, if
+// effects re-fire back-to-back) reuses the cached result instead of
+// issuing a second uncached network round-trip.
+const NOTIFICATION_CALENDAR_POLL_KEY = ["notifications", "calendar-poll"];
+const NOTIFICATION_CALENDAR_POLL_STALE_TIME = 55000; // just under the 60s poll interval
+
 export function NotificationProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
   const { showToast } = useToast();
   const seenEventIdsRef = useRef(new Set());
   const isMountedRef = useRef(false);
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const fetchCalendarEventsCached = useCallback(
+    () =>
+      queryClient.fetchQuery({
+        queryKey: NOTIFICATION_CALENDAR_POLL_KEY,
+        queryFn: getCalendarEvents,
+        staleTime: NOTIFICATION_CALENDAR_POLL_STALE_TIME,
+      }),
+    [queryClient]
+  );
 
   // State for login hover card
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -120,7 +140,7 @@ export function NotificationProvider({ children }) {
     const initSeenEvents = async () => {
       if (!user) return;
       try {
-        const events = await getCalendarEvents();
+        const events = await fetchCalendarEventsCached();
         events.forEach(e => {
           const id = e.id || e._id;
           if (id) seenEventIdsRef.current.add(id);
@@ -130,7 +150,7 @@ export function NotificationProvider({ children }) {
       }
     };
     initSeenEvents();
-  }, [user]);
+  }, [user, fetchCalendarEventsCached]);
 
   const addNotification = useCallback((title, message, type = "system", link = "") => {
     const newNotif = {
@@ -246,8 +266,8 @@ export function NotificationProvider({ children }) {
     const checkNewEvents = async () => {
       if (!isMountedRef.current || !user) return;
       try {
-        const events = await getCalendarEvents();
-        
+        const events = await fetchCalendarEventsCached();
+
         events.forEach(e => {
           const id = e.id || e._id;
           if (id && !seenEventIdsRef.current.has(id)) {
@@ -298,7 +318,7 @@ export function NotificationProvider({ children }) {
       clearInterval(interval);
       window.removeEventListener("storage", handleStorageChange);
     };
-  }, [user, addNotification]);
+  }, [user, addNotification, fetchCalendarEventsCached]);
 
   const markEventAsSeen = (eventId) => {
     if (eventId) seenEventIdsRef.current.add(eventId);

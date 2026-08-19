@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -19,9 +20,11 @@ import {
   Clock,
   Lock,
   Bell,
+  X,
 } from "lucide-react";
 
 import UserAvatar from "@/components/admin/users/UserAvatar";
+import { changePassword } from "@/services/auth.service";
 
 function InfoRow({ icon: Icon, label, value, onClick }) {
   const content = (
@@ -90,6 +93,7 @@ function QuickActionButton({ href, onClick, icon: Icon, label, disabled }) {
 export default function MobileProfileView({ profile, onEdit }) {
   const router = useRouter();
   const student = profile?.studentProfile || {};
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const joinedDate = profile?.createdAt
     ? new Date(profile.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
@@ -159,7 +163,7 @@ export default function MobileProfileView({ profile, onEdit }) {
         {/* Quick Actions */}
         <div className="grid grid-cols-3 gap-2 mt-3.5">
           <QuickActionButton onClick={onEdit} icon={Edit} label="Edit Profile" />
-          <QuickActionButton icon={KeyRound} label="Change Password" disabled />
+          <QuickActionButton onClick={() => setShowPasswordModal(true)} icon={KeyRound} label="Change Password" />
           <QuickActionButton href="/student/certificates" icon={Award} label="Certificates" />
         </div>
       </div>
@@ -219,11 +223,15 @@ export default function MobileProfileView({ profile, onEdit }) {
           Security & Preferences
         </h3>
         <div className="divide-y divide-card-border">
-          <div className="flex items-center gap-3 py-2.5 opacity-40" title="Coming soon" aria-disabled="true">
+          <button
+            type="button"
+            onClick={() => setShowPasswordModal(true)}
+            className="w-full flex items-center gap-3 py-2.5 text-left active:opacity-70 transition"
+          >
             <Lock size={15} className="text-slate-500 shrink-0" />
             <span className="text-xs text-slate-400 flex-1">Change Password</span>
             <ChevronRight size={14} className="text-slate-600 shrink-0" />
-          </div>
+          </button>
           <Link href="/student/settings" className="flex items-center gap-3 py-2.5 active:opacity-70 transition">
             <ShieldCheck size={15} className="text-slate-500 shrink-0" />
             <span className="text-xs text-slate-400 flex-1">Privacy Settings</span>
@@ -236,6 +244,106 @@ export default function MobileProfileView({ profile, onEdit }) {
           </Link>
         </div>
       </div>
+
+      {showPasswordModal && (
+        <ChangePasswordModal onClose={() => setShowPasswordModal(false)} />
+      )}
+    </div>
+  );
+}
+
+function ChangePasswordModal({ onClose }) {
+  const [form, setForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [status, setStatus] = useState({ loading: false, error: "", success: "" });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (form.newPassword !== form.confirmPassword) {
+      setStatus({ loading: false, error: "New passwords do not match.", success: "" });
+      return;
+    }
+
+    try {
+      setStatus({ loading: true, error: "", success: "" });
+      const res = await changePassword({
+        currentPassword: form.currentPassword,
+        newPassword: form.newPassword,
+      });
+      setStatus({ loading: false, error: "", success: res?.message || "Password changed successfully!" });
+      setTimeout(onClose, 1200);
+    } catch (err) {
+      setStatus({
+        loading: false,
+        error: err?.response?.data?.message || "Failed to change password. Please check your current password.",
+        success: "",
+      });
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl space-y-4 animate-in slide-in-from-bottom sm:zoom-in-95 duration-150"
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-black text-white">Change Password</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {status.error && (
+          <div className="p-2.5 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl">
+            {status.error}
+          </div>
+        )}
+        {status.success && (
+          <div className="p-2.5 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+            {status.success}
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <input
+            type="password"
+            required
+            placeholder="Current Password"
+            value={form.currentPassword}
+            onChange={(e) => setForm({ ...form, currentPassword: e.target.value })}
+            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+          />
+          <input
+            type="password"
+            required
+            placeholder="New Password"
+            value={form.newPassword}
+            onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
+            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+          />
+          <input
+            type="password"
+            required
+            placeholder="Confirm New Password"
+            value={form.confirmPassword}
+            onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={status.loading}
+          className="w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xs transition active:scale-95 disabled:opacity-50"
+        >
+          {status.loading ? "Updating..." : "Update Password"}
+        </button>
+      </form>
     </div>
   );
 }
