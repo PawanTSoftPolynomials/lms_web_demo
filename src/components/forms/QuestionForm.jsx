@@ -34,6 +34,13 @@ const INITIAL_FORM = {
   shuffleOptions: false
 };
 
+// UI-only field names/casing this form works with vs. the backend/Prisma
+// contract (questionType, subject, uppercase DifficultyLevel enum) — kept
+// as a translation layer at the submit/load boundary rather than renaming
+// the form's own state, since the <select> options and labels below are
+// title-case and every other handler here reads formData.type/.concept.
+const DIFFICULTY_LABEL_BY_DB_VALUE = { EASY: "Easy", MEDIUM: "Medium", HARD: "Hard" };
+
 export default function QuestionForm({
                                        mode = "create",
                                        initialValues = null,
@@ -62,16 +69,24 @@ export default function QuestionForm({
 
   useEffect(() => {
     if (initialValues) {
-      const type = initialValues.type ?? "MCQ_SINGLE";
-      
+      // A fetched question record carries the backend's field names
+      // (questionType, subject, uppercase difficulty) — .type/.concept
+      // only exist on this form's own submissionData, never on a record
+      // read back from the API, so falling back to them here always missed.
+      const type = initialValues.questionType ?? initialValues.type ?? "MCQ_SINGLE";
+      const difficulty =
+        DIFFICULTY_LABEL_BY_DB_VALUE[(initialValues.difficulty ?? "").toUpperCase()] ||
+        initialValues.difficulty ||
+        "Medium";
+
       setFormData({
         type,
         question: initialValues.question ?? "",
         options: initialValues.options ?? ["", "", "", ""],
         correctAnswer: initialValues.correctAnswer ?? "",
         marks: initialValues.marks ?? 5,
-        concept: initialValues.concept ?? "",
-        difficulty: initialValues.difficulty ?? "Medium",
+        concept: initialValues.subject ?? initialValues.concept ?? "",
+        difficulty,
         explanation: initialValues.explanation ?? "",
         shuffleOptions: initialValues.shuffleOptions ?? false
       });
@@ -226,6 +241,15 @@ export default function QuestionForm({
     } else if (formData.type === "SELF_ASSESSMENT") {
       submissionData.options = [];
     }
+
+    // Translate this form's UI-only field names to the backend contract
+    // (Prisma `Question.questionType`/`.subject`, uppercase DifficultyLevel
+    // enum) right before it leaves the component.
+    submissionData.questionType = submissionData.type;
+    delete submissionData.type;
+    submissionData.subject = submissionData.concept;
+    delete submissionData.concept;
+    submissionData.difficulty = (submissionData.difficulty || "MEDIUM").toUpperCase();
 
     const success = await onSubmit?.(submissionData, submitAction);
     

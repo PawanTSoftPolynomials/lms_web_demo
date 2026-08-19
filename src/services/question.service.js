@@ -3,8 +3,13 @@ import api from "@/lib/axios";
 export const getQuestions = async (
   quizId
 ) => {
+  // /questions (no quizId) is the paginated Question Repository search;
+  // a query-string ?quizId= there was never a supported filter (that
+  // endpoint only knows search/subject/topic/difficulty/etc.) — the
+  // questions actually attached to a quiz live in the QuizQuestion join
+  // table, served by /questions/quiz/:quizId.
   const url = quizId
-    ? `/questions?quizId=${quizId}`
+    ? `/questions/quiz/${quizId}`
     : "/questions";
 
   const response =
