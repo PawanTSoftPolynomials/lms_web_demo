@@ -101,6 +101,7 @@ export const QUERY_KEYS = {
     BATCH_PERFORMANCE_OVERVIEW: "batch-performance-overview",
     BATCH_DASHBOARD: "batch-dashboard",
     BATCH_ANNOUNCEMENTS: "batch-announcements",
+    BATCH_QUIZZES: "batch-quizzes",
     EXAMS: "exams",
     EXAM: "exam",
     MY_REVIEWS: "my-reviews",

@@ -18,13 +18,7 @@ export function useUpdateQuestion() {
                      }) =>
             updateQuestion(
                 questionId,
-                {
-                    question: questionData.question,
-                    options: questionData.options,
-                    correctAnswer:
-                    questionData.correctAnswer,
-                    marks: questionData.marks,
-                }
+                questionData,
             ),
 
         onSuccess: (_, variables) => {

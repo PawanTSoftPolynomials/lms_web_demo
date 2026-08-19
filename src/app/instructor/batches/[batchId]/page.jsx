@@ -30,6 +30,8 @@ import {
   TrendingUp,
   Flame,
   AlertTriangle,
+  Pencil,
+  Eye,
 } from "lucide-react";
 
 import {
@@ -38,6 +40,7 @@ import {
   useAddStudentToBatch,
   useRemoveStudentFromBatch,
   useBatchDetailDashboard,
+  useBatchQuizzes,
   useBatchAnnouncements,
   useCreateBatchAnnouncement,
   useAddCourseToBatch,
@@ -222,6 +225,154 @@ function AddStudentPanel({ batchId, courseNames }) {
       <p className="text-[10px] text-slate-500 mt-2.5">
         Only students already enrolled in {courseNames || "this batch's courses"} can be added.
       </p>
+    </Section>
+  );
+}
+
+function BatchQuizzesPanel({ batchId }) {
+  const { data: quizzes = [], isLoading } = useBatchQuizzes(batchId);
+  const [selectedQuizId, setSelectedQuizId] = useState(null);
+
+  const selectedQuiz = quizzes.find((q) => q.id === selectedQuizId);
+
+  const quizColumns = [
+    {
+      key: "title",
+      header: "Quiz",
+      render: (row) => <p className="font-bold text-slate-200">{row.title}</p>,
+    },
+    {
+      key: "attempted",
+      header: "Attempted",
+      render: (row) => (
+        <div className="flex items-center gap-2 min-w-[100px]">
+          <div className="h-1.5 flex-1 rounded-full bg-slate-800 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-orange-500 to-pink-500"
+              style={{ width: `${row.totalStudents > 0 ? (row.attemptedCount / row.totalStudents) * 100 : 0}%` }}
+            />
+          </div>
+          <span className="text-[10.5px] font-bold text-slate-300 shrink-0">
+            {row.attemptedCount}/{row.totalStudents}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "dueDate",
+      header: "Due",
+      align: "center",
+      render: (row) => (row.dueDate ? new Date(row.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"),
+    },
+    {
+      key: "actions",
+      header: "",
+      align: "right",
+      render: (row) => (
+        <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+          <Link
+            href={`/instructor/quizzes/${row.id}`}
+            title="View Quiz — see, add, remove & edit questions"
+            className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 transition"
+          >
+            <Eye size={13} />
+          </Link>
+          <Link
+            href={`/instructor/quizzes/edit/${row.id}`}
+            title="Edit Quiz Details"
+            className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-white transition"
+          >
+            <Pencil size={13} />
+          </Link>
+          <Link
+            href={`/instructor/questions/create/${row.id}`}
+            title="Add Question"
+            className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-orange-400 hover:text-orange-300 transition"
+          >
+            <Plus size={13} />
+          </Link>
+          <Link
+            href={`/instructor/quizzes/${row.id}/import-questions`}
+            title="Import Questions from Repository"
+            className="p-2 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-sky-400 hover:text-sky-300 transition"
+          >
+            <Upload size={13} />
+          </Link>
+        </div>
+      ),
+    },
+  ];
+
+  const studentAttemptColumns = [
+    {
+      key: "name",
+      header: "Student",
+      render: (row) => (
+        <div>
+          <p className="font-bold text-slate-200">{row.name}</p>
+          <p className="text-[10px] text-slate-500 mt-0.5">{row.email}</p>
+        </div>
+      ),
+    },
+    {
+      key: "attempted",
+      header: "Status",
+      render: (row) => (
+        <span
+          className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+            row.attempted
+              ? row.passed
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+              : "bg-slate-800 text-slate-400 border-slate-700"
+          }`}
+        >
+          {row.attempted ? (row.passed ? "Passed" : "Failed") : "Not Attempted"}
+        </span>
+      ),
+    },
+    {
+      key: "percentage",
+      header: "Score",
+      align: "center",
+      render: (row) => (row.attempted ? `${row.percentage}%` : "—"),
+    },
+    {
+      key: "submittedAt",
+      header: "Submitted",
+      align: "center",
+      render: (row) => (row.submittedAt ? formatDistanceToNow(new Date(row.submittedAt), { addSuffix: true }) : "—"),
+    },
+  ];
+
+  return (
+    <Section title="Batch Quizzes" icon={HelpCircle} iconBg="bg-orange-500/10" iconColor="text-orange-400">
+      <p className="text-[10.5px] text-slate-500 -mt-2 mb-3">
+        Quizzes assigned to this batch. Click one to see which students attempted it.
+      </p>
+      <DataTable
+        columns={quizColumns}
+        rows={quizzes}
+        isLoading={isLoading}
+        skeletonRows={3}
+        onRowClick={(row) => setSelectedQuizId(row.id === selectedQuizId ? null : row.id)}
+        emptyLabel={
+          <span>
+            No quizzes assigned to this batch yet.
+            <br />
+            Create one from the Quizzes page and pick this batch.
+          </span>
+        }
+      />
+
+      {selectedQuiz && (
+        <div className="mt-4 pt-4 border-t border-[#1A1F35]">
+          <p className="text-[10px] font-black uppercase tracking-wider text-orange-400/80 mb-2.5">
+            {selectedQuiz.title} — Student Attempts
+          </p>
+          <DataTable columns={studentAttemptColumns} rows={selectedQuiz.students} rowKey="studentId" emptyLabel="No students in this batch." />
+        </div>
+      )}
     </Section>
   );
 }
@@ -663,6 +814,8 @@ export default function BatchDetailPage() {
               }
             />
           </Section>
+
+          <BatchQuizzesPanel batchId={batchId} />
 
           <AnnouncementsPanel batchId={batchId} />
 

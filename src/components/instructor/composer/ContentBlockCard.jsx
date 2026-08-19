@@ -8,9 +8,6 @@ import {
   Layers,
   ArrowUp,
   ArrowDown,
-  ArrowUpRight,
-  LogOut,
-  Copy,
   Trash2,
   Check,
   X,
@@ -18,7 +15,6 @@ import {
 } from "lucide-react";
 
 import { blockRegistry } from "@/components/instructor/composer/blocks/blockRegistry";
-import MoveTargetModal from "@/components/instructor/composer/MoveTargetModal";
 import { ScopedCss, blockScopeClass } from "@/components/instructor/composer/utils/scopedCss";
 import { toContentPayload } from "@/components/instructor/composer/mappers/contentBlockMapper";
 import { isBackendGradable, buildQuestionPayload, buildQuizPayload } from "@/components/instructor/composer/mappers/quizMapper";
@@ -26,8 +22,6 @@ import { isBackendGradable, buildQuestionPayload, buildQuizPayload } from "@/com
 import { useCreateContent } from "@/hooks/queries/instructor/useCreateContent";
 import { useUpdateContent } from "@/hooks/queries/instructor/useUpdateContent";
 import { useDeleteContent } from "@/hooks/queries/instructor/useDeleteContent";
-import { useMoveContent } from "@/hooks/queries/instructor/useMoveContent";
-import { useDuplicateContent } from "@/hooks/queries/instructor/useDuplicateContent";
 import { useCreateQuiz } from "@/hooks/queries/instructor/useCreateQuiz";
 import { useCreateQuestion } from "@/hooks/queries/instructor/useCreateQuestion";
 import { useUpdateQuestion } from "@/hooks/queries/instructor/useUpdateQuestion";
@@ -56,15 +50,12 @@ export default function ContentBlockCard({
   const [draft, setDraft] = useState(block);
   const [menuOpen, setMenuOpen] = useState(false);
   const [pendingAddInside, setPendingAddInside] = useState(false);
-  const [moveModalOpen, setMoveModalOpen] = useState(false);
   const menuRef = useRef(null);
   const nestedLayerRef = useRef(null);
 
   const createContent = useCreateContent();
   const updateContent = useUpdateContent();
   const deleteContent = useDeleteContent();
-  const moveContent = useMoveContent();
-  const duplicateContent = useDuplicateContent();
   const createQuiz = useCreateQuiz();
   const createQuestion = useCreateQuestion();
   const updateQuestion = useUpdateQuestion();
@@ -207,33 +198,6 @@ export default function ContentBlockCard({
     onDeleted(block.id);
   };
 
-  const handleDuplicate = async () => {
-    setMenuOpen(false);
-    try {
-      await duplicateContent.mutateAsync({ contentId: block.id, lessonId });
-    } catch (error) {
-      toast?.showToast(error?.response?.data?.message || "Failed to duplicate block", "error");
-    }
-  };
-
-  const handleMoveOutside = async () => {
-    setMenuOpen(false);
-    try {
-      await moveContent.mutateAsync({ contentId: block.id, parentContentId: null, lessonId });
-    } catch (error) {
-      toast?.showToast(error?.response?.data?.message || "Failed to move block", "error");
-    }
-  };
-
-  const handleMoveInsidePick = async (targetId) => {
-    setMoveModalOpen(false);
-    try {
-      await moveContent.mutateAsync({ contentId: block.id, parentContentId: targetId, lessonId });
-    } catch (error) {
-      toast?.showToast(error?.response?.data?.message || "Failed to move block", "error");
-    }
-  };
-
   const ViewComponent = entry.ViewComponent;
   const EditComponent = entry.EditComponent;
   const showHeader = isEditing || menuOpen;
@@ -342,36 +306,6 @@ export default function ContentBlockCard({
               >
                 <ArrowDown size={12} /> Move Down
               </button>
-              {!isNew && (
-                <button
-                  type="button"
-                  onClick={handleDuplicate}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
-                >
-                  <Copy size={12} /> Duplicate
-                </button>
-              )}
-              {!isNew && !isNested && childCount === 0 && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setMoveModalOpen(true);
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
-                >
-                  <ArrowUpRight size={12} /> Move Inside…
-                </button>
-              )}
-              {!isNew && isNested && (
-                <button
-                  type="button"
-                  onClick={handleMoveOutside}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
-                >
-                  <LogOut size={12} /> Move Outside
-                </button>
-              )}
               <hr className="border-slate-800 my-1" />
               <button
                 type="button"
@@ -438,14 +372,6 @@ export default function ContentBlockCard({
           <ViewComponent block={draft} />
         </div>
       )}
-
-      <MoveTargetModal
-        open={moveModalOpen}
-        onClose={() => setMoveModalOpen(false)}
-        onPick={handleMoveInsidePick}
-        allLessonContents={allLessonContents}
-        excludeId={block.id}
-      />
     </div>
   );
 }

@@ -15,6 +15,7 @@ import {
   addStudentToBatch,
   removeStudentFromBatch,
   getBatchDetailDashboard,
+  getBatchQuizzes,
   getBatchAnnouncements,
   createBatchAnnouncement,
   startBatchConversation,
@@ -172,6 +173,15 @@ export function useBatchDetailDashboard(batchId) {
   return useQuery({
     queryKey: [QUERY_KEYS.BATCH_DASHBOARD, batchId],
     queryFn: () => getBatchDetailDashboard(batchId),
+    enabled: !!batchId,
+    ...defaultQueryOptions,
+  });
+}
+
+export function useBatchQuizzes(batchId) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.BATCH_QUIZZES, batchId],
+    queryFn: () => getBatchQuizzes(batchId),
     enabled: !!batchId,
     ...defaultQueryOptions,
   });

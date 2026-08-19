@@ -115,6 +115,136 @@
   --shadow-color: 0 0% 0%;
 }
 
+/* Palette overrides — pair with :root/.dark for 5 palettes x 2 modes = 10 theme combinations.
+   Only the brand-accent tokens are swapped; base surface/text tokens stay as set above. */
+:root[data-palette="ocean"] {
+  --primary: #0284c7;
+  --primary-foreground: #ffffff;
+  --ring: #0284c7;
+  --accent: #f0f9ff;
+  --accent-foreground: #075985;
+}
+.dark[data-palette="ocean"] {
+  --primary: #38bdf8;
+  --primary-foreground: #0a0a0f;
+  --ring: #38bdf8;
+  --accent: #082f49;
+  --accent-foreground: #7dd3fc;
+}
+
+:root[data-palette="forest"] {
+  --primary: #059669;
+  --primary-foreground: #ffffff;
+  --ring: #059669;
+  --accent: #ecfdf5;
+  --accent-foreground: #065f46;
+}
+.dark[data-palette="forest"] {
+  --primary: #34d399;
+  --primary-foreground: #0a0a0f;
+  --ring: #34d399;
+  --accent: #022c22;
+  --accent-foreground: #6ee7b7;
+}
+
+:root[data-palette="violet"] {
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
+  --ring: #7c3aed;
+  --accent: #f5f3ff;
+  --accent-foreground: #5b21b6;
+}
+.dark[data-palette="violet"] {
+  --primary: #a78bfa;
+  --primary-foreground: #0a0a0f;
+  --ring: #a78bfa;
+  --accent: #2e1065;
+  --accent-foreground: #c4b5fd;
+}
+
+:root[data-palette="rose"] {
+  --primary: #e11d48;
+  --primary-foreground: #ffffff;
+  --ring: #e11d48;
+  --accent: #fff1f2;
+  --accent-foreground: #9f1239;
+}
+.dark[data-palette="rose"] {
+  --primary: #fb7185;
+  --primary-foreground: #0a0a0f;
+  --ring: #fb7185;
+  --accent: #4c0519;
+  --accent-foreground: #fda4af;
+}
+
+/* Re-skin the raw orange/pink color SCALE per palette (not just the semantic --primary/--accent
+   tokens above). Tailwind v4 compiles bg-orange-500, text-orange-400, border-orange-500/20, etc.
+   to background-color: var(--color-orange-500), so overriding the scale here repaints every one
+   of the ~2000+ hardcoded orange-* / pink-* utility classes across the whole app, not just the
+   handful of components that already use semantic tokens. Same specificity trick as above: these
+   are unlayered rules, Tailwind's utilities live in @layer utilities, so unlayered always wins. */
+:root[data-palette="ocean"] {
+  --color-orange-400: #38bdf8;
+  --color-orange-500: #0ea5e9;
+  --color-orange-600: #0284c7;
+  --color-orange-700: #0369a1;
+  --color-pink-400: #818cf8;
+  --color-pink-500: #6366f1;
+  --color-pink-600: #4f46e5;
+  --color-pink-700: #4338ca;
+}
+:root[data-palette="forest"] {
+  --color-orange-400: #34d399;
+  --color-orange-500: #10b981;
+  --color-orange-600: #059669;
+  --color-orange-700: #047857;
+  --color-pink-400: #2dd4bf;
+  --color-pink-500: #14b8a6;
+  --color-pink-600: #0d9488;
+  --color-pink-700: #0f766e;
+}
+:root[data-palette="violet"] {
+  --color-orange-400: #a78bfa;
+  --color-orange-500: #8b5cf6;
+  --color-orange-600: #7c3aed;
+  --color-orange-700: #6d28d9;
+  --color-pink-400: #e879f9;
+  --color-pink-500: #d946ef;
+  --color-pink-600: #c026d3;
+  --color-pink-700: #a21caf;
+}
+:root[data-palette="rose"] {
+  --color-orange-400: #fb7185;
+  --color-orange-500: #f43f5e;
+  --color-orange-600: #e11d48;
+  --color-orange-700: #be123c;
+  --color-pink-400: #fbbf24;
+  --color-pink-500: #f59e0b;
+  --color-pink-600: #d97706;
+  --color-pink-700: #b45309;
+}
+
+/* Light mode: mirror-invert the neutral slate scale (50<->950, 100<->900, ...) so the thousands
+   of hardcoded bg-slate-900/border-slate-800/text-slate-400 utility classes across the app
+   (built dark-first, never previously mode-aware) repaint sensibly on a light background instead
+   of staying stuck near-black. Dark mode keeps the original @theme values untouched (zero risk to
+   the app's current, tested look). Some one-off components that intentionally used a light slate
+   shade on a dark page may look slightly off in light mode as a result — a best-effort trade-off,
+   not a full per-component retheme. */
+:root:not(.dark) {
+  --color-slate-50: #0a0a0f;
+  --color-slate-100: #131321;
+  --color-slate-200: #1e1e2f;
+  --color-slate-300: #3a3a5c;
+  --color-slate-400: #52527a;
+  --color-slate-500: #737399;
+  --color-slate-600: #a3a3c2;
+  --color-slate-700: #d1d1df;
+  --color-slate-800: #e2e2ec;
+  --color-slate-900: #f1f1f5;
+  --color-slate-950: #fdfdfd;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -156,11 +286,58 @@
 }
 
 body {
-  background: #0f0b3d;
-  color: white;
+  background: var(--background);
+  color: var(--foreground);
   overflow-x: hidden;
   font-family: "Poppins", sans-serif;
 }
+
+/* Global chrome remap — most of the app's layout chrome (navbars, cards, panels, dropdowns) was
+   built with one-off hardcoded hex utility classes (bg-[#0D1021], border-[#1A1F35], ...) instead
+   of the semantic tokens above, so switching theme mode had no visible effect on ~90% of the UI.
+   Rather than rewriting every file, this repaints those exact classes wherever they appear by
+   pointing them at the equivalent semantic token. Values were chosen by matching each hardcoded
+   hex to the closest of --background/--surface/--popover/--border/--muted (many are exact or
+   near-exact matches already, confirming the mapping). Long-tail one-off colors not covered here
+   won't shift with theme. */
+[class~="bg-[#05070E]"] { background-color: var(--background); }
+[class~="bg-[#05070E]/50"] { background-color: color-mix(in oklab, var(--background) 50%, transparent); }
+[class~="bg-[#060913]"] { background-color: var(--background); }
+[class~="bg-[#07080f]"] { background-color: var(--background); }
+[class~="bg-[#07080f]/80"] { background-color: color-mix(in oklab, var(--background) 80%, transparent); }
+[class~="bg-[#07080f]/90"] { background-color: color-mix(in oklab, var(--background) 90%, transparent); }
+[class~="bg-[#080B11]"] { background-color: var(--background); }
+[class~="bg-[#080B11]/90"] { background-color: color-mix(in oklab, var(--background) 90%, transparent); }
+[class~="bg-[#080B11]/95"] { background-color: color-mix(in oklab, var(--background) 95%, transparent); }
+[class~="bg-[#090D16]"] { background-color: var(--background); }
+[class~="bg-[#0A0D1B]"] { background-color: var(--background); }
+[class~="bg-[#0B101D]"] { background-color: var(--background); }
+[class~="bg-[#0D0D18]/95"] { background-color: color-mix(in oklab, var(--popover) 95%, transparent); }
+[class~="bg-[#0D1021]"] { background-color: var(--surface); }
+[class~="bg-[#0D1021]/80"] { background-color: color-mix(in oklab, var(--surface) 80%, transparent); }
+[class~="bg-[#0d0e16]"] { background-color: var(--background); }
+[class~="bg-[#0d0e16]/50"] { background-color: color-mix(in oklab, var(--background) 50%, transparent); }
+[class~="bg-[#0d0e16]/60"] { background-color: color-mix(in oklab, var(--background) 60%, transparent); }
+[class~="bg-[#0d0e16]/80"] { background-color: color-mix(in oklab, var(--background) 80%, transparent); }
+[class~="bg-[#0d0e16]/95"] { background-color: color-mix(in oklab, var(--background) 95%, transparent); }
+[class~="bg-[#141930]"] { background-color: var(--muted); }
+[class~="bg-[#1A1F35]"] { background-color: var(--border); }
+[class~="border-[#1A1F35]"] { border-color: var(--border); }
+[class~="border-[#1A1F35]/40"] { border-color: color-mix(in oklab, var(--border) 40%, transparent); }
+[class~="border-[#1A1F35]/60"] { border-color: color-mix(in oklab, var(--border) 60%, transparent); }
+[class~="border-[#1A1F35]/70"] { border-color: color-mix(in oklab, var(--border) 70%, transparent); }
+[class~="border-[#1e2030]"] { border-color: var(--border); }
+[class~="border-[#1e2030]/40"] { border-color: color-mix(in oklab, var(--border) 40%, transparent); }
+:where([class~="divide-[#1A1F35]"] > :not(:last-child)) { border-color: var(--border); }
+:where([class~="divide-[#1A1F35]/50"] > :not(:last-child)) { border-color: color-mix(in oklab, var(--border) 50%, transparent); }
+:where([class~="divide-[#1A1F35]/60"] > :not(:last-child)) { border-color: color-mix(in oklab, var(--border) 60%, transparent); }
+[class~="from-[#0B0F1A]"] { --tw-gradient-from: var(--background); }
+[class~="from-[#0D1021]"] { --tw-gradient-from: var(--surface); }
+[class~="from-[#12141c]"] { --tw-gradient-from: var(--surface); }
+[class~="ring-[#0D0D18]"] { --tw-ring-color: var(--popover); }
+[class~="to-[#0a0b11]"] { --tw-gradient-to: var(--background); }
+[class~="to-[#12182B]"] { --tw-gradient-to: var(--surface); }
+[class~="via-[#0D1021]"] { --tw-gradient-via: var(--surface); }
 
 /* Horizontally-scrollable strips (action bars, tab strips, etc.):
    hides the scrollbar cross-browser while keeping smooth touch/momentum scrolling. */

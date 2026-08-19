@@ -9,6 +9,9 @@ import { useCreateQuiz } from "@/hooks/queries/instructor/useCreateQuiz";
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 
 export default function WorkCreateQuizPage() {
+  // Still fetched for the "created quiz belongs to which course" confirmation
+  // panel below — QuizForm itself now resolves course choices from the
+  // selected batch instead of taking a `courses` prop.
   const { data: courses = [] } = useInstructorCourses();
   const createQuizMutation = useCreateQuiz();
   const [createdQuiz, setCreatedQuiz] = useState(null);
@@ -60,7 +63,7 @@ export default function WorkCreateQuizPage() {
           </button>
         </div>
       ) : (
-        <QuizForm mode="create" courses={courses} onSubmit={handleSubmit} loading={createQuizMutation.isPending} />
+        <QuizForm mode="create" onSubmit={handleSubmit} loading={createQuizMutation.isPending} />
       )}
     </div>
   );

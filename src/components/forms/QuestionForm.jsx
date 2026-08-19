@@ -62,16 +62,23 @@ export default function QuestionForm({
 
   useEffect(() => {
     if (initialValues) {
-      const type = initialValues.type ?? "MCQ_SINGLE";
-      
+      // The API returns `questionType` (Prisma's real column) and an
+      // uppercase `difficulty` (EASY/MEDIUM/HARD) — reading the wrong
+      // shapes here (`type`, title-case difficulty) silently reset every
+      // edited question back to MCQ_SINGLE/Medium regardless of what was
+      // actually stored, and dropped MATCH_PAIRS/ARRANGE_TOKENS state below.
+      const type = initialValues.questionType ?? initialValues.type ?? "MCQ_SINGLE";
+      const rawDifficulty = initialValues.difficulty ?? "MEDIUM";
+      const difficulty = rawDifficulty.charAt(0).toUpperCase() + rawDifficulty.slice(1).toLowerCase();
+
       setFormData({
         type,
         question: initialValues.question ?? "",
         options: initialValues.options ?? ["", "", "", ""],
         correctAnswer: initialValues.correctAnswer ?? "",
         marks: initialValues.marks ?? 5,
-        concept: initialValues.concept ?? "",
-        difficulty: initialValues.difficulty ?? "Medium",
+        concept: initialValues.concept ?? initialValues.tags ?? "",
+        difficulty,
         explanation: initialValues.explanation ?? "",
         shuffleOptions: initialValues.shuffleOptions ?? false
       });
