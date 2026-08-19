@@ -8,7 +8,7 @@ export function useInstructorCourse(courseId) {
     return useQuery({
         queryKey: [QUERY_KEYS.COURSE, courseId],
         queryFn: () => getCourseById(courseId),
-        enabled: !!courseId,
+        enabled: !!courseId && courseId !== "draft" && courseId !== "new",
         ...defaultQueryOptions,
     });
 }

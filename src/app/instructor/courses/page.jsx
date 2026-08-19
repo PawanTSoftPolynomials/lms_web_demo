@@ -93,7 +93,7 @@ export default function InstructorCoursesPage() {
               className="inline-flex items-center justify-center rounded-lg bg-slate-800 border border-amber-500/40 px-3 md:px-4 py-2 md:py-2.5 text-xs font-bold text-amber-400 transition hover:bg-slate-700 hover:border-amber-400 whitespace-nowrap"
             >
               <span className="md:hidden">Import</span>
-              <span className="hidden md:inline">Import (ZIP)</span>
+              <span className="hidden md:inline">Import Course</span>
             </Link>
             <button
               onClick={() => router.push("/instructor/courses/create")}

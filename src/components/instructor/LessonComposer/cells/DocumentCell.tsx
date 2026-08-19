@@ -329,60 +329,57 @@ export function DocumentCell({
           </div>
         </div>
       ) : showSlideDeck ? (
-        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 sm:p-5 space-y-4 shadow-inner">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="rounded-md bg-orange-500/20 border border-orange-500/40 px-2 py-0.5 text-[10px] font-black uppercase text-orange-400">
-                SLIDE DECK
-              </span>
-              <h4 className="text-xs sm:text-sm font-bold text-slate-200 truncate">
-                {currentSlide?.title || "Presentation Slide"}
-              </h4>
-            </div>
-            <span className="text-xs font-bold text-slate-400 shrink-0">
-              Slide {activeSlideIndex + 1} of {slides.length}
-            </span>
-          </div>
-
+        <div className="space-y-2">
           {currentSlide && (
-            <SlideColumnsView columns={currentSlide.columns} backgroundColor={currentSlide.backgroundColor} />
+            <SlideColumnsView
+              title={currentSlide.title}
+              columns={currentSlide.columns}
+              backgroundColor={currentSlide.backgroundColor}
+            />
           )}
 
-          <div className="flex items-center justify-between border-t border-slate-800 pt-3">
-            <button
-              type="button"
-              onClick={() => setActiveSlideIndex(Math.max(0, activeSlideIndex - 1))}
-              disabled={activeSlideIndex === 0}
-              className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 cursor-pointer"
-            >
-              <ChevronLeft size={14} />
-              <span>Previous</span>
-            </button>
+          {slides.length > 1 && (
+            <div className="flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveSlideIndex(Math.max(0, activeSlideIndex - 1))}
+                disabled={activeSlideIndex === 0}
+                className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 cursor-pointer shrink-0"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft size={13} />
+              </button>
 
-            <div className="flex items-center gap-1.5">
-              {slides.map((_, dotIdx) => (
-                <button
-                  key={dotIdx}
-                  type="button"
-                  onClick={() => setActiveSlideIndex(dotIdx)}
-                  className={`h-2 rounded-full transition-all cursor-pointer ${
-                    activeSlideIndex === dotIdx ? "w-5 bg-orange-500" : "w-2 bg-slate-700 hover:bg-slate-500"
-                  }`}
-                  title={`Go to slide ${dotIdx + 1}`}
-                />
-              ))}
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-[11px] font-bold text-slate-400 shrink-0">
+                  {activeSlideIndex + 1} / {slides.length}
+                </span>
+                <div className="flex items-center gap-1 overflow-x-auto">
+                  {slides.map((_, dotIdx) => (
+                    <button
+                      key={dotIdx}
+                      type="button"
+                      onClick={() => setActiveSlideIndex(dotIdx)}
+                      className={`h-1.5 rounded-full transition-all cursor-pointer shrink-0 ${
+                        activeSlideIndex === dotIdx ? "w-4 bg-orange-500" : "w-1.5 bg-slate-700 hover:bg-slate-500"
+                      }`}
+                      title={`Go to slide ${dotIdx + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setActiveSlideIndex(Math.min(slides.length - 1, activeSlideIndex + 1))}
+                disabled={activeSlideIndex === slides.length - 1}
+                className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 cursor-pointer shrink-0"
+                aria-label="Next slide"
+              >
+                <ChevronRight size={13} />
+              </button>
             </div>
-
-            <button
-              type="button"
-              onClick={() => setActiveSlideIndex(Math.min(slides.length - 1, activeSlideIndex + 1))}
-              disabled={activeSlideIndex === slides.length - 1}
-              className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 cursor-pointer"
-            >
-              <span>Next</span>
-              <ChevronRight size={14} />
-            </button>
-          </div>
+          )}
         </div>
       ) : content.fileUrl ? (
         <div className="space-y-3">

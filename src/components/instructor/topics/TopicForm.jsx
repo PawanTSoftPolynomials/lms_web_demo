@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import RichTextEditor from "@/components/ui/RichTextEditor";
+import MarkdownEditor from "@/components/ui/MarkdownEditor/MarkdownEditor";
+import { htmlToMarkdown } from "@/lib/htmlToMarkdown";
 
 const INITIAL_FORM = {
     title: "",
@@ -32,8 +33,7 @@ export default function TopicForm({
                 title:
                     initialValues.title ?? "",
                 description:
-                    initialValues.description ??
-                    "",
+                    htmlToMarkdown(initialValues.description ?? ""),
                 isPublished:
                     initialValues.isPublished ??
                     false,
@@ -76,10 +76,10 @@ export default function TopicForm({
                         Description
                     </label>
 
-                    <RichTextEditor
+                    <MarkdownEditor
                         value={formData.description}
                         onChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
-                        placeholder="Enter topic description..."
+                        placeholder="Enter topic description in Markdown..."
                     />
                 </div>
 

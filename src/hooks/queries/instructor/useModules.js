@@ -8,7 +8,7 @@ export function useModules(courseId) {
     return useQuery({
         queryKey: [QUERY_KEYS.MODULES, courseId],
         queryFn: () => getModules(courseId),
-        enabled: !!courseId,
+        enabled: !!courseId && courseId !== "draft" && courseId !== "new",
         ...defaultQueryOptions,
     });
 }

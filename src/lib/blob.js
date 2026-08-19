@@ -20,3 +20,21 @@ export function getDisplayUrl(url) {
   }
   return url;
 }
+
+const PRIVATE_BLOB_ATTR_RE = /(src|href)(\s*=\s*)(["'])(https:\/\/[^"']*\.private\.blob\.vercel-storage\.com[^"']*)\3/gi;
+
+/**
+ * Imported lesson HTML (Content.htmlContent) can carry raw <img>/<a> tags
+ * that point straight at a private Vercel Blob URL — the markdown/HTML
+ * importer never rewrote them, so the browser requests them directly and
+ * gets a 403 instead of going through getDisplayUrl()'s /api/blob-proxy.
+ * Rewrites just those attribute values in place; everything else in the
+ * markup is left untouched.
+ */
+export function rewritePrivateBlobUrlsInHtml(html) {
+  if (!html || typeof html !== "string") return html;
+  return html.replace(
+    PRIVATE_BLOB_ATTR_RE,
+    (_match, attr, eq, quote, url) => `${attr}${eq}${quote}${getDisplayUrl(url)}${quote}`
+  );
+}

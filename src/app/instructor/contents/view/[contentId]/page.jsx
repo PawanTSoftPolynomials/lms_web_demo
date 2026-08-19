@@ -1,7 +1,8 @@
 'use client';
 
-import DOMPurify from 'isomorphic-dompurify';
 import { useState, useRef } from "react";
+import MarkdownRenderer from "@/components/ui/MarkdownEditor/MarkdownRenderer";
+import { unescapeFromContentApi } from "@/lib/markdown";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -427,16 +428,13 @@ export default function ContentDetailsPage() {
               </div>
             )}
 
-            {/* Text / HTML */}            {isText && (
+            {/* Text / Markdown */}
+            {isText && (
               <div className="rounded-2xl border border-slate-800 bg-[#060913] p-6 min-h-[240px]">
-                {content.htmlContent ? (
-                  <div
-                    className="prose prose-invert prose-sm max-w-none text-slate-300 leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content.htmlContent) }}
-                  />
-                ) : (
-                  <p className="text-slate-400 text-sm text-center py-12">No text content provided.</p>
-                )}
+                <MarkdownRenderer
+                  source={unescapeFromContentApi(content.htmlContent || "")}
+                  emptyText="No text content provided."
+                />
               </div>
             )}
           </div>

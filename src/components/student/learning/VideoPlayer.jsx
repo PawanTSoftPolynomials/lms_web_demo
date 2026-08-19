@@ -13,6 +13,9 @@ import {
 import DOMPurify from "isomorphic-dompurify";
 
 import { getYouTubeVideoId, isYouTubeUrl as isYoutubeUrl } from "@/lib/youtube";
+import { getDisplayUrl } from "@/lib/blob";
+import MarkdownRenderer from "@/components/ui/MarkdownEditor/MarkdownRenderer";
+import { unescapeFromContentApi } from "@/lib/markdown";
 
 const isGoogleSlidesUrl = (url) => Boolean(url?.includes("docs.google.com/presentation"));
 const getGoogleSlidesEmbedUrl = (url) => {
@@ -48,6 +51,10 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const fileUrl = content?.fileUrl;
     const htmlContent = content?.htmlContent;
     const externalUrl = content?.externalUrl;
+
+    // Private Vercel Blob URLs 403 unless routed through /api/blob-proxy.
+    const displayVideoUrl = getDisplayUrl(videoUrl);
+    const displayFileUrl = getDisplayUrl(fileUrl);
 
     const isYoutube = type === "VIDEO" && isYoutubeUrl(videoUrl);
 
@@ -247,7 +254,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                         <video
                             ref={localVideoRef}
                             controls
-                            src={videoUrl}
+                            src={displayVideoUrl}
                             onEnded={onEnded}
                             onLoadedMetadata={(event) =>
                                 onDurationChange?.(event.currentTarget.duration)
@@ -264,13 +271,17 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                 {type === "FILE" && (
                     isPdf(fileUrl) ? (
                         <iframe
-                            src={fileUrl}
+                            src={displayFileUrl}
                             className="h-[320px] sm:h-[420px] md:h-[520px] w-full border-none bg-slate-800"
                             title={content.title}
                         />
                     ) : isOfficeDoc(fileUrl) ? (
                         <iframe
-                            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`}
+                            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+                                typeof window !== "undefined"
+                                    ? new URL(displayFileUrl, window.location.origin).href
+                                    : displayFileUrl
+                            )}`}
                             className="h-[320px] sm:h-[420px] md:h-[520px] w-full border-none bg-slate-800"
                             title={content.title}
                         />
@@ -279,7 +290,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                             <FileText className="h-16 w-16 text-orange-500 animate-bounce" />
                             <h3 className="text-lg font-semibold text-white">Download Resource</h3>
                             <a
-                                href={fileUrl}
+                                href={displayFileUrl}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="rounded-xl bg-orange-600 px-5 py-2.5 min-h-[44px] flex items-center justify-center font-bold text-xs uppercase tracking-wider text-white transition hover:bg-orange-700 shadow-lg"
@@ -333,10 +344,12 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                             </div>
                         </div>
                     ) : (
-                        <div
-                            className="prose prose-invert prose-sm sm:prose-base max-w-none p-4 sm:p-8 text-slate-200 leading-relaxed font-sans select-text"
-                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent || "") }}
-                        />
+                        <div className="p-4 sm:p-8 select-text">
+                            <MarkdownRenderer
+                                source={unescapeFromContentApi(htmlContent || "")}
+                                emptyText="No content yet."
+                            />
+                        </div>
                     )
                 )}
 

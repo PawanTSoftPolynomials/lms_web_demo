@@ -15,6 +15,8 @@ export function CourseOverviewView({
   modules = [],
   onSelectModule,
   onAddModule,
+  role = "INSTRUCTOR",
+  onStartLearning,
 }) {
   return (
     <div className={`notebook-cell rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-md ${isEditing ? "active-cell border-orange-500/50" : ""}`}>
@@ -33,13 +35,24 @@ export function CourseOverviewView({
               Course Header
             </span>
           </div>
-          <div className="cell-controls">
-            <button
-              className={`btn ${isEditing ? "btn-primary bg-orange-500 text-slate-950" : "btn-outline-primary border border-slate-800 text-slate-300 hover:text-white"} rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer`}
-              onClick={() => setIsEditing(!isEditing)}
-            >
-              {isEditing ? "Done" : "Edit"}
-            </button>
+          <div className="cell-controls flex items-center gap-2">
+            {role === "STUDENT" && onStartLearning && (
+              <button
+                type="button"
+                onClick={onStartLearning}
+                className="btn bg-orange-500 hover:bg-orange-600 text-slate-950 rounded-xl px-4 py-1.5 text-xs font-black transition cursor-pointer"
+              >
+                Start Learning
+              </button>
+            )}
+            {role === "INSTRUCTOR" && (
+              <button
+                className={`btn ${isEditing ? "btn-primary bg-orange-500 text-slate-950" : "btn-outline-primary border border-slate-800 text-slate-300 hover:text-white"} rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer`}
+                onClick={() => setIsEditing(!isEditing)}
+              >
+                {isEditing ? "Done" : "Edit"}
+              </button>
+            )}
           </div>
         </div>
 

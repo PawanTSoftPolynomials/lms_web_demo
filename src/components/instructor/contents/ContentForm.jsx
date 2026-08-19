@@ -7,7 +7,9 @@ import Cookies from "js-cookie";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import RichTextEditor from "@/components/ui/RichTextEditor";
+import MarkdownEditor from "@/components/ui/MarkdownEditor/MarkdownEditor";
+import { escapeForContentApi, unescapeFromContentApi } from "@/lib/markdown";
+import { htmlToMarkdown } from "@/lib/htmlToMarkdown";
 
 const INITIAL_FORM = {
     title: "",
@@ -45,7 +47,11 @@ export default function ContentForm({
 
     useEffect(() => {
         if (initialValues) {
-            setFormData({ ...INITIAL_FORM, ...initialValues });
+            setFormData({
+                ...INITIAL_FORM,
+                ...initialValues,
+                htmlContent: htmlToMarkdown(unescapeFromContentApi(initialValues.htmlContent ?? "")),
+            });
             // If editing and there is an existing fileUrl, show the filename
             if (initialValues.fileUrl) {
                 const parts = initialValues.fileUrl.split("/");
@@ -138,7 +144,10 @@ export default function ContentForm({
             return;
         }
 
-        onSubmit?.(formData);
+        onSubmit?.({
+            ...formData,
+            ...(formData.type === "TEXT" && { htmlContent: escapeForContentApi(formData.htmlContent) }),
+        });
     };
 
     const formatBytes = (bytes) => {
@@ -305,16 +314,16 @@ export default function ContentForm({
                     />
                 )}
 
-                {/* Text / HTML Content */}
+                {/* Text / Markdown Content */}
                 {formData.type === "TEXT" && (
                     <div>
                         <label className="mb-2 block text-sm font-medium text-white">
-                            Text / HTML Content
+                            Text Content (Markdown)
                         </label>
-                        <RichTextEditor
+                        <MarkdownEditor
                             value={formData.htmlContent}
                             onChange={(value) => setFormData(prev => ({ ...prev, htmlContent: value }))}
-                            placeholder="Enter text or HTML content here..."
+                            placeholder="Enter content in Markdown..."
                         />
                     </div>
                 )}

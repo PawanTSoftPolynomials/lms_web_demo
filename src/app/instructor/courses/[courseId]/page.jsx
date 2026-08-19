@@ -146,9 +146,44 @@ export default function CourseDetailsPage() {
   // Desktop Course Map collapse state
   const [isCourseMapOpen, setIsCourseMapOpen] = useState(true);
 
-  // Sync course data into form state
+  const isDraftMode = courseId === "draft" || courseId === "new";
+  const [draftData, setDraftData] = useState(null);
+  const [draftModules, setDraftModules] = useState([]);
+  const [draftLoaded, setDraftLoaded] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+
+  // Load temporary draft from sessionStorage if in draft mode
   useEffect(() => {
-    if (course) {
+    if (isDraftMode) {
+      try {
+        const raw = sessionStorage.getItem("imported_course_draft");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setDraftData(parsed);
+          setDraftModules(parsed.modules || []);
+          setCourseForm({
+            title: parsed.metadata?.title || "Imported Course",
+            subtitle: parsed.metadata?.description || "",
+            description: parsed.metadata?.description || "",
+            category: parsed.metadata?.category || "General",
+            level: parsed.metadata?.level || "BEGINNER",
+            thumbnailUrl: parsed.metadata?.thumbnailUrl || "",
+            duration: parsed.metadata?.estimatedLearningHours ? `${parsed.metadata.estimatedLearningHours} hours` : "",
+            audience: "",
+            author: "",
+          });
+        }
+      } catch (err) {
+        console.error("Failed to parse imported_course_draft from sessionStorage:", err);
+      } finally {
+        setDraftLoaded(true);
+      }
+    }
+  }, [isDraftMode]);
+
+  // Sync normal course data into form state when loading real database record
+  useEffect(() => {
+    if (!isDraftMode && course) {
       setCourseForm({
         title: course.title || "",
         subtitle: course.subtitle || course.shortDescription || "",
@@ -161,7 +196,24 @@ export default function CourseDetailsPage() {
         author: course.author || course.creator?.name || "",
       });
     }
-  }, [course]);
+  }, [isDraftMode, course]);
+
+  const effectiveCourse = isDraftMode
+    ? (draftData ? {
+        id: "draft",
+        title: courseForm.title || draftData.metadata?.title || "Imported Course",
+        description: courseForm.description || draftData.metadata?.description || "",
+        category: courseForm.category || draftData.metadata?.category || "General",
+        level: courseForm.level || draftData.metadata?.level || "BEGINNER",
+        thumbnailUrl: courseForm.thumbnailUrl || draftData.metadata?.thumbnailUrl || null,
+        status: "DRAFT",
+        isImportDraft: true,
+      } : null)
+    : course;
+
+  const effectiveModules = isDraftMode ? draftModules : modules;
+  const effectiveLoading = isDraftMode ? (!draftLoaded || !draftData) : (courseLoading || modulesLoading);
+  const effectiveError = isDraftMode ? (draftLoaded && !draftData) : (courseError || !course);
 
   // Selection Handlers
   const handleSelectCourseOverview = () => {
@@ -175,7 +227,7 @@ export default function CourseDetailsPage() {
     setComposeLessonId(lessonId);
     setComposerMode("lesson");
 
-    const { lesson: foundLesson, module: foundModule } = findModuleAndLessonById(modules, lessonId);
+    const { lesson: foundLesson, module: foundModule } = findModuleAndLessonById(effectiveModules, lessonId);
     if (foundLesson) {
       setLessonForm({
         title: foundLesson.title || "",
@@ -245,15 +297,22 @@ export default function CourseDetailsPage() {
   };
 
   const { module: composingModule, lesson: composingLesson } =
-    findModuleAndLessonById(modules, composeLessonId);
+    findModuleAndLessonById(effectiveModules, composeLessonId);
 
-  const activeModuleObj = composingModule || modules.find((m) => m.id === composeModuleId);
+  const activeModuleObj = composingModule || effectiveModules.find((m) => m.id === composeModuleId) || effectiveModules[0];
   const composingTopic = composingLesson?.topics?.find((t) => t.id === composeTopicId);
 
   // Delete Handlers for structural children
   const handleDeleteModule = async (e, mod) => {
     if (e) e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this module and all its contents?")) return;
+    if (isDraftMode) {
+      const nextMods = draftModules.filter((m) => m.id !== mod.id);
+      setDraftModules(nextMods);
+      showToast("Module deleted from draft", "success");
+      handleSelectCourseOverview();
+      return;
+    }
     try {
       await deleteModuleMutation.mutateAsync(mod.id);
       showToast("Module deleted successfully", "success");
@@ -266,6 +325,21 @@ export default function CourseDetailsPage() {
   const handleDeleteLesson = async (e, lesson, moduleId) => {
     if (e) e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this lesson?")) return;
+    if (isDraftMode) {
+      const nextMods = draftModules.map((m) => {
+        if (m.id === moduleId || (m.lessons || []).some((l) => l.id === lesson.id)) {
+          return {
+            ...m,
+            lessons: (m.lessons || []).filter((l) => l.id !== lesson.id)
+          };
+        }
+        return m;
+      });
+      setDraftModules(nextMods);
+      showToast("Lesson deleted from draft", "success");
+      handleSelectCourseOverview();
+      return;
+    }
     try {
       await deleteLessonMutation.mutateAsync({ lessonId: lesson.id, moduleId });
       showToast("Lesson deleted successfully", "success");
@@ -278,6 +352,27 @@ export default function CourseDetailsPage() {
   const handleDeleteTopic = async (e, topic, lessonId) => {
     if (e) e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this topic and all its contents?")) return;
+    if (isDraftMode) {
+      const nextMods = draftModules.map((m) => ({
+        ...m,
+        lessons: (m.lessons || []).map((l) => {
+          if (l.id === lessonId || (l.topics || []).some((t) => t.id === topic.id)) {
+            return {
+              ...l,
+              topics: (l.topics || []).filter((t) => t.id !== topic.id)
+            };
+          }
+          return l;
+        })
+      }));
+      setDraftModules(nextMods);
+      showToast("Topic deleted from draft", "success");
+      if (composeTopicId === topic.id) {
+        setComposeTopicId(null);
+        setComposerMode("lesson");
+      }
+      return;
+    }
     try {
       await deleteTopicMutation.mutateAsync({ topicId: topic.id, lessonId });
       showToast("Topic deleted successfully", "success");
@@ -293,12 +388,90 @@ export default function CourseDetailsPage() {
   const handleDeleteContent = async (e, content, topicId) => {
     if (e) e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this content?")) return;
+    if (isDraftMode) {
+      const nextMods = draftModules.map((m) => ({
+        ...m,
+        lessons: (m.lessons || []).map((l) => ({
+          ...l,
+          topics: (l.topics || []).map((t) => {
+            if (t.id === topicId || (t.contents || []).some((c) => c.id === content.id)) {
+              return {
+                ...t,
+                contents: (t.contents || []).filter((c) => c.id !== content.id)
+              };
+            }
+            return t;
+          })
+        }))
+      }));
+      setDraftModules(nextMods);
+      showToast("Content deleted from draft", "success");
+      if (selectedCellId === content.id) setSelectedCellId(null);
+      return;
+    }
     try {
       await deleteContentMutation.mutateAsync({ contentId: content.id, topicId });
       showToast("Content deleted successfully", "success");
       if (selectedCellId === content.id) setSelectedCellId(null);
     } catch (err) {
       showToast("Failed to delete content", "error");
+    }
+  };
+
+  const handleSaveCourse = async () => {
+    if (isDraftMode) {
+      if (!draftData || !draftData.jobId) {
+        showToast("No active course draft found to save.", "error");
+        return;
+      }
+      setIsSavingDraft(true);
+      try {
+        const updatedCanonicalJson = {
+          ...(draftData.canonicalJson || {}),
+          metadata: {
+            ...(draftData.canonicalJson?.metadata || {}),
+            title: courseForm.title || draftData.metadata?.title || "Imported Course",
+            description: courseForm.description || draftData.metadata?.description || "",
+            category: courseForm.category || draftData.metadata?.category || "General",
+            level: courseForm.level || draftData.metadata?.level || "BEGINNER",
+            thumbnailUrl: courseForm.thumbnailUrl || draftData.metadata?.thumbnailUrl || null,
+          },
+          settings: draftData.settings || {},
+          modules: draftModules,
+          assetMap: draftData.assetMap || {}
+        };
+
+        const response = await api.post(`/course-import/jobs/${draftData.jobId}/import`, {
+          canonicalJson: updatedCanonicalJson
+        });
+
+        const createdCourse = response.data?.data;
+        const persistedCourseId = createdCourse?.courseId || createdCourse?.id;
+
+        if (!persistedCourseId) {
+          throw new Error("Failed to save course: No course ID returned.");
+        }
+
+        sessionStorage.removeItem("imported_course_draft");
+        queryClient.invalidateQueries([QUERY_KEYS.INSTRUCTOR_COURSES]);
+        queryClient.invalidateQueries([QUERY_KEYS.INSTRUCTOR_COURSES_TABLE]);
+
+        showToast("Course saved and created successfully!", "success", "Saved");
+        router.push(`/instructor/courses/${persistedCourseId}`);
+      } catch (err) {
+        console.error("Save Draft Error:", err);
+        const msg = err?.response?.data?.message || err?.message || "Failed to save course to database.";
+        showToast(msg, "error");
+      } finally {
+        setIsSavingDraft(false);
+      }
+    } else {
+      try {
+        await updateCourseMutation.mutateAsync({ courseId, courseData: courseForm });
+        showToast("Course saved successfully!", "success", "Saved");
+      } catch (err) {
+        showToast("Failed to save course", "error");
+      }
     }
   };
 
@@ -405,7 +578,7 @@ export default function CourseDetailsPage() {
     }
   };
 
-  if (courseLoading || modulesLoading) {
+  if (effectiveLoading) {
     return (
       <div className="flex justify-center py-32">
         <Loader />
@@ -413,7 +586,7 @@ export default function CourseDetailsPage() {
     );
   }
 
-  if (courseError || !course) {
+  if (effectiveError || !effectiveCourse) {
     return (
       <div className="max-w-md mx-auto my-20 p-8 text-center bg-[#0D1021] border border-[#1A1F35] rounded-2xl space-y-4">
         <h2 className="text-xl font-bold text-white">Course Not Found</h2>
@@ -430,7 +603,7 @@ export default function CourseDetailsPage() {
     );
   }
 
-  const isPublished = course.status === "PUBLISHED";
+  const isPublished = effectiveCourse.status === "PUBLISHED";
 
   const courseMapEffectivelyOpen = mobileSidebarOpen || isCourseMapOpen;
   const sidebarWrapperClassName = mobileSidebarOpen
@@ -443,20 +616,13 @@ export default function CourseDetailsPage() {
     <div className="space-y-4 pb-16 animate-fade-in duration-300">
       {/* 1. APP HEADER */}
       <CourseComposerHeader
-        course={course}
+        course={effectiveCourse}
         courseId={courseId}
         globalMode={globalMode}
         onToggleGlobalMode={() => setGlobalMode(globalMode === "rendered" ? "edit" : "rendered")}
-        onSaveCourse={async () => {
-          try {
-            await updateCourseMutation.mutateAsync({ courseId, courseData: courseForm });
-            showToast("Course saved successfully!", "success", "Saved");
-          } catch (err) {
-            showToast("Failed to save course", "error");
-          }
-        }}
+        onSaveCourse={handleSaveCourse}
         onImportCourse={() => router.push("/instructor/courses/import")}
-        isSaving={updateCourseMutation.isPending}
+        isSaving={isDraftMode ? isSavingDraft : updateCourseMutation.isPending}
         onPublishClick={handleOpenPublishModal}
         onUnpublishClick={handleOpenUnpublishModal}
         onDuplicateClick={handleDuplicateCourse}
@@ -471,7 +637,7 @@ export default function CourseDetailsPage() {
         {/* Left Sidebar Panel */}
         <div className={sidebarWrapperClassName}>
           <CourseComposerSidebar
-            modules={modules}
+            modules={effectiveModules}
             composerMode={composerMode}
             composeModuleId={composeModuleId}
             composeLessonId={composeLessonId}
@@ -526,7 +692,7 @@ export default function CourseDetailsPage() {
                   {composerMode === "topic" && `Topic: ${composingTopic?.title || "Topic Composer"}`}
                 </div>
                 <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
-                  {composerMode === "course" && (course.title || "Course Overview Header")}
+                  {composerMode === "course" && (effectiveCourse?.title || "Course Overview Header")}
                   {composerMode === "lesson" && (composingLesson?.title || "Lesson Overview Header")}
                   {composerMode === "module" && (activeModuleObj?.title || "Module Cells Notebook")}
                   {composerMode === "topic" && (composingTopic?.title || "Topic Cells Notebook")}
@@ -539,22 +705,27 @@ export default function CourseDetailsPage() {
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6 shadow-xl">
             {composerMode === "course" && (
               <CourseOverviewView
-                course={course}
+                course={effectiveCourse}
                 courseForm={courseForm}
                 setCourseForm={setCourseForm}
                 isEditing={isEditingCourse || globalMode === "edit"}
                 setIsEditing={setIsEditingCourse}
                 onSaveCourseMeta={async () => {
-                  try {
-                    await updateCourseMutation.mutateAsync({ courseId, courseData: courseForm });
+                  if (isDraftMode) {
                     setIsEditingCourse(false);
-                    showToast("Course details updated!", "success", "Saved");
-                  } catch (err) {
-                    showToast("Failed to save course", "error");
+                    showToast("Draft course details updated locally!", "success", "Saved");
+                  } else {
+                    try {
+                      await updateCourseMutation.mutateAsync({ courseId, courseData: courseForm });
+                      setIsEditingCourse(false);
+                      showToast("Course details updated!", "success", "Saved");
+                    } catch (err) {
+                      showToast("Failed to save course", "error");
+                    }
                   }
                 }}
-                isSaving={updateCourseMutation.isPending}
-                modules={modules}
+                isSaving={isDraftMode ? isSavingDraft : updateCourseMutation.isPending}
+                modules={effectiveModules}
                 onSelectModule={handleSelectModule}
                 onAddModule={() => openEntityModal({ entity: "module", mode: "create", courseId })}
               />
@@ -568,19 +739,24 @@ export default function CourseDetailsPage() {
                 isEditing={isEditingLesson || globalMode === "edit"}
                 setIsEditing={setIsEditingLesson}
                 onSaveLessonMeta={async () => {
-                  try {
-                    await updateLessonMutation.mutateAsync({
-                      lessonId: composeLessonId,
-                      lessonData: { ...lessonForm, moduleId: composeModuleId },
-                    });
+                  if (isDraftMode) {
                     setIsEditingLesson(false);
-                    showToast("Lesson updated!", "success", "Saved");
-                  } catch (err) {
-                    showToast("Failed to save lesson", "error");
+                    showToast("Draft lesson details updated locally!", "success", "Saved");
+                  } else {
+                    try {
+                      await updateLessonMutation.mutateAsync({
+                        lessonId: composeLessonId,
+                        lessonData: { ...lessonForm, moduleId: composeModuleId },
+                      });
+                      setIsEditingLesson(false);
+                      showToast("Lesson updated!", "success", "Saved");
+                    } catch (err) {
+                      showToast("Failed to save lesson", "error");
+                    }
                   }
                 }}
-                isSaving={updateLessonMutation.isPending}
-                modules={modules.filter((m) =>
+                isSaving={isDraftMode ? isSavingDraft : updateLessonMutation.isPending}
+                modules={effectiveModules.filter((m) =>
                   (m.lessons || []).some((l) => l.id === composeLessonId)
                 )}
                 onSelectModule={handleSelectModule}
@@ -592,7 +768,7 @@ export default function CourseDetailsPage() {
               const effectiveLesson =
                 composingLesson ||
                 activeModuleObj.lessons?.[0] ||
-                modules.flatMap((m) => m.lessons || [])[0];
+                effectiveModules.flatMap((m) => m.lessons || [])[0];
               const effectiveTopicId = effectiveLesson?.topics?.[0]?.id;
               return (
                 <LessonComposerPanel
@@ -630,7 +806,7 @@ export default function CourseDetailsPage() {
         validation={publishValidation}
         isValidating={isValidatingPublish}
         isPublishing={publishCourseMutation.isPending}
-        courseTitle={course?.title}
+        courseTitle={effectiveCourse?.title}
       />
 
       {/* Unpublish Confirmation Modal */}
@@ -639,7 +815,7 @@ export default function CourseDetailsPage() {
         onClose={() => setUnpublishModalOpen(false)}
         onUnpublish={handleConfirmUnpublish}
         isUnpublishing={unpublishCourseMutation.isPending}
-        courseTitle={course?.title}
+        courseTitle={effectiveCourse?.title}
       />
 
       {/* Delete / Archive Safety Modal */}
@@ -650,7 +826,7 @@ export default function CourseDetailsPage() {
         onConfirmArchive={handleConfirmArchiveCourse}
         isDeleting={deleteCourseMutation.isPending}
         isArchiving={archiveCourseMutation.isPending}
-        courseTitle={course?.title}
+        courseTitle={effectiveCourse?.title}
         hasStudentData={deleteHasStudentData}
         isPublished={isPublished}
       />

@@ -13,54 +13,159 @@ import {
 } from "./slideElementTypes";
 
 interface SlideColumnsViewProps {
+  /** Rendered on-canvas, like a real slide's title — not floating in the surrounding chrome. Omitted entirely (no reserved space) when blank. */
+  title?: string;
   columns: SlideColumn[];
   /** Slide-level property, applied to the layout container. */
   backgroundColor?: string;
 }
 
 /**
- * Read-only renderer for a slide's columns — a compact PPT-style viewport
- * (max-width ~1000px, 16:9 preferred shape via `aspect-video`), not a huge
- * content block and not a scrollable document. `aspect-ratio` here is only
- * a *preferred* size for `height: auto`: with no explicit height and no
- * `overflow: hidden`, a slide with content taller than 16:9 grows past that
- * ratio to fit it rather than clipping or scrolling — short slides stay
- * compact, long ones just aren't locked to a box too small for them.
- * Columns stack vertically below `sm` for narrow instructor-panel widths
- * (the reference Composer's row layout has no such breakpoint and clips on
- * small screens).
+ * Read-only renderer for one slide — a fixed 16:9 presentation canvas, not a
+ * scrollable webpage section. `container-type: size` on the frame (see the
+ * `.slide-frame` rule below) locks it to the aspect-ratio box regardless of
+ * content length; content that doesn't fit scrolls *inside* the frame
+ * (`.slide-inner`'s `overflow-y: auto`) instead of stretching the frame
+ * taller — a real slide's shape never changes based on what's on it.
+ *
+ * Typography and image sizing are driven by CSS container query units
+ * (`cqw`/`cqh`) scoped to `.slide-frame`, so text and images scale with the
+ * *rendered slide's* own box — not the viewport — exactly like a PPT slide
+ * shrinks as one unit on a smaller screen instead of reflowing into a
+ * stacked document. Columns with no content are dropped entirely (no
+ * placeholder, no reserved grid track) rather than shown as empty boxes.
  */
-export function SlideColumnsView({ columns, backgroundColor = DEFAULT_SLIDE_BACKGROUND }: SlideColumnsViewProps) {
-  if (columns.length === 0) {
-    return (
-      <div
-        className="mx-auto flex aspect-video w-full max-w-[1000px] items-center justify-center rounded-xl border border-slate-800 p-8 text-center text-xs italic text-slate-500"
-        style={{ backgroundColor }}
-      >
-        No columns configured.
-      </div>
-    );
-  }
+export function SlideColumnsView({ title, columns, backgroundColor = DEFAULT_SLIDE_BACKGROUND }: SlideColumnsViewProps) {
+  const visibleColumns = columns.filter((c) => c.content && c.content.trim());
+  const hasTitle = Boolean(title && title.trim());
+  const isEmpty = !hasTitle && visibleColumns.length === 0;
 
   return (
-    <div
-      className="mx-auto aspect-video w-full max-w-[1000px] rounded-xl border border-slate-800 p-5 sm:p-6 shadow-inner"
-      style={{ backgroundColor }}
-    >
-      <div className="flex flex-col sm:flex-row gap-5 sm:gap-6">
-        {columns.map((column) => (
-          <div key={column.id} className="flex-1 min-w-0">
-            {column.content ? (
-              <div
-                className="prose prose-invert prose-sm max-w-none break-words"
-                dangerouslySetInnerHTML={{ __html: renderColumnContent(column) }}
-              />
-            ) : (
-              <p className="text-xs italic text-slate-500">Empty column</p>
-            )}
-          </div>
-        ))}
-      </div>
+    <div className="slide-frame mx-auto w-full max-w-[1000px] aspect-video overflow-hidden rounded-xl border border-slate-800 shadow-inner relative" style={{ backgroundColor }}>
+      <style>{`
+        .slide-frame {
+          container-type: size;
+          container-name: slide;
+        }
+        .slide-inner {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          overflow-y: auto;
+          padding: clamp(0.75rem, 3.2cqw, 2.25rem);
+          gap: clamp(0.3rem, 1.4cqh, 0.75rem);
+        }
+        .slide-title {
+          flex: 0 0 auto;
+          font-weight: 800;
+          line-height: 1.15;
+          letter-spacing: -0.01em;
+          color: #f8fafc;
+          font-size: clamp(1rem, 4.4cqw, 2.1rem);
+        }
+        .slide-body {
+          flex: none;
+          height: auto;
+          min-height: 0;
+          display: grid;
+          align-content: start;
+          align-items: start;
+          gap: clamp(0.6rem, 2.4cqw, 1.5rem);
+        }
+        .slide-column {
+          min-width: 0;
+          min-height: 0;
+          overflow: hidden;
+        }
+        .slide-prose {
+          color: #cbd5e1;
+          font-size: clamp(0.7rem, 1.9cqw, 1rem);
+          line-height: 1.45;
+        }
+        .slide-prose > *:first-child { margin-top: 0; }
+        .slide-prose > *:last-child { margin-bottom: 0; }
+        .slide-prose h1, .slide-prose h2 {
+          font-weight: 700;
+          color: #f8fafc;
+          line-height: 1.2;
+          margin: 0 0 0.3em;
+          font-size: clamp(0.95rem, 3.2cqw, 1.5rem);
+        }
+        .slide-prose h3, .slide-prose h4, .slide-prose h5, .slide-prose h6 {
+          font-weight: 700;
+          color: #e2e8f0;
+          line-height: 1.25;
+          margin: 0 0 0.3em;
+          font-size: clamp(0.8rem, 2.4cqw, 1.1rem);
+        }
+        .slide-prose p {
+          margin: 0 0 0.45em;
+        }
+        .slide-prose strong, .slide-prose b { color: #f8fafc; font-weight: 700; }
+        .slide-prose ul, .slide-prose ol {
+          margin: 0 0 0.45em;
+          padding-left: 1.1em;
+        }
+        .slide-prose li { margin: 0 0 0.2em; }
+        .slide-prose blockquote {
+          margin: 0 0 0.45em;
+          padding-left: 0.75em;
+          border-left: 2px solid #f59e0b;
+          color: #94a3b8;
+          font-style: italic;
+          font-size: clamp(0.62rem, 1.5cqw, 0.8rem);
+        }
+        .slide-prose code {
+          color: #fbbf24;
+          background-color: rgba(148, 163, 184, 0.14);
+          border-radius: 0.2rem;
+          padding: 0.1em 0.35em;
+          font-size: 0.88em;
+        }
+        .slide-prose pre {
+          margin: 0 0 0.45em;
+          padding: 0.5em 0.7em;
+          border-radius: 0.5rem;
+          background-color: #0d1117;
+          overflow-x: auto;
+        }
+        .slide-prose pre code { background: none; padding: 0; }
+        .slide-prose a { color: #fbbf24; text-decoration: underline; text-underline-offset: 2px; }
+        .slide-prose img {
+          display: block;
+          margin: 0.3em auto;
+          max-width: 100%;
+          max-height: 42cqh;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+          border-radius: 0.5rem;
+        }
+      `}</style>
+
+      {isEmpty ? (
+        <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-xs italic text-slate-500">
+          Empty slide.
+        </div>
+      ) : (
+        <div className="slide-inner">
+          {hasTitle && <h3 className="slide-title">{title}</h3>}
+
+          {visibleColumns.length > 0 && (
+            <div className="slide-body" style={{ gridTemplateColumns: `repeat(${visibleColumns.length}, minmax(0, 1fr))` }}>
+              {visibleColumns.map((column) => (
+                <div key={column.id} className="slide-column">
+                  <div
+                    className="slide-prose"
+                    dangerouslySetInnerHTML={{ __html: renderColumnContent(column) }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

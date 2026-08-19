@@ -140,17 +140,17 @@ export default function CourseContentAccordion({
                         ) : (
                           <span className="h-2 w-2 rounded-full bg-slate-700 shrink-0 ml-[3px] mr-[3px]" />
                         )}
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs font-medium">
-                            {lessonIndex + 1}. {lesson.title}
-                          </p>
-                          <p className={`truncate text-[10px] ${isActive ? "text-orange-100" : "text-slate-500"}`}>
-                            {lesson.duration || ""}
-                          </p>
-                        </div>
-                      </button>
-                    );
-                  })}
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs font-medium">
+                              {lessonIndex + 1}. {lesson.title}
+                            </p>
+                            <p className={`truncate text-[10px] ${isActive ? "text-orange-100" : "text-slate-500"}`}>
+                              {lesson.topics?.length ? `${lesson.topics.length} Topics` : lesson.duration || ""}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
 
                   {lessonCount === 0 && (
                     <div className="px-3 py-2 text-xs text-slate-500 italic">

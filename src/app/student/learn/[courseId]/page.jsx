@@ -7,7 +7,7 @@ import {
   X, Bell, MessageSquare, ArrowLeft, BookOpen, Clock3,
   ChevronDown, ChevronRight, ChevronLeft, PlayCircle,
   CheckCheck, HelpCircle, Star, CheckCircle2, FileText, Download,
-  AlignLeft, StickyNote, Paperclip, Bookmark, BookmarkCheck, ClipboardList
+  AlignLeft, StickyNote, Paperclip, Bookmark, BookmarkCheck, ClipboardList, PanelLeftOpen
 } from "lucide-react";
 import { FaSignOutAlt } from "react-icons/fa";
 
@@ -32,6 +32,8 @@ import { trackCourseAccess } from "@/services/enrollment.service";
 import { ChatWidget } from "@/components/chat";
 import { MentorWidget } from "@/components/mentor";
 import { createConversation } from "@/features/chat/api/chat.api";
+import { normalizeCourseHierarchy } from "@/lib/courseMapper";
+import { CourseStructureSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
 
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
@@ -41,7 +43,8 @@ export default function LearnPage() {
   const { courseId } = useParams();
   const router = useRouter();
 
-  const { data, isLoading, isError } = useCourse(courseId);
+  const { data: rawCourseData, isLoading, isError } = useCourse(courseId);
+  const course = useMemo(() => normalizeCourseHierarchy(rawCourseData) || {}, [rawCourseData]);
   const { data: stateData, isLoading: isStateLoading } = useStudentState();
   const updateStateMutation = useUpdateStudentState();
   const completeLessonMutation = useCompleteLesson();
@@ -68,8 +71,6 @@ export default function LearnPage() {
   const [courseSidebarOpen, setCourseSidebarOpen] = useState(false);
 
   const videoPlayerRef = useRef(null);
-
-  const course = data?.data || data;
 
   const lessons = useMemo(() => {
     const modules = course?.modules || [];
@@ -459,11 +460,7 @@ export default function LearnPage() {
               </div>
               {file.fileUrl ? (
                 <a
-                  href={
-                    file.fileUrl.startsWith("http")
-                      ? file.fileUrl
-                      : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${file.fileUrl}`
-                  }
+                  href={getDisplayUrl(file.fileUrl)}
                   target="_blank"
                   rel="noreferrer"
                   download
@@ -629,125 +626,38 @@ export default function LearnPage() {
 
       {/* ========================================================================= */}
       {/* COURSE CONTENT SIDEBAR — desktop only (xl+). Below xl, Course Content is  */}
-      {/* embedded directly in the page flow instead (see CourseContentAccordion),  */}
-      {/* so there is no drawer/overlay to open or close on mobile or tablet.       */}
       {/* ========================================================================= */}
-      <aside
-        className={`hidden xl:flex xl:relative h-screen bg-[#0d0e16] border-r border-[#1e2030] flex-shrink-0 flex-col z-50 overflow-y-auto select-none transition-all duration-300 ${
-          courseSidebarOpen ? "xl:w-80" : "xl:w-18"
-        }`}
-      >
-        {/* Header Block */}
-        <div className="p-4 flex items-center justify-between min-h-[64px] border-b border-[#1e2030]/40">
-          {courseSidebarOpen ? (
-            <div className="flex-1 min-w-0 pr-2">
-              <h2 className="text-xs sm:text-sm font-bold text-white truncate uppercase tracking-wider">
-                Course Content
-              </h2>
-              <p className="text-[10px] text-slate-400 mt-0.5">
-                {course.modules?.length || 0} Modules
-              </p>
-            </div>
-          ) : (
-            <button
-              onClick={() => setCourseSidebarOpen(true)}
-              className="mx-auto text-slate-400 hover:text-white p-2 rounded-xl transition-all cursor-pointer bg-transparent border-0 outline-none min-h-[44px] min-w-[44px] flex items-center justify-center"
-              title="Expand Course Content"
-            >
-              <BookOpen size={20} className="text-orange-500 animate-pulse" />
-            </button>
-          )}
-
-          {courseSidebarOpen && (
-            <button
-              onClick={() => setCourseSidebarOpen(false)}
-              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 transition cursor-pointer"
-            >
-              <X size={18} />
-            </button>
-          )}
-        </div>
-
-        {/* Collapsed view modules list */}
-        {!courseSidebarOpen ? (
-          <div className="py-6 flex flex-col items-center gap-4">
-            {course.modules?.map((module, idx) => (
-              <button
-                key={module.id}
-                onClick={() => setCourseSidebarOpen(true)}
-                className="w-11 h-11 rounded-full bg-slate-800/80 hover:bg-orange-500/20 border border-slate-700/60 hover:border-orange-500/50 flex items-center justify-center text-xs font-bold text-orange-400 transition-all cursor-pointer outline-none"
-                title={`Module ${idx + 1}: ${module.title}`}
-              >
-                M{idx + 1}
-              </button>
-            ))}
-          </div>
-        ) : (
-          /* Expanded Accordion list */
-          <div className="divide-y divide-slate-800/60 flex-1 overflow-y-auto">
-            {course.modules?.map((module, moduleIndex) => {
-              const expanded = expandedModules.includes(module.id);
-              return (
-                <div key={module.id} className="bg-slate-900/10">
-                  <button
-                    onClick={() => toggleModule(module.id)}
-                    className="flex w-full items-center justify-between px-4 py-3.5 transition hover:bg-slate-850 bg-transparent border-0 outline-none cursor-pointer min-h-[44px]"
-                  >
-                    <div className="text-left min-w-0 flex-1 pr-2">
-                      <h3 className="text-xs font-bold text-orange-400 uppercase tracking-widest">
-                        Module {moduleIndex + 1}
-                      </h3>
-                      <p className="mt-0.5 text-xs font-semibold text-slate-350 truncate">
-                        {module.title}
-                      </p>
-                    </div>
-                    {expanded ? (
-                      <ChevronDown size={14} className="text-slate-450 flex-shrink-0" />
-                    ) : (
-                      <ChevronRight size={14} className="text-slate-450 flex-shrink-0" />
-                    )}
-                  </button>
-
-                  {expanded && (
-                    <div className="space-y-1 pb-3 px-2">
-                      {(module.lessons || []).map((lesson, lessonIndex) => {
-                        const active = selectedLesson?.id === lesson.id;
-                        return (
-                          <button
-                            key={lesson.id}
-                            onClick={() => setSelectedLesson({ ...lesson, moduleId: module.id })}
-                            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all cursor-pointer border-0 outline-none min-h-[44px] ${
-                              active
-                                ? "bg-orange-500 text-white font-medium shadow-lg shadow-orange-600/10"
-                                : "hover:bg-slate-800/40 text-slate-300 bg-transparent"
-                            }`}
-                          >
-                            <PlayCircle size={15} className={active ? "text-white shrink-0" : "text-orange-500 shrink-0"} />
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-xs font-medium">
-                                Lesson {lessonIndex + 1}
-                              </p>
-                              <p className={`truncate text-[10px] ${active ? "text-orange-100" : "text-slate-400"}`}>
-                                {lesson.title}
-                              </p>
-                            </div>
-                          </button>
-                        );
-                      })}
-
-                      {module.lessons?.length === 0 && (
-                        <div className="px-3 py-2 text-xs text-slate-500 italic">
-                          No lessons available
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </aside>
+      {/* COURSE MAP SIDEBAR — matching Instructor Course View                      */}
+      {/* ========================================================================= */}
+      <div className={`hidden xl:block shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${courseSidebarOpen ? "w-full xl:w-[320px]" : "w-full xl:w-0"}`}>
+        <CourseStructureSidebar
+          modules={course.modules || []}
+          composerMode={selectedLesson ? "lesson" : "course"}
+          composeLessonId={selectedLesson?.id}
+          composeModuleId={selectedLesson?.moduleId}
+          isOpen={courseSidebarOpen}
+          onToggleOpen={() => setCourseSidebarOpen(false)}
+          onSelectCourseOverview={() => {}}
+          onSelectLesson={(lessonId) => {
+            const match = lessons.find((l) => l.id === lessonId);
+            if (match) setSelectedLesson(match);
+          }}
+          onSelectModule={(mod) => {
+            if (mod.lessons?.[0]) setSelectedLesson(mod.lessons[0]);
+          }}
+          onSelectTopic={(topicId, lessonId) => {
+            const match = lessons.find((l) => l.id === lessonId);
+            if (match) setSelectedLesson(match);
+          }}
+          onSelectContent={(content, topic, lesson) => {
+            if (lesson?.id) {
+              const match = lessons.find((l) => l.id === lesson.id);
+              if (match) setSelectedLesson(match);
+            }
+          }}
+          role="STUDENT"
+        />
+      </div>
 
       {/* ========================================================================= */}
       {/* MAIN WORKSPACE CONTENT */}
@@ -758,10 +668,26 @@ export default function LearnPage() {
         {/* TOP NAVBAR / HEADER */}
         {/* ========================================================== */}
         <header className="sticky top-0 bg-[#07080f]/80 backdrop-blur-md border-b border-[#1e2030]/40 py-3 px-4 sm:px-6 flex items-center justify-between z-30 select-none">
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 truncate">
-              LEARNING WORKSPACE
-            </span>
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            {!courseSidebarOpen && (
+              <button
+                type="button"
+                onClick={() => setCourseSidebarOpen(true)}
+                className="hidden xl:flex shrink-0 h-9 w-9 items-center justify-center rounded-full border border-orange-500/50 bg-slate-900 text-orange-400 shadow-md transition hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-300 cursor-pointer"
+                aria-label="Show course map"
+                title="Show course map"
+              >
+                <PanelLeftOpen size={16} />
+              </button>
+            )}
+            <div className="min-w-0">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 truncate block">
+                LEARNING WORKSPACE
+              </span>
+              <h2 className="text-sm font-bold text-white truncate">
+                {selectedLesson ? `Lesson: ${selectedLesson.title}` : course?.title || "Course Overview"}
+              </h2>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 relative shrink-0">

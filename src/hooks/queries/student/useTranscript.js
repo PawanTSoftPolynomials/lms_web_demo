@@ -32,12 +32,16 @@ export default function useTranscript(lessonId) {
     }
 
     if (query.isError) {
-      // A 404 means "no video / no transcript for this lesson" — an empty
-      // state, not a genuine failure (network error, 5xx, etc).
+      // 404 means "no video / no transcript for this lesson"; 400 means the
+      // lesson's video isn't a YouTube link (e.g. a directly uploaded file) or
+      // its content type otherwise doesn't support transcripts. Both are
+      // normal, expected empty states — not a genuine failure (network error,
+      // 5xx, etc) — so both render the same "unavailable" UI instead of an
+      // error banner.
       const statusCode = query.error?.response?.status;
       return {
         segments: [],
-        status: statusCode === 404 ? "unavailable" : "error",
+        status: statusCode === 404 || statusCode === 400 ? "unavailable" : "error",
       };
     }
 

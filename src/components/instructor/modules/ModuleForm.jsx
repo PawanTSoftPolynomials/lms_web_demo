@@ -5,6 +5,8 @@ import {useEffect, useState} from "react";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import MarkdownEditor from "@/components/ui/MarkdownEditor/MarkdownEditor";
+import { htmlToMarkdown } from "@/lib/htmlToMarkdown";
 
 const INITIAL_FORM = {
     title: "",
@@ -31,8 +33,7 @@ export default function ModuleForm({
                 title:
                     initialValues.title ?? "",
                 description:
-                    initialValues.description ??
-                    "",
+                    htmlToMarkdown(initialValues.description ?? ""),
                 isPublished:
                     initialValues.isPublished ??
                     false,
@@ -75,26 +76,10 @@ export default function ModuleForm({
                         Description
                     </label>
 
-                    <textarea
-                        name="description"
+                    <MarkdownEditor
                         value={formData.description}
-                        onChange={handleChange}
-                        rows={6}
-                        required
-                        placeholder="Enter module description..."
-                        className="
-              w-full
-              resize-none
-              rounded-lg
-              border
-              border-slate-700
-              bg-slate-900
-              px-4
-              py-3
-              outline-none
-              transition
-              focus:border-orange-500
-            "
+                        onChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
+                        placeholder="Enter module description in Markdown..."
                     />
                 </div>
 

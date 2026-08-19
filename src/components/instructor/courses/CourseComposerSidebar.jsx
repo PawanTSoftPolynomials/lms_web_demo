@@ -204,6 +204,8 @@ function TopicContentRows({
   selectedCellId,
   onSelectContent,
   onDeleteContent,
+  role = "INSTRUCTOR",
+  completedLessonIds = [],
 }) {
   const { data: contents = [], isLoading, isError } = useContents(topic.id);
   const { duplicate } = useDuplicateContent();
@@ -263,30 +265,32 @@ function TopicContentRows({
                   : "text-slate-400 hover:text-white hover:bg-slate-900/70"
               }`}
             >
-              <div className="flex items-center gap-1.5 min-w-0">
+              <div className="flex items-center gap-1.5 min-w-0 flex-1">
                 <Icon size={12} className={`shrink-0 ${isContentActive ? "text-orange-400" : meta.color}`} />
                 <span className="truncate text-[10.5px] leading-snug">
                   {content.title || `Untitled ${meta.label}`}
                 </span>
               </div>
 
-              <RowMenu
-                groupName="content"
-                items={[
-                  { label: "Edit Content", icon: Pencil, onSelect: () => onSelectContent?.(content, topic, lesson, mod) },
-                  { label: "Duplicate Content", icon: Copy, onSelect: () => handleDuplicate(content) },
-                  { separator: true },
-                  { label: "Move Up", icon: ArrowUp, disabled: cIdx === 0, onSelect: () => handleMove(content.id, "up") },
-                  { label: "Move Down", icon: ArrowDown, disabled: cIdx === contents.length - 1, onSelect: () => handleMove(content.id, "down") },
-                  { separator: true },
-                  {
-                    label: "Delete Content",
-                    icon: Trash2,
-                    destructive: true,
-                    onSelect: (e) => onDeleteContent?.(e, content, topic.id),
-                  },
-                ]}
-              />
+              {role === "INSTRUCTOR" && (
+                <RowMenu
+                  groupName="content"
+                  items={[
+                    { label: "Edit Content", icon: Pencil, onSelect: () => onSelectContent?.(content, topic, lesson, mod) },
+                    { label: "Duplicate Content", icon: Copy, onSelect: () => handleDuplicate(content) },
+                    { separator: true },
+                    { label: "Move Up", icon: ArrowUp, disabled: cIdx === 0, onSelect: () => handleMove(content.id, "up") },
+                    { label: "Move Down", icon: ArrowDown, disabled: cIdx === contents.length - 1, onSelect: () => handleMove(content.id, "down") },
+                    { separator: true },
+                    {
+                      label: "Delete Content",
+                      icon: Trash2,
+                      destructive: true,
+                      onSelect: (e) => onDeleteContent?.(e, content, topic.id),
+                    },
+                  ]}
+                />
+              )}
             </div>
           );
         })
@@ -294,6 +298,8 @@ function TopicContentRows({
     </div>
   );
 }
+
+import { CheckCircle2 } from "lucide-react";
 
 export function CourseComposerSidebar({
   modules = [],
@@ -320,6 +326,8 @@ export function CourseComposerSidebar({
   onDeleteModule,
   onDeleteTopic,
   onDeleteContent,
+  role = "INSTRUCTOR",
+  completedLessonIds = [],
 }) {
   const [expandedModules, setExpandedModules] = useState({});
   const [expandedLessons, setExpandedLessons] = useState({});
@@ -374,11 +382,6 @@ export function CourseComposerSidebar({
     }
   };
 
-  // Collapsed: render nothing at all — no rectangular rail/placeholder.
-  // The floating circular reopen control lives in the parent page instead
-  // (positioned over the freed-up editor space). This component instance
-  // stays mounted either way (same call site in the parent), so the tree
-  // state above (expandedModules/expandedLessons/expandedTopics) survives.
   if (!isOpen) {
     return null;
   }
@@ -404,20 +407,22 @@ export function CourseComposerSidebar({
         </button>
       </div>
 
-      {/* Compact subtitle (replaces the old full breadcrumb) */}
+      {/* Compact subtitle */}
       <div className="text-[10.5px] text-slate-500 mb-3 pb-3 border-b border-slate-800/80">
         Course structure
       </div>
 
-      {/* New Module Button */}
-      <button
-        type="button"
-        className="w-full py-2 mb-3 flex items-center justify-center gap-1.5 rounded-xl border border-orange-500/40 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 text-xs font-bold transition cursor-pointer shrink-0"
-        onClick={onAddModule}
-      >
-        <Plus size={14} />
-        New Module
-      </button>
+      {/* New Module Button - Instructor only */}
+      {role === "INSTRUCTOR" && (
+        <button
+          type="button"
+          className="w-full py-2 mb-3 flex items-center justify-center gap-1.5 rounded-xl border border-orange-500/40 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 text-xs font-bold transition cursor-pointer shrink-0"
+          onClick={onAddModule}
+        >
+          <Plus size={14} />
+          New Module
+        </button>
+      )}
 
       {/* Course Overview Root Item */}
       <div
@@ -436,7 +441,7 @@ export function CourseComposerSidebar({
       <div className="flex-1 overflow-y-auto space-y-0.5 pr-1 text-xs">
         {modules.length === 0 ? (
           <div className="py-8 text-center text-slate-500 text-xs italic">
-            No modules created yet. Click &ldquo;+ New Module&rdquo; above.
+            No modules available in this course.
           </div>
         ) : (
           modules.map((mod, mIdx) => {
@@ -482,23 +487,25 @@ export function CourseComposerSidebar({
                     </span>
                   </div>
 
-                  <RowMenu
-                    groupName="module"
-                    items={[
-                      { label: "Edit Module", icon: Pencil, onSelect: () => onEditModule?.(mod) },
-                      { label: "Add Lesson", icon: Plus, onSelect: () => onAddLesson?.(mod.id) },
-                      { separator: true },
-                      { label: "Move Up", icon: ArrowUp, disabled: mIdx === 0, onSelect: () => handleMoveModule(mod, "up") },
-                      { label: "Move Down", icon: ArrowDown, disabled: mIdx === modules.length - 1, onSelect: () => handleMoveModule(mod, "down") },
-                      { separator: true },
-                      {
-                        label: "Delete Module",
-                        icon: Trash2,
-                        destructive: true,
-                        onSelect: (e) => onDeleteModule?.(e, mod),
-                      },
-                    ]}
-                  />
+                  {role === "INSTRUCTOR" && (
+                    <RowMenu
+                      groupName="module"
+                      items={[
+                        { label: "Edit Module", icon: Pencil, onSelect: () => onEditModule?.(mod) },
+                        { label: "Add Lesson", icon: Plus, onSelect: () => onAddLesson?.(mod.id) },
+                        { separator: true },
+                        { label: "Move Up", icon: ArrowUp, disabled: mIdx === 0, onSelect: () => handleMoveModule(mod, "up") },
+                        { label: "Move Down", icon: ArrowDown, disabled: mIdx === modules.length - 1, onSelect: () => handleMoveModule(mod, "down") },
+                        { separator: true },
+                        {
+                          label: "Delete Module",
+                          icon: Trash2,
+                          destructive: true,
+                          onSelect: (e) => onDeleteModule?.(e, mod),
+                        },
+                      ]}
+                    />
+                  )}
                 </div>
 
                 {/* Lessons */}
@@ -514,6 +521,7 @@ export function CourseComposerSidebar({
                         const isLessonActive = composerMode === "lesson" && composeLessonId === lesson.id;
                         const lessonHasActiveChild = !isLessonActive && composeLessonId === lesson.id;
                         const lessonTopics = lesson.topics || [];
+                        const isCompleted = completedLessonIds.includes(lesson.id);
 
                         return (
                           <div key={lesson.id}>
@@ -543,7 +551,11 @@ export function CourseComposerSidebar({
                                     className={`transition-transform duration-200 ${lessonOpen ? "rotate-90 text-orange-500" : ""}`}
                                   />
                                 </button>
-                                <BookOpen size={12} className={`shrink-0 ${isLessonActive ? "text-orange-400" : "text-slate-500"}`} />
+                                {isCompleted ? (
+                                  <CheckCircle2 size={12} className="shrink-0 text-emerald-400" />
+                                ) : (
+                                  <BookOpen size={12} className={`shrink-0 ${isLessonActive ? "text-orange-400" : "text-slate-500"}`} />
+                                )}
                                 <span className="text-[8.5px] font-black text-slate-600 tabular-nums shrink-0">
                                   L{lIdx + 1}
                                 </span>
@@ -552,23 +564,25 @@ export function CourseComposerSidebar({
                                 </span>
                               </div>
 
-                              <RowMenu
-                                groupName="lesson"
-                                items={[
-                                  { label: "Edit Lesson", icon: Pencil, onSelect: () => onEditLesson?.(lesson, mod.id) },
-                                  { label: "Add Topic", icon: Plus, onSelect: () => onAddTopic?.(lesson.id) },
-                                  { separator: true },
-                                  { label: "Move Up", icon: ArrowUp, disabled: lIdx === 0, onSelect: () => handleMoveLesson(mod, lesson.id, "up") },
-                                  { label: "Move Down", icon: ArrowDown, disabled: lIdx === modLessons.length - 1, onSelect: () => handleMoveLesson(mod, lesson.id, "down") },
-                                  { separator: true },
-                                  {
-                                    label: "Delete Lesson",
-                                    icon: Trash2,
-                                    destructive: true,
-                                    onSelect: (e) => onDeleteLesson?.(e, lesson, mod.id),
-                                  },
-                                ]}
-                              />
+                              {role === "INSTRUCTOR" && (
+                                <RowMenu
+                                  groupName="lesson"
+                                  items={[
+                                    { label: "Edit Lesson", icon: Pencil, onSelect: () => onEditLesson?.(lesson, mod.id) },
+                                    { label: "Add Topic", icon: Plus, onSelect: () => onAddTopic?.(lesson.id) },
+                                    { separator: true },
+                                    { label: "Move Up", icon: ArrowUp, disabled: lIdx === 0, onSelect: () => handleMoveLesson(mod, lesson.id, "up") },
+                                    { label: "Move Down", icon: ArrowDown, disabled: lIdx === modLessons.length - 1, onSelect: () => handleMoveLesson(mod, lesson.id, "down") },
+                                    { separator: true },
+                                    {
+                                      label: "Delete Lesson",
+                                      icon: Trash2,
+                                      destructive: true,
+                                      onSelect: (e) => onDeleteLesson?.(e, lesson, mod.id),
+                                    },
+                                  ]}
+                                />
+                              )}
                             </div>
 
                             {/* Topics */}
@@ -623,23 +637,25 @@ export function CourseComposerSidebar({
                                             )}
                                           </div>
 
-                                          <RowMenu
-                                            groupName="topic"
-                                            items={[
-                                              { label: "Edit Topic", icon: Pencil, onSelect: () => onEditTopic?.(topic, lesson.id, mod.id) },
-                                              { label: "Add Content", icon: Plus, onSelect: () => onAddContent?.(topic.id, lesson.id, mod.id) },
-                                              { separator: true },
-                                              { label: "Move Up", icon: ArrowUp, disabled: tIdx === 0, onSelect: () => handleMoveTopic(lesson, topic.id, "up") },
-                                              { label: "Move Down", icon: ArrowDown, disabled: tIdx === lessonTopics.length - 1, onSelect: () => handleMoveTopic(lesson, topic.id, "down") },
-                                              { separator: true },
-                                              {
-                                                label: "Delete Topic",
-                                                icon: Trash2,
-                                                destructive: true,
-                                                onSelect: (e) => onDeleteTopic?.(e, topic, lesson.id),
-                                              },
-                                            ]}
-                                          />
+                                          {role === "INSTRUCTOR" && (
+                                            <RowMenu
+                                              groupName="topic"
+                                              items={[
+                                                { label: "Edit Topic", icon: Pencil, onSelect: () => onEditTopic?.(topic, lesson.id, mod.id) },
+                                                { label: "Add Content", icon: Plus, onSelect: () => onAddContent?.(topic.id, lesson.id, mod.id) },
+                                                { separator: true },
+                                                { label: "Move Up", icon: ArrowUp, disabled: tIdx === 0, onSelect: () => handleMoveTopic(lesson, topic.id, "up") },
+                                                { label: "Move Down", icon: ArrowDown, disabled: tIdx === lessonTopics.length - 1, onSelect: () => handleMoveTopic(lesson, topic.id, "down") },
+                                                { separator: true },
+                                                {
+                                                  label: "Delete Topic",
+                                                  icon: Trash2,
+                                                  destructive: true,
+                                                  onSelect: (e) => onDeleteTopic?.(e, topic, lesson.id),
+                                                },
+                                              ]}
+                                            />
+                                          )}
                                         </div>
 
                                         {/* Contents */}
@@ -652,6 +668,7 @@ export function CourseComposerSidebar({
                                             selectedCellId={selectedCellId}
                                             onSelectContent={onSelectContent}
                                             onDeleteContent={onDeleteContent}
+                                            role={role}
                                           />
                                         </Collapsible>
                                       </div>
@@ -674,3 +691,5 @@ export function CourseComposerSidebar({
     </aside>
   );
 }
+
+export const CourseStructureSidebar = CourseComposerSidebar;
