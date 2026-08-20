@@ -56,6 +56,7 @@ import { deleteQuiz as deleteQuizService } from "@/services/quiz.service";
 import { CourseComposerHeader } from "@/components/instructor/courses/CourseComposerHeader";
 import { CourseComposerSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
 import { CourseOverviewView } from "@/components/instructor/courses/CourseOverviewView";
+import { ModuleOverviewView } from "@/components/instructor/courses/ModuleOverviewView";
 import { LessonOverviewView } from "@/components/instructor/courses/LessonOverviewView";
 import { QuizOverviewView } from "@/components/instructor/courses/QuizOverviewView";
 import { EntityFormModal } from "@/components/instructor/courses/EntityFormModal";
@@ -490,6 +491,7 @@ export default function CourseDetailsPage() {
 
   const handleSelectLesson = (lessonId) => {
     setComposeLessonId(lessonId);
+    setComposeTopicId(null);
     setComposeQuizId(null);
     setComposerMode("lesson");
 
@@ -509,11 +511,10 @@ export default function CourseDetailsPage() {
 
   const handleSelectModule = (mod, lessonId = null) => {
     setComposeModuleId(mod.id);
+    setComposeLessonId(lessonId);
+    setComposeTopicId(null);
     setComposeQuizId(null);
     setComposerMode("module");
-    if (lessonId) {
-      setComposeLessonId(lessonId);
-    }
     setMobileSidebarOpen(false);
   };
 
@@ -568,7 +569,10 @@ export default function CourseDetailsPage() {
   const { module: composingModule, lesson: composingLesson } =
     findModuleAndLessonById(effectiveModules, composeLessonId);
 
-  const activeModuleObj = composingModule || effectiveModules.find((m) => m.id === composeModuleId) || effectiveModules[0];
+  const activeModuleObj =
+    effectiveModules.find((m) => m.id === composeModuleId) ||
+    composingModule ||
+    effectiveModules[0];
   const composingTopic = composingLesson?.topics?.find((t) => t.id === composeTopicId);
   const activeQuizObj =
     effectiveCourseQuizzes.find((q) => q.id === composeQuizId || q.title === composeQuizId) ||
@@ -1061,23 +1065,19 @@ export default function CourseDetailsPage() {
               />
             )}
 
-            {composerMode === "module" && activeModuleObj && (() => {
-              const effectiveLesson =
-                composingLesson ||
-                activeModuleObj.lessons?.[0] ||
-                effectiveModules.flatMap((m) => m.lessons || [])[0];
-              const effectiveTopic = effectiveLesson?.topics?.[0];
-              const effectiveTopicId = effectiveTopic?.id;
-              return (
-                <LessonComposerPanel
-                  topicId={effectiveTopicId}
-                  selectedCellId={selectedCellId}
-                  onSelectCell={setSelectedCellId}
-                  draftContents={isDraftMode ? effectiveTopic?.contents || [] : undefined}
-                  isDraftMode={isDraftMode}
-                />
-              );
-            })()}
+            {composerMode === "module" && activeModuleObj && (
+              <ModuleOverviewView
+                module={activeModuleObj}
+                onSelectLesson={handleSelectLesson}
+                onAddLesson={(modId) => openEntityModal({ entity: "lesson", mode: "create", parentId: modId })}
+                onEditModule={(mod) => openEntityModal({ entity: "module", mode: "edit", entityId: mod.id, initialData: mod, courseId })}
+                onEditLesson={(les) => openEntityModal({ entity: "lesson", mode: "edit", entityId: les.id, initialData: les, parentId: activeModuleObj.id })}
+                onAddTopic={(lesId) => openEntityModal({ entity: "topic", mode: "create", parentId: lesId, moduleId: activeModuleObj.id })}
+                onDeleteLesson={handleDeleteLesson}
+                allModules={effectiveModules}
+                onSelectModule={handleSelectModule}
+              />
+            )}
 
             {composerMode === "topic" && (
               <LessonComposerPanel

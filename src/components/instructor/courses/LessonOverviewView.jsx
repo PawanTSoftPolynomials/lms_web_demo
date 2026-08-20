@@ -7,20 +7,10 @@ import {
   Pencil,
   Copy,
   Trash2,
-  MoreVertical,
-  ArrowRight,
-  ChevronLeft,
   ChevronRight,
-  Layers,
-  FileText
+  Layers
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/components/ui/shadcn/dropdown-menu";
+import { CourseComposerItemCard } from "./CourseComposerItemCard";
 
 export function LessonOverviewView({
   lesson,
@@ -45,7 +35,6 @@ export function LessonOverviewView({
   // Resolve ordering of lessons inside the parent module
   const modLessons = parentModule?.lessons || [];
   const currentLessonIdx = modLessons.findIndex((l) => l.id === lesson.id);
-  const prevLesson = currentLessonIdx > 0 ? modLessons[currentLessonIdx - 1] : null;
   const nextLesson = currentLessonIdx >= 0 && currentLessonIdx < modLessons.length - 1 ? modLessons[currentLessonIdx + 1] : null;
 
   const displayTopics = topics.length > 0 ? topics : (lesson.topics || []);
@@ -153,7 +142,7 @@ export function LessonOverviewView({
         )}
       </div>
 
-      {/* TOPICS SECTION (COMPACT CARDS GRID) */}
+      {/* TOPICS SECTION (SMALL CARDS GRID MATCHING LESSONS) */}
       <div className="pt-4 border-t border-slate-800 space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
@@ -199,124 +188,66 @@ export function LessonOverviewView({
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
             {displayTopics.map((topic, idx) => {
               const contentCount = Array.isArray(topic.contents) ? topic.contents.length : 0;
-              const formattedNum = String(idx + 1).padStart(2, "0");
+
+              const menuItems = [
+                {
+                  label: "Edit Topic",
+                  icon: Pencil,
+                  onSelect: () => onEditTopic?.(topic),
+                },
+                {
+                  label: "Add Content",
+                  icon: Plus,
+                  highlight: true,
+                  onSelect: () => onAddContent?.(topic.id, lesson.id, parentModule?.id),
+                },
+                onDuplicateTopic && {
+                  label: "Duplicate Topic",
+                  icon: Copy,
+                  onSelect: () => onDuplicateTopic?.(topic),
+                },
+                { separator: true },
+                {
+                  label: "Delete Topic",
+                  icon: Trash2,
+                  destructive: true,
+                  onSelect: (e) => onDeleteTopic?.(e, topic, lesson.id),
+                },
+              ].filter(Boolean);
 
               return (
-                <div
+                <CourseComposerItemCard
                   key={topic.id || `topic-${idx}`}
+                  orderNumber={idx + 1}
+                  title={topic.title || `Topic ${idx + 1}`}
+                  metadataText={`${contentCount} ${contentCount === 1 ? "Content" : "Contents"}`}
                   onClick={() => onSelectTopic?.(topic.id, lesson.id, parentModule?.id)}
-                  className="group relative flex flex-col justify-between p-4 rounded-xl border border-slate-800/90 bg-slate-900/60 hover:bg-slate-900 hover:border-purple-500/40 transition duration-150 shadow-sm cursor-pointer min-h-[120px]"
-                >
-                  {/* Top Bar: Topic Order Badge & 3-Dot Kebab Menu */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 text-[11px] font-mono font-bold border border-purple-500/30">
-                      {formattedNum}
-                    </span>
-
-                    {/* Topic 3-Dot Kebab Menu */}
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button
-                            type="button"
-                            className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                            aria-label="Topic actions"
-                          >
-                            <MoreVertical size={14} />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-slate-950 border-slate-800 text-slate-200">
-                          <DropdownMenuItem
-                            onClick={() => onEditTopic?.(topic)}
-                            className="cursor-pointer hover:bg-slate-900 text-xs"
-                          >
-                            <Pencil className="mr-2 size-3.5 text-slate-400" />
-                            Edit Topic
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => onAddContent?.(topic.id, lesson.id, parentModule?.id)}
-                            className="cursor-pointer hover:bg-slate-900 text-xs text-purple-400"
-                          >
-                            <Plus className="mr-2 size-3.5 text-purple-400" />
-                            Add Content
-                          </DropdownMenuItem>
-                          {onDuplicateTopic && (
-                            <DropdownMenuItem
-                              onClick={() => onDuplicateTopic?.(topic)}
-                              className="cursor-pointer hover:bg-slate-900 text-xs"
-                            >
-                              <Copy className="mr-2 size-3.5 text-slate-400" />
-                              Duplicate Topic
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator className="bg-slate-800" />
-                          <DropdownMenuItem
-                            onClick={(e) => onDeleteTopic?.(e, topic, lesson.id)}
-                            className="cursor-pointer text-red-400 hover:bg-red-950/40 text-xs"
-                          >
-                            <Trash2 className="mr-2 size-3.5 text-red-400" />
-                            Delete Topic
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-
-                  {/* Middle: Topic Title */}
-                  <h4 className="text-sm font-bold text-white line-clamp-2 my-2 group-hover:text-purple-300 transition">
-                    {topic.title || `Topic ${idx + 1}`}
-                  </h4>
-
-                  {/* Bottom Bar: Content Count & Arrow Affordance */}
-                  <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800/60 text-slate-400 group-hover:text-slate-300">
-                    <span className="text-[11px] font-medium">
-                      {contentCount} {contentCount === 1 ? "content" : "contents"}
-                    </span>
-                    <ArrowRight size={13} className="text-slate-500 group-hover:text-purple-400 group-hover:translate-x-0.5 transition" />
-                  </div>
-                </div>
+                  menuItems={menuItems}
+                  badgeColorClass="bg-purple-500/15 text-purple-400 border-purple-500/30"
+                  hoverTextClass="group-hover:text-purple-400"
+                  hoverBorderClass="hover:border-purple-500/40"
+                  arrowColorClass="group-hover:text-purple-400"
+                />
               );
             })}
           </div>
         )}
       </div>
 
-      {/* PREVIOUS / NEXT LESSON NAVIGATION FOOTER */}
-      {(prevLesson || nextLesson) && (
-        <div className="pt-6 border-t border-slate-800 flex items-center justify-between gap-4 flex-wrap">
-          {/* Left: Previous Lesson */}
-          {prevLesson ? (
-            <button
-              type="button"
-              onClick={() => onSelectLesson?.(prevLesson.id)}
-              className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-left transition group cursor-pointer max-w-[260px]"
-            >
-              <ChevronLeft size={16} className="text-slate-400 group-hover:-translate-x-0.5 transition shrink-0" />
-              <div className="overflow-hidden">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 block">Previous Lesson</span>
-                <span className="text-xs font-bold text-slate-200 truncate block">{prevLesson.title}</span>
-              </div>
-            </button>
-          ) : (
-            <div />
-          )}
-
-          {/* Right: Next Lesson */}
-          {nextLesson ? (
-            <button
-              type="button"
-              onClick={() => onSelectLesson?.(nextLesson.id)}
-              className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-purple-500/40 bg-purple-500/10 hover:bg-purple-500/20 text-right transition group cursor-pointer max-w-[280px] ml-auto"
-            >
-              <div className="overflow-hidden">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-400 block">Next Lesson</span>
-                <span className="text-xs font-bold text-white truncate block">{nextLesson.title}</span>
-              </div>
-              <ChevronRight size={16} className="text-purple-400 group-hover:translate-x-0.5 transition shrink-0" />
-            </button>
-          ) : (
-            <div />
-          )}
+      {/* NEXT LESSON NAVIGATION FOOTER */}
+      {nextLesson && (
+        <div className="pt-6 border-t border-slate-800 flex items-center justify-end">
+          <button
+            type="button"
+            onClick={() => onSelectLesson?.(nextLesson.id)}
+            className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-purple-500/40 bg-purple-500/10 hover:bg-purple-500/20 text-right transition group cursor-pointer max-w-[280px]"
+          >
+            <div className="overflow-hidden">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-400 block">Next Lesson</span>
+              <span className="text-xs font-bold text-white truncate block">{nextLesson.title}</span>
+            </div>
+            <ChevronRight size={16} className="text-purple-400 group-hover:translate-x-0.5 transition shrink-0" />
+          </button>
         </div>
       )}
     </div>

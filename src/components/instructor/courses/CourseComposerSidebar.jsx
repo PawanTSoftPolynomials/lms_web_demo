@@ -569,7 +569,7 @@ export function CourseComposerSidebar({
                       ? "bg-slate-900/40 border-orange-500/40 text-slate-100"
                       : "border-transparent text-slate-200 hover:bg-slate-900/60"
                   }`}
-                  onClick={() => onSelectModule(mod, modLessons[0]?.id || null)}
+                  onClick={() => onSelectModule(mod)}
                 >
                   <div className="flex items-center gap-1.5 min-w-0 flex-1">
                     <button
