@@ -38,6 +38,7 @@ import { CourseStructureSidebar } from "@/components/instructor/courses/CourseCo
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
 import { useNotification } from "@/context/NotificationContext";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export default function LearnPage() {
   const { courseId } = useParams();
@@ -65,6 +66,7 @@ export default function LearnPage() {
   const { logout } = useAuth();
   const { toggleChat, isOpen: chatOpen, chatUnreadCount, conversations = [], setConversations, setActiveConversation, setIsOpen } = useChat();
   const { notifications, markAllRead, markAsRead } = useNotification();
+  const { showToast } = useToast();
   const [showNotifications, setShowNotifications] = useState(false);
 
   // Course Content Sidebar toggle state
@@ -84,6 +86,19 @@ export default function LearnPage() {
   }, [course]);
 
   const [selectedLesson, setSelectedLesson] = useState(null);
+
+  // Central gate for every lesson-navigation entry point (sidebar, mobile
+  // accordion, prev/next, auto-advance) — a locked lesson (drip content not
+  // yet unlocked by completing the one before it) can never become the
+  // selected lesson, regardless of which control tried to jump to it.
+  const selectLesson = (lesson) => {
+    if (!lesson) return;
+    if (lesson.locked) {
+      showToast("Complete the previous lesson to unlock this one.", "info");
+      return;
+    }
+    setSelectedLesson(lesson);
+  };
 
   // A lesson can hold many Content blocks (Course Composer / AI Course
   // Importer both create one row per block) — progress tracking (resume
@@ -656,19 +671,19 @@ export default function LearnPage() {
           onSelectCourseOverview={() => {}}
           onSelectLesson={(lessonId) => {
             const match = lessons.find((l) => l.id === lessonId);
-            if (match) setSelectedLesson(match);
+            selectLesson(match);
           }}
           onSelectModule={(mod) => {
-            if (mod.lessons?.[0]) setSelectedLesson(mod.lessons[0]);
+            selectLesson(mod.lessons?.[0]);
           }}
           onSelectTopic={(topicId, lessonId) => {
             const match = lessons.find((l) => l.id === lessonId);
-            if (match) setSelectedLesson(match);
+            selectLesson(match);
           }}
           onSelectContent={(content, topic, lesson) => {
             if (lesson?.id) {
               const match = lessons.find((l) => l.id === lesson.id);
-              if (match) setSelectedLesson(match);
+              selectLesson(match);
             }
           }}
           role="STUDENT"
@@ -1087,7 +1102,7 @@ export default function LearnPage() {
                 activeModuleId={activeModuleId}
                 onToggleModule={toggleMobileModule}
                 selectedLessonId={selectedLesson?.id}
-                onSelectLesson={(lesson, module) => setSelectedLesson({ ...lesson, moduleId: module.id })}
+                onSelectLesson={(lesson, module) => selectLesson({ ...lesson, moduleId: module.id })}
                 courseProgress={courseProgress}
                 completedLessons={courseProgressDetail.completedLessons}
                 totalLessons={courseProgressDetail.totalLessons}

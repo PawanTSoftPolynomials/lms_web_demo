@@ -121,19 +121,30 @@ export default function CourseContentAccordion({
                   {(module.lessons || []).map((lesson, lessonIndex) => {
                     const isActive = lesson.id === selectedLessonId;
                     const isCompleted = Boolean(lesson.completed ?? lesson.isCompleted);
+                    const isLessonLocked = Boolean(lesson.locked);
 
                     return (
                       <button
                         key={lesson.id}
                         type="button"
-                        onClick={() => onSelectLesson(lesson, module)}
-                        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all cursor-pointer border-0 outline-none min-h-[44px] ${
+                        disabled={isLessonLocked}
+                        onClick={() => !isLessonLocked && onSelectLesson(lesson, module)}
+                        title={isLessonLocked ? "Complete the previous lesson to unlock" : undefined}
+                        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all border-0 outline-none min-h-[44px] ${
+                          isLessonLocked
+                            ? "cursor-not-allowed opacity-50 text-slate-400 bg-transparent"
+                            : "cursor-pointer"
+                        } ${
                           isActive
                             ? "bg-orange-500 text-white font-medium shadow-lg shadow-orange-600/10"
-                            : "hover:bg-slate-800/40 text-slate-300 bg-transparent"
+                            : !isLessonLocked
+                            ? "hover:bg-slate-800/40 text-slate-300 bg-transparent"
+                            : ""
                         }`}
                       >
-                        {isActive ? (
+                        {isLessonLocked ? (
+                          <Lock size={14} className="text-slate-500 shrink-0" />
+                        ) : isActive ? (
                           <PlayCircle size={15} className="text-white shrink-0" />
                         ) : isCompleted ? (
                           <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
@@ -145,7 +156,11 @@ export default function CourseContentAccordion({
                               {lessonIndex + 1}. {lesson.title}
                             </p>
                             <p className={`truncate text-[10px] ${isActive ? "text-orange-100" : "text-slate-500"}`}>
-                              {lesson.topics?.length ? `${lesson.topics.length} Topics` : lesson.duration || ""}
+                              {isLessonLocked
+                                ? "Locked"
+                                : lesson.topics?.length
+                                ? `${lesson.topics.length} Topics`
+                                : lesson.duration || ""}
                             </p>
                           </div>
                         </button>
