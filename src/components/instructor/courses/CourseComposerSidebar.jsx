@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Code2,
   Copy,
+  Eye,
   File,
   FileStack,
   FileText,
@@ -319,6 +320,8 @@ export function CourseComposerSidebar({
   onToggleOpen,
   onSelectCourseOverview,
   onSelectQuiz,
+  onDuplicateQuiz,
+  onDeleteQuiz,
   onSelectLesson,
   onSelectModule,
   onSelectTopic,
@@ -485,9 +488,40 @@ export function CourseComposerSidebar({
                     <HelpCircle size={14} className="text-emerald-400 shrink-0" />
                     <span className="truncate text-[11.5px] font-semibold">{quiz.title || "Course Quiz"}</span>
                   </div>
-                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
-                    {questions.length} Qs
-                  </span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
+                      {questions.length} Qs
+                    </span>
+                    {role === "INSTRUCTOR" && (
+                      <RowMenu
+                        groupName="quiz"
+                        items={[
+                          {
+                            label: "Edit Quiz",
+                            icon: Pencil,
+                            onSelect: () => onSelectQuiz?.(quiz, null, { startEditing: true }),
+                          },
+                          {
+                            label: "Preview Quiz",
+                            icon: Eye,
+                            onSelect: () => onSelectQuiz?.(quiz, null, { startEditing: false }),
+                          },
+                          {
+                            label: "Duplicate Quiz",
+                            icon: Copy,
+                            onSelect: () => onDuplicateQuiz?.(quiz, null),
+                          },
+                          { separator: true },
+                          {
+                            label: "Delete Quiz",
+                            icon: Trash2,
+                            destructive: true,
+                            onSelect: (e) => onDeleteQuiz?.(e, quiz, null),
+                          },
+                        ]}
+                      />
+                    )}
+                  </div>
                 </div>
 
                 <Collapsible open={quizOpen}>
@@ -620,9 +654,40 @@ export function CourseComposerSidebar({
                                   <HelpCircle size={13} className="text-emerald-400 shrink-0" />
                                   <span className="truncate text-[11px] font-semibold">{quiz.title || "Module Quiz"}</span>
                                 </div>
-                                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
-                                  {questions.length} Qs
-                                </span>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
+                                    {questions.length} Qs
+                                  </span>
+                                  {role === "INSTRUCTOR" && (
+                                    <RowMenu
+                                      groupName="quiz"
+                                      items={[
+                                        {
+                                          label: "Edit Quiz",
+                                          icon: Pencil,
+                                          onSelect: () => onSelectQuiz?.(quiz, mod, { startEditing: true }),
+                                        },
+                                        {
+                                          label: "Preview Quiz",
+                                          icon: Eye,
+                                          onSelect: () => onSelectQuiz?.(quiz, mod, { startEditing: false }),
+                                        },
+                                        {
+                                          label: "Duplicate Quiz",
+                                          icon: Copy,
+                                          onSelect: () => onDuplicateQuiz?.(quiz, mod),
+                                        },
+                                        { separator: true },
+                                        {
+                                          label: "Delete Quiz",
+                                          icon: Trash2,
+                                          destructive: true,
+                                          onSelect: (e) => onDeleteQuiz?.(e, quiz, mod),
+                                        },
+                                      ]}
+                                    />
+                                  )}
+                                </div>
                               </div>
 
                               <Collapsible open={quizOpen}>
