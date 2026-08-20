@@ -5,10 +5,9 @@ import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useModules } from "@/hooks/queries/instructor/useModules";
-import { useBatches, useCourseBatches } from "@/hooks/queries/instructor/useBatches";
+import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 
 const INITIAL_FORM = {
-    batchId: "",
     courseId: "",
     moduleId: "",
     title: "",
@@ -42,16 +41,11 @@ export default function QuizForm({
     const [formData, setFormData] = useState({ ...INITIAL_FORM, courseId: lockedCourseId || "" });
     const [submitAction, setSubmitAction] = useState("draft");
 
-    // Batch → Course → Module: when a course is locked (e.g. "create quiz for
-    // this course" entry point), only batches already linked to that course
-    // are offered. Otherwise every batch the instructor owns is offered, and
-    // the course choices narrow to whichever courses that batch spans.
-    const { data: allBatches = [] } = useBatches();
-    const { data: courseBatches = [] } = useCourseBatches(lockedCourseId || undefined);
-    const batches = lockedCourseId ? courseBatches : allBatches;
-
-    const selectedBatch = batches.find((b) => b.id === formData.batchId);
-    const availableCourses = lockedCourseId ? null : (selectedBatch?.courses || []);
+    // Course → Module: when a course is locked (e.g. "create quiz for this
+    // course" entry point), the course select is replaced with a read-only
+    // display. Otherwise every course the instructor owns is offered.
+    const { data: instructorCourses = [] } = useInstructorCourses();
+    const availableCourses = lockedCourseId ? null : instructorCourses;
 
     const { data: modules = [] } = useModules(formData.courseId);
 
@@ -72,7 +66,6 @@ export default function QuizForm({
         setFormData((prev) => ({
             ...prev,
             [name]: name === "timeLimit" || name === "passingScore" ? Number(value) : value,
-            ...(name === "batchId" ? { courseId: lockedCourseId || "", moduleId: "" } : {}),
             ...(name === "courseId" ? { moduleId: "" } : {}),
         }));
     };
@@ -104,30 +97,13 @@ export default function QuizForm({
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 {mode === "create" && (
-                    <div className="grid gap-6 md:grid-cols-3">
-                        <div className="space-y-2">
-                            <label className="text-sm text-slate-300">Batch</label>
-
-                            <select
-                                name="batchId"
-                                value={formData.batchId}
-                                onChange={handleChange}
-                                required
-                                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-orange-500"
-                            >
-                                <option value="" disabled>Select a batch...</option>
-                                {batches.map((b) => (
-                                    <option key={b.id} value={b.id}>{b.name}</option>
-                                ))}
-                            </select>
-                        </div>
-
+                    <div className="grid gap-6 md:grid-cols-2">
                         <div className="space-y-2">
                             <label className="text-sm text-slate-300">Course</label>
 
                             {lockedCourseId ? (
                                 <div className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-400">
-                                    {selectedBatch?.courses?.find((c) => c.id === lockedCourseId)?.title || "This course"}
+                                    {instructorCourses.find((c) => c.id === lockedCourseId)?.title || "This course"}
                                 </div>
                             ) : (
                                 <select
@@ -135,12 +111,9 @@ export default function QuizForm({
                                     value={formData.courseId}
                                     onChange={handleChange}
                                     required
-                                    disabled={!formData.batchId}
-                                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-orange-500"
                                 >
-                                    <option value="" disabled>
-                                        {formData.batchId ? "Select a course..." : "Select a batch first..."}
-                                    </option>
+                                    <option value="" disabled>Select a course...</option>
                                     {availableCourses.map((c) => (
                                         <option key={c.id} value={c.id}>{c.title}</option>
                                     ))}

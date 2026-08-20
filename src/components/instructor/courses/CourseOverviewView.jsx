@@ -196,6 +196,43 @@ export function CourseOverviewView({
                 <div><strong>Duration:</strong> {course?.duration || "Self-Paced"}</div>
               </div>
 
+              {/* Course-Level Quizzes (when present) */}
+              {Array.isArray(course?.quizzes) && course.quizzes.length > 0 && (
+                <div className="pt-4 border-t border-slate-800/80 space-y-3">
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black uppercase">
+                      Quizzes
+                    </span>
+                    Course Quizzes ({course.quizzes.length})
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {course.quizzes.map((quiz) => {
+                      const qCount = quiz.questions?.length || quiz.quizQuestions?.length || 0;
+                      return (
+                        <div
+                          key={quiz.id || quiz.title}
+                          className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:border-emerald-500/40 transition space-y-2"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <h4 className="text-xs font-bold text-emerald-400 truncate">{quiz.title}</h4>
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono shrink-0">
+                              Pass: {quiz.passingScore}%
+                            </span>
+                          </div>
+                          {quiz.description && (
+                            <p className="text-[11px] text-slate-400 line-clamp-2">{quiz.description}</p>
+                          )}
+                          <div className="flex items-center gap-3 text-[10px] text-slate-500 font-mono pt-1">
+                            <span>{qCount} {qCount === 1 ? "question" : "questions"}</span>
+                            {quiz.timeLimit && <span>{quiz.timeLimit} mins</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Module Overview Cards Grid matching PageComponents.js */}
               <h3 className="text-base font-bold text-white pt-4 border-t border-slate-800/80">
                 Course Lessons & Modules

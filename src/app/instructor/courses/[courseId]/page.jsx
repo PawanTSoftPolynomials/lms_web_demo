@@ -56,6 +56,7 @@ import { CourseComposerHeader } from "@/components/instructor/courses/CourseComp
 import { CourseComposerSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
 import { CourseOverviewView } from "@/components/instructor/courses/CourseOverviewView";
 import { LessonOverviewView } from "@/components/instructor/courses/LessonOverviewView";
+import { QuizOverviewView } from "@/components/instructor/courses/QuizOverviewView";
 import { EntityFormModal } from "@/components/instructor/courses/EntityFormModal";
 import { PublishValidationModal } from "@/components/instructor/courses/PublishValidationModal";
 import { UnpublishModal } from "@/components/instructor/courses/UnpublishModal";
@@ -108,11 +109,12 @@ export default function CourseDetailsPage() {
   // Global View Mode: 'rendered' | 'edit'
   const [globalMode, setGlobalMode] = useState("rendered");
 
-  // Active Workspace Selection: 'course' | 'lesson' | 'module' | 'topic'
+  // Active Workspace Selection: 'course' | 'lesson' | 'module' | 'topic' | 'quiz'
   const [composerMode, setComposerMode] = useState("course");
   const [composeLessonId, setComposeLessonId] = useState(searchParams.get("compose") || null);
   const [composeModuleId, setComposeModuleId] = useState(null);
   const [composeTopicId, setComposeTopicId] = useState(null);
+  const [composeQuizId, setComposeQuizId] = useState(null);
   const [selectedCellId, setSelectedCellId] = useState(null);
 
   // Edit Mode for Metadata Headers
@@ -150,16 +152,40 @@ export default function CourseDetailsPage() {
   const isDraftMode = courseId === "draft" || courseId === "new";
   const [draftData, setDraftData] = useState(null);
   const [draftModules, setDraftModules] = useState([]);
+  const [draftQuizzes, setDraftQuizzes] = useState([]);
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
 
-  // Ensures all modules, lessons, topics, and contents have non-empty string IDs in draft mode
-  const ensureDraftIds = (modules = []) =>
-    modules.map((mod, mIdx) => {
+  // Ensures all modules, lessons, topics, contents, and quizzes have non-empty string IDs in draft mode
+  const ensureDraftIds = (modules = [], courseQuizzes = []) => {
+    const mappedQuizzes = (courseQuizzes || []).map((quiz, qIdx) => {
+      const qzId = quiz.id || `draft-quiz-course-${qIdx + 1}`;
+      return {
+        ...quiz,
+        id: qzId,
+        questions: (quiz.questions || []).map((q, quIdx) => ({
+          ...q,
+          id: q.id || `draft-que-${qzId}-${quIdx + 1}`,
+        })),
+      };
+    });
+
+    const mappedModules = (modules || []).map((mod, mIdx) => {
       const modId = mod.id || `draft-mod-${mIdx + 1}`;
       return {
         ...mod,
         id: modId,
+        quizzes: (mod.quizzes || []).map((quiz, qIdx) => {
+          const qzId = quiz.id || `draft-quiz-mod-${mIdx + 1}-${qIdx + 1}`;
+          return {
+            ...quiz,
+            id: qzId,
+            questions: (quiz.questions || []).map((q, quIdx) => ({
+              ...q,
+              id: q.id || `draft-que-${qzId}-${quIdx + 1}`,
+            })),
+          };
+        }),
         lessons: (mod.lessons || []).map((les, lIdx) => {
           const lesId = les.id || `draft-les-${mIdx + 1}-${lIdx + 1}`;
           return {
@@ -181,6 +207,9 @@ export default function CourseDetailsPage() {
       };
     });
 
+    return { modules: mappedModules, quizzes: mappedQuizzes };
+  };
+
   // Load temporary draft from sessionStorage if in draft mode
   useEffect(() => {
     if (isDraftMode) {
@@ -189,7 +218,9 @@ export default function CourseDetailsPage() {
         if (raw) {
           const parsed = JSON.parse(raw);
           setDraftData(parsed);
-          setDraftModules(ensureDraftIds(parsed.modules || []));
+          const { modules, quizzes } = ensureDraftIds(parsed.modules || [], parsed.quizzes || []);
+          setDraftModules(modules);
+          setDraftQuizzes(quizzes);
           setCourseForm({
             title: parsed.metadata?.title || "Imported Course",
             subtitle: parsed.metadata?.description || "",
@@ -227,6 +258,10 @@ export default function CourseDetailsPage() {
     }
   }, [isDraftMode, course]);
 
+  const effectiveCourseQuizzes = isDraftMode
+    ? draftQuizzes
+    : (course?.quizzes || []).filter((q) => !q.moduleId);
+
   const effectiveCourse = isDraftMode
     ? (draftData ? {
         id: "draft",
@@ -237,8 +272,9 @@ export default function CourseDetailsPage() {
         thumbnailUrl: courseForm.thumbnailUrl || draftData.metadata?.thumbnailUrl || null,
         status: "DRAFT",
         isImportDraft: true,
+        quizzes: effectiveCourseQuizzes,
       } : null)
-    : course;
+    : (course ? { ...course, quizzes: course?.quizzes || [] } : null);
 
   const effectiveModules = isDraftMode ? draftModules : modules;
   const effectiveLoading = isDraftMode ? (!draftLoaded || !draftData) : (courseLoading || modulesLoading);
@@ -249,11 +285,24 @@ export default function CourseDetailsPage() {
     setComposerMode("course");
     setComposeLessonId(null);
     setComposeModuleId(null);
+    setComposeQuizId(null);
+    setMobileSidebarOpen(false);
+  };
+
+  const handleSelectQuiz = (quiz, mod = null) => {
+    setComposeQuizId(quiz.id || quiz.title);
+    if (mod) {
+      setComposeModuleId(mod.id);
+    } else {
+      setComposeModuleId(null);
+    }
+    setComposerMode("quiz");
     setMobileSidebarOpen(false);
   };
 
   const handleSelectLesson = (lessonId) => {
     setComposeLessonId(lessonId);
+    setComposeQuizId(null);
     setComposerMode("lesson");
 
     const { lesson: foundLesson, module: foundModule } = findModuleAndLessonById(effectiveModules, lessonId);
@@ -272,6 +321,7 @@ export default function CourseDetailsPage() {
 
   const handleSelectModule = (mod, lessonId = null) => {
     setComposeModuleId(mod.id);
+    setComposeQuizId(null);
     setComposerMode("module");
     if (lessonId) {
       setComposeLessonId(lessonId);
@@ -283,6 +333,7 @@ export default function CourseDetailsPage() {
     setComposeTopicId(topicId);
     setComposeLessonId(lessonId);
     setComposeModuleId(moduleId);
+    setComposeQuizId(null);
     setComposerMode("topic");
     setMobileSidebarOpen(false);
   };
@@ -291,6 +342,7 @@ export default function CourseDetailsPage() {
     setComposeTopicId(topic.id);
     setComposeLessonId(lesson.id);
     setComposeModuleId(mod.id);
+    setComposeQuizId(null);
     setComposerMode("topic");
     setSelectedCellId(content.id);
     setMobileSidebarOpen(false);
@@ -330,6 +382,9 @@ export default function CourseDetailsPage() {
 
   const activeModuleObj = composingModule || effectiveModules.find((m) => m.id === composeModuleId) || effectiveModules[0];
   const composingTopic = composingLesson?.topics?.find((t) => t.id === composeTopicId);
+  const activeQuizObj =
+    effectiveCourseQuizzes.find((q) => q.id === composeQuizId || q.title === composeQuizId) ||
+    effectiveModules.flatMap((m) => m.quizzes || []).find((q) => q.id === composeQuizId || q.title === composeQuizId);
 
   // Delete Handlers for structural children
   const handleDeleteModule = async (e, mod) => {
@@ -466,6 +521,7 @@ export default function CourseDetailsPage() {
             thumbnailUrl: courseForm.thumbnailUrl || draftData.metadata?.thumbnailUrl || null,
           },
           settings: draftData.settings || {},
+          quizzes: draftData.quizzes || draftData.canonicalJson?.quizzes || [],
           modules: draftModules,
           assetMap: draftData.assetMap || {}
         };
@@ -671,14 +727,17 @@ export default function CourseDetailsPage() {
         <div className={sidebarWrapperClassName}>
           <CourseComposerSidebar
             modules={effectiveModules}
+            courseQuizzes={effectiveCourseQuizzes}
             composerMode={composerMode}
             composeModuleId={composeModuleId}
             composeLessonId={composeLessonId}
             composeTopicId={composeTopicId}
+            composeQuizId={composeQuizId}
             selectedCellId={selectedCellId}
             isOpen={courseMapEffectivelyOpen}
             onToggleOpen={() => setIsCourseMapOpen((v) => !v)}
             onSelectCourseOverview={handleSelectCourseOverview}
+            onSelectQuiz={handleSelectQuiz}
             onSelectLesson={handleSelectLesson}
             onSelectModule={handleSelectModule}
             onSelectTopic={handleSelectTopic}
@@ -721,12 +780,14 @@ export default function CourseDetailsPage() {
               <div>
                 <div className="text-xs font-semibold text-orange-400 mb-0.5">
                   {composerMode === "course" && `Course Overview`}
+                  {composerMode === "quiz" && `Quiz Overview`}
                   {composerMode === "lesson" && `Lesson: ${composingLesson?.title || "Lesson Overview"}`}
                   {composerMode === "module" && `Module: ${activeModuleObj?.title || "Module Cells"}`}
                   {composerMode === "topic" && `Topic: ${composingTopic?.title || "Topic Composer"}`}
                 </div>
                 <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
                   {composerMode === "course" && (effectiveCourse?.title || "Course Overview Header")}
+                  {composerMode === "quiz" && (activeQuizObj?.title || "Quiz Details")}
                   {composerMode === "lesson" && (composingLesson?.title || "Lesson Overview Header")}
                   {composerMode === "module" && (activeModuleObj?.title || "Module Cells Notebook")}
                   {composerMode === "topic" && (composingTopic?.title || "Topic Cells Notebook")}
@@ -762,6 +823,13 @@ export default function CourseDetailsPage() {
                 modules={effectiveModules}
                 onSelectModule={handleSelectModule}
                 onAddModule={() => openEntityModal({ entity: "module", mode: "create", courseId })}
+              />
+            )}
+
+            {composerMode === "quiz" && (
+              <QuizOverviewView
+                quiz={activeQuizObj}
+                moduleTitle={activeModuleObj?.title}
               />
             )}
 
