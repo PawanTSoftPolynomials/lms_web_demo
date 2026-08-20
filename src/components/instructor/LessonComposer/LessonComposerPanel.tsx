@@ -249,7 +249,7 @@ export function LessonComposerPanel({
   // becomes the active composer view.
   const handledAutoOpenSignal = useRef<number | undefined>(undefined);
   useEffect(() => {
-    if (autoOpenAddSignal === undefined || autoOpenAddSignal === null) return;
+    if (!autoOpenAddSignal || autoOpenAddSignal <= 0) return;
     if (isLoading) return;
     if (handledAutoOpenSignal.current === autoOpenAddSignal) return;
     handledAutoOpenSignal.current = autoOpenAddSignal;

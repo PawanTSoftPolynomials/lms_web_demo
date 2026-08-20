@@ -31,6 +31,9 @@ export function QuizOverviewView({
   // Active single question index in editor mode (0-indexed)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
+  // Active single question index in preview/view mode (0-indexed)
+  const [previewQuestionIndex, setPreviewQuestionIndex] = useState(0);
+
   // Editable Quiz Metadata
   const [quizForm, setQuizForm] = useState({
     title: "",
@@ -84,6 +87,7 @@ export function QuizOverviewView({
 
       setQuestions(normalized);
       setCurrentQuestionIndex(0);
+      setPreviewQuestionIndex(0);
     }
   }, [quiz]);
 
@@ -286,6 +290,7 @@ export function QuizOverviewView({
 
   const totalMarks = questions.reduce((sum, q) => sum + (Number(q.marks) || 1), 0);
   const activeQuestion = questions[currentQuestionIndex] || null;
+  const activePreviewQuestion = questions[previewQuestionIndex] || null;
 
   return (
     <div className="notebook-cell rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-md space-y-5">
@@ -348,7 +353,7 @@ export function QuizOverviewView({
         </div>
       )}
 
-      {/* ---------------- VIEW MODE ---------------- */}
+      {/* ---------------- VIEW / PREVIEW MODE (ONE QUESTION AT A TIME) ---------------- */}
       {!isEditing && (
         <div className="space-y-6">
           <div className="space-y-3">
@@ -403,74 +408,160 @@ export function QuizOverviewView({
             </div>
           </div>
 
-          {/* Questions Section */}
+          {/* SINGLE QUESTION PREVIEW SECTION */}
           <div className="pt-4 border-t border-slate-800 space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <FileText size={16} className="text-emerald-400" />
-              <span>Quiz Questions Summary ({questions.length})</span>
-            </h3>
+            {/* Top Navigation Bar */}
+            <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+              {/* Left: Previous Button */}
+              <button
+                type="button"
+                onClick={() => setPreviewQuestionIndex((prev) => Math.max(0, prev - 1))}
+                disabled={previewQuestionIndex === 0 || questions.length === 0}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-200 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <ChevronLeft size={14} />
+                Previous
+              </button>
 
-            {questions.length === 0 ? (
-              <div className="p-6 text-center text-slate-500 text-xs italic bg-slate-900/40 rounded-xl border border-slate-800/80">
-                No questions added to this quiz yet.
+              {/* Center: Counter & Jump To Selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold font-mono text-emerald-400">
+                  {questions.length > 0 ? `Question ${previewQuestionIndex + 1} of ${questions.length}` : "No Questions"}
+                </span>
+
+                {questions.length > 0 && (
+                  <select
+                    value={previewQuestionIndex}
+                    onChange={(e) => setPreviewQuestionIndex(Number(e.target.value))}
+                    className="bg-slate-950 border border-slate-700 text-slate-200 text-xs font-semibold rounded-lg px-2.5 py-1 outline-none focus:border-emerald-500 cursor-pointer"
+                  >
+                    {questions.map((q, idx) => (
+                      <option key={idx} value={idx}>
+                        Jump to Question {idx + 1} {idx === previewQuestionIndex ? "✓" : ""}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Right: Next Button */}
+              <button
+                type="button"
+                onClick={() => setPreviewQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1))}
+                disabled={previewQuestionIndex >= questions.length - 1 || questions.length === 0}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-200 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Next
+                <ChevronRight size={14} />
+              </button>
+            </div>
+
+            {/* SINGLE READ-ONLY QUESTION PREVIEW CARD */}
+            {activePreviewQuestion ? (
+              <div className="p-4 rounded-xl border border-slate-800/90 bg-slate-900/60 space-y-3 shadow-md">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-2.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-xs font-mono font-bold border border-emerald-500/30">
+                      #{previewQuestionIndex + 1}
+                    </span>
+                    <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10.5px] font-mono font-bold">
+                      {activePreviewQuestion.questionType}
+                    </span>
+                    {activePreviewQuestion.difficulty && (
+                      <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[10.5px] font-mono font-bold">
+                        {activePreviewQuestion.difficulty}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 shrink-0">
+                    {activePreviewQuestion.marks || 1} {activePreviewQuestion.marks === 1 ? "pt" : "pts"}
+                  </span>
+                </div>
+
+                {/* Question Text */}
+                <h4 className="text-sm font-semibold text-white leading-relaxed pt-1">
+                  {activePreviewQuestion.question}
+                </h4>
+
+                {/* Options List with Correct Answer Highlight */}
+                {Array.isArray(activePreviewQuestion.options) && activePreviewQuestion.options.length > 0 && (
+                  <div className="space-y-1.5 pt-2">
+                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 block">Options:</span>
+                    <div className="grid grid-cols-1 gap-1.5">
+                      {activePreviewQuestion.options.map((opt, optIdx) => {
+                        const correctAnswerStr = typeof activePreviewQuestion.correctAnswer === "string" || typeof activePreviewQuestion.correctAnswer === "number"
+                          ? String(activePreviewQuestion.correctAnswer)
+                          : JSON.stringify(activePreviewQuestion.correctAnswer || "");
+                        const isCorrect = correctAnswerStr.includes(String(opt)) || String(opt) === correctAnswerStr;
+
+                        return (
+                          <div
+                            key={optIdx}
+                            className={`p-2.5 rounded-lg text-xs font-medium border flex items-center justify-between ${
+                              isCorrect
+                                ? "bg-emerald-950/40 border-emerald-500/60 text-emerald-300 font-bold"
+                                : "bg-slate-950/80 border-slate-800/80 text-slate-300"
+                            }`}
+                          >
+                            <span>{opt}</span>
+                            {isCorrect && (
+                              <span className="text-[10.5px] font-mono font-extrabold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded border border-emerald-500/30 shrink-0">
+                                Correct Answer ✓
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Non-MCQ Correct Answer Display */}
+                {(!Array.isArray(activePreviewQuestion.options) || activePreviewQuestion.options.length === 0) && activePreviewQuestion.correctAnswer && (
+                  <div className="p-3 rounded-lg bg-emerald-950/30 border border-emerald-500/30 text-xs text-emerald-300 space-y-1">
+                    <span className="font-mono font-bold uppercase text-[10px] text-emerald-400 block">Correct Answer:</span>
+                    <p className="font-semibold">{String(activePreviewQuestion.correctAnswer)}</p>
+                  </div>
+                )}
+
+                {/* Explanation / Feedback */}
+                {activePreviewQuestion.explanation && (
+                  <div className="p-3 rounded-lg bg-slate-950/90 border border-slate-800/80 text-xs text-slate-400 space-y-1">
+                    <span className="font-mono font-bold uppercase text-[10px] text-slate-500 block">Explanation:</span>
+                    <p className="leading-relaxed">{activePreviewQuestion.explanation}</p>
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="space-y-3">
-                {questions.map((q, idx) => {
-                  const qType = (q.questionType || "MCQ_SINGLE").toUpperCase();
-                  const opts = Array.isArray(q.options) ? q.options : [];
-                  const correctAnswerStr = typeof q.correctAnswer === "string" || typeof q.correctAnswer === "number"
-                    ? String(q.correctAnswer)
-                    : JSON.stringify(q.correctAnswer || "");
+              <div className="p-6 text-center text-slate-500 text-xs italic bg-slate-900/40 rounded-xl border border-slate-800/80">
+                No questions available to preview.
+              </div>
+            )}
 
-                  return (
-                    <div
-                      key={q.id || `q-${idx}`}
-                      className="p-3.5 rounded-xl border border-slate-800/80 bg-slate-900/60 hover:bg-slate-900 transition space-y-2"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-bold border border-emerald-500/20">
-                            #{idx + 1}
-                          </span>
-                          <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-mono font-bold">
-                            {qType}
-                          </span>
-                          {q.difficulty && (
-                            <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[10px] font-mono font-bold">
-                              {q.difficulty}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 shrink-0">
-                          {q.marks || 1} {q.marks === 1 ? "pt" : "pts"}
-                        </span>
-                      </div>
+            {/* Bottom Navigation Bar */}
+            {questions.length > 0 && (
+              <div className="flex items-center justify-between pt-2">
+                <button
+                  type="button"
+                  onClick={() => setPreviewQuestionIndex((prev) => Math.max(0, prev - 1))}
+                  disabled={previewQuestionIndex === 0}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-200 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <ChevronLeft size={14} /> Previous
+                </button>
 
-                      <h4 className="text-xs font-semibold text-slate-200 leading-snug">{q.question}</h4>
+                <span className="text-xs font-mono font-bold text-slate-400">
+                  Question {previewQuestionIndex + 1} / {questions.length}
+                </span>
 
-                      {opts.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 pt-0.5">
-                          {opts.map((opt, optIdx) => {
-                            const isCorrect = correctAnswerStr.includes(String(opt)) || String(opt) === correctAnswerStr;
-                            return (
-                              <span
-                                key={optIdx}
-                                className={`px-2 py-0.5 rounded text-[10.5px] font-medium border ${
-                                  isCorrect
-                                    ? "bg-emerald-950/60 border-emerald-500/60 text-emerald-300 font-bold"
-                                    : "bg-slate-950/80 border-slate-800 text-slate-400"
-                                }`}
-                              >
-                                {opt} {isCorrect ? "✓" : ""}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                <button
+                  type="button"
+                  onClick={() => setPreviewQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1))}
+                  disabled={previewQuestionIndex >= questions.length - 1}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-200 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Next <ChevronRight size={14} />
+                </button>
               </div>
             )}
           </div>

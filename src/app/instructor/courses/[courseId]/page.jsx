@@ -1050,11 +1050,14 @@ export default function CourseDetailsPage() {
                   }
                 }}
                 isSaving={isDraftMode ? isSavingDraft : updateLessonMutation.isPending}
-                modules={effectiveModules.filter((m) =>
-                  (m.lessons || []).some((l) => l.id === composeLessonId)
-                )}
-                onSelectModule={handleSelectModule}
-                onAddModule={() => openEntityModal({ entity: "module", mode: "create", courseId })}
+                topics={composingLesson?.topics || []}
+                onSelectTopic={handleSelectTopic}
+                onAddTopic={() => openEntityModal({ entity: "topic", mode: "create", parentId: composeLessonId, moduleId: composeModuleId })}
+                onAddContent={handleAddContentFromSidebar}
+                onEditTopic={(topic) => openEntityModal({ entity: "topic", mode: "edit", entityId: topic.id, initialData: topic, parentId: composeLessonId, moduleId: composeModuleId })}
+                onDeleteTopic={(e, topic, lId) => handleDeleteTopic(e, topic, lId || composeLessonId)}
+                parentModule={activeModuleObj}
+                onSelectLesson={handleSelectLesson}
               />
             )}
 
