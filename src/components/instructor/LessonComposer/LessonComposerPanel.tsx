@@ -31,6 +31,7 @@ import { ImageCell } from "./cells/ImageCell";
 import { VideoCell } from "./cells/VideoCell";
 import { LinkCell } from "./cells/LinkCell";
 import { DocumentCell } from "./cells/DocumentCell";
+import { InteractiveCell } from "./cells/InteractiveCell";
 import { useDuplicateContent, useUpdateContent } from "./contentMutations";
 import { CELL_TYPES } from "./cellTypes";
 import { detectHtmlCellVariant } from "./htmlCellVariant";
@@ -47,6 +48,7 @@ interface LessonComposerPanelProps {
   draftContents?: ContentRow[];
   isDraftMode?: boolean;
   onUpdateDraftContents?: (contents: ContentRow[]) => void;
+  onAddQuiz?: () => void;
 }
 
 /** Determines block badge representation (label & color variant) for target UI */
@@ -71,6 +73,8 @@ function getBlockBadge(content: ContentRow): { text: string; variant: "heading" 
       return { text: "IMG", variant: "image" };
     case "VIDEO":
       return { text: "VID", variant: "video" };
+    case "EMBED":
+      return { text: "IFRM", variant: "code" };
     case "LINK":
       return { text: "LINK", variant: "default" };
     case "DOCUMENT":
@@ -101,6 +105,8 @@ function renderCell(content: ContentRow, actionProps: CellActionProps) {
       return <ImageCell content={content} {...actionProps} />;
     case "VIDEO":
       return <VideoCell content={content} {...actionProps} />;
+    case "EMBED":
+      return <InteractiveCell content={content} {...actionProps} />;
     case "LINK":
       return <LinkCell content={content} {...actionProps} />;
     case "DOCUMENT":
@@ -167,6 +173,7 @@ export function LessonComposerPanel({
   draftContents,
   isDraftMode = false,
   onUpdateDraftContents,
+  onAddQuiz,
 }: LessonComposerPanelProps) {
   const { data: apiContents = [], isLoading: isApiLoading, isError: isApiError } = useContents(isDraftMode ? "" : topicId);
 
@@ -350,6 +357,7 @@ export function LessonComposerPanel({
         onOpenChange={(open) => {
           if (!open) setInsertOrder(null);
         }}
+        onAddQuiz={onAddQuiz}
       />
     </div>
   );

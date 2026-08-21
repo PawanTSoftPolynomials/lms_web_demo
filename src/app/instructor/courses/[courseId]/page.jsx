@@ -1087,6 +1087,19 @@ export default function CourseDetailsPage() {
                 autoOpenAddSignal={autoOpenAddSignal}
                 draftContents={isDraftMode ? composingTopic?.contents || [] : undefined}
                 isDraftMode={isDraftMode}
+                onAddQuiz={() => {
+                  const targetMod = activeModuleObj || (effectiveModules.find((m) => m.id === composeModuleId));
+                  const newQuizObj = {
+                    id: `draft-quiz-${Date.now()}`,
+                    title: targetMod ? `Quiz - ${targetMod.title}` : "Course Quiz",
+                    description: "",
+                    passingScore: 70,
+                    timeLimitMinutes: 30,
+                    isPublished: false,
+                    questions: [],
+                  };
+                  handleSelectQuiz(newQuizObj, targetMod, { startEditing: true });
+                }}
               />
             )}
           </div>

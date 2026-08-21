@@ -46,7 +46,8 @@ export type CellTypeId =
   | "interactive"
   | "document"
   | "presentation"
-  | "pdf";
+  | "pdf"
+  | "quiz";
 
 export interface CellTypeDefinition {
   id: CellTypeId;
