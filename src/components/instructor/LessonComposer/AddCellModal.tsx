@@ -30,6 +30,8 @@ interface AddCellModalProps {
   order: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Picking the Quiz tile hands off here instead of opening an in-panel form — a Quiz isn't a Content row (see cellTypes.ts). Omit to hide the Quiz option. */
+  onAddQuiz?: () => void;
 }
 
 /** Form definitions for simple cell types */
@@ -77,9 +79,15 @@ export const VISIBLE_CELL_OPTIONS = [
     sublabel: "iframe embed",
     icon: MonitorPlay,
   },
+  {
+    id: "quiz" as CellTypeId,
+    label: "Quiz",
+    sublabel: "Attached to this lesson",
+    icon: HelpCircle,
+  },
 ];
 
-export function AddCellModal({ topicId, order, open, onOpenChange }: AddCellModalProps) {
+export function AddCellModal({ topicId, order, open, onOpenChange, onAddQuiz }: AddCellModalProps) {
   const [selectedId, setSelectedId] = useState<CellTypeId | null>(null);
   
   // Document 2-step choice: PDF vs DOC/DOCX
@@ -113,8 +121,15 @@ export function AddCellModal({ topicId, order, open, onOpenChange }: AddCellModa
         : `Add ${selectedCellOption.label}`;
 
   const handleSelectOption = (id: CellTypeId) => {
+    if (id === "quiz") {
+      onAddQuiz?.();
+      close();
+      return;
+    }
     setSelectedId(id);
   };
+
+  const visibleOptions = onAddQuiz ? VISIBLE_CELL_OPTIONS : VISIBLE_CELL_OPTIONS.filter((c) => c.id !== "quiz");
 
   const handleBack = () => {
     if (awaitingDocChoice || awaitingPresentationChoice || (!isDocument && !isPresentation)) {
@@ -148,7 +163,7 @@ export function AddCellModal({ topicId, order, open, onOpenChange }: AddCellModa
           <>
             <p className="mb-2.5 text-xs text-muted-foreground">Select Cell Type</p>
             <div className="grid grid-cols-2 gap-2.5">
-              {VISIBLE_CELL_OPTIONS.map((option) => {
+              {visibleOptions.map((option) => {
                 const Icon = option.icon;
                 return (
                   <button

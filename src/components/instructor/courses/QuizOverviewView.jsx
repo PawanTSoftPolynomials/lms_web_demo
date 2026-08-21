@@ -20,70 +20,32 @@ import {
   ListFilter
 } from "lucide-react";
 
-const getOptionText = (opt) => {
-  if (opt === null || opt === undefined) return "";
-
-  // 1. If opt is a JS object
-  if (typeof opt === "object") {
-    const extracted =
-      opt.optionText ??
-      opt.text ??
-      opt.label ??
-      opt.value ??
-      opt.content ??
-      opt.name ??
-      opt.title ??
-      opt.statement ??
-      opt.answer;
-
-    if (extracted !== undefined && extracted !== null && typeof extracted !== "object") {
-      return String(extracted).trim();
-    }
-
-    const stringVals = Object.values(opt).filter(
-      (v) => typeof v === "string" && v.trim() !== "" && v.trim() !== "[object Object]"
-    );
-    if (stringVals.length > 0) return stringVals[0].trim();
-    return "";
-  }
-
-  // 2. If opt is a string
-  if (typeof opt === "string") {
-    const trimmed = opt.trim();
-    if (trimmed === "[object Object]") return "";
-
-    // Try parsing if stringified JSON object
-    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-      try {
-        const parsed = JSON.parse(trimmed);
-        if (parsed && typeof parsed === "object") {
-          return getOptionText(parsed);
-        }
-      } catch (e) {
-        // Fall back to trimmed string
-      }
-    }
-    return trimmed;
-  }
-
-  return String(opt);
-};
+// Question.options (backend) may hold plain strings or richer
+// { optionText, isCorrect?, misconceptionTag? } objects (see
+// question.helper.js/QuestionUploadParser.js) — this editor only ever
+// authors/edits plain strings, so every option gets reduced to its display
+// text on load. Rendering one of those objects directly as a React child
+// (e.g. `{opt}` in JSX) crashes with "Objects are not valid as a React
+// child", which is what this normalization prevents.
+function optionToText(opt) {
+  if (opt && typeof opt === "object") return String(opt.optionText ?? opt.text ?? "");
+  return String(opt ?? "");
+}
 
 export function QuizOverviewView({
   quiz,
   quizMode = "view",
   moduleTitle = null,
+  lessonTitle = null,
   onSaveQuiz,
   onCancel,
   startEditing = false,
 }) {
   const [isEditing, setIsEditing] = useState(startEditing || quizMode === "create" || quizMode === "edit");
 
-  // Active single question index in editor mode (0-indexed)
+  // Active single question index in editor mode (0-indexed) — view/preview
+  // mode has no equivalent since it lists every question at once.
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-
-  // Active single question index in preview/view mode (0-indexed)
-  const [previewQuestionIndex, setPreviewQuestionIndex] = useState(0);
 
   // Editable Quiz Metadata
   const [quizForm, setQuizForm] = useState({
@@ -103,7 +65,7 @@ export function QuizOverviewView({
     if (quizMode === "create") {
       setIsEditing(true);
       setQuizForm({
-        title: moduleTitle ? `Quiz - ${moduleTitle}` : "Module Quiz",
+        title: lessonTitle ? `Quiz - ${lessonTitle}` : moduleTitle ? `Quiz - ${moduleTitle}` : "Module Quiz",
         description: "",
         timeLimit: 30,
         passingScore: 70,
@@ -111,11 +73,10 @@ export function QuizOverviewView({
       });
       setQuestions([]);
       setCurrentQuestionIndex(0);
-      setPreviewQuestionIndex(0);
     } else if (startEditing || quizMode === "edit") {
       setIsEditing(true);
     }
-  }, [quizMode, startEditing, moduleTitle]);
+  }, [quizMode, startEditing, moduleTitle, lessonTitle]);
 
   useEffect(() => {
     if (quiz && quizMode !== "create") {
@@ -134,40 +95,22 @@ export function QuizOverviewView({
         order: qq.order,
       })) || [];
 
-      const normalized = rawQuestions.map((q, idx) => {
-        const rawOpts = Array.isArray(q.options)
-          ? q.options
-          : (typeof q.options === "object" && q.options !== null ? Object.values(q.options) : ["Option 1", "Option 2"]);
-
-        const extractedOpts = rawOpts
-          .map(getOptionText)
-          .filter((str) => str.trim() !== "" && str !== "[object Object]");
-
-        const finalOptions = extractedOpts.length > 0 ? extractedOpts : ["Option 1", "Option 2"];
-
-        let finalCorrectAnswer = "";
-        if (typeof q.correctAnswer === "object" && q.correctAnswer !== null) {
-          finalCorrectAnswer = getOptionText(q.correctAnswer);
-        } else if (q.correctAnswer !== undefined && q.correctAnswer !== null) {
-          finalCorrectAnswer = getOptionText(q.correctAnswer);
-        }
-
-        return {
-          id: q.id || `draft-que-${quiz?.id || "temp"}-${idx + 1}`,
-          question: q.question || q.title || "",
-          questionType: (q.questionType || q.type || "MCQ_SINGLE").toUpperCase(),
-          options: finalOptions,
-          correctAnswer: finalCorrectAnswer,
-          explanation: q.explanation || "",
-          marks: q.marks !== undefined ? Number(q.marks) : 1,
-          difficulty: q.difficulty || "MEDIUM",
-          isMandatory: q.isMandatory !== false,
-        };
-      });
+      const normalized = rawQuestions.map((q, idx) => ({
+        id: q.id || `draft-que-${quiz.id || "temp"}-${idx + 1}`,
+        question: q.question || q.title || "",
+        questionType: (q.questionType || q.type || "MCQ_SINGLE").toUpperCase(),
+        options: Array.isArray(q.options)
+          ? q.options.map(optionToText)
+          : (typeof q.options === "object" && q.options !== null ? Object.values(q.options).map(optionToText) : ["Option 1", "Option 2"]),
+        correctAnswer: q.correctAnswer !== undefined ? q.correctAnswer : "",
+        explanation: q.explanation || "",
+        marks: q.marks !== undefined ? Number(q.marks) : 1,
+        difficulty: q.difficulty || "MEDIUM",
+        isMandatory: q.isMandatory !== false,
+      }));
 
       setQuestions(normalized);
       setCurrentQuestionIndex(0);
-      setPreviewQuestionIndex(0);
     }
   }, [quiz, quizMode]);
 
@@ -374,7 +317,6 @@ export function QuizOverviewView({
 
   const totalMarks = questions.reduce((sum, q) => sum + (Number(q.marks) || 1), 0);
   const activeQuestion = questions[currentQuestionIndex] || null;
-  const activePreviewQuestion = questions[previewQuestionIndex] || null;
 
   return (
     <div className="notebook-cell rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-md space-y-5">
@@ -383,7 +325,7 @@ export function QuizOverviewView({
         <div className="flex items-center space-x-2">
           <span className="rounded bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
             <HelpCircle size={12} />
-            {moduleTitle ? `Module Quiz — ${moduleTitle}` : "Course-Level Quiz"}
+            {lessonTitle ? `Lesson Quiz — ${lessonTitle}` : moduleTitle ? `Module Quiz — ${moduleTitle}` : "Course-Level Quiz"}
           </span>
           <span
             className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
@@ -492,162 +434,93 @@ export function QuizOverviewView({
             </div>
           </div>
 
-          {/* SINGLE QUESTION PREVIEW SECTION */}
-          <div className="pt-4 border-t border-slate-800 space-y-4">
-            {/* Top Navigation Bar */}
-            <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-3 flex-wrap">
-              {/* Left: Previous Button */}
-              <button
-                type="button"
-                onClick={() => setPreviewQuestionIndex((prev) => Math.max(0, prev - 1))}
-                disabled={previewQuestionIndex === 0 || questions.length === 0}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-200 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-              >
-                <ChevronLeft size={14} />
-                Previous
-              </button>
+          {/* ALL QUESTIONS LIST */}
+          <div className="pt-4 border-t border-slate-800 space-y-3">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+              {questions.length > 0 ? `${questions.length} Question${questions.length === 1 ? "" : "s"}` : "No Questions"}
+            </span>
 
-              {/* Center: Counter & Jump To Selector */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold font-mono text-emerald-400">
-                  {questions.length > 0 ? `Question ${previewQuestionIndex + 1} of ${questions.length}` : "No Questions"}
-                </span>
-
-                {questions.length > 0 && (
-                  <select
-                    value={previewQuestionIndex}
-                    onChange={(e) => setPreviewQuestionIndex(Number(e.target.value))}
-                    className="bg-slate-950 border border-slate-700 text-slate-200 text-xs font-semibold rounded-lg px-2.5 py-1 outline-none focus:border-emerald-500 cursor-pointer"
-                  >
-                    {questions.map((q, idx) => (
-                      <option key={idx} value={idx}>
-                        Jump to Question {idx + 1} {idx === previewQuestionIndex ? "✓" : ""}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-
-              {/* Right: Next Button */}
-              <button
-                type="button"
-                onClick={() => setPreviewQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1))}
-                disabled={previewQuestionIndex >= questions.length - 1 || questions.length === 0}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-200 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-              >
-                Next
-                <ChevronRight size={14} />
-              </button>
-            </div>
-
-            {/* SINGLE READ-ONLY QUESTION PREVIEW CARD */}
-            {activePreviewQuestion ? (
-              <div className="p-4 rounded-xl border border-slate-800/90 bg-slate-900/60 space-y-3 shadow-md">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-xs font-mono font-bold border border-emerald-500/30">
-                      #{previewQuestionIndex + 1}
-                    </span>
-                    <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10.5px] font-mono font-bold">
-                      {activePreviewQuestion.questionType}
-                    </span>
-                    {activePreviewQuestion.difficulty && (
-                      <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[10.5px] font-mono font-bold">
-                        {activePreviewQuestion.difficulty}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 shrink-0">
-                    {activePreviewQuestion.marks || 1} {activePreviewQuestion.marks === 1 ? "pt" : "pts"}
-                  </span>
-                </div>
-
-                {/* Question Text */}
-                <h4 className="text-sm font-semibold text-white leading-relaxed pt-1">
-                  {activePreviewQuestion.question}
-                </h4>
-
-                {/* Options List with Correct Answer Highlight */}
-                {Array.isArray(activePreviewQuestion.options) && activePreviewQuestion.options.length > 0 && (
-                  <div className="space-y-1.5 pt-2">
-                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 block">Options:</span>
-                    <div className="grid grid-cols-1 gap-1.5">
-                      {activePreviewQuestion.options.map((opt, optIdx) => {
-                        const optStr = getOptionText(opt);
-                        const correctAnswerStr = typeof activePreviewQuestion.correctAnswer === "string" || typeof activePreviewQuestion.correctAnswer === "number"
-                          ? String(activePreviewQuestion.correctAnswer)
-                          : (typeof activePreviewQuestion.correctAnswer === "object" && activePreviewQuestion.correctAnswer !== null ? getOptionText(activePreviewQuestion.correctAnswer) : JSON.stringify(activePreviewQuestion.correctAnswer || ""));
-                        const isCorrect = correctAnswerStr.includes(optStr) || optStr === correctAnswerStr;
-
-                        return (
-                          <div
-                            key={optIdx}
-                            className={`p-2.5 rounded-lg text-xs font-medium border flex items-center justify-between ${
-                              isCorrect
-                                ? "bg-emerald-950/40 border-emerald-500/60 text-emerald-300 font-bold"
-                                : "bg-slate-950/80 border-slate-800/80 text-slate-300"
-                            }`}
-                          >
-                            <span>{optStr}</span>
-                            {isCorrect && (
-                              <span className="text-[10.5px] font-mono font-extrabold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded border border-emerald-500/30 shrink-0">
-                                Correct Answer ✓
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Non-MCQ Correct Answer Display */}
-                {(!Array.isArray(activePreviewQuestion.options) || activePreviewQuestion.options.length === 0) && activePreviewQuestion.correctAnswer && (
-                  <div className="p-3 rounded-lg bg-emerald-950/30 border border-emerald-500/30 text-xs text-emerald-300 space-y-1">
-                    <span className="font-mono font-bold uppercase text-[10px] text-emerald-400 block">Correct Answer:</span>
-                    <p className="font-semibold">{String(activePreviewQuestion.correctAnswer)}</p>
-                  </div>
-                )}
-
-                {/* Explanation / Feedback */}
-                {activePreviewQuestion.explanation && (
-                  <div className="p-3 rounded-lg bg-slate-950/90 border border-slate-800/80 text-xs text-slate-400 space-y-1">
-                    <span className="font-mono font-bold uppercase text-[10px] text-slate-500 block">Explanation:</span>
-                    <p className="leading-relaxed">{activePreviewQuestion.explanation}</p>
-                  </div>
-                )}
-              </div>
-            ) : (
+            {questions.length === 0 ? (
               <div className="p-6 text-center text-slate-500 text-xs italic bg-slate-900/40 rounded-xl border border-slate-800/80">
                 No questions available to preview.
               </div>
-            )}
+            ) : (
+              questions.map((q, qIdx) => (
+                <div key={q.id || qIdx} className="p-4 rounded-xl border border-slate-800/90 bg-slate-900/60 space-y-3 shadow-md">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-2.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-xs font-mono font-bold border border-emerald-500/30">
+                        #{qIdx + 1}
+                      </span>
+                      <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10.5px] font-mono font-bold">
+                        {q.questionType}
+                      </span>
+                      {q.difficulty && (
+                        <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[10.5px] font-mono font-bold">
+                          {q.difficulty}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 shrink-0">
+                      {q.marks || 1} {q.marks === 1 ? "pt" : "pts"}
+                    </span>
+                  </div>
 
-            {/* Bottom Navigation Bar */}
-            {questions.length > 0 && (
-              <div className="flex items-center justify-between pt-2">
-                <button
-                  type="button"
-                  onClick={() => setPreviewQuestionIndex((prev) => Math.max(0, prev - 1))}
-                  disabled={previewQuestionIndex === 0}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-200 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  <ChevronLeft size={14} /> Previous
-                </button>
+                  {/* Question Text */}
+                  <h4 className="text-sm font-semibold text-white leading-relaxed pt-1">
+                    {q.question}
+                  </h4>
 
-                <span className="text-xs font-mono font-bold text-slate-400">
-                  Question {previewQuestionIndex + 1} / {questions.length}
-                </span>
+                  {/* Options List with Correct Answer Highlight */}
+                  {Array.isArray(q.options) && q.options.length > 0 && (
+                    <div className="space-y-1.5 pt-2">
+                      <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 block">Options:</span>
+                      <div className="grid grid-cols-1 gap-1.5">
+                        {q.options.map((opt, optIdx) => {
+                          const correctAnswerStr = typeof q.correctAnswer === "string" || typeof q.correctAnswer === "number"
+                            ? String(q.correctAnswer)
+                            : JSON.stringify(q.correctAnswer || "");
+                          const isCorrect = correctAnswerStr.includes(String(opt)) || String(opt) === correctAnswerStr;
 
-                <button
-                  type="button"
-                  onClick={() => setPreviewQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1))}
-                  disabled={previewQuestionIndex >= questions.length - 1}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-200 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  Next <ChevronRight size={14} />
-                </button>
-              </div>
+                          return (
+                            <div
+                              key={optIdx}
+                              className={`p-2.5 rounded-lg text-xs font-medium border flex items-center justify-between ${
+                                isCorrect
+                                  ? "bg-emerald-950/40 border-emerald-500/60 text-emerald-300 font-bold"
+                                  : "bg-slate-950/80 border-slate-800/80 text-slate-300"
+                              }`}
+                            >
+                              <span>{opt}</span>
+                              {isCorrect && (
+                                <span className="text-[10.5px] font-mono font-extrabold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded border border-emerald-500/30 shrink-0">
+                                  Correct Answer ✓
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Non-MCQ Correct Answer Display */}
+                  {(!Array.isArray(q.options) || q.options.length === 0) && q.correctAnswer && (
+                    <div className="p-3 rounded-lg bg-emerald-950/30 border border-emerald-500/30 text-xs text-emerald-300 space-y-1">
+                      <span className="font-mono font-bold uppercase text-[10px] text-emerald-400 block">Correct Answer:</span>
+                      <p className="font-semibold">{String(q.correctAnswer)}</p>
+                    </div>
+                  )}
+
+                  {/* Explanation / Feedback */}
+                  {q.explanation && (
+                    <div className="p-3 rounded-lg bg-slate-950/90 border border-slate-800/80 text-xs text-slate-400 space-y-1">
+                      <span className="font-mono font-bold uppercase text-[10px] text-slate-500 block">Explanation:</span>
+                      <p className="leading-relaxed">{q.explanation}</p>
+                    </div>
+                  )}
+                </div>
+              ))
             )}
           </div>
         </div>

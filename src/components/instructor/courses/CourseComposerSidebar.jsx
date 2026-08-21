@@ -328,6 +328,7 @@ export function CourseComposerSidebar({
   onSelectContent,
   onAddLesson,
   onAddQuizToModule,
+  onAddQuizToLesson,
   onAddModule,
   onAddTopic,
   onAddContent,
@@ -470,7 +471,7 @@ export function CourseComposerSidebar({
                       ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
                       : "border-transparent text-slate-300 hover:bg-slate-900"
                   }`}
-                  onClick={() => onSelectQuiz?.(quiz, null)}
+                  onClick={() => onSelectQuiz?.(quiz, null, null)}
                 >
                   <div className="flex items-center gap-1.5 min-w-0 flex-1">
                     <button
@@ -500,24 +501,24 @@ export function CourseComposerSidebar({
                           {
                             label: "Edit Quiz",
                             icon: Pencil,
-                            onSelect: () => onSelectQuiz?.(quiz, null, { startEditing: true }),
+                            onSelect: () => onSelectQuiz?.(quiz, null, null, { startEditing: true }),
                           },
                           {
                             label: "Preview Quiz",
                             icon: Eye,
-                            onSelect: () => onSelectQuiz?.(quiz, null, { startEditing: false }),
+                            onSelect: () => onSelectQuiz?.(quiz, null, null, { startEditing: false }),
                           },
                           {
                             label: "Duplicate Quiz",
                             icon: Copy,
-                            onSelect: () => onDuplicateQuiz?.(quiz, null),
+                            onSelect: () => onDuplicateQuiz?.(quiz, null, null),
                           },
                           { separator: true },
                           {
                             label: "Delete Quiz",
                             icon: Trash2,
                             destructive: true,
-                            onSelect: (e) => onDeleteQuiz?.(e, quiz, null),
+                            onSelect: (e) => onDeleteQuiz?.(e, quiz, null, null),
                           },
                         ]}
                       />
@@ -531,7 +532,7 @@ export function CourseComposerSidebar({
                       <div
                         key={q.id || `cq-${qIdx2}`}
                         className="px-2 py-1 text-[10.5px] text-slate-400 hover:text-slate-200 cursor-pointer flex items-center justify-between truncate"
-                        onClick={() => onSelectQuiz?.(quiz, null)}
+                        onClick={() => onSelectQuiz?.(quiz, null, null)}
                       >
                         <span className="truncate">#{qIdx2 + 1}. {q.question || q.title || `Question ${qIdx2 + 1}`}</span>
                         <span className="text-[9px] font-mono text-emerald-400/80 shrink-0 ml-1">{q.marks || 1}pt</span>
@@ -637,7 +638,7 @@ export function CourseComposerSidebar({
                                     ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
                                     : "border-transparent text-emerald-300/80 hover:text-emerald-300 hover:bg-slate-900/60"
                                 }`}
-                                onClick={() => onSelectQuiz?.(quiz, mod)}
+                                onClick={() => onSelectQuiz?.(quiz, mod, null)}
                               >
                                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                   <button
@@ -667,24 +668,24 @@ export function CourseComposerSidebar({
                                         {
                                           label: "Edit Quiz",
                                           icon: Pencil,
-                                          onSelect: () => onSelectQuiz?.(quiz, mod, { startEditing: true }),
+                                          onSelect: () => onSelectQuiz?.(quiz, mod, null, { startEditing: true }),
                                         },
                                         {
                                           label: "Preview Quiz",
                                           icon: Eye,
-                                          onSelect: () => onSelectQuiz?.(quiz, mod, { startEditing: false }),
+                                          onSelect: () => onSelectQuiz?.(quiz, mod, null, { startEditing: false }),
                                         },
                                         {
                                           label: "Duplicate Quiz",
                                           icon: Copy,
-                                          onSelect: () => onDuplicateQuiz?.(quiz, mod),
+                                          onSelect: () => onDuplicateQuiz?.(quiz, mod, null),
                                         },
                                         { separator: true },
                                         {
                                           label: "Delete Quiz",
                                           icon: Trash2,
                                           destructive: true,
-                                          onSelect: (e) => onDeleteQuiz?.(e, quiz, mod),
+                                          onSelect: (e) => onDeleteQuiz?.(e, quiz, mod, null),
                                         },
                                       ]}
                                     />
@@ -698,7 +699,7 @@ export function CourseComposerSidebar({
                                     <div
                                       key={q.id || `mq-${qIdx2}`}
                                       className="px-2 py-1 text-[10.5px] text-slate-400 hover:text-slate-200 cursor-pointer flex items-center justify-between truncate"
-                                      onClick={() => onSelectQuiz?.(quiz, mod)}
+                                      onClick={() => onSelectQuiz?.(quiz, mod, null)}
                                     >
                                       <span className="truncate">#{qIdx2 + 1}. {q.question || q.title || `Question ${qIdx2 + 1}`}</span>
                                       <span className="text-[9px] font-mono text-emerald-400/80 shrink-0 ml-1">{q.marks || 1}pt</span>
@@ -721,6 +722,7 @@ export function CourseComposerSidebar({
                         const isLessonActive = composerMode === "lesson" && composeLessonId === lesson.id;
                         const lessonHasActiveChild = !isLessonActive && composeLessonId === lesson.id;
                         const lessonTopics = lesson.topics || [];
+                        const lessonQuizzes = lesson.quizzes || [];
                         const isCompleted = completedLessonIds.includes(lesson.id);
                         const isLessonLocked = role === "STUDENT" && Boolean(lesson.locked);
 
@@ -781,6 +783,7 @@ export function CourseComposerSidebar({
                                   items={[
                                     { label: "Edit Lesson", icon: Pencil, onSelect: () => onEditLesson?.(lesson, mod.id) },
                                     { label: "Add Topic", icon: Plus, onSelect: () => onAddTopic?.(lesson.id) },
+                                    { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToLesson?.(lesson, mod) },
                                     { separator: true },
                                     { label: "Move Up", icon: ArrowUp, disabled: lIdx === 0, onSelect: () => handleMoveLesson(mod, lesson.id, "up") },
                                     { label: "Move Down", icon: ArrowDown, disabled: lIdx === modLessons.length - 1, onSelect: () => handleMoveLesson(mod, lesson.id, "down") },
@@ -796,9 +799,99 @@ export function CourseComposerSidebar({
                               )}
                             </div>
 
-                            {/* Topics */}
+                            {/* Lesson Quizzes + Topics */}
                             <Collapsible open={lessonOpen}>
                               <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-slate-800/60">
+                                {/* Lesson Quizzes (when present) */}
+                                {lessonQuizzes.length > 0 && (
+                                  <div className="mb-1 space-y-0.5">
+                                    {lessonQuizzes.map((quiz, qIdx) => {
+                                      const isQuizActive = composerMode === "quiz" && composeQuizId === quiz.id;
+                                      const questions = quiz.questions || (quiz.quizQuestions || []).map((qq) => qq.question) || [];
+                                      const quizOpen = isQuizOpen(quiz.id);
+
+                                      return (
+                                        <div key={quiz.id || `l-quiz-${qIdx}`}>
+                                          <div
+                                            className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
+                                              isQuizActive
+                                                ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
+                                                : "border-transparent text-emerald-300/80 hover:text-emerald-300 hover:bg-slate-900/60"
+                                            }`}
+                                            onClick={() => onSelectQuiz?.(quiz, mod, lesson)}
+                                          >
+                                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                              <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  toggleQuiz(quiz.id);
+                                                }}
+                                                className="p-0.5 text-slate-400 hover:text-white transition shrink-0"
+                                              >
+                                                <ChevronRight
+                                                  size={12}
+                                                  className={`transition-transform duration-200 ${quizOpen ? "rotate-90 text-emerald-400" : ""}`}
+                                                />
+                                              </button>
+                                              <HelpCircle size={13} className="text-emerald-400 shrink-0" />
+                                              <span className="truncate text-[11px] font-semibold">{quiz.title || "Lesson Quiz"}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1 shrink-0">
+                                              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
+                                                {questions.length} Qs
+                                              </span>
+                                              {role === "INSTRUCTOR" && (
+                                                <RowMenu
+                                                  groupName="quiz"
+                                                  items={[
+                                                    {
+                                                      label: "Edit Quiz",
+                                                      icon: Pencil,
+                                                      onSelect: () => onSelectQuiz?.(quiz, mod, lesson, { startEditing: true }),
+                                                    },
+                                                    {
+                                                      label: "Preview Quiz",
+                                                      icon: Eye,
+                                                      onSelect: () => onSelectQuiz?.(quiz, mod, lesson, { startEditing: false }),
+                                                    },
+                                                    {
+                                                      label: "Duplicate Quiz",
+                                                      icon: Copy,
+                                                      onSelect: () => onDuplicateQuiz?.(quiz, mod, lesson),
+                                                    },
+                                                    { separator: true },
+                                                    {
+                                                      label: "Delete Quiz",
+                                                      icon: Trash2,
+                                                      destructive: true,
+                                                      onSelect: (e) => onDeleteQuiz?.(e, quiz, mod, lesson),
+                                                    },
+                                                  ]}
+                                                />
+                                              )}
+                                            </div>
+                                          </div>
+
+                                          <Collapsible open={quizOpen}>
+                                            <div className="ml-4 pl-2 py-0.5 space-y-0.5 border-l border-emerald-500/20">
+                                              {questions.map((q, qIdx2) => (
+                                                <div
+                                                  key={q.id || `lq-${qIdx2}`}
+                                                  className="px-2 py-1 text-[10.5px] text-slate-400 hover:text-slate-200 cursor-pointer flex items-center justify-between truncate"
+                                                  onClick={() => onSelectQuiz?.(quiz, mod, lesson)}
+                                                >
+                                                  <span className="truncate">#{qIdx2 + 1}. {q.question || q.title || `Question ${qIdx2 + 1}`}</span>
+                                                  <span className="text-[9px] font-mono text-emerald-400/80 shrink-0 ml-1">{q.marks || 1}pt</span>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </Collapsible>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
                                 {lessonTopics.length === 0 ? (
                                   <div className="py-1.5 px-2 text-[10px] text-slate-500 italic">
                                     No topics in this lesson.

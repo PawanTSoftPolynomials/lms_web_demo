@@ -48,6 +48,8 @@ interface LessonComposerPanelProps {
   draftContents?: ContentRow[];
   isDraftMode?: boolean;
   onUpdateDraftContents?: (contents: ContentRow[]) => void;
+  /** Opens the lesson-quiz creation flow for this topic's parent lesson — a Quiz isn't a Content row, so picking it from the Add Content grid hands off to that flow instead of an in-panel form. Omit to hide the Quiz option. */
+  onAddQuiz?: () => void;
 }
 
 /** Determines block badge representation (label & color variant) for target UI */
@@ -172,6 +174,7 @@ export function LessonComposerPanel({
   draftContents,
   isDraftMode = false,
   onUpdateDraftContents,
+  onAddQuiz,
 }: LessonComposerPanelProps) {
   const { data: apiContents = [], isLoading: isApiLoading, isError: isApiError } = useContents(isDraftMode ? "" : topicId);
 
@@ -355,6 +358,7 @@ export function LessonComposerPanel({
         onOpenChange={(open) => {
           if (!open) setInsertOrder(null);
         }}
+        onAddQuiz={onAddQuiz}
       />
     </div>
   );
