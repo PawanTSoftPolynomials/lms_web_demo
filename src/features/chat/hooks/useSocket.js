@@ -49,7 +49,10 @@ export default function useSocket() {
       }
       // Stale typing state from the conversation being left should never
       // bleed into whichever conversation is opened next.
-      setTypingUsers((prev) => prev.filter((t) => t.conversationId !== activeConversation?.id));
+      setTypingUsers((prev) => {
+        if (!prev.some((t) => t.conversationId === activeConversation?.id)) return prev;
+        return prev.filter((t) => t.conversationId !== activeConversation?.id);
+      });
     };
   }, [user, activeConversation?.id, setTypingUsers]);
 

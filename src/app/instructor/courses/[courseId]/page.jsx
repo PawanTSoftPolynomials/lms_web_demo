@@ -63,6 +63,7 @@ import { EntityFormModal } from "@/components/instructor/courses/EntityFormModal
 import { PublishValidationModal } from "@/components/instructor/courses/PublishValidationModal";
 import { UnpublishModal } from "@/components/instructor/courses/UnpublishModal";
 import { DeleteCourseModal } from "@/components/instructor/courses/DeleteCourseModal";
+import AiComposerModal from "@/components/instructor/composer/AiComposerModal";
 
 /** Finds a lesson and its parent module by lessonId across all modules */
 function findModuleAndLessonById(modules, lessonId) {
@@ -160,6 +161,7 @@ export default function CourseDetailsPage() {
   const [draftQuizzes, setDraftQuizzes] = useState([]);
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
 
   // Ensures all modules, lessons, topics, contents, and quizzes have non-empty string IDs in draft mode
   const ensureDraftIds = (modules = [], courseQuizzes = []) => {
@@ -1025,6 +1027,7 @@ export default function CourseDetailsPage() {
         onToggleGlobalMode={() => setGlobalMode(globalMode === "rendered" ? "edit" : "rendered")}
         onSaveCourse={handleSaveCourse}
         onImportCourse={() => router.push("/instructor/courses/import")}
+        onAiClick={() => setAiModalOpen(true)}
         isSaving={isDraftMode ? isSavingDraft : updateCourseMutation.isPending}
         onPublishClick={handleOpenPublishModal}
         onUnpublishClick={handleOpenUnpublishModal}
@@ -1275,6 +1278,12 @@ export default function CourseDetailsPage() {
         courseTitle={effectiveCourse?.title}
         hasStudentData={deleteHasStudentData}
         isPublished={isPublished}
+      />
+
+      {/* AI Course Composer Modal */}
+      <AiComposerModal
+        isOpen={aiModalOpen}
+        onClose={() => setAiModalOpen(false)}
       />
     </div>
   );

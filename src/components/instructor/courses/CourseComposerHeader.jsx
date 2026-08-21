@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { MoreVertical, Settings, Copy, Archive, Trash2, Globe, FileText, CheckCircle } from "lucide-react";
+import { MoreVertical, Settings, Copy, Archive, Trash2, Globe, FileText, CheckCircle, Sparkles } from "lucide-react";
 
 export function CourseComposerHeader({
   course,
@@ -11,6 +11,7 @@ export function CourseComposerHeader({
   onToggleGlobalMode,
   onSaveCourse,
   onImportCourse,
+  onAiClick,
   isSaving,
   onPublishClick,
   onUnpublishClick,
@@ -87,8 +88,19 @@ export function CourseComposerHeader({
         </div>
       </div>
 
-      {/* Right: Actions Hierarchy: Save | Preview | Primary Lifecycle (Publish/Unpublish/Restore) | ⋮ More Menu */}
+      {/* Right: Actions Hierarchy: Save | AI Composer | Preview | Primary Lifecycle (Publish/Unpublish/Restore) | ⋮ More Menu */}
       <div className="header-actions flex items-center gap-2 shrink-0 justify-end">
+        {/* AI Composer button */}
+        <button
+          type="button"
+          className="btn rounded-xl border border-orange-500/30 bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 text-orange-400 text-xs font-bold px-3 py-1.5 transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+          onClick={onAiClick}
+          title="Compose course with AI Agent (Qwen3B)"
+        >
+          <Sparkles size={13} className="text-amber-400 fill-amber-400/20" />
+          <span>AI Composer</span>
+        </button>
+
         {/* Save button */}
         {!isArchived && (
           <button

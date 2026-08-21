@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import api from "@/lib/axios";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import AiComposerModal from "@/components/instructor/composer/AiComposerModal";
 
 /** Helper to return content type specific icon & styling */
 function getContentBadge(type) {
@@ -280,6 +281,7 @@ export default function CourseImportPage() {
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [copiedSample, setCopiedSample] = useState(false);
   const [showGuideModal, setShowGuideModal] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
 
   // Collapsible tree state tracking (Modules & Lessons expanded by default)
   const [expandedModules, setExpandedModules] = useState({});
@@ -859,6 +861,32 @@ export default function CourseImportPage() {
         {/* STEP 1: INITIAL IMPORT METHOD SELECTION CARDS */}
         {!canonicalJson && !validating && (
           <div className="space-y-6">
+            {/* Featured AI Banner */}
+            <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 border-2 border-orange-500/30 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
+              <div className="flex items-center space-x-4">
+                <div className="p-3.5 rounded-2xl bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                  <Sparkles className="w-8 h-8 animate-pulse" />
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <h3 className="text-lg font-bold text-white">Compose Course with AI Agent</h3>
+                    <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-orange-500/20 text-orange-300 rounded-full border border-orange-500/30">Qwen3B</span>
+                  </div>
+                  <p className="text-xs text-slate-300 mt-1 max-w-xl">
+                    Describe your course goals in plain text. The AI Agent will generate a structured, validated draft and open it directly in the Course Composer for your review.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAiModal(true)}
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-slate-950 text-xs font-black shadow-lg shadow-orange-500/20 transition shrink-0 flex items-center space-x-2 cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 fill-current" />
+                <span>Launch AI Composer</span>
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
               {/* Card 1: Import from ZIP */}
               <div
@@ -1275,6 +1303,12 @@ export default function CourseImportPage() {
           </div>
         </div>
       )}
+
+      {/* AI Composer Modal */}
+      <AiComposerModal
+        isOpen={showAiModal}
+        onClose={() => setShowAiModal(false)}
+      />
     </div>
   );
 }
