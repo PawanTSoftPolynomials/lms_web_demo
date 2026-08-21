@@ -121,7 +121,12 @@ export default function InstructorCoursesPage() {
             Retry
           </button>
         </div>
-      ) : !isLoading && courses.length === 0 && pagination.total === 0 && !filters.search && !filters.status && !filters.category && !filters.level ? (
+      ) : isLoading ? (
+        <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] py-16 text-center space-y-3">
+          <div className="mx-auto w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-bold text-slate-400">Loading courses...</p>
+        </div>
+      ) : courses.length === 0 && pagination.total === 0 && !filters.search && !filters.status && !filters.category && !filters.level ? (
         <EmptyState
           icon={BookOpen}
           title="No Courses Yet"
@@ -139,23 +144,16 @@ export default function InstructorCoursesPage() {
                 original grid, unchanged, via md:grid overriding the flex display. */}
             <div
               ref={sliderRef}
-              onScroll={!isLoading && courses.length > 0 ? handleSliderScroll : undefined}
+              onScroll={courses.length > 0 ? handleSliderScroll : undefined}
               className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-6 md:pb-0 md:grid md:justify-center md:grid-cols-[repeat(auto-fill,320px)] md:overflow-visible md:snap-none"
             >
-              {isLoading
-                ? Array.from({ length: 6 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-[90%] shrink-0 max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-80 md:shrink h-64 md:h-[26rem] rounded-2xl border border-slate-200 bg-white/10 animate-pulse"
-                    />
-                  ))
-                : courses.length === 0
-                ? (
-                  <div className="w-full col-span-full">
-                    <EmptyState title="No courses match the current filters." />
-                  </div>
-                )
-                : courses.map((course, index) => <CourseGridCard key={course.id} course={course} index={index} />)}
+              {courses.length === 0 ? (
+                <div className="w-full col-span-full">
+                  <EmptyState title="No courses match the current filters." />
+                </div>
+              ) : (
+                courses.map((course, index) => <CourseGridCard key={course.id} course={course} index={index} />)
+              )}
             </div>
 
             {!isLoading && courses.length > 1 && (
