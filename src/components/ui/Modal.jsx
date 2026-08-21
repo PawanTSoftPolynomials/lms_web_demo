@@ -49,9 +49,12 @@ export default function Modal({
         onClick={(e) =>
           e.stopPropagation()
         }
-       className={`
+        className={`
   w-full
   ${width[size]}
+  max-h-[85vh]
+  flex
+  flex-col
   overflow-hidden
   rounded-2xl
   border
@@ -63,28 +66,29 @@ export default function Modal({
   duration-200
 `}
       >
-       <div
-  className="
+        <div
+          className="
     flex
+    shrink-0
     items-center
     justify-between
     border-b
     border-slate-800
     bg-slate-900/80
-    px-7
-    py-5
+    px-6
+    py-4
   "
->
-       <h2 className="text-2xl font-bold text-white">
+        >
+          <h2 className="text-xl font-bold text-white">
             {title}
           </h2>
 
-       <button
-  onClick={onClose}
-  className="
+          <button
+            onClick={onClose}
+            className="
     flex
-    h-10
-    w-10
+    h-9
+    w-9
     items-center
     justify-center
     rounded-xl
@@ -92,13 +96,14 @@ export default function Modal({
     transition-all
     hover:bg-slate-800
     hover:text-white
+    cursor-pointer
   "
->
-  ✕
-</button>
+          >
+            ✕
+          </button>
         </div>
 
-        <div className="p-7">
+        <div className="p-6 flex-1 min-h-0 flex flex-col overflow-hidden">
           {children}
         </div>
       </div>

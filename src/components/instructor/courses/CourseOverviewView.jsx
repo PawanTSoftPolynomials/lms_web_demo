@@ -14,6 +14,7 @@ export function CourseOverviewView({
   isSaving,
   modules = [],
   onSelectModule,
+  onSelectQuiz,
   onAddModule,
   role = "INSTRUCTOR",
   onStartLearning,
@@ -177,41 +178,69 @@ export function CourseOverviewView({
             </div>
           ) : (
             <div className="space-y-4">
-              {course?.thumbnailUrl && (
-                <div className="text-center">
-                  <img src={getDisplayUrl(course.thumbnailUrl)} alt={course.title} className="max-h-60 w-full object-cover rounded-xl border border-slate-800" />
-                </div>
-              )}
-
               <div>
                 <h3 className="text-xl font-bold text-white">{course?.title || "Untitled Course"}</h3>
                 {course?.subtitle && <p className="text-xs font-semibold text-orange-400 italic mt-1">{course.subtitle}</p>}
                 <p className="text-xs text-slate-300 leading-relaxed mt-2">{course?.description || "No description provided."}</p>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-slate-800/80 text-[11px] font-medium text-slate-300">
-                <div><strong>Author:</strong> {course?.creator?.name || "LMS Architect"}</div>
-                <div><strong>Category:</strong> {course?.category || "Software Development"}</div>
-                <div><strong>Audience:</strong> {course?.audience || "Developers"}</div>
-                <div><strong>Duration:</strong> {course?.duration || "Self-Paced"}</div>
+              {/* Summary Metrics Bar */}
+              {(() => {
+                const totalLessons = modules.reduce((sum, m) => sum + (m.lessons?.length || 0), 0);
+                const totalTopics = modules.reduce(
+                  (sum, m) => sum + (m.lessons || []).reduce((tSum, l) => tSum + (l.topics?.length || 0), 0),
+                  0
+                );
+                const courseQuizCount = Array.isArray(course?.quizzes) ? course.quizzes.length : 0;
+                const moduleQuizCount = modules.reduce((sum, m) => sum + (m.quizzes?.length || 0), 0);
+                const totalQuizzes = courseQuizCount + moduleQuizCount;
+
+                return (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-800/80">
+                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                      <span className="text-[10px] font-mono uppercase text-slate-500 block">Modules</span>
+                      <span className="text-base font-bold text-orange-400">{modules.length}</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                      <span className="text-[10px] font-mono uppercase text-slate-500 block">Lessons</span>
+                      <span className="text-base font-bold text-sky-400">{totalLessons}</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                      <span className="text-[10px] font-mono uppercase text-slate-500 block">Topics</span>
+                      <span className="text-base font-bold text-purple-400">{totalTopics}</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                      <span className="text-[10px] font-mono uppercase text-slate-500 block">Quizzes</span>
+                      <span className="text-base font-bold text-emerald-400">{totalQuizzes}</span>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1 text-[11px] font-medium text-slate-300">
+                <div><strong className="text-slate-400">Author:</strong> {course?.creator?.name || "LMS Architect"}</div>
+                <div><strong className="text-slate-400">Category:</strong> {course?.category || "Software Development"}</div>
+                <div><strong className="text-slate-400">Audience:</strong> {course?.audience || "Developers"}</div>
+                <div><strong className="text-slate-400">Duration:</strong> {course?.duration || "Self-Paced"}</div>
               </div>
 
               {/* Course-Level Quizzes (when present) */}
               {Array.isArray(course?.quizzes) && course.quizzes.length > 0 && (
                 <div className="pt-4 border-t border-slate-800/80 space-y-3">
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black uppercase">
-                      Quizzes
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase">
+                      Course Quizzes
                     </span>
-                    Course Quizzes ({course.quizzes.length})
+                    Course-Level Quizzes ({course.quizzes.length})
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {course.quizzes.map((quiz) => {
                       const qCount = quiz.questions?.length || quiz.quizQuestions?.length || 0;
                       return (
                         <div
-                          key={quiz.id || quiz.title}
-                          className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:border-emerald-500/40 transition space-y-2"
+                          key={quiz.id || quiz._id || `cq-${quiz.title}`}
+                          className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:border-emerald-500/40 transition space-y-1.5 cursor-pointer"
+                          onClick={() => onSelectQuiz?.(quiz, null)}
                         >
                           <div className="flex items-center justify-between gap-2">
                             <h4 className="text-xs font-bold text-emerald-400 truncate">{quiz.title}</h4>
@@ -233,29 +262,51 @@ export function CourseOverviewView({
                 </div>
               )}
 
-              {/* Module Overview Cards Grid matching PageComponents.js */}
-              <h3 className="text-base font-bold text-white pt-4 border-t border-slate-800/80">
-                Course Lessons & Modules
-              </h3>
+              {/* Modules Header & Compact Card Grid */}
+              <div className="pt-4 border-t border-slate-800/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white">Course Modules ({modules.length})</h3>
+                  {onAddModule && (
+                    <button
+                      type="button"
+                      onClick={onAddModule}
+                      className="text-xs font-bold text-orange-400 hover:text-orange-300 cursor-pointer"
+                    >
+                      + Add Module
+                    </button>
+                  )}
+                </div>
 
-              <div className="lesson-modules-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {modules.map((mod, mIdx) => (
-                  <div
-                    key={mod.id}
-                    className="module-overview-card flex flex-col p-0 overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-900 cursor-pointer transition"
-                    onClick={() => onSelectModule(mod)}
-                  >
-                    <img
-                      src={getDisplayUrl(mod.thumbnailUrl) || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop"}
-                      alt={mod.title}
-                      className="w-full h-28 object-cover"
-                    />
-                    <div className="p-3">
-                      <h4 className="text-sm font-bold text-orange-400 mb-1">{mod.title || "Untitled Module"}</h4>
-                      <p className="text-xs text-slate-400 line-clamp-2">{mod.subtitle || "Module details and cell content blocks."}</p>
-                    </div>
-                  </div>
-                ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {modules.map((mod, mIdx) => {
+                    const lessonCount = mod.lessons?.length || 0;
+                    const topicCount = (mod.lessons || []).reduce((sum, l) => sum + (l.topics?.length || 0), 0);
+                    const quizCount = mod.quizzes?.length || 0;
+                    const padIdx = String(mIdx + 1).padStart(2, "0");
+
+                    return (
+                      <div
+                        key={mod.id}
+                        onClick={() => onSelectModule(mod)}
+                        className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-900 hover:border-orange-500/40 cursor-pointer transition"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="text-xs font-mono font-black text-orange-400/90 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20 shrink-0">
+                            {padIdx}
+                          </span>
+                          <div className="min-w-0">
+                            <h4 className="text-xs font-bold text-slate-100 truncate">{mod.title || "Untitled Module"}</h4>
+                            <p className="text-[10.5px] text-slate-400 font-mono mt-0.5">
+                              {lessonCount} {lessonCount === 1 ? "Lesson" : "Lessons"} · {topicCount} {topicCount === 1 ? "Topic" : "Topics"}
+                              {quizCount > 0 ? ` · ${quizCount} ${quizCount === 1 ? "Quiz" : "Quizzes"}` : ""}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-slate-500 text-xs font-bold shrink-0 ml-2">→</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}

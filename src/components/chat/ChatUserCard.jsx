@@ -65,7 +65,7 @@ export default function ChatUserCard({ conversation, active, onClick }) {
       `}
     >
       <div className="relative flex-shrink-0">
-        <ChatAvatar name={name} image={conversation?.avatar} />
+        <ChatAvatar name={name} image={conversation?.avatar} userId={recipient?.user?.id || recipient?.userId || recipient?.id || conversation?.id} />
         <OnlineBadge online={conversation?.online} />
       </div>
 

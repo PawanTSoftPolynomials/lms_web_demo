@@ -22,11 +22,13 @@ import {
 
 export function QuizOverviewView({
   quiz,
+  quizMode = "view",
   moduleTitle = null,
   onSaveQuiz,
+  onCancel,
   startEditing = false,
 }) {
-  const [isEditing, setIsEditing] = useState(startEditing);
+  const [isEditing, setIsEditing] = useState(startEditing || quizMode === "create" || quizMode === "edit");
 
   // Active single question index in editor mode (0-indexed)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -39,7 +41,7 @@ export function QuizOverviewView({
     title: "",
     description: "",
     timeLimit: 30,
-    passingScore: 50,
+    passingScore: 70,
     isPublished: true,
   });
 
@@ -47,15 +49,27 @@ export function QuizOverviewView({
   const [questions, setQuestions] = useState([]);
   const [error, setError] = useState("");
 
-  // Sync state when quiz prop or startEditing prop changes
+  // Sync state when quiz prop, quizMode, or startEditing changes
   useEffect(() => {
-    if (startEditing) {
+    if (quizMode === "create") {
+      setIsEditing(true);
+      setQuizForm({
+        title: moduleTitle ? `Quiz - ${moduleTitle}` : "Module Quiz",
+        description: "",
+        timeLimit: 30,
+        passingScore: 70,
+        isPublished: true,
+      });
+      setQuestions([]);
+      setCurrentQuestionIndex(0);
+      setPreviewQuestionIndex(0);
+    } else if (startEditing || quizMode === "edit") {
       setIsEditing(true);
     }
-  }, [startEditing]);
+  }, [quizMode, startEditing, moduleTitle]);
 
   useEffect(() => {
-    if (quiz) {
+    if (quiz && quizMode !== "create") {
       setQuizForm({
         title: quiz.title || "",
         description: quiz.description || "",
@@ -89,9 +103,9 @@ export function QuizOverviewView({
       setCurrentQuestionIndex(0);
       setPreviewQuestionIndex(0);
     }
-  }, [quiz]);
+  }, [quiz, quizMode]);
 
-  if (!quiz) {
+  if (!quiz && quizMode !== "create") {
     return (
       <div className="notebook-cell rounded-2xl border border-slate-800 bg-slate-950 p-8 text-center shadow-md space-y-3">
         <HelpCircle className="w-10 h-10 text-slate-600 mx-auto" />
@@ -108,22 +122,26 @@ export function QuizOverviewView({
 
   const handleCancelEdit = () => {
     setError("");
-    setIsEditing(false);
-    // Reset state to original quiz prop
-    if (quiz) {
-      setQuizForm({
-        title: quiz.title || "",
-        description: quiz.description || "",
-        timeLimit: quiz.timeLimit !== undefined && quiz.timeLimit !== null ? quiz.timeLimit : 30,
-        passingScore: quiz.passingScore !== undefined && quiz.passingScore !== null ? quiz.passingScore : 50,
-        isPublished: quiz.isPublished !== false,
-      });
+    if (quizMode === "create") {
+      onCancel?.();
+    } else {
+      setIsEditing(false);
+      // Reset state to original quiz prop
+      if (quiz) {
+        setQuizForm({
+          title: quiz.title || "",
+          description: quiz.description || "",
+          timeLimit: quiz.timeLimit !== undefined && quiz.timeLimit !== null ? quiz.timeLimit : 30,
+          passingScore: quiz.passingScore !== undefined && quiz.passingScore !== null ? quiz.passingScore : 50,
+          isPublished: quiz.isPublished !== false,
+        });
+      }
     }
   };
 
   // Add a new question to local edit state and jump to it
   const handleAddQuestion = () => {
-    const newQId = `draft-que-${quiz.id || "temp"}-${Date.now()}`;
+    const newQId = `draft-que-${quiz?.id || "temp"}-${Date.now()}`;
     const newQuestionObj = {
       id: newQId,
       question: `New Question ${questions.length + 1}`,
@@ -357,10 +375,10 @@ export function QuizOverviewView({
       {!isEditing && (
         <div className="space-y-6">
           <div className="space-y-3">
-            <h2 className="text-xl font-bold text-white">{quiz.title || "Untitled Quiz"}</h2>
-            {quiz.description && (
+            <h2 className="text-xl font-bold text-white">{quiz?.title || quizForm.title || "Untitled Quiz"}</h2>
+            {(quiz?.description || quizForm.description) && (
               <p className="text-xs text-slate-300 leading-relaxed bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
-                {quiz.description}
+                {quiz?.description || quizForm.description}
               </p>
             )}
 

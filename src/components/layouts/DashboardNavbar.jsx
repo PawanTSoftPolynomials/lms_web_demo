@@ -446,10 +446,12 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
             </div>
           </Link>
 
-          <div className="hidden lg:flex flex-col ml-4 border-l border-slate-800 pl-4">
-            <span className="text-sm font-bold text-white">Welcome to Orange Tree LMS</span>
-            <span className="text-[10px] text-slate-500">Last Login : {new Date().toLocaleString('en-IN', { hour12: true, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit', second:'2-digit'})}</span>
-          </div>
+          {!pathname?.includes("/instructor/courses/") && (
+            <div className="hidden lg:flex flex-col ml-4 border-l border-slate-800 pl-4">
+              <span className="text-sm font-bold text-white">Welcome to Orange Tree LMS</span>
+              <span className="text-[10px] text-slate-500">Last Login : {new Date().toLocaleString('en-IN', { hour12: true, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit', second:'2-digit'})}</span>
+            </div>
+          )}
         </div>
 
         {/* Right side items */}
@@ -468,28 +470,37 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
              <button onClick={() => changeTextSize(18)} className={`transition hover:text-white ${textSize === 18 ? 'text-orange-400 font-bold' : ''}`}>A+</button>
           </div>
 
+          {/* Messages */}
+          <button
+            type="button"
+            onClick={toggleChat}
+            className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition cursor-pointer ${
+              isOpen
+                ? "bg-[#1A1F35] border-slate-700 text-orange-400"
+                : "bg-[#0D1021] border-[#1A1F35] text-slate-400 hover:text-slate-100 hover:border-slate-800"
+            }`}
+            title="Messages"
+            aria-label="Messages"
+          >
+            <MessageSquare size={16} />
+            {isMounted && chatUnreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-orange-500 px-1 text-[9px] font-black text-white shadow-sm">
+                {chatUnreadCount}
+              </span>
+            )}
+          </button>
+
           {/* Theme Switcher */}
           <ThemeSwitcher />
 
           {/* Notifications */}
-          <div className="relative">
-            <button
-              onClick={() => setShowNotifications((prev) => !prev)}
-              className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition ${
-                showNotifications
-                  ? "bg-[#1A1F35] border-slate-700 text-slate-100"
-                  : "bg-[#0D1021] border-[#1A1F35] text-slate-400 hover:text-slate-100 hover:border-slate-800"
-              }`}
-            >
-              <span>🔔</span>
-              <span className="hidden md:inline">Notifications</span>
-              {unreadCount > 0 && (
-                <span className="bg-orange-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 ml-0.5 animate-pulse">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-          </div>
+          <NotificationsMenu
+            notifications={notifications}
+            unreadCount={isMounted ? unreadCount : 0}
+            onMarkAllRead={handleMarkAllRead}
+            onClearAll={handleClearAll}
+            onItemClick={handleNotificationClick}
+          />
 
           {/* Profile Dropdown */}
           <div className="relative">
@@ -497,47 +508,6 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
           </div>
         </div>
       </header>
-
-      {/* Notifications dropdown — shared by both the mobile and desktop bell
-          triggers above, anchored to the outer `.relative` wrapper so it sits
-          correctly under whichever header is currently visible. */}
-      {showNotifications && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
-          <div className="absolute right-3 sm:right-6 top-14 sm:top-16 z-50 w-[calc(100%-1.5rem)] max-w-80 sm:w-80 rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-4 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150">
-            <div className="flex items-center justify-between pb-2 border-b border-[#1A1F35] mb-2">
-              <h3 className="font-black text-xs text-slate-200">Notifications</h3>
-              {unreadCount > 0 && (
-                <button onClick={handleMarkAllRead} className="text-[10px] text-orange-400 hover:text-orange-300 font-bold transition">
-                  Mark read
-                </button>
-              )}
-            </div>
-            <div className="max-h-64 overflow-y-auto space-y-2 pr-0.5">
-              {notifications.length === 0 ? (
-                <div className="py-8 text-center text-[10px] text-slate-500">No notifications</div>
-              ) : (
-                notifications.slice(0, 5).map((n) => (
-                  <div
-                    key={n.id}
-                    onClick={() => handleNotificationClick(n)}
-                    className={`p-2 rounded-xl border cursor-pointer transition ${
-                      n.read ? "bg-white/[0.01] border-transparent hover:bg-white/[0.03]" : "bg-orange-500/5 border-orange-500/10 hover:bg-orange-500/10"
-                    }`}
-                  >
-                    <div className="flex justify-between items-start gap-1">
-                      <h4 className="font-extrabold text-[10.5px] text-slate-200 truncate">{n.title}</h4>
-                      {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0 mt-1" />}
-                    </div>
-                    <p className="text-[9.5px] text-slate-500 line-clamp-2 mt-0.5 leading-snug">{n.message}</p>
-                    <span className="text-[8px] text-slate-655 block mt-1">{n.time}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </>
-      )}
 
       {/* Logout Confirmation Modal */}
       <Modal

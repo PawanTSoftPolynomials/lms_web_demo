@@ -47,7 +47,7 @@ export default function DashboardLayout({ children, role, title }) {
         <main className={`${role === 'STUDENT' ? 'p-4' : 'p-3'} sm:p-6 flex-1 ${['STUDENT', 'INSTRUCTOR', 'ADMIN'].includes(role) ? 'pb-24 sm:pb-6' : ''}`}>{children}</main>
       </div>
       <ChatWidget />
-      <ChatButton />
+      {!['INSTRUCTOR', 'ADMIN'].includes(role) && <ChatButton />}
       <MentorWidget />
     </div>
   );

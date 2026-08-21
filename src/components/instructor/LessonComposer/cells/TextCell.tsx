@@ -102,20 +102,22 @@ export function TextCell({
       isSelected={isSelected}
     >
       {mode === "edit" ? (
-        <div className="space-y-3">
+        <div className="flex-1 min-h-0 flex flex-col space-y-3 overflow-hidden">
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Block title (optional)"
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+            className="shrink-0 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
           />
-          <MarkdownEditor
-            value={markdownSource}
-            onChange={setMarkdownSource}
-            placeholder="Write the lesson text in Markdown…"
-          />
-          <div className="flex justify-end gap-2">
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <MarkdownEditor
+              value={markdownSource}
+              onChange={setMarkdownSource}
+              placeholder="Write the lesson text in Markdown…"
+            />
+          </div>
+          <div className="shrink-0 pt-3 border-t border-slate-800 flex justify-end gap-2">
             <Button type="button" variant="ghost" size="sm" onClick={handleCancel}>
               Cancel
             </Button>
@@ -158,20 +160,22 @@ export function CreateTextForm({ topicId, order, onCreated, onCancel }: CreateCe
   };
 
   return (
-    <div className="space-y-3">
+    <div className="flex-1 min-h-0 flex flex-col space-y-3 overflow-hidden">
       <input
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Block title (optional)"
-        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+        className="shrink-0 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
       />
-      <MarkdownEditor
-        value={markdownSource}
-        onChange={setMarkdownSource}
-        placeholder="Write the lesson text in Markdown…"
-      />
-      <div className="flex justify-end gap-2">
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        <MarkdownEditor
+          value={markdownSource}
+          onChange={setMarkdownSource}
+          placeholder="Write the lesson text in Markdown…"
+        />
+      </div>
+      <div className="shrink-0 pt-3 border-t border-slate-800 flex justify-end gap-2">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>

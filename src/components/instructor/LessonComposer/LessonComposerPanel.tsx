@@ -48,7 +48,6 @@ interface LessonComposerPanelProps {
   draftContents?: ContentRow[];
   isDraftMode?: boolean;
   onUpdateDraftContents?: (contents: ContentRow[]) => void;
-  onAddQuiz?: () => void;
 }
 
 /** Determines block badge representation (label & color variant) for target UI */
@@ -173,7 +172,6 @@ export function LessonComposerPanel({
   draftContents,
   isDraftMode = false,
   onUpdateDraftContents,
-  onAddQuiz,
 }: LessonComposerPanelProps) {
   const { data: apiContents = [], isLoading: isApiLoading, isError: isApiError } = useContents(isDraftMode ? "" : topicId);
 
@@ -357,7 +355,6 @@ export function LessonComposerPanel({
         onOpenChange={(open) => {
           if (!open) setInsertOrder(null);
         }}
-        onAddQuiz={onAddQuiz}
       />
     </div>
   );

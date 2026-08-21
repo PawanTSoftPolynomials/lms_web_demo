@@ -8,7 +8,7 @@ import {
   Copy,
   Trash2,
   BookOpen,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import { CourseComposerItemCard } from "./CourseComposerItemCard";
 
@@ -78,14 +78,16 @@ export function ModuleOverviewView({
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => onAddLesson?.(module.id)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-orange-500/40 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 text-xs font-bold transition cursor-pointer"
-          >
-            <Plus size={14} />
-            Add Lesson
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onAddLesson?.(module.id)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-orange-500/40 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 text-xs font-bold transition cursor-pointer"
+            >
+              <Plus size={14} />
+              Add Lesson
+            </button>
+          </div>
         </div>
 
         {/* LESSONS GRID OR EMPTY STATE */}

@@ -327,6 +327,7 @@ export function CourseComposerSidebar({
   onSelectTopic,
   onSelectContent,
   onAddLesson,
+  onAddQuizToModule,
   onAddModule,
   onAddTopic,
   onAddContent,
@@ -601,6 +602,7 @@ export function CourseComposerSidebar({
                       items={[
                         { label: "Edit Module", icon: Pencil, onSelect: () => onEditModule?.(mod) },
                         { label: "Add Lesson", icon: Plus, onSelect: () => onAddLesson?.(mod.id) },
+                        { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToModule?.(mod) },
                         { separator: true },
                         { label: "Move Up", icon: ArrowUp, disabled: mIdx === 0, onSelect: () => handleMoveModule(mod, "up") },
                         { label: "Move Down", icon: ArrowDown, disabled: mIdx === modules.length - 1, onSelect: () => handleMoveModule(mod, "down") },

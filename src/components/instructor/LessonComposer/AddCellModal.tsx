@@ -30,7 +30,6 @@ interface AddCellModalProps {
   order: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddQuiz?: () => void;
 }
 
 /** Form definitions for simple cell types */
@@ -61,12 +60,6 @@ export const VISIBLE_CELL_OPTIONS = [
     icon: VideoIcon,
   },
   {
-    id: "quiz" as CellTypeId,
-    label: "Quiz",
-    sublabel: "Course / Module",
-    icon: HelpCircle,
-  },
-  {
     id: "document" as CellTypeId,
     label: "Document / PDF",
     sublabel: "PDF / DOC / DOCX",
@@ -86,7 +79,7 @@ export const VISIBLE_CELL_OPTIONS = [
   },
 ];
 
-export function AddCellModal({ topicId, order, open, onOpenChange, onAddQuiz }: AddCellModalProps) {
+export function AddCellModal({ topicId, order, open, onOpenChange }: AddCellModalProps) {
   const [selectedId, setSelectedId] = useState<CellTypeId | null>(null);
   
   // Document 2-step choice: PDF vs DOC/DOCX
@@ -120,11 +113,6 @@ export function AddCellModal({ topicId, order, open, onOpenChange, onAddQuiz }: 
         : `Add ${selectedCellOption.label}`;
 
   const handleSelectOption = (id: CellTypeId) => {
-    if (id === "quiz") {
-      close();
-      onAddQuiz?.();
-      return;
-    }
     setSelectedId(id);
   };
 
@@ -144,12 +132,12 @@ export function AddCellModal({ topicId, order, open, onOpenChange, onAddQuiz }: 
 
   return (
     <Modal open={open} onClose={close} title={title} size="lg">
-      <div className="max-h-[70vh] overflow-y-auto -mx-1 px-1">
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden -mx-1 px-1">
         {selectedCellOption && (
           <button
             type="button"
             onClick={handleBack}
-            className="mb-3 flex items-center gap-1.5 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+            className="mb-3 shrink-0 flex items-center gap-1.5 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
           >
             <ArrowLeft className="size-3.5" />
             Back
@@ -248,39 +236,45 @@ export function AddCellModal({ topicId, order, open, onOpenChange, onAddQuiz }: 
             </div>
           </>
         ) : SimpleForm ? (
-          <SimpleForm topicId={topicId} order={order} onCreated={close} onCancel={() => setSelectedId(null)} />
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <SimpleForm topicId={topicId} order={order} onCreated={close} onCancel={() => setSelectedId(null)} />
+          </div>
         ) : isDocument ? (
-          <CreateFileForm
-            topicId={topicId}
-            order={order}
-            cellType={{
-              id: "document",
-              label: docTypeChoice === "pdf" ? "PDF Document" : "Word Document",
-              description: "Uploaded document resource.",
-              icon: FileText,
-              contentType: "DOCUMENT",
-              supportedByApiToday: true,
-            }}
-            accept={docAccept}
-            onCreated={close}
-            onCancel={() => setSelectedId(null)}
-          />
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <CreateFileForm
+              topicId={topicId}
+              order={order}
+              cellType={{
+                id: "document",
+                label: docTypeChoice === "pdf" ? "PDF Document" : "Word Document",
+                description: "Uploaded document resource.",
+                icon: FileText,
+                contentType: "DOCUMENT",
+                supportedByApiToday: true,
+              }}
+              accept={docAccept}
+              onCreated={close}
+              onCancel={() => setSelectedId(null)}
+            />
+          </div>
         ) : isPresentation ? (
-          <CreateFileForm
-            topicId={topicId}
-            order={order}
-            cellType={{
-              id: "presentation",
-              label: "Presentation",
-              description: "Uploaded presentation or slide deck.",
-              icon: PresentationIcon,
-              contentType: "PRESENTATION",
-              supportedByApiToday: true,
-            }}
-            presentationMode={presentationChoice ?? undefined}
-            onCreated={close}
-            onCancel={() => setSelectedId(null)}
-          />
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <CreateFileForm
+              topicId={topicId}
+              order={order}
+              cellType={{
+                id: "presentation",
+                label: "Presentation",
+                description: "Uploaded presentation or slide deck.",
+                icon: PresentationIcon,
+                contentType: "PRESENTATION",
+                supportedByApiToday: true,
+              }}
+              presentationMode={presentationChoice ?? undefined}
+              onCreated={close}
+              onCancel={() => setSelectedId(null)}
+            />
+          </div>
         ) : null}
       </div>
     </Modal>
