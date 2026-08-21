@@ -128,9 +128,9 @@ export default function UploadQuestionsPage() {
   };
 
   const handleDownloadSampleCsv = () => {
-    const csvContent = `title,question,type,subject,topic,difficulty,marks,option1,option2,option3,option4,correctAnswer,explanation
-Python Variables,What is the keyword to define a function in Python?,MCQ_SINGLE,Python,Functions,EASY,1,func,def,function,define,def,Functions in Python are defined using the def keyword.
-JavaScript Async,What does a Promise represent in JS?,SHORT_ANSWER,Web Development,Async,MEDIUM,2,,,,,An eventual completion or failure of an asynchronous operation,Promises represent eventual values.`;
+    const csvContent = `title,type,subject,difficulty,marks,question,option1,option2,option3,option4,correctAnswer,explanation
+Python Variables,MCQ_SINGLE,Python,EASY,1,What is the keyword to define a function in Python?,func,def,function,define,option 2,Functions in Python are defined using the def keyword.
+JavaScript Async,SHORT_ANSWER,Web Development,MEDIUM,2,What does a Promise represent in JS?,,,,,An eventual completion or failure of an asynchronous operation,Promises represent eventual values.`;
 
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
