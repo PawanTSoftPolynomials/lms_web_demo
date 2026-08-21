@@ -1158,8 +1158,8 @@ export default function CourseDetailsPage() {
 
   const courseMapEffectivelyOpen = mobileSidebarOpen || isCourseMapOpen;
   const sidebarWrapperClassName = mobileSidebarOpen
-    ? "fixed inset-y-0 left-0 z-50 w-80 bg-slate-950 p-4 shadow-2xl block shrink-0"
-    : `hidden lg:block shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${
+    ? "fixed inset-y-0 left-0 z-50 w-80 bg-slate-950 p-4 shadow-2xl block shrink-0 overflow-y-auto"
+    : `hidden lg:block shrink-0 lg:sticky lg:top-24 transition-[width] duration-300 ease-in-out ${
         isCourseMapOpen ? "w-full lg:w-[320px]" : "w-full lg:w-0"
       }`;
 

@@ -405,7 +405,7 @@ export function CourseComposerSidebar({
   }
 
   return (
-    <aside className="sidebar-panel rounded-2xl border border-slate-800 bg-slate-950 p-4 shadow-xl flex flex-col h-full max-h-[calc(100vh-6.5rem)] overflow-hidden text-slate-200">
+    <aside className="sidebar-panel rounded-2xl border border-slate-800 bg-slate-950 p-4 shadow-xl flex flex-col h-full max-h-[calc(100vh-7rem)] overflow-hidden text-slate-200">
       {/* Panel Title */}
       <div className="flex items-center justify-between gap-2 mb-1 shrink-0">
         <div className="font-black text-xs uppercase tracking-widest text-slate-200 flex items-center gap-2">
@@ -547,7 +547,7 @@ export function CourseComposerSidebar({
       )}
 
       {/* Modules Tree */}
-      <div className="flex-1 overflow-y-auto space-y-0.5 pr-1 text-xs">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-0.5 pr-1 text-xs">
         {modules.length === 0 ? (
           <div className="py-8 text-center text-slate-500 text-xs italic">
             No modules available in this course.
