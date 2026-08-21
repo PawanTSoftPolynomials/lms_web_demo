@@ -541,6 +541,7 @@ export default function CourseDetailsPage() {
             courseId,
             moduleId: composeModuleId || null,
             lessonId: composeLessonId || null,
+            questions: updatedQuizData.questions || [],
           });
 
           if (updatedQuizData.questions?.length > 0) {

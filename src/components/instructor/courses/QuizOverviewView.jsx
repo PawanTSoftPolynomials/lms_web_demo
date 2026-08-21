@@ -27,10 +27,12 @@ import {
 // text on load. Rendering one of those objects directly as a React child
 // (e.g. `{opt}` in JSX) crashes with "Objects are not valid as a React
 // child", which is what this normalization prevents.
-function optionToText(opt) {
+function getOptionText(opt) {
   if (opt && typeof opt === "object") return String(opt.optionText ?? opt.text ?? "");
   return String(opt ?? "");
 }
+
+const optionToText = getOptionText;
 
 export function QuizOverviewView({
   quiz,
