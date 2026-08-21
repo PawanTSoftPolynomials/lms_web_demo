@@ -107,7 +107,7 @@ export default function MyCourseCard({ enrollment, course: rawCourse, index = 0 
 
   return (
     <div
-      onClick={() => router.push(`/student/courses/${course.id}`)}
+      onClick={() => router.push(isEnrolled ? `/student/learn/${course.id}` : `/student/courses/${course.id}`)}
       className="group relative flex w-full shrink-0 flex-col overflow-hidden rounded-2xl shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30 cursor-pointer border border-white/10"
     >
       {/* Dimmed color layer */}

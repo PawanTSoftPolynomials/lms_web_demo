@@ -86,6 +86,7 @@ export default function LearnPage() {
   }, [course]);
 
   const [selectedLesson, setSelectedLesson] = useState(null);
+  const [pendingTopicScroll, setPendingTopicScroll] = useState(null);
 
   // Central gate for every lesson-navigation entry point (sidebar, mobile
   // accordion, prev/next, auto-advance) — a locked lesson (drip content not
@@ -99,21 +100,6 @@ export default function LearnPage() {
     }
     setSelectedLesson(lesson);
   };
-
-  // A lesson can hold many Content blocks (Course Composer / AI Course
-  // Importer both create one row per block) — progress tracking (resume
-  // position, auto-advance on end) only makes sense for one of them, so the
-  // first VIDEO block is "primary" (falls back to the first block if the
-  // lesson has no video at all, preserving the single-content behavior).
-  // Every other block still renders, just without progress wiring, in order
-  // below the primary player.
-  const lessonContents = useMemo(() => selectedLesson?.contents || [], [selectedLesson]);
-  const primaryContent = useMemo(() => {
-    return lessonContents.find((c) => c.type === "VIDEO") || lessonContents[0] || null;
-  }, [lessonContents]);
-  const secondaryContents = useMemo(() => {
-    return lessonContents.filter((c) => c.id !== primaryContent?.id);
-  }, [lessonContents, primaryContent]);
 
   const [currentTimestamp, setCurrentTimestamp] = useState(0);
   const [initialTime, setInitialTime] = useState(0);
@@ -276,6 +262,18 @@ export default function LearnPage() {
       setInitialTime(0);
     }
   }, [selectedLesson, stateRestored]);
+
+  // Scroll-to-topic: sidebar topic/content clicks set the target topicId here;
+  // once the (possibly newly-selected) lesson's content anchors are in the DOM,
+  // jump to the matching one.
+  useEffect(() => {
+    if (!pendingTopicScroll) return;
+    const el = document.querySelector(`[data-topic-anchor="${pendingTopicScroll}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      setPendingTopicScroll(null);
+    }
+  }, [pendingTopicScroll, selectedLesson]);
 
   // Content now nests under Topic (Lesson -> Topic -> Content), so flatten
   // every topic's contents back into the flat list this page's UI expects.
@@ -678,13 +676,14 @@ export default function LearnPage() {
           }}
           onSelectTopic={(topicId, lessonId) => {
             const match = lessons.find((l) => l.id === lessonId);
+            if (!match) return;
             selectLesson(match);
+            if (!match.locked) setPendingTopicScroll(topicId);
           }}
           onSelectContent={(content, topic, lesson) => {
-            if (lesson?.id) {
-              const match = lessons.find((l) => l.id === lesson.id);
-              selectLesson(match);
-            }
+            const match = lesson?.id ? lessons.find((l) => l.id === lesson.id) : null;
+            if (match) selectLesson(match);
+            if (topic?.id && !match?.locked) setPendingTopicScroll(topic.id);
           }}
           role="STUDENT"
         />
@@ -907,14 +906,16 @@ export default function LearnPage() {
                 </button>
               </div>
 
-              <VideoPlayer
-                ref={videoPlayerRef}
-                content={documentGroupedContents?.[0]}
-                onTimeUpdate={setCurrentTimestamp}
-                onDurationChange={setVideoDuration}
-                onEnded={handleVideoEnded}
-                initialTime={initialTime}
-              />
+              <div data-topic-anchor={documentGroupedContents?.[0]?.topicId || undefined}>
+                <VideoPlayer
+                  ref={videoPlayerRef}
+                  content={documentGroupedContents?.[0]}
+                  onTimeUpdate={setCurrentTimestamp}
+                  onDurationChange={setVideoDuration}
+                  onEnded={handleVideoEnded}
+                  initialTime={initialTime}
+                />
+              </div>
 
               {/* Remaining lesson content beyond the primary block above — e.g. a
                   video intro followed by a full written lecture, or several
@@ -924,7 +925,9 @@ export default function LearnPage() {
               {documentGroupedContents.length > 1 && (
                 <div className="space-y-4">
                   {documentGroupedContents.slice(1).map((item, idx) => (
-                    <VideoPlayer key={item.id || idx} content={item} />
+                    <div key={item.id || idx} data-topic-anchor={item.topicId || undefined}>
+                      <VideoPlayer content={item} />
+                    </div>
                   ))}
                 </div>
               )}

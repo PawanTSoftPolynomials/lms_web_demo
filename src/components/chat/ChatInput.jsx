@@ -16,6 +16,7 @@ export default function ChatInput() {
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [sending, setSending] = useState(false);
   const fileInputRef = useRef(null);
 
   const sendMessage = useSendMessage();
@@ -27,15 +28,18 @@ export default function ChatInput() {
 
   const handleSend = async () => {
     if (!message.trim() && attachments.length === 0) return;
-    if (uploading) return; // Prevent sending while uploading file
+    if (uploading || sending) return; // Prevent sending while uploading or a send is already in flight
 
     try {
+      setSending(true);
       await sendMessage(message, attachments);
       setMessage("");
       setAttachments([]);
       stopTyping();
     } catch (error) {
       console.error("Failed to send message:", error);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -162,7 +166,7 @@ export default function ChatInput() {
 
         <button
           onClick={handleSend}
-          disabled={uploading || (!message.trim() && attachments.length === 0)}
+          disabled={uploading || sending || (!message.trim() && attachments.length === 0)}
           className="
           rounded-full
           bg-gradient-to-br
