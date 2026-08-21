@@ -20,6 +20,55 @@ import {
   ListFilter
 } from "lucide-react";
 
+const getOptionText = (opt) => {
+  if (opt === null || opt === undefined) return "";
+
+  // 1. If opt is a JS object
+  if (typeof opt === "object") {
+    const extracted =
+      opt.optionText ??
+      opt.text ??
+      opt.label ??
+      opt.value ??
+      opt.content ??
+      opt.name ??
+      opt.title ??
+      opt.statement ??
+      opt.answer;
+
+    if (extracted !== undefined && extracted !== null && typeof extracted !== "object") {
+      return String(extracted).trim();
+    }
+
+    const stringVals = Object.values(opt).filter(
+      (v) => typeof v === "string" && v.trim() !== "" && v.trim() !== "[object Object]"
+    );
+    if (stringVals.length > 0) return stringVals[0].trim();
+    return "";
+  }
+
+  // 2. If opt is a string
+  if (typeof opt === "string") {
+    const trimmed = opt.trim();
+    if (trimmed === "[object Object]") return "";
+
+    // Try parsing if stringified JSON object
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && typeof parsed === "object") {
+          return getOptionText(parsed);
+        }
+      } catch (e) {
+        // Fall back to trimmed string
+      }
+    }
+    return trimmed;
+  }
+
+  return String(opt);
+};
+
 export function QuizOverviewView({
   quiz,
   quizMode = "view",
@@ -85,19 +134,36 @@ export function QuizOverviewView({
         order: qq.order,
       })) || [];
 
-      const normalized = rawQuestions.map((q, idx) => ({
-        id: q.id || `draft-que-${quiz.id || "temp"}-${idx + 1}`,
-        question: q.question || q.title || "",
-        questionType: (q.questionType || q.type || "MCQ_SINGLE").toUpperCase(),
-        options: Array.isArray(q.options)
-          ? [...q.options]
-          : (typeof q.options === "object" && q.options !== null ? Object.values(q.options) : ["Option 1", "Option 2"]),
-        correctAnswer: q.correctAnswer !== undefined ? q.correctAnswer : "",
-        explanation: q.explanation || "",
-        marks: q.marks !== undefined ? Number(q.marks) : 1,
-        difficulty: q.difficulty || "MEDIUM",
-        isMandatory: q.isMandatory !== false,
-      }));
+      const normalized = rawQuestions.map((q, idx) => {
+        const rawOpts = Array.isArray(q.options)
+          ? q.options
+          : (typeof q.options === "object" && q.options !== null ? Object.values(q.options) : ["Option 1", "Option 2"]);
+
+        const extractedOpts = rawOpts
+          .map(getOptionText)
+          .filter((str) => str.trim() !== "" && str !== "[object Object]");
+
+        const finalOptions = extractedOpts.length > 0 ? extractedOpts : ["Option 1", "Option 2"];
+
+        let finalCorrectAnswer = "";
+        if (typeof q.correctAnswer === "object" && q.correctAnswer !== null) {
+          finalCorrectAnswer = getOptionText(q.correctAnswer);
+        } else if (q.correctAnswer !== undefined && q.correctAnswer !== null) {
+          finalCorrectAnswer = getOptionText(q.correctAnswer);
+        }
+
+        return {
+          id: q.id || `draft-que-${quiz?.id || "temp"}-${idx + 1}`,
+          question: q.question || q.title || "",
+          questionType: (q.questionType || q.type || "MCQ_SINGLE").toUpperCase(),
+          options: finalOptions,
+          correctAnswer: finalCorrectAnswer,
+          explanation: q.explanation || "",
+          marks: q.marks !== undefined ? Number(q.marks) : 1,
+          difficulty: q.difficulty || "MEDIUM",
+          isMandatory: q.isMandatory !== false,
+        };
+      });
 
       setQuestions(normalized);
       setCurrentQuestionIndex(0);
@@ -507,10 +573,11 @@ export function QuizOverviewView({
                     <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 block">Options:</span>
                     <div className="grid grid-cols-1 gap-1.5">
                       {activePreviewQuestion.options.map((opt, optIdx) => {
+                        const optStr = getOptionText(opt);
                         const correctAnswerStr = typeof activePreviewQuestion.correctAnswer === "string" || typeof activePreviewQuestion.correctAnswer === "number"
                           ? String(activePreviewQuestion.correctAnswer)
-                          : JSON.stringify(activePreviewQuestion.correctAnswer || "");
-                        const isCorrect = correctAnswerStr.includes(String(opt)) || String(opt) === correctAnswerStr;
+                          : (typeof activePreviewQuestion.correctAnswer === "object" && activePreviewQuestion.correctAnswer !== null ? getOptionText(activePreviewQuestion.correctAnswer) : JSON.stringify(activePreviewQuestion.correctAnswer || ""));
+                        const isCorrect = correctAnswerStr.includes(optStr) || optStr === correctAnswerStr;
 
                         return (
                           <div
@@ -521,7 +588,7 @@ export function QuizOverviewView({
                                 : "bg-slate-950/80 border-slate-800/80 text-slate-300"
                             }`}
                           >
-                            <span>{opt}</span>
+                            <span>{optStr}</span>
                             {isCorrect && (
                               <span className="text-[10.5px] font-mono font-extrabold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded border border-emerald-500/30 shrink-0">
                                 Correct Answer ✓
@@ -818,9 +885,10 @@ export function QuizOverviewView({
 
                   <div className="space-y-2">
                     {(activeQuestion.options || []).map((opt, optIdx) => {
+                      const optStr = getOptionText(opt);
                       const isChecked = activeQuestion.questionType === "MCQ_SINGLE"
-                        ? String(activeQuestion.correctAnswer) === String(opt)
-                        : Array.isArray(activeQuestion.correctAnswer) && activeQuestion.correctAnswer.includes(opt);
+                        ? String(getOptionText(activeQuestion.correctAnswer)) === optStr
+                        : Array.isArray(activeQuestion.correctAnswer) && activeQuestion.correctAnswer.map(getOptionText).includes(optStr);
 
                       return (
                         <div key={optIdx} className="flex items-center gap-2">
@@ -828,13 +896,13 @@ export function QuizOverviewView({
                             type={activeQuestion.questionType === "MCQ_MULTI" ? "checkbox" : "radio"}
                             name={`correct-${currentQuestionIndex}`}
                             checked={isChecked}
-                            onChange={() => handleToggleCorrectOption(opt)}
+                            onChange={() => handleToggleCorrectOption(optStr)}
                             className="h-4 w-4 accent-emerald-500 shrink-0 cursor-pointer"
                             title="Mark as correct answer"
                           />
                           <input
                             type="text"
-                            value={opt}
+                            value={optStr}
                             onChange={(e) => handleOptionTextChange(optIdx, e.target.value)}
                             placeholder={`Option ${optIdx + 1}`}
                             className="flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs text-white outline-none focus:border-emerald-500"
