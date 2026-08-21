@@ -305,7 +305,7 @@ function TopicContentRows({
   );
 }
 
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Lock } from "lucide-react";
 
 export function CourseComposerSidebar({
   modules = [],
@@ -722,36 +722,47 @@ export function CourseComposerSidebar({
                         const lessonHasActiveChild = !isLessonActive && composeLessonId === lesson.id;
                         const lessonTopics = lesson.topics || [];
                         const isCompleted = completedLessonIds.includes(lesson.id);
+                        const isLessonLocked = role === "STUDENT" && Boolean(lesson.locked);
 
                         return (
                           <div key={lesson.id}>
                             {/* Lesson Row */}
                             <div
-                              className={`group/lesson flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors border-l-2 ${
-                                isLessonActive
+                              className={`group/lesson flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg transition-colors border-l-2 ${
+                                isLessonLocked
+                                  ? "cursor-not-allowed opacity-50 border-transparent text-slate-500"
+                                  : "cursor-pointer"
+                              } ${
+                                isLessonLocked
+                                  ? ""
+                                  : isLessonActive
                                   ? "bg-orange-500/15 border-orange-500 text-orange-400 font-bold"
                                   : lessonHasActiveChild
                                   ? "bg-slate-900/30 border-orange-500/30 text-slate-100"
                                   : "border-transparent text-slate-400 hover:text-white hover:bg-slate-900/50"
                               }`}
-                              onClick={() => onSelectLesson(lesson.id)}
+                              onClick={() => !isLessonLocked && onSelectLesson(lesson.id)}
+                              title={isLessonLocked ? "Complete the previous lesson to unlock" : undefined}
                             >
                               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    toggleLesson(lesson.id);
+                                    if (!isLessonLocked) toggleLesson(lesson.id);
                                   }}
                                   className="p-0.5 text-slate-500 hover:text-white transition cursor-pointer shrink-0"
                                   aria-label={lessonOpen ? "Collapse lesson" : "Expand lesson"}
+                                  disabled={isLessonLocked}
                                 >
                                   <ChevronRight
                                     size={12}
                                     className={`transition-transform duration-200 ${lessonOpen ? "rotate-90 text-orange-500" : ""}`}
                                   />
                                 </button>
-                                {isCompleted ? (
+                                {isLessonLocked ? (
+                                  <Lock size={12} className="shrink-0 text-slate-500" />
+                                ) : isCompleted ? (
                                   <CheckCircle2 size={12} className="shrink-0 text-emerald-400" />
                                 ) : (
                                   <BookOpen size={12} className={`shrink-0 ${isLessonActive ? "text-orange-400" : "text-slate-500"}`} />

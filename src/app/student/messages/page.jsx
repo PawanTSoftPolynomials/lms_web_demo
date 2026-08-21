@@ -128,7 +128,7 @@ function MessagesPageContent() {
   // Handle sending message
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!inputText.trim() || !activeConversation?.id) return;
+    if (!inputText.trim() || !activeConversation?.id || sending) return;
 
     try {
       setSending(true);
