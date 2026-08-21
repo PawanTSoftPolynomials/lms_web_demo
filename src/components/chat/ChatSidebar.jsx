@@ -40,8 +40,9 @@ export default function ChatSidebar() {
 
           const getContactId = (item) => {
             if (!item) return null;
-            return item.user?.id || item.user?._id || 
-                   item.student?.user?.id || item.student?.user?._id || 
+            return item.userId ||
+                   item.user?.id || item.user?._id || 
+                   item.student?.userId || item.student?.user?.id || item.student?.user?._id || 
                    item.creator?.id || item.creator?._id || 
                    item.instructor?.id || item.instructor?._id || 
                    item.id || item._id;
@@ -232,16 +233,23 @@ export default function ChatSidebar() {
     });
   }, [users, search, user]);
 
-  const handleStartChat = async (selectedUser) => {
+  const handleStartChat = async (selectedUserIdOrUser) => {
     setStartChatError("");
     try {
+      const selectedUser = typeof selectedUserIdOrUser === "object"
+        ? selectedUserIdOrUser
+        : users.find((u) => u.id === selectedUserIdOrUser || u._id === selectedUserIdOrUser);
+
+      if (!selectedUser) return;
+
+      const targetUserId = selectedUser.id || selectedUser._id;
+
       const existing = conversations.find(
         (c) =>
           c.type !== "GROUP" &&
           c.participants?.some((p) => {
             const pId = p.userId || p.user?.id || p.id;
-            const pEmail = p.user?.email || p.email;
-            return pId === selectedUser.id || pEmail === selectedUser.email;
+            return targetUserId && pId && String(pId) === String(targetUserId);
           })
       );
 
@@ -255,8 +263,8 @@ export default function ChatSidebar() {
       const response = await createConversation({
         name: selectedUser.name,
         isGroup: false,
-        participantIds: [selectedUser.id],
-        participants: [selectedUser.id]
+        participantIds: [targetUserId],
+        participants: [targetUserId]
       });
 
       const newConv = response.data || response;
@@ -342,7 +350,7 @@ export default function ChatSidebar() {
             return (
               <button
                 key={selectedUser.id}
-                onClick={() => handleStartChat(selectedUser)}
+                onClick={() => handleStartChat(selectedUser.id)}
                 className="
                   relative
                   w-full
@@ -363,7 +371,7 @@ export default function ChatSidebar() {
                 "
               >
                 <div className="relative flex-shrink-0">
-                  <ChatAvatar name={selectedUser.name} image={selectedUser.avatar} />
+                  <ChatAvatar name={selectedUser.name} image={selectedUser.avatar} userId={selectedUser.id} />
                   <OnlineBadge online={isOnline} />
                 </div>
 

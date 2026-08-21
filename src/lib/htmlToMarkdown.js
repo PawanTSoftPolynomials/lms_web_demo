@@ -11,7 +11,7 @@
  * enough to walk by hand without a general-purpose HTML→MD dependency.
  */
 
-const LOOKS_LIKE_HTML = /<[a-z][\s\S]*>/i;
+const LOOKS_LIKE_HTML = /^\s*<(p|h[1-6]|div|ul|ol|blockquote|pre)[\s>]/i;
 
 function escapeMdText(text) {
   return text.replace(/([\\`*_[\]])/g, "\\$1");

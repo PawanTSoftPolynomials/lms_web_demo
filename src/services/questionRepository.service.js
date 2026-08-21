@@ -58,8 +58,18 @@ export const duplicateRepositoryQuestion = async (questionId) => {
 };
 
 /**
+ * Bulk create questions from a JSON payload, optionally attaching them to a quiz
+ * @param {string|null} quizId
+ * @param {Array<Object>} questions
+ */
+export const bulkCreateQuestions = async (quizId, questions) => {
+  const { data } = await api.post("/questions/bulk", { quizId, questions });
+  return data;
+};
+
+/**
  * Bulk upload questions from Excel, CSV, or JSON
- * @param {File} file 
+ * @param {File} file
  */
 export const uploadQuestionsFile = async (file) => {
   const formData = new FormData();

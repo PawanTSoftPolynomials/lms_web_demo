@@ -56,11 +56,24 @@ export function ChatProvider({ children }) {
     setUnreadCount(totalUnread);
   }, [conversations]);
 
+  const resetChatState = useCallback(() => {
+    setIsOpen(false);
+    setSidebarMode("chats");
+    setConversations([]);
+    setActiveConversation(null);
+    setMessages([]);
+    setLoading(false);
+    setTypingUsers([]);
+    setOnlineUsers([]);
+    setUnreadCount(0);
+  }, []);
+
   const value = useMemo(
     () => ({
       isOpen,
       setIsOpen,
       toggleChat,
+      resetChatState,
 
       sidebarMode,
       setSidebarMode,
@@ -95,6 +108,7 @@ export function ChatProvider({ children }) {
     [
       isOpen,
       toggleChat,
+      resetChatState,
       sidebarMode,
       conversations,
       activeConversation,

@@ -10,8 +10,7 @@ import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCo
 
 export default function WorkCreateQuizPage() {
   // Still fetched for the "created quiz belongs to which course" confirmation
-  // panel below — QuizForm itself now resolves course choices from the
-  // selected batch instead of taking a `courses` prop.
+  // panel below — QuizForm resolves its own course list internally.
   const { data: courses = [] } = useInstructorCourses();
   const createQuizMutation = useCreateQuiz();
   const [createdQuiz, setCreatedQuiz] = useState(null);

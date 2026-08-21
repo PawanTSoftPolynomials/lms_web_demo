@@ -5,7 +5,6 @@ import {
   Presentation,
   BarChart3,
   AppWindow,
-  ListChecks,
   Music,
   FileBadge,
   Link as LinkIcon,
@@ -25,8 +24,6 @@ import ChartBlockView from "./ChartBlockView";
 import ChartBlockEdit from "./ChartBlockEdit";
 import InteractiveBlockView from "./InteractiveBlockView";
 import InteractiveBlockEdit from "./InteractiveBlockEdit";
-import QuizBlockView from "./quiz/QuizBlockView";
-import QuizBlockEdit from "./quiz/QuizBlockEdit";
 import AudioBlockView from "./AudioBlockView";
 import AudioBlockEdit from "./AudioBlockEdit";
 import DocumentBlockView from "./DocumentBlockView";
@@ -92,25 +89,6 @@ export const blockRegistry = {
     EditComponent: InteractiveBlockEdit,
     defaultData: () => ({ blockType: "interactive", title: "", cssStyles: "", url: "" }),
   },
-  quiz: {
-    label: "Quiz",
-    icon: ListChecks,
-    ViewComponent: QuizBlockView,
-    EditComponent: QuizBlockEdit,
-    defaultData: () => ({
-      blockType: "quiz",
-      title: "",
-      cssStyles: "",
-      answerType: "chooseOne",
-      question: "",
-      options: ["Option A", "Option B"],
-      correctAnswer: [0],
-      pairs: [],
-      explanation: "",
-      points: 10,
-      allowedTime: "",
-    }),
-  },
   audio: {
     label: "Audio",
     icon: Music,
@@ -150,4 +128,4 @@ export const blockRegistry = {
   },
 };
 
-export const BLOCK_TYPE_ORDER = ["text", "image", "video", "slideshow", "chart", "interactive", "quiz", "audio", "document", "link", "code"];
+export const BLOCK_TYPE_ORDER = ["text", "image", "video", "slideshow", "chart", "interactive", "audio", "document", "link", "code"];
