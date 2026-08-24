@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { MoreVertical, Settings, Copy, Archive, Trash2, Globe, FileText, CheckCircle } from "lucide-react";
+import { MoreVertical, Settings, Copy, Archive, Trash2, Globe, FileText, CheckCircle, Sparkles } from "lucide-react";
 
 export function CourseComposerHeader({
   course,
@@ -11,6 +11,7 @@ export function CourseComposerHeader({
   onToggleGlobalMode,
   onSaveCourse,
   onImportCourse,
+  onOpenAskAi,
   isSaving,
   onPublishClick,
   onUnpublishClick,
@@ -42,7 +43,7 @@ export function CourseComposerHeader({
 
   return (
     <header className="app-header flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 shadow-xl text-slate-200">
-      {/* Left: Menu Toggle + Logo + Course Title & Status Badge */}
+      {/* Left: Menu Toggle + Course Title & Status Badge */}
       <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
@@ -58,18 +59,9 @@ export function CourseComposerHeader({
           </svg>
         </button>
 
-        <div className="logo-section flex items-center gap-2 cursor-pointer shrink-0" onClick={() => (window.location.href = "/instructor/courses")}>
-          <div className="logo-icon text-xl">🍊</div>
-          <div className="logo-text font-black text-sm text-white tracking-tight">
-            <span style={{ color: "coral" }}>O</span><span className="text-orange-500">Tree</span> LMS
-          </div>
-        </div>
-
-        <div className="h-4 w-px bg-slate-800 shrink-0 hidden sm:block" />
-
         {/* Title and Status Badge */}
-        <div className="flex items-center gap-2 min-w-0">
-          <h1 className="text-xs sm:text-sm font-bold text-white truncate max-w-[180px] sm:max-w-[280px]" title={course?.title}>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <h1 className="text-xs sm:text-sm font-extrabold text-white truncate max-w-[200px] sm:max-w-[320px]" title={course?.title}>
             {course?.title || "Untitled Course"}
           </h1>
 
@@ -87,8 +79,21 @@ export function CourseComposerHeader({
         </div>
       </div>
 
-      {/* Right: Actions Hierarchy: Save | Preview | Primary Lifecycle (Publish/Unpublish/Restore) | ⋮ More Menu */}
+      {/* Right: Actions Hierarchy: ✨ Ask OTree AI | Save | Edit All | Publish | ⋮ More Menu */}
       <div className="header-actions flex items-center gap-2 shrink-0 justify-end">
+        {/* Unified ✨ Ask OTree AI button */}
+        {onOpenAskAi && (
+          <button
+            type="button"
+            onClick={onOpenAskAi}
+            className="btn rounded-xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-300 text-slate-950 font-extrabold text-xs px-3.5 py-1.5 transition flex items-center gap-1.5 shadow-md shadow-orange-500/10 cursor-pointer"
+            title="Ask OTree AI Assistant"
+          >
+            <Sparkles size={14} className="fill-current animate-pulse shrink-0" />
+            <span className="whitespace-nowrap">Ask OTree AI</span>
+          </button>
+        )}
+
         {/* Save button */}
         {!isArchived && (
           <button

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, Plus, BookOpen } from "lucide-react";
+import { Settings, Plus, BookOpen, Sparkles } from "lucide-react";
 
 import ModuleAccordionItem from "@/components/instructor/composer/ModuleAccordionItem";
 import { useCreateModule } from "@/hooks/queries/instructor/useCreateModule";
@@ -14,6 +14,7 @@ export default function ComposerSidebar({
   view,
   onSelectLesson,
   onSelectSettings,
+  onOpenAiAssistant,
 }) {
   const [addingModule, setAddingModule] = useState(false);
   const [newModuleTitle, setNewModuleTitle] = useState("");
@@ -81,6 +82,7 @@ export default function ComposerSidebar({
               onSelectLesson={onSelectLesson}
               onMoveModuleUp={() => moveModule(i, -1)}
               onMoveModuleDown={() => moveModule(i, 1)}
+              onOpenAiAssistant={onOpenAiAssistant}
               defaultOpen={(mod.lessons || []).some((l) => l.id === selectedLessonId)}
             />
           ))}
@@ -97,13 +99,22 @@ export default function ComposerSidebar({
             className="w-full bg-slate-800 rounded-lg px-2.5 py-2 text-sm outline-none border border-orange-500"
           />
         ) : (
-          <button
-            type="button"
-            onClick={() => setAddingModule(true)}
-            className="w-full inline-flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-lg transition"
-          >
-            <Plus size={12} /> Add Module
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setAddingModule(true)}
+              className="inline-flex items-center justify-center gap-1 py-2 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-lg transition"
+            >
+              <Plus size={12} /> Module
+            </button>
+            <button
+              type="button"
+              onClick={() => onOpenAiAssistant && onOpenAiAssistant("MODULE")}
+              className="inline-flex items-center justify-center gap-1 py-2 text-xs font-bold text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-lg transition"
+            >
+              <Sparkles size={12} /> AI Module
+            </button>
+          </div>
         )}
       </div>
     </aside>

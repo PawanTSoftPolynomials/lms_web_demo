@@ -69,6 +69,7 @@ import { EntityFormModal } from "@/components/instructor/courses/EntityFormModal
 import { PublishValidationModal } from "@/components/instructor/courses/PublishValidationModal";
 import { UnpublishModal } from "@/components/instructor/courses/UnpublishModal";
 import { DeleteCourseModal } from "@/components/instructor/courses/DeleteCourseModal";
+import AiComposerModal from "@/components/instructor/composer/AiComposerModal";
 
 /** Finds a lesson and its parent module by lessonId across all modules */
 function findModuleAndLessonById(modules, lessonId) {
@@ -140,6 +141,325 @@ export default function CourseDetailsPage() {
   const [entityModalState, setEntityModalState] = useState(null);
   const openEntityModal = (config) => setEntityModalState(config);
   const closeEntityModal = () => setEntityModalState(null);
+
+  // Ask OTree AI State & Handlers
+  const [askAiModalOpen, setAskAiModalOpen] = useState(false);
+  const [askAiScope, setAskAiScope] = useState("COURSE");
+  const [askAiContext, setAskAiContext] = useState({});
+
+  const handleOpenAskAi = (overrideScope = null) => {
+    const currentCourse = effectiveCourse;
+
+    const currentModule = composeModuleId
+      ? effectiveModules.find((m) => String(m.id || m._id) === String(composeModuleId))
+      : null;
+
+    let currentLesson = null;
+    if (currentModule && composeLessonId) {
+      currentLesson = (currentModule.lessons || []).find((l) => String(l.id || l._id) === String(composeLessonId));
+    } else if (composeLessonId) {
+      for (const mod of effectiveModules) {
+        const found = (mod.lessons || []).find((l) => String(l.id || l._id) === String(composeLessonId));
+        if (found) {
+          currentLesson = found;
+          break;
+        }
+      }
+    }
+
+    let currentTopic = null;
+    if (currentLesson && composeTopicId) {
+      currentTopic = (currentLesson.topics || []).find((t) => String(t.id || t._id) === String(composeTopicId));
+    } else if (composeTopicId) {
+      for (const mod of effectiveModules) {
+        for (const les of mod.lessons || []) {
+          const found = (les.topics || []).find((t) => String(t.id || t._id) === String(composeTopicId));
+          if (found) {
+            currentTopic = found;
+            break;
+          }
+        }
+        if (currentTopic) break;
+      }
+    }
+
+    let currentContent = null;
+    if (currentTopic && selectedCellId) {
+      currentContent = (currentTopic.contents || []).find((c) => String(c.id || c._id) === String(selectedCellId));
+    }
+
+    const activeLevel = currentContent
+      ? "CONTENT"
+      : currentTopic
+      ? "TOPIC"
+      : currentLesson
+      ? "LESSON"
+      : currentModule
+      ? "MODULE"
+      : "COURSE";
+
+    const ctx = {
+      courseId,
+      courseTitle: currentCourse?.title || "",
+      moduleId: currentModule?.id || currentModule?._id || null,
+      moduleTitle: currentModule?.title || "",
+      lessonId: currentLesson?.id || currentLesson?._id || null,
+      lessonTitle: currentLesson?.title || "",
+      topicId: currentTopic?.id || currentTopic?._id || null,
+      topicTitle: currentTopic?.title || "",
+      contentId: currentContent?.id || currentContent?._id || null,
+      activeLevel,
+    };
+
+    const initialScope =
+      overrideScope ||
+      (activeLevel === "CONTENT"
+        ? "CONTENT"
+        : activeLevel === "TOPIC"
+        ? "TOPIC"
+        : activeLevel === "LESSON"
+        ? "TOPIC"
+        : activeLevel === "MODULE"
+        ? "LESSON"
+        : "MODULE");
+
+    setAskAiScope(initialScope);
+    setAskAiContext(ctx);
+    setAskAiModalOpen(true);
+  };
+
+  const handleApplyAiGeneratedData = async (generatedData, scope, contextData) => {
+    try {
+      if (scope === "MODULE") {
+        const newModId = `draft-mod-${Date.now()}`;
+        const title = generatedData.title || "AI Generated Module";
+        const description = generatedData.description || "";
+        const order = (effectiveModules.length > 0 ? Math.max(...effectiveModules.map((m) => m.order || 0)) : 0) + 1;
+
+        if (isDraftMode) {
+          const newMod = {
+            id: newModId,
+            title,
+            description,
+            order,
+            lessons: (generatedData.lessons || []).map((l, lIdx) => ({
+              id: `draft-les-${newModId}-${lIdx + 1}`,
+              title: l.title || `Lesson ${lIdx + 1}`,
+              description: l.description || "",
+              order: lIdx + 1,
+              topics: (l.topics || []).map((t, tIdx) => ({
+                id: `draft-top-${newModId}-${lIdx + 1}-${tIdx + 1}`,
+                title: t.title || `Topic ${tIdx + 1}`,
+                order: tIdx + 1,
+                contents: (t.contents || []).map((c, cIdx) => ({
+                  id: `draft-cnt-${newModId}-${lIdx + 1}-${tIdx + 1}-${cIdx + 1}`,
+                  type: c.type || "HTML",
+                  title: c.title || "Content Block",
+                  htmlContent: c.htmlContent || "",
+                  order: cIdx + 1,
+                })),
+              })),
+            })),
+          };
+          const nextMods = [...draftModules, newMod];
+          setDraftModules(nextMods);
+          handleSelectModule(newMod);
+          showToast("Module created from AI!", "success");
+        } else {
+          const resMod = await api.post("/modules", { courseId, title, description, order });
+          const createdModId = resMod.data?.data?.id || resMod.data?.id;
+          if (createdModId && Array.isArray(generatedData.lessons)) {
+            for (let i = 0; i < generatedData.lessons.length; i++) {
+              const l = generatedData.lessons[i];
+              await api.post("/lessons", { moduleId: createdModId, title: l.title || `Lesson ${i + 1}`, description: l.description || "", order: i + 1 });
+            }
+          }
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
+          showToast("Module created from AI!", "success");
+        }
+      } else if (scope === "LESSON") {
+        const targetModuleId = contextData.moduleId || composeModuleId || effectiveModules[0]?.id;
+        const title = generatedData.title || "AI Generated Lesson";
+        const description = generatedData.description || "";
+
+        if (isDraftMode) {
+          let createdLessonObj = null;
+          const nextMods = draftModules.map((m) => {
+            if (String(m.id || m._id) === String(targetModuleId)) {
+              const lesOrder = ((m.lessons || []).length > 0 ? Math.max(...m.lessons.map((l) => l.order || 0)) : 0) + 1;
+              createdLessonObj = {
+                id: `draft-les-${Date.now()}`,
+                title,
+                description,
+                order: lesOrder,
+                topics: (generatedData.topics || []).map((t, tIdx) => ({
+                  id: `draft-top-${Date.now()}-${tIdx + 1}`,
+                  title: t.title || `Topic ${tIdx + 1}`,
+                  description: t.description || "",
+                  order: tIdx + 1,
+                  contents: (t.contents || []).map((c, cIdx) => ({
+                    id: `draft-cnt-${Date.now()}-${tIdx + 1}-${cIdx + 1}`,
+                    type: c.type || "HTML",
+                    title: c.title || "Content Block",
+                    htmlContent: c.htmlContent || "",
+                    order: cIdx + 1,
+                  })),
+                })),
+              };
+              return { ...m, lessons: [...(m.lessons || []), createdLessonObj] };
+            }
+            return m;
+          });
+          setDraftModules(nextMods);
+          if (createdLessonObj) {
+            handleSelectLesson(createdLessonObj.id, targetModuleId);
+          }
+          showToast("Lesson created from AI!", "success");
+        } else {
+          await api.post("/lessons", { moduleId: targetModuleId, title, description });
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
+          showToast("Lesson created from AI!", "success");
+        }
+      } else if (scope === "TOPIC") {
+        const targetLessonId = contextData.lessonId || composeLessonId;
+        const targetModuleId = contextData.moduleId || composeModuleId;
+        const title = generatedData.title || "AI Generated Topic";
+        const description = generatedData.description || "";
+
+        if (isDraftMode) {
+          let createdTopicObj = null;
+          const nextMods = draftModules.map((m) => ({
+            ...m,
+            lessons: (m.lessons || []).map((l) => {
+              if (String(l.id || l._id) === String(targetLessonId)) {
+                const topOrder = ((l.topics || []).length > 0 ? Math.max(...l.topics.map((t) => t.order || 0)) : 0) + 1;
+                createdTopicObj = {
+                  id: `draft-top-${Date.now()}`,
+                  title,
+                  description,
+                  order: topOrder,
+                  contents: (generatedData.contents || []).map((c, cIdx) => ({
+                    id: `draft-cnt-${Date.now()}-${cIdx + 1}`,
+                    type: c.type || "HTML",
+                    title: c.title || "Content Block",
+                    htmlContent: c.htmlContent || "",
+                    order: cIdx + 1,
+                  })),
+                };
+                return { ...l, topics: [...(l.topics || []), createdTopicObj] };
+              }
+              return l;
+            }),
+          }));
+          setDraftModules(nextMods);
+          if (createdTopicObj) {
+            handleSelectTopic(createdTopicObj.id, targetLessonId, targetModuleId);
+          }
+          showToast("Topic created from AI!", "success");
+        } else {
+          await api.post("/topics", { lessonId: targetLessonId, title, description });
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
+          showToast("Topic created from AI!", "success");
+        }
+      } else if (scope === "CONTENT") {
+        const targetTopicId = contextData.topicId || composeTopicId;
+        const newContents = Array.isArray(generatedData?.contents)
+          ? generatedData.contents
+          : [generatedData];
+
+        if (isDraftMode) {
+          const nextMods = draftModules.map((m) => ({
+            ...m,
+            lessons: (m.lessons || []).map((l) => ({
+              ...l,
+              topics: (l.topics || []).map((t) => {
+                if (String(t.id || t._id) === String(targetTopicId)) {
+                  let cntOrder = ((t.contents || []).length > 0 ? Math.max(...t.contents.map((c) => c.order || 0)) : 0);
+                  const mappedNewContents = newContents.map((c) => {
+                    cntOrder += 1;
+                    return {
+                      id: `draft-cnt-${Date.now()}-${cntOrder}`,
+                      type: c.type || "HTML",
+                      title: c.title || "Content Block",
+                      htmlContent: c.htmlContent || c.body || "",
+                      order: cntOrder,
+                    };
+                  });
+                  return { ...t, contents: [...(t.contents || []), ...mappedNewContents] };
+                }
+                return t;
+              }),
+            })),
+          }));
+          setDraftModules(nextMods);
+          showToast("Content added from AI!", "success");
+        } else {
+          for (const c of newContents) {
+            await api.post("/contents", {
+              topicId: targetTopicId,
+              type: c.type || "HTML",
+              title: c.title || "Content Block",
+              htmlContent: c.htmlContent || c.body || "",
+            });
+          }
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
+          showToast("Content added from AI!", "success");
+        }
+      } else if (scope === "QUIZ") {
+        const targetLevel = contextData.quizLevel || "COURSE";
+        const quizTitle = generatedData.title || `${targetLevel} Quiz`;
+        const quizDesc = generatedData.description || "";
+        const rawQuestions = Array.isArray(generatedData.questions) ? generatedData.questions : [];
+
+        const formattedQuestions = rawQuestions.map((q, idx) => ({
+          question: q.question || `Question ${idx + 1}`,
+          questionType: q.questionType || "MCQ_SINGLE",
+          options: Array.isArray(q.options) ? q.options : ["Option 1", "Option 2", "Option 3", "Option 4"],
+          correctAnswer: q.correctAnswer || (Array.isArray(q.options) ? q.options[0] : "Option 1"),
+          explanation: q.explanation || "",
+          marks: 1,
+          difficulty: "EASY",
+        }));
+
+        const newQuizData = {
+          title: quizTitle,
+          description: quizDesc,
+          passingScore: Number(generatedData.passingScore) || 70,
+          timeLimit: Number(generatedData.timeLimit) || 15,
+          isPublished: true,
+          questions: formattedQuestions,
+        };
+
+        if (targetLevel === "MODULE") {
+          setComposeModuleId(contextData.moduleId || composeModuleId);
+          setComposeLessonId(null);
+          setComposeTopicId(null);
+        } else if (targetLevel === "LESSON") {
+          setComposeModuleId(contextData.moduleId || composeModuleId);
+          setComposeLessonId(contextData.lessonId || composeLessonId);
+          setComposeTopicId(null);
+        } else if (targetLevel === "TOPIC") {
+          setComposeModuleId(contextData.moduleId || composeModuleId);
+          setComposeLessonId(contextData.lessonId || composeLessonId);
+          setComposeTopicId(contextData.topicId || composeTopicId);
+        } else {
+          setComposeModuleId(null);
+          setComposeLessonId(null);
+          setComposeTopicId(null);
+        }
+
+        await handleSaveQuiz(newQuizData);
+        showToast(`${targetLevel} quiz created from AI!`, "success");
+      }
+    } catch (err) {
+      console.error("Apply AI Data Error:", err);
+      showToast("Failed to apply AI generated content.", "error");
+    }
+  };
 
   // Lifecycle Modal States
   const [publishModalOpen, setPublishModalOpen] = useState(false);
@@ -1115,6 +1435,13 @@ export default function CourseDetailsPage() {
 
   const handleConfirmDeleteCourse = async () => {
     try {
+      if (isDraftMode || courseId === "draft") {
+        sessionStorage.removeItem("imported_course_draft");
+        setDeleteModalOpen(false);
+        showToast("Course draft discarded successfully", "info");
+        router.push("/instructor/courses");
+        return;
+      }
       await deleteCourseMutation.mutateAsync(courseId);
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
       await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES_TABLE] });
@@ -1214,6 +1541,7 @@ export default function CourseDetailsPage() {
         onToggleGlobalMode={() => setGlobalMode(globalMode === "rendered" ? "edit" : "rendered")}
         onSaveCourse={handleSaveCourse}
         onImportCourse={() => router.push("/instructor/courses/import")}
+        onOpenAskAi={() => handleOpenAskAi()}
         isSaving={isDraftMode ? isSavingDraft : updateCourseMutation.isPending}
         onPublishClick={handleOpenPublishModal}
         onUnpublishClick={handleOpenUnpublishModal}
@@ -1468,6 +1796,15 @@ export default function CourseDetailsPage() {
         courseTitle={effectiveCourse?.title}
         hasStudentData={deleteHasStudentData}
         isPublished={isPublished}
+      />
+
+      {/* Unified Ask OTree AI Assistant Modal */}
+      <AiComposerModal
+        isOpen={askAiModalOpen}
+        onClose={() => setAskAiModalOpen(false)}
+        initialScope={askAiScope}
+        contextData={askAiContext}
+        onApply={handleApplyAiGeneratedData}
       />
     </div>
   );

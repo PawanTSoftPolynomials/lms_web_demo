@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
 
 import ContentBlockCard from "@/components/instructor/composer/ContentBlockCard";
 import AddBlockModal from "@/components/instructor/composer/AddBlockModal";
@@ -11,7 +11,7 @@ import { fromContentRow } from "@/components/instructor/composer/mappers/content
 import { useUpdateLesson } from "@/hooks/queries/instructor/useUpdateLesson";
 import { useReorderContents } from "@/hooks/queries/instructor/useReorderContents";
 
-export default function LessonCanvas({ lesson, moduleId, courseId }) {
+export default function LessonCanvas({ lesson, moduleId, courseId, onOpenAiAssistant }) {
   const [description, setDescription] = useState(lesson.description || "");
   const [draftBlocks, setDraftBlocks] = useState([]);
   const [addModalAfterId, setAddModalAfterId] = useState(undefined); // undefined = closed, null = append at end
@@ -148,13 +148,22 @@ export default function LessonCanvas({ lesson, moduleId, courseId }) {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => openAddModal(null)}
-        className="w-full inline-flex items-center justify-center gap-1.5 py-3 text-xs font-bold text-slate-300 hover:text-white bg-slate-900/40 hover:bg-slate-800 border border-dashed border-slate-700 rounded-xl transition"
-      >
-        <Plus size={14} /> Add Block
-      </button>
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={() => openAddModal(null)}
+          className="w-full inline-flex items-center justify-center gap-1.5 py-3 text-xs font-bold text-slate-300 hover:text-white bg-slate-900/40 hover:bg-slate-800 border border-dashed border-slate-700 rounded-xl transition cursor-pointer"
+        >
+          <Plus size={14} /> Add Block
+        </button>
+        <button
+          type="button"
+          onClick={() => onOpenAiAssistant && onOpenAiAssistant("CONTENT", { lessonId: lesson.id, lessonTitle: lesson.title })}
+          className="w-full inline-flex items-center justify-center gap-1.5 py-3 text-xs font-bold text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 border border-dashed border-orange-500/30 rounded-xl transition cursor-pointer"
+        >
+          <Sparkles size={14} /> Generate Content with AI
+        </button>
+      </div>
 
       <AddBlockModal
         open={addModalAfterId !== undefined}
