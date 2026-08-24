@@ -172,9 +172,9 @@ export function getCellTypeForContent(content: ContentRow): CellTypeDefinition |
 
 // Quiz appears in the Add Content picker (AddCellModal) but is intentionally
 // NOT registered here — a Quiz isn't a Content row at all, it's a separate
-// Quiz entity that now attaches directly to a Lesson via Quiz.lessonId
-// (mirroring the existing Module-quiz attachment). Picking "Quiz" hands off
-// to that lesson-quiz creation flow (LessonComposerPanel's onAddQuiz) instead
+// Quiz entity that attaches directly to a Topic via Quiz.topicId (mirroring
+// the existing Module-quiz/Lesson-quiz attachment). Picking "Quiz" hands off
+// to that topic-quiz creation flow (LessonComposerPanel's onAddQuiz) instead
 // of going through SIMPLE_FORMS/getCellTypeForContent like every other cell
 // type here. Slideshow (Marp) is still deferred — needs a new dependency
 // (@marp-team/marp-core). "interactive" IS registered but stays

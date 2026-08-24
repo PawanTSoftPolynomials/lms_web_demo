@@ -82,7 +82,7 @@ export const VISIBLE_CELL_OPTIONS = [
   {
     id: "quiz" as CellTypeId,
     label: "Quiz",
-    sublabel: "Attached to this lesson",
+    sublabel: "Attached to this topic",
     icon: HelpCircle,
   },
 ];

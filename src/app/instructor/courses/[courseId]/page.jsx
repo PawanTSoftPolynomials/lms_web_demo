@@ -56,6 +56,7 @@ import {
   bulkCreateQuestions as bulkCreateQuestionsService,
   updateRepositoryQuestion,
   removeQuestionFromQuiz as removeQuestionFromQuizService,
+  importQuestionsToQuiz as importQuestionsToQuizService,
 } from "@/services/questionRepository.service";
 
 import { CourseComposerHeader } from "@/components/instructor/courses/CourseComposerHeader";
@@ -301,9 +302,18 @@ export default function CourseDetailsPage() {
         ),
         lessons: (mod.lessons || []).map((lesson) => ({
           ...lesson,
+          // Excludes any quiz scoped to one of this lesson's topics (has a
+          // topicId) — those render under their owning topic instead, via
+          // the topics.map below, so a quiz never shows up twice.
           quizzes: lesson.quizzes || (course?.quizzes || []).filter(
-            (q) => q.lessonId && (String(q.lessonId) === String(lesson.id) || String(q.lessonId) === String(lesson._id))
+            (q) => q.lessonId && !q.topicId && (String(q.lessonId) === String(lesson.id) || String(q.lessonId) === String(lesson._id))
           ),
+          topics: (lesson.topics || []).map((topic) => ({
+            ...topic,
+            quizzes: topic.quizzes || (course?.quizzes || []).filter(
+              (q) => q.topicId && (String(q.topicId) === String(topic.id) || String(q.topicId) === String(topic._id))
+            ),
+          })),
         })),
       }));
   const effectiveLoading = isDraftMode ? (!draftLoaded || !draftData) : (courseLoading || modulesLoading);
@@ -340,6 +350,7 @@ export default function CourseDetailsPage() {
     } else {
       setComposeLessonId(null);
     }
+    setComposeTopicId(quiz.topicId || null);
     setQuizMode(options?.startEditing ? "edit" : "view");
     setComposerMode("quiz");
     setQuizStartEditing(options?.startEditing || false);
@@ -350,6 +361,7 @@ export default function CourseDetailsPage() {
     const targetModuleId = mod?.id || mod?._id || composeModuleId;
     setComposeModuleId(targetModuleId);
     setComposeLessonId(null);
+    setComposeTopicId(null);
     setComposeQuizId(null);
     setSelectedQuizState(null);
     setQuizMode("create");
@@ -362,6 +374,21 @@ export default function CourseDetailsPage() {
     const targetModuleId = mod?.id || mod?._id || composeModuleId;
     setComposeModuleId(targetModuleId || null);
     setComposeLessonId(lesson?.id || lesson?._id || null);
+    setComposeTopicId(null);
+    setComposeQuizId(null);
+    setSelectedQuizState(null);
+    setQuizMode("create");
+    setComposerMode("quiz");
+    setQuizStartEditing(true);
+    setMobileSidebarOpen(false);
+  };
+
+  const handleAddTopicQuiz = (topic, lesson = null, mod = null) => {
+    const targetLessonId = lesson?.id || lesson?._id || composeLessonId;
+    const targetModuleId = mod?.id || mod?._id || composeModuleId;
+    setComposeModuleId(targetModuleId || null);
+    setComposeLessonId(targetLessonId || null);
+    setComposeTopicId(topic?.id || topic?._id || null);
     setComposeQuizId(null);
     setSelectedQuizState(null);
     setQuizMode("create");
@@ -393,15 +420,29 @@ export default function CourseDetailsPage() {
   // existed before but isn't in the current list anymore gets unlinked.
   const syncQuizQuestions = async (quizId, currentQuestions, originalQuestionIds) => {
     const isNew = (q) => !q.id || String(q.id).startsWith("draft-");
+    const originalIdSet = new Set((originalQuestionIds || []).map(String));
+
     const newQuestions = (currentQuestions || []).filter(isNew);
     const existingQuestions = (currentQuestions || []).filter((q) => !isNew(q));
+    // A repository question picked via "From Repository" already has a real
+    // id but wasn't linked to this quiz before this save — attach it as-is
+    // rather than overwriting its (possibly shared, used-elsewhere) content.
+    // Only a question that was already this quiz's own gets its edits saved.
+    const alreadyLinkedQuestions = existingQuestions.filter((q) => originalIdSet.has(String(q.id)));
+    const newlyAttachedQuestionIds = existingQuestions
+      .filter((q) => !originalIdSet.has(String(q.id)))
+      .map((q) => q.id);
+
     const keptIds = new Set(existingQuestions.map((q) => String(q.id)));
     const removedIds = (originalQuestionIds || []).filter((id) => !keptIds.has(String(id)));
 
     if (newQuestions.length > 0) {
       await bulkCreateQuestionsService(quizId, newQuestions.map(mapQuestionForApi));
     }
-    for (const q of existingQuestions) {
+    if (newlyAttachedQuestionIds.length > 0) {
+      await importQuestionsToQuizService(quizId, newlyAttachedQuestionIds);
+    }
+    for (const q of alreadyLinkedQuestions) {
       await updateRepositoryQuestion(q.id, mapQuestionForApi(q));
     }
     for (const id of removedIds) {
@@ -531,7 +572,7 @@ export default function CourseDetailsPage() {
       if (quizMode === "create" || !selectedQuizState) {
         try {
           const resQuiz = await createQuizService({
-            title: updatedQuizData.title || (composeLessonId ? "Lesson Quiz" : "Module Quiz"),
+            title: updatedQuizData.title || (composeTopicId ? "Topic Quiz" : composeLessonId ? "Lesson Quiz" : "Module Quiz"),
             description: updatedQuizData.description || "",
             passingScore: Number(updatedQuizData.passingScore) || 70,
             timeLimit: Number(updatedQuizData.timeLimit) || 30,
@@ -539,6 +580,7 @@ export default function CourseDetailsPage() {
             courseId,
             moduleId: composeModuleId || null,
             lessonId: composeLessonId || null,
+            topicId: composeTopicId || null,
           });
 
           if (updatedQuizData.questions?.length > 0) {
@@ -553,7 +595,7 @@ export default function CourseDetailsPage() {
           await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
           await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
 
-          showToast(composeLessonId ? "Lesson quiz created successfully!" : "Module quiz created successfully!", "success");
+          showToast(composeTopicId ? "Topic quiz created successfully!" : composeLessonId ? "Lesson quiz created successfully!" : "Module quiz created successfully!", "success");
           setSelectedQuizState(resQuiz);
           setComposeQuizId(resQuiz.id);
           setQuizMode("view");
@@ -573,6 +615,7 @@ export default function CourseDetailsPage() {
             courseId,
             moduleId: composeModuleId || selectedQuizState.moduleId || null,
             lessonId: composeLessonId || selectedQuizState.lessonId || null,
+            topicId: composeTopicId || selectedQuizState.topicId || null,
           });
 
           const updatedQuiz = resQuiz || { ...selectedQuizState, ...updatedQuizData };
@@ -1211,6 +1254,7 @@ export default function CourseDetailsPage() {
             }
             onAddQuizToModule={handleAddModuleQuiz}
             onAddQuizToLesson={handleAddLessonQuiz}
+            onAddQuizToTopic={handleAddTopicQuiz}
             onEditLesson={(lesson, moduleId) => openEntityModal({ entity: "lesson", mode: "edit", entityData: lesson, parentId: moduleId })}
             onAddTopic={(lessonId) => openEntityModal({ entity: "topic", mode: "create", parentId: lessonId })}
             onEditTopic={(topic, lessonId, moduleId) =>
@@ -1244,14 +1288,14 @@ export default function CourseDetailsPage() {
               <div>
                 <div className="text-xs font-semibold text-orange-400 mb-0.5">
                   {composerMode === "course" && `Course Overview`}
-                  {composerMode === "quiz" && (quizMode === "create" ? (composeLessonId ? "New Lesson Quiz Creation" : "New Module Quiz Creation") : `Quiz Overview`)}
+                  {composerMode === "quiz" && (quizMode === "create" ? (composeTopicId ? "New Topic Quiz Creation" : composeLessonId ? "New Lesson Quiz Creation" : "New Module Quiz Creation") : `Quiz Overview`)}
                   {composerMode === "lesson" && `Lesson: ${composingLesson?.title || "Lesson Overview"}`}
                   {composerMode === "module" && `Module: ${activeModuleObj?.title || "Module Cells"}`}
                   {composerMode === "topic" && `Topic: ${composingTopic?.title || "Topic Composer"}`}
                 </div>
                 <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
                   {composerMode === "course" && (effectiveCourse?.title || "Course Overview Header")}
-                  {composerMode === "quiz" && (quizMode === "create" ? `Create Quiz for ${composeLessonId ? (composingLesson?.title || "Lesson") : (activeModuleObj?.title || "Module")}` : (activeQuizObj?.title || "Quiz Details"))}
+                  {composerMode === "quiz" && (quizMode === "create" ? `Create Quiz for ${composeTopicId ? (composingTopic?.title || "Topic") : composeLessonId ? (composingLesson?.title || "Lesson") : (activeModuleObj?.title || "Module")}` : (activeQuizObj?.title || "Quiz Details"))}
                   {composerMode === "lesson" && (composingLesson?.title || "Lesson Overview Header")}
                   {composerMode === "module" && (activeModuleObj?.title || "Module Cells Notebook")}
                   {composerMode === "topic" && (composingTopic?.title || "Topic Cells Notebook")}
@@ -1359,7 +1403,7 @@ export default function CourseDetailsPage() {
                 selectedCellId={selectedCellId}
                 onSelectCell={setSelectedCellId}
                 autoOpenAddSignal={autoOpenAddSignal}
-                onAddQuiz={composingLesson ? () => handleAddLessonQuiz(composingLesson, composingModule) : undefined}
+                onAddQuiz={composingTopic ? () => handleAddTopicQuiz(composingTopic, composingLesson, composingModule) : undefined}
                 draftContents={isDraftMode ? composingTopic?.contents || [] : undefined}
                 isDraftMode={isDraftMode}
                 onUpdateDraftContents={(newContents) => {
