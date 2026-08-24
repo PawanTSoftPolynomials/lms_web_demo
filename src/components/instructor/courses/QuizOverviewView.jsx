@@ -17,8 +17,11 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
-  ListFilter
+  ListFilter,
+  Library
 } from "lucide-react";
+
+import QuestionRepositoryPickerModal from "./QuestionRepositoryPickerModal";
 
 // Question.options (backend) may hold plain strings or richer
 // { optionText, isCorrect?, misconceptionTag? } objects (see
@@ -61,6 +64,7 @@ export function QuizOverviewView({
   // Editable Questions Array
   const [questions, setQuestions] = useState([]);
   const [error, setError] = useState("");
+  const [showRepoPicker, setShowRepoPicker] = useState(false);
 
   // Sync state when quiz prop, quizMode, or startEditing changes
   useEffect(() => {
@@ -166,6 +170,27 @@ export function QuizOverviewView({
     };
 
     setQuestions((prev) => [...prev, newQuestionObj]);
+    setCurrentQuestionIndex(questions.length);
+  };
+
+  // Merges questions picked from the shared Question Repository into local
+  // edit state, keeping their real (non-draft-prefixed) id — that's how
+  // page.jsx's save-time diff tells "brand new" questions apart from
+  // "existing repository question being attached to this quiz for the
+  // first time," so it links rather than re-creates them.
+  const handleAddRepositoryQuestions = (chosen) => {
+    const mapped = chosen.map((q) => ({
+      id: q.id,
+      question: q.question || "",
+      questionType: (q.questionType || "MCQ_SINGLE").toUpperCase(),
+      options: Array.isArray(q.options) ? q.options.map(optionToText) : [],
+      correctAnswer: q.correctAnswer !== undefined ? q.correctAnswer : "",
+      explanation: q.explanation || "",
+      marks: q.marks !== undefined ? Number(q.marks) : 1,
+      difficulty: q.difficulty || "MEDIUM",
+      isMandatory: true,
+    }));
+    setQuestions((prev) => [...prev, ...mapped]);
     setCurrentQuestionIndex(questions.length);
   };
 
@@ -651,6 +676,15 @@ export function QuizOverviewView({
 
               <button
                 type="button"
+                onClick={() => setShowRepoPicker(true)}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-sky-500/40 bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 text-xs font-bold transition cursor-pointer"
+                title="Add from Question Repository"
+              >
+                <Library size={13} /> From Repository
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setCurrentQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1))}
                 disabled={currentQuestionIndex >= questions.length - 1 || questions.length === 0}
                 className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-200 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
@@ -851,13 +885,22 @@ export function QuizOverviewView({
           ) : (
             <div className="p-6 text-center text-slate-500 text-xs italic bg-slate-900/40 rounded-xl border border-slate-800/80 space-y-2">
               <p>No questions in this quiz yet.</p>
-              <button
-                type="button"
-                onClick={handleAddQuestion}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold cursor-pointer"
-              >
-                <Plus size={14} /> Add First Question
-              </button>
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAddQuestion}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold cursor-pointer"
+                >
+                  <Plus size={14} /> Add First Question
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowRepoPicker(true)}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-sky-500/40 bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 text-xs font-bold cursor-pointer"
+                >
+                  <Library size={14} /> From Repository
+                </button>
+              </div>
             </div>
           )}
 
@@ -889,6 +932,13 @@ export function QuizOverviewView({
           )}
         </form>
       )}
+
+      <QuestionRepositoryPickerModal
+        open={showRepoPicker}
+        onClose={() => setShowRepoPicker(false)}
+        onAddQuestions={handleAddRepositoryQuestions}
+        excludeIds={questions.map((q) => q.id)}
+      />
     </div>
   );
 }
