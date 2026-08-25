@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   Award,
   ArrowLeft,
@@ -24,8 +24,15 @@ import useQuizResult from "@/hooks/queries/student/useQuizResult";
 import AdaptiveRemediationCard from "@/components/student/AdaptiveRemediationCard";
 
 
-export default function QuizResultPage() {
+function QuizResultPageContent() {
   const { quizId } = useParams();
+  const searchParams = useSearchParams();
+  // The page that launched this quiz (set via ?from= on the attempt link) —
+  // takes priority over guessing from the quiz's own lessonId, since the
+  // Assessment Quiz panel lists every quiz for the whole course on every
+  // lesson's page, so a quiz's own lessonId doesn't reliably match the
+  // specific lesson the student actually launched it from.
+  const returnTo = searchParams.get("from");
   const { data, isLoading, isError } = useQuizResult(quizId);
 
   const submission = data?.data || data;
@@ -144,10 +151,10 @@ export default function QuizResultPage() {
               Either you have not attempted this quiz yet, or there was an error retrieving your submission.
             </p>
             <div className="mt-6 flex justify-center gap-4">
-              <Link href="/student/quizzes">
+              <Link href={returnTo || "/student/quizzes"}>
                 <Button className="flex items-center gap-2">
                   <ArrowLeft className="h-4 w-4" />
-                  Back to Quizzes
+                  {returnTo ? "Back" : "Back to Quizzes"}
                 </Button>
               </Link>
               <Link href={`/student/attempt/${quizId}`}>
@@ -165,6 +172,15 @@ export default function QuizResultPage() {
   const { quiz, score, totalMarks, percentage, passed, submittedAt, conceptScores } = submission;
   const passingScore = quiz?.passingScore ?? 70;
 
+  // A lesson-launched quiz should return the student to that lesson, not
+  // strand them on the disconnected top-level Quizzes hub. Prefer the exact
+  // page the quiz was launched from (returnTo); fall back to a guess from
+  // the quiz's own lessonId; otherwise land on the Quizzes hub.
+  const backHref =
+    returnTo ||
+    (quiz?.lessonId ? `/student/learn/${quiz.courseId}?lessonId=${quiz.lessonId}` : "/student/quizzes");
+  const backLabel = backHref.startsWith("/student/learn/") ? "Back to Lesson" : "Back to Quizzes";
+
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -172,10 +188,10 @@ export default function QuizResultPage() {
           title="Quiz Performance Report"
           subtitle={`Detailed review for ${quiz?.title || "Quiz"}`}
         />
-        <Link href="/student/quizzes">
+        <Link href={backHref}>
           <Button className="flex items-center gap-2 border border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300">
             <ArrowLeft className="h-4 w-4" />
-            Back to Quizzes
+            {backLabel}
           </Button>
         </Link>
       </div>
@@ -575,5 +591,13 @@ export default function QuizResultPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+export default function QuizResultPage() {
+  return (
+    <Suspense fallback={<Loader />}>
+      <QuizResultPageContent />
+    </Suspense>
   );
 }

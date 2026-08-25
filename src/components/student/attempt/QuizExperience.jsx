@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import Loader from "@/components/common/Loader";
 import QuizHeader from "@/components/student/attempt/QuizHeader";
-import QuizTimer from "@/components/student/attempt/QuizTimer";
 import QuestionCard from "@/components/student/attempt/QuestionCard";
 import QuizNavigation from "@/components/student/attempt/QuizNavigation";
+import QuizQuestionPalette from "@/components/student/attempt/QuizQuestionPalette";
 import QuizSubmitModal from "@/components/student/attempt/QuizSubmitModal";
 import useQuiz from "@/hooks/queries/student/useQuiz";
 import useSubmitQuiz from "@/hooks/queries/student/useSubmitQuiz";
@@ -19,7 +19,7 @@ import useSubmitQuiz from "@/hooks/queries/student/useSubmitQuiz";
  * Presentation (page vs modal vs full-screen) is entirely the caller's job;
  * this component only knows about the quiz itself.
  */
-export default function QuizExperience({ quizId, onBack }) {
+export default function QuizExperience({ quizId, onBack, resultReturnTo }) {
     const router = useRouter();
 
     const {
@@ -40,6 +40,14 @@ export default function QuizExperience({ quizId, onBack }) {
 
     const [answers, setAnswers] = useState({});
 
+    const [visitedIndices, setVisitedIndices] = useState(
+        () => new Set([0])
+    );
+
+    const [bookmarkedIds, setBookmarkedIds] = useState(
+        () => new Set()
+    );
+
     const [showSubmitModal, setShowSubmitModal] =
         useState(false);
 
@@ -48,6 +56,13 @@ export default function QuizExperience({ quizId, onBack }) {
 
     const answeredQuestions =
         Object.keys(answers).length;
+
+    useEffect(() => {
+        setVisitedIndices((prev) => {
+            if (prev.has(currentQuestionIndex)) return prev;
+            return new Set(prev).add(currentQuestionIndex);
+        });
+    }, [currentQuestionIndex]);
 
     const handlePrevious = () => {
         if (currentQuestionIndex > 0) {
@@ -68,6 +83,12 @@ export default function QuizExperience({ quizId, onBack }) {
         }
     };
 
+    const handleJumpToQuestion = (index) => {
+        if (index >= 0 && index < questions.length) {
+            setCurrentQuestionIndex(index);
+        }
+    };
+
     const handleSelectAnswer = (
         answer
     ) => {
@@ -75,6 +96,20 @@ export default function QuizExperience({ quizId, onBack }) {
             ...prev,
             [currentQuestion.id]: answer,
         }));
+    };
+
+    const handleToggleBookmark = () => {
+        if (!currentQuestion) return;
+
+        setBookmarkedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(currentQuestion.id)) {
+                next.delete(currentQuestion.id);
+            } else {
+                next.add(currentQuestion.id);
+            }
+            return next;
+        });
     };
 
     const handleTimeUp = () => {
@@ -121,7 +156,9 @@ export default function QuizExperience({ quizId, onBack }) {
                     setShowSubmitModal(false);
 
                     router.push(
-                        `/student/result/${quizId}`
+                        resultReturnTo
+                            ? `/student/result/${quizId}?from=${encodeURIComponent(resultReturnTo)}`
+                            : `/student/result/${quizId}`
                     );
                 },
 
@@ -155,30 +192,47 @@ export default function QuizExperience({ quizId, onBack }) {
 
     return (
         <>
-            <div className="space-y-6">
-                <QuizHeader quiz={quiz} onBack={onBack} />
+            <div className="space-y-4 lg:grid lg:grid-cols-[1fr_260px] lg:items-start lg:gap-4 lg:space-y-0">
+                <div className="space-y-4 min-w-0">
+                    <QuizHeader
+                        quiz={quiz}
+                        onBack={onBack}
+                        onTimeUp={handleTimeUp}
+                    />
 
-                <QuizTimer
-                    duration={quiz?.timeLimit || quiz?.duration || 15}
-                    onTimeUp={handleTimeUp}
-                />
+                    <QuestionCard
+                        question={currentQuestion}
+                        currentQuestion={currentQuestionIndex + 1}
+                        totalQuestions={questions.length}
+                        selectedAnswer={answers[currentQuestion?.id]}
+                        onSelectAnswer={handleSelectAnswer}
+                        isBookmarked={
+                            currentQuestion
+                                ? bookmarkedIds.has(currentQuestion.id)
+                                : false
+                        }
+                        onToggleBookmark={handleToggleBookmark}
+                    />
 
-                <QuestionCard
-                    question={currentQuestion}
-                    currentQuestion={currentQuestionIndex + 1}
-                    totalQuestions={questions.length}
-                    selectedAnswer={answers[currentQuestion?.id]}
-                    onSelectAnswer={handleSelectAnswer}
-                />
+                    <QuizNavigation
+                        currentQuestion={currentQuestionIndex + 1}
+                        totalQuestions={questions.length}
+                        canGoPrevious={currentQuestionIndex > 0}
+                        canGoNext={currentQuestionIndex < questions.length - 1}
+                        onPrevious={handlePrevious}
+                        onNext={handleNext}
+                        onSubmit={() => setShowSubmitModal(true)}
+                    />
+                </div>
 
-                <QuizNavigation
-                    currentQuestion={currentQuestionIndex + 1}
-                    totalQuestions={questions.length}
-                    canGoPrevious={currentQuestionIndex > 0}
-                    canGoNext={currentQuestionIndex < questions.length - 1}
-                    onPrevious={handlePrevious}
-                    onNext={handleNext}
+                <QuizQuestionPalette
+                    questions={questions}
+                    currentQuestionIndex={currentQuestionIndex}
+                    answers={answers}
+                    visitedIndices={visitedIndices}
+                    onJumpTo={handleJumpToQuestion}
                     onSubmit={() => setShowSubmitModal(true)}
+                    isSubmitting={submitQuizMutation.isPending}
                 />
             </div>
 

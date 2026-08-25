@@ -7,20 +7,19 @@ import {
   X, Bell, MessageSquare, ArrowLeft, BookOpen, Clock3,
   ChevronDown, ChevronRight, ChevronLeft, PlayCircle,
   CheckCheck, HelpCircle, Star, CheckCircle2, FileText, Download,
-  AlignLeft, StickyNote, Paperclip, Bookmark, BookmarkCheck, ClipboardList, PanelLeftOpen
+  AlignLeft, StickyNote, Paperclip, Bookmark, BookmarkCheck, ClipboardList, PanelLeftOpen,
+  PanelRightOpen, PanelRightClose
 } from "lucide-react";
 import { FaSignOutAlt } from "react-icons/fa";
 
 import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel";
 import CoursePersonalizationCard from "@/components/student/learning/CoursePersonalizationCard";
-import PersonalizedPathCard from "@/components/student/learning/PersonalizedPathCard";
 import VideoPlayer from "@/components/student/learning/VideoPlayer";
 import { groupLessonContentForDocumentView } from "@/lib/contentDocument";
 import { getDisplayUrl } from "@/lib/blob";
 import TranscriptPanel from "@/components/student/learning/TranscriptPanel";
 import LessonTabs from "@/components/student/learning/LessonTabs";
 import CourseContentAccordion from "@/components/student/learning/CourseContentAccordion";
-import QuizExperience from "@/components/student/attempt/QuizExperience";
 import useCompleteLesson from "@/hooks/queries/student/useCompleteLesson";
 import useMarkContentVisited from "@/hooks/queries/student/useMarkContentVisited";
 import { useCourse, useStudentState, useUpdateStudentState } from "@/hooks/queries/student";
@@ -127,6 +126,11 @@ export default function LearnPage() {
   // Course Content Sidebar toggle state
   const [courseSidebarOpen, setCourseSidebarOpen] = useState(false);
 
+  // Right-hand utility column (Ask Instructor / Sticky Notes / Feedback)
+  // collapse state — desktop only, mirrors the left Course Map sidebar's
+  // collapse behavior.
+  const [rightPanelOpen, setRightPanelOpen] = useState(true);
+
   const videoPlayerRef = useRef(null);
 
   const lessons = useMemo(() => {
@@ -146,6 +150,16 @@ export default function LearnPage() {
   );
 
   const [selectedLesson, setSelectedLesson] = useState(null);
+
+  // Derived from completedLessonIds (freshly recomputed from course data on
+  // every refetch) rather than selectedLesson.completed directly —
+  // selectedLesson is a state snapshot taken at selection time, so it never
+  // picks up the completed:true flip that lands after markComplete's mutation
+  // invalidates and refetches the course query.
+  const isSelectedLessonCompleted = selectedLesson?.id
+    ? completedLessonIds.includes(selectedLesson.id)
+    : false;
+
   const [pendingTopicScroll, setPendingTopicScroll] = useState(null);
 
   // Central gate for every lesson-navigation entry point (sidebar, mobile
@@ -179,19 +193,6 @@ export default function LearnPage() {
   // Mobile tab strip (Overview/Transcript/Notes/Resources/Query/Feedback/Quiz) —
   // desktop shows the same content stacked, unconditionally, via xl: overrides.
   const [activeContentTab, setActiveContentTab] = useState("overview");
-
-  // Active quiz attempt launched from the Quiz tab. Kept as local state (not a
-  // route change) so the Learning Page never unmounts — video, selected lesson,
-  // scroll position, everything is still there the instant this closes.
-  const [activeQuizId, setActiveQuizId] = useState(null);
-  useEffect(() => {
-    if (!activeQuizId || typeof document === "undefined") return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [activeQuizId]);
 
   const { data: bookmarks = [] } = useBookmarks();
   const createBookmarkMutation = useCreateBookmark();
@@ -485,7 +486,6 @@ export default function LearnPage() {
   const overviewPanel = (
     <div className="space-y-4">
       <CoursePersonalizationCard courseId={courseId} />
-      <PersonalizedPathCard courseId={courseId} />
 
       <div className="rounded-3xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl p-4 sm:p-5 space-y-3">
       <h4 className="text-xs font-black uppercase tracking-widest text-slate-300">About this lesson</h4>
@@ -710,7 +710,10 @@ export default function LearnPage() {
               </div>
               <button
                 type="button"
-                onClick={() => setActiveQuizId(quiz.id)}
+                onClick={() => {
+                  const returnTo = `/student/learn/${courseId}${selectedLesson?.id ? `?lessonId=${selectedLesson.id}` : ""}`;
+                  router.push(`/student/attempt/${quiz.id}?from=${encodeURIComponent(returnTo)}`);
+                }}
                 className="px-4 py-2.5 min-h-[44px] rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-md shrink-0"
               >
                 Start Quiz
@@ -925,7 +928,11 @@ export default function LearnPage() {
             page are visible at once, so explicit grid placement restores the
             original two-column arrangement regardless of DOM order.
           */}
-          <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6 lg:gap-8">
+          <div
+            className={`grid grid-cols-1 gap-6 lg:gap-8 transition-[grid-template-columns] duration-300 ease-in-out ${
+              rightPanelOpen ? "xl:grid-cols-[1fr_360px]" : "xl:grid-cols-[1fr_48px]"
+            }`}
+          >
 
             {/* VIDEO — the primary learning action: first below xl, row 2 of the left column on desktop */}
             <div className="space-y-4 min-w-0 row-start-1 xl:col-start-1 xl:row-start-2">
@@ -975,11 +982,16 @@ export default function LearnPage() {
                     version of this in the row below the player instead. */}
                 <button
                   type="button"
+                  disabled={isSelectedLessonCompleted}
                   onClick={markComplete}
-                  className="hidden xl:inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl bg-slate-900 hover:bg-orange-500 hover:text-slate-950 border border-slate-800 hover:border-orange-400 text-xs font-black uppercase tracking-wider text-slate-200 transition-all shadow-md cursor-pointer shrink-0 self-start sm:self-auto"
+                  className={`hidden xl:inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl border text-xs font-black uppercase tracking-wider transition-all shadow-md shrink-0 self-start sm:self-auto ${
+                    isSelectedLessonCompleted
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 cursor-default"
+                      : "bg-slate-900 hover:bg-orange-500 hover:text-slate-950 border-slate-800 hover:border-orange-400 text-slate-200 cursor-pointer"
+                  }`}
                 >
-                  <CheckCircle2 size={15} className="text-emerald-400 group-hover:text-slate-950" />
-                  <span>Mark Complete</span>
+                  <CheckCircle2 size={15} className={isSelectedLessonCompleted ? "text-emerald-400" : "text-emerald-400 group-hover:text-slate-950"} />
+                  <span>{isSelectedLessonCompleted ? "Completed" : "Mark Complete"}</span>
                 </button>
               </div>
 
@@ -1027,11 +1039,16 @@ export default function LearnPage() {
 
                 <button
                   type="button"
+                  disabled={isSelectedLessonCompleted}
                   onClick={markComplete}
-                  className="relative flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-xl border border-emerald-500/30 text-emerald-400 hover:border-emerald-400 hover:text-emerald-300 font-bold text-[10px] uppercase tracking-wide transition cursor-pointer bg-transparent before:content-[''] before:absolute before:-inset-y-[8px] before:inset-x-0"
+                  className={`relative flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-xl border font-bold text-[10px] uppercase tracking-wide transition before:content-[''] before:absolute before:-inset-y-[8px] before:inset-x-0 ${
+                    isSelectedLessonCompleted
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 cursor-default"
+                      : "border-emerald-500/30 text-emerald-400 hover:border-emerald-400 hover:text-emerald-300 cursor-pointer bg-transparent"
+                  }`}
                 >
                   <CheckCircle2 size={14} />
-                  <span>Complete</span>
+                  <span>{isSelectedLessonCompleted ? "Completed" : "Complete"}</span>
                 </button>
 
                 <button
@@ -1156,16 +1173,47 @@ export default function LearnPage() {
 
             <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-5">{resourcesPanel}</div>
 
-            <div className="hidden xl:flex xl:flex-col xl:gap-6 min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-8 xl:sticky xl:top-24 xl:h-fit">
-              <div className="xl:order-2">
-                <StickyNotesPanel
-                  lessonId={selectedLesson?.id}
-                  currentTimestamp={currentTimestamp}
-                  onSeek={handleTranscriptSeek}
-                />
-              </div>
-              <div className="xl:order-1">{queryPanel}</div>
-              <div className="xl:order-3">{feedbackPanel}</div>
+            <div
+              className={`hidden xl:flex xl:flex-col xl:gap-6 min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-8 xl:sticky xl:top-24 xl:h-fit transition-[width] duration-300 ease-in-out ${
+                rightPanelOpen ? "w-full xl:w-[360px]" : "w-full xl:w-12"
+              }`}
+            >
+              {rightPanelOpen ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setRightPanelOpen(false)}
+                    className="self-end flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-xl text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-white bg-slate-900/60 hover:bg-slate-800 border border-slate-800 transition cursor-pointer"
+                    title="Hide side panel"
+                    aria-label="Hide side panel"
+                  >
+                    <PanelRightClose size={14} />
+                    <span>Hide</span>
+                  </button>
+                  <div className="order-2">
+                    <StickyNotesPanel
+                      lessonId={selectedLesson?.id}
+                      currentTimestamp={currentTimestamp}
+                      onSeek={handleTranscriptSeek}
+                    />
+                  </div>
+                  <div className="order-1">{queryPanel}</div>
+                  <div className="order-3">{feedbackPanel}</div>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setRightPanelOpen(true)}
+                  className="flex flex-col items-center gap-3 w-12 rounded-2xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl py-4 hover:border-orange-500/40 hover:bg-slate-900 text-slate-400 hover:text-orange-400 transition cursor-pointer"
+                  title="Show side panel"
+                  aria-label="Show side panel"
+                >
+                  <PanelRightOpen size={16} className="shrink-0" />
+                  <span className="text-[9px] font-black uppercase tracking-widest [writing-mode:vertical-rl]">
+                    Panel
+                  </span>
+                </button>
+              )}
             </div>
 
             <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-6">{quizPanel}</div>
@@ -1305,23 +1353,6 @@ export default function LearnPage() {
         <ChatWidget />
         <MentorWidget />
       </div>
-
-      {/* QUIZ ATTEMPT — same QuizExperience component either way; only the
-          presentation shell changes. Desktop (>= lg): centered modal over a
-          backdrop. Mobile (< lg): the inner panel fills the fixed overlay
-          edge-to-edge, so it reads as a dedicated full-screen quiz page
-          rather than a popup. Local state, not a route change, so the
-          Learning Page underneath (video, lesson, scroll) is untouched and
-          reappears exactly as it was the moment this closes. */}
-      {activeQuizId && (
-        <div className="fixed inset-0 z-[60] bg-black/70 lg:flex lg:items-center lg:justify-center lg:p-4">
-          <div className="h-full w-full overflow-y-auto overscroll-contain bg-[#07080f] lg:h-auto lg:max-h-[90vh] lg:max-w-4xl lg:rounded-2xl lg:border lg:border-slate-800 lg:shadow-2xl">
-            <div className="p-4 sm:p-6">
-              <QuizExperience quizId={activeQuizId} onBack={() => setActiveQuizId(null)} />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

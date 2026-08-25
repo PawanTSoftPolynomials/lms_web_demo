@@ -417,6 +417,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                             <MarkdownRenderer
                                 source={unescapeFromContentApi(htmlContent || "")}
                                 emptyText="No content yet."
+                                className="max-w-4xl mx-auto"
                             />
                         </div>
                     )
