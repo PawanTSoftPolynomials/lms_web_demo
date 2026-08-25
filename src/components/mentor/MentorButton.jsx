@@ -17,10 +17,10 @@ export default function MentorButton({ isOpen, onToggle }) {
           title="AI Mentor"
           className="
             fixed
-            bottom-24
-            right-24
+            bottom-6
+            right-6
             sm:bottom-6
-            sm:right-24
+            sm:right-6
             z-[9998]
             flex
             h-14

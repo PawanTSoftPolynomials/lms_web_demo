@@ -1,12 +1,34 @@
-"use client";
-
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Bell, CheckCheck, ChevronDown } from "lucide-react";
+import { Bell, BookOpen, CheckCheck, CheckSquare, ChevronDown, MessageSquare, Trash2, X } from "lucide-react";
 
-// Compact, premium notification bell + dropdown. Shared between the main
-// dashboard header and the student sub-nav so there's a single visual
-// language (and a single place to fix bugs) for both.
+/** Helper to return type icon and color styles for notification items */
+function getNotificationMeta(type) {
+  switch (type?.toLowerCase()) {
+    case "quiz":
+      return {
+        icon: CheckSquare,
+        badgeClass: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+      };
+    case "course":
+      return {
+        icon: BookOpen,
+        badgeClass: "bg-orange-500/15 text-orange-400 border-orange-500/30",
+      };
+    case "chat":
+      return {
+        icon: MessageSquare,
+        badgeClass: "bg-sky-500/15 text-sky-400 border-sky-500/30",
+      };
+    default:
+      return {
+        icon: Bell,
+        badgeClass: "bg-purple-500/15 text-purple-400 border-purple-500/30",
+      };
+  }
+}
+
+// Premium notification bell + dropdown with Clear All & type icons.
 export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkAllRead, onClearAll, onItemClick }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -35,13 +57,15 @@ export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkA
         aria-label="Notifications"
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 hover:-translate-y-0.5 ${
-          open ? "bg-white/[0.08] text-white" : "text-slate-400 hover:bg-white/[0.06] hover:text-white"
+        className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition-all duration-200 cursor-pointer ${
+          open
+            ? "bg-[#1A1F35] border-slate-700 text-white"
+            : "bg-[#0D1021] border-[#1A1F35] text-slate-400 hover:bg-[#1A1F35] hover:text-white hover:border-slate-800"
         }`}
       >
-        <Bell size={20} aria-hidden="true" />
+        <Bell size={16} aria-hidden="true" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 px-1 text-[9px] font-bold text-white shadow-[0_2px_6px_rgba(255,140,0,0.5)] ring-2 ring-[#0D0D18]">
+          <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-orange-500 px-1 text-[9px] font-black text-white shadow-sm animate-pulse">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -51,55 +75,105 @@ export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkA
         <div
           role="menu"
           aria-label="Notifications"
-          className="absolute right-0 top-[calc(100%+10px)] z-50 w-80 rounded-2xl border border-white/[0.08] bg-[#0D0D18]/95 p-3 shadow-2xl backdrop-blur-xl"
+          className="absolute right-0 top-[calc(100%+10px)] z-50 w-80 sm:w-96 rounded-2xl border border-slate-800 bg-[#0B0F19]/95 p-3.5 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-150"
         >
-          <div className="mb-2 flex items-center justify-between border-b border-white/[0.06] pb-2">
-            <h3 className="text-xs font-bold text-slate-200">Notifications</h3>
-            {unreadCount > 0 && (
-              <button
-                type="button"
-                onClick={onMarkAllRead}
-                className="flex items-center gap-1 text-[11px] font-semibold text-orange-400 transition-colors hover:text-orange-300"
-              >
-                <CheckCheck size={12} aria-hidden="true" />
-                Mark all read
-              </button>
-            )}
-          </div>
-          <div className="max-h-72 space-y-1.5 overflow-y-auto pr-0.5 scrollbar-none">
-            {notifications.length === 0 ? (
-              <p className="py-8 text-center text-[11px] text-slate-500">No notifications yet</p>
-            ) : (
-              notifications.slice(0, 8).map((n) => (
+          {/* Header */}
+          <div className="mb-2.5 flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-bold text-slate-100">Notifications</h3>
+              {unreadCount > 0 && (
+                <span className="rounded-full bg-orange-500/15 border border-orange-500/30 px-2 py-0.5 text-[9.5px] font-black text-orange-400">
+                  {unreadCount} new
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 text-[11px] font-semibold">
+              {unreadCount > 0 && (
                 <button
-                  key={n.id}
                   type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setOpen(false);
-                    onItemClick?.(n);
-                  }}
-                  className={`flex w-full flex-col gap-0.5 rounded-xl px-3 py-2 text-left transition-colors ${
-                    n.read ? "text-slate-400 hover:bg-white/[0.05]" : "bg-orange-500/[0.06] text-slate-200 hover:bg-orange-500/10"
-                  }`}
+                  onClick={onMarkAllRead}
+                  className="flex items-center gap-1 text-orange-400 hover:text-orange-300 transition cursor-pointer"
+                  title="Mark all as read"
                 >
-                  <span className="flex items-center justify-between gap-2 text-[11px] font-bold">
-                    <span className="truncate">{n.title}</span>
-                    {!n.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />}
-                  </span>
-                  <span className="line-clamp-2 text-[10.5px] leading-snug text-slate-500">{n.message}</span>
+                  <CheckCheck size={13} />
+                  Mark read
                 </button>
-              ))
+              )}
+              {notifications.length > 0 && onClearAll && (
+                <button
+                  type="button"
+                  onClick={onClearAll}
+                  className="flex items-center gap-1 text-slate-400 hover:text-rose-400 transition cursor-pointer"
+                  title="Clear all notifications"
+                >
+                  <Trash2 size={12} />
+                  Clear all
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* List Area */}
+          <div className="max-h-80 space-y-2 overflow-y-auto pr-0.5">
+            {notifications.length === 0 ? (
+              <div className="py-10 text-center space-y-2">
+                <div className="h-10 w-10 mx-auto rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500">
+                  <Bell size={18} />
+                </div>
+                <p className="text-xs font-medium text-slate-400">All caught up!</p>
+                <p className="text-[10px] text-slate-500">No notifications to display.</p>
+              </div>
+            ) : (
+              notifications.map((n) => {
+                const { icon: TypeIcon, badgeClass } = getNotificationMeta(n.type);
+
+                return (
+                  <button
+                    key={n.id}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setOpen(false);
+                      onItemClick?.(n);
+                    }}
+                    className={`group flex w-full items-start gap-3 rounded-xl border p-2.5 text-left transition ${
+                      n.read
+                        ? "border-slate-800/60 bg-slate-900/40 hover:bg-slate-900/90 text-slate-400"
+                        : "border-orange-500/20 bg-orange-500/[0.06] hover:bg-orange-500/10 text-slate-200"
+                    }`}
+                  >
+                    {/* Icon Badge */}
+                    <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${badgeClass}`}>
+                      <TypeIcon size={14} />
+                    </div>
+
+                    {/* Text Details */}
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="truncate text-xs font-bold text-slate-100">{n.title}</h4>
+                        {!n.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />}
+                      </div>
+                      <p className="line-clamp-2 text-[11px] leading-relaxed text-slate-400">{n.message}</p>
+                      {n.time && <span className="block text-[9.5px] font-mono text-slate-500">{n.time}</span>}
+                    </div>
+                  </button>
+                );
+              })
             )}
           </div>
+
+          {/* Footer Action */}
           {notifications.length > 0 && onClearAll && (
-            <div className="mt-1.5 flex justify-end border-t border-white/[0.06] pt-2">
+            <div className="mt-2.5 border-t border-slate-800/80 pt-2 flex justify-between items-center text-[10.5px]">
+              <span className="text-slate-500 font-mono">{notifications.length} total</span>
               <button
                 type="button"
                 onClick={onClearAll}
-                className="text-[10.5px] font-medium text-slate-500 transition-colors hover:text-slate-300"
+                className="font-bold text-rose-400 hover:text-rose-350 transition cursor-pointer flex items-center gap-1"
               >
-                Clear all
+                <Trash2 size={11} />
+                Clear All Notifications
               </button>
             </div>
           )}

@@ -96,10 +96,12 @@ export default function MarkdownEditor({
   };
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
-      <MarkdownToolbar onAction={handleAction} />
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden rounded-lg border border-slate-700 bg-slate-900 h-full min-h-[260px]">
+      <div className="shrink-0">
+        <MarkdownToolbar onAction={handleAction} />
+      </div>
 
-      <div className="flex sm:hidden border-b border-slate-800">
+      <div className="flex sm:hidden border-b border-slate-800 shrink-0">
         {[
           { id: "edit", label: "Edit", icon: Pencil },
           { id: "preview", label: "Preview", icon: Eye },
@@ -118,21 +120,21 @@ export default function MarkdownEditor({
         ))}
       </div>
 
-      <div className="grid sm:grid-cols-2 sm:divide-x divide-slate-800">
-        <div className={mobileTab === "edit" ? "block" : "hidden sm:block"}>
+      <div className="flex-1 min-h-0 grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-800 overflow-hidden">
+        <div className={`flex-1 min-h-0 h-full flex flex-col overflow-hidden ${mobileTab === "edit" ? "flex" : "hidden sm:flex"}`}>
           <textarea
             ref={textareaRef}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            style={{ minHeight }}
-            className="w-full resize-y bg-slate-900 px-4 py-3 font-mono text-sm text-slate-200 outline-none placeholder:text-slate-600"
+            className="w-full flex-1 min-h-0 overflow-y-auto resize-none bg-slate-900 px-4 py-3 font-mono text-sm text-slate-200 outline-none placeholder:text-slate-600"
+            style={{ minHeight: `${minHeight}px` }}
           />
         </div>
 
         <div
-          className={`overflow-y-auto bg-slate-950/60 px-4 py-3 ${mobileTab === "preview" ? "block" : "hidden sm:block"}`}
-          style={{ minHeight, maxHeight: minHeight * 2 }}
+          className={`flex-1 min-h-0 h-full overflow-y-auto bg-slate-950/60 px-4 py-3 ${mobileTab === "preview" ? "block" : "hidden sm:block"}`}
+          style={{ minHeight: `${minHeight}px` }}
         >
           <MarkdownRenderer source={value} emptyText="Nothing to preview yet." />
         </div>

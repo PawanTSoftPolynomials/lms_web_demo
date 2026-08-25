@@ -51,11 +51,20 @@ import { useConceptMastery } from "@/hooks/queries/instructor/useInstructorDashb
 import { useToast } from "@/components/ui/ToastProvider";
 import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
 import { validateCoursePublish, duplicateCourse } from "@/services/course.service";
+import { createQuiz as createQuizService, updateQuiz as updateQuizService, deleteQuiz as deleteQuizService } from "@/services/quiz.service";
+import {
+  bulkCreateQuestions as bulkCreateQuestionsService,
+  updateRepositoryQuestion,
+  removeQuestionFromQuiz as removeQuestionFromQuizService,
+  importQuestionsToQuiz as importQuestionsToQuizService,
+} from "@/services/questionRepository.service";
 
 import { CourseComposerHeader } from "@/components/instructor/courses/CourseComposerHeader";
 import { CourseComposerSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
 import { CourseOverviewView } from "@/components/instructor/courses/CourseOverviewView";
+import { ModuleOverviewView } from "@/components/instructor/courses/ModuleOverviewView";
 import { LessonOverviewView } from "@/components/instructor/courses/LessonOverviewView";
+import { QuizOverviewView } from "@/components/instructor/courses/QuizOverviewView";
 import { EntityFormModal } from "@/components/instructor/courses/EntityFormModal";
 import { PublishValidationModal } from "@/components/instructor/courses/PublishValidationModal";
 import { UnpublishModal } from "@/components/instructor/courses/UnpublishModal";
@@ -108,11 +117,15 @@ export default function CourseDetailsPage() {
   // Global View Mode: 'rendered' | 'edit'
   const [globalMode, setGlobalMode] = useState("rendered");
 
-  // Active Workspace Selection: 'course' | 'lesson' | 'module' | 'topic'
+  // Active Workspace Selection: 'course' | 'lesson' | 'module' | 'topic' | 'quiz'
   const [composerMode, setComposerMode] = useState("course");
+  const [quizMode, setQuizMode] = useState("view"); // "view" | "edit" | "create"
   const [composeLessonId, setComposeLessonId] = useState(searchParams.get("compose") || null);
   const [composeModuleId, setComposeModuleId] = useState(null);
   const [composeTopicId, setComposeTopicId] = useState(null);
+  const [composeQuizId, setComposeQuizId] = useState(null);
+  const [selectedQuizState, setSelectedQuizState] = useState(null);
+  const [quizStartEditing, setQuizStartEditing] = useState(false);
   const [selectedCellId, setSelectedCellId] = useState(null);
 
   // Edit Mode for Metadata Headers
@@ -150,16 +163,40 @@ export default function CourseDetailsPage() {
   const isDraftMode = courseId === "draft" || courseId === "new";
   const [draftData, setDraftData] = useState(null);
   const [draftModules, setDraftModules] = useState([]);
+  const [draftQuizzes, setDraftQuizzes] = useState([]);
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
 
-  // Ensures all modules, lessons, topics, and contents have non-empty string IDs in draft mode
-  const ensureDraftIds = (modules = []) =>
-    modules.map((mod, mIdx) => {
+  // Ensures all modules, lessons, topics, contents, and quizzes have non-empty string IDs in draft mode
+  const ensureDraftIds = (modules = [], courseQuizzes = []) => {
+    const mappedQuizzes = (courseQuizzes || []).map((quiz, qIdx) => {
+      const qzId = quiz.id || `draft-quiz-course-${qIdx + 1}`;
+      return {
+        ...quiz,
+        id: qzId,
+        questions: (quiz.questions || []).map((q, quIdx) => ({
+          ...q,
+          id: q.id || `draft-que-${qzId}-${quIdx + 1}`,
+        })),
+      };
+    });
+
+    const mappedModules = (modules || []).map((mod, mIdx) => {
       const modId = mod.id || `draft-mod-${mIdx + 1}`;
       return {
         ...mod,
         id: modId,
+        quizzes: (mod.quizzes || []).map((quiz, qIdx) => {
+          const qzId = quiz.id || `draft-quiz-mod-${mIdx + 1}-${qIdx + 1}`;
+          return {
+            ...quiz,
+            id: qzId,
+            questions: (quiz.questions || []).map((q, quIdx) => ({
+              ...q,
+              id: q.id || `draft-que-${qzId}-${quIdx + 1}`,
+            })),
+          };
+        }),
         lessons: (mod.lessons || []).map((les, lIdx) => {
           const lesId = les.id || `draft-les-${mIdx + 1}-${lIdx + 1}`;
           return {
@@ -181,6 +218,9 @@ export default function CourseDetailsPage() {
       };
     });
 
+    return { modules: mappedModules, quizzes: mappedQuizzes };
+  };
+
   // Load temporary draft from sessionStorage if in draft mode
   useEffect(() => {
     if (isDraftMode) {
@@ -189,7 +229,11 @@ export default function CourseDetailsPage() {
         if (raw) {
           const parsed = JSON.parse(raw);
           setDraftData(parsed);
-          setDraftModules(ensureDraftIds(parsed.modules || []));
+          const inputModules = parsed.modules || parsed.canonicalJson?.modules || [];
+          const inputQuizzes = parsed.quizzes || parsed.canonicalJson?.quizzes || [];
+          const { modules: mappedMods, quizzes: mappedQuiz } = ensureDraftIds(inputModules, inputQuizzes);
+          setDraftModules(mappedMods);
+          setDraftQuizzes(mappedQuiz);
           setCourseForm({
             title: parsed.metadata?.title || "Imported Course",
             subtitle: parsed.metadata?.description || "",
@@ -227,6 +271,10 @@ export default function CourseDetailsPage() {
     }
   }, [isDraftMode, course]);
 
+  const effectiveCourseQuizzes = isDraftMode
+    ? draftQuizzes
+    : (course?.quizzes || []).filter((q) => !q.moduleId);
+
   const effectiveCourse = isDraftMode
     ? (draftData ? {
         id: "draft",
@@ -237,23 +285,504 @@ export default function CourseDetailsPage() {
         thumbnailUrl: courseForm.thumbnailUrl || draftData.metadata?.thumbnailUrl || null,
         status: "DRAFT",
         isImportDraft: true,
+        quizzes: effectiveCourseQuizzes,
       } : null)
-    : course;
+    : (course ? { ...course, quizzes: effectiveCourseQuizzes } : null);
 
-  const effectiveModules = isDraftMode ? draftModules : modules;
+  const effectiveModules = isDraftMode
+    ? draftModules
+    : (modules || []).map((mod) => ({
+        ...mod,
+        // "Module quizzes" excludes any quiz that's actually scoped to one of
+        // this module's lessons (has a lessonId) — those render under their
+        // owning lesson instead, via the lessons.map below, so a quiz never
+        // shows up twice.
+        quizzes: mod.quizzes || (course?.quizzes || []).filter(
+          (q) => q.moduleId && !q.lessonId && (String(q.moduleId) === String(mod.id) || String(q.moduleId) === String(mod._id))
+        ),
+        lessons: (mod.lessons || []).map((lesson) => ({
+          ...lesson,
+          // Excludes any quiz scoped to one of this lesson's topics (has a
+          // topicId) — those render under their owning topic instead, via
+          // the topics.map below, so a quiz never shows up twice.
+          quizzes: lesson.quizzes || (course?.quizzes || []).filter(
+            (q) => q.lessonId && !q.topicId && (String(q.lessonId) === String(lesson.id) || String(q.lessonId) === String(lesson._id))
+          ),
+          topics: (lesson.topics || []).map((topic) => ({
+            ...topic,
+            quizzes: topic.quizzes || (course?.quizzes || []).filter(
+              (q) => q.topicId && (String(q.topicId) === String(topic.id) || String(q.topicId) === String(topic._id))
+            ),
+          })),
+        })),
+      }));
   const effectiveLoading = isDraftMode ? (!draftLoaded || !draftData) : (courseLoading || modulesLoading);
   const effectiveError = isDraftMode ? (draftLoaded && !draftData) : (courseError || !course);
 
   // Selection Handlers
   const handleSelectCourseOverview = () => {
     setComposerMode("course");
+    setQuizMode("view");
     setComposeLessonId(null);
     setComposeModuleId(null);
+    setComposeQuizId(null);
+    setSelectedQuizState(null);
+    setQuizStartEditing(false);
     setMobileSidebarOpen(false);
+  };
+
+  const handleSelectQuiz = (quiz, mod = null, lesson = null, options = {}) => {
+    if (!quiz) return;
+    const qId = quiz.id || quiz._id;
+    setComposeQuizId(qId);
+    setSelectedQuizState(quiz);
+    if (mod) {
+      setComposeModuleId(mod.id || mod._id);
+    } else if (quiz.moduleId) {
+      setComposeModuleId(quiz.moduleId);
+    } else {
+      setComposeModuleId(null);
+    }
+    if (lesson) {
+      setComposeLessonId(lesson.id || lesson._id);
+    } else if (quiz.lessonId) {
+      setComposeLessonId(quiz.lessonId);
+    } else {
+      setComposeLessonId(null);
+    }
+    setComposeTopicId(quiz.topicId || null);
+    setQuizMode(options?.startEditing ? "edit" : "view");
+    setComposerMode("quiz");
+    setQuizStartEditing(options?.startEditing || false);
+    setMobileSidebarOpen(false);
+  };
+
+  const handleAddModuleQuiz = (mod) => {
+    const targetModuleId = mod?.id || mod?._id || composeModuleId;
+    setComposeModuleId(targetModuleId);
+    setComposeLessonId(null);
+    setComposeTopicId(null);
+    setComposeQuizId(null);
+    setSelectedQuizState(null);
+    setQuizMode("create");
+    setComposerMode("quiz");
+    setQuizStartEditing(true);
+    setMobileSidebarOpen(false);
+  };
+
+  const handleAddLessonQuiz = (lesson, mod = null) => {
+    const targetModuleId = mod?.id || mod?._id || composeModuleId;
+    setComposeModuleId(targetModuleId || null);
+    setComposeLessonId(lesson?.id || lesson?._id || null);
+    setComposeTopicId(null);
+    setComposeQuizId(null);
+    setSelectedQuizState(null);
+    setQuizMode("create");
+    setComposerMode("quiz");
+    setQuizStartEditing(true);
+    setMobileSidebarOpen(false);
+  };
+
+  const handleAddTopicQuiz = (topic, lesson = null, mod = null) => {
+    const targetLessonId = lesson?.id || lesson?._id || composeLessonId;
+    const targetModuleId = mod?.id || mod?._id || composeModuleId;
+    setComposeModuleId(targetModuleId || null);
+    setComposeLessonId(targetLessonId || null);
+    setComposeTopicId(topic?.id || topic?._id || null);
+    setComposeQuizId(null);
+    setSelectedQuizState(null);
+    setQuizMode("create");
+    setComposerMode("quiz");
+    setQuizStartEditing(true);
+    setMobileSidebarOpen(false);
+  };
+
+  // QuizOverviewView's editor authors questions inline as local state — they
+  // aren't Content rows, they're real Question-repository entities linked to
+  // the quiz via QuizQuestion, so saving the quiz metadata alone (the plain
+  // createQuizService/updateQuizService calls below) never persisted them.
+  // This maps that local question shape onto what /questions/bulk and
+  // /questions/:id expect.
+  const mapQuestionForApi = (q) => ({
+    question: q.question,
+    questionType: q.questionType,
+    options: q.options,
+    correctAnswer: q.correctAnswer,
+    explanation: q.explanation,
+    marks: Number(q.marks) || 1,
+    difficulty: q.difficulty,
+  });
+
+  // Diffs the editor's current question list against what the quiz actually
+  // had before this save (empty for a brand-new quiz): new rows (no id, or a
+  // locally-generated "draft-que-" id) get bulk-created and attached; rows
+  // that already existed get their fields updated in place; anything that
+  // existed before but isn't in the current list anymore gets unlinked.
+  const syncQuizQuestions = async (quizId, currentQuestions, originalQuestionIds) => {
+    const isNew = (q) => !q.id || String(q.id).startsWith("draft-");
+    const originalIdSet = new Set((originalQuestionIds || []).map(String));
+
+    const newQuestions = (currentQuestions || []).filter(isNew);
+    const existingQuestions = (currentQuestions || []).filter((q) => !isNew(q));
+    // A repository question picked via "From Repository" already has a real
+    // id but wasn't linked to this quiz before this save — attach it as-is
+    // rather than overwriting its (possibly shared, used-elsewhere) content.
+    // Only a question that was already this quiz's own gets its edits saved.
+    const alreadyLinkedQuestions = existingQuestions.filter((q) => originalIdSet.has(String(q.id)));
+    const newlyAttachedQuestionIds = existingQuestions
+      .filter((q) => !originalIdSet.has(String(q.id)))
+      .map((q) => q.id);
+
+    const keptIds = new Set(existingQuestions.map((q) => String(q.id)));
+    const removedIds = (originalQuestionIds || []).filter((id) => !keptIds.has(String(id)));
+
+    if (newQuestions.length > 0) {
+      await bulkCreateQuestionsService(quizId, newQuestions.map(mapQuestionForApi));
+    }
+    if (newlyAttachedQuestionIds.length > 0) {
+      await importQuestionsToQuizService(quizId, newlyAttachedQuestionIds);
+    }
+    for (const q of alreadyLinkedQuestions) {
+      await updateRepositoryQuestion(q.id, mapQuestionForApi(q));
+    }
+    for (const id of removedIds) {
+      await removeQuestionFromQuizService(quizId, id);
+    }
+  };
+
+  const handleSaveQuiz = async (updatedQuizData) => {
+    if (isDraftMode) {
+      let createdQuiz;
+      if (quizMode === "create" || !selectedQuizState) {
+        const isLessonQuiz = Boolean(composeLessonId);
+        createdQuiz = {
+          id: `draft-quiz-${isLessonQuiz ? "lesson" : "mod"}-${Date.now()}`,
+          title: updatedQuizData.title || (isLessonQuiz ? "Lesson Quiz" : "Module Quiz"),
+          description: updatedQuizData.description || "",
+          passingScore: Number(updatedQuizData.passingScore) || 70,
+          timeLimit: Number(updatedQuizData.timeLimit) || 30,
+          isPublished: updatedQuizData.isPublished !== false,
+          moduleId: composeModuleId,
+          lessonId: composeLessonId || null,
+          scope: isLessonQuiz ? "LESSON" : "MODULE",
+          questions: updatedQuizData.questions || [],
+        };
+
+        const nextDraftModules = draftModules.map((m) => {
+          if (m.id !== composeModuleId) return m;
+          if (isLessonQuiz) {
+            return {
+              ...m,
+              lessons: (m.lessons || []).map((l) =>
+                l.id === composeLessonId
+                  ? { ...l, quizzes: [...(l.quizzes || []), createdQuiz] }
+                  : l
+              ),
+            };
+          }
+          return {
+            ...m,
+            quizzes: [...(m.quizzes || []), createdQuiz],
+          };
+        });
+
+        setDraftModules(nextDraftModules);
+
+        if (draftData) {
+          const updatedDraft = {
+            ...draftData,
+            modules: nextDraftModules,
+          };
+          setDraftData(updatedDraft);
+          sessionStorage.setItem("imported_course_draft", JSON.stringify(updatedDraft));
+        }
+
+        showToast(isLessonQuiz ? "Lesson quiz created in draft!" : "Module quiz created in draft!", "success");
+      } else {
+        const targetId = selectedQuizState.id || selectedQuizState._id || composeQuizId;
+        const isCourseQuiz = draftQuizzes.some(
+          (q) => targetId && (String(q.id || q._id) === String(targetId))
+        );
+        const isLessonQuiz = !isCourseQuiz && Boolean(composeLessonId || selectedQuizState.lessonId);
+
+        let nextDraftQuizzes = [...draftQuizzes];
+        let nextDraftModules = [...draftModules];
+
+        if (isCourseQuiz || (!composeModuleId && !isLessonQuiz)) {
+          nextDraftQuizzes = nextDraftQuizzes.map((q) => {
+            if (targetId && String(q.id || q._id) === String(targetId)) {
+              return { ...q, ...updatedQuizData };
+            }
+            return q;
+          });
+          createdQuiz = { ...selectedQuizState, ...updatedQuizData };
+        } else if (isLessonQuiz) {
+          nextDraftModules = nextDraftModules.map((mod) => ({
+            ...mod,
+            lessons: (mod.lessons || []).map((l) => {
+              if (!(l.quizzes || []).some((q) => targetId && String(q.id || q._id) === String(targetId))) {
+                return l;
+              }
+              return {
+                ...l,
+                quizzes: (l.quizzes || []).map((q) =>
+                  targetId && String(q.id || q._id) === String(targetId) ? { ...q, ...updatedQuizData } : q
+                ),
+              };
+            }),
+          }));
+          createdQuiz = { ...selectedQuizState, ...updatedQuizData };
+        } else {
+          nextDraftModules = nextDraftModules.map((mod) => {
+            if (mod.id === composeModuleId || (mod.quizzes || []).some((q) => targetId && String(q.id || q._id) === String(targetId))) {
+              const updatedQuizzes = (mod.quizzes || []).map((q) => {
+                if (targetId && String(q.id || q._id) === String(targetId)) {
+                  return { ...q, ...updatedQuizData };
+                }
+                return q;
+              });
+              return { ...mod, quizzes: updatedQuizzes };
+            }
+            return mod;
+          });
+          createdQuiz = { ...selectedQuizState, ...updatedQuizData };
+        }
+
+        setDraftQuizzes(nextDraftQuizzes);
+        setDraftModules(nextDraftModules);
+
+        if (draftData) {
+          const updatedDraft = {
+            ...draftData,
+            quizzes: nextDraftQuizzes,
+            modules: nextDraftModules,
+          };
+          setDraftData(updatedDraft);
+          sessionStorage.setItem("imported_course_draft", JSON.stringify(updatedDraft));
+        }
+
+        showToast("Quiz updated in draft!", "success", "Saved");
+      }
+
+      setSelectedQuizState(createdQuiz);
+      setComposeQuizId(createdQuiz.id);
+      setQuizMode("view");
+    } else {
+      // Saved Course Mode (via REST API)
+      if (quizMode === "create" || !selectedQuizState) {
+        try {
+          const resQuiz = await createQuizService({
+            title: updatedQuizData.title || (composeTopicId ? "Topic Quiz" : composeLessonId ? "Lesson Quiz" : "Module Quiz"),
+            description: updatedQuizData.description || "",
+            passingScore: Number(updatedQuizData.passingScore) || 70,
+            timeLimit: Number(updatedQuizData.timeLimit) || 30,
+            isPublished: updatedQuizData.isPublished !== false,
+            courseId,
+            moduleId: composeModuleId || null,
+            lessonId: composeLessonId || null,
+            questions: updatedQuizData.questions || [],
+          });
+
+          if (updatedQuizData.questions?.length > 0) {
+            try {
+              await syncQuizQuestions(resQuiz.id, updatedQuizData.questions, []);
+            } catch (qErr) {
+              console.error("Save Quiz Questions Error:", qErr);
+              showToast(qErr?.response?.data?.message || "Quiz created, but some questions failed to save.", "error");
+            }
+          }
+
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
+
+          showToast(composeTopicId ? "Topic quiz created successfully!" : composeLessonId ? "Lesson quiz created successfully!" : "Module quiz created successfully!", "success");
+          setSelectedQuizState(resQuiz);
+          setComposeQuizId(resQuiz.id);
+          setQuizMode("view");
+        } catch (err) {
+          console.error("Create Quiz Error:", err);
+          showToast(err?.response?.data?.message || "Failed to create quiz.", "error");
+        }
+      } else {
+        const targetId = selectedQuizState.id || selectedQuizState._id || composeQuizId;
+        try {
+          const resQuiz = await updateQuizService(targetId, {
+            title: updatedQuizData.title,
+            description: updatedQuizData.description,
+            passingScore: Number(updatedQuizData.passingScore),
+            timeLimit: Number(updatedQuizData.timeLimit),
+            isPublished: updatedQuizData.isPublished,
+            courseId,
+            moduleId: composeModuleId || selectedQuizState.moduleId || null,
+            lessonId: composeLessonId || selectedQuizState.lessonId || null,
+            topicId: composeTopicId || selectedQuizState.topicId || null,
+          });
+
+          const updatedQuiz = resQuiz || { ...selectedQuizState, ...updatedQuizData };
+
+          try {
+            const originalQuestionIds = (selectedQuizState.quizQuestions || [])
+              .map((qq) => qq.question?.id || qq.questionId)
+              .filter(Boolean);
+            await syncQuizQuestions(targetId, updatedQuizData.questions || [], originalQuestionIds);
+          } catch (qErr) {
+            console.error("Save Quiz Questions Error:", qErr);
+            showToast(qErr?.response?.data?.message || "Quiz updated, but some questions failed to save.", "error");
+          }
+
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
+
+          showToast("Quiz updated successfully!", "success");
+          setSelectedQuizState(updatedQuiz);
+          setQuizMode("view");
+        } catch (err) {
+          console.error("Update Quiz Error:", err);
+          showToast(err?.response?.data?.message || "Failed to update quiz.", "error");
+        }
+      }
+    }
+  };
+
+  const handleDuplicateQuiz = async (quiz, mod = null, lesson = null) => {
+    const dupId = `draft-quiz-${lesson ? "lesson" : mod ? "mod" : "course"}-${Date.now()}`;
+    const duplicatedQuiz = {
+      ...quiz,
+      id: dupId,
+      title: `${quiz.title || "Quiz"} (Copy)`,
+      questions: (quiz.questions || (quiz.quizQuestions || []).map((qq) => qq.question) || []).map((q, qIdx) => ({
+        ...q,
+        id: `draft-que-${dupId}-${qIdx + 1}`,
+      })),
+    };
+
+    if (isDraftMode) {
+      let nextDraftQuizzes = [...draftQuizzes];
+      let nextDraftModules = [...draftModules];
+
+      if (lesson && mod) {
+        nextDraftModules = nextDraftModules.map((m) =>
+          m.id === mod.id
+            ? {
+                ...m,
+                lessons: (m.lessons || []).map((l) =>
+                  l.id === lesson.id ? { ...l, quizzes: [...(l.quizzes || []), duplicatedQuiz] } : l
+                ),
+              }
+            : m
+        );
+      } else if (!mod) {
+        nextDraftQuizzes.push(duplicatedQuiz);
+      } else {
+        nextDraftModules = nextDraftModules.map((m) => {
+          if (m.id === mod.id) {
+            return {
+              ...m,
+              quizzes: [...(m.quizzes || []), duplicatedQuiz],
+            };
+          }
+          return m;
+        });
+      }
+
+      setDraftQuizzes(nextDraftQuizzes);
+      setDraftModules(nextDraftModules);
+
+      if (draftData) {
+        const updatedDraft = {
+          ...draftData,
+          quizzes: nextDraftQuizzes,
+          modules: nextDraftModules,
+        };
+        setDraftData(updatedDraft);
+        sessionStorage.setItem("imported_course_draft", JSON.stringify(updatedDraft));
+      }
+
+      showToast("Quiz duplicated in draft!", "success");
+      handleSelectQuiz(duplicatedQuiz, mod, lesson, { startEditing: false });
+    } else {
+      try {
+        await api.post("/quizzes", {
+          ...quiz,
+          title: `${quiz.title || "Quiz"} (Copy)`,
+          courseId,
+          moduleId: mod?.id || null,
+          lessonId: lesson?.id || null,
+        });
+        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
+        showToast("Quiz duplicated successfully!", "success");
+      } catch (err) {
+        showToast("Failed to duplicate quiz.", "error");
+      }
+    }
+  };
+
+  const handleDeleteQuiz = async (e, quiz, mod = null, lesson = null) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm(`Are you sure you want to delete "${quiz.title || "this quiz"}"?`)) return;
+
+    if (isDraftMode) {
+      const qTargetId = quiz.id || quiz._id;
+      let nextDraftQuizzes = draftQuizzes.filter((q) => String(q.id || q._id) !== String(qTargetId));
+      let nextDraftModules = draftModules.map((m) => {
+        if (lesson && mod && m.id === mod.id) {
+          return {
+            ...m,
+            lessons: (m.lessons || []).map((l) =>
+              l.id === lesson.id
+                ? { ...l, quizzes: (l.quizzes || []).filter((q) => String(q.id || q._id) !== String(qTargetId)) }
+                : l
+            ),
+          };
+        }
+        if (!lesson && mod && m.id === mod.id) {
+          return {
+            ...m,
+            quizzes: (m.quizzes || []).filter((q) => String(q.id || q._id) !== String(qTargetId)),
+          };
+        }
+        return m;
+      });
+
+      setDraftQuizzes(nextDraftQuizzes);
+      setDraftModules(nextDraftModules);
+
+      if (draftData) {
+        const updatedDraft = {
+          ...draftData,
+          quizzes: nextDraftQuizzes,
+          modules: nextDraftModules,
+        };
+        setDraftData(updatedDraft);
+        sessionStorage.setItem("imported_course_draft", JSON.stringify(updatedDraft));
+      }
+
+      showToast("Quiz deleted from draft!", "info");
+
+      if (composeQuizId && String(composeQuizId) === String(qTargetId)) {
+        handleSelectCourseOverview();
+      }
+    } else {
+      try {
+        const qTargetId = quiz.id || quiz._id;
+        if (qTargetId && !String(qTargetId).startsWith("draft-")) {
+          await deleteQuizService(qTargetId);
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
+        }
+        showToast("Quiz deleted successfully!", "success");
+        if (composeQuizId && String(composeQuizId) === String(qTargetId)) {
+          handleSelectCourseOverview();
+        }
+      } catch (err) {
+        showToast("Failed to delete quiz from server.", "error");
+      }
+    }
   };
 
   const handleSelectLesson = (lessonId) => {
     setComposeLessonId(lessonId);
+    setComposeTopicId(null);
+    setComposeQuizId(null);
     setComposerMode("lesson");
 
     const { lesson: foundLesson, module: foundModule } = findModuleAndLessonById(effectiveModules, lessonId);
@@ -272,10 +801,10 @@ export default function CourseDetailsPage() {
 
   const handleSelectModule = (mod, lessonId = null) => {
     setComposeModuleId(mod.id);
+    setComposeLessonId(lessonId);
+    setComposeTopicId(null);
+    setComposeQuizId(null);
     setComposerMode("module");
-    if (lessonId) {
-      setComposeLessonId(lessonId);
-    }
     setMobileSidebarOpen(false);
   };
 
@@ -283,6 +812,7 @@ export default function CourseDetailsPage() {
     setComposeTopicId(topicId);
     setComposeLessonId(lessonId);
     setComposeModuleId(moduleId);
+    setComposeQuizId(null);
     setComposerMode("topic");
     setMobileSidebarOpen(false);
   };
@@ -291,6 +821,7 @@ export default function CourseDetailsPage() {
     setComposeTopicId(topic.id);
     setComposeLessonId(lesson.id);
     setComposeModuleId(mod.id);
+    setComposeQuizId(null);
     setComposerMode("topic");
     setSelectedCellId(content.id);
     setMobileSidebarOpen(false);
@@ -328,8 +859,35 @@ export default function CourseDetailsPage() {
   const { module: composingModule, lesson: composingLesson } =
     findModuleAndLessonById(effectiveModules, composeLessonId);
 
-  const activeModuleObj = composingModule || effectiveModules.find((m) => m.id === composeModuleId) || effectiveModules[0];
+  const activeModuleObj =
+    effectiveModules.find((m) => m.id === composeModuleId) ||
+    composingModule ||
+    effectiveModules[0];
   const composingTopic = composingLesson?.topics?.find((t) => t.id === composeTopicId);
+  const quizzesById = new Map();
+  const allRawQuizzes = [
+    ...(course?.quizzes || []),
+    ...(effectiveCourseQuizzes || []),
+    ...(draftQuizzes || []),
+    ...(modules || []).flatMap((m) => m.quizzes || []),
+    ...(effectiveModules || []).flatMap((m) => m.quizzes || []),
+    ...(draftModules || []).flatMap((m) => m.quizzes || []),
+    ...(effectiveModules || []).flatMap((m) => (m.lessons || []).flatMap((l) => l.quizzes || [])),
+    ...(draftModules || []).flatMap((m) => (m.lessons || []).flatMap((l) => l.quizzes || [])),
+    ...(selectedQuizState ? [selectedQuizState] : []),
+  ];
+
+  for (const q of allRawQuizzes) {
+    if (!q) continue;
+    const qKey = q.id ?? q._id;
+    if (qKey !== undefined && qKey !== null) {
+      quizzesById.set(String(qKey), q);
+    }
+  }
+
+  const activeQuizObj = composeQuizId
+    ? (quizzesById.get(String(composeQuizId)) || (selectedQuizState && (String(selectedQuizState.id) === String(composeQuizId) || String(selectedQuizState._id) === String(composeQuizId)) ? selectedQuizState : null))
+    : null;
 
   // Delete Handlers for structural children
   const handleDeleteModule = async (e, mod) => {
@@ -466,6 +1024,7 @@ export default function CourseDetailsPage() {
             thumbnailUrl: courseForm.thumbnailUrl || draftData.metadata?.thumbnailUrl || null,
           },
           settings: draftData.settings || {},
+          quizzes: draftQuizzes.length > 0 ? draftQuizzes : (draftData.quizzes || draftData.canonicalJson?.quizzes || []),
           modules: draftModules,
           assetMap: draftData.assetMap || {}
         };
@@ -640,8 +1199,8 @@ export default function CourseDetailsPage() {
 
   const courseMapEffectivelyOpen = mobileSidebarOpen || isCourseMapOpen;
   const sidebarWrapperClassName = mobileSidebarOpen
-    ? "fixed inset-y-0 left-0 z-50 w-80 bg-slate-950 p-4 shadow-2xl block shrink-0"
-    : `hidden lg:block shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${
+    ? "fixed inset-y-0 left-0 z-50 w-80 bg-slate-950 p-4 shadow-2xl block shrink-0 overflow-y-auto"
+    : `hidden lg:block shrink-0 lg:sticky lg:top-24 transition-[width] duration-300 ease-in-out ${
         isCourseMapOpen ? "w-full lg:w-[320px]" : "w-full lg:w-0"
       }`;
 
@@ -671,14 +1230,19 @@ export default function CourseDetailsPage() {
         <div className={sidebarWrapperClassName}>
           <CourseComposerSidebar
             modules={effectiveModules}
+            courseQuizzes={effectiveCourseQuizzes}
             composerMode={composerMode}
             composeModuleId={composeModuleId}
             composeLessonId={composeLessonId}
             composeTopicId={composeTopicId}
+            composeQuizId={composeQuizId}
             selectedCellId={selectedCellId}
             isOpen={courseMapEffectivelyOpen}
             onToggleOpen={() => setIsCourseMapOpen((v) => !v)}
             onSelectCourseOverview={handleSelectCourseOverview}
+            onSelectQuiz={handleSelectQuiz}
+            onDuplicateQuiz={handleDuplicateQuiz}
+            onDeleteQuiz={handleDeleteQuiz}
             onSelectLesson={handleSelectLesson}
             onSelectModule={handleSelectModule}
             onSelectTopic={handleSelectTopic}
@@ -688,6 +1252,9 @@ export default function CourseDetailsPage() {
             onAddLesson={(targetModuleId) =>
               openEntityModal({ entity: "lesson", mode: "create", parentId: targetModuleId || composeModuleId || modules[0]?.id })
             }
+            onAddQuizToModule={handleAddModuleQuiz}
+            onAddQuizToLesson={handleAddLessonQuiz}
+            onAddQuizToTopic={handleAddTopicQuiz}
             onEditLesson={(lesson, moduleId) => openEntityModal({ entity: "lesson", mode: "edit", entityData: lesson, parentId: moduleId })}
             onAddTopic={(lessonId) => openEntityModal({ entity: "topic", mode: "create", parentId: lessonId })}
             onEditTopic={(topic, lessonId, moduleId) =>
@@ -721,12 +1288,14 @@ export default function CourseDetailsPage() {
               <div>
                 <div className="text-xs font-semibold text-orange-400 mb-0.5">
                   {composerMode === "course" && `Course Overview`}
+                  {composerMode === "quiz" && (quizMode === "create" ? (composeTopicId ? "New Topic Quiz Creation" : composeLessonId ? "New Lesson Quiz Creation" : "New Module Quiz Creation") : `Quiz Overview`)}
                   {composerMode === "lesson" && `Lesson: ${composingLesson?.title || "Lesson Overview"}`}
                   {composerMode === "module" && `Module: ${activeModuleObj?.title || "Module Cells"}`}
                   {composerMode === "topic" && `Topic: ${composingTopic?.title || "Topic Composer"}`}
                 </div>
                 <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
                   {composerMode === "course" && (effectiveCourse?.title || "Course Overview Header")}
+                  {composerMode === "quiz" && (quizMode === "create" ? `Create Quiz for ${composeTopicId ? (composingTopic?.title || "Topic") : composeLessonId ? (composingLesson?.title || "Lesson") : (activeModuleObj?.title || "Module")}` : (activeQuizObj?.title || "Quiz Details"))}
                   {composerMode === "lesson" && (composingLesson?.title || "Lesson Overview Header")}
                   {composerMode === "module" && (activeModuleObj?.title || "Module Cells Notebook")}
                   {composerMode === "topic" && (composingTopic?.title || "Topic Cells Notebook")}
@@ -761,7 +1330,20 @@ export default function CourseDetailsPage() {
                 isSaving={isDraftMode ? isSavingDraft : updateCourseMutation.isPending}
                 modules={effectiveModules}
                 onSelectModule={handleSelectModule}
+                onSelectQuiz={handleSelectQuiz}
                 onAddModule={() => openEntityModal({ entity: "module", mode: "create", courseId })}
+              />
+            )}
+
+            {composerMode === "quiz" && (
+              <QuizOverviewView
+                quiz={activeQuizObj}
+                quizMode={quizMode}
+                moduleTitle={activeModuleObj?.title}
+                lessonTitle={composeLessonId ? composingLesson?.title : null}
+                onSaveQuiz={handleSaveQuiz}
+                onCancel={handleSelectCourseOverview}
+                startEditing={quizStartEditing}
               />
             )}
 
@@ -790,31 +1372,30 @@ export default function CourseDetailsPage() {
                   }
                 }}
                 isSaving={isDraftMode ? isSavingDraft : updateLessonMutation.isPending}
-                modules={effectiveModules.filter((m) =>
-                  (m.lessons || []).some((l) => l.id === composeLessonId)
-                )}
-                onSelectModule={handleSelectModule}
-                onAddModule={() => openEntityModal({ entity: "module", mode: "create", courseId })}
+                topics={composingLesson?.topics || []}
+                onSelectTopic={handleSelectTopic}
+                onAddTopic={() => openEntityModal({ entity: "topic", mode: "create", parentId: composeLessonId, moduleId: composeModuleId })}
+                onAddContent={handleAddContentFromSidebar}
+                onEditTopic={(topic) => openEntityModal({ entity: "topic", mode: "edit", entityId: topic.id, initialData: topic, parentId: composeLessonId, moduleId: composeModuleId })}
+                onDeleteTopic={(e, topic, lId) => handleDeleteTopic(e, topic, lId || composeLessonId)}
+                parentModule={activeModuleObj}
+                onSelectLesson={handleSelectLesson}
               />
             )}
 
-            {composerMode === "module" && activeModuleObj && (() => {
-              const effectiveLesson =
-                composingLesson ||
-                activeModuleObj.lessons?.[0] ||
-                effectiveModules.flatMap((m) => m.lessons || [])[0];
-              const effectiveTopic = effectiveLesson?.topics?.[0];
-              const effectiveTopicId = effectiveTopic?.id;
-              return (
-                <LessonComposerPanel
-                  topicId={effectiveTopicId}
-                  selectedCellId={selectedCellId}
-                  onSelectCell={setSelectedCellId}
-                  draftContents={isDraftMode ? effectiveTopic?.contents || [] : undefined}
-                  isDraftMode={isDraftMode}
-                />
-              );
-            })()}
+            {composerMode === "module" && activeModuleObj && (
+              <ModuleOverviewView
+                module={activeModuleObj}
+                onSelectLesson={handleSelectLesson}
+                onAddLesson={(modId) => openEntityModal({ entity: "lesson", mode: "create", parentId: modId })}
+                onEditModule={(mod) => openEntityModal({ entity: "module", mode: "edit", entityId: mod.id, initialData: mod, courseId })}
+                onEditLesson={(les) => openEntityModal({ entity: "lesson", mode: "edit", entityId: les.id, initialData: les, parentId: activeModuleObj.id })}
+                onAddTopic={(lesId) => openEntityModal({ entity: "topic", mode: "create", parentId: lesId, moduleId: activeModuleObj.id })}
+                onDeleteLesson={handleDeleteLesson}
+                allModules={effectiveModules}
+                onSelectModule={handleSelectModule}
+              />
+            )}
 
             {composerMode === "topic" && (
               <LessonComposerPanel
@@ -822,8 +1403,27 @@ export default function CourseDetailsPage() {
                 selectedCellId={selectedCellId}
                 onSelectCell={setSelectedCellId}
                 autoOpenAddSignal={autoOpenAddSignal}
+                onAddQuiz={composingTopic ? () => handleAddTopicQuiz(composingTopic, composingLesson, composingModule) : undefined}
                 draftContents={isDraftMode ? composingTopic?.contents || [] : undefined}
                 isDraftMode={isDraftMode}
+                onUpdateDraftContents={(newContents) => {
+                  if (!isDraftMode || !composeTopicId) return;
+                  const nextDraftModules = draftModules.map((m) => ({
+                    ...m,
+                    lessons: (m.lessons || []).map((l) => ({
+                      ...l,
+                      topics: (l.topics || []).map((t) =>
+                        t.id === composeTopicId ? { ...t, contents: newContents } : t
+                      ),
+                    })),
+                  }));
+                  setDraftModules(nextDraftModules);
+                  if (draftData) {
+                    const updatedDraft = { ...draftData, modules: nextDraftModules };
+                    setDraftData(updatedDraft);
+                    sessionStorage.setItem("imported_course_draft", JSON.stringify(updatedDraft));
+                  }
+                }}
               />
             )}
           </div>

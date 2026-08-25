@@ -21,7 +21,7 @@ export function groupLessonContentForDocumentView(contents) {
   for (const item of items) {
     const last = grouped[grouped.length - 1];
 
-    if (item?.type === "HTML" && last?.type === "HTML" && last.__merged) {
+    if (item?.type === "HTML" && last?.type === "HTML" && last.__merged && last.topicId === item.topicId) {
       last.htmlContent = [last.htmlContent, item.htmlContent].filter(Boolean).join("\n");
       if (!last.title && item.title) last.title = item.title;
       continue;

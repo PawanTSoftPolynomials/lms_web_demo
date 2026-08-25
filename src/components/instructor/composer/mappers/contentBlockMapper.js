@@ -15,7 +15,6 @@ export const TYPE_TO_CONTENT_TYPE = {
   slideshow: "PRESENTATION",
   chart: "EMBED",
   interactive: "INTERACTIVE_LAB",
-  quiz: "EMBED",
   audio: "AUDIO",
   document: "DOCUMENT",
   link: "LINK",
@@ -65,9 +64,6 @@ export function toContentPayload(block, { lessonId, order, parentContentId }) {
       break;
     case "interactive":
       payload.externalUrl = block.url || null;
-      break;
-    case "quiz":
-      payload.htmlContent = renderMarkdownHtml(block.question);
       break;
     case "audio":
       payload.fileUrl = block.url || null;

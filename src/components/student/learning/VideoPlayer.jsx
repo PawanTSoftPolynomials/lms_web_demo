@@ -127,8 +127,15 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
         const initializePlayer = () => {
             if (!containerRef.current) return;
-            containerRef.current.innerHTML = "<div id='yt-player-el' class='w-full h-full'></div>";
-            player = new window.YT.Player("yt-player-el", {
+            // A shared/hardcoded id here would collide across every VideoPlayer
+            // instance mounted at once (a lesson typically renders one per
+            // topic's video) — YT.Player would then only ever find the first
+            // one in the document. Passing the element itself sidesteps that.
+            containerRef.current.innerHTML = "";
+            const target = document.createElement("div");
+            target.className = "w-full h-full";
+            containerRef.current.appendChild(target);
+            player = new window.YT.Player(target, {
                 height: "100%",
                 width: "100%",
                 videoId: videoId,

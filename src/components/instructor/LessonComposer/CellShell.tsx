@@ -81,6 +81,11 @@ export function CellShell({
     "group-hover:opacity-100 group-hover:pointer-events-auto",
     showControls && "opacity-100 pointer-events-auto"
   );
+  const addControlsVisible = cn(
+    "opacity-0 pointer-events-none transition-opacity duration-150",
+    "group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto",
+    mode === "edit" && "opacity-100 pointer-events-auto"
+  );
 
   return (
     <div
@@ -102,7 +107,7 @@ export function CellShell({
           }}
           className={cn(
             "absolute -top-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-slate-800 bg-slate-950 px-2.5 py-1 text-[10px] font-bold text-slate-400 shadow-md transition-colors hover:border-orange-500 hover:bg-orange-500 hover:text-slate-950 cursor-pointer",
-            hoverVisible
+            addControlsVisible
           )}
           title="Add block above"
         >
@@ -254,7 +259,7 @@ export function CellShell({
           }}
           className={cn(
             "absolute -bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-slate-800 bg-slate-950 px-2.5 py-1 text-[10px] font-bold text-slate-400 shadow-md transition-colors hover:border-orange-500 hover:bg-orange-500 hover:text-slate-950 cursor-pointer",
-            hoverVisible
+            addControlsVisible
           )}
           title="Add block below"
         >

@@ -1,17 +1,27 @@
 "use client";
 
 import { useState, type ComponentType } from "react";
-import { ArrowLeft, Layers, Upload } from "lucide-react";
+import {
+  ArrowLeft,
+  File,
+  FileText,
+  HelpCircle,
+  Image as ImageIcon,
+  Layers,
+  MonitorPlay,
+  Presentation as PresentationIcon,
+  Upload,
+  Video as VideoIcon
+} from "lucide-react";
 
 import Modal from "@/components/ui/Modal";
 
 import { CreateTextForm } from "./cells/TextCell";
-import { CreateHeadingForm } from "./cells/HeadingCell";
 import { CreateImageForm } from "./cells/ImageCell";
 import { CreateVideoForm } from "./cells/VideoCell";
-import { CreateLinkForm } from "./cells/LinkCell";
 import { CreateFileForm } from "./cells/DocumentCell";
-import { CELL_TYPES, type CellTypeId } from "./cellTypes";
+import { CreateInteractiveForm } from "./cells/InteractiveCell";
+import type { CellTypeId } from "./cellTypes";
 import type { CreateCellFormProps } from "./types";
 
 interface AddCellModalProps {
@@ -20,146 +30,266 @@ interface AddCellModalProps {
   order: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Picking the Quiz tile hands off here instead of opening an in-panel form — a Quiz isn't a Content row (see cellTypes.ts). Omit to hide the Quiz option. */
+  onAddQuiz?: () => void;
 }
 
-/** Cell types whose create form only needs the shared `CreateCellFormProps`. */
+/** Form definitions for simple cell types */
 const SIMPLE_FORMS: Partial<Record<CellTypeId, ComponentType<CreateCellFormProps>>> = {
   text: CreateTextForm,
-  heading: CreateHeadingForm,
   image: CreateImageForm,
   video: CreateVideoForm,
-  link: CreateLinkForm,
+  interactive: CreateInteractiveForm,
 };
 
-/** Document/Presentation/PDF all share `CreateFileForm` — this restricts the file picker per type. */
-const FILE_TYPE_ACCEPT: Partial<Record<CellTypeId, string>> = {
-  pdf: ".pdf",
-};
-const FILE_TYPES: CellTypeId[] = ["document", "presentation", "pdf"];
+export const VISIBLE_CELL_OPTIONS = [
+  {
+    id: "text" as CellTypeId,
+    label: "Markdown",
+    sublabel: "Text & Heading",
+    icon: FileText,
+  },
+  {
+    id: "image" as CellTypeId,
+    label: "Image",
+    sublabel: "Upload or URL",
+    icon: ImageIcon,
+  },
+  {
+    id: "video" as CellTypeId,
+    label: "Video",
+    sublabel: "Upload or URL",
+    icon: VideoIcon,
+  },
+  {
+    id: "document" as CellTypeId,
+    label: "Document / PDF",
+    sublabel: "PDF / DOC / DOCX",
+    icon: File,
+  },
+  {
+    id: "presentation" as CellTypeId,
+    label: "Slideshow / Presentation",
+    sublabel: "Slide deck / PPTX",
+    icon: PresentationIcon,
+  },
+  {
+    id: "interactive" as CellTypeId,
+    label: "Interactive",
+    sublabel: "iframe embed",
+    icon: MonitorPlay,
+  },
+  {
+    id: "quiz" as CellTypeId,
+    label: "Quiz",
+    sublabel: "Attached to this topic",
+    icon: HelpCircle,
+  },
+];
 
-const AVAILABLE_TYPES = CELL_TYPES.filter((cellType) => cellType.supportedByApiToday);
-
-/**
- * The "Add Content" picker + per-type creation form — a single centered
- * modal (same Modal primitive as the Module/Lesson/Topic create/edit
- * modals), opened from the Canvas toolbar, the empty-state, Add Above/Add
- * Below on any existing block, and the Course Map sidebar's "Add Content"
- * action. Only lists cell types that can actually be created against the
- * live API today (`supportedByApiToday`) — Interactive Embed is excluded
- * (see cellTypes.ts for why).
- */
-export function AddCellModal({ topicId, order, open, onOpenChange }: AddCellModalProps) {
+export function AddCellModal({ topicId, order, open, onOpenChange, onAddQuiz }: AddCellModalProps) {
   const [selectedId, setSelectedId] = useState<CellTypeId | null>(null);
-  // Presentation only: which of the two presentation workflows the
-  // instructor picked, chosen as its own step so CreateFileForm never has
-  // to ask the same question again.
+  
+  // Document 2-step choice: PDF vs DOC/DOCX
+  const [docTypeChoice, setDocTypeChoice] = useState<"pdf" | "doc" | null>(null);
+  
+  // Presentation 2-step choice: Slideshow vs PPTX Upload
   const [presentationChoice, setPresentationChoice] = useState<"slideshow" | "upload" | null>(null);
 
   const close = () => {
     onOpenChange(false);
     setSelectedId(null);
+    setDocTypeChoice(null);
     setPresentationChoice(null);
   };
 
-  const selectedCellType = selectedId ? CELL_TYPES.find((c) => c.id === selectedId) ?? null : null;
+  const selectedCellOption = selectedId ? VISIBLE_CELL_OPTIONS.find((c) => c.id === selectedId) ?? null : null;
   const SimpleForm = selectedId ? SIMPLE_FORMS[selectedId] : undefined;
-  const isFileType = selectedId ? FILE_TYPES.includes(selectedId) : false;
+  
+  const isDocument = selectedId === "document";
+  const awaitingDocChoice = isDocument && docTypeChoice === null;
+
   const isPresentation = selectedId === "presentation";
   const awaitingPresentationChoice = isPresentation && presentationChoice === null;
 
-  const title = !selectedCellType
-    ? "Add Content"
-    : awaitingPresentationChoice
-      ? "Add Presentation"
-      : `Add ${selectedCellType.label}`;
+  const title = !selectedCellOption
+    ? "Add New Content Cell"
+    : awaitingDocChoice
+      ? "Select Document Type"
+      : awaitingPresentationChoice
+        ? "Add Presentation"
+        : `Add ${selectedCellOption.label}`;
+
+  const handleSelectOption = (id: CellTypeId) => {
+    if (id === "quiz") {
+      onAddQuiz?.();
+      close();
+      return;
+    }
+    setSelectedId(id);
+  };
+
+  const visibleOptions = onAddQuiz ? VISIBLE_CELL_OPTIONS : VISIBLE_CELL_OPTIONS.filter((c) => c.id !== "quiz");
 
   const handleBack = () => {
-    if (awaitingPresentationChoice || !isPresentation) {
+    if (awaitingDocChoice || awaitingPresentationChoice || (!isDocument && !isPresentation)) {
       setSelectedId(null);
+      setDocTypeChoice(null);
       setPresentationChoice(null);
-    } else {
-      // Presentation, past the choice step — back goes to the choice, not the type grid.
+    } else if (isDocument) {
+      setDocTypeChoice(null);
+    } else if (isPresentation) {
       setPresentationChoice(null);
     }
   };
 
+  const docAccept = docTypeChoice === "pdf" ? ".pdf" : ".doc,.docx";
+
   return (
     <Modal open={open} onClose={close} title={title} size="lg">
-      <div className="max-h-[70vh] overflow-y-auto -mx-1 px-1">
-        {selectedCellType && (
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden -mx-1 px-1">
+        {selectedCellOption && (
           <button
             type="button"
             onClick={handleBack}
-            className="mb-3 flex items-center gap-1.5 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+            className="mb-3 shrink-0 flex items-center gap-1.5 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
           >
             <ArrowLeft className="size-3.5" />
             Back
           </button>
         )}
 
-        {!selectedCellType ? (
+        {!selectedCellOption ? (
           <>
-            <p className="mb-4 text-xs text-muted-foreground">Choose what you want to add.</p>
-            <div className="grid grid-cols-2 gap-3">
-              {AVAILABLE_TYPES.map((cellType) => {
-                const Icon = cellType.icon;
+            <p className="mb-2.5 text-xs text-muted-foreground">Select Cell Type</p>
+            <div className="grid grid-cols-2 gap-2.5">
+              {visibleOptions.map((option) => {
+                const Icon = option.icon;
                 return (
                   <button
-                    key={cellType.id}
+                    key={option.id}
                     type="button"
-                    onClick={() => setSelectedId(cellType.id)}
-                    className="flex flex-col items-start gap-2 rounded-xl border border-card-border bg-card p-4 text-left transition-colors hover:border-primary/50 hover:bg-muted cursor-pointer"
+                    onClick={() => handleSelectOption(option.id)}
+                    className="flex items-center gap-3 rounded-xl border border-card-border bg-card p-3 text-left transition-colors hover:border-primary/50 hover:bg-muted cursor-pointer min-h-[72px]"
                   >
-                    <span className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500/15 to-pink-500/15 text-primary">
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500/15 to-pink-500/15 text-primary">
                       <Icon className="size-4" />
                     </span>
-                    <span className="text-sm font-bold text-foreground">{cellType.label}</span>
+                    <div className="min-w-0 flex-1 space-y-0.5">
+                      <span className="block text-sm font-bold text-foreground truncate">{option.label}</span>
+                      <span className="block text-xs text-muted-foreground truncate">{option.sublabel}</span>
+                    </div>
                   </button>
                 );
               })}
             </div>
           </>
+        ) : awaitingDocChoice ? (
+          <>
+            <p className="mb-2.5 text-xs text-muted-foreground">Select Document Format</p>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => setDocTypeChoice("pdf")}
+                className="flex items-center gap-3 rounded-xl border border-card-border bg-card p-3.5 text-left transition-colors hover:border-primary/50 hover:bg-muted cursor-pointer min-h-[72px]"
+              >
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500/15 to-pink-500/15 text-primary">
+                  <File className="size-4" />
+                </span>
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <span className="block text-sm font-bold text-foreground">PDF Document</span>
+                  <span className="block text-xs text-muted-foreground">Upload Adobe PDF file (.pdf)</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDocTypeChoice("doc")}
+                className="flex items-center gap-3 rounded-xl border border-card-border bg-card p-3.5 text-left transition-colors hover:border-primary/50 hover:bg-muted cursor-pointer min-h-[72px]"
+              >
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500/15 to-pink-500/15 text-primary">
+                  <FileText className="size-4" />
+                </span>
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <span className="block text-sm font-bold text-foreground">DOC / DOCX</span>
+                  <span className="block text-xs text-muted-foreground">Upload Word document (.doc, .docx)</span>
+                </div>
+              </button>
+            </div>
+          </>
         ) : awaitingPresentationChoice ? (
           <>
-            <p className="mb-4 text-xs text-muted-foreground">How do you want to create it?</p>
-            <div className="grid grid-cols-2 gap-3">
+            <p className="mb-2.5 text-xs text-muted-foreground">How do you want to create it?</p>
+            <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={() => setPresentationChoice("slideshow")}
-                className="flex flex-col items-start gap-2 rounded-xl border border-card-border bg-card p-4 text-left transition-colors hover:border-primary/50 hover:bg-muted cursor-pointer"
+                className="flex items-center gap-3 rounded-xl border border-card-border bg-card p-3.5 text-left transition-colors hover:border-primary/50 hover:bg-muted cursor-pointer min-h-[72px]"
               >
-                <span className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500/15 to-pink-500/15 text-primary">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500/15 to-pink-500/15 text-primary">
                   <Layers className="size-4" />
                 </span>
-                <span className="text-sm font-bold text-foreground">Create Slides</span>
-                <span className="text-xs text-muted-foreground">Build the presentation inside the LMS.</span>
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <span className="block text-sm font-bold text-foreground">Create Slides</span>
+                  <span className="block text-xs text-muted-foreground">Build presentation inside LMS</span>
+                </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setPresentationChoice("upload")}
-                className="flex flex-col items-start gap-2 rounded-xl border border-card-border bg-card p-4 text-left transition-colors hover:border-primary/50 hover:bg-muted cursor-pointer"
+                className="flex items-center gap-3 rounded-xl border border-card-border bg-card p-3.5 text-left transition-colors hover:border-primary/50 hover:bg-muted cursor-pointer min-h-[72px]"
               >
-                <span className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500/15 to-pink-500/15 text-primary">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500/15 to-pink-500/15 text-primary">
                   <Upload className="size-4" />
                 </span>
-                <span className="text-sm font-bold text-foreground">Upload PPTX</span>
-                <span className="text-xs text-muted-foreground">Upload an existing PowerPoint file.</span>
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <span className="block text-sm font-bold text-foreground">Upload PPTX</span>
+                  <span className="block text-xs text-muted-foreground">Upload existing PowerPoint file</span>
+                </div>
               </button>
             </div>
           </>
         ) : SimpleForm ? (
-          <SimpleForm topicId={topicId} order={order} onCreated={close} onCancel={() => setSelectedId(null)} />
-        ) : isFileType ? (
-          <CreateFileForm
-            topicId={topicId}
-            order={order}
-            cellType={selectedCellType}
-            accept={selectedId ? FILE_TYPE_ACCEPT[selectedId] : undefined}
-            presentationMode={presentationChoice ?? undefined}
-            onCreated={close}
-            onCancel={() => setSelectedId(null)}
-          />
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <SimpleForm topicId={topicId} order={order} onCreated={close} onCancel={() => setSelectedId(null)} />
+          </div>
+        ) : isDocument ? (
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <CreateFileForm
+              topicId={topicId}
+              order={order}
+              cellType={{
+                id: "document",
+                label: docTypeChoice === "pdf" ? "PDF Document" : "Word Document",
+                description: "Uploaded document resource.",
+                icon: FileText,
+                contentType: "DOCUMENT",
+                supportedByApiToday: true,
+              }}
+              accept={docAccept}
+              onCreated={close}
+              onCancel={() => setSelectedId(null)}
+            />
+          </div>
+        ) : isPresentation ? (
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <CreateFileForm
+              topicId={topicId}
+              order={order}
+              cellType={{
+                id: "presentation",
+                label: "Presentation",
+                description: "Uploaded presentation or slide deck.",
+                icon: PresentationIcon,
+                contentType: "PRESENTATION",
+                supportedByApiToday: true,
+              }}
+              presentationMode={presentationChoice ?? undefined}
+              onCreated={close}
+              onCancel={() => setSelectedId(null)}
+            />
+          </div>
         ) : null}
       </div>
     </Modal>

@@ -25,6 +25,7 @@ import CourseMultiSelect from "@/components/instructor/batches/CourseMultiSelect
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 import { useCreateBatch } from "@/hooks/queries/instructor/useBatches";
 import { useBatchPerformanceOverview } from "@/hooks/queries/instructor/useBatchPerformanceOverview";
+import { useToast } from "@/components/ui/ToastProvider";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All Statuses" },
@@ -55,13 +56,19 @@ function CreateBatchForm({ courses, onClose }) {
   const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const createBatch = useCreateBatch();
+  const { showToast } = useToast();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (courseIds.length === 0) return;
     createBatch.mutate(
       { name, startDate, dueDate: dueDate || undefined, courseIds },
-      { onSuccess: onClose }
+      {
+        onSuccess: onClose,
+        onError: (err) => {
+          showToast(err?.response?.data?.message || "Failed to create batch.", "error");
+        },
+      }
     );
   };
 
@@ -96,6 +103,7 @@ function CreateBatchForm({ courses, onClose }) {
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
             placeholder="End date"
+            min={startDate || undefined}
             className="bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-white outline-none focus:border-orange-500"
           />
         </div>

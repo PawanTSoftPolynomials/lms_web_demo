@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import api from "@/lib/axios";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import AiComposerModal from "@/components/instructor/composer/AiComposerModal";
 
 /** Helper to return content type specific icon & styling */
 function getContentBadge(type) {
@@ -106,11 +107,45 @@ function getContentBadge(type) {
 /** Pre-crafted AI prompt for ChatGPT / Claude / Gemini / Copilot */
 const AI_GENERATION_PROMPT = `Create a course using the Orange Tree LMS Course JSON format.
 
-Follow this hierarchy exactly:
+Follow this hierarchy structure:
 
-Course → Module → Lesson → Topic → Content
+Course
+├── metadata
+├── settings
+├── quizzes[]                  (Course-level quizzes, optional)
+└── modules[]
+    ├── quizzes[]              (Module-level quizzes, optional)
+    └── lessons[]
+        └── topics[]
+            └── contents[]
 
-Use only fields and content types supported by the Orange Tree LMS Course JSON format.
+IMPORTANT ARCHITECTURE & RELATIONSHIP RULES:
+1. Quizzes MUST be placed at course-level (course.quizzes[]) or module-level (modules[].quizzes[]). DO NOT place quizzes inside topics[].contents[] as content blocks.
+2. DO NOT include database IDs (id, courseId, moduleId, quizId, questionId, quizQuestionId, createdAt, updatedAt) in the JSON. The hierarchy itself determines all relationships.
+
+Quiz Object Format:
+{
+  "title": "Quiz Title",
+  "description": "Quiz description",
+  "passingScore": 60,
+  "timeLimit": 15,
+  "isPublished": true,
+  "questions": [
+    {
+      "question": "Question text?",
+      "questionType": "MCQ_SINGLE",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctAnswer": "Option A",
+      "explanation": "Explanation text",
+      "marks": 1,
+      "negativeMarks": 0,
+      "difficulty": "EASY"
+    }
+  ]
+}
+
+Supported questionType values:
+MCQ_SINGLE, MCQ_MULTI, TRUE_FALSE, FILL_BLANK, SHORT_ANSWER, LONG_ANSWER, ARRANGE_TOKENS, MATCH_PAIRS, SELF_ASSESSMENT.
 
 Return only valid JSON.
 Do not wrap the JSON in Markdown code fences.
@@ -137,12 +172,62 @@ const SAMPLE_JSON_FIXTURE = `{
     "discussionEnabled": true,
     "dripContentEnabled": false
   },
+  "quizzes": [
+    {
+      "title": "C Programming Final Assessment",
+      "description": "Comprehensive course-level assessment covering C fundamentals.",
+      "passingScore": 60,
+      "timeLimit": 30,
+      "isPublished": true,
+      "questions": [
+        {
+          "question": "Which header file is required for printf()?",
+          "questionType": "MCQ_SINGLE",
+          "options": ["<stdio.h>", "<stdlib.h>", "<string.h>", "<math.h>"],
+          "correctAnswer": "<stdio.h>",
+          "explanation": "printf() is declared in stdio.h.",
+          "marks": 1,
+          "negativeMarks": 0,
+          "difficulty": "EASY"
+        },
+        {
+          "question": "Is C a compiled programming language?",
+          "questionType": "TRUE_FALSE",
+          "options": ["True", "False"],
+          "correctAnswer": "True",
+          "explanation": "C code is directly compiled into machine executable binaries.",
+          "marks": 1,
+          "difficulty": "EASY"
+        }
+      ]
+    }
+  ],
   "modules": [
     {
       "title": "C Fundamentals",
       "description": "First steps in writing C programs.",
       "order": 1,
       "isPublished": true,
+      "quizzes": [
+        {
+          "title": "Module 1 Quick Check",
+          "description": "Check understanding of basic C concepts.",
+          "passingScore": 60,
+          "timeLimit": 15,
+          "isPublished": true,
+          "questions": [
+            {
+              "question": "What is the entry point of a C program?",
+              "questionType": "MCQ_SINGLE",
+              "options": ["start()", "main()", "run()", "execute()"],
+              "correctAnswer": "main()",
+              "explanation": "Execution of a C program always begins from main().",
+              "marks": 1,
+              "difficulty": "EASY"
+            }
+          ]
+        }
+      ],
       "lessons": [
         {
           "title": "Introduction to C",
@@ -196,6 +281,7 @@ export default function CourseImportPage() {
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [copiedSample, setCopiedSample] = useState(false);
   const [showGuideModal, setShowGuideModal] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
 
   // Collapsible tree state tracking (Modules & Lessons expanded by default)
   const [expandedModules, setExpandedModules] = useState({});
@@ -228,10 +314,27 @@ export default function CourseImportPage() {
    * every row by `.id` (React list keys, select/delete/reorder handlers), so without this every
    * row would share the same `undefined` id. Assigns a stable client-side id to any row missing one.
    */
-  const withDraftIds = (modules = []) =>
-    modules.map((mod) => ({
+  const withDraftIds = (modules = [], courseQuizzes = []) => {
+    const mappedQuizzes = (courseQuizzes || []).map((quiz) => ({
+      ...quiz,
+      id: quiz.id || crypto.randomUUID(),
+      questions: (quiz.questions || []).map((q) => ({
+        ...q,
+        id: q.id || crypto.randomUUID(),
+      })),
+    }));
+
+    const mappedModules = (modules || []).map((mod) => ({
       ...mod,
       id: mod.id || crypto.randomUUID(),
+      quizzes: (mod.quizzes || []).map((quiz) => ({
+        ...quiz,
+        id: quiz.id || crypto.randomUUID(),
+        questions: (quiz.questions || []).map((q) => ({
+          ...q,
+          id: q.id || crypto.randomUUID(),
+        })),
+      })),
       lessons: (mod.lessons || []).map((lesson) => ({
         ...lesson,
         id: lesson.id || crypto.randomUUID(),
@@ -246,13 +349,19 @@ export default function CourseImportPage() {
       })),
     }));
 
+    return { modules: mappedModules, quizzes: mappedQuizzes };
+  };
+
   /** Normalizes parsed job into a temporary client draft and navigates directly to Course Composer without creating DB rows */
   const prepareDraftAndNavigate = (targetJob) => {
     try {
       const canonical = targetJob.canonicalJson || {};
       const metadata = canonical.metadata || {};
       const settings = canonical.settings || {};
-      const modules = withDraftIds(Array.isArray(canonical.modules) ? canonical.modules : []);
+      const { modules, quizzes } = withDraftIds(
+        Array.isArray(canonical.modules) ? canonical.modules : [],
+        Array.isArray(canonical.quizzes) ? canonical.quizzes : []
+      );
       const assetMap = canonical.assetMap || {};
 
       const draftPayload = {
@@ -275,6 +384,7 @@ export default function CourseImportPage() {
           discussionEnabled: settings.discussionEnabled !== false,
           dripContentEnabled: Boolean(settings.dripContentEnabled),
         },
+        quizzes,
         modules,
         assetMap,
         canonicalJson: canonical
@@ -751,6 +861,32 @@ export default function CourseImportPage() {
         {/* STEP 1: INITIAL IMPORT METHOD SELECTION CARDS */}
         {!canonicalJson && !validating && (
           <div className="space-y-6">
+            {/* Featured AI Banner */}
+            <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 border-2 border-orange-500/30 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
+              <div className="flex items-center space-x-4">
+                <div className="p-3.5 rounded-2xl bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                  <Sparkles className="w-8 h-8 animate-pulse" />
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <h3 className="text-lg font-bold text-white">Compose Course with AI Agent</h3>
+                    <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-orange-500/20 text-orange-300 rounded-full border border-orange-500/30">Qwen3B</span>
+                  </div>
+                  <p className="text-xs text-slate-300 mt-1 max-w-xl">
+                    Describe your course goals in plain text. The AI Agent will generate a structured, validated draft and open it directly in the Course Composer for your review.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAiModal(true)}
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-slate-950 text-xs font-black shadow-lg shadow-orange-500/20 transition shrink-0 flex items-center space-x-2 cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 fill-current" />
+                <span>Launch AI Composer</span>
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
               {/* Card 1: Import from ZIP */}
               <div
@@ -1047,29 +1183,38 @@ export default function CourseImportPage() {
                 <h4 className="text-sm font-bold text-amber-400">Course Hierarchy</h4>
                 <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 font-mono text-amber-300 space-y-1">
                   <p>Course</p>
-                  <p>└── Module</p>
-                  <p>    └── Lesson</p>
-                  <p>        └── Topic</p>
-                  <p>            └── Content</p>
+                  <p>├── metadata</p>
+                  <p>├── settings</p>
+                  <p>├── quizzes[]                  <span className="text-emerald-400 text-xs font-sans">← Course-Level Quizzes</span></p>
+                  <p>└── modules[]</p>
+                  <p>    ├── quizzes[]              <span className="text-emerald-400 text-xs font-sans">← Module-Level Quizzes</span></p>
+                  <p>    └── lessons[]</p>
+                  <p>        └── topics[]</p>
+                  <p>            └── contents[]</p>
                 </div>
               </div>
 
               {/* Section 2: Hierarchy Level Explanations */}
               <div className="space-y-3">
                 <h4 className="text-sm font-bold text-slate-100">Hierarchy Level Explanations</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 font-sans">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 font-sans">
                   <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
                     <span className="font-bold text-amber-400 block">Course</span>
-                    <p className="text-[11px] text-slate-400">Course-level information (title, description, level, category).</p>
+                    <p className="text-[11px] text-slate-400">Course-level metadata, settings, and final assessments.</p>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+                    <span className="font-bold text-emerald-400 block">Quizzes</span>
+                    <p className="text-[11px] text-slate-400">Course-level (<code className="font-mono text-emerald-300">quizzes[]</code>) or Module-level (<code className="font-mono text-emerald-300">modules[].quizzes[]</code>) assessments.</p>
                   </div>
 
                   <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
                     <span className="font-bold text-sky-400 block">Module</span>
-                    <p className="text-[11px] text-slate-400">Groups related lessons within a major section.</p>
+                    <p className="text-[11px] text-slate-400">Groups related lessons and module quizzes within a major section.</p>
                   </div>
 
                   <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                    <span className="font-bold text-emerald-400 block">Lesson</span>
+                    <span className="font-bold text-teal-400 block">Lesson</span>
                     <p className="text-[11px] text-slate-400">Groups related topics within a module.</p>
                   </div>
 
@@ -1158,6 +1303,12 @@ export default function CourseImportPage() {
           </div>
         </div>
       )}
+
+      {/* AI Composer Modal */}
+      <AiComposerModal
+        isOpen={showAiModal}
+        onClose={() => setShowAiModal(false)}
+      />
     </div>
   );
 }

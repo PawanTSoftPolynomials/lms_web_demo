@@ -15,34 +15,50 @@ import {
 
 const NotificationContext = createContext();
 
+let audioCtxSingleton = null;
+
 // Self-contained chime player using HTML5 AudioContext
 export const playNotificationChime = () => {
   try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
+    if (typeof window === "undefined") return;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+
+    if (!audioCtxSingleton || audioCtxSingleton.state === "closed") {
+      audioCtxSingleton = new AudioCtx();
+    }
+    if (audioCtxSingleton.state === "suspended") {
+      audioCtxSingleton.resume();
+    }
+
+    const audioCtx = audioCtxSingleton;
+    const now = audioCtx.currentTime;
+
     // Tone 1: High soft bell note
     const osc1 = audioCtx.createOscillator();
     const gain1 = audioCtx.createGain();
     osc1.connect(gain1);
     gain1.connect(audioCtx.destination);
-    osc1.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-    gain1.gain.setValueAtTime(0.06, audioCtx.currentTime);
-    gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-    osc1.start();
-    osc1.stop(audioCtx.currentTime + 0.15);
-    
+    osc1.frequency.setValueAtTime(587.33, now); // D5
+    gain1.gain.setValueAtTime(0.06, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+    osc1.start(now);
+    osc1.stop(now + 0.15);
+
     // Tone 2: Harmonious resonance
     setTimeout(() => {
       try {
-        const osc2 = audioCtx.createOscillator();
-        const gain2 = audioCtx.createGain();
+        if (!audioCtxSingleton || audioCtxSingleton.state === "closed") return;
+        const now2 = audioCtxSingleton.currentTime;
+        const osc2 = audioCtxSingleton.createOscillator();
+        const gain2 = audioCtxSingleton.createGain();
         osc2.connect(gain2);
-        gain2.connect(audioCtx.destination);
-        osc2.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
-        gain2.gain.setValueAtTime(0.06, audioCtx.currentTime);
-        gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
-        osc2.start();
-        osc2.stop(audioCtx.currentTime + 0.25);
+        gain2.connect(audioCtxSingleton.destination);
+        osc2.frequency.setValueAtTime(880, now2); // A5
+        gain2.gain.setValueAtTime(0.06, now2);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now2 + 0.25);
+        osc2.start(now2);
+        osc2.stop(now2 + 0.25);
       } catch {}
     }, 85);
   } catch (e) {
