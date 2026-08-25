@@ -9,10 +9,7 @@ import {
     Presentation,
     ChevronLeft,
     ChevronRight,
-    Code2,
     Music,
-    AppWindow,
-    ListChecks,
 } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
 
@@ -20,6 +17,7 @@ import { getYouTubeVideoId, isYouTubeUrl as isYoutubeUrl } from "@/lib/youtube";
 import { getDisplayUrl } from "@/lib/blob";
 import MarkdownRenderer from "@/components/ui/MarkdownEditor/MarkdownRenderer";
 import { unescapeFromContentApi } from "@/lib/markdown";
+import PdfViewer from "@/components/student/learn/PdfViewer";
 
 const isGoogleSlidesUrl = (url) => Boolean(url?.includes("docs.google.com/presentation"));
 const getGoogleSlidesEmbedUrl = (url) => {
@@ -283,11 +281,9 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                 {/* FILE / DOCUMENT (PDFs / PPTs / Docs / Resources) */}
                 {isFileLike && (
                     isPdf(fileUrl) ? (
-                        <iframe
-                            src={displayFileUrl}
-                            className="h-[320px] sm:h-[420px] md:h-[520px] w-full border-none bg-slate-800"
-                            title={content.title}
-                        />
+                        <div className="w-full">
+                            <PdfViewer fileUrl={displayFileUrl} title={content?.title} />
+                        </div>
                     ) : isOfficeDoc(fileUrl) ? (
                         <iframe
                             src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(

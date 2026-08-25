@@ -18,6 +18,7 @@ import { useToast } from "@/components/ui/ToastProvider";
 import { useConfirm } from "@/context/ConfirmContext";
 import { getDisplayUrl } from "@/lib/blob";
 import { uploadFileToVercelBlob } from "@/services/content.service";
+import PdfViewer from "@/components/student/learn/PdfViewer";
 
 import { useCreateContent, useUpdateContent, useDeleteContent } from "../contentMutations";
 import { CellShell } from "../CellShell";
@@ -420,8 +421,8 @@ export function DocumentCell({
           </div>
 
           {isPdf ? (
-            <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-slate-800 bg-black">
-              <iframe src={displayUrl} title={content.title || cellType.label} className="absolute inset-0 h-full w-full" allowFullScreen />
+            <div className="w-full">
+              <PdfViewer fileUrl={displayUrl} title={content.title || cellType.label} />
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center p-8 text-center rounded-xl border border-slate-800 bg-slate-950/80 space-y-3">

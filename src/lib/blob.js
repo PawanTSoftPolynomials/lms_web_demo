@@ -12,7 +12,14 @@ const API_ORIGIN = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
  */
 export function getDisplayUrl(url) {
   if (!url || typeof url !== "string") return "";
-  if (url.includes(".private.blob.vercel-storage.com")) {
+  if (url.includes("/api/blob-proxy")) {
+    return url;
+  }
+  if (
+    url.includes(".private.blob.vercel-storage.com") ||
+    url.includes("vercel.com/api/blob") ||
+    url.includes("pathname=")
+  ) {
     return `/api/blob-proxy?url=${encodeURIComponent(url)}`;
   }
   if (url.startsWith("/") && API_ORIGIN) {

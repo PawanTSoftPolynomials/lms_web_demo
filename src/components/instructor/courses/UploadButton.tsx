@@ -37,9 +37,9 @@ export function UploadButton({
       } else {
         throw new Error("Invalid response from Blob upload route");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Upload error:", err);
-      const errMsg = err.response?.data?.error || err.message || "Failed to upload file";
+      const errMsg = err instanceof Error ? err.message : "Failed to upload file";
       showToast(errMsg, "error");
     } finally {
       setIsUploading(false);

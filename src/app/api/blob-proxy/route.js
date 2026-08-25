@@ -3,13 +3,28 @@ import { NextResponse } from "next/server";
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const targetUrl = searchParams.get("url");
+    let targetUrl = searchParams.get("url");
 
     if (!targetUrl) {
       return NextResponse.json({ error: "Missing url parameter" }, { status: 400 });
     }
 
-    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+    // Recursively unwrap nested proxy URLs if double-encoded
+    while (targetUrl && (targetUrl.includes("/api/blob-proxy") || targetUrl.includes("url="))) {
+      try {
+        const decoded = decodeURIComponent(targetUrl);
+        const match = decoded.match(/url=([^&]+)/);
+        if (match && match[1]) {
+          targetUrl = match[1];
+        } else {
+          break;
+        }
+      } catch {
+        break;
+      }
+    }
+
+    const blobToken = process.env.VERCEL_BLOB_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
     if (!blobToken) {
       return NextResponse.json({ error: "BLOB_READ_WRITE_TOKEN is not configured on the server" }, { status: 500 });
     }

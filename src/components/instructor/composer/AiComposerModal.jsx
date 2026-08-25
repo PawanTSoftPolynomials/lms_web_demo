@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Sparkles,
@@ -14,12 +14,8 @@ import {
   FilePlus,
   HelpCircle,
   Eye,
-  Check,
-  MapPin,
   Wand2,
-  Maximize2,
-  Minimize2,
-  SlidersHorizontal,
+  ChevronRight,
 } from "lucide-react";
 import api from "@/lib/axios";
 
@@ -75,43 +71,66 @@ export default function AiComposerModal({
 }) {
   const router = useRouter();
 
-  // Active Scope & Action Selection
+  // Extract normalized context directly from Composer
+  const {
+    courseTitle = "",
+    moduleId: initialModuleId,
+    moduleTitle: initialModuleTitle = "",
+    lessonId: initialLessonId,
+    lessonTitle: initialLessonTitle = "",
+    topicId: initialTopicId,
+    topicTitle: initialTopicTitle = "",
+    contentId,
+    activeLevel = "COURSE",
+    modules = [],
+  } = contextData || {};
+
+  // Active Scope, Action & Quiz Level State
   const [selectedScope, setSelectedScope] = useState(initialScope);
   const [selectedAction, setSelectedAction] = useState("CREATE"); // "CREATE" | "IMPROVE" | "EXPAND" | "SIMPLIFY"
-  const [prompt, setPrompt] = useState("");
   const [quizLevel, setQuizLevel] = useState("COURSE"); // "COURSE" | "MODULE" | "LESSON" | "TOPIC"
 
-  // State Management
+  // Cascading Parent Selection States
+  const [selectedModuleId, setSelectedModuleId] = useState("");
+  const [selectedLessonId, setSelectedLessonId] = useState("");
+  const [selectedTopicId, setSelectedTopicId] = useState("");
+
+  // Optional Order Selection State ("AUTO_END" | "AFTER_<itemId>")
+  const [selectedOrderValue, setSelectedOrderValue] = useState("AUTO_END");
+
+  // Prompt & Generation State Machine ("INPUT" | "PREVIEW")
+  const [prompt, setPrompt] = useState("");
+  const [step, setStep] = useState("INPUT");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [validationErrors, setValidationErrors] = useState([]);
   const [generatedDraft, setGeneratedDraft] = useState(null);
-  const [step, setStep] = useState("INPUT"); // "INPUT" | "PREVIEW"
 
-  // Extract normalized context
-  const {
-    courseTitle = "",
-    moduleId,
-    moduleTitle = "",
-    lessonId,
-    lessonTitle = "",
-    topicId,
-    topicTitle = "",
-    contentId,
-    activeLevel = "COURSE",
-  } = contextData || {};
+  const prevIsOpenRef = useRef(false);
 
-  // Sync initial scope, action, and quiz level on open based on context
+  // Sync initial scope, cascading parent, and order ONCE when modal opens
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !prevIsOpenRef.current) {
       setErrorMsg("");
       setValidationErrors([]);
       setGeneratedDraft(null);
       setStep("INPUT");
       setPrompt("");
       setSelectedAction("CREATE");
+      setSelectedOrderValue("AUTO_END");
 
-      // Strictly map default scope & quiz level based on active location context (Requirement 10 Action Matrix)
+      const modId = initialModuleId || (modules.length > 0 ? String(modules[0].id || modules[0]._id) : "");
+      setSelectedModuleId(modId);
+
+      const targetMod = modules.find((m) => String(m.id || m._id) === String(modId));
+      const lesId = initialLessonId || (targetMod?.lessons?.length > 0 ? String(targetMod.lessons[0].id || targetMod.lessons[0]._id) : "");
+      setSelectedLessonId(lesId);
+
+      const targetLes = targetMod?.lessons?.find((l) => String(l.id || l._id) === String(lesId));
+      const topId = initialTopicId || (targetLes?.topics?.length > 0 ? String(targetLes.topics[0].id || targetLes.topics[0]._id) : "");
+      setSelectedTopicId(topId);
+
+      // Map default scope & quiz level based on active location context
       if (activeLevel === "CONTENT") {
         setSelectedScope("CONTENT");
         setSelectedAction("IMPROVE");
@@ -130,95 +149,96 @@ export default function AiComposerModal({
         setQuizLevel("COURSE");
       }
     }
-  }, [isOpen, activeLevel, initialScope]);
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen, activeLevel, initialScope, initialModuleId, initialLessonId, initialTopicId, modules]);
+
+  // Derived Active Module, Lesson, Topic objects from REAL modules array
+  const activeModuleObj = useMemo(() => {
+    return modules.find((m) => String(m.id || m._id) === String(selectedModuleId)) || null;
+  }, [modules, selectedModuleId]);
+
+  const activeLessonObj = useMemo(() => {
+    if (!activeModuleObj) return null;
+    return (activeModuleObj.lessons || []).find((l) => String(l.id || l._id) === String(selectedLessonId)) || null;
+  }, [activeModuleObj, selectedLessonId]);
+
+  const activeTopicObj = useMemo(() => {
+    if (!activeLessonObj) return null;
+    return (activeLessonObj.topics || []).find((t) => String(t.id || t._id) === String(selectedTopicId)) || null;
+  }, [activeLessonObj, selectedTopicId]);
+
+  // Cascading Reset Rules (Requirement 12)
+  const handleModuleChange = (newModId) => {
+    setSelectedModuleId(newModId);
+    const targetMod = modules.find((m) => String(m.id || m._id) === String(newModId));
+    const firstLesId = targetMod?.lessons?.length > 0 ? String(targetMod.lessons[0].id || targetMod.lessons[0]._id) : "";
+    setSelectedLessonId(firstLesId);
+
+    const targetLes = targetMod?.lessons?.find((l) => String(l.id || l._id) === String(firstLesId));
+    const firstTopId = targetLes?.topics?.length > 0 ? String(targetLes.topics[0].id || targetLes.topics[0]._id) : "";
+    setSelectedTopicId(firstTopId);
+    setSelectedOrderValue("AUTO_END");
+  };
+
+  const handleLessonChange = (newLesId) => {
+    setSelectedLessonId(newLesId);
+    const targetLes = (activeModuleObj?.lessons || []).find((l) => String(l.id || l._id) === String(newLesId));
+    const firstTopId = targetLes?.topics?.length > 0 ? String(targetLes.topics[0].id || targetLes.topics[0]._id) : "";
+    setSelectedTopicId(firstTopId);
+    setSelectedOrderValue("AUTO_END");
+  };
+
+  const handleTopicChange = (newTopId) => {
+    setSelectedTopicId(newTopId);
+    setSelectedOrderValue("AUTO_END");
+  };
+
+  const handleScopeChange = (newScope) => {
+    setSelectedScope(newScope);
+    setSelectedOrderValue("AUTO_END");
+  };
+
+  // Derive sibling list for order calculations using REAL course data
+  const siblingItems = useMemo(() => {
+    if (selectedScope === "MODULE") {
+      return modules;
+    } else if (selectedScope === "LESSON") {
+      return activeModuleObj?.lessons || [];
+    } else if (selectedScope === "TOPIC") {
+      return activeLessonObj?.topics || [];
+    } else if (selectedScope === "CONTENT") {
+      return activeTopicObj?.contents || [];
+    } else if (selectedScope === "QUIZ") {
+      if (quizLevel === "MODULE") return activeModuleObj?.quizzes || [];
+      if (quizLevel === "LESSON") return activeLessonObj?.quizzes || [];
+      if (quizLevel === "TOPIC") return activeTopicObj?.quizzes || [];
+      return contextData?.courseQuizzes || [];
+    }
+    return [];
+  }, [selectedScope, quizLevel, modules, activeModuleObj, activeLessonObj, activeTopicObj, contextData]);
 
   if (!isOpen) return null;
 
-  // Determine allowed actions based on active selection level (Requirement 10)
-  const getAllowedActions = () => {
-    if (activeLevel === "COURSE") {
-      return [
-        { scope: "MODULE", label: "+ Create Module", icon: FolderPlus, color: "amber" },
-        { scope: "QUIZ", quizLevel: "COURSE", label: "📝 Create Course Quiz", icon: HelpCircle, color: "purple" },
-      ];
-    } else if (activeLevel === "MODULE") {
-      return [
-        { scope: "LESSON", label: "+ Create Lesson", icon: BookOpen, color: "orange" },
-        { scope: "QUIZ", quizLevel: "MODULE", label: "📝 Create Module Quiz", icon: HelpCircle, color: "purple" },
-      ];
-    } else if (activeLevel === "LESSON") {
-      return [
-        { scope: "TOPIC", label: "+ Create Topic", icon: FilePlus, color: "emerald" },
-        { scope: "QUIZ", quizLevel: "LESSON", label: "📝 Create Lesson Quiz", icon: HelpCircle, color: "purple" },
-      ];
-    } else if (activeLevel === "TOPIC") {
-      return [
-        { scope: "CONTENT", label: "+ Create Content Block", icon: Wand2, color: "teal" },
-        { scope: "QUIZ", quizLevel: "TOPIC", label: "📝 Create Topic Quiz", icon: HelpCircle, color: "purple" },
-      ];
-    } else if (activeLevel === "CONTENT") {
-      return [
-        { scope: "CONTENT", action: "IMPROVE", label: "✨ Improve Content", icon: Wand2, color: "teal" },
-        { scope: "CONTENT", action: "EXPAND", label: "➕ Expand Content", icon: Maximize2, color: "emerald" },
-        { scope: "CONTENT", action: "SIMPLIFY", label: "⚡ Simplify Content", icon: Minimize2, color: "orange" },
-      ];
-    }
-    return [
-      { scope: "MODULE", label: "+ Create Module", icon: FolderPlus, color: "amber" },
-      { scope: "QUIZ", quizLevel: "COURSE", label: "📝 Create Course Quiz", icon: HelpCircle, color: "purple" },
-    ];
+  // Determine compiled position string for backend API
+  const getCompiledPosition = () => {
+    if (!selectedOrderValue || selectedOrderValue === "AUTO_END") return "AUTO_END";
+    return selectedOrderValue; // "AFTER_<id>"
   };
 
-  // Quick prompt suggestions tailored to context
-  const getPromptSuggestions = () => {
-    if (selectedScope === "MODULE") {
-      return [
-        "Create a module about advanced memory management and pointers",
-        "Create a module covering Spring Boot REST API development",
-        "Create a module explaining Newton's laws of motion",
-      ];
-    } else if (selectedScope === "LESSON") {
-      return [
-        `Create a lesson explaining pointer arithmetic under ${moduleTitle || 'this module'}`,
-        "Create a lesson covering Dependency Injection with practical exercises",
-        "Create a lesson on kinetic vs potential energy",
-      ];
-    } else if (selectedScope === "TOPIC") {
-      return [
-        `Create a topic explaining Stack vs Heap memory under ${lessonTitle || 'this lesson'}`,
-        "Create a topic covering Controller annotations in Spring Boot",
-        "Create a topic on free-body diagrams",
-      ];
-    } else if (selectedScope === "CONTENT") {
-      if (selectedAction === "IMPROVE") {
-        return [
-          "Improve code clarity and add inline comments",
-          "Enhance formatting with structured headings and bullet points",
-          "Make explanations more engaging for undergraduate students",
-        ];
-      }
-      return [
-        `Create a practical code example demonstrating key concepts for ${topicTitle || lessonTitle}`,
-        "Explain this concept with step-by-step bullet points and code",
-        "Simplify and expand this explanation for beginner students",
-      ];
-    } else if (selectedScope === "QUIZ") {
-      return [
-        `Create a 3-question quiz testing key concepts in ${topicTitle || lessonTitle || moduleTitle || courseTitle}`,
-        "Create a multiple-choice quiz covering syntax and common pitfalls",
-        "Create an assessment with detailed explanations for correct answers",
-      ];
-    }
-    return [
-      "Create a complete course structure for beginner web development",
-      "Create a 4-module course covering Python data science basics",
-    ];
+  // Contextual placeholder for prompt textarea
+  const getPromptPlaceholder = () => {
+    if (selectedScope === "MODULE") return "Describe the module you want OTree AI to create...";
+    if (selectedScope === "LESSON") return "Describe the lesson you want OTree AI to create...";
+    if (selectedScope === "TOPIC") return "Describe the topic you want OTree AI to create...";
+    if (selectedScope === "CONTENT") return "Describe the content block you want OTree AI to create...";
+    if (selectedScope === "QUIZ") return "Describe what you want this quiz to assess...";
+    return "Describe what you want OTree AI to generate...";
   };
 
   const prepareDraftAndNavigate = (canonical) => {
     const metadata = canonical.metadata || {};
     const settings = canonical.settings || {};
-    const { modules, quizzes } = withDraftIds(
+    const { modules: mappedModules, quizzes } = withDraftIds(
       Array.isArray(canonical.modules) ? canonical.modules : [],
       Array.isArray(canonical.quizzes) ? canonical.quizzes : []
     );
@@ -235,7 +255,7 @@ export default function AiComposerModal({
       },
       settings,
       quizzes,
-      modules,
+      modules: mappedModules,
       canonicalJson: canonical,
     };
 
@@ -253,15 +273,17 @@ export default function AiComposerModal({
     setErrorMsg("");
     setValidationErrors([]);
 
+    const pos = getCompiledPosition();
     const compiledPrompt = `User Instruction: ${prompt.trim()}
 
 Current Selection Context:
 Course: ${courseTitle || "Default Course"}
-${moduleTitle ? `Module: ${moduleTitle}` : ""}
-${lessonTitle ? `Lesson: ${lessonTitle}` : ""}
-${topicTitle ? `Topic: ${topicTitle}` : ""}
+${activeModuleObj ? `Module: ${activeModuleObj.title}` : ""}
+${activeLessonObj ? `Lesson: ${activeLessonObj.title}` : ""}
+${activeTopicObj ? `Topic: ${activeTopicObj.title}` : ""}
 Scope: ${selectedScope}
 Action: ${selectedAction}
+Position: ${pos}
 ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
 
     try {
@@ -275,14 +297,15 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
             scope: selectedScope,
             action: selectedAction,
             level: quizLevel,
+            position: pos,
             courseId: contextData?.courseId,
             courseTitle,
-            moduleId,
-            moduleTitle,
-            lessonId,
-            lessonTitle,
-            topicId,
-            topicTitle,
+            moduleId: activeModuleObj?.id || activeModuleObj?._id || initialModuleId,
+            moduleTitle: activeModuleObj?.title || initialModuleTitle,
+            lessonId: activeLessonObj?.id || activeLessonObj?._id || initialLessonId,
+            lessonTitle: activeLessonObj?.title || initialLessonTitle,
+            topicId: activeTopicObj?.id || activeTopicObj?._id || initialTopicId,
+            topicTitle: activeTopicObj?.title || initialTopicTitle,
             contentId: contextData?.contentId,
           },
         },
@@ -328,7 +351,18 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
     if (!generatedDraft) return;
 
     if (onApply && typeof onApply === "function") {
-      onApply(generatedDraft, selectedScope, { ...contextData, quizLevel, action: selectedAction });
+      onApply(generatedDraft, selectedScope, {
+        ...contextData,
+        moduleId: activeModuleObj?.id || activeModuleObj?._id || initialModuleId,
+        moduleTitle: activeModuleObj?.title || initialModuleTitle,
+        lessonId: activeLessonObj?.id || activeLessonObj?._id || initialLessonId,
+        lessonTitle: activeLessonObj?.title || initialLessonTitle,
+        topicId: activeTopicObj?.id || activeTopicObj?._id || initialTopicId,
+        topicTitle: activeTopicObj?.title || initialTopicTitle,
+        quizLevel,
+        action: selectedAction,
+        position: getCompiledPosition(),
+      });
       onClose();
       return;
     }
@@ -338,83 +372,50 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
     onClose();
   };
 
-  const allowedActions = getAllowedActions();
+  // Helper for scope labels
+  const scopeItemLabel = selectedScope === "CONTENT" ? "blocks" : selectedScope === "MODULE" ? "modules" : selectedScope === "LESSON" ? "lessons" : selectedScope === "TOPIC" ? "topics" : "quizzes";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-xl bg-gradient-to-tr from-amber-500/20 via-orange-500/20 to-amber-400/20 border border-orange-500/30 text-orange-400">
-              <Sparkles className="w-5 h-5 animate-pulse" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        
+        {/* Compact Modal Header */}
+        <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-900/80">
+          <div className="flex items-center space-x-2.5 min-w-0">
+            <div className="p-1.5 rounded-lg bg-gradient-to-tr from-amber-500/20 via-orange-500/20 to-amber-400/20 border border-orange-500/30 text-orange-400 shrink-0">
+              <Sparkles className="w-4 h-4 animate-pulse" />
             </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h3 className="text-base font-bold text-white">Ask OTree AI</h3>
-                <span className="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-slate-800 border border-slate-700 text-amber-400 rounded-full flex items-center space-x-1">
-                  <Bot className="w-3 h-3" />
-                  <span>Gemini 3.6 Flash</span>
+            <div className="min-w-0">
+              <h3 className="text-sm font-bold text-white leading-none flex items-center gap-2">
+                <span>Ask OTree AI</span>
+                <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-slate-800 text-amber-400 rounded border border-slate-700">
+                  Gemini 3.6
                 </span>
-              </div>
-              <p className="text-xs text-slate-400">
-                Context-aware assistant for your selected Composer location
+              </h3>
+              <p className="text-xs text-slate-400 truncate mt-1 font-medium">
+                {courseTitle || "Course Composer"}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
             disabled={loading}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition disabled:opacity-50 cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition disabled:opacity-50 cursor-pointer shrink-0"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4.5 h-4.5" />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-4 overflow-y-auto">
-          {/* Current Editing Location Context Badge */}
-          <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-            <div className="flex items-center space-x-2 text-xs font-bold text-orange-400 uppercase tracking-wider">
-              <MapPin className="w-3.5 h-3.5 shrink-0 text-orange-400" />
-              <span>Current Selection Context</span>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-300">
-              {courseTitle && (
-                <span className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg flex items-center space-x-1">
-                  <span className="text-slate-500 font-medium">Course:</span>
-                  <strong className="text-white truncate max-w-[160px]">{courseTitle}</strong>
-                </span>
-              )}
-              {moduleTitle && (
-                <span className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg flex items-center space-x-1">
-                  <span className="text-slate-500 font-medium">Module:</span>
-                  <strong className="text-amber-400 truncate max-w-[160px]">{moduleTitle}</strong>
-                </span>
-              )}
-              {lessonTitle && (
-                <span className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg flex items-center space-x-1">
-                  <span className="text-slate-500 font-medium">Lesson:</span>
-                  <strong className="text-orange-400 truncate max-w-[160px]">{lessonTitle}</strong>
-                </span>
-              )}
-              {topicTitle && (
-                <span className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg flex items-center space-x-1">
-                  <span className="text-slate-500 font-medium">Topic:</span>
-                  <strong className="text-emerald-400 truncate max-w-[160px]">{topicTitle}</strong>
-                </span>
-              )}
-            </div>
-          </div>
-
+        <div className="p-5 space-y-3.5 overflow-y-auto">
           {errorMsg && (
-            <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm space-y-1">
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs space-y-1">
               <div className="flex items-center space-x-2 font-semibold text-rose-200">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
                 <span>{errorMsg}</span>
               </div>
               {validationErrors.length > 0 && (
-                <ul className="list-disc list-inside text-xs space-y-0.5 pl-5 text-rose-400/90">
+                <ul className="list-disc list-inside text-[11px] space-y-0.5 pl-4 text-rose-400/90">
                   {validationErrors.map((err, i) => (
                     <li key={i}>{err}</li>
                   ))}
@@ -425,142 +426,313 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
 
           {step === "INPUT" ? (
             <>
-              {/* Scope Selection Tabs */}
+              {/* STEP 1: What are you creating? */}
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">
-                  What would you like to create?
+                <label className="text-xs font-bold text-slate-300 block mb-1.5">
+                  What are you creating?
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                <div className="grid grid-cols-5 gap-1.5">
                   <button
                     type="button"
-                    onClick={() => setSelectedScope("MODULE")}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 border cursor-pointer ${
+                    onClick={() => handleScopeChange("MODULE")}
+                    className={`py-2 px-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1 border cursor-pointer ${
                       selectedScope === "MODULE"
-                        ? "bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-md"
-                        : "bg-slate-950/60 text-slate-400 border-slate-800 hover:border-slate-700"
+                        ? "bg-amber-500/20 text-amber-300 border-amber-500/60 shadow-sm"
+                        : "bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700"
                     }`}
                   >
-                    <FolderPlus className="w-3.5 h-3.5" />
+                    <FolderPlus className="w-3.5 h-3.5 shrink-0" />
                     <span>Module</span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => setSelectedScope("LESSON")}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 border cursor-pointer ${
+                    onClick={() => handleScopeChange("LESSON")}
+                    className={`py-2 px-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1 border cursor-pointer ${
                       selectedScope === "LESSON"
-                        ? "bg-orange-500/20 text-orange-300 border-orange-500/50 shadow-md"
-                        : "bg-slate-950/60 text-slate-400 border-slate-800 hover:border-slate-700"
+                        ? "bg-orange-500/20 text-orange-300 border-orange-500/60 shadow-sm"
+                        : "bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700"
                     }`}
                   >
-                    <BookOpen className="w-3.5 h-3.5" />
+                    <BookOpen className="w-3.5 h-3.5 shrink-0" />
                     <span>Lesson</span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => setSelectedScope("TOPIC")}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 border cursor-pointer ${
+                    onClick={() => handleScopeChange("TOPIC")}
+                    className={`py-2 px-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1 border cursor-pointer ${
                       selectedScope === "TOPIC"
-                        ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-md"
-                        : "bg-slate-950/60 text-slate-400 border-slate-800 hover:border-slate-700"
+                        ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/60 shadow-sm"
+                        : "bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700"
                     }`}
                   >
-                    <FilePlus className="w-3.5 h-3.5" />
+                    <FilePlus className="w-3.5 h-3.5 shrink-0" />
                     <span>Topic</span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => setSelectedScope("CONTENT")}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 border cursor-pointer ${
+                    onClick={() => handleScopeChange("CONTENT")}
+                    className={`py-2 px-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1 border cursor-pointer ${
                       selectedScope === "CONTENT"
-                        ? "bg-teal-500/20 text-teal-300 border-teal-500/50 shadow-md"
-                        : "bg-slate-950/60 text-slate-400 border-slate-800 hover:border-slate-700"
+                        ? "bg-teal-500/20 text-teal-300 border-teal-500/60 shadow-sm"
+                        : "bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700"
                     }`}
                   >
-                    <Wand2 className="w-3.5 h-3.5" />
+                    <Wand2 className="w-3.5 h-3.5 shrink-0" />
                     <span>Content</span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => setSelectedScope("QUIZ")}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 border cursor-pointer ${
+                    onClick={() => handleScopeChange("QUIZ")}
+                    className={`py-2 px-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1 border cursor-pointer ${
                       selectedScope === "QUIZ"
-                        ? "bg-purple-500/20 text-purple-300 border-purple-500/50 shadow-md"
-                        : "bg-slate-950/60 text-slate-400 border-slate-800 hover:border-slate-700"
+                        ? "bg-purple-500/20 text-purple-300 border-purple-500/60 shadow-sm"
+                        : "bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700"
                     }`}
                   >
-                    <HelpCircle className="w-3.5 h-3.5" />
+                    <HelpCircle className="w-3.5 h-3.5 shrink-0" />
                     <span>Quiz</span>
                   </button>
                 </div>
               </div>
 
-              {/* Sub-selector for Quiz Level if Quiz scope selected */}
+              {/* STEP 2: Quiz Level Selection (Only if Quiz selected) */}
               {selectedScope === "QUIZ" && (
-                <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                    Quiz Target Hierarchy Level
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-300 block">
+                    What kind of quiz?
                   </label>
                   <div className="grid grid-cols-4 gap-1.5">
                     {["COURSE", "MODULE", "LESSON", "TOPIC"].map((lvl) => (
                       <button
                         key={lvl}
                         type="button"
-                        onClick={() => setQuizLevel(lvl)}
-                        className={`py-1.5 text-xs font-extrabold rounded-lg transition border cursor-pointer ${
+                        onClick={() => {
+                          setQuizLevel(lvl);
+                          setSelectedOrderValue("AUTO_END");
+                        }}
+                        className={`h-9 text-xs font-bold rounded-lg transition border cursor-pointer ${
                           quizLevel === lvl
-                            ? "bg-purple-500/20 text-purple-300 border-purple-500/50"
-                            : "bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700"
+                            ? "bg-purple-500/20 text-purple-300 border-purple-500/60 shadow-sm"
+                            : "bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700"
                         }`}
                       >
-                        {lvl} Quiz
+                        {lvl === "COURSE" ? "Course" : lvl === "MODULE" ? "Module" : lvl === "LESSON" ? "Lesson" : "Topic"} Quiz
                       </button>
                     ))}
+                  </div>
+
+                  {quizLevel === "COURSE" && (
+                    <p className="text-[11px] font-medium text-purple-400 bg-purple-500/10 p-2 rounded-lg border border-purple-500/20">
+                      ℹ️ Course Quiz assess the entire course material.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* STEP 3: Target Location Hierarchy Selectors */}
+              {/* LESSON: Module dropdown 100% width */}
+              {selectedScope === "LESSON" && (
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-400 block">
+                    Target location
+                  </label>
+                  <select
+                    value={selectedModuleId}
+                    onChange={(e) => handleModuleChange(e.target.value)}
+                    className="w-full h-9 bg-slate-950 border border-slate-800 rounded-lg px-3 text-xs text-amber-300 font-bold outline-none focus:border-orange-500/50 cursor-pointer truncate"
+                  >
+                    {modules.length > 0 ? (
+                      modules.map((m) => (
+                        <option key={m.id || m._id} value={m.id || m._id}>
+                          Module: {m.title || "Untitled Module"}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">No modules exist yet</option>
+                    )}
+                  </select>
+                </div>
+              )}
+
+              {/* TOPIC & LESSON QUIZ: 2-column Grid (Module | Lesson) */}
+              {((selectedScope === "TOPIC") || (selectedScope === "QUIZ" && quizLevel === "LESSON")) && (
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-400 block">
+                    Target location
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <select
+                        value={selectedModuleId}
+                        onChange={(e) => handleModuleChange(e.target.value)}
+                        className="w-full h-9 bg-slate-950 border border-slate-800 rounded-lg px-3 text-xs text-amber-300 font-bold outline-none focus:border-orange-500/50 cursor-pointer truncate"
+                      >
+                        {modules.length > 0 ? (
+                          modules.map((m) => (
+                            <option key={m.id || m._id} value={m.id || m._id}>
+                              Module: {m.title || "Untitled Module"}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="">No modules exist yet</option>
+                        )}
+                      </select>
+                    </div>
+
+                    <div>
+                      <select
+                        value={selectedLessonId}
+                        onChange={(e) => handleLessonChange(e.target.value)}
+                        className="w-full h-9 bg-slate-950 border border-slate-800 rounded-lg px-3 text-xs text-orange-300 font-bold outline-none focus:border-orange-500/50 cursor-pointer truncate"
+                      >
+                        {(activeModuleObj?.lessons || []).length > 0 ? (
+                          (activeModuleObj?.lessons || []).map((l) => (
+                            <option key={l.id || l._id} value={l.id || l._id}>
+                              Lesson: {l.title || "Untitled Lesson"}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="">No lessons in this module</option>
+                        )}
+                      </select>
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Natural Language Prompt Area */}
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">
+              {/* CONTENT & TOPIC QUIZ: Top Row (Module | Lesson 2-col) + Bottom Row (Topic 100%) */}
+              {((selectedScope === "CONTENT") || (selectedScope === "QUIZ" && quizLevel === "TOPIC")) && (
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-400 block">
+                    Target location
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <select
+                        value={selectedModuleId}
+                        onChange={(e) => handleModuleChange(e.target.value)}
+                        className="w-full h-9 bg-slate-950 border border-slate-800 rounded-lg px-3 text-xs text-amber-300 font-bold outline-none focus:border-orange-500/50 cursor-pointer truncate"
+                      >
+                        {modules.length > 0 ? (
+                          modules.map((m) => (
+                            <option key={m.id || m._id} value={m.id || m._id}>
+                              Module: {m.title || "Untitled Module"}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="">No modules exist yet</option>
+                        )}
+                      </select>
+                    </div>
+
+                    <div>
+                      <select
+                        value={selectedLessonId}
+                        onChange={(e) => handleLessonChange(e.target.value)}
+                        className="w-full h-9 bg-slate-950 border border-slate-800 rounded-lg px-3 text-xs text-orange-300 font-bold outline-none focus:border-orange-500/50 cursor-pointer truncate"
+                      >
+                        {(activeModuleObj?.lessons || []).length > 0 ? (
+                          (activeModuleObj?.lessons || []).map((l) => (
+                            <option key={l.id || l._id} value={l.id || l._id}>
+                              Lesson: {l.title || "Untitled Lesson"}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="">No lessons in this module</option>
+                        )}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <select
+                      value={selectedTopicId}
+                      onChange={(e) => handleTopicChange(e.target.value)}
+                      className="w-full h-9 bg-slate-950 border border-slate-800 rounded-lg px-3 text-xs text-emerald-300 font-bold outline-none focus:border-orange-500/50 cursor-pointer truncate"
+                    >
+                      {(activeLessonObj?.topics || []).length > 0 ? (
+                        (activeLessonObj?.topics || []).map((t) => (
+                          <option key={t.id || t._id} value={t.id || t._id}>
+                            Topic: {t.title || "Untitled Topic"}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">No topics in this lesson</option>
+                      )}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE QUIZ: Module dropdown 100% width */}
+              {selectedScope === "QUIZ" && quizLevel === "MODULE" && (
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-400 block">
+                    Target location
+                  </label>
+                  <select
+                    value={selectedModuleId}
+                    onChange={(e) => handleModuleChange(e.target.value)}
+                    className="w-full h-9 bg-slate-950 border border-slate-800 rounded-lg px-3 text-xs text-amber-300 font-bold outline-none focus:border-orange-500/50 cursor-pointer truncate"
+                  >
+                    {modules.length > 0 ? (
+                      modules.map((m) => (
+                        <option key={m.id || m._id} value={m.id || m._id}>
+                          Module: {m.title || "Untitled Module"}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">No modules exist yet</option>
+                    )}
+                  </select>
+                </div>
+              )}
+
+              {/* STEP 4: Optional Order Dropdown Control (Requirement 1-5, 18, 19) */}
+              {["MODULE", "LESSON", "TOPIC", "CONTENT", "QUIZ"].includes(selectedScope) && (
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-300 block flex items-center justify-between">
+                    <span>
+                      Order <span className="text-slate-500 font-normal">(optional)</span>
+                    </span>
+                  </label>
+                  <select
+                    value={selectedOrderValue}
+                    onChange={(e) => setSelectedOrderValue(e.target.value)}
+                    className="w-full h-9 bg-slate-950 border border-slate-800 rounded-lg px-3 text-xs text-orange-300 font-bold outline-none focus:border-orange-500/50 cursor-pointer truncate"
+                  >
+                    <option value="AUTO_END">Auto / End</option>
+                    {siblingItems.map((item, i) => (
+                      <option key={item.id || item._id} value={`AFTER_${item.id || item._id}`}>
+                        After {i + 1} — {item.title || `Item ${i + 1}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* STEP 5: Contextual Prompt Area */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-300 block">
                   Describe what you want OTree AI to generate
                 </label>
                 <textarea
-                  rows={4}
+                  rows={3}
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   disabled={loading}
-                  placeholder={`Describe your requirements for ${selectedScope.toLowerCase()}...`}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/50 font-sans resize-none"
+                  placeholder={getPromptPlaceholder()}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/50 font-sans resize-none min-h-[85px]"
                 />
-              </div>
-
-              {/* Quick Prompt Pill Suggestions */}
-              <div className="space-y-1.5">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
-                  Quick Ideas
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {getPromptSuggestions().map((sug, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setPrompt(sug)}
-                      disabled={loading}
-                      className="px-2.5 py-1 text-[11px] font-medium text-slate-300 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg transition text-left cursor-pointer"
-                    >
-                      💡 {sug}
-                    </button>
-                  ))}
-                </div>
               </div>
             </>
           ) : (
-            /* PREVIEW STEP */
-            <div className="space-y-4">
+            /* PREVIEW STEP (Requirement 24: Shows Destination & Re-order Result) */
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Eye className="w-4 h-4 text-emerald-400" />
@@ -575,8 +747,49 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                 </button>
               </div>
 
+              {/* Destination Path & Order Preview */}
+              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1 text-xs">
+                <span className="text-[10px] font-bold uppercase text-orange-400 block tracking-wider">
+                  📍 Destination Location
+                </span>
+                <div className="text-slate-300 flex flex-wrap items-center gap-1 font-medium">
+                  <span className="truncate">{courseTitle}</span>
+                  {activeModuleObj && (
+                    <>
+                      <ChevronRight className="w-3 h-3 text-slate-500 shrink-0" />
+                      <span className="text-amber-400 truncate">{activeModuleObj.title}</span>
+                    </>
+                  )}
+                  {activeLessonObj && (
+                    <>
+                      <ChevronRight className="w-3 h-3 text-slate-500 shrink-0" />
+                      <span className="text-orange-400 truncate">{activeLessonObj.title}</span>
+                    </>
+                  )}
+                  {activeTopicObj && (
+                    <>
+                      <ChevronRight className="w-3 h-3 text-slate-500 shrink-0" />
+                      <span className="text-emerald-400 truncate">{activeTopicObj.title}</span>
+                    </>
+                  )}
+                </div>
+                <div className="text-[11px] text-slate-400 font-semibold pt-1 border-t border-slate-900">
+                  Order:{" "}
+                  <span className="text-white">
+                    {selectedOrderValue === "AUTO_END"
+                      ? `Auto / End (End of ${scopeItemLabel})`
+                      : (() => {
+                          const afterId = selectedOrderValue.replace("AFTER_", "");
+                          const idx = siblingItems.findIndex((it) => String(it.id || it._id) === String(afterId));
+                          const item = siblingItems[idx];
+                          return `After ${idx + 1} — ${item?.title || "Item"}`;
+                        })()}
+                  </span>
+                </div>
+              </div>
+
               {/* Render generated content preview */}
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl max-h-[45vh] overflow-y-auto space-y-3 font-sans text-xs">
+              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl max-h-[40vh] overflow-y-auto space-y-3 font-sans text-xs">
                 {selectedScope === "MODULE" && (
                   <div className="space-y-2">
                     <h4 className="text-sm font-bold text-amber-400">{generatedDraft?.title || "Module"}</h4>
@@ -679,7 +892,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-4 border-t border-slate-800 bg-slate-900/60 flex items-center justify-end space-x-3">
+        <div className="px-5 py-3.5 border-t border-slate-800 bg-slate-900/80 flex items-center justify-end space-x-3">
           <button
             type="button"
             onClick={onClose}
@@ -699,7 +912,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
               {loading ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Generating {selectedScope}...</span>
+                  <span>Generating {selectedScope.toLowerCase()}...</span>
                 </>
               ) : (
                 <>

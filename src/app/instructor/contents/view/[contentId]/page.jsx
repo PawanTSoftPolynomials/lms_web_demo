@@ -35,6 +35,7 @@ import { useModule } from "@/hooks/queries/instructor/useModule";
 import { useContents } from "@/hooks/queries/instructor/useContents";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
 import LessonStickySidebar from "@/components/instructor/lessons/LessonStickySidebar";
+import PdfViewer from "@/components/student/learn/PdfViewer";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -363,7 +364,11 @@ export default function ContentDetailsPage() {
             {/* Presentation / Document Preview */}
             {(isPresentation || isDocument) && (
               content.fileUrl ? (
-                (isPresentation ? presentationViewerUrl : documentViewerUrl) ? (
+                (content.fileUrl.toLowerCase().includes(".pdf") || isDocument) ? (
+                  <div className="w-full my-2">
+                    <PdfViewer fileUrl={content.fileUrl} title={content.title} />
+                  </div>
+                ) : (isPresentation ? presentationViewerUrl : documentViewerUrl) ? (
                   <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 shadow-lg">
                     <iframe
                       src={isPresentation ? presentationViewerUrl : documentViewerUrl}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -19,8 +19,21 @@ import {
   Wand2,
   BookOpen,
   Layers,
+  FileArchive,
+  FileCode,
+  Upload,
+  Clipboard,
+  Download,
+  HelpCircle,
+  X,
+  FileJson,
 } from "lucide-react";
 import api from "@/lib/axios";
+import {
+  useUploadZipPackage,
+  useProcessZipJob,
+  useProcessJsonCourse,
+} from "@/hooks/queries/instructor/useCourseImport";
 
 /** Example prompts covering diverse disciplines */
 const EXAMPLE_PROMPTS = [
@@ -54,13 +67,122 @@ const STAGED_STEPS = [
   { id: 4, label: "Creating assessments", desc: "Building module quizzes and question sets" },
 ];
 
+/** Fallback Orange Tree LMS Course JSON Template */
+const FALLBACK_TEMPLATE = {
+  metadata: {
+    title: "C Programming Fundamentals",
+    description: "Master C programming concepts from basic syntax to memory pointers.",
+    category: "Computer Science",
+    level: "BEGINNER",
+    language: "English",
+    tags: ["c", "programming", "coding"],
+    estimatedLearningHours: 10,
+    price: 0,
+  },
+  settings: {
+    visibility: "PUBLIC",
+    certificatesEnabled: true,
+    discussionEnabled: true,
+    dripContentEnabled: false,
+  },
+  quizzes: [
+    {
+      title: "C Programming Final Assessment",
+      description: "Comprehensive course-level assessment covering C fundamentals.",
+      passingScore: 60,
+      timeLimit: 30,
+      isPublished: true,
+      questions: [
+        {
+          question: "Which header file is required for printf()?",
+          questionType: "MCQ_SINGLE",
+          options: ["<stdio.h>", "<stdlib.h>", "<string.h>", "<math.h>"],
+          correctAnswer: "<stdio.h>",
+          explanation: "printf() is declared in stdio.h.",
+          marks: 1,
+          negativeMarks: 0,
+          difficulty: "EASY",
+        },
+        {
+          question: "Is C a compiled programming language?",
+          questionType: "TRUE_FALSE",
+          options: ["True", "False"],
+          correctAnswer: "True",
+          explanation: "C code is directly compiled into machine executable binaries.",
+          marks: 1,
+          difficulty: "EASY",
+        },
+      ],
+    },
+  ],
+  modules: [
+    {
+      title: "C Fundamentals",
+      description: "First steps in writing C programs.",
+      order: 1,
+      isPublished: true,
+      quizzes: [
+        {
+          title: "Module 1 Quick Check",
+          description: "Check understanding of basic C concepts.",
+          passingScore: 60,
+          timeLimit: 15,
+          isPublished: true,
+          questions: [
+            {
+              question: "What is the entry point of a C program?",
+              questionType: "MCQ_SINGLE",
+              options: ["start()", "main()", "run()", "execute()"],
+              correctAnswer: "main()",
+              explanation: "Execution of a C program always begins from main().",
+              marks: 1,
+              difficulty: "EASY",
+            },
+          ],
+        },
+      ],
+      lessons: [
+        {
+          title: "Introduction to C",
+          description: "Understanding compilation and basic structure.",
+          order: 1,
+          isPublished: true,
+          topics: [
+            {
+              title: "What is C?",
+              description: "Overview of procedural programming.",
+              order: 1,
+              isPublished: true,
+              contents: [
+                {
+                  type: "HTML",
+                  title: "Introduction to C Language",
+                  order: 1,
+                  htmlContent: "<h2>What is C?</h2><p>C is a low-level, high-efficiency compiled programming language.</p>",
+                },
+                {
+                  type: "VIDEO",
+                  title: "Writing Your First Hello World",
+                  order: 2,
+                  duration: 300,
+                  videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
 export default function CourseImportPage() {
   const router = useRouter();
 
   // Primary Prompt State
   const [prompt, setPrompt] = useState("");
-  
-  // Advanced Options State (Collapsed by default)
+
+  // Advanced Options State
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [level, setLevel] = useState("AUTO");
   const [targetAudience, setTargetAudience] = useState("");
@@ -71,9 +193,29 @@ export default function CourseImportPage() {
   const [workflowState, setWorkflowState] = useState("INPUT");
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [generatedDraft, setGeneratedDraft] = useState(null);
-  
+
+  // ZIP Import State
+  const [zipImportingState, setZipImportingState] = useState(null); // null | "uploading" | "validating" | "importing"
+  const zipInputRef = useRef(null);
+
+  // JSON File Import Ref
+  const jsonInputRef = useRef(null);
+
+  // Modals State
+  const [showPasteModal, setShowPasteModal] = useState(false);
+  const [pastedJsonText, setPastedJsonText] = useState("");
+  const [pasteValidationErrors, setPasteValidationErrors] = useState([]);
+
+  const [showFormatGuideModal, setShowFormatGuideModal] = useState(false);
+
+  // Global Error & Validation State
   const [errorMsg, setErrorMsg] = useState("");
   const [validationErrors, setValidationErrors] = useState([]);
+
+  // Import Hooks
+  const uploadZipMutation = useUploadZipPackage();
+  const processZipMutation = useProcessZipJob();
+  const processJsonMutation = useProcessJsonCourse();
 
   /** Assigns client-side UUIDs to canonical draft nodes for Composer compatibility */
   const withDraftIds = (modules = [], courseQuizzes = []) => {
@@ -115,9 +257,9 @@ export default function CourseImportPage() {
   };
 
   /** Saves temporary draft payload to sessionStorage and opens Course Composer */
-  const prepareDraftAndNavigate = (canonical) => {
+  const prepareDraftAndNavigate = (canonical, jobId = null) => {
     try {
-      const metadata = canonical.metadata || {};
+      const metadata = canonical.metadata || canonical || {};
       const settings = canonical.settings || {};
       const { modules, quizzes } = withDraftIds(
         Array.isArray(canonical.modules) ? canonical.modules : [],
@@ -126,14 +268,14 @@ export default function CourseImportPage() {
       const assetMap = canonical.assetMap || {};
 
       const draftPayload = {
-        jobId: `draft-${crypto.randomUUID()}`,
+        jobId: jobId || `draft-${crypto.randomUUID()}`,
         isImportDraft: true,
         metadata: {
-          title: metadata.title || "AI Generated Course",
+          title: metadata.title || "Imported Course",
           description: metadata.description || "",
           category: metadata.category || "General",
           level: metadata.level || "BEGINNER",
-          thumbnailUrl: metadata.thumbnail ? (assetMap[metadata.thumbnail] || metadata.thumbnail) : null,
+          thumbnailUrl: metadata.thumbnail ? assetMap[metadata.thumbnail] || metadata.thumbnail : null,
           language: metadata.language || "English",
           tags: Array.isArray(metadata.tags) ? metadata.tags : [],
           estimatedLearningHours: metadata.estimatedLearningHours || null,
@@ -159,6 +301,9 @@ export default function CourseImportPage() {
     }
   };
 
+  // ==========================================
+  // 1. AI COURSE GENERATION HANDLER
+  // ==========================================
   const handleGenerate = async () => {
     if (!prompt || !prompt.trim()) {
       setErrorMsg("Please describe what you want to teach in the prompt box.");
@@ -170,7 +315,6 @@ export default function CourseImportPage() {
     setValidationErrors([]);
     setCurrentStepIndex(0);
 
-    // Staged progress timers for UI feedback
     const stepInterval = setInterval(() => {
       setCurrentStepIndex((prev) => (prev < STAGED_STEPS.length - 1 ? prev + 1 : prev));
     }, 4500);
@@ -189,7 +333,7 @@ export default function CourseImportPage() {
           },
         },
         {
-          timeout: 240000, // 4-minute maximum timeout for LLM generation
+          timeout: 240000,
         }
       );
 
@@ -234,7 +378,191 @@ export default function CourseImportPage() {
     prepareDraftAndNavigate(canonical);
   };
 
-  // Helper stats for preview step
+  // ==========================================
+  // 2. ZIP PACKAGE IMPORT HANDLER
+  // ==========================================
+  const handleZipFileSelected = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith(".zip")) {
+      setErrorMsg("Invalid file type. Please select a .zip course package.");
+      if (zipInputRef.current) zipInputRef.current.value = "";
+      return;
+    }
+
+    setErrorMsg("");
+    setValidationErrors([]);
+    setZipImportingState("uploading");
+
+    try {
+      // Step 1: Upload ZIP file package to backend
+      const job = await uploadZipMutation.mutateAsync(file);
+
+      if (!job || !job.id) {
+        throw new Error("Failed to create import job.");
+      }
+
+      // Step 2: Validate and process package
+      setZipImportingState("validating");
+      const processedJob = await processZipMutation.mutateAsync(job.id);
+
+      setZipImportingState("importing");
+
+      const canonical = processedJob?.canonicalJson || job?.canonicalJson;
+
+      if (!canonical) {
+        throw new Error("Unable to extract valid course structure from ZIP package.");
+      }
+
+      setZipImportingState(null);
+      if (zipInputRef.current) zipInputRef.current.value = "";
+
+      // Load extracted course structure into Composer
+      prepareDraftAndNavigate(canonical, job.id);
+    } catch (err) {
+      setZipImportingState(null);
+      if (zipInputRef.current) zipInputRef.current.value = "";
+      console.error("ZIP Import Error:", err);
+      const msg = err?.response?.data?.message || err?.message || "Unable to import the ZIP package. The package structure is invalid.";
+      const errors = err?.response?.data?.errors || [msg];
+      setErrorMsg(msg);
+      setValidationErrors(errors);
+    }
+  };
+
+  // ==========================================
+  // 3. JSON FILE IMPORT HANDLER
+  // ==========================================
+  const handleJsonFileSelected = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith(".json")) {
+      setErrorMsg("Invalid file type. Please select a .json file.");
+      if (jsonInputRef.current) jsonInputRef.current.value = "";
+      return;
+    }
+
+    setErrorMsg("");
+    setValidationErrors([]);
+
+    try {
+      // Read & parse file locally first for instant syntax validation
+      const text = await file.text();
+      let parsedJson;
+      try {
+        parsedJson = JSON.parse(text);
+      } catch (parseErr) {
+        throw new Error(`Invalid JSON syntax in file '${file.name}': ${parseErr.message}`);
+      }
+
+      // Basic Schema Checks
+      if (!parsedJson || typeof parsedJson !== "object") {
+        throw new Error("JSON file must contain a valid course object.");
+      }
+
+      const hasMetadataTitle = parsedJson.metadata?.title || parsedJson.title;
+      if (!hasMetadataTitle) {
+        throw new Error("Invalid course JSON: course title is missing (expected 'metadata.title' or 'title').");
+      }
+
+      // Process JSON with backend validator/parser
+      const jobData = await processJsonMutation.mutateAsync({ file });
+      const canonical = jobData?.canonicalJson || parsedJson;
+
+      if (jsonInputRef.current) jsonInputRef.current.value = "";
+      prepareDraftAndNavigate(canonical, jobData?.id);
+    } catch (err) {
+      if (jsonInputRef.current) jsonInputRef.current.value = "";
+      console.error("JSON File Import Error:", err);
+      const msg = err?.response?.data?.message || err?.message || "Failed to process JSON course file.";
+      const errors = err?.response?.data?.errors || [msg];
+      setErrorMsg(msg);
+      setValidationErrors(errors);
+    }
+  };
+
+  // ==========================================
+  // 4. PASTE JSON HANDLER
+  // ==========================================
+  const handleValidateAndImportPastedJson = async () => {
+    setPasteValidationErrors([]);
+    setErrorMsg("");
+    setValidationErrors([]);
+
+    if (!pastedJsonText || !pastedJsonText.trim()) {
+      setPasteValidationErrors(["Please paste course JSON text before validating."]);
+      return;
+    }
+
+    let parsedJson;
+    try {
+      parsedJson = JSON.parse(pastedJsonText.trim());
+    } catch (parseErr) {
+      setPasteValidationErrors([`Invalid JSON syntax: ${parseErr.message}`]);
+      return;
+    }
+
+    if (!parsedJson || typeof parsedJson !== "object") {
+      setPasteValidationErrors(["Root JSON element must be an object."]);
+      return;
+    }
+
+    const hasTitle = parsedJson.metadata?.title || parsedJson.title;
+    if (!hasTitle) {
+      setPasteValidationErrors(["Invalid course JSON: course title is missing (expected 'metadata.title' or 'title')."]);
+      return;
+    }
+
+    try {
+      const jobData = await processJsonMutation.mutateAsync({ jsonContent: parsedJson });
+      const canonical = jobData?.canonicalJson || parsedJson;
+
+      setShowPasteModal(false);
+      setPastedJsonText("");
+      prepareDraftAndNavigate(canonical, jobData?.id);
+    } catch (err) {
+      console.error("Pasted JSON Import Error:", err);
+      const msg = err?.response?.data?.message || err?.message || "JSON validation failed.";
+      const errors = err?.response?.data?.errors || [msg];
+      setPasteValidationErrors(errors);
+    }
+  };
+
+  // ==========================================
+  // 5. DOWNLOAD TEMPLATE HANDLER
+  // ==========================================
+  const handleDownloadTemplate = async () => {
+    try {
+      let templateData = FALLBACK_TEMPLATE;
+      try {
+        const res = await api.get("/course-import/template");
+        if (res.data?.data) {
+          templateData = res.data.data;
+        }
+      } catch (ignored) {
+        // Fall back to built-in canonical template if template API route is unavailable
+      }
+
+      const jsonStr = JSON.stringify(templateData, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "orange_lms_course_template.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download Template Error:", err);
+      setErrorMsg("Failed to download course template.");
+    }
+  };
+
+  // Preview Stats Calculation
   const canonicalData = generatedDraft?.canonicalJson || generatedDraft?.data?.canonicalJson || generatedDraft || {};
   const targetMetadata = canonicalData?.metadata || canonicalData || {};
   const modulesList = Array.isArray(canonicalData?.modules) ? canonicalData.modules : [];
@@ -251,8 +579,24 @@ export default function CourseImportPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-8 lg:p-10 font-sans pb-32">
-      {/* Navigation Header */}
-      <div className="max-w-4xl mx-auto mb-8">
+      {/* Hidden File Inputs */}
+      <input
+        type="file"
+        ref={zipInputRef}
+        onChange={handleZipFileSelected}
+        accept=".zip"
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={jsonInputRef}
+        onChange={handleJsonFileSelected}
+        accept=".json"
+        className="hidden"
+      />
+
+      {/* Header */}
+      <div className="max-w-5xl mx-auto mb-8">
         <div className="flex items-center space-x-3">
           <Link
             href="/instructor/courses"
@@ -264,21 +608,18 @@ export default function CourseImportPage() {
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 bg-clip-text text-transparent">
-                Create Course with AI
+                Create & Import Course
               </h1>
-              <span className="px-2.5 py-0.5 text-[10px] font-black tracking-wider uppercase bg-orange-500/20 border border-orange-500/30 text-orange-300 rounded-full flex items-center space-x-1">
-                <Bot className="w-3 h-3" />
-                <span>Gemini 3.6 Flash</span>
-              </span>
             </div>
             <p className="text-sm text-slate-400 mt-1">
-              Describe what you want to teach. AI will turn your idea into a structured course with modules, lessons, content, and quizzes.
+              Build a new course with AI, import a local ZIP package, or load an Orange Tree LMS JSON course structure.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-8">
+        {/* Global Error Banner */}
         {errorMsg && (
           <div className="p-5 rounded-2xl bg-rose-950/70 border border-rose-800/80 text-rose-200 text-sm space-y-2">
             <div className="flex items-center space-x-2 font-semibold text-rose-300">
@@ -295,148 +636,157 @@ export default function CourseImportPage() {
           </div>
         )}
 
-        {/* INPUT STATE: PROMPT-FIRST COURSE CREATION */}
+        {/* ======================================================== */}
+        {/* SECTION 1: AI COURSE CREATION BANNER */}
+        {/* ======================================================== */}
         {workflowState === "INPUT" && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            {/* Main Prompt Container */}
-            <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl space-y-6">
-              <div className="space-y-2">
-                <label className="text-base font-bold text-slate-100 flex items-center space-x-2">
-                  <Wand2 className="w-5 h-5 text-amber-400" />
-                  <span>Tell AI what you want to create</span>
-                </label>
-                <p className="text-xs text-slate-400">
-                  Write your course request naturally. Specify topics, audience, depth, or duration if desired.
-                </p>
-              </div>
-
-              {/* Natural Language Textarea */}
-              <div className="relative">
-                <textarea
-                  value={prompt}
-                  onChange={(e) => {
-                    setPrompt(e.target.value);
-                    if (errorMsg) setErrorMsg("");
-                  }}
-                  placeholder="e.g. Create a beginner Python course for college students. Cover variables, control flow, functions, OOP, and data structures with practical code examples and quizzes..."
-                  rows={6}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 md:p-5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/60 focus:ring-1 focus:ring-orange-500/50 transition leading-relaxed resize-y font-sans shadow-inner"
-                />
-              </div>
-
-              {/* Lightweight Example Prompt Pills */}
-              <div className="space-y-2">
-                <span className="text-xs font-semibold text-slate-400 tracking-wider uppercase">
-                  Try an example:
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {EXAMPLE_PROMPTS.map((ex, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => {
-                        setPrompt(ex.text);
-                        if (errorMsg) setErrorMsg("");
-                      }}
-                      className="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-orange-500/40 text-xs font-medium text-slate-300 hover:text-amber-400 transition"
-                    >
-                      {ex.label}
-                    </button>
-                  ))}
+          <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400">
+                  <Wand2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center space-x-2">
+                    <span>Compose Course with AI Agent</span>
+                    <span className="px-2 py-0.5 text-[10px] font-black tracking-wider uppercase bg-orange-500/20 border border-orange-500/30 text-orange-300 rounded-full flex items-center space-x-1">
+                      <Bot className="w-3 h-3" />
+                      <span>Gemini 3.6 Flash</span>
+                    </span>
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Describe your course goals in plain text. The AI Agent will generate a structured draft with modules, lessons, topics, and quizzes.
+                  </p>
                 </div>
               </div>
+            </div>
 
-              {/* Collapsible Advanced Options Accordion */}
-              <div className="pt-2 border-t border-slate-800/80">
-                <button
-                  type="button"
-                  onClick={() => setShowAdvanced(!showAdvanced)}
-                  className="flex items-center space-x-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition py-1"
-                >
-                  <SlidersHorizontal className="w-4 h-4 text-orange-400" />
-                  <span>Customize Generation (Advanced options)</span>
-                  {showAdvanced ? (
-                    <ChevronDown className="w-4 h-4 text-slate-400" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  )}
-                </button>
+            {/* Prompt Input */}
+            <div className="relative">
+              <textarea
+                value={prompt}
+                onChange={(e) => {
+                  setPrompt(e.target.value);
+                  if (errorMsg) setErrorMsg("");
+                }}
+                placeholder="e.g. Create a beginner Python course for college students. Cover variables, control flow, functions, OOP, and data structures with practical code examples and quizzes..."
+                rows={4}
+                className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/60 focus:ring-1 focus:ring-orange-500/50 transition leading-relaxed resize-y font-sans shadow-inner"
+              />
+            </div>
 
-                {showAdvanced && (
-                  <div className="mt-4 p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in slide-in-from-top-2 duration-200">
-                    <div>
-                      <label className="text-xs font-medium text-slate-400 block mb-1">Course Size</label>
-                      <select
-                        value={size}
-                        onChange={(e) => setSize(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
-                      >
-                        <option value="AUTO">Auto (Inferred)</option>
-                        <option value="SMALL">Small (3-4 modules)</option>
-                        <option value="MEDIUM">Medium (5-7 modules)</option>
-                        <option value="LARGE">Large (8-10 modules)</option>
-                      </select>
-                    </div>
+            {/* Example Prompt Pills */}
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-slate-400 tracking-wider uppercase">
+                Try an example:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {EXAMPLE_PROMPTS.map((ex, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setPrompt(ex.text);
+                      if (errorMsg) setErrorMsg("");
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-orange-500/40 text-xs font-medium text-slate-300 hover:text-amber-400 transition cursor-pointer"
+                  >
+                    {ex.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                    <div>
-                      <label className="text-xs font-medium text-slate-400 block mb-1">Difficulty Level</label>
-                      <select
-                        value={level}
-                        onChange={(e) => setLevel(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
-                      >
-                        <option value="AUTO">Auto (Inferred)</option>
-                        <option value="BEGINNER">Beginner</option>
-                        <option value="INTERMEDIATE">Intermediate</option>
-                        <option value="ADVANCED">Advanced</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-medium text-slate-400 block mb-1">Target Audience</label>
-                      <input
-                        type="text"
-                        value={targetAudience}
-                        onChange={(e) => setTargetAudience(e.target.value)}
-                        placeholder="e.g. Beginners, Employees (Auto)"
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-medium text-slate-400 block mb-1">Language</label>
-                      <input
-                        type="text"
-                        value={language}
-                        onChange={(e) => setLanguage(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
-                      />
-                    </div>
-                  </div>
+            {/* Collapsible Advanced Options Accordion */}
+            <div className="pt-2 border-t border-slate-800/80">
+              <button
+                type="button"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="flex items-center space-x-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition py-1 cursor-pointer"
+              >
+                <SlidersHorizontal className="w-4 h-4 text-orange-400" />
+                <span>Customize Generation (Advanced options)</span>
+                {showAdvanced ? (
+                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
                 )}
-              </div>
+              </button>
 
-              {/* Action Footer */}
-              <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-                <div className="flex items-center space-x-2 text-xs text-slate-400">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Generates canonical course structure with modules & quizzes</span>
+              {showAdvanced && (
+                <div className="mt-4 p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in slide-in-from-top-2 duration-200">
+                  <div>
+                    <label className="text-xs font-medium text-slate-400 block mb-1">Course Size</label>
+                    <select
+                      value={size}
+                      onChange={(e) => setSize(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
+                    >
+                      <option value="AUTO">Auto (Inferred)</option>
+                      <option value="SMALL">Small (3-4 modules)</option>
+                      <option value="MEDIUM">Medium (5-7 modules)</option>
+                      <option value="LARGE">Large (8-10 modules)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-slate-400 block mb-1">Difficulty Level</label>
+                    <select
+                      value={level}
+                      onChange={(e) => setLevel(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
+                    >
+                      <option value="AUTO">Auto (Inferred)</option>
+                      <option value="BEGINNER">Beginner</option>
+                      <option value="INTERMEDIATE">Intermediate</option>
+                      <option value="ADVANCED">Advanced</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-slate-400 block mb-1">Target Audience</label>
+                    <input
+                      type="text"
+                      value={targetAudience}
+                      onChange={(e) => setTargetAudience(e.target.value)}
+                      placeholder="e.g. Beginners, Employees (Auto)"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-slate-400 block mb-1">Language</label>
+                    <input
+                      type="text"
+                      value={language}
+                      onChange={(e) => setLanguage(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
+                    />
+                  </div>
                 </div>
+              )}
+            </div>
 
-                <button
-                  type="button"
-                  onClick={handleGenerate}
-                  className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-300 text-slate-950 text-sm font-extrabold shadow-lg shadow-orange-500/20 transition flex items-center space-x-2 cursor-pointer"
-                >
-                  <Sparkles className="w-4 h-4 fill-current" />
-                  <span>Generate Course</span>
-                </button>
+            {/* Action Footer */}
+            <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+              <div className="flex items-center space-x-2 text-xs text-slate-400">
+                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Generates canonical course structure with modules & quizzes</span>
               </div>
+
+              <button
+                type="button"
+                onClick={handleGenerate}
+                className="px-8 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-300 text-slate-950 text-sm font-extrabold shadow-lg shadow-orange-500/20 transition flex items-center space-x-2 cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 fill-current" />
+                <span>Launch AI Composer</span>
+              </button>
             </div>
           </div>
         )}
 
-        {/* GENERATING STATE: STAGED PIPELINE FEEDBACK */}
+        {/* AI GENERATING STATE */}
         {workflowState === "GENERATING" && (
           <div className="p-8 md:p-12 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl text-center space-y-8 animate-in fade-in duration-300">
             <div className="relative inline-flex items-center justify-center">
@@ -452,7 +802,6 @@ export default function CourseImportPage() {
               </p>
             </div>
 
-            {/* Staged UI Steps */}
             <div className="max-w-md mx-auto space-y-3 text-left">
               {STAGED_STEPS.map((step, idx) => {
                 const isDone = idx < currentStepIndex;
@@ -486,7 +835,7 @@ export default function CourseImportPage() {
           </div>
         )}
 
-        {/* PREVIEW STATE: GENERATED DRAFT PREVIEW & APPLY */}
+        {/* AI PREVIEW STATE */}
         {workflowState === "PREVIEW" && (
           <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl space-y-6 animate-in fade-in duration-300">
             <div className="flex items-center justify-between">
@@ -504,7 +853,6 @@ export default function CourseImportPage() {
               </button>
             </div>
 
-            {/* Summary Stats Badges */}
             <div className="grid grid-cols-3 gap-3">
               <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-center">
                 <span className="text-xs text-slate-400 uppercase font-bold block">Modules</span>
@@ -520,7 +868,6 @@ export default function CourseImportPage() {
               </div>
             </div>
 
-            {/* Course Tree Hierarchy Preview */}
             <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl max-h-[50vh] overflow-y-auto space-y-4">
               <div>
                 <h4 className="text-base font-extrabold text-amber-400">
@@ -569,7 +916,6 @@ export default function CourseImportPage() {
               )}
             </div>
 
-            {/* Action Footer */}
             <div className="flex items-center justify-between pt-4 border-t border-slate-800">
               <button
                 type="button"
@@ -590,7 +936,320 @@ export default function CourseImportPage() {
             </div>
           </div>
         )}
+
+        {/* ======================================================== */}
+        {/* SECTION 2 & 3: GRID CARDS (ZIP IMPORT & JSON IMPORT) */}
+        {/* ======================================================== */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* ---------------------------------------------------- */}
+          {/* CARD 2: IMPORT FROM ZIP */}
+          {/* ---------------------------------------------------- */}
+          <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl flex flex-col justify-between space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-2xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400">
+                  <FileArchive className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-extrabold text-white">Import from ZIP</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Import a complete course package with local media files.
+                  </p>
+                </div>
+              </div>
+
+              {/* Indicators / Badges */}
+              <div className="flex flex-wrap gap-2 pt-1">
+                <span className="px-2.5 py-1 text-xs font-semibold bg-sky-950/60 border border-sky-800/60 text-sky-300 rounded-lg flex items-center space-x-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
+                  <span>Includes content</span>
+                </span>
+                <span className="px-2.5 py-1 text-xs font-semibold bg-sky-950/60 border border-sky-800/60 text-sky-300 rounded-lg flex items-center space-x-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
+                  <span>All media included</span>
+                </span>
+              </div>
+            </div>
+
+            {/* ZIP Progress Feedback if active */}
+            {zipImportingState && (
+              <div className="p-4 rounded-2xl bg-sky-950/50 border border-sky-800/50 text-sky-200 text-xs flex items-center space-x-3">
+                <RefreshCw className="w-4 h-4 text-sky-400 animate-spin shrink-0" />
+                <span className="capitalize font-semibold">
+                  {zipImportingState === "uploading"
+                    ? "Uploading course package..."
+                    : zipImportingState === "validating"
+                    ? "Validating package..."
+                    : "Importing course..."}
+                </span>
+              </div>
+            )}
+
+            {/* Select ZIP Button & Note */}
+            <div className="space-y-2 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                disabled={Boolean(zipImportingState)}
+                onClick={() => zipInputRef.current?.click()}
+                className="w-full py-3.5 rounded-2xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-sm font-extrabold shadow-lg shadow-sky-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                <Upload className="w-4 h-4" />
+                <span>Select ZIP Package</span>
+              </button>
+
+              <p className="text-[11px] text-slate-500 text-center font-mono">
+                .zip file up to 2GB
+              </p>
+            </div>
+          </div>
+
+          {/* ---------------------------------------------------- */}
+          {/* CARD 3: IMPORT FROM JSON */}
+          {/* ---------------------------------------------------- */}
+          <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl flex flex-col justify-between space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                  <FileCode className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-extrabold text-white">Import from JSON</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Import course structure using Orange Tree LMS JSON format.
+                  </p>
+                </div>
+              </div>
+
+              {/* Hierarchy Diagram */}
+              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-mono text-indigo-300 flex items-center justify-center space-x-1.5 flex-wrap">
+                <span className="font-bold text-amber-400">Course</span>
+                <span className="text-slate-600">→</span>
+                <span>Module</span>
+                <span className="text-slate-600">→</span>
+                <span>Lesson</span>
+                <span className="text-slate-600">→</span>
+                <span>Topic</span>
+                <span className="text-slate-600">→</span>
+                <span className="text-emerald-400">Content</span>
+              </div>
+            </div>
+
+            {/* Action Buttons Container */}
+            <div className="space-y-3 pt-2 border-t border-slate-800">
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => jsonInputRef.current?.click()}
+                  className="py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Select JSON File</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPasteValidationErrors([]);
+                    setShowPasteModal(true);
+                  }}
+                  className="py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-indigo-300 border border-indigo-500/30 hover:border-indigo-500/60 text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                >
+                  <Clipboard className="w-3.5 h-3.5" />
+                  <span>Paste JSON</span>
+                </button>
+              </div>
+
+              {/* Secondary Help & Template Actions */}
+              <div className="flex items-center justify-between pt-1 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setShowFormatGuideModal(true)}
+                  className="text-slate-400 hover:text-indigo-300 font-semibold flex items-center space-x-1 transition cursor-pointer"
+                >
+                  <HelpCircle className="w-3.5 h-3.5" />
+                  <span>View Format Guide</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadTemplate}
+                  className="text-indigo-400 hover:text-indigo-300 font-bold flex items-center space-x-1 transition cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download Template</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* ======================================================== */}
+      {/* MODAL 1: PASTE JSON MODAL */}
+      {/* ======================================================== */}
+      {showPasteModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl p-6 md:p-8 space-y-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center space-x-2">
+                <Clipboard className="w-5 h-5 text-indigo-400" />
+                <h3 className="text-lg font-bold text-white">Paste Orange Tree LMS JSON</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPasteModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {pasteValidationErrors.length > 0 && (
+              <div className="p-4 rounded-2xl bg-rose-950/80 border border-rose-800/80 text-rose-200 text-xs space-y-1.5">
+                <div className="font-bold flex items-center space-x-1.5 text-rose-300">
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>Validation Error</span>
+                </div>
+                <ul className="list-disc pl-5 font-mono text-[11px] space-y-0.5 text-rose-300/90">
+                  {pasteValidationErrors.map((err, idx) => (
+                    <li key={idx}>{err}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-300 block">
+                Paste JSON Course Content below:
+              </label>
+              <textarea
+                value={pastedJsonText}
+                onChange={(e) => setPastedJsonText(e.target.value)}
+                placeholder='{\n  "metadata": {\n    "title": "My Custom Course",\n    "category": "Computer Science"\n  },\n  "modules": [...]\n}'
+                rows={10}
+                className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-xs text-slate-100 font-mono focus:outline-none focus:border-indigo-500 transition resize-y"
+              />
+            </div>
+
+            <div className="flex items-center justify-end space-x-3 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setShowPasteModal(false)}
+                className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleValidateAndImportPastedJson}
+                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold transition flex items-center space-x-1.5 cursor-pointer shadow-lg shadow-indigo-600/20"
+              >
+                <Check className="w-4 h-4" />
+                <span>Validate & Import JSON</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL 2: FORMAT GUIDE MODAL */}
+      {/* ======================================================== */}
+      {showFormatGuideModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-3xl p-6 md:p-8 space-y-6 shadow-2xl max-h-[85vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center space-x-2">
+                <FileJson className="w-5 h-5 text-indigo-400" />
+                <h3 className="text-lg font-bold text-white">Orange Tree LMS Course JSON Format Guide (v2)</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowFormatGuideModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Hierarchy Explanation */}
+            <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
+              <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-800/40 space-y-2">
+                <h4 className="font-bold text-indigo-300 uppercase tracking-wider text-[11px]">
+                  Course Structure Hierarchy
+                </h4>
+                <p className="text-slate-300">
+                  Orange Tree LMS organizes courses using a 5-level nested structure:
+                </p>
+                <div className="p-2.5 bg-slate-950 border border-slate-800 rounded-xl font-mono text-[11px] text-amber-300 flex items-center space-x-2 flex-wrap">
+                  <span className="font-bold">Course</span> → <span>Module</span> → <span>Lesson</span> → <span>Topic</span> → <span className="text-emerald-400">Content / Quiz</span>
+                </div>
+              </div>
+
+              {/* Schema Fields Breakdown */}
+              <div className="space-y-3">
+                <h4 className="font-bold text-white text-sm">Supported Top-Level Fields</h4>
+
+                <div className="space-y-2">
+                  <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                    <span className="font-bold text-amber-400 font-mono block">metadata</span>
+                    <span className="text-slate-400 block mt-0.5">
+                      Contains course title, description, category, difficulty level (BEGINNER | INTERMEDIATE | ADVANCED), language, estimatedLearningHours, price, and tags array.
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                    <span className="font-bold text-indigo-400 font-mono block">settings</span>
+                    <span className="text-slate-400 block mt-0.5">
+                      visibility (PUBLIC | PRIVATE), certificatesEnabled (boolean), discussionEnabled (boolean), dripContentEnabled (boolean).
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                    <span className="font-bold text-emerald-400 font-mono block">modules [ ]</span>
+                    <span className="text-slate-400 block mt-0.5">
+                      Array of module objects. Each module has title, description, order, and nested lessons array.
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                    <span className="font-bold text-sky-400 font-mono block">contents [ ] (Topic Content Items)</span>
+                    <span className="text-slate-400 block mt-0.5">
+                      Supported types: HTML (rich text / markdown), VIDEO (videoUrl), DOCUMENT (fileUrl), PRESENTATION (fileUrl).
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                    <span className="font-bold text-purple-400 font-mono block">quizzes [ ]</span>
+                    <span className="text-slate-400 block mt-0.5">
+                      Course or module level assessment quizzes with passingScore, timeLimit, and questions array (MCQ_SINGLE, MCQ_MULTI, TRUE_FALSE, SHORT_ANSWER, CODING).
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={handleDownloadTemplate}
+                className="px-4 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition flex items-center space-x-1.5"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download Sample Template</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowFormatGuideModal(false)}
+                className="px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-white text-xs font-bold transition"
+              >
+                Close Guide
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

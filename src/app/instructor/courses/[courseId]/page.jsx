@@ -209,6 +209,8 @@ export default function CourseDetailsPage() {
       topicTitle: currentTopic?.title || "",
       contentId: currentContent?.id || currentContent?._id || null,
       activeLevel,
+      modules: effectiveModules || [],
+      courseQuizzes: effectiveCourse?.quizzes || [],
     };
 
     const initialScope =
@@ -230,6 +232,29 @@ export default function CourseDetailsPage() {
 
   const handleApplyAiGeneratedData = async (generatedData, scope, contextData) => {
     try {
+      const pos = contextData?.position || "END";
+
+      const insertByPos = (arr = [], newItem) => {
+        let resArr = [];
+        if (!pos || pos === "END" || pos === "AUTO_END") {
+          resArr = [...arr, newItem];
+        } else if (pos === "BEGINNING") {
+          resArr = [newItem, ...arr];
+        } else if (pos.startsWith("AFTER_")) {
+          const afterId = pos.replace("AFTER_", "");
+          const idx = arr.findIndex((item) => String(item.id || item._id) === String(afterId));
+          if (idx !== -1) {
+            resArr = [...arr];
+            resArr.splice(idx + 1, 0, newItem);
+          } else {
+            resArr = [...arr, newItem];
+          }
+        } else {
+          resArr = [...arr, newItem];
+        }
+        return resArr.map((item, i) => ({ ...item, order: i + 1 }));
+      };
+
       if (scope === "MODULE") {
         const newModId = `draft-mod-${Date.now()}`;
         const title = generatedData.title || "AI Generated Module";
@@ -261,7 +286,7 @@ export default function CourseDetailsPage() {
               })),
             })),
           };
-          const nextMods = [...draftModules, newMod];
+          const nextMods = insertByPos(draftModules, newMod);
           setDraftModules(nextMods);
           handleSelectModule(newMod);
           showToast("Module created from AI!", "success");
@@ -307,7 +332,7 @@ export default function CourseDetailsPage() {
                   })),
                 })),
               };
-              return { ...m, lessons: [...(m.lessons || []), createdLessonObj] };
+              return { ...m, lessons: insertByPos(m.lessons || [], createdLessonObj) };
             }
             return m;
           });
@@ -348,7 +373,7 @@ export default function CourseDetailsPage() {
                     order: cIdx + 1,
                   })),
                 };
-                return { ...l, topics: [...(l.topics || []), createdTopicObj] };
+                return { ...l, topics: insertByPos(l.topics || [], createdTopicObj) };
               }
               return l;
             }),
@@ -388,7 +413,11 @@ export default function CourseDetailsPage() {
                       order: cntOrder,
                     };
                   });
-                  return { ...t, contents: [...(t.contents || []), ...mappedNewContents] };
+                  let nextContents = t.contents || [];
+                  for (const newC of mappedNewContents) {
+                    nextContents = insertByPos(nextContents, newC);
+                  }
+                  return { ...t, contents: nextContents };
                 }
                 return t;
               }),

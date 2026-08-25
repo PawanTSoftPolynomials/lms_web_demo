@@ -1,23 +1,37 @@
-import { upload } from "@vercel/blob/client";
+import Cookies from "js-cookie";
 
 /**
- * Uploads a file straight from the browser to the private Vercel Blob store
- * (via the token-exchange route at /api/blob/upload) and returns a same-origin
- * URL that streams it back through /api/blob/file. Shared by every Composer
- * field that offers "paste a URL or upload a file" — images, video, audio,
- * and documents alike — so there's a single upload code path to maintain.
+ * Uploads a file to Vercel Blob storage via Next.js API route (/api/upload).
+ * The server calls @vercel/blob's put() with public access, bypassing browser CORS restrictions.
  */
-export const uploadFileToBlob = async (file) => {
-  const pathname = `course-composer/${Date.now()}-${file.name}`;
+export const uploadFileToBlob = async (file, options = {}) => {
+  const token =
+    Cookies.get("accessToken") ||
+    (typeof window !== "undefined" ? localStorage.getItem("accessToken") : "");
 
-  const blob = await upload(pathname, file, {
-    access: "private",
-    handleUploadUrl: "/api/blob/upload",
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
   });
 
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || `Upload failed with status ${res.status}`);
+  }
+
+  const data = await res.json();
   return {
-    url: `/api/blob/file?pathname=${encodeURIComponent(blob.pathname)}`,
-    pathname: blob.pathname,
-    contentType: blob.contentType,
+    url: data.url || data.fileUrl,
+    fileUrl: data.url || data.fileUrl,
+    pathname: data.pathname,
+    contentType: data.contentType,
+    originalName: file.name,
+    size: file.size,
   };
 };
