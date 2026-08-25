@@ -791,15 +791,41 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
               {/* Render generated content preview */}
               <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl max-h-[40vh] overflow-y-auto space-y-3 font-sans text-xs">
                 {selectedScope === "MODULE" && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-bold text-amber-400">{generatedDraft?.title || "Module"}</h4>
-                    <p className="text-slate-300">{generatedDraft?.description}</p>
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="text-sm font-bold text-amber-400">Module: {generatedDraft?.title || "AI Module"}</h4>
+                      <p className="text-slate-300 text-xs mt-0.5">{generatedDraft?.description}</p>
+                    </div>
+
+                    {Array.isArray(generatedDraft?.quizzes) && generatedDraft.quizzes.length > 0 && (
+                      <div className="p-2 bg-purple-950/40 border border-purple-500/30 rounded-lg text-purple-200 text-xs">
+                        <strong>🏆 Module Quiz:</strong> {generatedDraft.quizzes.map((q) => q.title).join(", ")}
+                      </div>
+                    )}
+
                     {Array.isArray(generatedDraft?.lessons) && (
-                      <div className="space-y-1.5 pl-3 border-l border-slate-800">
+                      <div className="space-y-2 pl-3 border-l-2 border-slate-800">
                         {generatedDraft.lessons.map((l, i) => (
-                          <div key={i} className="text-slate-300">
-                            <strong>• Lesson {i + 1}: {l.title}</strong>
-                            {l.description && <p className="text-[11px] text-slate-400 pl-3">{l.description}</p>}
+                          <div key={i} className="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 space-y-1.5">
+                            <div className="font-bold text-orange-300">
+                              Lesson {i + 1}: {l.title}
+                            </div>
+                            {l.description && <p className="text-[11px] text-slate-400">{l.description}</p>}
+                            {Array.isArray(l.topics) && l.topics.length > 0 && (
+                              <div className="pl-3 border-l border-slate-700 space-y-1 mt-1 text-[11px]">
+                                {l.topics.map((t, tIdx) => (
+                                  <div key={tIdx} className="text-slate-300">
+                                    <span className="text-emerald-400 font-semibold">• Topic {tIdx + 1}: {t.title}</span>
+                                    {Array.isArray(t.contents) && (
+                                      <span className="text-slate-500 text-[10px] ml-2">({t.contents.length} content blocks)</span>
+                                    )}
+                                    {t.quiz && (
+                                      <span className="text-purple-400 text-[10px] ml-2">[Quiz]</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -808,15 +834,28 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                 )}
 
                 {selectedScope === "LESSON" && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-bold text-orange-400">{generatedDraft?.title || "Lesson"}</h4>
-                    <p className="text-slate-300">{generatedDraft?.description}</p>
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="text-sm font-bold text-orange-400">Lesson: {generatedDraft?.title || "AI Lesson"}</h4>
+                      <p className="text-slate-300 text-xs mt-0.5">{generatedDraft?.description}</p>
+                    </div>
+
                     {Array.isArray(generatedDraft?.topics) && (
-                      <div className="space-y-1.5 pl-3 border-l border-slate-800">
+                      <div className="space-y-2 pl-3 border-l-2 border-slate-800">
                         {generatedDraft.topics.map((t, i) => (
-                          <div key={i} className="text-slate-300">
-                            <strong>• Topic {i + 1}: {t.title}</strong>
-                            {t.description && <p className="text-[11px] text-slate-400 pl-3">{t.description}</p>}
+                          <div key={i} className="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 space-y-1">
+                            <strong className="text-emerald-300 block">• Topic {i + 1}: {t.title}</strong>
+                            {t.description && <p className="text-[11px] text-slate-400">{t.description}</p>}
+                            {Array.isArray(t.contents) && t.contents.length > 0 && (
+                              <div className="text-[11px] text-slate-400 pl-2 border-l border-slate-700 mt-1 space-y-0.5">
+                                {t.contents.map((c, cIdx) => (
+                                  <div key={cIdx} className="truncate">
+                                    <span className="text-teal-400 font-bold uppercase text-[9px] mr-1">[{c.type || "HTML"}]</span>
+                                    {c.title}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -825,11 +864,20 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                 )}
 
                 {selectedScope === "TOPIC" && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-bold text-emerald-400">{generatedDraft?.title || "Topic"}</h4>
-                    <p className="text-slate-300">{generatedDraft?.description}</p>
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="text-sm font-bold text-emerald-400">Topic: {generatedDraft?.title || "AI Topic"}</h4>
+                      <p className="text-slate-300 text-xs mt-0.5">{generatedDraft?.description}</p>
+                    </div>
+
+                    {generatedDraft?.quiz && (
+                      <div className="p-2 bg-purple-950/40 border border-purple-500/30 rounded-lg text-purple-200 text-xs">
+                        <strong>🏆 Topic Quiz:</strong> {generatedDraft.quiz.title} ({generatedDraft.quiz.questions?.length || 0} questions)
+                      </div>
+                    )}
+
                     {Array.isArray(generatedDraft?.contents) && (
-                      <div className="space-y-2 pl-3 border-l border-slate-800">
+                      <div className="space-y-2 pl-3 border-l-2 border-slate-800">
                         {generatedDraft.contents.map((c, i) => (
                           <div key={i} className="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
                             <span className="text-[10px] uppercase font-bold text-emerald-400 block">{c.type || "HTML"} Content</span>

@@ -255,189 +255,253 @@ export default function CourseDetailsPage() {
         return resArr.map((item, i) => ({ ...item, order: i + 1 }));
       };
 
+      if (!isDraftMode) {
+        // Transactional Backend Application (Requirement: Atomicity & Single Operation)
+        await api.post("/api/ai/apply", {
+          scope,
+          generatedData,
+          context: {
+            courseId,
+            moduleId: contextData.moduleId || composeModuleId,
+            lessonId: contextData.lessonId || composeLessonId,
+            topicId: contextData.topicId || composeTopicId,
+            position: pos,
+            quizLevel: contextData.quizLevel || "COURSE",
+          },
+        });
+
+        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
+        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MODULES] });
+        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
+        if (contextData.topicId || composeTopicId) {
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CONTENTS, contextData.topicId || composeTopicId] });
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TOPIC, contextData.topicId || composeTopicId] });
+        }
+        showToast(`${scope} created from AI!`, "success");
+        return;
+      }
+
       if (scope === "MODULE") {
         const newModId = `draft-mod-${Date.now()}`;
         const title = generatedData.title || "AI Generated Module";
         const description = generatedData.description || "";
-        const order = (effectiveModules.length > 0 ? Math.max(...effectiveModules.map((m) => m.order || 0)) : 0) + 1;
 
-        if (isDraftMode) {
-          const newMod = {
-            id: newModId,
-            title,
-            description,
-            order,
-            lessons: (generatedData.lessons || []).map((l, lIdx) => ({
-              id: `draft-les-${newModId}-${lIdx + 1}`,
-              title: l.title || `Lesson ${lIdx + 1}`,
-              description: l.description || "",
-              order: lIdx + 1,
-              topics: (l.topics || []).map((t, tIdx) => ({
-                id: `draft-top-${newModId}-${lIdx + 1}-${tIdx + 1}`,
-                title: t.title || `Topic ${tIdx + 1}`,
-                order: tIdx + 1,
-                contents: (t.contents || []).map((c, cIdx) => ({
-                  id: `draft-cnt-${newModId}-${lIdx + 1}-${tIdx + 1}-${cIdx + 1}`,
-                  type: c.type || "HTML",
-                  title: c.title || "Content Block",
-                  htmlContent: c.htmlContent || "",
-                  order: cIdx + 1,
-                })),
+        const newMod = {
+          id: newModId,
+          title,
+          description,
+          order: 1,
+          quizzes: (generatedData.quizzes || []).map((qz, qIdx) => ({
+            id: `draft-qz-${newModId}-${qIdx + 1}`,
+            title: qz.title || `Module Quiz ${qIdx + 1}`,
+            description: qz.description || "",
+            questions: (qz.questions || []).map((q, qIdx2) => ({
+              id: `draft-quest-${newModId}-${qIdx + 1}-${qIdx2 + 1}`,
+              question: q.question || `Question ${qIdx2 + 1}`,
+              questionType: q.questionType || "MCQ_SINGLE",
+              options: q.options || [],
+              correctAnswer: q.correctAnswer || "",
+            })),
+          })),
+          lessons: (generatedData.lessons || []).map((l, lIdx) => ({
+            id: `draft-les-${newModId}-${lIdx + 1}`,
+            title: l.title || `Lesson ${lIdx + 1}`,
+            description: l.description || "",
+            order: lIdx + 1,
+            quizzes: (l.quizzes || []).map((qz, qIdx) => ({
+              id: `draft-qz-${newModId}-${lIdx + 1}-${qIdx + 1}`,
+              title: qz.title || `Lesson Quiz ${qIdx + 1}`,
+              description: qz.description || "",
+              questions: (qz.questions || []).map((q, qIdx2) => ({
+                id: `draft-quest-${newModId}-${lIdx + 1}-${qIdx + 1}-${qIdx2 + 1}`,
+                question: q.question || `Question ${qIdx2 + 1}`,
+                questionType: q.questionType || "MCQ_SINGLE",
+                options: q.options || [],
+                correctAnswer: q.correctAnswer || "",
               })),
             })),
-          };
-          const nextMods = insertByPos(draftModules, newMod);
-          setDraftModules(nextMods);
-          handleSelectModule(newMod);
-          showToast("Module created from AI!", "success");
-        } else {
-          const resMod = await api.post("/modules", { courseId, title, description, order });
-          const createdModId = resMod.data?.data?.id || resMod.data?.id;
-          if (createdModId && Array.isArray(generatedData.lessons)) {
-            for (let i = 0; i < generatedData.lessons.length; i++) {
-              const l = generatedData.lessons[i];
-              await api.post("/lessons", { moduleId: createdModId, title: l.title || `Lesson ${i + 1}`, description: l.description || "", order: i + 1 });
-            }
-          }
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
-          showToast("Module created from AI!", "success");
-        }
+            topics: (l.topics || []).map((t, tIdx) => ({
+              id: `draft-top-${newModId}-${lIdx + 1}-${tIdx + 1}`,
+              title: t.title || `Topic ${tIdx + 1}`,
+              description: t.description || "",
+              order: tIdx + 1,
+              quiz: t.quiz ? {
+                id: `draft-qz-${newModId}-${lIdx + 1}-${tIdx + 1}`,
+                title: t.quiz.title || "Topic Quiz",
+                questions: (t.quiz.questions || []).map((q, qIdx2) => ({
+                  id: `draft-quest-${newModId}-${lIdx + 1}-${tIdx + 1}-${qIdx2 + 1}`,
+                  question: q.question || `Question ${qIdx2 + 1}`,
+                  questionType: q.questionType || "MCQ_SINGLE",
+                  options: q.options || [],
+                  correctAnswer: q.correctAnswer || "",
+                })),
+              } : null,
+              contents: (t.contents || []).map((c, cIdx) => ({
+                id: `draft-cnt-${newModId}-${lIdx + 1}-${tIdx + 1}-${cIdx + 1}`,
+                type: c.type || "HTML",
+                title: c.title || "Content Block",
+                htmlContent: c.htmlContent || c.code || c.body || c.content || "",
+                order: cIdx + 1,
+              })),
+            })),
+          })),
+        };
+        const nextMods = insertByPos(draftModules, newMod);
+        setDraftModules(nextMods);
+        handleSelectModule(newMod);
+        showToast("Module created from AI!", "success");
       } else if (scope === "LESSON") {
         const targetModuleId = contextData.moduleId || composeModuleId || effectiveModules[0]?.id;
         const title = generatedData.title || "AI Generated Lesson";
         const description = generatedData.description || "";
 
-        if (isDraftMode) {
-          let createdLessonObj = null;
-          const nextMods = draftModules.map((m) => {
-            if (String(m.id || m._id) === String(targetModuleId)) {
-              const lesOrder = ((m.lessons || []).length > 0 ? Math.max(...m.lessons.map((l) => l.order || 0)) : 0) + 1;
-              createdLessonObj = {
-                id: `draft-les-${Date.now()}`,
-                title,
-                description,
-                order: lesOrder,
-                topics: (generatedData.topics || []).map((t, tIdx) => ({
-                  id: `draft-top-${Date.now()}-${tIdx + 1}`,
-                  title: t.title || `Topic ${tIdx + 1}`,
-                  description: t.description || "",
-                  order: tIdx + 1,
-                  contents: (t.contents || []).map((c, cIdx) => ({
-                    id: `draft-cnt-${Date.now()}-${tIdx + 1}-${cIdx + 1}`,
-                    type: c.type || "HTML",
-                    title: c.title || "Content Block",
-                    htmlContent: c.htmlContent || "",
-                    order: cIdx + 1,
-                  })),
+        let createdLessonObj = null;
+        const nextMods = draftModules.map((m) => {
+          if (String(m.id || m._id) === String(targetModuleId)) {
+            const lesOrder = ((m.lessons || []).length > 0 ? Math.max(...m.lessons.map((l) => l.order || 0)) : 0) + 1;
+            createdLessonObj = {
+              id: `draft-les-${Date.now()}`,
+              title,
+              description,
+              order: lesOrder,
+              quizzes: (generatedData.quizzes || []).map((qz, qIdx) => ({
+                id: `draft-qz-${Date.now()}-${qIdx + 1}`,
+                title: qz.title || `Lesson Quiz ${qIdx + 1}`,
+                description: qz.description || "",
+                questions: (qz.questions || []).map((q, qIdx2) => ({
+                  id: `draft-quest-${Date.now()}-${qIdx + 1}-${qIdx2 + 1}`,
+                  question: q.question || `Question ${qIdx2 + 1}`,
+                  questionType: q.questionType || "MCQ_SINGLE",
+                  options: q.options || [],
+                  correctAnswer: q.correctAnswer || "",
                 })),
-              };
-              return { ...m, lessons: insertByPos(m.lessons || [], createdLessonObj) };
-            }
-            return m;
-          });
-          setDraftModules(nextMods);
-          if (createdLessonObj) {
-            handleSelectLesson(createdLessonObj.id, targetModuleId);
+              })),
+              topics: (generatedData.topics || []).map((t, tIdx) => ({
+                id: `draft-top-${Date.now()}-${tIdx + 1}`,
+                title: t.title || `Topic ${tIdx + 1}`,
+                description: t.description || "",
+                order: tIdx + 1,
+                quiz: t.quiz ? {
+                  id: `draft-qz-${Date.now()}-${tIdx + 1}`,
+                  title: t.quiz.title || "Topic Quiz",
+                  questions: (t.quiz.questions || []).map((q, qIdx2) => ({
+                    id: `draft-quest-${Date.now()}-${tIdx + 1}-${qIdx2 + 1}`,
+                    question: q.question || `Question ${qIdx2 + 1}`,
+                    questionType: q.questionType || "MCQ_SINGLE",
+                    options: q.options || [],
+                    correctAnswer: q.correctAnswer || "",
+                  })),
+                } : null,
+                contents: (t.contents || []).map((c, cIdx) => ({
+                  id: `draft-cnt-${Date.now()}-${tIdx + 1}-${cIdx + 1}`,
+                  type: c.type || "HTML",
+                  title: c.title || "Content Block",
+                  htmlContent: c.htmlContent || c.code || c.body || c.content || "",
+                  order: cIdx + 1,
+                })),
+              })),
+            };
+            return { ...m, lessons: insertByPos(m.lessons || [], createdLessonObj) };
           }
-          showToast("Lesson created from AI!", "success");
-        } else {
-          await api.post("/lessons", { moduleId: targetModuleId, title, description });
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
-          showToast("Lesson created from AI!", "success");
+          return m;
+        });
+        setDraftModules(nextMods);
+        if (createdLessonObj) {
+          handleSelectLesson(createdLessonObj.id, targetModuleId);
         }
+        showToast("Lesson created from AI!", "success");
       } else if (scope === "TOPIC") {
         const targetLessonId = contextData.lessonId || composeLessonId;
         const targetModuleId = contextData.moduleId || composeModuleId;
         const title = generatedData.title || "AI Generated Topic";
         const description = generatedData.description || "";
 
-        if (isDraftMode) {
-          let createdTopicObj = null;
-          const nextMods = draftModules.map((m) => ({
-            ...m,
-            lessons: (m.lessons || []).map((l) => {
-              if (String(l.id || l._id) === String(targetLessonId)) {
-                const topOrder = ((l.topics || []).length > 0 ? Math.max(...l.topics.map((t) => t.order || 0)) : 0) + 1;
-                createdTopicObj = {
-                  id: `draft-top-${Date.now()}`,
-                  title,
-                  description,
-                  order: topOrder,
-                  contents: (generatedData.contents || []).map((c, cIdx) => ({
-                    id: `draft-cnt-${Date.now()}-${cIdx + 1}`,
-                    type: c.type || "HTML",
-                    title: c.title || "Content Block",
-                    htmlContent: c.htmlContent || "",
-                    order: cIdx + 1,
+        let createdTopicObj = null;
+        const nextMods = draftModules.map((m) => ({
+          ...m,
+          lessons: (m.lessons || []).map((l) => {
+            if (String(l.id || l._id) === String(targetLessonId)) {
+              const topOrder = ((l.topics || []).length > 0 ? Math.max(...l.topics.map((t) => t.order || 0)) : 0) + 1;
+              createdTopicObj = {
+                id: `draft-top-${Date.now()}`,
+                title,
+                description,
+                order: topOrder,
+                quiz: generatedData.quiz ? {
+                  id: `draft-qz-${Date.now()}`,
+                  title: generatedData.quiz.title || "Topic Quiz",
+                  questions: (generatedData.quiz.questions || []).map((q, qIdx2) => ({
+                    id: `draft-quest-${Date.now()}-${qIdx2 + 1}`,
+                    question: q.question || `Question ${qIdx2 + 1}`,
+                    questionType: q.questionType || "MCQ_SINGLE",
+                    options: q.options || [],
+                    correctAnswer: q.correctAnswer || "",
                   })),
-                };
-                return { ...l, topics: insertByPos(l.topics || [], createdTopicObj) };
-              }
-              return l;
-            }),
-          }));
-          setDraftModules(nextMods);
-          if (createdTopicObj) {
-            handleSelectTopic(createdTopicObj.id, targetLessonId, targetModuleId);
-          }
-          showToast("Topic created from AI!", "success");
-        } else {
-          await api.post("/topics", { lessonId: targetLessonId, title, description });
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
-          showToast("Topic created from AI!", "success");
+                } : null,
+                contents: (generatedData.contents || []).map((c, cIdx) => ({
+                  id: `draft-cnt-${Date.now()}-${cIdx + 1}`,
+                  type: c.type || "HTML",
+                  title: c.title || "Content Block",
+                  htmlContent: c.htmlContent || c.code || c.body || c.content || "",
+                  order: cIdx + 1,
+                })),
+              };
+              return { ...l, topics: insertByPos(l.topics || [], createdTopicObj) };
+            }
+            return l;
+          }),
+        }));
+        setDraftModules(nextMods);
+        if (createdTopicObj) {
+          handleSelectTopic(createdTopicObj.id, targetLessonId, targetModuleId);
         }
+        showToast("Topic created from AI!", "success");
       } else if (scope === "CONTENT") {
         const targetTopicId = contextData.topicId || composeTopicId;
+        if (!targetTopicId) {
+          showToast("Please select a target topic before adding content.", "error");
+          return;
+        }
+
         const newContents = Array.isArray(generatedData?.contents)
           ? generatedData.contents
+          : Array.isArray(generatedData)
+          ? generatedData
           : [generatedData];
 
-        if (isDraftMode) {
-          const nextMods = draftModules.map((m) => ({
-            ...m,
-            lessons: (m.lessons || []).map((l) => ({
-              ...l,
-              topics: (l.topics || []).map((t) => {
-                if (String(t.id || t._id) === String(targetTopicId)) {
-                  let cntOrder = ((t.contents || []).length > 0 ? Math.max(...t.contents.map((c) => c.order || 0)) : 0);
-                  const mappedNewContents = newContents.map((c) => {
-                    cntOrder += 1;
-                    return {
-                      id: `draft-cnt-${Date.now()}-${cntOrder}`,
-                      type: c.type || "HTML",
-                      title: c.title || "Content Block",
-                      htmlContent: c.htmlContent || c.body || "",
-                      order: cntOrder,
-                    };
-                  });
-                  let nextContents = t.contents || [];
-                  for (const newC of mappedNewContents) {
-                    nextContents = insertByPos(nextContents, newC);
-                  }
-                  return { ...t, contents: nextContents };
+        const nextMods = draftModules.map((m) => ({
+          ...m,
+          lessons: (m.lessons || []).map((l) => ({
+            ...l,
+            topics: (l.topics || []).map((t) => {
+              if (String(t.id || t._id) === String(targetTopicId)) {
+                let cntOrder = ((t.contents || []).length > 0 ? Math.max(...t.contents.map((c) => c.order || 0)) : 0);
+                const mappedNewContents = newContents.map((c) => {
+                  cntOrder += 1;
+                  let type = (c.type || "HTML").toUpperCase();
+                  if (type === "TEXT_BLOCK" || type === "MARKDOWN") type = "HTML";
+                  if (type === "CODE_BLOCK" || type === "SNIPPET") type = "CODE";
+
+                  return {
+                    id: `draft-cnt-${Date.now()}-${cntOrder}`,
+                    type,
+                    title: c.title || "Content Block",
+                    htmlContent: c.htmlContent || c.code || c.body || c.content || "",
+                    order: cntOrder,
+                  };
+                });
+                let nextContents = t.contents || [];
+                for (const newC of mappedNewContents) {
+                  nextContents = insertByPos(nextContents, newC);
                 }
-                return t;
-              }),
-            })),
-          }));
-          setDraftModules(nextMods);
-          showToast("Content added from AI!", "success");
-        } else {
-          for (const c of newContents) {
-            await api.post("/contents", {
-              topicId: targetTopicId,
-              type: c.type || "HTML",
-              title: c.title || "Content Block",
-              htmlContent: c.htmlContent || c.body || "",
-            });
-          }
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
-          showToast("Content added from AI!", "success");
-        }
+                return { ...t, contents: nextContents };
+              }
+              return t;
+            }),
+          })),
+        }));
+        setDraftModules(nextMods);
+        showToast("Content added from AI!", "success");
       } else if (scope === "QUIZ") {
         const targetLevel = contextData.quizLevel || "COURSE";
         const quizTitle = generatedData.title || `${targetLevel} Quiz`;
@@ -450,8 +514,6 @@ export default function CourseDetailsPage() {
           options: Array.isArray(q.options) ? q.options : ["Option 1", "Option 2", "Option 3", "Option 4"],
           correctAnswer: q.correctAnswer || (Array.isArray(q.options) ? q.options[0] : "Option 1"),
           explanation: q.explanation || "",
-          marks: 1,
-          difficulty: "EASY",
         }));
 
         const newQuizData = {
@@ -540,6 +602,7 @@ export default function CourseDetailsPage() {
           return {
             ...quiz,
             id: qzId,
+            moduleId: quiz.moduleId || modId,
             questions: (quiz.questions || []).map((q, quIdx) => ({
               ...q,
               id: q.id || `draft-que-${qzId}-${quIdx + 1}`,
@@ -551,11 +614,39 @@ export default function CourseDetailsPage() {
           return {
             ...les,
             id: lesId,
+            quizzes: (les.quizzes || []).map((quiz, qIdx) => {
+              const qzId = quiz.id || `draft-quiz-les-${mIdx + 1}-${lIdx + 1}-${qIdx + 1}`;
+              return {
+                ...quiz,
+                id: qzId,
+                moduleId: quiz.moduleId || modId,
+                lessonId: quiz.lessonId || lesId,
+                questions: (quiz.questions || []).map((q, quIdx) => ({
+                  ...q,
+                  id: q.id || `draft-que-${qzId}-${quIdx + 1}`,
+                })),
+              };
+            }),
             topics: (les.topics || []).map((top, tIdx) => {
               const topId = top.id || `draft-top-${mIdx + 1}-${lIdx + 1}-${tIdx + 1}`;
+              const topQuizzes = top.quizzes || (top.quiz ? [top.quiz] : []);
               return {
                 ...top,
                 id: topId,
+                quizzes: topQuizzes.map((quiz, qIdx) => {
+                  const qzId = quiz.id || `draft-quiz-top-${mIdx + 1}-${lIdx + 1}-${tIdx + 1}-${qIdx + 1}`;
+                  return {
+                    ...quiz,
+                    id: qzId,
+                    moduleId: quiz.moduleId || modId,
+                    lessonId: quiz.lessonId || lesId,
+                    topicId: quiz.topicId || topId,
+                    questions: (quiz.questions || []).map((q, quIdx) => ({
+                      ...q,
+                      id: q.id || `draft-que-${qzId}-${quIdx + 1}`,
+                    })),
+                  };
+                }),
                 contents: (top.contents || []).map((cnt, cIdx) => ({
                   ...cnt,
                   id: cnt.id || `draft-cnt-${mIdx + 1}-${lIdx + 1}-${tIdx + 1}-${cIdx + 1}`,
@@ -620,9 +711,9 @@ export default function CourseDetailsPage() {
     }
   }, [isDraftMode, course]);
 
-  const effectiveCourseQuizzes = isDraftMode
-    ? draftQuizzes
-    : (course?.quizzes || []).filter((q) => !q.moduleId);
+  const effectiveCourseQuizzes = (isDraftMode ? draftQuizzes : (course?.quizzes || [])).filter(
+    (q) => !q.moduleId && !q.lessonId && !q.topicId
+  );
 
   const effectiveCourse = isDraftMode
     ? (draftData ? {
@@ -638,33 +729,42 @@ export default function CourseDetailsPage() {
       } : null)
     : (course ? { ...course, quizzes: effectiveCourseQuizzes } : null);
 
-  const effectiveModules = isDraftMode
-    ? draftModules
-    : (modules || []).map((mod) => ({
-        ...mod,
-        // "Module quizzes" excludes any quiz that's actually scoped to one of
-        // this module's lessons (has a lessonId) — those render under their
-        // owning lesson instead, via the lessons.map below, so a quiz never
-        // shows up twice.
-        quizzes: mod.quizzes || (course?.quizzes || []).filter(
-          (q) => q.moduleId && !q.lessonId && (String(q.moduleId) === String(mod.id) || String(q.moduleId) === String(mod._id))
-        ),
-        lessons: (mod.lessons || []).map((lesson) => ({
+  const effectiveModules = (isDraftMode ? draftModules : (modules || [])).map((mod) => {
+    const rawModQuizzes = (mod.quizzes && mod.quizzes.length > 0)
+      ? mod.quizzes
+      : (isDraftMode ? draftQuizzes : (course?.quizzes || [])).filter(
+          (q) => q.moduleId && (String(q.moduleId) === String(mod.id) || String(q.moduleId) === String(mod._id))
+        );
+
+    return {
+      ...mod,
+      quizzes: rawModQuizzes.filter((q) => !q.lessonId && !q.topicId),
+      lessons: (mod.lessons || []).map((lesson) => {
+        const rawLesQuizzes = (lesson.quizzes && lesson.quizzes.length > 0)
+          ? lesson.quizzes
+          : (isDraftMode ? draftQuizzes : (course?.quizzes || [])).filter(
+              (q) => q.lessonId && (String(q.lessonId) === String(lesson.id) || String(q.lessonId) === String(lesson._id))
+            );
+
+        return {
           ...lesson,
-          // Excludes any quiz scoped to one of this lesson's topics (has a
-          // topicId) — those render under their owning topic instead, via
-          // the topics.map below, so a quiz never shows up twice.
-          quizzes: lesson.quizzes || (course?.quizzes || []).filter(
-            (q) => q.lessonId && !q.topicId && (String(q.lessonId) === String(lesson.id) || String(q.lessonId) === String(lesson._id))
-          ),
-          topics: (lesson.topics || []).map((topic) => ({
-            ...topic,
-            quizzes: topic.quizzes || (course?.quizzes || []).filter(
-              (q) => q.topicId && (String(q.topicId) === String(topic.id) || String(q.topicId) === String(topic._id))
-            ),
-          })),
-        })),
-      }));
+          quizzes: rawLesQuizzes.filter((q) => !q.topicId),
+          topics: (lesson.topics || []).map((topic) => {
+            const rawTopQuizzes = (topic.quizzes && topic.quizzes.length > 0)
+              ? topic.quizzes
+              : (topic.quiz ? [topic.quiz] : (isDraftMode ? draftQuizzes : (course?.quizzes || [])).filter(
+                  (q) => q.topicId && (String(q.topicId) === String(topic.id) || String(q.topicId) === String(topic._id))
+                ));
+
+            return {
+              ...topic,
+              quizzes: rawTopQuizzes,
+            };
+          }),
+        };
+      }),
+    };
+  });
   const effectiveLoading = isDraftMode ? (!draftLoaded || !draftData) : (courseLoading || modulesLoading);
   const effectiveError = isDraftMode ? (draftLoaded && !draftData) : (courseError || !course);
 
@@ -929,6 +1029,7 @@ export default function CourseDetailsPage() {
             courseId,
             moduleId: composeModuleId || null,
             lessonId: composeLessonId || null,
+            topicId: composeTopicId || null,
             questions: updatedQuizData.questions || [],
           });
 
@@ -1243,8 +1344,14 @@ export default function CourseDetailsPage() {
     if (e) e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this module and all its contents?")) return;
     if (isDraftMode) {
+      const deletedLessonIds = new Set((mod.lessons || []).map((l) => l.id));
+      const deletedTopicIds = new Set((mod.lessons || []).flatMap((l) => (l.topics || []).map((t) => t.id)));
       const nextMods = draftModules.filter((m) => m.id !== mod.id);
+      const nextQuizzes = draftQuizzes.filter(
+        (q) => q.moduleId !== mod.id && (!q.lessonId || !deletedLessonIds.has(q.lessonId)) && (!q.topicId || !deletedTopicIds.has(q.topicId))
+      );
       setDraftModules(nextMods);
+      setDraftQuizzes(nextQuizzes);
       showToast("Module deleted from draft", "success");
       handleSelectCourseOverview();
       return;
@@ -1262,6 +1369,7 @@ export default function CourseDetailsPage() {
     if (e) e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this lesson?")) return;
     if (isDraftMode) {
+      const deletedTopicIds = new Set((lesson.topics || []).map((t) => t.id));
       const nextMods = draftModules.map((m) => {
         if (m.id === moduleId || (m.lessons || []).some((l) => l.id === lesson.id)) {
           return {
@@ -1271,7 +1379,11 @@ export default function CourseDetailsPage() {
         }
         return m;
       });
+      const nextQuizzes = draftQuizzes.filter(
+        (q) => q.lessonId !== lesson.id && (!q.topicId || !deletedTopicIds.has(q.topicId))
+      );
       setDraftModules(nextMods);
+      setDraftQuizzes(nextQuizzes);
       showToast("Lesson deleted from draft", "success");
       handleSelectCourseOverview();
       return;
@@ -1301,7 +1413,9 @@ export default function CourseDetailsPage() {
           return l;
         })
       }));
+      const nextQuizzes = draftQuizzes.filter((q) => q.topicId !== topic.id);
       setDraftModules(nextMods);
+      setDraftQuizzes(nextQuizzes);
       showToast("Topic deleted from draft", "success");
       if (composeTopicId === topic.id) {
         setComposeTopicId(null);
@@ -1585,6 +1699,59 @@ export default function CourseDetailsPage() {
       <div className="relative flex flex-col lg:flex-row gap-5 items-start">
         {/* Left Sidebar Panel */}
         <div className={sidebarWrapperClassName}>
+          {(() => {
+            if (typeof window !== "undefined") {
+              console.log("COURSE QUIZZES:", (effectiveCourseQuizzes || []).map((q) => ({
+                id: q.id,
+                title: q.title,
+                courseId: q.courseId || courseId,
+                moduleId: q.moduleId || null,
+                lessonId: q.lessonId || null,
+                topicId: q.topicId || null,
+              })));
+
+              (effectiveModules || []).forEach((mod) => {
+                console.log("MODULE:", {
+                  moduleId: mod.id,
+                  quizzes: (mod.quizzes || []).map((q) => ({
+                    id: q.id,
+                    title: q.title,
+                    courseId: q.courseId || courseId,
+                    moduleId: q.moduleId || null,
+                    lessonId: q.lessonId || null,
+                    topicId: q.topicId || null,
+                  })),
+                });
+                (mod.lessons || []).forEach((lesson) => {
+                  console.log("LESSON:", {
+                    lessonId: lesson.id,
+                    quizzes: (lesson.quizzes || []).map((q) => ({
+                      id: q.id,
+                      title: q.title,
+                      courseId: q.courseId || courseId,
+                      moduleId: q.moduleId || null,
+                      lessonId: q.lessonId || null,
+                      topicId: q.topicId || null,
+                    })),
+                  });
+                  (lesson.topics || []).forEach((topic) => {
+                    console.log("TOPIC:", {
+                      topicId: topic.id,
+                      quizzes: (topic.quizzes || []).map((q) => ({
+                        id: q.id,
+                        title: q.title,
+                        courseId: q.courseId || courseId,
+                        moduleId: q.moduleId || null,
+                        lessonId: q.lessonId || null,
+                        topicId: q.topicId || null,
+                      })),
+                    });
+                  });
+                });
+              });
+            }
+            return null;
+          })()}
           <CourseComposerSidebar
             modules={effectiveModules}
             courseQuizzes={effectiveCourseQuizzes}
