@@ -168,7 +168,7 @@ function RowMenu({ groupName, items }) {
         <button
           type="button"
           onClick={(e) => e.stopPropagation()}
-          className={`${HOVER_VISIBLE_CLASSES[groupName]} p-1 text-slate-400 hover:text-white rounded transition cursor-pointer shrink-0`}
+          className={`${HOVER_VISIBLE_CLASSES[groupName]} p-1 text-slate-400 hover:text-slate-50 rounded transition cursor-pointer shrink-0`}
           aria-label="Actions"
         >
           <MoreVertical size={13} />
@@ -268,7 +268,7 @@ function TopicContentRows({
               className={`group/content flex items-center justify-between gap-2 pl-2 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
                 isContentActive
                   ? "bg-orange-500/15 text-orange-400 font-semibold"
-                  : "text-slate-400 hover:text-white hover:bg-slate-900/70"
+                  : "text-slate-400 hover:text-slate-50 hover:bg-slate-900/70"
               }`}
             >
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
@@ -548,7 +548,7 @@ export function CourseComposerSidebar({
                         e.stopPropagation();
                         toggleModule(mod.id);
                       }}
-                      className="p-0.5 text-slate-400 hover:text-white transition cursor-pointer shrink-0"
+                      className="p-0.5 text-slate-400 hover:text-slate-50 transition cursor-pointer shrink-0"
                       aria-label={moduleOpen ? "Collapse module" : "Expand module"}
                     >
                       <ChevronRight
@@ -680,7 +680,7 @@ export function CourseComposerSidebar({
                                   ? "bg-orange-500/15 border-orange-500 text-orange-400 font-bold"
                                   : lessonHasActiveChild
                                   ? "bg-slate-900/30 border-orange-500/30 text-slate-100"
-                                  : "border-transparent text-slate-400 hover:text-white hover:bg-slate-900/50"
+                                  : "border-transparent text-slate-400 hover:text-slate-50 hover:bg-slate-900/50"
                               }`}
                               onClick={() => !isLessonLocked && onSelectLesson(lesson.id)}
                               title={isLessonLocked ? "Complete the previous lesson to unlock" : undefined}
@@ -692,7 +692,7 @@ export function CourseComposerSidebar({
                                     e.stopPropagation();
                                     if (!isLessonLocked) toggleLesson(lesson.id);
                                   }}
-                                  className="p-0.5 text-slate-500 hover:text-white transition cursor-pointer shrink-0"
+                                  className="p-0.5 text-slate-500 hover:text-slate-50 transition cursor-pointer shrink-0"
                                   aria-label={lessonOpen ? "Collapse lesson" : "Expand lesson"}
                                   disabled={isLessonLocked}
                                 >
@@ -821,7 +821,7 @@ export function CourseComposerSidebar({
                                           className={`group/topic flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
                                             isTopicActive
                                               ? "bg-orange-500/15 text-orange-400 font-semibold"
-                                              : "text-slate-400 hover:text-white hover:bg-slate-900/40"
+                                              : "text-slate-400 hover:text-slate-50 hover:bg-slate-900/40"
                                           }`}
                                           onClick={() => onSelectTopic?.(topic.id, lesson.id, mod.id)}
                                         >
@@ -832,7 +832,7 @@ export function CourseComposerSidebar({
                                                 e.stopPropagation();
                                                 toggleTopic(topic.id);
                                               }}
-                                              className="p-0.5 text-slate-500 hover:text-white transition cursor-pointer shrink-0"
+                                              className="p-0.5 text-slate-500 hover:text-slate-50 transition cursor-pointer shrink-0"
                                               aria-label={topicOpen ? "Collapse topic" : "Expand topic"}
                                             >
                                               <ChevronRight

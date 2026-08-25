@@ -1,20 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname } from "next/navigation";
 import { ChatWidget, ChatButton } from "@/components/chat";
-import { MentorWidget } from "@/components/mentor";
 import Sidebar from "@/components/layouts/Sidebar";
 import DashboardNavbar from "@/components/layouts/DashboardNavbar";
 
 export default function DashboardLayout({ children, role, title }) {
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const pathname = usePathname();
-
-  // Exclude AI Mentor widget from My Courses list page (/instructor/courses)
-  const isMyCoursesPage = pathname === "/instructor/courses" || pathname === "/instructor/courses/";
-  const showMentor = !isMyCoursesPage;
 
   // Students, Instructors, and Admins navigate via top headers or on-page widgets instead of a side rail.
   const showSidebar = !['STUDENT', 'INSTRUCTOR', 'ADMIN'].includes(role);
@@ -53,7 +46,6 @@ export default function DashboardLayout({ children, role, title }) {
       </div>
       <ChatWidget />
       {!['INSTRUCTOR', 'ADMIN'].includes(role) && <ChatButton />}
-      {showMentor && <MentorWidget />}
     </div>
   );
 }

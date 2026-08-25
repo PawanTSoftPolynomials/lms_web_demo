@@ -82,7 +82,7 @@ export function CourseStructureSidebar({
           className={`group flex items-center justify-between px-3 py-2 rounded-xl transition cursor-pointer ${
             composerMode === "course"
               ? "bg-orange-500/10 border-l-3 border-orange-500 text-orange-400 font-bold"
-              : "text-slate-300 hover:bg-slate-950/70 hover:text-white"
+              : "text-slate-300 hover:bg-slate-950/70 hover:text-slate-50"
           }`}
         >
           <div className="flex items-center gap-2 min-w-0">
@@ -128,7 +128,7 @@ export function CourseStructureSidebar({
                         e.stopPropagation();
                         onToggleModuleExpand(mod.id);
                       }}
-                      className="p-0.5 text-slate-400 hover:text-white transition cursor-pointer"
+                      className="p-0.5 text-slate-400 hover:text-slate-50 transition cursor-pointer"
                     >
                       {isModuleExpanded ? (
                         <ChevronDown size={13} className="text-orange-500" />
@@ -153,7 +153,7 @@ export function CourseStructureSidebar({
                         <button
                           type="button"
                           onClick={(e) => e.stopPropagation()}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-white rounded transition cursor-pointer"
+                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-slate-50 rounded transition cursor-pointer"
                         >
                           <MoreVertical size={13} />
                         </button>
@@ -213,7 +213,7 @@ export function CourseStructureSidebar({
                             className={`group flex items-center justify-between px-2.5 py-1.5 rounded-lg transition cursor-pointer text-xs ${
                               isLessonSelected
                                 ? "bg-orange-500/15 text-orange-400 font-bold border-l-2 border-orange-500"
-                                : "text-slate-400 hover:text-white hover:bg-slate-950/40"
+                                : "text-slate-400 hover:text-slate-50 hover:bg-slate-950/40"
                             }`}
                           >
                             <div className="flex items-center gap-2 min-w-0">
@@ -238,7 +238,7 @@ export function CourseStructureSidebar({
                                   <button
                                     type="button"
                                     onClick={(e) => e.stopPropagation()}
-                                    className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-white rounded transition cursor-pointer"
+                                    className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-slate-50 rounded transition cursor-pointer"
                                   >
                                     <MoreVertical size={12} />
                                   </button>
@@ -290,7 +290,7 @@ export function CourseStructureSidebar({
         <button
           type="button"
           onClick={onAddModule}
-          className="w-full py-2 flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-slate-800 hover:border-orange-500/70 bg-slate-950 hover:bg-slate-900 text-slate-300 hover:text-white text-xs font-bold transition cursor-pointer"
+          className="w-full py-2 flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-slate-800 hover:border-orange-500/70 bg-slate-950 hover:bg-slate-900 text-slate-300 hover:text-slate-50 text-xs font-bold transition cursor-pointer"
         >
           <Plus size={13} className="text-orange-500" />
           <span>Add Module</span>
