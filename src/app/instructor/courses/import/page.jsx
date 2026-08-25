@@ -29,6 +29,7 @@ import {
   FileJson,
 } from "lucide-react";
 import api from "@/lib/axios";
+import AiComposerModal from "@/components/instructor/composer/AiComposerModal";
 import {
   useUploadZipPackage,
   useProcessZipJob,
@@ -207,6 +208,8 @@ export default function CourseImportPage() {
   const [pasteValidationErrors, setPasteValidationErrors] = useState([]);
 
   const [showFormatGuideModal, setShowFormatGuideModal] = useState(false);
+  const [showAiForm, setShowAiForm] = useState(false);
+  const [isAskAiModalOpen, setIsAskAiModalOpen] = useState(false);
 
   // Global Error & Validation State
   const [errorMsg, setErrorMsg] = useState("");
@@ -637,451 +640,535 @@ export default function CourseImportPage() {
         )}
 
         {/* ======================================================== */}
-        {/* SECTION 1: AI COURSE CREATION BANNER */}
+        {/* VIEW A: THREE PRIMARY COURSE CREATION OPTIONS */}
         {/* ======================================================== */}
-        {workflowState === "INPUT" && (
-          <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400">
-                  <Wand2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-white flex items-center space-x-2">
-                    <span>Compose Course with AI Agent</span>
-                    <span className="px-2 py-0.5 text-[10px] font-black tracking-wider uppercase bg-orange-500/20 border border-orange-500/30 text-orange-300 rounded-full flex items-center space-x-1">
-                      <Bot className="w-3 h-3" />
-                      <span>Gemini 3.6 Flash</span>
-                    </span>
-                  </h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Describe your course goals in plain text. The AI Agent will generate a structured draft with modules, lessons, topics, and quizzes.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Prompt Input */}
-            <div className="relative">
-              <textarea
-                value={prompt}
-                onChange={(e) => {
-                  setPrompt(e.target.value);
-                  if (errorMsg) setErrorMsg("");
-                }}
-                placeholder="e.g. Create a beginner Python course for college students. Cover variables, control flow, functions, OOP, and data structures with practical code examples and quizzes..."
-                rows={4}
-                className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/60 focus:ring-1 focus:ring-orange-500/50 transition leading-relaxed resize-y font-sans shadow-inner"
-              />
-            </div>
-
-            {/* Example Prompt Pills */}
-            <div className="space-y-2">
-              <span className="text-xs font-semibold text-slate-400 tracking-wider uppercase">
-                Try an example:
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {EXAMPLE_PROMPTS.map((ex, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => {
-                      setPrompt(ex.text);
-                      if (errorMsg) setErrorMsg("");
-                    }}
-                    className="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-orange-500/40 text-xs font-medium text-slate-300 hover:text-amber-400 transition cursor-pointer"
-                  >
-                    {ex.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Collapsible Advanced Options Accordion */}
-            <div className="pt-2 border-t border-slate-800/80">
-              <button
-                type="button"
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                className="flex items-center space-x-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition py-1 cursor-pointer"
-              >
-                <SlidersHorizontal className="w-4 h-4 text-orange-400" />
-                <span>Customize Generation (Advanced options)</span>
-                {showAdvanced ? (
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
-                ) : (
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
-                )}
-              </button>
-
-              {showAdvanced && (
-                <div className="mt-4 p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in slide-in-from-top-2 duration-200">
-                  <div>
-                    <label className="text-xs font-medium text-slate-400 block mb-1">Course Size</label>
-                    <select
-                      value={size}
-                      onChange={(e) => setSize(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
-                    >
-                      <option value="AUTO">Auto (Inferred)</option>
-                      <option value="SMALL">Small (3-4 modules)</option>
-                      <option value="MEDIUM">Medium (5-7 modules)</option>
-                      <option value="LARGE">Large (8-10 modules)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-slate-400 block mb-1">Difficulty Level</label>
-                    <select
-                      value={level}
-                      onChange={(e) => setLevel(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
-                    >
-                      <option value="AUTO">Auto (Inferred)</option>
-                      <option value="BEGINNER">Beginner</option>
-                      <option value="INTERMEDIATE">Intermediate</option>
-                      <option value="ADVANCED">Advanced</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-slate-400 block mb-1">Target Audience</label>
-                    <input
-                      type="text"
-                      value={targetAudience}
-                      onChange={(e) => setTargetAudience(e.target.value)}
-                      placeholder="e.g. Beginners, Employees (Auto)"
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-slate-400 block mb-1">Language</label>
-                    <input
-                      type="text"
-                      value={language}
-                      onChange={(e) => setLanguage(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Action Footer */}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-              <div className="flex items-center space-x-2 text-xs text-slate-400">
-                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Generates canonical course structure with modules & quizzes</span>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleGenerate}
-                className="px-8 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-300 text-slate-950 text-sm font-extrabold shadow-lg shadow-orange-500/20 transition flex items-center space-x-2 cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4 fill-current" />
-                <span>Launch AI Composer</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* AI GENERATING STATE */}
-        {workflowState === "GENERATING" && (
-          <div className="p-8 md:p-12 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl text-center space-y-8 animate-in fade-in duration-300">
-            <div className="relative inline-flex items-center justify-center">
-              <div className="w-20 h-20 rounded-full bg-orange-500/10 border-2 border-orange-500/30 flex items-center justify-center animate-pulse">
-                <Sparkles className="w-10 h-10 text-orange-400" />
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-extrabold text-white">Creating your course with AI...</h3>
-              <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-                Gemini 3.6 Flash is authoring your modules, lessons, topic materials, and quizzes.
+        {!showAiForm && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            <div className="text-left">
+              <h2 className="text-xl font-extrabold text-white">How would you like to create your course?</h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Select one of the three creation entry points below to build or import your course.
               </p>
             </div>
 
-            <div className="max-w-md mx-auto space-y-3 text-left">
-              {STAGED_STEPS.map((step, idx) => {
-                const isDone = idx < currentStepIndex;
-                const isCurrent = idx === currentStepIndex;
-                return (
-                  <div
-                    key={step.id}
-                    className={`p-3.5 rounded-2xl border transition flex items-center space-x-3.5 ${
-                      isDone
-                        ? "bg-slate-950/80 border-emerald-500/30 text-emerald-300"
-                        : isCurrent
-                        ? "bg-slate-950 border-orange-500/50 text-orange-400 shadow-lg"
-                        : "bg-slate-950/40 border-slate-800 text-slate-500"
-                    }`}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* ---------------------------------------------------- */}
+              {/* OPTION 1: ASK OTREE AI */}
+              {/* ---------------------------------------------------- */}
+              <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl flex flex-col justify-between space-y-6 hover:border-orange-500/40 transition">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-2xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider bg-orange-500/20 border border-orange-500/30 text-orange-300 rounded-full flex items-center space-x-1">
+                      <Bot className="w-3 h-3" />
+                      <span>AI Powered</span>
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-extrabold text-white">Ask OTree AI</h3>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      Create a complete course using AI. Describe what you want to teach, who the learners are, and what the course should cover. OTree AI will generate a structured course draft for your review.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800/80 text-xs font-mono text-orange-300 flex items-center space-x-1.5 flex-wrap">
+                    <span className="font-bold text-amber-400">Complete Course</span>
+                    <span className="text-slate-600">→</span>
+                    <span>Modules</span>
+                    <span className="text-slate-600">→</span>
+                    <span>Lessons</span>
+                    <span className="text-slate-600">→</span>
+                    <span className="text-emerald-400">Quizzes</span>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAiForm(true);
+                      setWorkflowState("INPUT");
+                    }}
+                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-300 text-slate-950 text-sm font-extrabold shadow-lg shadow-orange-500/20 transition flex items-center justify-center space-x-2 cursor-pointer"
                   >
-                    {isDone ? (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                    ) : isCurrent ? (
-                      <RefreshCw className="w-5 h-5 text-orange-400 animate-spin shrink-0" />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full border border-slate-700 shrink-0" />
-                    )}
+                    <Sparkles className="w-4 h-4 fill-current" />
+                    <span>Ask OTree AI</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* ---------------------------------------------------- */}
+              {/* OPTION 2: IMPORT FROM ZIP */}
+              {/* ---------------------------------------------------- */}
+              <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl flex flex-col justify-between space-y-6 hover:border-sky-500/40 transition">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-2xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400">
+                      <FileArchive className="w-5 h-5" />
+                    </div>
+                    <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider bg-sky-500/20 border border-sky-500/30 text-sky-300 rounded-full">
+                      Package File
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-extrabold text-white">Import from ZIP</h3>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      Import an existing course package with content and local media files. Supports exported Orange Tree LMS ZIP packages.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <span className="px-2.5 py-1 text-xs font-semibold bg-sky-950/60 border border-sky-800/60 text-sky-300 rounded-lg flex items-center space-x-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
+                      <span>Includes content</span>
+                    </span>
+                    <span className="px-2.5 py-1 text-xs font-semibold bg-sky-950/60 border border-sky-800/60 text-sky-300 rounded-lg flex items-center space-x-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
+                      <span>All media included</span>
+                    </span>
+                  </div>
+                </div>
+
+                {zipImportingState && (
+                  <div className="p-4 rounded-2xl bg-sky-950/50 border border-sky-800/50 text-sky-200 text-xs flex items-center space-x-3">
+                    <RefreshCw className="w-4 h-4 text-sky-400 animate-spin shrink-0" />
+                    <span className="capitalize font-semibold">
+                      {zipImportingState === "uploading"
+                        ? "Uploading course package..."
+                        : zipImportingState === "validating"
+                        ? "Validating package..."
+                        : "Importing course..."}
+                    </span>
+                  </div>
+                )}
+
+                <div className="space-y-2 pt-2 border-t border-slate-800">
+                  <button
+                    type="button"
+                    disabled={Boolean(zipImportingState)}
+                    onClick={() => zipInputRef.current?.click()}
+                    className="w-full py-3.5 rounded-2xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-sm font-extrabold shadow-lg shadow-sky-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
+                  >
+                    <Upload className="w-4 h-4" />
+                    <span>Select ZIP Package</span>
+                  </button>
+                  <p className="text-[11px] text-slate-500 text-center font-mono">.zip file up to 2GB</p>
+                </div>
+              </div>
+
+              {/* ---------------------------------------------------- */}
+              {/* OPTION 3: IMPORT FROM JSON */}
+              {/* ---------------------------------------------------- */}
+              <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl flex flex-col justify-between space-y-6 hover:border-indigo-500/40 transition">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                      <FileCode className="w-5 h-5" />
+                    </div>
+                    <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 rounded-full">
+                      JSON Schema
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-extrabold text-white">Import from JSON</h3>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      Create/import a course using the Orange Tree LMS JSON structure. Upload a file or paste raw JSON text directly.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-mono text-indigo-300 flex items-center justify-center space-x-1.5 flex-wrap">
+                    <span className="font-bold text-amber-400">Course</span>
+                    <span className="text-slate-600">→</span>
+                    <span>Module</span>
+                    <span className="text-slate-600">→</span>
+                    <span>Lesson</span>
+                    <span className="text-slate-600">→</span>
+                    <span>Topic</span>
+                    <span className="text-slate-600">→</span>
+                    <span className="text-emerald-400">Content</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3 pt-2 border-t border-slate-800">
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => jsonInputRef.current?.click()}
+                      className="py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Select JSON File</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPasteValidationErrors([]);
+                        setShowPasteModal(true);
+                      }}
+                      className="py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-indigo-300 border border-indigo-500/30 hover:border-indigo-500/60 text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                    >
+                      <Clipboard className="w-3.5 h-3.5" />
+                      <span>Paste JSON</span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setShowFormatGuideModal(true)}
+                      className="text-slate-400 hover:text-indigo-300 font-semibold flex items-center space-x-1 transition cursor-pointer"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                      <span>View Format Guide</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleDownloadTemplate}
+                      className="text-indigo-400 hover:text-indigo-300 font-bold flex items-center space-x-1 transition cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Template</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* VIEW B: AI COURSE CREATION FORM (ASK OTREE AI WORKFLOW) */}
+        {/* ======================================================== */}
+        {showAiForm && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {/* Top Navigation Bar inside AI Form */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAiForm(false);
+                  setWorkflowState("INPUT");
+                }}
+                className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-xs font-bold transition flex items-center space-x-2 cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Creation Options</span>
+              </button>
+
+              <div className="flex items-center space-x-2 text-xs text-slate-400 font-mono">
+                <span>AI Course Creator</span>
+                <span>•</span>
+                <span className="text-orange-400 font-bold">Complete Course Mode</span>
+              </div>
+            </div>
+
+            {/* INPUT FORM STATE */}
+            {workflowState === "INPUT" && (
+              <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-2xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400">
+                      <Wand2 className="w-5 h-5" />
+                    </div>
                     <div>
-                      <span className="text-xs font-bold block">{step.label}</span>
-                      <span className="text-[11px] text-slate-400 font-mono">{step.desc}</span>
+                      <h2 className="text-lg font-bold text-white flex items-center space-x-2">
+                        <span>Compose Course with AI Agent</span>
+                        <span className="px-2 py-0.5 text-[10px] font-black tracking-wider uppercase bg-orange-500/20 border border-orange-500/30 text-orange-300 rounded-full flex items-center space-x-1">
+                          <Bot className="w-3 h-3" />
+                          <span>Gemini 3.6 Flash</span>
+                        </span>
+                      </h2>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Describe your course goals in plain text. The AI Agent will generate a structured draft with modules, lessons, topics, and quizzes.
+                      </p>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* AI PREVIEW STATE */}
-        {workflowState === "PREVIEW" && (
-          <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl space-y-6 animate-in fade-in duration-300">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Eye className="w-5 h-5 text-emerald-400" />
-                <h3 className="text-lg font-bold text-white">Course Draft Preview</h3>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setWorkflowState("INPUT")}
-                className="text-xs font-semibold text-orange-400 hover:text-orange-300 transition underline"
-              >
-                Edit Prompt / Re-generate
-              </button>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-center">
-                <span className="text-xs text-slate-400 uppercase font-bold block">Modules</span>
-                <span className="text-xl font-black text-amber-400 mt-1 block">{totalModulesCount}</span>
-              </div>
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-center">
-                <span className="text-xs text-slate-400 uppercase font-bold block">Lessons</span>
-                <span className="text-xl font-black text-orange-400 mt-1 block">{totalLessonsCount}</span>
-              </div>
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-center">
-                <span className="text-xs text-slate-400 uppercase font-bold block">Quizzes</span>
-                <span className="text-xl font-black text-emerald-400 mt-1 block">{totalQuizzesCount}</span>
-              </div>
-            </div>
-
-            <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl max-h-[50vh] overflow-y-auto space-y-4">
-              <div>
-                <h4 className="text-base font-extrabold text-amber-400">
-                  {targetMetadata?.title || "AI Generated Course"}
-                </h4>
-                <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                  {targetMetadata?.description || "Course description generated by AI."}
-                </p>
-                <div className="flex items-center space-x-3 text-[11px] font-mono text-slate-400 mt-2">
-                  <span>Level: {targetMetadata?.level || "BEGINNER"}</span>
-                  <span>•</span>
-                  <span>Category: {targetMetadata?.category || "General"}</span>
                 </div>
-              </div>
 
-              {modulesList.length > 0 && (
-                <div className="space-y-3 pt-3 border-t border-slate-800">
-                  {modulesList.map((m, idx) => (
-                    <div key={idx} className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
-                      <div className="flex items-center justify-between text-xs font-bold text-slate-100">
-                        <span className="flex items-center space-x-2">
-                          <Layers className="w-4 h-4 text-amber-400" />
-                          <span>Module {idx + 1}: {m.title}</span>
-                        </span>
-                        <span className="text-[11px] text-slate-400 font-mono">
-                          {Array.isArray(m.lessons) ? `${m.lessons.length} lessons` : "0 lessons"}
-                        </span>
+                {/* Prompt Input */}
+                <div className="relative">
+                  <textarea
+                    value={prompt}
+                    onChange={(e) => {
+                      setPrompt(e.target.value);
+                      if (errorMsg) setErrorMsg("");
+                    }}
+                    placeholder="e.g. Create a beginner Python course for college students. Cover variables, control flow, functions, OOP, and data structures with practical code examples and quizzes..."
+                    rows={5}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/60 focus:ring-1 focus:ring-orange-500/50 transition leading-relaxed resize-y font-sans shadow-inner"
+                  />
+                </div>
+
+                {/* Example Prompt Pills */}
+                <div className="space-y-2">
+                  <span className="text-xs font-semibold text-slate-400 tracking-wider uppercase">
+                    Try an example:
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {EXAMPLE_PROMPTS.map((ex, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setPrompt(ex.text);
+                          if (errorMsg) setErrorMsg("");
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-orange-500/40 text-xs font-medium text-slate-300 hover:text-amber-400 transition cursor-pointer"
+                      >
+                        {ex.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Collapsible Advanced Options Accordion */}
+                <div className="pt-2 border-t border-slate-800/80">
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced(!showAdvanced)}
+                    className="flex items-center space-x-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition py-1 cursor-pointer"
+                  >
+                    <SlidersHorizontal className="w-4 h-4 text-orange-400" />
+                    <span>Customize Generation (Advanced options)</span>
+                    {showAdvanced ? (
+                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                    )}
+                  </button>
+
+                  {showAdvanced && (
+                    <div className="mt-4 p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in slide-in-from-top-2 duration-200">
+                      <div>
+                        <label className="text-xs font-medium text-slate-400 block mb-1">Course Size</label>
+                        <select
+                          value={size}
+                          onChange={(e) => setSize(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
+                        >
+                          <option value="AUTO">Auto (Inferred)</option>
+                          <option value="SMALL">Small (3-4 modules)</option>
+                          <option value="MEDIUM">Medium (5-7 modules)</option>
+                          <option value="LARGE">Large (8-10 modules)</option>
+                        </select>
                       </div>
-                      {m.description && <p className="text-xs text-slate-400 leading-relaxed pl-6">{m.description}</p>}
 
-                      {Array.isArray(m.lessons) && m.lessons.length > 0 && (
-                        <div className="pl-6 border-l border-slate-800 space-y-1.5 mt-2">
-                          {m.lessons.map((l, lIdx) => (
-                            <div key={lIdx} className="text-xs text-slate-300 flex items-center justify-between">
-                              <span className="flex items-center space-x-2">
-                                <BookOpen className="w-3.5 h-3.5 text-orange-400" />
-                                <span>• {l.title}</span>
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      <div>
+                        <label className="text-xs font-medium text-slate-400 block mb-1">Difficulty Level</label>
+                        <select
+                          value={level}
+                          onChange={(e) => setLevel(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
+                        >
+                          <option value="AUTO">Auto (Inferred)</option>
+                          <option value="BEGINNER">Beginner</option>
+                          <option value="INTERMEDIATE">Intermediate</option>
+                          <option value="ADVANCED">Advanced</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-medium text-slate-400 block mb-1">Target Audience</label>
+                        <input
+                          type="text"
+                          value={targetAudience}
+                          onChange={(e) => setTargetAudience(e.target.value)}
+                          placeholder="e.g. Beginners, Employees (Auto)"
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-medium text-slate-400 block mb-1">Language</label>
+                        <input
+                          type="text"
+                          value={language}
+                          onChange={(e) => setLanguage(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
+                        />
+                      </div>
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-              <button
-                type="button"
-                onClick={() => setWorkflowState("INPUT")}
-                className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition"
-              >
-                Back to Prompt
-              </button>
+                {/* Action Footer: ONLY Launch AI Composer button! */}
+                <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+                  <div className="flex items-center space-x-2 text-xs text-slate-400">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Generates canonical course structure with modules & quizzes</span>
+                  </div>
 
-              <button
-                type="button"
-                onClick={handleApplyToComposer}
-                className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-sm font-extrabold shadow-lg shadow-emerald-500/20 transition flex items-center space-x-2 cursor-pointer"
-              >
-                <Check className="w-5 h-5 text-slate-950 stroke-[3]" />
-                <span>Apply to Course Composer</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ======================================================== */}
-        {/* SECTION 2 & 3: GRID CARDS (ZIP IMPORT & JSON IMPORT) */}
-        {/* ======================================================== */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* ---------------------------------------------------- */}
-          {/* CARD 2: IMPORT FROM ZIP */}
-          {/* ---------------------------------------------------- */}
-          <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-2xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400">
-                  <FileArchive className="w-5 h-5" />
+                  <button
+                    type="button"
+                    onClick={handleGenerate}
+                    className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-300 text-slate-950 text-sm font-extrabold shadow-lg shadow-orange-500/20 transition flex items-center space-x-2 cursor-pointer"
+                  >
+                    <Sparkles className="w-4 h-4 fill-current" />
+                    <span>Launch AI Composer</span>
+                  </button>
                 </div>
-                <div>
-                  <h3 className="text-lg font-extrabold text-white">Import from ZIP</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Import a complete course package with local media files.
-                  </p>
-                </div>
-              </div>
-
-              {/* Indicators / Badges */}
-              <div className="flex flex-wrap gap-2 pt-1">
-                <span className="px-2.5 py-1 text-xs font-semibold bg-sky-950/60 border border-sky-800/60 text-sky-300 rounded-lg flex items-center space-x-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
-                  <span>Includes content</span>
-                </span>
-                <span className="px-2.5 py-1 text-xs font-semibold bg-sky-950/60 border border-sky-800/60 text-sky-300 rounded-lg flex items-center space-x-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
-                  <span>All media included</span>
-                </span>
-              </div>
-            </div>
-
-            {/* ZIP Progress Feedback if active */}
-            {zipImportingState && (
-              <div className="p-4 rounded-2xl bg-sky-950/50 border border-sky-800/50 text-sky-200 text-xs flex items-center space-x-3">
-                <RefreshCw className="w-4 h-4 text-sky-400 animate-spin shrink-0" />
-                <span className="capitalize font-semibold">
-                  {zipImportingState === "uploading"
-                    ? "Uploading course package..."
-                    : zipImportingState === "validating"
-                    ? "Validating package..."
-                    : "Importing course..."}
-                </span>
               </div>
             )}
 
-            {/* Select ZIP Button & Note */}
-            <div className="space-y-2 pt-2 border-t border-slate-800">
-              <button
-                type="button"
-                disabled={Boolean(zipImportingState)}
-                onClick={() => zipInputRef.current?.click()}
-                className="w-full py-3.5 rounded-2xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-sm font-extrabold shadow-lg shadow-sky-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
-              >
-                <Upload className="w-4 h-4" />
-                <span>Select ZIP Package</span>
-              </button>
-
-              <p className="text-[11px] text-slate-500 text-center font-mono">
-                .zip file up to 2GB
-              </p>
-            </div>
-          </div>
-
-          {/* ---------------------------------------------------- */}
-          {/* CARD 3: IMPORT FROM JSON */}
-          {/* ---------------------------------------------------- */}
-          <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-                  <FileCode className="w-5 h-5" />
+            {/* AI GENERATING STATE */}
+            {workflowState === "GENERATING" && (
+              <div className="p-8 md:p-12 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl text-center space-y-8 animate-in fade-in duration-300">
+                <div className="relative inline-flex items-center justify-center">
+                  <div className="w-20 h-20 rounded-full bg-orange-500/10 border-2 border-orange-500/30 flex items-center justify-center animate-pulse">
+                    <Sparkles className="w-10 h-10 text-orange-400" />
+                  </div>
                 </div>
+
                 <div>
-                  <h3 className="text-lg font-extrabold text-white">Import from JSON</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Import course structure using Orange Tree LMS JSON format.
+                  <h3 className="text-xl font-extrabold text-white">Creating your course with AI...</h3>
+                  <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+                    Gemini 3.6 Flash is authoring your modules, lessons, topic materials, and quizzes.
                   </p>
                 </div>
+
+                <div className="max-w-md mx-auto space-y-3 text-left">
+                  {STAGED_STEPS.map((step, idx) => {
+                    const isDone = idx < currentStepIndex;
+                    const isCurrent = idx === currentStepIndex;
+                    return (
+                      <div
+                        key={step.id}
+                        className={`p-3.5 rounded-2xl border transition flex items-center space-x-3.5 ${
+                          isDone
+                            ? "bg-slate-950/80 border-emerald-500/30 text-emerald-300"
+                            : isCurrent
+                            ? "bg-slate-950 border-orange-500/50 text-orange-400 shadow-lg"
+                            : "bg-slate-950/40 border-slate-800 text-slate-500"
+                        }`}
+                      >
+                        {isDone ? (
+                          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                        ) : isCurrent ? (
+                          <RefreshCw className="w-5 h-5 text-orange-400 animate-spin shrink-0" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full border border-slate-700 shrink-0" />
+                        )}
+                        <div>
+                          <span className="text-xs font-bold block">{step.label}</span>
+                          <span className="text-[11px] text-slate-400 font-mono">{step.desc}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
+            )}
 
-              {/* Hierarchy Diagram */}
-              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-mono text-indigo-300 flex items-center justify-center space-x-1.5 flex-wrap">
-                <span className="font-bold text-amber-400">Course</span>
-                <span className="text-slate-600">→</span>
-                <span>Module</span>
-                <span className="text-slate-600">→</span>
-                <span>Lesson</span>
-                <span className="text-slate-600">→</span>
-                <span>Topic</span>
-                <span className="text-slate-600">→</span>
-                <span className="text-emerald-400">Content</span>
+            {/* AI PREVIEW STATE */}
+            {workflowState === "PREVIEW" && (
+              <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl space-y-6 animate-in fade-in duration-300">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Eye className="w-5 h-5 text-emerald-400" />
+                    <h3 className="text-lg font-bold text-white">Course Draft Preview</h3>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setWorkflowState("INPUT")}
+                    className="text-xs font-semibold text-orange-400 hover:text-orange-300 transition underline"
+                  >
+                    Edit Prompt / Re-generate
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-center">
+                    <span className="text-xs text-slate-400 uppercase font-bold block">Modules</span>
+                    <span className="text-xl font-black text-amber-400 mt-1 block">{totalModulesCount}</span>
+                  </div>
+                  <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-center">
+                    <span className="text-xs text-slate-400 uppercase font-bold block">Lessons</span>
+                    <span className="text-xl font-black text-orange-400 mt-1 block">{totalLessonsCount}</span>
+                  </div>
+                  <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-center">
+                    <span className="text-xs text-slate-400 uppercase font-bold block">Quizzes</span>
+                    <span className="text-xl font-black text-emerald-400 mt-1 block">{totalQuizzesCount}</span>
+                  </div>
+                </div>
+
+                <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl max-h-[50vh] overflow-y-auto space-y-4">
+                  <div>
+                    <h4 className="text-base font-extrabold text-amber-400">
+                      {targetMetadata?.title || "AI Generated Course"}
+                    </h4>
+                    <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                      {targetMetadata?.description || "Course description generated by AI."}
+                    </p>
+                    <div className="flex items-center space-x-3 text-[11px] font-mono text-slate-400 mt-2">
+                      <span>Level: {targetMetadata?.level || "BEGINNER"}</span>
+                      <span>•</span>
+                      <span>Category: {targetMetadata?.category || "General"}</span>
+                    </div>
+                  </div>
+
+                  {modulesList.length > 0 && (
+                    <div className="space-y-3 pt-3 border-t border-slate-800">
+                      {modulesList.map((m, idx) => (
+                        <div key={idx} className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+                          <div className="flex items-center justify-between text-xs font-bold text-slate-100">
+                            <span className="flex items-center space-x-2">
+                              <Layers className="w-4 h-4 text-amber-400" />
+                              <span>Module {idx + 1}: {m.title}</span>
+                            </span>
+                            <span className="text-[11px] text-slate-400 font-mono">
+                              {Array.isArray(m.lessons) ? `${m.lessons.length} lessons` : "0 lessons"}
+                            </span>
+                          </div>
+                          {m.description && <p className="text-xs text-slate-400 leading-relaxed pl-6">{m.description}</p>}
+
+                          {Array.isArray(m.lessons) && m.lessons.length > 0 && (
+                            <div className="pl-6 border-l border-slate-800 space-y-1.5 mt-2">
+                              {m.lessons.map((l, lIdx) => (
+                                <div key={lIdx} className="text-xs text-slate-300 flex items-center justify-between">
+                                  <span className="flex items-center space-x-2">
+                                    <BookOpen className="w-3.5 h-3.5 text-orange-400" />
+                                    <span>• {l.title}</span>
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setWorkflowState("INPUT")}
+                    className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition"
+                  >
+                    Back to Prompt
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleApplyToComposer}
+                    className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-sm font-extrabold shadow-lg shadow-emerald-500/20 transition flex items-center space-x-2 cursor-pointer"
+                  >
+                    <Check className="w-5 h-5 text-slate-950 stroke-[3]" />
+                    <span>Apply to Course Composer</span>
+                  </button>
+                </div>
               </div>
-            </div>
-
-            {/* Action Buttons Container */}
-            <div className="space-y-3 pt-2 border-t border-slate-800">
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => jsonInputRef.current?.click()}
-                  className="py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer"
-                >
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>Select JSON File</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPasteValidationErrors([]);
-                    setShowPasteModal(true);
-                  }}
-                  className="py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-indigo-300 border border-indigo-500/30 hover:border-indigo-500/60 text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
-                >
-                  <Clipboard className="w-3.5 h-3.5" />
-                  <span>Paste JSON</span>
-                </button>
-              </div>
-
-              {/* Secondary Help & Template Actions */}
-              <div className="flex items-center justify-between pt-1 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setShowFormatGuideModal(true)}
-                  className="text-slate-400 hover:text-indigo-300 font-semibold flex items-center space-x-1 transition cursor-pointer"
-                >
-                  <HelpCircle className="w-3.5 h-3.5" />
-                  <span>View Format Guide</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleDownloadTemplate}
-                  className="text-indigo-400 hover:text-indigo-300 font-bold flex items-center space-x-1 transition cursor-pointer"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download Template</span>
-                </button>
-              </div>
-            </div>
+            )}
           </div>
-        </div>
+        )}
       </div>
 
       {/* ======================================================== */}
@@ -1250,6 +1337,59 @@ export default function CourseImportPage() {
           </div>
         </div>
       )}
+
+      {/* Unified Ask OTree AI Assistant Modal (Workflow 2: Specific Entity Creation) */}
+      <AiComposerModal
+        isOpen={isAskAiModalOpen}
+        onClose={() => setIsAskAiModalOpen(false)}
+        initialScope="MODULE"
+        contextData={{
+          courseTitle: prompt ? prompt.slice(0, 40) + "..." : "New Course",
+          modules: generatedDraft?.modules || [],
+          courseQuizzes: generatedDraft?.quizzes || [],
+          activeLevel: "COURSE",
+        }}
+        onApply={(generatedData, scope, contextData) => {
+          if (scope === "COURSE") {
+            const canonical = generatedData.canonicalJson || generatedData;
+            prepareDraftAndNavigate(canonical);
+          } else {
+            const newModule = scope === "MODULE" ? generatedData : {
+              title: generatedData.title || "Module 1",
+              description: "",
+              order: 1,
+              lessons: scope === "LESSON" ? [generatedData] : [
+                {
+                  title: generatedData.title || "Lesson 1",
+                  description: "",
+                  order: 1,
+                  topics: scope === "TOPIC" ? [generatedData] : [
+                    {
+                      title: generatedData.title || "Topic 1",
+                      description: "",
+                      order: 1,
+                      contents: scope === "CONTENT" ? (Array.isArray(generatedData.contents) ? generatedData.contents : [generatedData]) : []
+                    }
+                  ]
+                }
+              ]
+            };
+
+            const canonical = {
+              metadata: {
+                title: generatedData.title || "AI Created Course",
+                description: "Created via Ask OTree AI",
+                category: "General",
+                level: "BEGINNER",
+              },
+              settings: { visibility: "PUBLIC" },
+              modules: [newModule],
+              quizzes: scope === "QUIZ" ? [generatedData] : [],
+            };
+            prepareDraftAndNavigate(canonical);
+          }
+        }}
+      />
     </div>
   );
 }

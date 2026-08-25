@@ -19,6 +19,8 @@ import { useConfirm } from "@/context/ConfirmContext";
 import { getDisplayUrl } from "@/lib/blob";
 import { uploadFileToVercelBlob } from "@/services/content.service";
 import PdfViewer from "@/components/student/learn/PdfViewer";
+import PptViewer from "@/components/shared/PptViewer";
+import ExternalDocumentViewer from "@/components/shared/ExternalDocumentViewer";
 
 import { useCreateContent, useUpdateContent, useDeleteContent } from "../contentMutations";
 import { CellShell } from "../CellShell";
@@ -55,10 +57,12 @@ function PlainFileUploadFields({
   fileUrl,
   onFileUrlChange,
   accept,
+  placeholder = "https://example.com/file.pdf",
 }: {
   fileUrl: string;
   onFileUrlChange: (url: string) => void;
   accept?: string;
+  placeholder?: string;
 }) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -95,7 +99,7 @@ function PlainFileUploadFields({
           type="text"
           value={fileUrl}
           onChange={(e) => onFileUrlChange(e.target.value)}
-          placeholder="https://example.com/file.pdf"
+          placeholder={placeholder}
           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary font-mono"
         />
       </div>
@@ -213,6 +217,7 @@ export function DocumentCell({
   const [fileUrl, setFileUrl] = useState(content.fileUrl ?? "");
   const [slides, setSlides] = useState<SlideItemV2[]>(parsedSlides.length > 0 ? parsedSlides : createDefaultSlideDeck());
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [pdfControls, setPdfControls] = useState<React.ReactNode | null>(null);
 
   const updateContent = useUpdateContent();
   const deleteContent = useDeleteContent();
@@ -262,24 +267,49 @@ export function DocumentCell({
 
   const displayUrl = getDisplayUrl(content.fileUrl ?? "");
   const cleanUrl = (content.fileUrl || "").split("?")[0].toLowerCase();
-  const ext = cleanUrl.split(".").pop() || "doc";
-  const isPdf = ext === "pdf";
+  const ext = cleanUrl.split(".").pop() || "";
+  const isPdf = ext === "pdf" || (content.fileUrl || "").toLowerCase().includes(".pdf");
+  const isDoc = ext === "doc" || ext === "docx";
+  const isPpt = ext === "ppt" || ext === "pptx";
+  const isXls = ext === "xls" || ext === "xlsx";
+
+  let detectedBadgeText = "DOC";
+  let detectedTypeLabel = cellType.label;
+
+  if (isPdf) {
+    detectedBadgeText = "PDF";
+    detectedTypeLabel = "PDF Document";
+  } else if (isDoc) {
+    detectedBadgeText = "DOC";
+    detectedTypeLabel = "Word Document";
+  } else if (isPpt) {
+    detectedBadgeText = "PPT";
+    detectedTypeLabel = "Presentation";
+  } else if (isXls) {
+    detectedBadgeText = "XLS";
+    detectedTypeLabel = "Spreadsheet";
+  } else if (ext) {
+    detectedBadgeText = ext.toUpperCase();
+    detectedTypeLabel = `${ext.toUpperCase()} Document`;
+  }
+
   const currentSlide = slides[activeSlideIndex] || slides[0];
   const showSlideDeck = isPresentation && (presentationMode === "slideshow" || parsedSlides.length > 0);
 
   return (
     <CellShell
       icon={cellType.icon}
-      typeLabel={cellType.label}
-      title={content.title || `Untitled ${cellType.label.toLowerCase()}`}
+      typeLabel={detectedTypeLabel}
+      title={content.title || `Untitled ${detectedTypeLabel}`}
       mode={mode}
       onEdit={handleEdit}
       onDelete={handleDelete}
       isDeleting={deleteContent.isPending}
       onDuplicate={onDuplicate}
       isDuplicating={isDuplicating}
-      badgeText={badgeText}
-      badgeVariant={badgeVariant}
+      badgeText={badgeText || detectedBadgeText}
+      badgeVariant={badgeVariant || "document"}
+      headerActions={isPdf && mode === "view" ? pdfControls : null}
       onSettingsSelect={onSettingsSelect}
       onAddAbove={onAddAbove}
       onAddBelow={onAddBelow}
@@ -306,10 +336,13 @@ export function DocumentCell({
 
           {isPresentation && presentationMode === "slideshow" ? (
             <PresentationSlidesEditor slides={slides} onChange={setSlides} />
-          ) : isPresentation ? (
-            <PresentationUploadPanel fileUrl={fileUrl} onFileUrlChange={setFileUrl} />
           ) : (
-            <PlainFileUploadFields fileUrl={fileUrl} onFileUrlChange={setFileUrl} />
+            <PlainFileUploadFields
+              fileUrl={fileUrl}
+              onFileUrlChange={setFileUrl}
+              accept={isPresentation ? ".ppt,.pptx" : undefined}
+              placeholder={isPresentation ? "https://example.com/presentation.pptx" : "https://example.com/file.pdf"}
+            />
           )}
 
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
@@ -383,76 +416,28 @@ export function DocumentCell({
           )}
         </div>
       ) : content.fileUrl ? (
-        <div className="space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-900/90 p-3.5 shadow-sm">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-400 font-black text-xs uppercase">
-                {ext.toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <h5 className="text-xs font-bold text-slate-200 truncate">
-                  {content.title || `${cellType.label} (${ext.toUpperCase()})`}
-                </h5>
-                <p className="text-[10px] text-slate-400 font-mono truncate">{content.fileUrl}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
-              <a
-                href={displayUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white transition cursor-pointer"
-                title={`Open ${cellType.label} in new tab`}
-              >
-                <ExternalLink size={13} />
-                <span>Open File</span>
-              </a>
-              <a
-                href={displayUrl}
-                download
-                className="flex items-center gap-1.5 rounded-lg border border-orange-500/40 bg-orange-500/10 px-3 py-1.5 text-xs font-bold text-orange-400 hover:bg-orange-500/20 transition cursor-pointer"
-                title={`Download ${cellType.label}`}
-              >
-                <Download size={13} />
-                <span>Download</span>
-              </a>
-            </div>
-          </div>
-
+        <div className="w-full">
           {isPdf ? (
-            <div className="w-full">
-              <PdfViewer fileUrl={displayUrl} title={content.title || cellType.label} />
-            </div>
+            <PdfViewer
+              fileUrl={displayUrl}
+              title={content.title || cellType.label}
+              hideToolbar={true}
+              onControlsRender={setPdfControls}
+            />
+          ) : isPpt && (content.fileUrl.includes("blob.vercel-storage.com") || content.fileUrl.includes("/content-uploads/")) ? (
+            <PptViewer
+              fileUrl={displayUrl}
+              title={content.title || cellType.label}
+              hideToolbar={true}
+              onControlsRender={setPdfControls}
+            />
           ) : (
-            <div className="flex flex-col items-center justify-center p-8 text-center rounded-xl border border-slate-800 bg-slate-950/80 space-y-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-500/15 border border-sky-500/30 text-sky-400 font-black text-sm uppercase">
-                {ext.toUpperCase()}
-              </div>
-              <div>
-                <h5 className="text-sm font-bold text-slate-200">{content.title || `${cellType.label} (${ext.toUpperCase()})`}</h5>
-                <p className="text-xs text-slate-400 mt-1">File ready for viewing and downloading.</p>
-              </div>
-              <div className="flex items-center gap-2 pt-1">
-                <a
-                  href={displayUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white transition cursor-pointer"
-                >
-                  <ExternalLink size={14} />
-                  <span>Open</span>
-                </a>
-                <a
-                  href={displayUrl}
-                  download
-                  className="flex items-center gap-1.5 rounded-lg border border-orange-500/40 bg-orange-500/10 px-4 py-2 text-xs font-bold text-orange-400 hover:bg-orange-500/20 transition cursor-pointer"
-                >
-                  <Download size={14} />
-                  <span>Download ({ext.toUpperCase()})</span>
-                </a>
-              </div>
-            </div>
+            <ExternalDocumentViewer
+              fileUrl={content.fileUrl}
+              title={content.title || cellType.label}
+              hideToolbar={true}
+              onControlsRender={setPdfControls}
+            />
           )}
         </div>
       ) : (
@@ -529,10 +514,13 @@ export function CreateFileForm({ topicId, order, cellType, accept, presentationM
 
       {useSlideshow ? (
         <PresentationSlidesEditor slides={slides} onChange={setSlides} />
-      ) : isPresentation ? (
-        <PresentationUploadPanel fileUrl={fileUrl} onFileUrlChange={setFileUrl} />
       ) : (
-        <PlainFileUploadFields fileUrl={fileUrl} onFileUrlChange={setFileUrl} accept={accept} />
+        <PlainFileUploadFields
+          fileUrl={fileUrl}
+          onFileUrlChange={setFileUrl}
+          accept={isPresentation ? ".ppt,.pptx" : accept}
+          placeholder={isPresentation ? "https://example.com/presentation.pptx" : "https://example.com/file.pdf"}
+        />
       )}
 
       <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
