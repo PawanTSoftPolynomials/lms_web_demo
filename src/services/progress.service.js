@@ -20,3 +20,14 @@ export const updateProgress =
 
     return response.data;
   };
+
+export const markContentVisited =
+  async (contentIds) => {
+    const response =
+      await api.post(
+        "/progress/content-visited",
+        { contentIds }
+      );
+
+    return response.data;
+  };

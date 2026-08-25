@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -22,6 +22,7 @@ import LessonTabs from "@/components/student/learning/LessonTabs";
 import CourseContentAccordion from "@/components/student/learning/CourseContentAccordion";
 import QuizExperience from "@/components/student/attempt/QuizExperience";
 import useCompleteLesson from "@/hooks/queries/student/useCompleteLesson";
+import useMarkContentVisited from "@/hooks/queries/student/useMarkContentVisited";
 import { useCourse, useStudentState, useUpdateStudentState } from "@/hooks/queries/student";
 import { useBookmarks, useCreateBookmark, useDeleteBookmark } from "@/hooks/queries/student/useBookmarks";
 import useProgress from "@/hooks/queries/student/useProgress";
@@ -40,6 +41,59 @@ import useChat from "@/hooks/useChat";
 import { useNotification } from "@/context/NotificationContext";
 import { useToast } from "@/components/ui/ToastProvider";
 
+// Wraps one displayed lesson-content block. VIDEO content reports "visited"
+// through its own onEnded callback (passed in via videoPlayerProps); every
+// other content type has no natural completion event, so it's considered
+// visited once it's been scrolled into view for a couple of seconds. A
+// displayed block can represent several underlying Content rows merged
+// together (see contentDocument.js), so onVisited always receives the full
+// contentIds list, not a single id.
+function LessonContentBlock({ item, onVisited, videoPlayerRef, ...videoPlayerProps }) {
+  const blockRef = useRef(null);
+
+  useEffect(() => {
+    if (!item || item.type === "VIDEO") return undefined;
+    const contentIds = item.contentIds || [];
+    if (contentIds.length === 0 || typeof IntersectionObserver === "undefined") return undefined;
+
+    const el = blockRef.current;
+    if (!el) return undefined;
+
+    let dwellTimer = null;
+    let fired = false;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          dwellTimer = setTimeout(() => {
+            if (!fired) {
+              fired = true;
+              onVisited(contentIds);
+            }
+          }, 2000);
+        } else if (dwellTimer) {
+          clearTimeout(dwellTimer);
+          dwellTimer = null;
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+      if (dwellTimer) clearTimeout(dwellTimer);
+    };
+  }, [item, onVisited]);
+
+  return (
+    <div ref={blockRef} data-topic-anchor={item?.topicId || undefined}>
+      <VideoPlayer ref={videoPlayerRef} content={item} {...videoPlayerProps} />
+    </div>
+  );
+}
+
 export default function LearnPage() {
   const { courseId } = useParams();
   const router = useRouter();
@@ -49,6 +103,7 @@ export default function LearnPage() {
   const { data: stateData, isLoading: isStateLoading } = useStudentState();
   const updateStateMutation = useUpdateStudentState();
   const completeLessonMutation = useCompleteLesson();
+  const markContentVisitedMutation = useMarkContentVisited();
   const { data: progressData } = useProgress();
   const courseProgress = useMemo(() => {
     if (!progressData?.courses) return 0;
@@ -84,6 +139,11 @@ export default function LearnPage() {
       }))
     );
   }, [course]);
+
+  const completedLessonIds = useMemo(
+    () => lessons.filter((lesson) => lesson.completed).map((lesson) => lesson.id),
+    [lessons]
+  );
 
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [pendingTopicScroll, setPendingTopicScroll] = useState(null);
@@ -190,8 +250,24 @@ export default function LearnPage() {
     return course?.modules?.find((m) => m.id === nextLesson.moduleId) || null;
   }, [nextLesson, selectedLesson, course]);
 
+  // Stable across renders (depends only on the mutation's stable `mutate`
+  // reference) so LessonContentBlock's IntersectionObserver — keyed on this
+  // callback's identity — isn't torn down and resubscribed on every parent
+  // re-render (e.g. every currentTimestamp tick while a video is playing).
+  const handleContentVisited = useCallback(
+    (contentIds) => {
+      if (!contentIds || contentIds.length === 0) return;
+      markContentVisitedMutation.mutate(contentIds);
+    },
+    [markContentVisitedMutation.mutate]
+  );
+
+  // Watching a video to the end is a "visited" signal for that one piece of
+  // content, not an unconditional lesson completion — the lesson only
+  // auto-completes once every content block in it (video and non-video
+  // alike) has been visited. See handleContentVisited / LessonContentBlock.
   const handleVideoEnded = () => {
-    markComplete();
+    handleContentVisited(documentGroupedContents?.[0]?.contentIds);
     if (nextLesson) {
       setSelectedLesson(nextLesson);
     }
@@ -661,6 +737,7 @@ export default function LearnPage() {
       <div className={`hidden xl:block shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${courseSidebarOpen ? "w-full xl:w-[320px]" : "w-full xl:w-0"}`}>
         <CourseStructureSidebar
           modules={course.modules || []}
+          completedLessonIds={completedLessonIds}
           composerMode={selectedLesson ? "lesson" : "course"}
           composeLessonId={selectedLesson?.id}
           composeModuleId={selectedLesson?.moduleId}
@@ -906,16 +983,15 @@ export default function LearnPage() {
                 </button>
               </div>
 
-              <div data-topic-anchor={documentGroupedContents?.[0]?.topicId || undefined}>
-                <VideoPlayer
-                  ref={videoPlayerRef}
-                  content={documentGroupedContents?.[0]}
-                  onTimeUpdate={setCurrentTimestamp}
-                  onDurationChange={setVideoDuration}
-                  onEnded={handleVideoEnded}
-                  initialTime={initialTime}
-                />
-              </div>
+              <LessonContentBlock
+                item={documentGroupedContents?.[0]}
+                onVisited={handleContentVisited}
+                videoPlayerRef={videoPlayerRef}
+                onTimeUpdate={setCurrentTimestamp}
+                onDurationChange={setVideoDuration}
+                onEnded={handleVideoEnded}
+                initialTime={initialTime}
+              />
 
               {/* Remaining lesson content beyond the primary block above — e.g. a
                   video intro followed by a full written lecture, or several
@@ -925,9 +1001,7 @@ export default function LearnPage() {
               {documentGroupedContents.length > 1 && (
                 <div className="space-y-4">
                   {documentGroupedContents.slice(1).map((item, idx) => (
-                    <div key={item.id || idx} data-topic-anchor={item.topicId || undefined}>
-                      <VideoPlayer content={item} />
-                    </div>
+                    <LessonContentBlock key={item.id || idx} item={item} onVisited={handleContentVisited} />
                   ))}
                 </div>
               )}
