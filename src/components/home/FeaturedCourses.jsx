@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getLandingData } from "@/services/landing.service";
 import FeaturedCourseCard from "@/components/courses/FeaturedCourseCard";
+import Eyebrow from "@/components/ui/Eyebrow";
 
 export default function FeaturedCourses() {
   const [courses, setCourses] = useState([]);
@@ -41,24 +42,28 @@ export default function FeaturedCourses() {
 
   return (
     <section className="py-20">
-      <div className="flex justify-between items-center mb-8 select-none">
-        <h2 className="text-3xl font-bold text-white tracking-tight">
-          Featured Courses
-        </h2>
+      <div className="flex justify-between items-end mb-8 select-none">
+        <div>
+          <Eyebrow>Our Courses</Eyebrow>
+          <h2 className="text-3xl font-bold text-foreground tracking-tight mt-4">
+            Featured Courses
+          </h2>
+        </div>
 
         <Link
           href="/login"
-          className="text-orange-400 hover:text-orange-300 text-sm font-bold uppercase tracking-wider"
+          className="text-primary hover:brightness-125 text-sm font-bold uppercase tracking-wider"
         >
           View All
         </Link>
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {courses.map((course) => (
+        {courses.map((course, index) => (
           <FeaturedCourseCard
             key={course.id}
             course={course}
+            highlighted={index === 1}
           />
         ))}
       </div>

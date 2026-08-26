@@ -580,11 +580,7 @@ export default function CourseDetailsPage() {
             courseId,
             moduleId: composeModuleId || null,
             lessonId: composeLessonId || null,
-<<<<<<< HEAD
-            questions: updatedQuizData.questions || [],
-=======
             topicId: composeTopicId || null,
->>>>>>> 6f8b87b7327d62e852c33f71167233aba9cdbbfc
           });
 
           if (updatedQuizData.questions?.length > 0) {

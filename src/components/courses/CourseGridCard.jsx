@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format, formatDistanceToNow } from "date-fns";
 import { BookOpen, Layers, FileText, HelpCircle, Clock, UserRound, CalendarPlus, History, Pencil, ArrowUpRight, Download, Loader2 } from "lucide-react";
@@ -10,53 +9,31 @@ import CourseStatusBadge from "@/components/courses/CourseStatusBadge";
 import { exportCourse } from "@/services/course.service";
 import { getDisplayUrl } from "@/lib/blob";
 
-const STATUS_ACCENT = {
-  PUBLISHED: "from-white via-white/60 to-transparent",
-  DRAFT: "from-white/50 via-white/30 to-transparent",
-  ARCHIVED: "from-red-900 via-red-900/60 to-transparent",
+const ACCENT_BAR = {
+  PUBLISHED: "bg-primary",
+  DRAFT: "bg-muted-foreground/40",
+  ARCHIVED: "bg-destructive",
 };
-
-/**
- * Bold gradient per card — one hue, cycled by grid index so every card in view is a
- * different color. The gradient itself stays at a normal, identifiable saturation;
- * `brightness`/`contrast` filters are applied on a separate background layer (not on
- * the text) to knock the perceived intensity down by ~40% without graying out content.
- */
-const THEMES = [
-  { gradient: "bg-gradient-to-br from-cyan-500 to-blue-700", viewText: "text-blue-800" },
-  { gradient: "bg-gradient-to-br from-orange-500 to-red-700", viewText: "text-red-800" },
-  { gradient: "bg-gradient-to-br from-amber-500 to-amber-700", viewText: "text-amber-900" },
-  { gradient: "bg-gradient-to-br from-pink-500 to-pink-700", viewText: "text-pink-800" },
-  { gradient: "bg-gradient-to-br from-violet-500 to-purple-700", viewText: "text-violet-900" },
-  { gradient: "bg-gradient-to-br from-emerald-500 to-green-700", viewText: "text-green-900" },
-  { gradient: "bg-gradient-to-br from-indigo-500 to-indigo-700", viewText: "text-indigo-900" },
-  { gradient: "bg-gradient-to-br from-teal-500 to-teal-700", viewText: "text-teal-900" },
-  { gradient: "bg-gradient-to-br from-rose-500 to-rose-700", viewText: "text-rose-800" },
-  { gradient: "bg-gradient-to-br from-fuchsia-500 to-fuchsia-700", viewText: "text-fuchsia-900" },
-  { gradient: "bg-gradient-to-br from-lime-600 to-green-700", viewText: "text-green-900" },
-  { gradient: "bg-gradient-to-br from-sky-500 to-sky-700", viewText: "text-sky-900" },
-];
 
 function Stat({ icon: Icon, value, label }) {
   return (
-    <div className="flex flex-col items-center gap-0.5 md:gap-1 rounded-lg border border-white/25 bg-white/15 py-1 md:py-2 text-white backdrop-blur-sm">
+    <div className="flex flex-col items-center gap-0.5 md:gap-1 rounded-lg border border-border bg-muted/60 py-1 md:py-2 text-foreground">
       <div className="flex items-center gap-1.5">
-        <Icon size={15} />
+        <Icon size={15} className="text-primary" />
         <p className="text-sm md:text-base font-black tabular-nums">{value}</p>
       </div>
-      <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/70">{label}</p>
+      <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
     </div>
   );
 }
 
 /** My Courses grid card — banner, stats, duration, creator, audit fields, description, edit/view actions. */
-export default function CourseGridCard({ course, index = 0 }) {
+export default function CourseGridCard({ course }) {
   const router = useRouter();
   const [exporting, setExporting] = useState(false);
 
   const lessonsCount = course.modules?.reduce((sum, m) => sum + (m.lessons?.length ?? 0), 0) ?? course.stats?.lessonsCount ?? 0;
-  const accent = STATUS_ACCENT[course.status] || STATUS_ACCENT.DRAFT;
-  const theme = THEMES[index % THEMES.length];
+  const accentBar = ACCENT_BAR[course.status] || ACCENT_BAR.DRAFT;
 
   const goTo = (path) => (e) => {
     e.stopPropagation();
@@ -73,7 +50,7 @@ export default function CourseGridCard({ course, index = 0 }) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      
+
       let filename = `course-${course.id}.zip`;
       const cd = res.headers["content-disposition"];
       if (cd) {
@@ -96,16 +73,11 @@ export default function CourseGridCard({ course, index = 0 }) {
   return (
     <div
       onClick={() => router.push(`/instructor/courses/${course.id}`)}
-      className="group relative flex w-[90%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-80 md:shrink flex-col overflow-hidden rounded-2xl shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30 cursor-pointer"
+      className="group relative flex w-[90%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-80 md:shrink flex-col overflow-hidden rounded-2xl bg-card border border-card-border shadow-luxury-sm hover:shadow-luxury-md transition-all duration-300 hover:-translate-y-1 cursor-pointer"
     >
-      {/* Dimmed color layer — ~40% less bright/contrasty than the raw gradient, kept behind the content so text stays crisp */}
-      <div className={`absolute inset-0 ${theme.gradient} brightness-[0.6] contrast-[0.85]`} />
-
-      {/* Content sits in its own stacked layer so it renders above the dimmed background */}
-      <div className="relative z-10 flex flex-1 flex-col">
-      {/* Banner — shorter on mobile so the thumbnail no longer dominates the card */}
-      <div className="relative h-16 md:h-28 shrink-0 overflow-hidden">
-        <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent} z-10`} />
+      {/* Banner */}
+      <div className="relative h-16 md:h-28 shrink-0 overflow-hidden bg-muted">
+        <div className={`absolute inset-x-0 top-0 h-1 ${accentBar} z-10`} />
         {course.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -116,11 +88,11 @@ export default function CourseGridCard({ course, index = 0 }) {
           />
         ) : (
           <div className="relative flex h-full w-full items-center justify-center">
-            <BookOpen size={36} className="text-white/20" />
+            <BookOpen size={36} className="text-muted-foreground/40" />
           </div>
         )}
 
-        <span className="absolute top-2 left-2 md:top-3 md:left-3 rounded-md border border-white/30 bg-white/15 backdrop-blur px-2 py-0.5 md:py-1 text-[10px] md:text-[11px] font-bold text-white">
+        <span className="absolute top-2 left-2 md:top-3 md:left-3 rounded-md border border-white/30 bg-black/50 backdrop-blur px-2 py-0.5 md:py-1 text-[10px] md:text-[11px] font-bold text-white">
           {course.category || "Uncategorized"}
         </span>
         <div className="absolute top-2 right-2 md:top-3 md:right-3">
@@ -130,11 +102,11 @@ export default function CourseGridCard({ course, index = 0 }) {
 
       <div className="flex flex-1 flex-col gap-1.5 md:gap-2.5 p-3 md:p-4">
         <div>
-          <h3 className="text-base md:text-lg font-black text-white leading-snug line-clamp-1">
+          <h3 className="text-base md:text-lg font-black text-foreground leading-snug line-clamp-1">
             {course.title}
           </h3>
           {course.description ? (
-            <p className="mt-0.5 md:mt-1 text-xs md:text-[13px] leading-relaxed text-white/80 line-clamp-1 md:line-clamp-2">{course.description}</p>
+            <p className="mt-0.5 md:mt-1 text-xs md:text-[13px] leading-relaxed text-muted-foreground line-clamp-1 md:line-clamp-2">{course.description}</p>
           ) : null}
         </div>
 
@@ -145,23 +117,23 @@ export default function CourseGridCard({ course, index = 0 }) {
         </div>
 
         <div className="flex items-center justify-between gap-2 text-[11px] md:text-xs">
-          <span className="flex min-w-0 items-center gap-1.5 truncate rounded-lg border border-white/25 bg-white/15 px-2 py-0.5 md:py-1 text-white backdrop-blur-sm">
-            <UserRound size={13} className="shrink-0 text-white/70" />
+          <span className="flex min-w-0 items-center gap-1.5 truncate rounded-lg border border-border bg-muted/60 px-2 py-0.5 md:py-1 text-foreground">
+            <UserRound size={13} className="shrink-0 text-muted-foreground" />
             <span className="truncate">{course.creator?.name || "Unknown"}</span>
           </span>
-          <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/25 bg-white/15 px-2 py-0.5 md:py-1 text-white backdrop-blur-sm">
-            <Clock size={13} className="text-white/70" />
+          <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-muted/60 px-2 py-0.5 md:py-1 text-foreground">
+            <Clock size={13} className="text-muted-foreground" />
             {course.estimatedLearningHours ? `${course.estimatedLearningHours}h` : "—"}
           </span>
         </div>
 
-        <div className="flex items-center justify-between text-[11px] text-white/70">
+        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
           <span className="flex items-center gap-1.5">
-            <CalendarPlus size={13} className="text-white/60" />
+            <CalendarPlus size={13} />
             {course.createdAt ? format(new Date(course.createdAt), "MMM d, yyyy") : "—"}
           </span>
           <span className="flex items-center gap-1.5">
-            <History size={13} className="text-white/60" />
+            <History size={13} />
             {course.updatedAt ? formatDistanceToNow(new Date(course.updatedAt), { addSuffix: true }) : "—"}
           </span>
         </div>
@@ -169,7 +141,7 @@ export default function CourseGridCard({ course, index = 0 }) {
         <div className="mt-auto flex items-center gap-2 pt-0.5 md:pt-1.5">
           <button
             onClick={goTo(`/instructor/courses/edit/${course.id}`)}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-3 py-1.5 md:py-2 text-xs md:text-[13px] font-extrabold text-white transition hover:bg-white/20"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-border bg-muted/40 px-3 py-1.5 md:py-2 text-xs md:text-[13px] font-extrabold text-foreground transition hover:bg-muted"
           >
             <Pencil size={13} />
             Edit
@@ -178,21 +150,19 @@ export default function CourseGridCard({ course, index = 0 }) {
             onClick={handleExport}
             disabled={exporting}
             title="Export Course ZIP"
-            className="inline-flex items-center justify-center p-2 rounded-xl border border-white/30 bg-white/10 text-white transition hover:bg-white/20 disabled:opacity-50"
+            className="inline-flex items-center justify-center p-2 rounded-xl border border-border bg-muted/40 text-foreground transition hover:bg-muted disabled:opacity-50"
           >
             {exporting ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
           </button>
           <button
             onClick={goTo(`/instructor/courses/${course.id}`)}
-            className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-1.5 md:py-2 text-xs md:text-[13px] font-extrabold transition hover:bg-white/90 active:scale-95 ${theme.viewText}`}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-3 py-1.5 md:py-2 text-xs md:text-[13px] font-extrabold transition hover:brightness-110 active:scale-95"
           >
             View
             <ArrowUpRight size={13} />
           </button>
         </div>
       </div>
-      </div>
     </div>
   );
 }
-

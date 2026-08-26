@@ -5,29 +5,7 @@ import { useRouter } from "next/navigation";
 import { BookOpen, Layers, UserRound, Star, ArrowUpRight, Loader2 } from "lucide-react";
 
 import useEnrollCourse from "@/hooks/queries/student/useEnrollCourse";
-
-/** Same discount-over-list-price precedence as the course detail page's own enroll logic. */
-function getPriceInfo(store) {
-  const isFree = !store || store.isFree || (!store.price && !store.discountPrice);
-  if (isFree) return { isFree: true, effectivePrice: 0, listPrice: null, currency: "INR" };
-
-  const hasDiscount = store.discountPrice !== null && store.discountPrice !== undefined && store.discountPrice > 0 && store.discountPrice < store.price;
-
-  return {
-    isFree: false,
-    effectivePrice: hasDiscount ? store.discountPrice : store.price,
-    listPrice: hasDiscount ? store.price : null,
-    currency: store.currency || "INR",
-  };
-}
-
-function formatPrice(amount, currency) {
-  try {
-    return new Intl.NumberFormat("en-IN", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
-  } catch {
-    return `${currency} ${amount}`;
-  }
-}
+import { getPriceInfo, formatPrice } from "@/lib/pricing";
 
 export default function StoreCourseCard({ course }) {
   const router = useRouter();

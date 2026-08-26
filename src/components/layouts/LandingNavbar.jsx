@@ -4,24 +4,24 @@ import Link from "next/link";
 
 export default function LandingNavbar() {
   return (
-    <nav className="sticky top-0 bg-slate-950/80 border-b border-slate-900/40 backdrop-blur-md z-50 flex justify-between items-center py-4 px-4 -mx-4">
-      <h1 className="text-2xl font-bold text-orange-500">
-        Orange Tree LMS
+    <nav className="sticky top-4 z-50 flex items-center justify-between gap-4 rounded-full border border-border bg-surface/80 backdrop-blur-md px-6 py-3 shadow-luxury-sm">
+      <h1 className="text-xl font-bold text-foreground">
+        Orange Tree <span className="text-primary">LMS</span>
       </h1>
 
-      <div className="flex gap-4">
+      <div className="flex items-center gap-3">
         <Link
           href="/login"
-          className="px-4 py-2 border border-slate-700 rounded-lg hover:border-orange-500"
+          className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"
         >
           Login
         </Link>
 
         <Link
           href="/register"
-          className="px-4 py-2 bg-orange-600 rounded-lg hover:bg-orange-700"
+          className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
         >
-          Register
+          Get Started
         </Link>
       </div>
     </nav>

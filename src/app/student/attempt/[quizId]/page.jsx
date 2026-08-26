@@ -16,7 +16,7 @@ function QuizAttemptPageContent() {
     const from = searchParams.get("from");
 
     return (
-        <div className="space-y-6 pb-16 max-w-full">
+        <div className="space-y-3 pb-3 max-w-full">
             <QuizExperience
                 quizId={quizId}
                 onBack={() => router.back()}

@@ -16,7 +16,6 @@ const STATUS_STYLES = {
 };
 
 const LEGEND_ITEMS = [
-    { key: "current", label: "Current", dotClass: "bg-orange-500" },
     { key: "answered", label: "Answered", dotClass: "bg-emerald-500" },
     { key: "visited", label: "Skipped", dotClass: "bg-amber-500" },
     { key: "unvisited", label: "Not Visited", dotClass: "bg-slate-600" },
@@ -55,7 +54,7 @@ export default function QuizQuestionPalette({
     const answeredCount = Object.keys(answers).length;
 
     return (
-        <div className="flex flex-col gap-5 rounded-2xl border border-slate-800 bg-slate-900 p-6 lg:sticky lg:top-6">
+        <div className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900 p-5 lg:sticky lg:top-6">
             <div className="flex items-center gap-2">
                 <LayoutGrid className="h-4 w-4 text-orange-500" />
 

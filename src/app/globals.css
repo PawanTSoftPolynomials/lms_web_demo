@@ -27,15 +27,15 @@
   --color-slate-900: #131321;
   --color-slate-950: #0a0a0f;
 
-  --color-orange-400: #ffa14a;
-  --color-orange-500: #ff7a00;
-  --color-orange-600: #e06000;
-  --color-orange-700: #b34a00;
+  --color-orange-400: #4dfaff;
+  --color-orange-500: #00f2fe;
+  --color-orange-600: #00c4d1;
+  --color-orange-700: #0090a1;
 
-  --color-pink-400: #ff6bb5;
-  --color-pink-500: #ff2e93;
-  --color-pink-600: #d61c72;
-  --color-pink-700: #a80e55;
+  --color-pink-400: #b266ff;
+  --color-pink-500: #7f00ff;
+  --color-pink-600: #6a00d6;
+  --color-pink-700: #5500ad;
 
   --radius-xl: 0.875rem;
   --radius-2xl: 1.125rem;
@@ -61,16 +61,16 @@
 
   --border: #e7e7f1;
   --input: #e7e7f1;
-  --ring: #ff7a00;
+  --ring: #00b8c9;
 
-  --primary: #ff7a00;
+  --primary: #00b8c9;
   --primary-foreground: #ffffff;
 
   --secondary: #f1f1f7;
   --secondary-foreground: #131321;
 
-  --accent: #fff1e6;
-  --accent-foreground: #b34a00;
+  --accent: #f3ebff;
+  --accent-foreground: #7f00ff;
 
   --destructive: #e5484d;
   --destructive-foreground: #ffffff;
@@ -103,16 +103,16 @@
 
   --border: #1a1f35;
   --input: #1a1f35;
-  --ring: #ff9a3d;
+  --ring: #00f2fe;
 
-  --primary: #ff8c1a;
-  --primary-foreground: #0a0a0f;
+  --primary: #00f2fe;
+  --primary-foreground: #05070c;
 
   --secondary: #151a30;
   --secondary-foreground: #f1f1f5;
 
-  --accent: #241a0d;
-  --accent-foreground: #ffa14a;
+  --accent: #241333;
+  --accent-foreground: #c084fc;
 
   --destructive: #f87171;
   --destructive-foreground: #1a0505;
@@ -325,6 +325,8 @@ body {
 [class~="bg-[#0D0D18]/95"] { background-color: color-mix(in oklab, var(--popover) 95%, transparent); }
 [class~="bg-[#0D1021]"] { background-color: var(--surface); }
 [class~="bg-[#0D1021]/80"] { background-color: color-mix(in oklab, var(--surface) 80%, transparent); }
+[class~="bg-[#090D16]"] { background-color: var(--background); }
+[class~="bg-[#111827]"] { background-color: var(--popover); }
 [class~="bg-[#0d0e16]"] { background-color: var(--background); }
 [class~="bg-[#0d0e16]/50"] { background-color: color-mix(in oklab, var(--background) 50%, transparent); }
 [class~="bg-[#0d0e16]/60"] { background-color: color-mix(in oklab, var(--background) 60%, transparent); }
@@ -348,6 +350,27 @@ body {
 [class~="to-[#0a0b11]"] { --tw-gradient-to: var(--background); }
 [class~="to-[#12182B]"] { --tw-gradient-to: var(--surface); }
 [class~="via-[#0D1021]"] { --tw-gradient-via: var(--surface); }
+
+/* Sidebar's hardcoded orange active-state glow (a literal rgba() box-shadow, not the
+   swappable --color-orange-* scale) — repainted to the current --primary so it follows
+   the active palette instead of staying orange under every theme. */
+[class~="shadow-[0_2px_12px_rgba(249,115,22,0.35)]"] {
+  box-shadow: 0 2px 12px color-mix(in oklab, var(--primary) 35%, transparent);
+}
+
+/* Soft ambient card/panel shadow used across the app (Card.jsx and others) — was
+   referenced everywhere as `shadow-luxury-sm`/`shadow-luxury-md` but never defined,
+   so it silently rendered no shadow at all. Tinted by --shadow-color (set per
+   light/dark mode above) so it reads as a soft purple-black glow in dark mode. */
+@utility shadow-luxury-sm {
+  box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.06),
+    0 4px 16px -6px hsl(var(--shadow-color) / 0.18);
+}
+
+@utility shadow-luxury-md {
+  box-shadow: 0 2px 4px hsl(var(--shadow-color) / 0.08),
+    0 12px 32px -8px hsl(var(--shadow-color) / 0.28);
+}
 
 /* Horizontally-scrollable strips (action bars, tab strips, etc.):
    hides the scrollbar cross-browser while keeping smooth touch/momentum scrolling. */
@@ -379,5 +402,5 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #f97316, #ec4899);
+  background: linear-gradient(135deg, #00f2fe, #7f00ff);
 }

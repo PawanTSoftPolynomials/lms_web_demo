@@ -606,7 +606,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                           {b.label}
                         </Link>
                       ) : (
-                        <span className={`truncate ${isLast && idx > 0 ? "text-sky-400 font-black tracking-widest" : "text-slate-300"}`}>
+                        <span className={`truncate ${isLast && idx > 0 ? "text-primary font-black tracking-widest" : "text-slate-300"}`}>
                           {b.label}
                         </span>
                       )}
