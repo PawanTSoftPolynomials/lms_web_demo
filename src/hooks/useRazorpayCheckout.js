@@ -98,7 +98,7 @@ export function useRazorpayCheckout() {
               if (onSuccess) {
                 onSuccess(verifyResult);
               } else {
-                router.push(`/student/entry-assessment/${courseId}`);
+                router.push(`/student/learn/${courseId}`);
               }
             } catch (err) {
               setPaymentState("FAILED");

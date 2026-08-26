@@ -1,3 +1,4 @@
+
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
@@ -187,6 +188,22 @@
   --accent-foreground: #fda4af;
 }
 
+/* Teal — https://colorhunt.co/palette/224248325e6a44a1a4ff9a00 */
+:root[data-palette="teal"] {
+  --primary: #44a1a4;
+  --primary-foreground: #ffffff;
+  --ring: #44a1a4;
+  --accent: #ecf6f6;
+  --accent-foreground: #224248;
+}
+.dark[data-palette="teal"] {
+  --primary: #60afb2;
+  --primary-foreground: #0a0a0f;
+  --ring: #60afb2;
+  --accent: #224248;
+  --accent-foreground: #7cbdbf;
+}
+
 /* Re-skin the raw orange/pink color SCALE per palette (not just the semantic --primary/--accent
    tokens above). Tailwind v4 compiles bg-orange-500, text-orange-400, border-orange-500/20, etc.
    to background-color: var(--color-orange-500), so overriding the scale here repaints every one
@@ -232,6 +249,16 @@
   --color-pink-500: #f59e0b;
   --color-pink-600: #d97706;
   --color-pink-700: #b45309;
+}
+:root[data-palette="teal"] {
+  --color-orange-400: #69b4b6;
+  --color-orange-500: #44a1a4;
+  --color-orange-600: #325e6a;
+  --color-orange-700: #224248;
+  --color-pink-400: #ffae33;
+  --color-pink-500: #ff9a00;
+  --color-pink-600: #cc7b00;
+  --color-pink-700: #995c00;
 }
 
 /* Light mode: mirror-invert the neutral slate scale (50<->950, 100<->900, ...) so the thousands

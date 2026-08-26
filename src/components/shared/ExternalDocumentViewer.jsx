@@ -5,6 +5,7 @@ import { FileText, ExternalLink, AlertCircle, Loader2 } from "lucide-react";
 import { resolveExternalFile } from "@/lib/external/resolveExternalFile";
 import PdfViewer from "@/components/student/learn/PdfViewer";
 import PptViewer from "@/components/shared/PptViewer";
+import DocxViewer from "@/components/shared/DocxViewer";
 
 /**
  * ExternalDocumentViewer component.
@@ -108,6 +109,27 @@ export default function ExternalDocumentViewer({
   if (isUploadedBlobPpt) {
     return (
       <PptViewer
+        fileUrl={fileUrl}
+        title={title}
+        className={className}
+        hideToolbar={hideToolbar}
+        onControlsRender={onControlsRender}
+      />
+    );
+  }
+
+  // Safety Safeguard: Uploaded Vercel Blob DOC/DOCX -> Delegate directly to client DocxViewer
+  const isUploadedBlobDoc = Boolean(
+    fileUrl &&
+      typeof fileUrl === "string" &&
+      (fileUrl.includes("blob.vercel-storage.com") || fileUrl.includes("/api/blob-proxy")) &&
+      !fileUrl.includes("/external-references/") &&
+      (fileUrl.toLowerCase().includes(".doc") || fileUrl.toLowerCase().includes(".docx"))
+  );
+
+  if (isUploadedBlobDoc) {
+    return (
+      <DocxViewer
         fileUrl={fileUrl}
         title={title}
         className={className}
@@ -240,7 +262,7 @@ export default function ExternalDocumentViewer({
     );
   }
 
-  // 3. Direct DOC/DOCX or PPT/PPTX
+  // 3. Direct DOC/DOCX or PPT/PPTX (Public Web URLs)
   const isDocOrPpt =
     resolved.fileType === "DOC" ||
     resolved.fileType === "DOCX" ||
@@ -250,8 +272,23 @@ export default function ExternalDocumentViewer({
   const targetUrl = resolved.viewerUrl || resolved.sourceUrl || fileUrl;
   const isLocalFile =
     targetUrl.includes("localhost") || targetUrl.includes("127.0.0.1");
+  const isPrivateVercelBlob =
+    targetUrl.includes("blob.vercel-storage.com") || targetUrl.includes("/api/blob-proxy");
 
-  if (resolved.provider === "DIRECT_URL" && isDocOrPpt && !isLocalFile) {
+  // Public DOC/DOCX files -> DocxViewer
+  if (resolved.provider === "DIRECT_URL" && (resolved.fileType === "DOC" || resolved.fileType === "DOCX")) {
+    return (
+      <DocxViewer
+        fileUrl={targetUrl}
+        title={title}
+        className={className}
+        hideToolbar={hideToolbar}
+        onControlsRender={onControlsRender}
+      />
+    );
+  }
+
+  if (resolved.provider === "DIRECT_URL" && isDocOrPpt && !isLocalFile && !isPrivateVercelBlob) {
     const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
       targetUrl
     )}`;

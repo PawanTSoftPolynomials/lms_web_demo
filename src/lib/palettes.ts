@@ -1,4 +1,4 @@
-export type PaletteId = "orange" | "ocean" | "forest" | "violet" | "rose";
+export type PaletteId = "orange" | "ocean" | "forest" | "violet" | "rose" | "teal";
 
 export interface Palette {
   id: PaletteId;
@@ -15,9 +15,10 @@ export const PALETTES: Palette[] = [
   { id: "forest", name: "Forest", swatchLight: "#059669", swatchDark: "#34d399" },
   { id: "violet", name: "Violet", swatchLight: "#7c3aed", swatchDark: "#a78bfa" },
   { id: "rose", name: "Rose", swatchLight: "#e11d48", swatchDark: "#fb7185" },
+  { id: "teal", name: "Teal", swatchLight: "#44a1a4", swatchDark: "#60afb2" },
 ];
 
-export const DEFAULT_PALETTE: PaletteId = "orange";
+export const DEFAULT_PALETTE: PaletteId = "teal";
 
 export const PALETTE_STORAGE_KEY = "lms-palette";
 

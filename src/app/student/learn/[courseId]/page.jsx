@@ -12,8 +12,6 @@ import {
 import { FaSignOutAlt } from "react-icons/fa";
 
 import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel";
-import CoursePersonalizationCard from "@/components/student/learning/CoursePersonalizationCard";
-import PersonalizedPathCard from "@/components/student/learning/PersonalizedPathCard";
 import VideoPlayer from "@/components/student/learning/VideoPlayer";
 import { groupLessonContentForDocumentView } from "@/lib/contentDocument";
 import { getDisplayUrl } from "@/lib/blob";
@@ -30,7 +28,6 @@ import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
 import { trackCourseAccess } from "@/services/enrollment.service";
 import { ChatWidget } from "@/components/chat";
-import { MentorWidget } from "@/components/mentor";
 import { createConversation } from "@/features/chat/api/chat.api";
 import { normalizeCourseHierarchy } from "@/lib/courseMapper";
 import { CourseStructureSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
@@ -408,9 +405,6 @@ export default function LearnPage() {
   // source of truth per tab, not two copies that can drift out of sync.
   const overviewPanel = (
     <div className="space-y-4">
-      <CoursePersonalizationCard courseId={courseId} />
-      <PersonalizedPathCard courseId={courseId} />
-
       <div className="rounded-3xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl p-4 sm:p-5 space-y-3">
       <h4 className="text-xs font-black uppercase tracking-widest text-slate-300">About this lesson</h4>
       <div className="space-y-1.5">
@@ -1229,7 +1223,6 @@ export default function LearnPage() {
           </div>
         </div>
         <ChatWidget />
-        <MentorWidget />
       </div>
 
       {/* QUIZ ATTEMPT — same QuizExperience component either way; only the
