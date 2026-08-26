@@ -19,8 +19,17 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
 
   const html = renderMarkdownToSafeHtml(source);
 
+  // max-w-none is the default (existing callers rely on filling whatever
+  // container they're in) — but it's a Tailwind utility, so appending a
+  // caller-supplied max-w-* class alongside it would be a genuine CSS
+  // conflict (both are single-class selectors of equal specificity; the
+  // winner depends on Tailwind's generated stylesheet order, not source
+  // order in this string). A caller that wants a real reading-width cap
+  // passes its own max-w-* via className, replacing the default entirely.
+  const widthClass = className || "max-w-none";
+
   return (
-    <div className={`md-prose prose prose-invert prose-sm max-w-none overflow-x-auto ${className}`}>
+    <div className={`md-prose prose prose-invert prose-sm overflow-x-auto ${widthClass}`}>
       <style>{`
         .md-prose h1 {
           font-size: 1.5rem;
@@ -111,6 +120,9 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
           padding: 0.125rem 0.375rem;
           font-size: 0.85em;
         }
+        .md-prose code::before, .md-prose code::after {
+          content: none;
+        }
         .md-prose pre {
           margin-top: 1rem;
           margin-bottom: 1rem;
@@ -134,6 +146,8 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
           border-spacing: 0;
           margin-top: 1.25rem;
           margin-bottom: 1.25rem;
+          margin-left: auto;
+          margin-right: auto;
           border-radius: 0.75rem;
           border: 1px solid #334155;
           overflow: hidden;
@@ -141,6 +155,11 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
           display: block;
           overflow-x: auto;
           max-width: 100%;
+        }
+        .md-prose img {
+          display: block;
+          margin-left: auto;
+          margin-right: auto;
         }
         .md-prose th {
           background-color: #0f172a;

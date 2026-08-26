@@ -10,8 +10,7 @@ import {
   ArrowRight,
   ArrowLeft,
   Info,
-  CalendarCheck,
-  Activity
+  CalendarCheck
 } from "lucide-react";
 
 import Loader from "@/components/common/Loader";
@@ -182,58 +181,40 @@ function StudentQuizzesPageContent() {
             {coursesList.map((course) => {
               const actionItems = [
                 {
-                  label: "My Learning",
-                  icon: CalendarCheck,
+                  label: "New Quizzes",
+                  icon: HelpCircle,
                   iconColor: "text-blue-400",
-                  onClick: () => router.push(`/student/learn/${course.id}`)
-                },
-                {
-                  label: "My Homework",
-                  icon: CalendarCheck,
-                  iconColor: "text-orange-400",
-                  onClick: () => router.push(`/student/assignments`)
-                },
-                {
-                  label: "My Assignment",
-                  icon: CalendarCheck,
-                  iconColor: "text-purple-400",
-                  onClick: () => router.push(`/student/assignments`)
-                },
-                {
-                  label: "My Test",
-                  icon: CalendarCheck,
-                  iconColor: "text-emerald-400",
                   onClick: () => {
                     setViewingCourseId(course.id);
                     setActiveTab("new");
                   }
                 },
                 {
-                  label: "My Assessment Activity",
+                  label: "Completed Quizzes",
                   icon: CalendarCheck,
-                  iconColor: "text-pink-400",
+                  iconColor: "text-emerald-400",
+                  onClick: () => {
+                    setViewingCourseId(course.id);
+                    setActiveTab("completed");
+                  }
+                },
+                {
+                  label: "Self-Generate Practice",
+                  icon: Sparkles,
+                  iconColor: "text-amber-400",
                   onClick: () => {
                     setViewingCourseId(course.id);
                     setActiveTab("self_generate");
                   }
                 },
                 {
-                  label: "Feedback",
-                  icon: CalendarCheck,
-                  iconColor: "text-rose-400",
-                  onClick: () => router.push(`/student/feedback`)
-                },
-                {
-                  label: "CO Outcome Summary",
+                  label: "Quiz Reports",
                   icon: BarChart2,
-                  iconColor: "text-amber-400",
-                  onClick: () => router.push(`/student/progress`)
-                },
-                {
-                  label: "Check Activity Status",
-                  icon: Activity,
-                  iconColor: "text-cyan-400",
-                  onClick: () => router.push(`/student/achievements`)
+                  iconColor: "text-purple-400",
+                  onClick: () => {
+                    setViewingCourseId(course.id);
+                    setActiveTab("reports");
+                  }
                 }
               ];
 

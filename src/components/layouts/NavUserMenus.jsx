@@ -163,18 +163,10 @@ export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkA
             )}
           </div>
 
-          {/* Footer Action */}
-          {notifications.length > 0 && onClearAll && (
-            <div className="mt-2.5 border-t border-slate-800/80 pt-2 flex justify-between items-center text-[10.5px]">
+          {/* Footer */}
+          {notifications.length > 0 && (
+            <div className="mt-2.5 border-t border-slate-800/80 pt-2 text-[10.5px]">
               <span className="text-slate-500 font-mono">{notifications.length} total</span>
-              <button
-                type="button"
-                onClick={onClearAll}
-                className="font-bold text-rose-400 hover:text-rose-350 transition cursor-pointer flex items-center gap-1"
-              >
-                <Trash2 size={11} />
-                Clear All Notifications
-              </button>
             </div>
           )}
         </div>
