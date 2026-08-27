@@ -1,33 +1,10 @@
 "use client";
 
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/axios";
 import {
-  Eye,
-  Pencil,
-  Plus,
-  GraduationCap,
-  Calendar,
-  Clock,
-  User,
-  ChevronRight,
-  ChevronDown,
-  FileText,
-  Trash2,
-  Rocket,
-  Undo2,
-  LayoutGrid,
-  X,
-  BookOpen,
-  Settings2,
-  SlidersHorizontal,
-  BarChart3,
-  Search,
-  Home,
-  CheckCircle2,
-  ClipboardList,
   PanelLeftOpen,
 } from "lucide-react";
 

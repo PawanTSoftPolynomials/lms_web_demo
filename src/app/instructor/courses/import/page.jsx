@@ -28,13 +28,14 @@ import {
   X,
   FileJson,
 } from "lucide-react";
-import api from "@/lib/axios";
 import AiComposerModal from "@/components/instructor/composer/AiComposerModal";
 import {
   useUploadZipPackage,
   useProcessZipJob,
   useProcessJsonCourse,
+  useCourseJsonTemplate,
 } from "@/hooks/queries/instructor/useCourseImport";
+import { useGenerateAiContent } from "@/hooks/queries/instructor/useGenerateAiContent";
 
 /** Example prompts covering diverse disciplines */
 const EXAMPLE_PROMPTS = [
@@ -219,6 +220,8 @@ export default function CourseImportPage() {
   const uploadZipMutation = useUploadZipPackage();
   const processZipMutation = useProcessZipJob();
   const processJsonMutation = useProcessJsonCourse();
+  const generateAiMutation = useGenerateAiContent();
+  const { refetch: refetchTemplate } = useCourseJsonTemplate();
 
   /** Assigns client-side UUIDs to canonical draft nodes for Composer compatibility */
   const withDraftIds = (modules = [], courseQuizzes = []) => {
@@ -323,35 +326,29 @@ export default function CourseImportPage() {
     }, 4500);
 
     try {
-      const response = await api.post(
-        "/api/ai/generate",
-        {
-          scope: "COURSE",
-          prompt: prompt.trim(),
-          context: {
-            size,
-            level,
-            language,
-            targetAudience: targetAudience || undefined,
-          },
+      const result = await generateAiMutation.mutateAsync({
+        scope: "COURSE",
+        prompt: prompt.trim(),
+        context: {
+          size,
+          level,
+          language,
+          targetAudience: targetAudience || undefined,
         },
-        {
-          timeout: 240000,
-        }
-      );
+      });
 
       clearInterval(stepInterval);
 
-      if (!response.data?.success) {
-        const msg = response.data?.message || "AI course generation failed.";
-        const errors = response.data?.errors || [msg];
+      if (!result?.success) {
+        const msg = result?.message || "AI course generation failed.";
+        const errors = result?.errors || [msg];
         setErrorMsg(msg);
         setValidationErrors(errors);
         setWorkflowState("INPUT");
         return;
       }
 
-      const resultData = response.data.data;
+      const resultData = result.data;
       if (resultData) {
         setGeneratedDraft(resultData);
         setWorkflowState("PREVIEW");
@@ -539,13 +536,9 @@ export default function CourseImportPage() {
   const handleDownloadTemplate = async () => {
     try {
       let templateData = FALLBACK_TEMPLATE;
-      try {
-        const res = await api.get("/course-import/template");
-        if (res.data?.data) {
-          templateData = res.data.data;
-        }
-      } catch (ignored) {
-        // Fall back to built-in canonical template if template API route is unavailable
+      const { data: fetchedTemplate } = await refetchTemplate();
+      if (fetchedTemplate) {
+        templateData = fetchedTemplate;
       }
 
       const jsonStr = JSON.stringify(templateData, null, 2);

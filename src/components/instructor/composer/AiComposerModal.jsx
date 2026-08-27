@@ -17,7 +17,7 @@ import {
   Wand2,
   ChevronRight,
 } from "lucide-react";
-import api from "@/lib/axios";
+import { useGenerateAiContent } from "@/hooks/queries/instructor/useGenerateAiContent";
 
 /**
  * Assigns client-side temporary IDs to canonical JSON entities for Course Composer draft state.
@@ -101,6 +101,7 @@ export default function AiComposerModal({
   // Prompt & Generation State Machine ("INPUT" | "PREVIEW")
   const [prompt, setPrompt] = useState("");
   const [step, setStep] = useState("INPUT");
+  const generateAiMutation = useGenerateAiContent();
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [validationErrors, setValidationErrors] = useState([]);
@@ -287,43 +288,37 @@ Position: ${pos}
 ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
 
     try {
-      const response = await api.post(
-        "/api/ai/generate",
-        {
+      const result = await generateAiMutation.mutateAsync({
+        scope: selectedScope,
+        action: selectedAction,
+        prompt: compiledPrompt,
+        context: {
           scope: selectedScope,
           action: selectedAction,
-          prompt: compiledPrompt,
-          context: {
-            scope: selectedScope,
-            action: selectedAction,
-            level: quizLevel,
-            position: pos,
-            courseId: contextData?.courseId,
-            courseTitle,
-            moduleId: activeModuleObj?.id || activeModuleObj?._id || initialModuleId,
-            moduleTitle: activeModuleObj?.title || initialModuleTitle,
-            lessonId: activeLessonObj?.id || activeLessonObj?._id || initialLessonId,
-            lessonTitle: activeLessonObj?.title || initialLessonTitle,
-            topicId: activeTopicObj?.id || activeTopicObj?._id || initialTopicId,
-            topicTitle: activeTopicObj?.title || initialTopicTitle,
-            contentId: contextData?.contentId,
-          },
+          level: quizLevel,
+          position: pos,
+          courseId: contextData?.courseId,
+          courseTitle,
+          moduleId: activeModuleObj?.id || activeModuleObj?._id || initialModuleId,
+          moduleTitle: activeModuleObj?.title || initialModuleTitle,
+          lessonId: activeLessonObj?.id || activeLessonObj?._id || initialLessonId,
+          lessonTitle: activeLessonObj?.title || initialLessonTitle,
+          topicId: activeTopicObj?.id || activeTopicObj?._id || initialTopicId,
+          topicTitle: activeTopicObj?.title || initialTopicTitle,
+          contentId: contextData?.contentId,
         },
-        {
-          timeout: 240000,
-        }
-      );
+      });
 
-      if (!response.data?.success) {
-        const msg = response.data?.message || "AI generation failed.";
-        const errors = response.data?.errors || [msg];
+      if (!result?.success) {
+        const msg = result?.message || "AI generation failed.";
+        const errors = result?.errors || [msg];
         setErrorMsg(msg);
         setValidationErrors(errors);
         setLoading(false);
         return;
       }
 
-      const resultData = response.data.data;
+      const resultData = result.data;
       if (resultData) {
         setGeneratedDraft(resultData);
         setStep("PREVIEW");

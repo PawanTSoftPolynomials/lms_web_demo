@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import { Megaphone, ArrowLeft, Send, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
-import api from "@/lib/axios";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Loader from "@/components/common/Loader";
+
+import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
+import { useCreateCourseAnnouncement } from "@/hooks/queries/instructor/useCreateCourseAnnouncement";
 
 export default function InstructorAnnouncementsPage() {
   const router = useRouter();
@@ -22,14 +23,7 @@ export default function InstructorAnnouncementsPage() {
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Fetch all instructor courses
-  const { data: courses = [], isLoading } = useQuery({
-    queryKey: ["instructorCoursesList"],
-    queryFn: async () => {
-      const { data } = await api.get("/courses");
-      return data.data ?? data;
-    },
-  });
+  const { data: courses = [], isLoading } = useInstructorCourses();
 
   // Filter courses: Must be owned by active instructor and PUBLISHED
   const eligibleCourses = courses.filter(
@@ -45,25 +39,7 @@ export default function InstructorAnnouncementsPage() {
     }
   }, [searchParams, eligibleCourses]);
 
-  const broadcastMutation = useMutation({
-    mutationFn: async ({ courseId, title, message }) => {
-      const { data } = await api.post(`/courses/${courseId}/announcements`, {
-        title,
-        message,
-      });
-      return data;
-    },
-    onSuccess: () => {
-      setSuccessMsg("Announcement broadcasted successfully to all enrolled students!");
-      setTitle("");
-      setMessage("");
-      setErrorMsg("");
-      setTimeout(() => setSuccessMsg(""), 5000);
-    },
-    onError: (err) => {
-      setErrorMsg(err.response?.data?.message || "Failed to send announcement.");
-    },
-  });
+  const broadcastMutation = useCreateCourseAnnouncement();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -71,7 +47,21 @@ export default function InstructorAnnouncementsPage() {
       setErrorMsg("Please select a course first.");
       return;
     }
-    broadcastMutation.mutate({ courseId: selectedCourseId, title, message });
+    broadcastMutation.mutate(
+      { courseId: selectedCourseId, title, message },
+      {
+        onSuccess: () => {
+          setSuccessMsg("Announcement broadcasted successfully to all enrolled students!");
+          setTitle("");
+          setMessage("");
+          setErrorMsg("");
+          setTimeout(() => setSuccessMsg(""), 5000);
+        },
+        onError: (err) => {
+          setErrorMsg(err.response?.data?.message || "Failed to send announcement.");
+        },
+      }
+    );
   };
 
   if (isLoading) return <Loader />;

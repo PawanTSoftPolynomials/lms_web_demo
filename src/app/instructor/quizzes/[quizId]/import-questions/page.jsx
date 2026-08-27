@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use, useCallback } from "react";
+import React, { useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -14,25 +14,18 @@ import {
   Award,
   RefreshCw,
 } from "lucide-react";
+import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
 import {
-  getRepositoryQuestions,
-  importQuestionsToQuiz,
-} from "@/services/questionRepository.service";
-import { getQuizById } from "@/services/quiz.service";
+  useRepositoryQuestions,
+  useImportQuestionsToQuiz,
+} from "@/hooks/queries/instructor/useQuestionRepository";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export default function ImportQuestionsToQuizPage({ params }) {
   const resolvedParams = use(params);
   const quizId = resolvedParams.quizId;
   const router = useRouter();
-
-  // Quiz info
-  const [quiz, setQuiz] = useState(null);
-
-  // Repository Questions
-  const [repositoryQuestions, setRepositoryQuestions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [importing, setImporting] = useState(false);
-  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const { showToast } = useToast();
 
   // Filters
   const [search, setSearch] = useState("");
@@ -44,37 +37,19 @@ export default function ImportQuestionsToQuizPage({ params }) {
   // Selected Repository Questions for Import
   const [selectedQuestions, setSelectedQuestions] = useState([]);
 
-  // Load Quiz & Repository
-  const fetchRepository = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [quizData, repoData] = await Promise.all([
-        getQuizById(quizId),
-        getRepositoryQuestions({
-          search,
-          subject,
-          topic,
-          difficulty,
-          questionType,
-          limit: 100, // retrieve up to 100 questions for import browser
-        }),
-      ]);
+  const { data: quiz } = useQuiz(quizId);
+  const { data: repoData, isLoading: loading } = useRepositoryQuestions({
+    search,
+    subject,
+    topic,
+    difficulty,
+    questionType,
+    limit: 100, // retrieve up to 100 questions for import browser
+  });
+  const repositoryQuestions = repoData?.success ? repoData.data || [] : [];
 
-      if (quizData) setQuiz(quizData);
-
-      if (repoData && repoData.success) {
-        setRepositoryQuestions(repoData.data || []);
-      }
-    } catch (err) {
-      console.error("Error loading repository or quiz:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [quizId, search, subject, topic, difficulty, questionType]);
-
-  useEffect(() => {
-    fetchRepository();
-  }, [fetchRepository]);
+  const importMutation = useImportQuestionsToQuiz();
+  const importing = importMutation.isPending;
 
   // Checkbox toggle
   const toggleSelectQuestion = (question) => {
@@ -128,18 +103,16 @@ export default function ImportQuestionsToQuizPage({ params }) {
   const handleExecuteImport = async () => {
     if (selectedQuestions.length === 0) return;
 
-    setImporting(true);
     try {
       const qIds = selectedQuestions.map((q) => q.id);
-      const result = await importQuestionsToQuiz(quizId, qIds);
+      const result = await importMutation.mutateAsync({ quizId, questionIds: qIds });
 
-      setFeedbackMessage(result.message || "Questions imported successfully!");
+      showToast(result.message || "Questions imported successfully!", "success");
       setTimeout(() => {
         router.push(`/instructor/quizzes/${quizId}`);
       }, 1200);
     } catch (err) {
-      alert("Failed to import questions: " + (err?.message || "Server error"));
-      setImporting(false);
+      showToast("Failed to import questions: " + (err?.message || "Server error"), "error");
     }
   };
 
@@ -183,14 +156,6 @@ export default function ImportQuestionsToQuizPage({ params }) {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT PANEL: Repository Question Browser (2 Cols) */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Feedback */}
-          {feedbackMessage && (
-            <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-sm flex items-center space-x-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-              <span>{feedbackMessage}</span>
-            </div>
-          )}
-
           {/* Filters Bar */}
           <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">

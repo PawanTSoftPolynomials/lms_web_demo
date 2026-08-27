@@ -3,12 +3,13 @@
 import { useParams, useRouter } from "next/navigation";
 import QuizForm from "@/components/instructor/quizzes/QuizForm";
 import { useCreateQuiz } from "@/hooks/queries/instructor/useCreateQuiz";
-import { createCalendarEvent } from "@/services/calendar.service";
+import { useCreateCalendarEvent } from "@/hooks/queries/instructor/useCreateCalendarEvent";
 
 export default function CreateQuizPage() {
     const { courseId } = useParams();
     const router = useRouter();
     const createQuizMutation = useCreateQuiz();
+    const createCalendarEventMutation = useCreateCalendarEvent();
 
     const handleSubmit = async (values, action) => {
         try {
@@ -27,7 +28,7 @@ export default function CreateQuizPage() {
                     const dateObj = new Date(payload.startDate);
                     const dateStr = dateObj.toISOString().split("T")[0];
                     const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    await createCalendarEvent({
+                    await createCalendarEventMutation.mutateAsync({
                         title: payload.title || "Scheduled Quiz",
                         type: "quiz",
                         date: dateStr,

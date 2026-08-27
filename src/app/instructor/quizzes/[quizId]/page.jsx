@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use, useCallback } from "react";
+import React, { useState, use } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -8,7 +8,6 @@ import {
   Trash2,
   ArrowUp,
   ArrowDown,
-  CheckCircle2,
   HelpCircle,
   RefreshCw,
   Edit3,
@@ -17,54 +16,43 @@ import {
   X,
   BookOpen,
 } from "lucide-react";
-import { getQuizById, updateQuiz } from "@/services/quiz.service";
+import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
+import { useUpdateQuiz } from "@/hooks/queries/instructor/useUpdateQuiz";
 import {
-  removeQuestionFromQuiz,
-  reorderQuizQuestions,
-  updateQuizQuestionMarks,
-} from "@/services/questionRepository.service";
+  useRemoveQuestionFromQuiz,
+  useReorderQuizQuestions,
+  useUpdateQuizQuestionMarks,
+} from "@/hooks/queries/instructor/useQuestionRepository";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export default function InstructorQuizDetailPage({ params }) {
   const resolvedParams = use(params);
   const quizId = resolvedParams.quizId;
+  const { showToast } = useToast();
 
-  const [quiz, setQuiz] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const { data: quiz, isLoading: loading } = useQuiz(quizId);
   const [editingMarksId, setEditingMarksId] = useState(null);
   const [marksValue, setMarksValue] = useState("");
 
-  const fetchQuizDetails = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await getQuizById(quizId);
-      if (data) setQuiz(data);
-    } catch (err) {
-      console.error("Error fetching quiz details:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [quizId]);
-
-  useEffect(() => {
-    fetchQuizDetails();
-  }, [fetchQuizDetails]);
+  const removeQuestionMutation = useRemoveQuestionFromQuiz();
+  const reorderMutation = useReorderQuizQuestions();
+  const updateMarksMutation = useUpdateQuizQuestionMarks();
+  const updateQuizMutation = useUpdateQuiz();
 
   // Remove question from quiz
-  const handleRemoveQuestion = async (questionId) => {
+  const handleRemoveQuestion = (questionId) => {
     if (!confirm("Remove this question from the quiz? It will remain in your Question Repository.")) return;
-    try {
-      await removeQuestionFromQuiz(quizId, questionId);
-      setFeedbackMessage("Question removed from quiz.");
-      fetchQuizDetails();
-      setTimeout(() => setFeedbackMessage(""), 3000);
-    } catch (err) {
-      alert("Failed to remove question: " + (err?.message || "Server error"));
-    }
+    removeQuestionMutation.mutate(
+      { quizId, questionId },
+      {
+        onSuccess: () => showToast("Question removed from quiz.", "success"),
+        onError: (err) => showToast("Failed to remove question: " + (err?.message || "Server error"), "error"),
+      }
+    );
   };
 
   // Move question up/down
-  const handleMoveQuestion = async (idx, direction) => {
+  const handleMoveQuestion = (idx, direction) => {
     if (!quiz || !quiz.questions) return;
 
     const questions = [...quiz.questions];
@@ -75,44 +63,36 @@ export default function InstructorQuizDetailPage({ params }) {
     questions[idx] = questions[targetIdx];
     questions[targetIdx] = temp;
 
-    // Optimistic UI update
-    setQuiz((prev) => ({ ...prev, questions }));
-
-    try {
-      const orderedIds = questions.map((q) => q.id);
-      await reorderQuizQuestions(quizId, orderedIds);
-    } catch {
-      fetchQuizDetails();
-    }
+    const orderedIds = questions.map((q) => q.id);
+    reorderMutation.mutate({ quizId, orderedQuestionIds: orderedIds });
   };
 
   // Update marks override
-  const handleSaveMarks = async (questionId) => {
+  const handleSaveMarks = (questionId) => {
     const num = parseInt(marksValue, 10);
     if (isNaN(num) || num <= 0) return;
 
-    try {
-      await updateQuizQuestionMarks(quizId, questionId, num);
-      setEditingMarksId(null);
-      fetchQuizDetails();
-    } catch (err) {
-      alert("Failed to update marks: " + (err?.message || "Server error"));
-    }
+    updateMarksMutation.mutate(
+      { quizId, questionId, marks: num },
+      {
+        onSuccess: () => setEditingMarksId(null),
+        onError: (err) => showToast("Failed to update marks: " + (err?.message || "Server error"), "error"),
+      }
+    );
   };
 
   // Toggle publish status
-  const handleTogglePublish = async () => {
+  const handleTogglePublish = () => {
     if (!quiz) return;
     const newIsPublished = !quiz.isPublished;
     const newStatus = newIsPublished ? "PUBLISHED" : "DRAFT";
-    try {
-      await updateQuiz(quizId, { isPublished: newIsPublished, status: newStatus });
-      setFeedbackMessage(`Quiz status updated to ${newStatus}.`);
-      fetchQuizDetails();
-      setTimeout(() => setFeedbackMessage(""), 3000);
-    } catch (err) {
-      alert("Failed to update quiz status: " + (err?.message || "Server error"));
-    }
+    updateQuizMutation.mutate(
+      { quizId, quizData: { isPublished: newIsPublished, status: newStatus } },
+      {
+        onSuccess: () => showToast(`Quiz status updated to ${newStatus}.`, "success"),
+        onError: (err) => showToast("Failed to update quiz status: " + (err?.message || "Server error"), "error"),
+      }
+    );
   };
 
   if (loading) {
@@ -161,13 +141,6 @@ export default function InstructorQuizDetailPage({ params }) {
       </div>
 
       <div className="max-w-6xl mx-auto space-y-6">
-        {feedbackMessage && (
-          <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-sm flex items-center space-x-2">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-            <span>{feedbackMessage}</span>
-          </div>
-        )}
-
         {/* Quiz Metadata Summary Bar */}
         <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full md:w-auto text-center md:text-left">

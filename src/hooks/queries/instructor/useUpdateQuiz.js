@@ -18,6 +18,8 @@ export function useUpdateQuiz() {
                 description: quizData.description,
                 passingScore: quizData.passingScore,
                 timeLimit: quizData.timeLimit,
+                ...(quizData.isPublished !== undefined && { isPublished: quizData.isPublished }),
+                ...(quizData.status !== undefined && { status: quizData.status }),
             }),
 
         onSuccess: (_, variables) => {

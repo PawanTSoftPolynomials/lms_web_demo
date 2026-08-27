@@ -23,6 +23,22 @@ export function useDeleteQuestion() {
                 ],
             });
 
+            // Quiz list cards show a question count (quiz._count.questions)
+            // derived from the QUIZZES query, not QUESTIONS — must be
+            // invalidated separately or it goes stale after a delete.
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.QUIZZES],
+            });
+
+            // The single-quiz detail view embeds its questions directly on
+            // the quiz object (quiz.questions), fetched via useQuiz — a
+            // different cache entry than QUESTIONS/QUIZZES above.
+            if (variables.quizId) {
+                queryClient.invalidateQueries({
+                    queryKey: [QUERY_KEYS.QUIZ, variables.quizId],
+                });
+            }
+
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES],
             });

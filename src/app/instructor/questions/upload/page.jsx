@@ -12,14 +12,15 @@ import {
   X,
   RefreshCw,
 } from "lucide-react";
-import { uploadQuestionsFile } from "@/services/questionRepository.service";
+import { useUploadQuestionsFile } from "@/hooks/queries/instructor/useQuestionRepository";
 
 export default function UploadQuestionsPage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [uploadResult, setUploadResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const uploadMutation = useUploadQuestionsFile();
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -64,12 +65,11 @@ export default function UploadQuestionsPage() {
   const handleUpload = async () => {
     if (!selectedFile) return;
 
-    setLoading(true);
     setErrorMessage("");
     setUploadResult(null);
 
     try {
-      const response = await uploadQuestionsFile(selectedFile);
+      const response = await uploadMutation.mutateAsync(selectedFile);
       if (response.success && response.data) {
         setUploadResult(response.data);
       } else {
@@ -77,8 +77,6 @@ export default function UploadQuestionsPage() {
       }
     } catch (err) {
       setErrorMessage(err?.response?.data?.message || err?.message || "Upload failed.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -262,10 +260,10 @@ JavaScript Async,What does a Promise represent in JS?,SHORT_ANSWER,Web Developme
           <div className="flex justify-end">
             <button
               onClick={handleUpload}
-              disabled={loading}
+              disabled={uploadMutation.isPending}
               className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition flex items-center space-x-2 disabled:opacity-50"
             >
-              {loading ? (
+              {uploadMutation.isPending ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
                   <span>Processing & Validating...</span>

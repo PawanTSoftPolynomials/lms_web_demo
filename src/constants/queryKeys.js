@@ -96,6 +96,7 @@ export const QUERY_KEYS = {
     QUESTIONS: "questions",
     QUESTION: "question",
     QUIZ_RESULT: "quiz-result",
+    QUESTION_REPOSITORY: "question-repository",
 
     LESSON_NOTES: "lesson-notes",
     LESSON_QUERIES: "lesson-queries",
@@ -115,6 +116,7 @@ export const QUERY_KEYS = {
     MY_REVIEWS: "my-reviews",
     RESULTS: "results",
     ASSESSMENTS: "assessments",
+    INSTRUCTOR_CERTIFICATES: "instructor-certificates",
 
     // ==========================
     // Mentor AI

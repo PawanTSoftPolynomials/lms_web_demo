@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -22,14 +22,15 @@ import {
   FileEdit,
   FileCheck2,
 } from "lucide-react";
-import {
-  getRepositoryQuestions,
-  deleteRepositoryQuestion,
-  archiveRepositoryQuestion,
-  duplicateRepositoryQuestion,
-} from "@/services/questionRepository.service";
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 import { useModules } from "@/hooks/queries/instructor/useModules";
+import {
+  useRepositoryQuestions,
+  useDuplicateRepositoryQuestion,
+  useArchiveRepositoryQuestion,
+  useDeleteRepositoryQuestion,
+} from "@/hooks/queries/instructor/useQuestionRepository";
+import { useToast } from "@/components/ui/ToastProvider";
 
 /**
  * The Question Repository list/search/CRUD view — rendered by both the
@@ -37,10 +38,7 @@ import { useModules } from "@/hooks/queries/instructor/useModules";
  * Repository page, so this logic exists in exactly one place.
  */
 export default function QuestionRepositoryView({ showImportShortcuts = false }) {
-  // State
-  const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
+  const { showToast } = useToast();
 
   // Filters
   const [search, setSearch] = useState("");
@@ -49,9 +47,29 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
   const [difficulty, setDifficulty] = useState("");
   const [questionType, setQuestionType] = useState("");
   const [status, setStatus] = useState("ACTIVE");
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
   const { data: courses = [] } = useInstructorCourses();
   const { data: modules = [] } = useModules(courseId);
+
+  const { data: response, isLoading: loading } = useRepositoryQuestions({
+    search,
+    courseId,
+    moduleId,
+    difficulty,
+    questionType,
+    status,
+    page,
+    limit,
+  });
+
+  const questions = response?.success ? response.data || [] : [];
+  const pagination = {
+    page,
+    total: response?.pagination?.total || 0,
+    totalPages: response?.pagination?.totalPages || 1,
+  };
 
   const handleCourseChange = (value) => {
     setCourseId(value);
@@ -61,42 +79,10 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
   // Selection & Preview
   const [selectedIds, setSelectedIds] = useState([]);
   const [previewQuestion, setPreviewQuestion] = useState(null);
-  const [feedbackMessage, setFeedbackMessage] = useState("");
 
-  const fetchQuestions = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await getRepositoryQuestions({
-        search,
-        courseId,
-        moduleId,
-        difficulty,
-        questionType,
-        status,
-        page: pagination.page,
-        limit: pagination.limit,
-      });
-
-      if (response.success) {
-        setQuestions(response.data || []);
-        if (response.pagination) {
-          setPagination((prev) => ({
-            ...prev,
-            total: response.pagination.total,
-            totalPages: response.pagination.totalPages,
-          }));
-        }
-      }
-    } catch (err) {
-      console.error("Error fetching repository questions:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [search, courseId, moduleId, difficulty, questionType, status, pagination.page, pagination.limit]);
-
-  useEffect(() => {
-    fetchQuestions();
-  }, [fetchQuestions]);
+  const duplicateMutation = useDuplicateRepositoryQuestion();
+  const archiveMutation = useArchiveRepositoryQuestion();
+  const deleteMutation = useDeleteRepositoryQuestion();
 
   const handleResetFilters = () => {
     setSearch("");
@@ -105,43 +91,31 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
     setDifficulty("");
     setQuestionType("");
     setStatus("ACTIVE");
-    setPagination((prev) => ({ ...prev, page: 1 }));
+    setPage(1);
   };
 
   // Actions
-  const handleDuplicate = async (id) => {
-    try {
-      await duplicateRepositoryQuestion(id);
-      setFeedbackMessage("Question duplicated successfully!");
-      fetchQuestions();
-      setTimeout(() => setFeedbackMessage(""), 3000);
-    } catch (err) {
-      alert("Failed to duplicate question: " + (err?.message || "Server error"));
-    }
+  const handleDuplicate = (id) => {
+    duplicateMutation.mutate(id, {
+      onSuccess: () => showToast("Question duplicated successfully!", "success"),
+      onError: (err) => showToast("Failed to duplicate question: " + (err?.message || "Server error"), "error"),
+    });
   };
 
-  const handleArchive = async (id) => {
+  const handleArchive = (id) => {
     if (!confirm("Are you sure you want to archive this question?")) return;
-    try {
-      await archiveRepositoryQuestion(id);
-      setFeedbackMessage("Question archived.");
-      fetchQuestions();
-      setTimeout(() => setFeedbackMessage(""), 3000);
-    } catch (err) {
-      alert("Failed to archive question: " + (err?.message || "Server error"));
-    }
+    archiveMutation.mutate(id, {
+      onSuccess: () => showToast("Question archived.", "success"),
+      onError: (err) => showToast("Failed to archive question: " + (err?.message || "Server error"), "error"),
+    });
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     if (!confirm("Are you sure you want to delete this question? If used in quizzes, it will be archived.")) return;
-    try {
-      await deleteRepositoryQuestion(id);
-      setFeedbackMessage("Question deleted / archived successfully.");
-      fetchQuestions();
-      setTimeout(() => setFeedbackMessage(""), 3000);
-    } catch (err) {
-      alert("Failed to delete question: " + (err?.message || "Server error"));
-    }
+    deleteMutation.mutate(id, {
+      onSuccess: () => showToast("Question deleted / archived successfully.", "success"),
+      onError: (err) => showToast("Failed to delete question: " + (err?.message || "Server error"), "error"),
+    });
   };
 
   // Bulk Selection Handlers
@@ -161,26 +135,16 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
 
   const handleBulkArchive = async () => {
     if (!confirm(`Archive ${selectedIds.length} selected questions?`)) return;
-    for (const id of selectedIds) {
-      try {
-        await archiveRepositoryQuestion(id);
-      } catch {}
-    }
+    await Promise.allSettled(selectedIds.map((id) => archiveMutation.mutateAsync(id)));
     setSelectedIds([]);
-    setFeedbackMessage("Selected questions archived.");
-    fetchQuestions();
+    showToast("Selected questions archived.", "success");
   };
 
   const handleBulkDelete = async () => {
     if (!confirm(`Delete/Archive ${selectedIds.length} selected questions?`)) return;
-    for (const id of selectedIds) {
-      try {
-        await deleteRepositoryQuestion(id);
-      } catch {}
-    }
+    await Promise.allSettled(selectedIds.map((id) => deleteMutation.mutateAsync(id)));
     setSelectedIds([]);
-    setFeedbackMessage("Selected questions processed.");
-    fetchQuestions();
+    showToast("Selected questions processed.", "success");
   };
 
   // Badges styling helper
@@ -267,14 +231,6 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
       </div>
 
       <div className="space-y-6">
-        {/* Feedback Alert */}
-        {feedbackMessage && (
-          <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-sm flex items-center space-x-2">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-            <span>{feedbackMessage}</span>
-          </div>
-        )}
-
         {/* Filter Bar */}
         <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
@@ -546,14 +502,14 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
 
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => setPagination((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                   disabled={pagination.page === 1}
                   className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => setPagination((prev) => ({ ...prev, page: Math.min(prev.totalPages, prev.page + 1) }))}
+                  onClick={() => setPage((prev) => Math.min(pagination.totalPages, prev + 1))}
                   disabled={pagination.page === pagination.totalPages}
                   className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-30"
                 >
