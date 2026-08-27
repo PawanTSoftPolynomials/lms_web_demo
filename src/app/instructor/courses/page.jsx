@@ -102,7 +102,7 @@ export default function InstructorCoursesPage() {
             </Link>
             <button
               onClick={() => router.push("/instructor/courses/create")}
-              className="inline-flex items-center justify-center rounded-lg bg-orange-500 px-3 md:px-5 py-2 md:py-2.5 text-xs font-bold text-white transition hover:bg-orange-600 whitespace-nowrap"
+              className="btn-rainbow [--btn-rainbow-fill:var(--color-orange-500)] hover:[--btn-rainbow-fill:var(--color-orange-600)] inline-flex items-center justify-center rounded-lg px-3 md:px-5 py-2 md:py-2.5 text-xs font-bold text-white transition whitespace-nowrap"
             >
               <span className="md:hidden">+ Create</span>
               <span className="hidden md:inline">+ Create Course</span>

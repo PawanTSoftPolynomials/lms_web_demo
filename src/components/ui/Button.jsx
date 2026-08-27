@@ -1,8 +1,8 @@
 const VARIANT_CLASSES = {
-  primary: "bg-orange-600 hover:bg-orange-700 text-white",
+  primary: "btn-rainbow [--btn-rainbow-fill:var(--color-orange-600)] hover:[--btn-rainbow-fill:var(--color-orange-700)] text-white",
   secondary:
     "bg-transparent border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600",
-  danger: "bg-red-600 hover:bg-red-700 text-white",
+  danger: "btn-rainbow [--btn-rainbow-fill:var(--color-red-600)] hover:[--btn-rainbow-fill:var(--color-red-700)] text-white",
   ghost: "bg-transparent text-slate-400 hover:text-white hover:bg-white/5",
 };
 
