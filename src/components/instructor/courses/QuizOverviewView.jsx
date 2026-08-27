@@ -42,6 +42,7 @@ export function QuizOverviewView({
   quizMode = "view",
   moduleTitle = null,
   lessonTitle = null,
+  topicTitle = null,
   onSaveQuiz,
   onCancel,
   startEditing = false,
@@ -71,7 +72,7 @@ export function QuizOverviewView({
     if (quizMode === "create") {
       setIsEditing(true);
       setQuizForm({
-        title: lessonTitle ? `Quiz - ${lessonTitle}` : moduleTitle ? `Quiz - ${moduleTitle}` : "Module Quiz",
+        title: topicTitle ? `Quiz - ${topicTitle}` : lessonTitle ? `Quiz - ${lessonTitle}` : moduleTitle ? `Quiz - ${moduleTitle}` : "Course Quiz",
         description: "",
         timeLimit: 30,
         passingScore: 70,
@@ -81,8 +82,10 @@ export function QuizOverviewView({
       setCurrentQuestionIndex(0);
     } else if (startEditing || quizMode === "edit") {
       setIsEditing(true);
+    } else {
+      setIsEditing(false);
     }
-  }, [quizMode, startEditing, moduleTitle, lessonTitle]);
+  }, [quizMode, startEditing, moduleTitle, lessonTitle, topicTitle]);
 
   useEffect(() => {
     if (quiz && quizMode !== "create") {
@@ -352,7 +355,7 @@ export function QuizOverviewView({
         <div className="flex items-center space-x-2">
           <span className="rounded bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
             <HelpCircle size={12} />
-            {lessonTitle ? `Lesson Quiz — ${lessonTitle}` : moduleTitle ? `Module Quiz — ${moduleTitle}` : "Course-Level Quiz"}
+            {topicTitle ? `Topic Quiz — ${topicTitle}` : lessonTitle ? `Lesson Quiz — ${lessonTitle}` : moduleTitle ? `Module Quiz — ${moduleTitle}` : "Course-Level Quiz"}
           </span>
           <span
             className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
