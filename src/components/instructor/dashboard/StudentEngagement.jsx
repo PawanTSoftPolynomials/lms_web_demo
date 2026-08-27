@@ -1,7 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { getInstructorDashboard } from '@/services/dashboard.service';
+import { useStudentEngagement } from '@/hooks/queries/instructor/useInstructorDashboard';
 import {
   ResponsiveContainer,
   LineChart,
@@ -18,13 +17,7 @@ import { ChartCardSkeleton } from '@/components/ui/Skeleton';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 export default function StudentEngagement({ courseId }) {
-  const { data: dashboardData, isLoading, isError, refetch } = useQuery({
-    queryKey: ['instructorDashboard', courseId],
-    queryFn: () => getInstructorDashboard(courseId),
-    select: (data) => data?.studentEngagement ?? [],
-    staleTime: 1000 * 60 * 5,
-    placeholderData: (prev) => prev,
-  });
+  const { data: dashboardData, isLoading, isError, refetch } = useStudentEngagement(courseId);
 
   if (isLoading && !dashboardData) {
     return <ChartCardSkeleton title="Loading Student Engagement" height="h-96" />;

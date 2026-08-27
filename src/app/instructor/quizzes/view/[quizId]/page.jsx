@@ -10,12 +10,14 @@ import ImportQuestionsModal from "@/components/instructor/questions/ImportQuesti
 
 import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
 import { useDeleteQuiz } from "@/hooks/queries/instructor/useDeleteQuiz";
+import { useDeleteQuestion } from "@/hooks/queries/instructor/useDeleteQuestion";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export default function QuizDetailsPage() {
     const { quizId } = useParams();
     const router = useRouter();
     const [showImport, setShowImport] = useState(false);
-
+    const { showToast } = useToast();
 
     const {
         data: quiz,
@@ -24,6 +26,7 @@ export default function QuizDetailsPage() {
     } = useQuiz(quizId);
 
     const deleteQuizMutation = useDeleteQuiz();
+    const deleteQuestionMutation = useDeleteQuestion();
 
     const handleDelete = async () => {
         const confirmed = window.confirm(`Delete "${quiz.title}"?`);
@@ -40,6 +43,19 @@ export default function QuizDetailsPage() {
         } catch (error) {
             console.error(error);
         }
+    };
+
+    const handleDeleteQuestion = (questionId) => {
+        if (!window.confirm("Delete this question?")) return;
+
+        deleteQuestionMutation.mutate(
+            { questionId, quizId },
+            {
+                onSuccess: () => showToast("Question deleted successfully", "success"),
+                onError: (error) =>
+                    showToast(error?.response?.data?.message || "Failed to delete question.", "error", "Delete Failed"),
+            }
+        );
     };
 
     const totalMarks =
@@ -202,7 +218,7 @@ export default function QuizDetailsPage() {
                                         },
                                         {
                                             label: "Delete",
-                                            onClick: () => console.log("Delete Question"),
+                                            onClick: () => handleDeleteQuestion(question.id),
                                         },
                                     ]}
                                 />
@@ -270,7 +286,7 @@ export default function QuizDetailsPage() {
                                     Edit
                                 </button>
                                 <button
-                                    onClick={() => console.log("Delete Question")}
+                                    onClick={() => handleDeleteQuestion(question.id)}
                                     className="font-medium text-red-400 transition hover:text-red-300"
                                 >
                                     Delete

@@ -9,11 +9,7 @@ import { useBatchDashboard } from "@/hooks/queries/student/useBatches";
 // (see discussion.routes.js), so this existing hook is reused as-is rather
 // than duplicated under a student-namespaced copy.
 import { useDiscussions, useCreateDiscussion } from "@/hooks/queries/instructor/useDiscussions";
-
-function formatDate(value) {
-  if (!value) return "";
-  return new Date(value).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
-}
+import { formatShortDate } from "@/lib/dateUtils";
 
 export default function BatchDiscussionsPage() {
   const params = useParams();
@@ -83,7 +79,7 @@ export default function BatchDiscussionsPage() {
                   <p className="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2">{d.body}</p>
                   <p className="text-[10px] text-slate-500 mt-1.5">
                     {d.author?.name ? `${d.author.name} • ` : ""}
-                    {formatDate(d.createdAt)}
+                    {formatShortDate(d.createdAt)}
                     {typeof d.replies?.length === "number" ? ` • ${d.replies.length} replies` : ""}
                   </p>
                 </div>

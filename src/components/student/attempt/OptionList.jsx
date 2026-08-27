@@ -1,7 +1,6 @@
 "use client";
 
-import { CheckCircle2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const getOptionText = (opt) => {
   if (opt === null || opt === undefined) return "";
@@ -16,7 +15,7 @@ export default function OptionList({
   onSelect,
 }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       {options.map((option, index) => {
         const optionText = getOptionText(option);
         const isSelected = selectedAnswer === optionText || selectedAnswer === option;
@@ -33,11 +32,11 @@ export default function OptionList({
               relative
               flex
               w-full
-              items-start
-              gap-4
-              rounded-2xl
+              items-center
+              gap-3
+              rounded-xl
               border
-              p-5
+              p-3.5
               text-left
               cursor-pointer
               transition-all
@@ -58,12 +57,37 @@ export default function OptionList({
               />
             )}
 
+            {/* Radio Indicator */}
+            <div
+              className={`
+                flex
+                h-5
+                w-5
+                shrink-0
+                items-center
+                justify-center
+                rounded-full
+                border-2
+                transition-all
+                duration-300
+                ${
+                  isSelected
+                    ? "border-orange-500 bg-orange-500"
+                    : "border-slate-600"
+                }
+              `}
+            >
+              {isSelected && (
+                <div className="h-2 w-2 rounded-full bg-white" />
+              )}
+            </div>
+
             {/* Option Label (A, B, C, D) */}
             <div
               className={`
                 flex
-                h-10
-                w-10
+                h-8
+                w-8
                 shrink-0
                 items-center
                 justify-center
@@ -93,24 +117,6 @@ export default function OptionList({
               >
                 {optionText}
               </p>
-            </div>
-
-            {/* Selected Indicator Checkmark */}
-            <div className="flex items-center self-center shrink-0">
-              <AnimatePresence>
-                {isSelected ? (
-                  <motion.div
-                    initial={{ scale: 0, rotate: -45 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    exit={{ scale: 0, rotate: -45 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                  >
-                    <CheckCircle2 className="h-6 w-6 text-orange-500 fill-orange-500/10" />
-                  </motion.div>
-                ) : (
-                  <div className="h-6 w-6 rounded-full border border-slate-700 bg-slate-950/20 hover:border-orange-500/40 transition-colors" />
-                )}
-              </AnimatePresence>
             </div>
           </motion.button>
         );

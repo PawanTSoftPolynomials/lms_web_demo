@@ -86,33 +86,19 @@ export default function ContentForm({
         setUploadState({ uploading: true, error: null, fileName: file.name, fileSize: file.size });
 
         try {
-            const token = Cookies.get("accessToken");
-            const fd = new FormData();
-            fd.append("file", file);
+            const { uploadContentFile } = await import("@/services/content.service");
+            const data = await uploadContentFile(file);
 
-            const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/contents/upload-file`,
-                {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: fd,
-                }
-            );
-
-            const data = await res.json();
-
-            if (!res.ok || !data.success) {
-                throw new Error(data.message || "Upload failed");
+            if (!data || !data.fileUrl) {
+                throw new Error("Upload failed. No file URL returned.");
             }
 
             setFormData((prev) => ({ ...prev, fileUrl: data.fileUrl }));
             setUploadState({
                 uploading: false,
                 error: null,
-                fileName: data.originalName,
-                fileSize: data.size,
+                fileName: data.originalName || file.name,
+                fileSize: data.size || file.size,
             });
         } catch (err) {
             setUploadState({

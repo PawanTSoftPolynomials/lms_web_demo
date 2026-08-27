@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
   Award,
   ArrowLeft,
@@ -22,12 +21,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import useAuth from "@/hooks/useAuth";
-import api from "@/lib/axios";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/ToastProvider";
+
+import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 
 const DYNAMIC_FIELDS = [
   { label: "Student Name", token: "{{Student Name}}" },
@@ -184,13 +184,7 @@ export default function CertificateTemplateBuilderPage() {
   const [status, setStatus] = useState("draft");
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  const { data: courses = [], isLoading: loadingCourses } = useQuery({
-    queryKey: ["instructorCoursesList"],
-    queryFn: async () => {
-      const { data } = await api.get("/courses");
-      return data.data ?? data;
-    },
-  });
+  const { data: courses = [], isLoading: loadingCourses } = useInstructorCourses();
 
   const myCourses = useMemo(
     () => courses.filter((c) => c.creatorId === user?.id || c.instructorId === user?.id),

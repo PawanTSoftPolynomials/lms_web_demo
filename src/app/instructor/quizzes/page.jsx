@@ -53,7 +53,6 @@ export default function QuizzesPage() {
     data: quizzes = [],
     isLoading: isLoadingQuizzes,
     isError: isErrorQuizzes,
-    refetch: refetchQuizzes,
   } = useQuizzes();
 
   // Fetch instructor courses for the course filter
@@ -63,7 +62,6 @@ export default function QuizzesPage() {
   const {
     data: questions = [],
     isLoading: isLoadingQuestions,
-    refetch: refetchQuestions,
   } = useQuestions(selectedQuiz?.id);
 
   const deleteQuizMutation = useDeleteQuiz();
@@ -81,7 +79,6 @@ export default function QuizzesPage() {
         courseId,
       });
       showToast("Quiz deleted successfully", "success");
-      refetchQuizzes();
     } catch (error) {
       console.error("Failed to delete quiz:", error);
       showToast(
@@ -104,7 +101,6 @@ export default function QuizzesPage() {
         quizId: selectedQuiz.id,
       });
       showToast("Question deleted successfully", "success");
-      refetchQuestions();
     } catch (error) {
       console.error("Failed to delete question:", error);
       showToast(
@@ -569,10 +565,7 @@ export default function QuizzesPage() {
             {/* Header & Summary Row */}
             <div className="space-y-4">
               <button
-                onClick={() => {
-                  setSelectedQuiz(null);
-                  refetchQuizzes();
-                }}
+                onClick={() => setSelectedQuiz(null)}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition"
               >
                 <ArrowLeft size={14} />

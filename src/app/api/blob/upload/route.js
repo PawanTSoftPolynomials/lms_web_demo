@@ -21,9 +21,16 @@ const ALLOWED_CONTENT_TYPES = [
 const ALLOWED_ROLES = ["INSTRUCTOR", "ADMIN"];
 
 /** Confirms the caller holds a valid session for an instructor/admin, using the same accessToken cookie + backend the rest of the app already trusts. */
-async function requireInstructor() {
+async function requireInstructor(request) {
   const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value;
+  let token = cookieStore.get("accessToken")?.value;
+
+  if (!token && request) {
+    const authHeader = request.headers.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    }
+  }
 
   if (!token) {
     throw new Error("Not authenticated");
@@ -48,14 +55,17 @@ async function requireInstructor() {
 export async function POST(request) {
   const body = await request.json();
 
+  const tokenSecret = process.env.VERCEL_BLOB_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
+
   try {
     const jsonResponse = await handleUpload({
       body,
       request,
+      ...(tokenSecret ? { token: tokenSecret } : {}),
       onBeforeGenerateToken: async (pathname) => {
-        await requireInstructor();
+        await requireInstructor(request);
 
-        if (!pathname.startsWith("course-composer/")) {
+        if (!pathname.startsWith("course-composer/") && !pathname.startsWith("content-uploads/")) {
           throw new Error("Invalid upload path");
         }
 
@@ -64,10 +74,6 @@ export async function POST(request) {
           addRandomSuffix: true,
           maximumSizeInBytes: 200 * 1024 * 1024,
         };
-      },
-      onUploadCompleted: async () => {
-        // Nothing to persist here — the composer's own save flow stores the
-        // resulting URL on the block when the instructor saves the lesson.
       },
     });
 

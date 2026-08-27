@@ -4,11 +4,7 @@ import { useParams } from "next/navigation";
 import { Calendar, FileCheck2 } from "lucide-react";
 
 import { useBatchDashboard } from "@/hooks/queries/student/useBatches";
-
-function formatDate(value) {
-  if (!value) return "Date TBA";
-  return new Date(value).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
-}
+import { formatShortDate } from "@/lib/dateUtils";
 
 export default function BatchSchedulePage() {
   const params = useParams();
@@ -55,7 +51,7 @@ export default function BatchSchedulePage() {
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold text-white truncate">{item.title}</p>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              {item.kind} &middot; {formatDate(item.startDate || item.dueDate)}
+              {item.kind} &middot; {formatShortDate(item.startDate || item.dueDate, "Date TBA")}
             </p>
           </div>
         </div>

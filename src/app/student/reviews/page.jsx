@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense, useMemo } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ArrowLeft, Star, Edit, Send } from "lucide-react";
 import Link from "next/link";
@@ -9,6 +9,9 @@ import Loader from "@/components/common/Loader";
 import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
 import useCourse from "@/hooks/queries/student/useCourse";
+import useCourseReviews from "@/hooks/queries/student/useCourseReviews";
+import useCourseReviewStats from "@/hooks/queries/student/useCourseReviewStats";
+import useCreateReview from "@/hooks/queries/student/useCreateReview";
 
 function ReviewsPageContent() {
   const router = useRouter();
@@ -16,44 +19,18 @@ function ReviewsPageContent() {
   const courseId = searchParams.get("courseId");
 
   const { data: course, isLoading, isError } = useCourse(courseId);
+  const { data: reviewsList = [] } = useCourseReviews(courseId);
+  const { data: stats } = useCourseReviewStats(courseId);
+  const createReviewMutation = useCreateReview();
 
   const [rating, setRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
-  const [reviewsList, setReviewsList] = useState([
-    {
-      id: "rev1",
-      studentName: "Prasad Kulkarni",
-      rating: 5,
-      date: "July 12, 2026",
-      text: "Excellent course! The modules on Servlet mapping and JSP tags were detailed and clear. Strongly recommended for enterprise Java developers."
-    },
-    {
-      id: "rev2",
-      studentName: "Ayan Khan",
-      rating: 4,
-      date: "July 08, 2026",
-      text: "Really good explanations. Pacing is great, although a few more exercises for the self-generate quiz section would make it even better."
-    },
-    {
-      id: "rev3",
-      studentName: "Pawan Manohar",
-      rating: 5,
-      date: "June 28, 2026",
-      text: "Orange Tree LMS course delivery is top notch. The sticky notes panel is extremely helpful to bookmark codes during video player sessions."
-    }
-  ]);
-
-  const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  const ratingSummary = useMemo(() => {
-    if (reviewsList.length === 0) return { avg: 0, count: 0 };
-    const total = reviewsList.reduce((sum, r) => sum + r.rating, 0);
-    return {
-      avg: (total / reviewsList.length).toFixed(1),
-      count: reviewsList.length
-    };
-  }, [reviewsList]);
+  const ratingSummary = {
+    avg: stats?.averageRating ? Number(stats.averageRating).toFixed(1) : "0.0",
+    count: stats?.totalReviews ?? reviewsList.length,
+  };
 
   if (isLoading) {
     return <Loader />;
@@ -75,27 +52,24 @@ function ReviewsPageContent() {
     );
   }
 
-  const handleReviewSubmit = (e) => {
+  const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (!reviewText.trim()) {
       setSubmitError("Please enter some review text first.");
       return;
     }
     setSubmitError("");
-    setSubmitting(true);
 
-    setTimeout(() => {
-      const newReview = {
-        id: `rev_${Date.now()}`,
-        studentName: "You",
-        rating: rating,
-        date: "Just now",
-        text: reviewText.trim()
-      };
-      setReviewsList([newReview, ...reviewsList]);
+    try {
+      await createReviewMutation.mutateAsync({
+        courseId,
+        rating,
+        review: reviewText.trim(),
+      });
       setReviewText("");
-      setSubmitting(false);
-    }, 800);
+    } catch (err) {
+      setSubmitError(err?.response?.data?.message || "Failed to submit review. Please try again.");
+    }
   };
 
   return (
@@ -184,10 +158,10 @@ function ReviewsPageContent() {
 
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={createReviewMutation.isPending}
                 className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-655 text-slate-950 font-black uppercase text-[10px] tracking-wider shadow-sm transition disabled:opacity-50 cursor-pointer border-0"
               >
-                {submitting ? "Posting..." : "Post Review"}
+                {createReviewMutation.isPending ? "Posting..." : "Post Review"}
                 <Send size={11} />
               </button>
             </form>
@@ -198,37 +172,54 @@ function ReviewsPageContent() {
         <div className="md:col-span-2 space-y-4">
           <h3 className="text-xs font-black uppercase tracking-widest text-slate-450 pl-1">Written Reviews</h3>
           
-          <div className="space-y-4">
-            {reviewsList.map((rev) => (
-              <Card key={rev.id} className="p-5 border border-slate-800 bg-slate-900/30 rounded-3xl space-y-3.5">
-                <div className="flex justify-between items-start">
-                  <div className="flex gap-3 items-center">
-                    <div className="h-9 w-9 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 font-bold text-xs">
-                      {rev.studentName.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black text-slate-100">{rev.studentName}</h4>
-                      <span className="text-[9px] text-slate-500 font-semibold">{rev.date}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-0.5">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        size={11}
-                        className={star <= rev.rating ? "fill-orange-500 text-orange-550" : "text-slate-700"}
-                      />
-                    ))}
-                  </div>
-                </div>
+          {reviewsList.length === 0 ? (
+            <Card className="p-8 border border-slate-800 bg-slate-900/30 rounded-3xl text-center">
+              <p className="text-xs text-slate-400">No reviews yet — be the first to share your thoughts!</p>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {reviewsList.map((rev) => {
+                const reviewerName = rev.student?.user?.name || "Anonymous Student";
+                return (
+                  <Card key={rev.id} className="p-5 border border-slate-800 bg-slate-900/30 rounded-3xl space-y-3.5">
+                    <div className="flex justify-between items-start">
+                      <div className="flex gap-3 items-center">
+                        <div className="h-9 w-9 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 font-bold text-xs">
+                          {reviewerName.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-100">{reviewerName}</h4>
+                          <span className="text-[9px] text-slate-500 font-semibold">
+                            {rev.createdAt
+                              ? new Date(rev.createdAt).toLocaleDateString("en-US", {
+                                  month: "long",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                })
+                              : ""}
+                          </span>
+                        </div>
+                      </div>
 
-                <p className="text-xs text-slate-400 font-medium leading-relaxed">
-                  {rev.text}
-                </p>
-              </Card>
-            ))}
-          </div>
+                      <div className="flex items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={11}
+                            className={star <= rev.rating ? "fill-orange-500 text-orange-550" : "text-slate-700"}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                      {rev.review}
+                    </p>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
 
       </div>

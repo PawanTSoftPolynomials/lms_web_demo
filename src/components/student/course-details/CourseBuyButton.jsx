@@ -24,7 +24,7 @@ export default function CourseBuyButton({ courseId, courseTitle }) {
       courseTitle,
       returnPath: `/courses/${courseId}`,
       onSuccess: () => {
-        router.push(`/student/entry-assessment/${courseId}`);
+        router.push(`/student/learn/${courseId}`);
       },
     });
   };

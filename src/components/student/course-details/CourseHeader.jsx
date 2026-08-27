@@ -73,7 +73,7 @@ export default function CourseHeader({
         if (effectivePrice <= 0) {
             try {
                 await enrollMutation.mutateAsync(course.id);
-                router.push(`/student/entry-assessment/${course.id}`);
+                router.push(`/student/learn/${course.id}`);
             } catch (err) {
                 console.error("Free enrollment failed:", err);
             }
@@ -83,7 +83,7 @@ export default function CourseHeader({
                 courseTitle: course.title,
                 returnPath: `/student/courses/${course.id}`,
                 onSuccess: () => {
-                    router.push(`/student/entry-assessment/${course.id}`);
+                    router.push(`/student/learn/${course.id}`);
                 },
             });
         }

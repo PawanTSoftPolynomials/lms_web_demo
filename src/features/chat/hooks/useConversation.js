@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 
 import useChat from "@/hooks/useChat";
 
@@ -25,10 +25,6 @@ export default function useConversation() {
       setLoading(false);
     }
   }, [setLoading, setConversations]);
-
-  useEffect(() => {
-    loadConversations();
-  }, [loadConversations]);
 
   return {
     loadConversations,

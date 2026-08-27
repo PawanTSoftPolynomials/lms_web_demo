@@ -33,7 +33,7 @@ import { LinkCell } from "./cells/LinkCell";
 import { DocumentCell } from "./cells/DocumentCell";
 import { InteractiveCell } from "./cells/InteractiveCell";
 import { useDuplicateContent, useUpdateContent } from "./contentMutations";
-import { CELL_TYPES } from "./cellTypes";
+import { CELL_TYPES, type ContentType } from "./cellTypes";
 import { detectHtmlCellVariant } from "./htmlCellVariant";
 import { planInsert, sortByOrder } from "./blockOrder";
 import { getErrorMessage } from "./getErrorMessage";
@@ -157,7 +157,7 @@ function renderCell(content: ContentRow, actionProps: CellActionProps) {
             label: content.type ? content.type.charAt(0) + content.type.slice(1).toLowerCase() : "File",
             description: "Uploaded file resource.",
             icon: FileText,
-            contentType: (content.type as any) || "DOCUMENT",
+            contentType: (content.type as unknown as ContentType) || "DOCUMENT",
             supportedByApiToday: true,
           }}
           {...actionProps}

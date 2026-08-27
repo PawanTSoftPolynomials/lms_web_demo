@@ -33,7 +33,12 @@ export const QUERY_KEYS = {
     DASHBOARD: "dashboard",
     PROGRESS: "progress",
     ENTRY_ASSESSMENT: "entry-assessment",
+    CALENDAR: "calendar_events",
+    NOTIFICATIONS: "notifications",
     COURSE_STATE: "course-state",
+    LEARNING_PATH: "learning-path",
+    COURSE_REVIEWS: "course-reviews",
+    COURSE_REVIEW_STATS: "course-review-stats",
 
     // ==========================
     // Admin
@@ -67,6 +72,7 @@ export const QUERY_KEYS = {
     // Instructor
     // ==========================
     INSTRUCTOR_DASHBOARD: "instructor-dashboard",
+    TEACHER_INSIGHTS: "teacher-insights",
 
     INSTRUCTOR_COURSES: "instructor-courses",
     INSTRUCTOR_COURSES_TABLE: "instructor-courses-table",
@@ -90,6 +96,7 @@ export const QUERY_KEYS = {
     QUESTIONS: "questions",
     QUESTION: "question",
     QUIZ_RESULT: "quiz-result",
+    QUESTION_REPOSITORY: "question-repository",
 
     LESSON_NOTES: "lesson-notes",
     LESSON_QUERIES: "lesson-queries",
@@ -109,4 +116,11 @@ export const QUERY_KEYS = {
     MY_REVIEWS: "my-reviews",
     RESULTS: "results",
     ASSESSMENTS: "assessments",
+    INSTRUCTOR_CERTIFICATES: "instructor-certificates",
+
+    // ==========================
+    // Mentor AI
+    // ==========================
+    MENTOR_CONVERSATIONS: "mentor-conversations",
+    MENTOR_MESSAGES: "mentor-messages",
 };

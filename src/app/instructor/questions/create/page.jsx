@@ -10,9 +10,9 @@ import {
   AlertTriangle,
   Check,
 } from "lucide-react";
-import { createRepositoryQuestion } from "@/services/questionRepository.service";
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 import { useModules } from "@/hooks/queries/instructor/useModules";
+import { useCreateRepositoryQuestion } from "@/hooks/queries/instructor/useQuestionRepository";
 
 export default function CreateQuestionPage() {
   const router = useRouter();
@@ -29,6 +29,7 @@ export default function CreateQuestionPage() {
 
   const { data: courses = [] } = useInstructorCourses();
   const { data: modules = [] } = useModules(courseId);
+  const createQuestionMutation = useCreateRepositoryQuestion();
 
   const handleCourseChange = (value) => {
     setCourseId(value);
@@ -43,7 +44,6 @@ export default function CreateQuestionPage() {
     { id: "opt-4", optionText: "", isCorrect: false },
   ]);
 
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleAddOption = () => {
@@ -129,11 +129,10 @@ export default function CreateQuestionPage() {
       correctAnswerVal = "True";
     }
 
-    setLoading(true);
     setError("");
 
     try {
-      await createRepositoryQuestion({
+      await createQuestionMutation.mutateAsync({
         question: question.trim(),
         questionType,
         courseId,
@@ -150,7 +149,6 @@ export default function CreateQuestionPage() {
       router.push("/instructor/questions");
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || "Failed to create question.");
-      setLoading(false);
     }
   };
 
@@ -390,10 +388,10 @@ export default function CreateQuestionPage() {
             </Link>
             <button
               type="submit"
-              disabled={loading}
+              disabled={createQuestionMutation.isPending}
               className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition disabled:opacity-50"
             >
-              {loading ? "Saving Question..." : "Save Question to Repository"}
+              {createQuestionMutation.isPending ? "Saving Question..." : "Save Question to Repository"}
             </button>
           </div>
         </form>

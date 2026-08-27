@@ -28,7 +28,7 @@ export default function StudentProgressPage() {
         );
     }
 
-    const progress = data?.data || data || {};
+    const stats = data?.stats || {};
 
     return (
         <div className="space-y-8">
@@ -38,17 +38,17 @@ export default function StudentProgressPage() {
             />
 
             <ProgressOverview
-                percentage={progress.percentage}
-                completedLessons={progress.completedLessons}
-                totalLessons={progress.totalLessons}
+                percentage={stats.percentage}
+                completedLessons={stats.completedLessons}
+                totalLessons={stats.totalLessons}
             />
 
             <ProgressStats
-                completedLessons={progress.completedLessons}
-                totalLessons={progress.totalLessons}
+                completedLessons={stats.completedLessons}
+                totalLessons={stats.totalLessons}
             />
 
-            {progress.completedLessons === 0 && (
+            {stats.completedLessons === 0 && (
                 <ProgressEmpty/>
             )}
         </div>

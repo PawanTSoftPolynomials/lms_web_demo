@@ -12,7 +12,9 @@ import {
   CheckCircle,
   RadioTower,
 } from "lucide-react";
+import PageHeader from "@/components/layouts/PageHeader";
 import { useLiveClasses } from "@/hooks/queries/student/useLiveClasses";
+import { LIVE_CLASSES_FILTERS } from "@/features/student/constants/liveClassesConfig";
 
 const statusBadge = (status) => {
   switch (status) {
@@ -53,13 +55,10 @@ export default function LiveClassesPage() {
 
   return (
     <div className="space-y-6 text-white">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Live Classes</h1>
-          <p className="text-xs text-slate-400 mt-1">Join instructor-led live sessions for your courses</p>
-        </div>
-      </div>
+      <PageHeader
+        title="Live Classes"
+        subtitle="Join instructor-led live sessions for your courses"
+      />
 
       {/* Live Now Banner */}
       {liveNow.length > 0 && (
@@ -91,11 +90,7 @@ export default function LiveClassesPage() {
 
       {/* Filter Tabs */}
       <div className="flex gap-2">
-        {[
-          { value: "upcoming", label: "Upcoming" },
-          { value: "completed", label: "Completed" },
-          { value: "all", label: "All" },
-        ].map((tab) => (
+        {LIVE_CLASSES_FILTERS.map((tab) => (
           <button
             key={tab.value}
             onClick={() => setStatusFilter(tab.value)}

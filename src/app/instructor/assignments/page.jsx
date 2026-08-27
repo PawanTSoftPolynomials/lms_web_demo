@@ -1,17 +1,23 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   FileText, Plus, Edit, Trash2, ArrowLeft,
   Clock, BookOpen, Calendar, Filter, X
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
-import api from "@/lib/axios";
 import Card from "@/components/ui/Card";
 import Loader from "@/components/common/Loader";
 import AssessmentForm from "@/components/instructor/AssessmentForm";
+
+import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
+import {
+  useInstructorAssignments,
+  useCreateAssignment,
+  useUpdateAssignment,
+  useDeleteAssignment,
+} from "@/hooks/queries/instructor/useAssignments";
 
 export default function InstructorAssignmentsPage() {
   const router = useRouter();
@@ -26,23 +32,8 @@ export default function InstructorAssignmentsPage() {
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Fetch all assignments for this instructor
-  const { data: assignments = [], isLoading: loadingAssignments, refetch: refetchAssignments } = useQuery({
-    queryKey: ["instructorAssignmentsList"],
-    queryFn: async () => {
-      const { data } = await api.get("/assignments");
-      return data.data ?? data;
-    },
-  });
-
-  // Fetch all courses
-  const { data: courses = [], isLoading: loadingCourses } = useQuery({
-    queryKey: ["instructorCoursesList"],
-    queryFn: async () => {
-      const { data } = await api.get("/courses");
-      return data.data ?? data;
-    },
-  });
+  const { data: assignments = [], isLoading: loadingAssignments } = useInstructorAssignments();
+  const { data: courses = [], isLoading: loadingCourses } = useInstructorCourses();
 
   // Filter courses: Owned by instructor and PUBLISHED
   const eligibleCourses = courses.filter(
@@ -62,54 +53,9 @@ export default function InstructorAssignmentsPage() {
     }
   }, [searchParams, eligibleCourses]);
 
-  // Create Assignment Mutation
-  const createMutation = useMutation({
-    mutationFn: async (payload) => {
-      const { data } = await api.post("/assignments", payload);
-      return data;
-    },
-    onSuccess: () => {
-      setSuccessMsg("Assignment created successfully!");
-      closeForm();
-      refetchAssignments();
-      setTimeout(() => setSuccessMsg(""), 4000);
-    },
-    onError: (err) => {
-      setErrorMsg(err.response?.data?.message || "Failed to create assignment.");
-    },
-  });
-
-  // Update Assignment Mutation
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, payload }) => {
-      const { data } = await api.put(`/assignments/${id}`, payload);
-      return data;
-    },
-    onSuccess: () => {
-      setSuccessMsg("Assignment updated successfully!");
-      closeForm();
-      refetchAssignments();
-      setTimeout(() => setSuccessMsg(""), 4000);
-    },
-    onError: (err) => {
-      setErrorMsg(err.response?.data?.message || "Failed to update assignment.");
-    },
-  });
-
-  // Delete Assignment Mutation
-  const deleteMutation = useMutation({
-    mutationFn: async (id) => {
-      await api.delete(`/assignments/${id}`);
-    },
-    onSuccess: () => {
-      setSuccessMsg("Assignment deleted successfully!");
-      refetchAssignments();
-      setTimeout(() => setSuccessMsg(""), 4000);
-    },
-    onError: (err) => {
-      setErrorMsg(err.response?.data?.message || "Failed to delete assignment.");
-    },
-  });
+  const createMutation = useCreateAssignment();
+  const updateMutation = useUpdateAssignment();
+  const deleteMutation = useDeleteAssignment();
 
   const openCreateForm = () => {
     setEditingAssignment(null);
@@ -136,15 +82,38 @@ export default function InstructorAssignmentsPage() {
     }
 
     if (editingAssignment) {
-      updateMutation.mutate({ id: editingAssignment.id, payload });
+      updateMutation.mutate(
+        { id: editingAssignment.id, payload },
+        {
+          onSuccess: () => {
+            setSuccessMsg("Assignment updated successfully!");
+            closeForm();
+            setTimeout(() => setSuccessMsg(""), 4000);
+          },
+          onError: (err) => setErrorMsg(err.response?.data?.message || "Failed to update assignment."),
+        }
+      );
     } else {
-      createMutation.mutate(payload);
+      createMutation.mutate(payload, {
+        onSuccess: () => {
+          setSuccessMsg("Assignment created successfully!");
+          closeForm();
+          setTimeout(() => setSuccessMsg(""), 4000);
+        },
+        onError: (err) => setErrorMsg(err.response?.data?.message || "Failed to create assignment."),
+      });
     }
   };
 
   const handleDelete = (id) => {
     if (confirm("Are you sure you want to delete this assignment?")) {
-      deleteMutation.mutate(id);
+      deleteMutation.mutate(id, {
+        onSuccess: () => {
+          setSuccessMsg("Assignment deleted successfully!");
+          setTimeout(() => setSuccessMsg(""), 4000);
+        },
+        onError: (err) => setErrorMsg(err.response?.data?.message || "Failed to delete assignment."),
+      });
     }
   };
 

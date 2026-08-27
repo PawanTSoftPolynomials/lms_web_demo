@@ -1,45 +1,34 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Award, ArrowLeft, Search, Plus, Trash2, ShieldAlert, Award as AwardIcon } from 'lucide-react';
 import Link from 'next/link';
 import useAuth from '@/hooks/useAuth';
-import api from '@/lib/axios';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Loader from '@/components/common/Loader';
-import { getCertificates, deleteCertificate } from '@/services/certificate.service';
+import { useToast } from '@/components/ui/ToastProvider';
+
+import { useInstructorCourses } from '@/hooks/queries/instructor/useInstructorCourses';
+import { useInstructorCertificates, useDeleteCertificate } from '@/hooks/queries/instructor/useCertificates';
 
 export default function CertificatesDashboardPage() {
   const { user } = useAuth();
-  const qc = useQueryClient();
+  const { showToast } = useToast();
 
   const [search, setSearch] = useState('');
   const [courseFilter, setCourseFilter] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
-  // Fetch Instructor's Courses (for filtering)
-  const { data: courses = [], isLoading: loadingCourses } = useQuery({
-    queryKey: ['instructorCoursesList'],
-    queryFn: async () => {
-      const { data } = await api.get('/courses');
-      return data.data ?? data;
-    },
-  });
+  const { data: courses = [], isLoading: loadingCourses } = useInstructorCourses();
 
   const myCourses = useMemo(() => 
     courses.filter((c) => c.creatorId === user?.id || c.instructorId === user?.id),
     [courses, user?.id]
   );
 
-  // Fetch all certificates
-  const { data: certificates = [], isLoading: loadingCerts } = useQuery({
-    queryKey: ['instructorCertificates', user?.id],
-    queryFn: () => getCertificates(user?.id),
-    enabled: !!user?.id,
-  });
+  const { data: certificates = [], isLoading: loadingCerts } = useInstructorCertificates(user?.id);
 
   // Filter certificates
   const filteredCerts = useMemo(() => {
@@ -57,21 +46,16 @@ export default function CertificatesDashboardPage() {
     });
   }, [certificates, search, courseFilter]);
 
-  // Delete certificate mutation
-  const deleteMutation = useMutation({
-    mutationFn: (id) => deleteCertificate(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['instructorCertificates', user?.id] });
-      setConfirmDeleteId(null);
-    },
-    onError: (err) => {
-      alert(err.response?.data?.message || 'Failed to revoke certificate.');
-      setConfirmDeleteId(null);
-    }
-  });
+  const deleteMutation = useDeleteCertificate();
 
-  const handleRevoke = (id) => {
-    deleteMutation.mutate(id);
+  const handleRevokeConfirm = (id) => {
+    deleteMutation.mutate(id, {
+      onSuccess: () => setConfirmDeleteId(null),
+      onError: (err) => {
+        showToast(err.response?.data?.message || 'Failed to revoke certificate.', 'error');
+        setConfirmDeleteId(null);
+      },
+    });
   };
 
   if (loadingCerts || loadingCourses) {
@@ -196,7 +180,7 @@ export default function CertificatesDashboardPage() {
                           <div className="flex items-center justify-end gap-2">
                             <span className="text-[9px] text-rose-400 font-extrabold flex items-center gap-1"><ShieldAlert size={11} /> Confirm?</span>
                             <button
-                              onClick={() => handleRevoke(cert.id)}
+                              onClick={() => handleRevokeConfirm(cert.id)}
                               disabled={deleteMutation.isPending}
                               className="text-[10px] font-black text-rose-400 hover:text-rose-300 underline"
                             >

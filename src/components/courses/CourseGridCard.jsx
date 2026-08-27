@@ -17,25 +17,12 @@ const STATUS_ACCENT = {
 };
 
 /**
- * Bold gradient per card — one hue, cycled by grid index so every card in view is a
- * different color. The gradient itself stays at a normal, identifiable saturation;
- * `brightness`/`contrast` filters are applied on a separate background layer (not on
- * the text) to knock the perceived intensity down by ~40% without graying out content.
+ * Fixed banner color for every card. The gradient itself stays at a normal,
+ * identifiable saturation; `brightness`/`contrast` filters are applied on a
+ * separate background layer (not on the text) to knock the perceived
+ * intensity down by ~40% without graying out content.
  */
-const THEMES = [
-  { gradient: "bg-gradient-to-br from-cyan-500 to-blue-700", viewText: "text-blue-800" },
-  { gradient: "bg-gradient-to-br from-orange-500 to-red-700", viewText: "text-red-800" },
-  { gradient: "bg-gradient-to-br from-amber-500 to-amber-700", viewText: "text-amber-900" },
-  { gradient: "bg-gradient-to-br from-pink-500 to-pink-700", viewText: "text-pink-800" },
-  { gradient: "bg-gradient-to-br from-violet-500 to-purple-700", viewText: "text-violet-900" },
-  { gradient: "bg-gradient-to-br from-emerald-500 to-green-700", viewText: "text-green-900" },
-  { gradient: "bg-gradient-to-br from-indigo-500 to-indigo-700", viewText: "text-indigo-900" },
-  { gradient: "bg-gradient-to-br from-teal-500 to-teal-700", viewText: "text-teal-900" },
-  { gradient: "bg-gradient-to-br from-rose-500 to-rose-700", viewText: "text-rose-800" },
-  { gradient: "bg-gradient-to-br from-fuchsia-500 to-fuchsia-700", viewText: "text-fuchsia-900" },
-  { gradient: "bg-gradient-to-br from-lime-600 to-green-700", viewText: "text-green-900" },
-  { gradient: "bg-gradient-to-br from-sky-500 to-sky-700", viewText: "text-sky-900" },
-];
+const THEME = { gradient: "bg-gradient-to-br from-teal-500 to-teal-700", viewText: "text-teal-900" };
 
 function Stat({ icon: Icon, value, label }) {
   return (
@@ -56,7 +43,7 @@ export default function CourseGridCard({ course, index = 0 }) {
 
   const lessonsCount = course.modules?.reduce((sum, m) => sum + (m.lessons?.length ?? 0), 0) ?? course.stats?.lessonsCount ?? 0;
   const accent = STATUS_ACCENT[course.status] || STATUS_ACCENT.DRAFT;
-  const theme = THEMES[index % THEMES.length];
+  const theme = THEME;
 
   const goTo = (path) => (e) => {
     e.stopPropagation();

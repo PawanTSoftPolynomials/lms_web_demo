@@ -1,42 +1,49 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  X, Bell, MessageSquare, ArrowLeft, BookOpen, Clock3,
-  ChevronDown, ChevronRight, ChevronLeft, PlayCircle,
-  CheckCheck, HelpCircle, Star, CheckCircle2, FileText, Download,
-  AlignLeft, StickyNote, Paperclip, Bookmark, BookmarkCheck, ClipboardList, PanelLeftOpen
+  ArrowLeft, BookOpen, Clock3, ChevronRight, ChevronLeft, PlayCircle,
+  CheckCircle2, MessageSquare, Star, Bookmark, BookmarkCheck, PanelRightOpen, PanelRightClose,
 } from "lucide-react";
-import { FaSignOutAlt } from "react-icons/fa";
 
 import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel";
-import CoursePersonalizationCard from "@/components/student/learning/CoursePersonalizationCard";
-import VideoPlayer from "@/components/student/learning/VideoPlayer";
-import { groupLessonContentForDocumentView } from "@/lib/contentDocument";
-import { getDisplayUrl } from "@/lib/blob";
 import TranscriptPanel from "@/components/student/learning/TranscriptPanel";
 import LessonTabs from "@/components/student/learning/LessonTabs";
 import CourseContentAccordion from "@/components/student/learning/CourseContentAccordion";
-import QuizExperience from "@/components/student/attempt/QuizExperience";
+import LessonContentBlock from "@/components/student/learning/LessonContentBlock";
+import LessonOverviewPanel from "@/components/student/learning/LessonOverviewPanel";
+import LessonResourcesPanel from "@/components/student/learning/LessonResourcesPanel";
+import LessonQuizPanel from "@/components/student/learning/LessonQuizPanel";
+import AskInstructorCard from "@/components/student/learning/AskInstructorCard";
+import LessonNavigationControls from "@/components/student/learning/LessonNavigationControls";
+import LearnPageHeader from "@/components/student/learning/LearnPageHeader";
+import ProgressBar from "@/components/student/courses/ProgressBar";
+
+import { groupLessonContentForDocumentView } from "@/lib/contentDocument";
+import { getDisplayUrl } from "@/lib/blob";
+import { CourseStructureSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
+import { normalizeCourseHierarchy } from "@/lib/courseMapper";
+import { LEARN_PAGE_CONTENT_TABS } from "@/features/student/constants/learnPageConfig";
+
 import useCompleteLesson from "@/hooks/queries/student/useCompleteLesson";
+import useMarkContentVisited from "@/hooks/queries/student/useMarkContentVisited";
 import { useCourse, useStudentState, useUpdateStudentState } from "@/hooks/queries/student";
-import { useBookmarks, useCreateBookmark, useDeleteBookmark } from "@/hooks/queries/student/useBookmarks";
+import useLessonBookmarkToggle from "@/hooks/queries/student/useLessonBookmarkToggle";
 import useProgress from "@/hooks/queries/student/useProgress";
 import useTranscript from "@/hooks/queries/student/useTranscript";
+import useTrackCourseAccess from "@/hooks/queries/student/useTrackCourseAccess";
+import useLearningStateSync from "@/hooks/queries/student/useLearningStateSync";
+import useLessonNavigation from "@/hooks/queries/student/useLessonNavigation";
+
 import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
-import { trackCourseAccess } from "@/services/enrollment.service";
 import { ChatWidget } from "@/components/chat";
-import { createConversation } from "@/features/chat/api/chat.api";
-import { normalizeCourseHierarchy } from "@/lib/courseMapper";
-import { CourseStructureSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
 
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
 import { useNotification } from "@/context/NotificationContext";
-import { useToast } from "@/components/ui/ToastProvider";
 
 export default function LearnPage() {
   const { courseId } = useParams();
@@ -47,6 +54,7 @@ export default function LearnPage() {
   const { data: stateData, isLoading: isStateLoading } = useStudentState();
   const updateStateMutation = useUpdateStudentState();
   const completeLessonMutation = useCompleteLesson();
+  const markContentVisitedMutation = useMarkContentVisited();
   const { data: progressData } = useProgress();
   const courseProgress = useMemo(() => {
     if (!progressData?.courses) return 0;
@@ -62,48 +70,60 @@ export default function LearnPage() {
   }, [progressData, courseId]);
 
   const { logout } = useAuth();
-  const { toggleChat, isOpen: chatOpen, chatUnreadCount, conversations = [], setConversations, setActiveConversation, setIsOpen } = useChat();
+  const { toggleChat, isOpen: chatOpen, chatUnreadCount, setIsOpen } = useChat();
   const { notifications, markAllRead, markAsRead } = useNotification();
-  const { showToast } = useToast();
-  const [showNotifications, setShowNotifications] = useState(false);
 
   // Course Content Sidebar toggle state
   const [courseSidebarOpen, setCourseSidebarOpen] = useState(false);
 
+  // Right-hand utility column (Ask Instructor / Sticky Notes / Feedback)
+  // collapse state — desktop only, mirrors the left Course Map sidebar's
+  // collapse behavior.
+  const [rightPanelOpen, setRightPanelOpen] = useState(true);
+
   const videoPlayerRef = useRef(null);
 
-  const lessons = useMemo(() => {
-    const modules = course?.modules || [];
-    return modules.flatMap((module) =>
-      (module.lessons || []).map((lesson) => ({
-        ...lesson,
-        moduleId: module.id,
-        duration: lesson.duration || "N/A",
-      }))
-    );
-  }, [course]);
+  // Resume-where-you-left-off (URL ?lessonId / DB-saved state / first-lesson
+  // fallback) + debounced persistence of playback position back to the DB.
+  const {
+    selectedLesson,
+    setSelectedLesson,
+    currentTimestamp,
+    setCurrentTimestamp,
+    initialTime,
+  } = useLearningStateSync({
+    courseId,
+    course,
+    isLoading,
+    stateData,
+    isStateLoading,
+    updateStateMutation,
+  });
 
-  const [selectedLesson, setSelectedLesson] = useState(null);
+  // Lesson list, completion, and prev/next/module derivations, plus the
+  // single gated entry point (selectLesson) every navigation control below
+  // routes through so a locked lesson can never become selected.
+  const {
+    lessons,
+    completedLessonIds,
+    currentLessonIndex,
+    previousLesson,
+    nextLesson,
+    nextModule,
+    selectLesson,
+  } = useLessonNavigation(course, selectedLesson, setSelectedLesson);
+
+  // Derived from completedLessonIds (freshly recomputed from course data on
+  // every refetch) rather than selectedLesson.completed directly —
+  // selectedLesson is a state snapshot taken at selection time, so it never
+  // picks up the completed:true flip that lands after markComplete's mutation
+  // invalidates and refetches the course query.
+  const isSelectedLessonCompleted = selectedLesson?.id
+    ? completedLessonIds.includes(selectedLesson.id)
+    : false;
+
   const [pendingTopicScroll, setPendingTopicScroll] = useState(null);
-
-  // Central gate for every lesson-navigation entry point (sidebar, mobile
-  // accordion, prev/next, auto-advance) — a locked lesson (drip content not
-  // yet unlocked by completing the one before it) can never become the
-  // selected lesson, regardless of which control tried to jump to it.
-  const selectLesson = (lesson) => {
-    if (!lesson) return;
-    if (lesson.locked) {
-      showToast("Complete the previous lesson to unlock this one.", "info");
-      return;
-    }
-    setSelectedLesson(lesson);
-  };
-
-  const [currentTimestamp, setCurrentTimestamp] = useState(0);
-  const [initialTime, setInitialTime] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
-  const [stateRestored, setStateRestored] = useState(false);
-  const [expandedModules, setExpandedModules] = useState([]);
 
   // Embedded (non-drawer) Course Content accordion state — independent of the
   // desktop sidebar so only one module is expanded at a time on mobile/tablet,
@@ -118,89 +138,30 @@ export default function LearnPage() {
   // desktop shows the same content stacked, unconditionally, via xl: overrides.
   const [activeContentTab, setActiveContentTab] = useState("overview");
 
-  // Active quiz attempt launched from the Quiz tab. Kept as local state (not a
-  // route change) so the Learning Page never unmounts — video, selected lesson,
-  // scroll position, everything is still there the instant this closes.
-  const [activeQuizId, setActiveQuizId] = useState(null);
-  useEffect(() => {
-    if (!activeQuizId || typeof document === "undefined") return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [activeQuizId]);
+  const { isLessonBookmarked, toggleLessonBookmark } = useLessonBookmarkToggle(selectedLesson, course);
 
-  const { data: bookmarks = [] } = useBookmarks();
-  const createBookmarkMutation = useCreateBookmark();
-  const deleteBookmarkMutation = useDeleteBookmark();
-  const isLessonBookmarked =
-    bookmarks?.some((b) => b.lessonId === selectedLesson?.id && b.type === "Lesson") || false;
+  // Stable across renders (depends only on the mutation's stable `mutate`
+  // reference) so LessonContentBlock's IntersectionObserver — keyed on this
+  // callback's identity — isn't torn down and resubscribed on every parent
+  // re-render (e.g. every currentTimestamp tick while a video is playing).
+  const handleContentVisited = useCallback(
+    (contentIds) => {
+      if (!contentIds || contentIds.length === 0) return;
+      markContentVisitedMutation.mutate(contentIds);
+    },
+    [markContentVisitedMutation.mutate]
+  );
 
-  const handleBookmarkLesson = async () => {
-    if (!selectedLesson) return;
-    if (isLessonBookmarked) {
-      const bookmark = bookmarks?.find(
-        (b) => b.lessonId === selectedLesson?.id && b.type === "Lesson"
-      );
-      if (bookmark) {
-        try {
-          await deleteBookmarkMutation.mutateAsync(bookmark.id);
-        } catch (error) {
-          console.error(error);
-        }
-      }
-    } else {
-      try {
-        await createBookmarkMutation.mutateAsync({
-          type: "Lesson",
-          title: selectedLesson.title,
-          detail: course?.title || "",
-          courseId: course?.id || "",
-          lessonId: selectedLesson.id,
-        });
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  };
-
-  // Compute lesson index and navigation targets
-  const currentLessonIndex = useMemo(() => {
-    return lessons.findIndex((l) => l.id === selectedLesson?.id);
-  }, [lessons, selectedLesson]);
-
-  const previousLesson = useMemo(() => {
-    return currentLessonIndex > 0 ? lessons[currentLessonIndex - 1] : null;
-  }, [lessons, currentLessonIndex]);
-
-  const nextLesson = useMemo(() => {
-    return currentLessonIndex >= 0 && currentLessonIndex < lessons.length - 1
-      ? lessons[currentLessonIndex + 1]
-      : null;
-  }, [lessons, currentLessonIndex]);
-
-  // Does finishing the current lesson cross into a new module?
-  const nextModule = useMemo(() => {
-    if (!nextLesson || !selectedLesson || nextLesson.moduleId === selectedLesson.moduleId) {
-      return null;
-    }
-    return course?.modules?.find((m) => m.id === nextLesson.moduleId) || null;
-  }, [nextLesson, selectedLesson, course]);
-
+  // Watching a video to the end is a "visited" signal for that one piece of
+  // content, not an unconditional lesson completion — the lesson only
+  // auto-completes once every content block in it (video and non-video
+  // alike) has been visited. See handleContentVisited / LessonContentBlock.
   const handleVideoEnded = () => {
-    markComplete();
+    handleContentVisited(documentGroupedContents?.[0]?.contentIds);
     if (nextLesson) {
       setSelectedLesson(nextLesson);
     }
   };
-
-  // Auto-expand modules when course loads (desktop sidebar)
-  useEffect(() => {
-    if (course?.modules) {
-      setExpandedModules(course.modules.map((m) => m.id));
-    }
-  }, [course]);
 
   // Embedded Course Content accordion: keep the current lesson's module
   // expanded and every other module collapsed, so switching lessons never
@@ -211,55 +172,13 @@ export default function LearnPage() {
     }
   }, [selectedLesson?.moduleId]);
 
+  const trackAccessMutation = useTrackCourseAccess();
   // Track course access
   useEffect(() => {
     if (courseId) {
-      trackCourseAccess(courseId);
+      trackAccessMutation.mutate(courseId);
     }
   }, [courseId]);
-
-  // Restore state from DB on load
-  useEffect(() => {
-    if (isStateLoading || isLoading || stateRestored) return;
-
-    if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
-      const queryLessonId = urlParams.get("lessonId");
-      if (queryLessonId) {
-        const matchedLesson = lessons.find((l) => l.id === queryLessonId);
-        if (matchedLesson) {
-          setSelectedLesson(matchedLesson);
-          setStateRestored(true);
-          return;
-        }
-      }
-    }
-
-    const savedState = stateData?.data || stateData;
-    if (savedState && savedState.courseId === courseId && savedState.lessonId) {
-      const matchedLesson = lessons.find((l) => l.id === savedState.lessonId);
-      if (matchedLesson) {
-        setSelectedLesson(matchedLesson);
-        if (savedState.timestamp) {
-          setInitialTime(savedState.timestamp);
-          setCurrentTimestamp(savedState.timestamp);
-        }
-        setStateRestored(true);
-        return;
-      }
-    }
-
-    if (!selectedLesson && lessons.length > 0) {
-      setSelectedLesson(lessons[0]);
-      setStateRestored(true);
-    }
-  }, [lessons, selectedLesson, stateData, isStateLoading, isLoading, courseId, stateRestored]);
-
-  useEffect(() => {
-    if (stateRestored) {
-      setInitialTime(0);
-    }
-  }, [selectedLesson, stateRestored]);
 
   // Scroll-to-topic: sidebar topic/content clicks set the target topicId here;
   // once the (possibly newly-selected) lesson's content anchors are in the DOM,
@@ -288,23 +207,6 @@ export default function LearnPage() {
     [selectedLessonContents]
   );
 
-  // Sync state back to DB on change (debounced)
-  useEffect(() => {
-    if (!selectedLesson?.id || !stateRestored) return;
-
-    const timer = setTimeout(() => {
-      updateStateMutation.mutate({
-        courseId,
-        moduleId: selectedLesson.moduleId || null,
-        lessonId: selectedLesson.id,
-        contentId: selectedLessonContents?.[0]?.id || null,
-        timestamp: currentTimestamp,
-      });
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [selectedLesson, selectedLessonContents, currentTimestamp, courseId, stateRestored]);
-
   const markComplete = async () => {
     if (!selectedLesson?.id) return;
     completeLessonMutation.mutate({ lessonId: selectedLesson.id });
@@ -313,14 +215,6 @@ export default function LearnPage() {
   const handleLogout = () => {
     logout();
     router.push("/login");
-  };
-
-  const toggleModule = (moduleId) => {
-    setExpandedModules((prev) =>
-      prev.includes(moduleId)
-        ? prev.filter((id) => id !== moduleId)
-        : [...prev, moduleId]
-    );
   };
 
   const { segments: transcriptSegments, status: transcriptStatus } = useTranscript(selectedLesson?.id);
@@ -337,34 +231,6 @@ export default function LearnPage() {
       (c) => c.type === "FILE" || c.type === "DOCUMENT" || Boolean(c.fileUrl)
     );
   }, [selectedLessonContents]);
-
-  const formatResumeTime = (seconds) => {
-    const total = Math.max(0, Math.floor(seconds || 0));
-    const mins = Math.floor(total / 60);
-    const secs = total % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  // "About this lesson" clamps to 3 lines by default so it reads as a
-  // compact paragraph instead of pushing the video/tabs further down; a
-  // Read More toggle reveals the rest. Collapses again on every new lesson.
-  const overviewDescription = selectedLesson?.description || "No specific lesson objectives provided.";
-  const [overviewExpanded, setOverviewExpanded] = useState(false);
-  useEffect(() => {
-    setOverviewExpanded(false);
-  }, [selectedLesson?.id]);
-
-  // Mobile tab strip definition — mirrors the desktop stacked sections 1:1,
-  // just presented one-at-a-time instead of all at once.
-  const contentTabs = [
-    { id: "overview", label: "Overview", icon: BookOpen },
-    { id: "transcript", label: "Transcript", icon: AlignLeft },
-    { id: "notes", label: "Notes", icon: StickyNote },
-    { id: "resources", label: "Resources", icon: Paperclip },
-    { id: "query", label: "Query", icon: HelpCircle },
-    { id: "feedback", label: "Feedback", icon: Star },
-    { id: "quiz", label: "Quiz", icon: ClipboardList },
-  ];
 
   // Tap-to-scroll controls for the tab strip, so reaching hidden tabs doesn't
   // require a swipe gesture.
@@ -405,169 +271,12 @@ export default function LearnPage() {
   // by the desktop stacked layout (all shown at once) — so there is a single
   // source of truth per tab, not two copies that can drift out of sync.
   const overviewPanel = (
-    <div className="space-y-4">
-      <CoursePersonalizationCard courseId={courseId} />
-
-      <div className="rounded-3xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl p-4 sm:p-5 space-y-3">
-      <h4 className="text-xs font-black uppercase tracking-widest text-slate-300">About this lesson</h4>
-      <div className="space-y-1.5">
-        <p
-          className={`text-xs text-slate-300 leading-relaxed font-medium ${
-            overviewExpanded ? "" : "line-clamp-3"
-          }`}
-        >
-          {overviewDescription}
-        </p>
-        {overviewDescription.length > 180 && (
-          <button
-            type="button"
-            onClick={() => setOverviewExpanded((prev) => !prev)}
-            className="text-[10px] font-black uppercase tracking-wider text-orange-400 hover:text-orange-300 transition cursor-pointer bg-transparent border-0 outline-none min-h-[36px]"
-          >
-            {overviewExpanded ? "Show Less" : "Read More"}
-          </button>
-        )}
-      </div>
-
-      {initialTime > 3 && (
-        <div className="rounded-2xl border border-orange-500/20 bg-orange-500/5 p-3.5 space-y-2">
-          <div className="flex items-center gap-2">
-            <PlayCircle size={14} className="text-orange-400 shrink-0" />
-            <span className="text-xs font-bold text-orange-300">
-              Continue Learning — you left at {formatResumeTime(initialTime)}
-            </span>
-          </div>
-          {videoDuration > 0 && (
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-slate-900 border border-slate-800 rounded-full h-1.5 overflow-hidden relative">
-                <div
-                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full"
-                  style={{ width: `${Math.min(100, Math.round((initialTime / videoDuration) * 100))}%` }}
-                />
-              </div>
-              <span className="text-[10px] font-extrabold text-orange-400 shrink-0">
-                {Math.min(100, Math.round((initialTime / videoDuration) * 100))}%
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-      </div>
-    </div>
+    <LessonOverviewPanel lesson={selectedLesson} initialTime={initialTime} videoDuration={videoDuration} />
   );
 
-  const resourcesPanel = (
-    <div className="rounded-3xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl p-4 sm:p-5 space-y-3">
-      <div className="flex items-center justify-between">
-        <h4 className="text-xs font-black uppercase tracking-widest text-slate-300 flex items-center gap-2">
-          <FileText size={14} className="text-orange-500" />
-          <span>Resources</span>
-        </h4>
-        <span className="text-[10px] text-slate-500 font-mono">{instructorAttachments.length} file(s)</span>
-      </div>
+  const resourcesPanel = <LessonResourcesPanel attachments={instructorAttachments} />;
 
-      {instructorAttachments.length > 0 ? (
-        <div className="space-y-2">
-          {instructorAttachments.map((file, idx) => (
-            <div
-              key={file.id || idx}
-              className="p-3 rounded-xl bg-slate-900/40 border border-slate-800/80 flex items-center justify-between gap-2 hover:border-orange-500/40 transition group"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="h-8 w-8 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
-                  <Download size={14} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-white truncate group-hover:text-orange-400 transition">
-                    {file.title || "Class Attachment"}
-                  </p>
-                  <span className="text-[10px] text-slate-500 font-mono uppercase">{file.type || "FILE"}</span>
-                </div>
-              </div>
-              {file.fileUrl ? (
-                <a
-                  href={getDisplayUrl(file.fileUrl)}
-                  target="_blank"
-                  rel="noreferrer"
-                  download
-                  className="px-3 py-2 min-h-[44px] flex items-center gap-1 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-[10px] uppercase tracking-wider transition shadow-md shrink-0 cursor-pointer"
-                >
-                  <Download size={11} />
-                  <span>Get</span>
-                </a>
-              ) : (
-                <span className="text-[10px] text-slate-500 italic shrink-0">No File</span>
-              )}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="p-4 rounded-xl bg-slate-900/20 border border-dashed border-slate-800 text-center text-slate-500 text-xs">
-          No downloadable resources for this lesson.
-        </div>
-      )}
-    </div>
-  );
-
-  const queryPanel = (
-    <button
-      onClick={async () => {
-        const instId = course?.creatorId || course?.creator?.id || course?.creator?._id;
-        if (!instId) {
-          console.warn("Instructor ID not found for this course.");
-          return;
-        }
-        const matched = conversations.find(c =>
-          c.type !== "GROUP" && c.participants?.some(p => {
-            const pId = p.userId || p.user?.id || p.id;
-            return pId === instId;
-          })
-        );
-        if (matched) {
-          setActiveConversation(matched);
-          setIsOpen(true);
-        } else {
-          try {
-            const res = await createConversation({
-              name: course?.creator?.name || "Instructor",
-              participantIds: [instId],
-              courseId: course.id,
-              isGroup: false
-            });
-            const newConv = res.data || res;
-            if (newConv) {
-              setConversations(prev => [newConv, ...prev]);
-              setActiveConversation(newConv);
-            }
-            setIsOpen(true);
-          } catch (err) {
-            console.error("Failed to auto-create conversation with instructor:", err);
-          }
-        }
-      }}
-      className="w-full p-4 sm:p-5 rounded-3xl border border-slate-800 bg-slate-900/50 hover:bg-slate-900/80 hover:border-orange-500/40 transition duration-300 group cursor-pointer text-left shadow-lg relative overflow-hidden min-h-[44px]"
-    >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-amber-500/20 bg-amber-500/10 text-amber-400 shrink-0">
-            <HelpCircle size={18} className="stroke-[2.5]" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h4 className="text-sm font-black text-slate-100 group-hover:text-white transition truncate">Ask Instructor</h4>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
-            </div>
-            <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">Instructor Active • Avg response &lt; 2 hrs</p>
-          </div>
-        </div>
-        <ChevronRight size={16} className="text-slate-500 group-hover:text-orange-400 transition-colors shrink-0" />
-      </div>
-      <div className="flex items-center gap-2 pt-2 border-t border-slate-800/60 text-[10px] text-slate-400 font-bold flex-wrap">
-        <span className="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-orange-400 font-mono">3 Active Discussions</span>
-        <span>Direct Q&amp;A Chat</span>
-      </div>
-    </button>
-  );
+  const askInstructorCard = <AskInstructorCard course={course} setIsOpen={setIsOpen} />;
 
   const feedbackPanel = (
     <div className="space-y-4">
@@ -606,45 +315,7 @@ export default function LearnPage() {
   );
 
   const quizPanel = (
-    <div className="rounded-3xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl p-4 sm:p-5 space-y-4">
-      <h4 className="text-xs font-black uppercase tracking-widest text-slate-300 flex items-center gap-2">
-        <ClipboardList size={14} className="text-orange-500" />
-        <span>Assessment Quiz</span>
-      </h4>
-      {course?.quizzes?.length ? (
-        <div className="space-y-3">
-          {course.quizzes.map((quiz) => (
-            <div
-              key={quiz.id}
-              className="rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-            >
-              <div className="space-y-1">
-                <h3 className="text-xs font-extrabold text-white">{quiz.title}</h3>
-                <p className="text-[11px] text-slate-400 font-semibold">
-                  {quiz.description || "Self-assessment to verify concept mastery."}
-                </p>
-                <div className="flex items-center gap-3 text-[10px] font-mono text-slate-500 pt-1">
-                  <span>Passing: {quiz.passingScore}%</span>
-                  <span>&bull;</span>
-                  <span>{quiz.questions?.length || 0} Questions</span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveQuizId(quiz.id)}
-                className="px-4 py-2.5 min-h-[44px] rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-md shrink-0"
-              >
-                Start Quiz
-              </button>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="p-6 rounded-2xl bg-slate-900/20 border border-slate-800 text-center text-slate-500 text-xs italic">
-          No quiz assigned for this course.
-        </div>
-      )}
-    </div>
+    <LessonQuizPanel quizzes={course?.quizzes || []} courseId={courseId} currentLessonId={selectedLesson?.id} />
   );
 
   return (
@@ -658,6 +329,7 @@ export default function LearnPage() {
       <div className={`hidden xl:block shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${courseSidebarOpen ? "w-full xl:w-[320px]" : "w-full xl:w-0"}`}>
         <CourseStructureSidebar
           modules={course.modules || []}
+          completedLessonIds={completedLessonIds}
           composerMode={selectedLesson ? "lesson" : "course"}
           composeLessonId={selectedLesson?.id}
           composeModuleId={selectedLesson?.moduleId}
@@ -690,145 +362,21 @@ export default function LearnPage() {
       {/* MAIN WORKSPACE CONTENT */}
       {/* ========================================================================= */}
       <div className="flex-1 flex flex-col h-screen overflow-y-auto bg-[#07080f] min-w-0">
-        
-        {/* ========================================================== */}
-        {/* TOP NAVBAR / HEADER */}
-        {/* ========================================================== */}
-        <header className="sticky top-0 bg-[#07080f]/80 backdrop-blur-md border-b border-[#1e2030]/40 py-3 px-4 sm:px-6 flex items-center justify-between z-30 select-none">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            {!courseSidebarOpen && (
-              <button
-                type="button"
-                onClick={() => setCourseSidebarOpen(true)}
-                className="hidden xl:flex shrink-0 h-9 w-9 items-center justify-center rounded-full border border-orange-500/50 bg-slate-900 text-orange-400 shadow-md transition hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-300 cursor-pointer"
-                aria-label="Show course map"
-                title="Show course map"
-              >
-                <PanelLeftOpen size={16} />
-              </button>
-            )}
-            <div className="min-w-0">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 truncate block">
-                LEARNING WORKSPACE
-              </span>
-              <h2 className="text-sm font-bold text-white truncate">
-                {selectedLesson ? `Lesson: ${selectedLesson.title}` : course?.title || "Course Overview"}
-              </h2>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 relative shrink-0">
-            {/* Messages button */}
-            <button
-              onClick={toggleChat}
-              className={`p-2.5 min-h-[44px] min-w-[44px] rounded-xl transition relative flex items-center justify-center border-0 cursor-pointer outline-none ${
-                chatOpen
-                  ? "bg-slate-800 text-orange-500"
-                  : "bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-white"
-              }`}
-              title="Messages"
-            >
-              <MessageSquare size={16} />
-              {chatUnreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-orange-500 px-1 text-[8px] font-bold text-white shadow-[0_0_8px_rgba(249,115,22,0.4)]">
-                  {chatUnreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* Notification button */}
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className={`p-2.5 min-h-[44px] min-w-[44px] rounded-xl transition relative flex items-center justify-center border-0 cursor-pointer outline-none ${
-                  showNotifications
-                    ? "bg-slate-800 text-orange-500"
-                    : "bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-white"
-                }`}
-                title="Notifications"
-              >
-                <Bell size={16} />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-orange-500 px-1 text-[8px] font-bold text-white shadow-[0_0_8px_rgba(249,115,22,0.4)]">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-
-              {/* Notifications drop panel */}
-              {showNotifications && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40 cursor-default"
-                    onClick={() => setShowNotifications(false)}
-                  />
-
-                  <div className="absolute right-0 top-12 z-50 w-72 sm:w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-800 bg-[#0d0e16]/95 backdrop-blur-md p-4 shadow-2xl text-slate-200">
-                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-800/60">
-                      <h3 className="font-bold text-xs text-white flex items-center gap-2">
-                        <Bell size={14} className="text-orange-500" />
-                        Notifications
-                      </h3>
-                      {unreadCount > 0 && (
-                        <button
-                          onClick={markAllRead}
-                          className="text-[10px] text-orange-400 hover:text-orange-300 font-semibold transition-colors flex items-center gap-1 cursor-pointer bg-transparent border-0 outline-none"
-                        >
-                          <CheckCheck size={12} />
-                          Mark all read
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="max-h-64 overflow-y-auto mt-2 space-y-2 pr-1 scrollbar-thin">
-                      {notifications.length === 0 ? (
-                        <div className="py-8 text-center text-[10px] text-slate-500">
-                          No notifications yet
-                        </div>
-                      ) : (
-                        notifications.map((n) => (
-                          <div
-                            key={n.id}
-                            onClick={() => {
-                              markAsRead(n.id);
-                              setShowNotifications(false);
-                            }}
-                            className={`flex gap-3 p-2.5 rounded-xl transition border text-left cursor-pointer ${
-                              n.read
-                                ? "bg-slate-900/10 hover:bg-slate-900/30 border-transparent"
-                                : "bg-orange-500/5 hover:bg-orange-500/10 border-orange-500/10"
-                            }`}
-                          >
-                            <div className="min-w-0 flex-1">
-                              <h4 className="font-bold text-xs text-white truncate">
-                                {n.title}
-                              </h4>
-                              <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed break-words">
-                                {n.message}
-                              </p>
-                            </div>
-                            {!n.read && (
-                              <div className="h-1.5 w-1.5 rounded-full bg-orange-500 self-center flex-shrink-0" />
-                            )}
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Logout button */}
-            <button
-              onClick={handleLogout}
-              className="bg-red-600/10 hover:bg-red-600 border border-red-500/20 text-red-400 hover:text-white transition p-2.5 min-h-[44px] min-w-[44px] rounded-xl flex items-center justify-center cursor-pointer outline-none"
-              title="Sign Out"
-            >
-              <FaSignOutAlt size={14} />
-            </button>
-          </div>
-        </header>
+        <LearnPageHeader
+          courseSidebarOpen={courseSidebarOpen}
+          onOpenSidebar={() => setCourseSidebarOpen(true)}
+          selectedLesson={selectedLesson}
+          course={course}
+          chatOpen={chatOpen}
+          chatUnreadCount={chatUnreadCount}
+          onToggleChat={toggleChat}
+          notifications={notifications}
+          unreadCount={unreadCount}
+          onMarkAllRead={markAllRead}
+          onNotificationItemClick={(n) => markAsRead(n.id)}
+          onLogout={handleLogout}
+        />
 
         {/* ========================================================== */}
         {/* FLUID RESPONSIVE WORKSPACE CONTAINER */}
@@ -845,7 +393,11 @@ export default function LearnPage() {
             page are visible at once, so explicit grid placement restores the
             original two-column arrangement regardless of DOM order.
           */}
-          <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6 lg:gap-8">
+          <div
+            className={`grid grid-cols-1 gap-6 lg:gap-8 transition-[grid-template-columns] duration-300 ease-in-out ${
+              rightPanelOpen ? "xl:grid-cols-[1fr_360px]" : "xl:grid-cols-[1fr_48px]"
+            }`}
+          >
 
             {/* VIDEO — the primary learning action: first below xl, row 2 of the left column on desktop */}
             <div className="space-y-4 min-w-0 row-start-1 xl:col-start-1 xl:row-start-2">
@@ -860,7 +412,7 @@ export default function LearnPage() {
                 </Link>
                 <button
                   type="button"
-                  onClick={handleBookmarkLesson}
+                  onClick={toggleLessonBookmark}
                   className={`p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl transition cursor-pointer border-0 outline-none -mr-2 ${
                     isLessonBookmarked ? "text-orange-400" : "text-slate-400 hover:text-white hover:bg-slate-900/60"
                   }`}
@@ -880,10 +432,12 @@ export default function LearnPage() {
                     <span className="px-2.5 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-[10px] font-black uppercase tracking-wider text-orange-400">
                       Lesson {currentLessonIndex >= 0 ? currentLessonIndex + 1 : 1} of {lessons.length || 1}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
-                      <Clock3 size={11} className="text-orange-500" />
-                      ~12 mins
-                    </span>
+                    {selectedLesson?.duration && selectedLesson.duration !== "N/A" && (
+                      <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+                        <Clock3 size={11} className="text-orange-500" />
+                        {selectedLesson.duration}
+                      </span>
+                    )}
                   </div>
                   <h3 className="text-sm sm:text-base font-black text-white flex items-center gap-2 tracking-wide truncate">
                     <PlayCircle className="text-orange-500 shrink-0" size={18} />
@@ -895,24 +449,28 @@ export default function LearnPage() {
                     version of this in the row below the player instead. */}
                 <button
                   type="button"
+                  disabled={isSelectedLessonCompleted}
                   onClick={markComplete}
-                  className="hidden xl:inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl bg-slate-900 hover:bg-orange-500 hover:text-slate-950 border border-slate-800 hover:border-orange-400 text-xs font-black uppercase tracking-wider text-slate-200 transition-all shadow-md cursor-pointer shrink-0 self-start sm:self-auto"
+                  className={`hidden xl:inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl border text-xs font-black uppercase tracking-wider transition-all shadow-md shrink-0 self-start sm:self-auto ${
+                    isSelectedLessonCompleted
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 cursor-default"
+                      : "bg-slate-900 hover:bg-orange-500 hover:text-slate-950 border-slate-800 hover:border-orange-400 text-slate-200 cursor-pointer"
+                  }`}
                 >
-                  <CheckCircle2 size={15} className="text-emerald-400 group-hover:text-slate-950" />
-                  <span>Mark Complete</span>
+                  <CheckCircle2 size={15} className={isSelectedLessonCompleted ? "text-emerald-400" : "text-emerald-400 group-hover:text-slate-950"} />
+                  <span>{isSelectedLessonCompleted ? "Completed" : "Mark Complete"}</span>
                 </button>
               </div>
 
-              <div data-topic-anchor={documentGroupedContents?.[0]?.topicId || undefined}>
-                <VideoPlayer
-                  ref={videoPlayerRef}
-                  content={documentGroupedContents?.[0]}
-                  onTimeUpdate={setCurrentTimestamp}
-                  onDurationChange={setVideoDuration}
-                  onEnded={handleVideoEnded}
-                  initialTime={initialTime}
-                />
-              </div>
+              <LessonContentBlock
+                item={documentGroupedContents?.[0]}
+                onVisited={handleContentVisited}
+                videoPlayerRef={videoPlayerRef}
+                onTimeUpdate={setCurrentTimestamp}
+                onDurationChange={setVideoDuration}
+                onEnded={handleVideoEnded}
+                initialTime={initialTime}
+              />
 
               {/* Remaining lesson content beyond the primary block above — e.g. a
                   video intro followed by a full written lecture, or several
@@ -922,9 +480,7 @@ export default function LearnPage() {
               {documentGroupedContents.length > 1 && (
                 <div className="space-y-4">
                   {documentGroupedContents.slice(1).map((item, idx) => (
-                    <div key={item.id || idx} data-topic-anchor={item.topicId || undefined}>
-                      <VideoPlayer content={item} />
-                    </div>
+                    <LessonContentBlock key={item.id || idx} item={item} onVisited={handleContentVisited} />
                   ))}
                 </div>
               )}
@@ -933,45 +489,20 @@ export default function LearnPage() {
                   under the player. Small on purpose: the video stays the focus,
                   these are just quick actions, not another card competing for
                   attention. Desktop keeps its own Mark Complete + fuller bar. */}
-              <div className="flex items-center gap-1.5 xl:hidden">
-                <button
-                  type="button"
-                  disabled={!previousLesson}
-                  onClick={() => {
-                    if (previousLesson) setSelectedLesson(previousLesson);
-                  }}
-                  className={`relative flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-xl border border-slate-700 font-bold text-[10px] uppercase tracking-wide text-slate-300 hover:text-white hover:border-orange-500 transition cursor-pointer before:content-[''] before:absolute before:-inset-y-[8px] before:inset-x-0 ${
-                    !previousLesson ? "opacity-30 cursor-not-allowed hover:border-slate-700 hover:text-slate-300" : ""
-                  }`}
-                >
-                  <ChevronLeft size={14} />
-                  <span>Prev</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={markComplete}
-                  className="relative flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-xl border border-emerald-500/30 text-emerald-400 hover:border-emerald-400 hover:text-emerald-300 font-bold text-[10px] uppercase tracking-wide transition cursor-pointer bg-transparent before:content-[''] before:absolute before:-inset-y-[8px] before:inset-x-0"
-                >
-                  <CheckCircle2 size={14} />
-                  <span>Complete</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={!nextLesson}
-                  onClick={() => {
-                    markComplete();
-                    if (nextLesson) setSelectedLesson(nextLesson);
-                  }}
-                  className={`relative flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-xl bg-orange-500 hover:bg-orange-600 font-bold text-[10px] uppercase tracking-wide text-slate-950 transition cursor-pointer before:content-[''] before:absolute before:-inset-y-[8px] before:inset-x-0 ${
-                    !nextLesson ? "opacity-40 cursor-not-allowed bg-orange-500/40 text-slate-400" : ""
-                  }`}
-                >
-                  <span>Next</span>
-                  <ChevronRight size={14} />
-                </button>
-              </div>
+              <LessonNavigationControls
+                variant="compact"
+                previousLesson={previousLesson}
+                nextLesson={nextLesson}
+                isSelectedLessonCompleted={isSelectedLessonCompleted}
+                onSelectPrevious={() => {
+                  if (previousLesson) setSelectedLesson(previousLesson);
+                }}
+                onMarkComplete={markComplete}
+                onSelectNext={() => {
+                  markComplete();
+                  if (nextLesson) setSelectedLesson(nextLesson);
+                }}
+              />
             </div>
 
             {/* CONTENT TAB STRIP — mobile & tablet only. Desktop shows every
@@ -995,7 +526,7 @@ export default function LearnPage() {
                   onScroll={updateTabScrollState}
                   className="flex items-center gap-1 overflow-x-auto scrollbar-none flex-1 min-w-0"
                 >
-                  {contentTabs.map((tab) => {
+                  {LEARN_PAGE_CONTENT_TABS.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeContentTab === tab.id;
                     return (
@@ -1056,7 +587,7 @@ export default function LearnPage() {
                 />
               )}
 
-              {activeContentTab === "query" && queryPanel}
+              {activeContentTab === "query" && askInstructorCard}
 
               {activeContentTab === "feedback" && feedbackPanel}
 
@@ -1079,16 +610,47 @@ export default function LearnPage() {
 
             <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-5">{resourcesPanel}</div>
 
-            <div className="hidden xl:flex xl:flex-col xl:gap-6 min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-8 xl:sticky xl:top-24 xl:h-fit">
-              <div className="xl:order-2">
-                <StickyNotesPanel
-                  lessonId={selectedLesson?.id}
-                  currentTimestamp={currentTimestamp}
-                  onSeek={handleTranscriptSeek}
-                />
-              </div>
-              <div className="xl:order-1">{queryPanel}</div>
-              <div className="xl:order-3">{feedbackPanel}</div>
+            <div
+              className={`hidden xl:flex xl:flex-col xl:gap-6 min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-8 xl:sticky xl:top-24 xl:h-fit transition-[width] duration-300 ease-in-out ${
+                rightPanelOpen ? "w-full xl:w-[360px]" : "w-full xl:w-12"
+              }`}
+            >
+              {rightPanelOpen ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setRightPanelOpen(false)}
+                    className="self-end flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-xl text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-white bg-slate-900/60 hover:bg-slate-800 border border-slate-800 transition cursor-pointer"
+                    title="Hide side panel"
+                    aria-label="Hide side panel"
+                  >
+                    <PanelRightClose size={14} />
+                    <span>Hide</span>
+                  </button>
+                  <div className="order-2">
+                    <StickyNotesPanel
+                      lessonId={selectedLesson?.id}
+                      currentTimestamp={currentTimestamp}
+                      onSeek={handleTranscriptSeek}
+                    />
+                  </div>
+                  <div className="order-1">{askInstructorCard}</div>
+                  <div className="order-3">{feedbackPanel}</div>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setRightPanelOpen(true)}
+                  className="flex flex-col items-center gap-3 w-12 rounded-2xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl py-4 hover:border-orange-500/40 hover:bg-slate-900 text-slate-400 hover:text-orange-400 transition cursor-pointer"
+                  title="Show side panel"
+                  aria-label="Show side panel"
+                >
+                  <PanelRightOpen size={16} className="shrink-0" />
+                  <span className="text-[9px] font-black uppercase tracking-widest [writing-mode:vertical-rl]">
+                    Panel
+                  </span>
+                </button>
+              )}
             </div>
 
             <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-6">{quizPanel}</div>
@@ -1126,8 +688,8 @@ export default function LearnPage() {
               {/* Minimal inline progress bar */}
               <div className="flex items-center gap-3 w-full sm:w-64 text-[10px] font-bold text-slate-500 pb-1">
                 <span className="uppercase tracking-widest text-[9px]">Progress</span>
-                <div className="flex-1 bg-slate-900 border border-slate-800 rounded-full h-1.5 overflow-hidden relative">
-                  <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full transition-all duration-300" style={{ width: `${courseProgress}%` }} />
+                <div className="flex-1">
+                  <ProgressBar value={courseProgress} size="xs" variant="gradient" />
                 </div>
                 <span className="text-orange-400 font-extrabold">{courseProgress}%</span>
               </div>
@@ -1154,10 +716,6 @@ export default function LearnPage() {
                       <BookOpen className="h-4 w-4 text-orange-500" />
                       <span>{course.modules?.length || 0} Modules</span>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <Clock3 className="h-4 w-4 text-orange-500" />
-                      <span>12h 30m</span>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1178,72 +736,26 @@ export default function LearnPage() {
                 right under the video player instead; "Continue to Next Module"
                 lives here where there's room for the fuller label. */}
             <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-8">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-[#0d0e16]/80 border border-[#1e2030] shadow-xl backdrop-blur-md min-w-0">
-                <button
-                  disabled={!previousLesson}
-                  onClick={() => {
-                    if (previousLesson) setSelectedLesson(previousLesson);
-                  }}
-                  className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl border border-slate-700 font-extrabold text-xs text-slate-300 hover:text-white hover:border-orange-500 transition cursor-pointer ${
-                    !previousLesson ? "opacity-30 cursor-not-allowed hover:border-slate-700 text-slate-500" : ""
-                  }`}
-                >
-                  <ChevronLeft size={16} />
-                  <span>Previous Lesson</span>
-                </button>
-
-                <div className="text-center font-mono py-1 sm:py-0 truncate max-w-full">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">
-                    Active Lesson Pathway
-                  </span>
-                  <p className="text-xs font-bold text-orange-400 truncate max-w-[200px] sm:max-w-[280px]">
-                    {selectedLesson?.title || "Course Lesson"}
-                  </p>
-                </div>
-
-                <button
-                  disabled={!nextLesson}
-                  onClick={() => {
-                    markComplete();
-                    if (nextLesson) setSelectedLesson(nextLesson);
-                  }}
-                  className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] rounded-xl bg-orange-500 hover:bg-orange-600 font-black text-xs text-slate-950 transition shadow-lg shadow-orange-500/20 active:scale-95 cursor-pointer ${
-                    !nextLesson ? "opacity-40 cursor-not-allowed bg-orange-500/40 text-slate-400" : ""
-                  }`}
-                >
-                  <span>
-                    {nextLesson
-                      ? nextModule
-                        ? `Continue to ${nextModule.title}`
-                        : "Next Lesson"
-                      : "Course Completed 🎉"}
-                  </span>
-                  <ChevronRight size={16} />
-                </button>
-              </div>
+              <LessonNavigationControls
+                variant="full"
+                previousLesson={previousLesson}
+                nextLesson={nextLesson}
+                nextModule={nextModule}
+                selectedLesson={selectedLesson}
+                onSelectPrevious={() => {
+                  if (previousLesson) setSelectedLesson(previousLesson);
+                }}
+                onSelectNext={() => {
+                  markComplete();
+                  if (nextLesson) setSelectedLesson(nextLesson);
+                }}
+              />
             </div>
 
           </div>
         </div>
         <ChatWidget />
       </div>
-
-      {/* QUIZ ATTEMPT — same QuizExperience component either way; only the
-          presentation shell changes. Desktop (>= lg): centered modal over a
-          backdrop. Mobile (< lg): the inner panel fills the fixed overlay
-          edge-to-edge, so it reads as a dedicated full-screen quiz page
-          rather than a popup. Local state, not a route change, so the
-          Learning Page underneath (video, lesson, scroll) is untouched and
-          reappears exactly as it was the moment this closes. */}
-      {activeQuizId && (
-        <div className="fixed inset-0 z-[60] bg-black/70 lg:flex lg:items-center lg:justify-center lg:p-4">
-          <div className="h-full w-full overflow-y-auto overscroll-contain bg-[#07080f] lg:h-auto lg:max-h-[90vh] lg:max-w-4xl lg:rounded-2xl lg:border lg:border-slate-800 lg:shadow-2xl">
-            <div className="p-4 sm:p-6">
-              <QuizExperience quizId={activeQuizId} onBack={() => setActiveQuizId(null)} />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -15,12 +15,12 @@ export function useDeleteQuiz() {
         mutationFn: ({ quizId }) =>
             deleteQuiz(quizId),
 
-        onSuccess: (_, variables) => {
+        onSuccess: () => {
+            // No courseId suffix: matches every useQuizzes() cache entry,
+            // both the global (no-arg) list and any course-scoped ones —
+            // a courseId-scoped key here would miss the global list.
             queryClient.invalidateQueries({
-                queryKey: [
-                    QUERY_KEYS.QUIZZES,
-                    variables.courseId,
-                ],
+                queryKey: [QUERY_KEYS.QUIZZES],
             });
 
             queryClient.invalidateQueries({

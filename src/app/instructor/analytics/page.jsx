@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { BarChart2, Video } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
-import api from "@/lib/axios";
 import Card from "@/components/ui/Card";
 import Loader from "@/components/common/Loader";
 import ConceptMastery from "@/components/tables/ConceptMastery";
+
+import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
+import { useDashboardKPIs, useConceptMastery } from "@/hooks/queries/instructor/useInstructorDashboard";
 
 // Dynamically imported so recharts (bundled once per dynamic() boundary
 // instead of once per static-import route) is shared across every
@@ -24,13 +25,7 @@ function InstructorAnalyticsContent() {
   const urlCourseId = searchParams.get("courseId") || "";
   const [selectedCourseId, setSelectedCourseId] = useState(urlCourseId);
 
-  const { data: courses = [], isLoading: loadingCourses } = useQuery({
-    queryKey: ["instructorCoursesList"],
-    queryFn: async () => {
-      const { data } = await api.get("/courses");
-      return data.data ?? data;
-    },
-  });
+  const { data: courses = [], isLoading: loadingCourses } = useInstructorCourses();
 
   useEffect(() => {
     if (!selectedCourseId && courses.length > 0) {
@@ -38,18 +33,11 @@ function InstructorAnalyticsContent() {
     }
   }, [courses, selectedCourseId]);
 
-  const { data: dashboardData } = useQuery({
-    queryKey: ["instructorDashboard", selectedCourseId],
-    queryFn: async () => {
-      if (!selectedCourseId) return null;
-      const { data } = await api.get(`/dashboard/instructor?courseId=${selectedCourseId}`);
-      return data.data ?? data;
-    },
-    enabled: !!selectedCourseId,
-  });
+  const { data: kpis = [] } = useDashboardKPIs(selectedCourseId);
+  const { data: conceptMasteryData = [] } = useConceptMastery(selectedCourseId);
 
   const activeCourse = courses.find((c) => c.id === selectedCourseId) || null;
-  const videoKpi = dashboardData?.kpis?.find((k) => k.title === "Total Video Watch Time");
+  const videoKpi = kpis.find((k) => k.title === "Total Video Watch Time");
 
   if (loadingCourses) return <Loader />;
 
@@ -100,10 +88,7 @@ function InstructorAnalyticsContent() {
 
           <StudentEngagement courseId={selectedCourseId} />
 
-          <ConceptMastery
-            title="Module & Quiz Concept Mastery"
-            subtitle="Average percentage score metrics across lesson groups"
-          />
+          <ConceptMastery data={conceptMasteryData} />
         </div>
       )}
     </div>

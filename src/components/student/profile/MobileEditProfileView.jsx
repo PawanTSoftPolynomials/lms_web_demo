@@ -26,7 +26,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
       if (student.dateOfBirth) {
         try {
           dobStr = new Date(student.dateOfBirth).toISOString().split("T")[0];
-        } catch (e) {
+        } catch {
           dobStr = "";
         }
       }

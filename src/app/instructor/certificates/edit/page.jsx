@@ -1,22 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, CheckCircle2, User, BookOpen, Calendar, Edit3, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import useAuth from "@/hooks/useAuth";
-import api from "@/lib/axios";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { updateCertificate } from "@/services/certificate.service";
-import { useInstructorCertificates } from "@/hooks/queries/instructor/useCertificates";
-import { QUERY_KEYS } from "@/constants/queryKeys";
+
+import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
+import { useCourseStudents } from "@/hooks/queries/instructor/useCourseStudents";
+import { useInstructorCertificates, useUpdateCertificate } from "@/hooks/queries/instructor/useCertificates";
 
 export default function UpdateCertificatePage() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { user } = useAuth();
 
   const [selectedCertId, setSelectedCertId] = useState("");
@@ -29,31 +27,12 @@ export default function UpdateCertificatePage() {
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Fetch all certificates issued by instructor
-  const { data: certificatesData = [], isLoading: loadingCerts } = useInstructorCertificates(user?.id);
-  
-  const certificates = certificatesData;
+  const { data: certificates = [], isLoading: loadingCerts } = useInstructorCertificates(user?.id);
 
-  // Fetch Instructor's Courses
-  const { data: courses = [], isLoading: loadingCourses } = useQuery({
-    queryKey: ["instructorCoursesList"],
-    queryFn: async () => {
-      const { data } = await api.get("/courses");
-      return data.data ?? data;
-    },
-  });
+  const { data: courses = [], isLoading: loadingCourses } = useInstructorCourses();
   const myCourses = courses.filter((c) => c.creatorId === user?.id && c.status === "PUBLISHED");
 
-  // Fetch Students for selected course
-  const { data: students = [], isLoading: loadingStudents } = useQuery({
-    queryKey: ["courseStudents", courseId],
-    queryFn: async () => {
-      if (!courseId) return [];
-      const { data } = await api.get(`/courses/${courseId}/students`);
-      return data;
-    },
-    enabled: !!courseId,
-  });
+  const { data: students = [], isLoading: loadingStudents } = useCourseStudents(courseId);
 
   // Pre-fill form when certificate is selected
   useEffect(() => {
@@ -73,21 +52,7 @@ export default function UpdateCertificatePage() {
     }
   }, [selectedCertId, certificates]);
 
-  const updateMutation = useMutation({
-    mutationFn: async (data) => {
-      return await updateCertificate(selectedCertId, data);
-    },
-    onSuccess: () => {
-      setSuccessMsg("Certificate updated successfully!");
-      setErrorMsg("");
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CERTIFICATES] });
-      setTimeout(() => router.push("/instructor/dashboard"), 2000);
-    },
-    onError: (err) => {
-      setErrorMsg(err.response?.data?.message || "Failed to update certificate. The API might not be fully configured yet.");
-      setSuccessMsg("");
-    }
-  });
+  const updateMutation = useUpdateCertificate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -95,11 +60,27 @@ export default function UpdateCertificatePage() {
       setErrorMsg("Please fill all required fields.");
       return;
     }
-    updateMutation.mutate({
-      courseId,
-      userId: studentId,
-      issuedAt: new Date(issuedAt).toISOString(),
-    });
+    updateMutation.mutate(
+      {
+        certificateId: selectedCertId,
+        data: {
+          courseId,
+          userId: studentId,
+          issuedAt: new Date(issuedAt).toISOString(),
+        },
+      },
+      {
+        onSuccess: () => {
+          setSuccessMsg("Certificate updated successfully!");
+          setErrorMsg("");
+          setTimeout(() => router.push("/instructor/dashboard"), 2000);
+        },
+        onError: (err) => {
+          setErrorMsg(err.response?.data?.message || "Failed to update certificate. The API might not be fully configured yet.");
+          setSuccessMsg("");
+        },
+      }
+    );
   };
 
   return (

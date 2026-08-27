@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { Users, BookOpen, ClipboardList, HelpCircle, Video, Calendar } from "lucide-react";
 
 import { useBatchDashboard } from "@/hooks/queries/student/useBatches";
+import { formatShortDate } from "@/lib/dateUtils";
 
 function StatTile({ icon: Icon, label, value, color, bg }) {
   return (
@@ -38,9 +39,7 @@ export default function BatchOverviewPage() {
   const lessonsCount = dashboard.course?.modules?.reduce((sum, m) => sum + (m.lessons?.length ?? 0), 0) ?? 0;
   const quizzesCount = dashboard.course?.quizzes?.length ?? 0;
   const assignmentsCount = dashboard.course?.assignments?.length ?? 0;
-  const startedLabel = dashboard.startDate
-    ? new Date(dashboard.startDate).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })
-    : "—";
+  const startedLabel = formatShortDate(dashboard.startDate, "—");
 
   return (
     <div className="space-y-4">

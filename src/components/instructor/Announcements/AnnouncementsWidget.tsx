@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Megaphone, Plus, X } from "lucide-react";
 
-import { createCourseAnnouncement } from "@/services/announcement.service";
+import { useCreateCourseAnnouncement } from "@/hooks/queries/instructor/useCreateCourseAnnouncement";
 import { Button } from "@/components/ui/shadcn/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/shadcn/card";
 import { Skeleton } from "@/components/ui/shadcn/skeleton";
@@ -23,25 +22,27 @@ export function AnnouncementsWidget({ announcements, courses, isLoading }: Annou
   const [courseId, setCourseId] = useState("");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const queryClient = useQueryClient();
   const { showToast } = useToast() ?? { showToast: () => {} };
 
-  const mutation = useMutation({
-    mutationFn: async () => {
-      return await createCourseAnnouncement(courseId, { title, message: body });
-    },
-    onSuccess: () => {
-      showToast("Announcement posted", "success");
-      setIsCreating(false);
-      setTitle("");
-      setBody("");
-      setCourseId("");
-      queryClient.invalidateQueries({ queryKey: ["instructor-home", "announcements"] });
-    },
-    onError: () => {
-      showToast("Couldn't post the announcement. Please try again.", "error");
-    },
-  });
+  const mutation = useCreateCourseAnnouncement();
+
+  const handleCreate = () => {
+    mutation.mutate(
+      { courseId, title, message: body },
+      {
+        onSuccess: () => {
+          showToast("Announcement posted", "success");
+          setIsCreating(false);
+          setTitle("");
+          setBody("");
+          setCourseId("");
+        },
+        onError: () => {
+          showToast("Couldn't post the announcement. Please try again.", "error");
+        },
+      }
+    );
+  };
 
   return (
     <Card>
@@ -72,7 +73,7 @@ export function AnnouncementsWidget({ announcements, courses, isLoading }: Annou
             onSubmit={(e) => {
               e.preventDefault();
               if (!courseId || !title.trim()) return;
-              mutation.mutate();
+              handleCreate();
             }}
             className="rounded-xl border border-card-border bg-surface-muted/40 p-3.5 space-y-2.5"
           >
