@@ -28,6 +28,13 @@ const STATUS_BADGE_VARIANT = {
   Completed: "success",
 };
 
+/**
+ * Same fixed banner color as the instructor "My Courses" grid card
+ * (CourseGridCard) so both roles share one visual language — kept as its
+ * own copy since the two cards' data shapes (and future edits) diverge.
+ */
+const THEME = { gradient: "bg-gradient-to-br from-teal-500 to-teal-700", viewText: "text-teal-900" };
+
 function Stat({ icon: Icon, value, label }) {
   return (
     <div className="flex flex-col items-center gap-0.5 md:gap-1 rounded-lg border border-border bg-muted/60 py-1 md:py-2 text-foreground">
@@ -40,9 +47,9 @@ function Stat({ icon: Icon, value, label }) {
   );
 }
 
-/** My Courses grid card for students — same card shell as the instructor
- *  CourseGridCard (banner, stat pills, audit row, edit/view-style actions),
- *  driven by enrollment + progress data. */
+/** My Courses grid card for students — same bold gradient shell as the
+ *  instructor CourseGridCard (banner, translucent stat pills, audit row,
+ *  edit/view-style actions), driven by enrollment + progress data. */
 export default function MyCourseCard({ enrollment, course: rawCourse }) {
   const router = useRouter();
   const course = enrollment?.course || rawCourse;
@@ -66,7 +73,9 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
 
   const isComplete = isEnrolled && progress >= 100;
   const status = isEnrolled ? (isComplete ? "Completed" : progress > 0 ? "In Progress" : "Enrolled") : (course.level || "Available");
-  const accentBar = isEnrolled ? ACCENT_BAR[status] : "bg-primary";
+  const statusStyle = isEnrolled ? STATUS_STYLES[status] : { dot: "bg-orange-400", pill: "bg-orange-500/20 text-orange-200 border-orange-500/30" };
+  const accent = isEnrolled ? STATUS_ACCENT[status] : "from-orange-400 via-orange-400/60 to-transparent";
+  const theme = THEME;
 
   const instructorName = course.creator?.name ?? course.instructor ?? "Instructor";
 

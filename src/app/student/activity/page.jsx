@@ -12,20 +12,8 @@ import useQuizzes from "@/hooks/queries/student/useQuizzes";
 import useCertificates from "@/hooks/queries/student/useCertificates";
 import { useMyAchievements } from "@/hooks/queries/student/useAchievements";
 import { useNotes } from "@/hooks/queries/student/useNotes";
-
-const FILTERS = ["All", "Quizzes", "Certificates", "Achievements", "Notes"];
-
-function timeAgo(timestamp) {
-  const diffMs = Date.now() - timestamp;
-  const minutes = Math.floor(diffMs / (1000 * 60));
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
+import { ACTIVITY_FILTERS } from "@/features/student/constants/activityConfig";
+import { timeAgo } from "@/lib/dateUtils";
 
 const TYPE_META = {
   quiz: { label: "Quizzes", icon: Star, color: "text-purple-400 bg-purple-500/10" },
@@ -121,7 +109,7 @@ export default function StudentActivityPage() {
       <PageHeader title="Activity" subtitle="A timeline of what you've actually done — quizzes, certificates, achievements, and notes." />
 
       <div className="flex flex-wrap gap-2">
-        {FILTERS.map((f) => (
+        {ACTIVITY_FILTERS.map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}

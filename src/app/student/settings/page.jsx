@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import useProfile from "@/hooks/queries/student/useProfile";
 import useUpdateProfile from "@/hooks/queries/student/useUpdateProfile";
+import { SETTINGS_TABS } from "@/features/student/constants/settingsConfig";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("Profile");
@@ -125,7 +126,7 @@ export default function SettingsPage() {
 
       {/* 2. Page Navigation Tabs */}
       <div className="flex border-b border-slate-800 mb-8 gap-6 text-sm font-bold overflow-x-auto whitespace-nowrap scrollbar-none">
-        {["Profile", "Account", "Notifications", "Privacy", "Security", "Preferences", "Connected Apps"].map((tab) => (
+        {SETTINGS_TABS.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}

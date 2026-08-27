@@ -163,36 +163,41 @@ const HOVER_VISIBLE_CLASSES = {
 /** A single, subtle settings/kebab icon — the one action affordance per row, visible on hover/focus. */
 function RowMenu({ groupName, items }) {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          onClick={(e) => e.stopPropagation()}
-          className={`${HOVER_VISIBLE_CLASSES[groupName]} p-1 text-slate-400 hover:text-white rounded transition cursor-pointer shrink-0`}
-          aria-label="Actions"
-        >
-          <MoreVertical size={13} />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bg-slate-950 border-slate-800 text-slate-200">
-        {items.map((item, idx) =>
-          item.separator ? (
-            <DropdownMenuSeparator key={`sep-${idx}`} className="bg-slate-800" />
-          ) : (
-            <DropdownMenuItem
-              key={item.label}
-              disabled={item.disabled}
-              variant={item.destructive ? "destructive" : "default"}
-              onSelect={item.onSelect}
-              className={`cursor-pointer ${item.destructive ? "text-red-400 hover:bg-red-950/40" : "hover:bg-slate-900"}`}
-            >
-              <item.icon className="mr-2 size-3" />
-              {item.label}
-            </DropdownMenuItem>
-          )
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div onClick={(e) => e.stopPropagation()}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            onClick={(e) => e.stopPropagation()}
+            className={`${HOVER_VISIBLE_CLASSES[groupName]} p-1 text-slate-400 hover:text-white rounded transition cursor-pointer shrink-0`}
+            aria-label="Actions"
+          >
+            <MoreVertical size={13} />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="bg-slate-950 border-slate-800 text-slate-200" onClick={(e) => e.stopPropagation()}>
+          {items.map((item, idx) =>
+            item.separator ? (
+              <DropdownMenuSeparator key={`sep-${idx}`} className="bg-slate-800" />
+            ) : (
+              <DropdownMenuItem
+                key={item.label}
+                disabled={item.disabled}
+                variant={item.destructive ? "destructive" : "default"}
+                onClick={(e) => e.stopPropagation()}
+                onSelect={(e) => {
+                  item.onSelect?.(e);
+                }}
+                className={`cursor-pointer ${item.destructive ? "text-red-400 hover:bg-red-950/40" : "hover:bg-slate-900"}`}
+              >
+                <item.icon className="mr-2 size-3" />
+                {item.label}
+              </DropdownMenuItem>
+            )
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }
 
@@ -327,6 +332,7 @@ export function CourseComposerSidebar({
   onSelectTopic,
   onSelectContent,
   onAddLesson,
+  onAddQuizToCourse,
   onAddQuizToModule,
   onAddQuizToLesson,
   onAddQuizToTopic,
@@ -440,16 +446,26 @@ export function CourseComposerSidebar({
       )}
 
       {/* Course Overview Root Item */}
-      <div
-        className={`flex items-center gap-2 px-3 py-2.5 rounded-xl transition cursor-pointer text-xs mb-1 shrink-0 border-l-[3px] ${
-          composerMode === "course"
-            ? "bg-orange-500/15 border-orange-500 text-orange-400 font-bold"
-            : "border-transparent text-slate-300 hover:bg-slate-900"
-        }`}
-        onClick={onSelectCourseOverview}
-      >
-        <Home size={14} className={composerMode === "course" ? "text-orange-400 shrink-0" : "text-slate-400 shrink-0"} />
-        <span className="truncate font-semibold">Course Overview</span>
+      <div className="flex items-center justify-between gap-1 mb-1 shrink-0 group/module">
+        <div
+          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl transition cursor-pointer text-xs flex-1 border-l-[3px] ${
+            composerMode === "course"
+              ? "bg-orange-500/15 border-orange-500 text-orange-400 font-bold"
+              : "border-transparent text-slate-300 hover:bg-slate-900"
+          }`}
+          onClick={onSelectCourseOverview}
+        >
+          <Home size={14} className={composerMode === "course" ? "text-orange-400 shrink-0" : "text-slate-400 shrink-0"} />
+          <span className="truncate font-semibold">Course Overview</span>
+        </div>
+        {role === "INSTRUCTOR" && (
+          <RowMenu
+            groupName="module"
+            items={[
+              { label: "Add Course Quiz", icon: HelpCircle, onSelect: () => onAddQuizToCourse?.() },
+            ]}
+          />
+        )}
       </div>
 
       {/* Course-Level Quizzes (when present) */}
@@ -890,7 +906,7 @@ export function CourseComposerSidebar({
                                                             ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
                                                             : "border-transparent text-emerald-300/80 hover:text-emerald-300 hover:bg-slate-900/60"
                                                         }`}
-                                                        onClick={() => onSelectQuiz?.(quiz, mod, lesson)}
+                                                        onClick={() => onSelectQuiz?.(quiz, mod, lesson, topic)}
                                                       >
                                                         <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                                           <HelpCircle size={13} className="text-emerald-400 shrink-0" />
@@ -907,24 +923,24 @@ export function CourseComposerSidebar({
                                                                 {
                                                                   label: "Edit Quiz",
                                                                   icon: Pencil,
-                                                                  onSelect: () => onSelectQuiz?.(quiz, mod, lesson, { startEditing: true }),
+                                                                  onSelect: () => onSelectQuiz?.(quiz, mod, lesson, topic, { startEditing: true }),
                                                                 },
                                                                 {
                                                                   label: "Preview Quiz",
                                                                   icon: Eye,
-                                                                  onSelect: () => onSelectQuiz?.(quiz, mod, lesson, { startEditing: false }),
+                                                                  onSelect: () => onSelectQuiz?.(quiz, mod, lesson, topic, { startEditing: false }),
                                                                 },
                                                                 {
                                                                   label: "Duplicate Quiz",
                                                                   icon: Copy,
-                                                                  onSelect: () => onDuplicateQuiz?.(quiz, mod, lesson),
+                                                                  onSelect: () => onDuplicateQuiz?.(quiz, mod, lesson, topic),
                                                                 },
                                                                 { separator: true },
                                                                 {
                                                                   label: "Delete Quiz",
                                                                   icon: Trash2,
                                                                   destructive: true,
-                                                                  onSelect: (e) => onDeleteQuiz?.(e, quiz, mod, lesson),
+                                                                  onSelect: (e) => onDeleteQuiz?.(e, quiz, mod, lesson, topic),
                                                                 },
                                                               ]}
                                                             />

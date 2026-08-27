@@ -4,49 +4,28 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, Search } from "lucide-react";
 
+import PageHeader from "@/components/layouts/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import MyCourseCard from "@/components/student/my-courses/MyCourseCard";
-import useDashboard from "@/hooks/queries/student/useDashboard";
-import useCourses from "@/hooks/queries/student/useCourses";
 import useMyCourses from "@/hooks/queries/student/useMyCourses";
+import { STATUS_OPTIONS, SORT_OPTIONS } from "@/features/student/constants/myCoursesConfig";
 
 export default function MyCoursesPage() {
   const router = useRouter();
-  const { data: dashboardData, isLoading, isError, refetch } = useDashboard();
-  const { data: catalogCourses = [] } = useCourses();
-  const { data: myEnrollments = [] } = useMyCourses();
+  const { data: myEnrollments = [], isLoading, isError, refetch } = useMyCourses();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [instructorFilter, setInstructorFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
 
-  const enrolledCourses = useMemo(() => dashboardData?.enrolledCoursesList ?? [], [dashboardData]);
-
-  const catalogById = useMemo(() => new Map(catalogCourses.map((c) => [c.id, c])), [catalogCourses]);
-  const lastAccessedByCourseId = useMemo(
-    () => new Map(myEnrollments.map((e) => [e.course?.id || e.courseId, e.lastAccessedAt])),
+  const instructors = useMemo(
+    () => Array.from(new Set(myEnrollments.map((e) => e.course?.instructor).filter(Boolean))),
     [myEnrollments]
   );
 
-  const instructors = useMemo(
-    () => Array.from(new Set(enrolledCourses.map((e) => e.course?.instructor).filter(Boolean))),
-    [enrolledCourses]
-  );
-
   const filteredCourses = useMemo(() => {
-    let list = enrolledCourses.map((e) => {
-      const catalogCourse = catalogById.get(e.course?.id);
-      return {
-        ...e,
-        lastAccessedAt: lastAccessedByCourseId.get(e.course?.id),
-        course: {
-          ...e.course,
-          ...catalogCourse,
-          thumbnailUrl: catalogCourse?.thumbnailUrl || e.course?.thumbnailUrl,
-        },
-      };
-    });
+    let list = [...myEnrollments];
 
     if (search.trim()) {
       const q = search.trim().toLowerCase();
@@ -65,14 +44,13 @@ export default function MyCoursesPage() {
       list = list.filter((e) => e.course?.instructor === instructorFilter);
     }
 
-    const sorted = [...list];
     if (sortBy === "progress") {
-      sorted.sort((a, b) => (b.progress ?? 0) - (a.progress ?? 0));
+      list.sort((a, b) => (b.progress ?? 0) - (a.progress ?? 0));
     } else if (sortBy === "name") {
-      sorted.sort((a, b) => (a.course?.title || "").localeCompare(b.course?.title || ""));
+      list.sort((a, b) => (a.course?.title || "").localeCompare(b.course?.title || ""));
     }
-    return sorted;
-  }, [enrolledCourses, catalogById, lastAccessedByCourseId, search, statusFilter, instructorFilter, sortBy]);
+    return list;
+  }, [myEnrollments, search, statusFilter, instructorFilter, sortBy]);
 
   // Mobile carousel: tracks centered card for pagination dots
   const sliderRef = useRef(null);
@@ -111,19 +89,13 @@ export default function MyCoursesPage() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Header & Search / Filters Bar */}
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4">
-        <div className="shrink-0">
-          <h1 className="text-xl md:text-4xl font-bold text-white">
-            My Courses{!isLoading && enrolledCourses.length ? ` (${filteredCourses.length})` : ""}
-          </h1>
-          <p className="hidden md:block text-slate-400 mt-2 text-sm md:text-base">
-            Track your progress and continue learning your enrolled courses.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:contents">
-          <div className="relative w-full min-w-0 md:max-w-xs">
+      <PageHeader
+        title={`My Courses${!isLoading && myEnrollments.length ? ` (${filteredCourses.length})` : ""}`}
+        subtitle="Track your progress and continue learning your enrolled courses."
+        className="mb-0 sm:mb-0"
+      >
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
+          <div className="relative w-full min-w-0 md:w-64">
             <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
@@ -140,9 +112,11 @@ export default function MyCoursesPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="rounded-xl border border-[#1A1F35] bg-[#0D1021] px-3 py-2 md:py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer hover:border-slate-700 transition"
             >
-              <option value="all">All Status</option>
-              <option value="in-progress">In Progress</option>
-              <option value="completed">Completed</option>
+              {STATUS_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
 
             <select
@@ -163,25 +137,27 @@ export default function MyCoursesPage() {
               onChange={(e) => setSortBy(e.target.value)}
               className="rounded-xl border border-[#1A1F35] bg-[#0D1021] px-3 py-2 md:py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer hover:border-slate-700 transition"
             >
-              <option value="recent">Sort: Recently Joined</option>
-              <option value="progress">Sort: Progress</option>
-              <option value="name">Sort: Name</option>
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
-      </div>
+      </PageHeader>
 
       {isError ? (
         <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] py-16 text-center space-y-3">
           <p className="text-sm font-bold text-slate-300">Unable to load your courses.</p>
           <button
             onClick={() => refetch()}
-            className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition"
+            className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition cursor-pointer"
           >
             Retry
           </button>
         </div>
-      ) : !isLoading && enrolledCourses.length === 0 ? (
+      ) : !isLoading && myEnrollments.length === 0 ? (
         <EmptyState
           icon={BookOpen}
           title="No Enrolled Courses Yet"
@@ -210,8 +186,8 @@ export default function MyCoursesPage() {
                     <EmptyState title="No courses match your current filters." />
                   </div>
                 )
-                : filteredCourses.map((enrollment, index) => (
-                    <MyCourseCard key={enrollment.id || enrollment.courseId} enrollment={enrollment} index={index} />
+                : filteredCourses.map((enrollment) => (
+                    <MyCourseCard key={enrollment.id || enrollment.courseId} enrollment={enrollment} />
                   ))}
             </div>
 

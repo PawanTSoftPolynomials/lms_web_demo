@@ -6,13 +6,9 @@ import {
   BookOpen,
   Bookmark,
   BookmarkCheck,
-  Download,
 } from "lucide-react";
-import {
-  useBookmarks,
-  useCreateBookmark,
-  useDeleteBookmark,
-} from "@/hooks/queries/student/useBookmarks";
+import useLessonBookmarkToggle from "@/hooks/queries/student/useLessonBookmarkToggle";
+import LessonResourcesPanel from "@/components/student/learning/LessonResourcesPanel";
 
 export default function LessonTabs({ lesson, course }) {
   const [activeTab, setActiveTab] = useState("overview");
@@ -25,42 +21,7 @@ export default function LessonTabs({ lesson, course }) {
     }
   }, [lesson?.id]);
 
-  const { data: bookmarks = [] } = useBookmarks();
-  const createBookmarkMutation = useCreateBookmark();
-  const deleteBookmarkMutation = useDeleteBookmark();
-
-  const isLessonBookmarked =
-    bookmarks?.some(
-      (b) => b.lessonId === lesson?.id && b.type === "Lesson"
-    ) || false;
-
-  const handleBookmarkLesson = async () => {
-    if (!lesson) return;
-    if (isLessonBookmarked) {
-      const bookmark = bookmarks?.find(
-        (b) => b.lessonId === lesson?.id && b.type === "Lesson"
-      );
-      if (bookmark) {
-        try {
-          await deleteBookmarkMutation.mutateAsync(bookmark.id);
-        } catch (error) {
-          console.error(error);
-        }
-      }
-    } else {
-      try {
-        await createBookmarkMutation.mutateAsync({
-          type: "Lesson",
-          title: lesson.title,
-          detail: course?.title || "",
-          courseId: course?.id || "",
-          lessonId: lesson.id,
-        });
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  };
+  const { isLessonBookmarked, toggleLessonBookmark } = useLessonBookmarkToggle(lesson, course);
 
   if (!lesson) {
     return (
@@ -149,7 +110,7 @@ export default function LessonTabs({ lesson, course }) {
 
               <button
                 type="button"
-                onClick={handleBookmarkLesson}
+                onClick={toggleLessonBookmark}
                 className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold transition cursor-pointer shrink-0 ${
                   isLessonBookmarked
                     ? "bg-orange-500 text-slate-950 border-orange-400 shadow-md"
@@ -191,54 +152,12 @@ export default function LessonTabs({ lesson, course }) {
 
             {/* Section 1: Uploaded File Attachments */}
             <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-3">
-              {/* Uploaded File Attachments Grid */}
-              {instructorAttachments.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                  {instructorAttachments.map((file, idx) => (
-                    <div
-                      key={file.id || idx}
-                      className="p-3 rounded-xl bg-slate-900/40 border border-slate-800/80 flex items-center justify-between hover:border-orange-500/40 transition group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0 pr-2">
-                        <div className="h-8 w-8 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
-                          <Download size={14} />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-white truncate group-hover:text-orange-400 transition">
-                            {file.title || "Class Attachment"}
-                          </p>
-                          <span className="text-[10px] text-slate-500 font-mono uppercase">
-                            {file.type || "FILE"} &bull; Ready
-                          </span>
-                        </div>
-                      </div>
-
-                      {file.fileUrl ? (
-                        <a
-                          href={
-                            file.fileUrl.startsWith("http")
-                              ? file.fileUrl
-                              : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${file.fileUrl}`
-                          }
-                          target="_blank"
-                          rel="noreferrer"
-                          download
-                          className="px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-[10px] uppercase tracking-wider flex items-center gap-1 transition shadow-md shrink-0 cursor-pointer"
-                        >
-                          <Download size={11} />
-                          <span>Get</span>
-                        </a>
-                      ) : (
-                        <span className="text-[10px] text-slate-500 italic">No File</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-4 rounded-xl bg-slate-900/20 border border-dashed border-slate-800 text-center text-slate-500 text-xs">
-                  No downloadable file attachments uploaded for this lesson.
-                </div>
-              )}
+              <LessonResourcesPanel
+                attachments={instructorAttachments}
+                columns={2}
+                showReadyBadge
+                emptyMessage="No downloadable file attachments uploaded for this lesson."
+              />
             </div>
 
             {/* Section 2: Personal Student Notes */}

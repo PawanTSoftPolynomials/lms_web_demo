@@ -101,6 +101,13 @@ export const updateCourse = async (
 export const deleteCourse = async (
     courseId
 ) => {
+    if (courseId === "draft" || courseId === "new") {
+        if (typeof window !== "undefined") {
+            sessionStorage.removeItem("imported_course_draft");
+        }
+        return { success: true, message: "Course draft discarded locally" };
+    }
+
     const {data} = await api.delete(
         `/courses/${courseId}`
     );

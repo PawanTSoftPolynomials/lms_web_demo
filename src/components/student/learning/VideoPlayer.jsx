@@ -9,10 +9,7 @@ import {
     Presentation,
     ChevronLeft,
     ChevronRight,
-    Code2,
     Music,
-    AppWindow,
-    ListChecks,
 } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
 
@@ -20,20 +17,14 @@ import { getYouTubeVideoId, isYouTubeUrl as isYoutubeUrl } from "@/lib/youtube";
 import { getDisplayUrl } from "@/lib/blob";
 import MarkdownRenderer from "@/components/ui/MarkdownEditor/MarkdownRenderer";
 import { unescapeFromContentApi } from "@/lib/markdown";
+import PdfViewer from "@/components/student/learn/PdfViewer";
+import PptViewer from "@/components/shared/PptViewer";
+import ExternalDocumentViewer from "@/components/shared/ExternalDocumentViewer";
 
 const isGoogleSlidesUrl = (url) => Boolean(url?.includes("docs.google.com/presentation"));
 const getGoogleSlidesEmbedUrl = (url) => {
     if (!url) return "";
     return url.replace(/\/edit(\?.*)?$/, "/embed").replace(/\/pub(\?.*)?$/, "/embed");
-};
-const isOfficeDoc = (url) => {
-    if (!url) return false;
-    const lower = url.toLowerCase();
-    return lower.endsWith(".ppt") || lower.endsWith(".pptx") || lower.endsWith(".doc") || lower.endsWith(".docx");
-};
-const isPdf = (url) => {
-    if (!url) return false;
-    return url.toLowerCase().endsWith(".pdf");
 };
 const parseSlides = (html) => {
     if (!html) return [];
@@ -282,36 +273,15 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
                 {/* FILE / DOCUMENT (PDFs / PPTs / Docs / Resources) */}
                 {isFileLike && (
-                    isPdf(fileUrl) ? (
-                        <iframe
-                            src={displayFileUrl}
-                            className="h-[320px] sm:h-[420px] md:h-[520px] w-full border-none bg-slate-800"
-                            title={content.title}
-                        />
-                    ) : isOfficeDoc(fileUrl) ? (
-                        <iframe
-                            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-                                typeof window !== "undefined"
-                                    ? new URL(displayFileUrl, window.location.origin).href
-                                    : displayFileUrl
-                            )}`}
-                            className="h-[320px] sm:h-[420px] md:h-[520px] w-full border-none bg-slate-800"
-                            title={content.title}
-                        />
-                    ) : (
-                        <div className="flex h-[320px] sm:h-[420px] md:h-[520px] flex-col items-center justify-center gap-4 p-6 text-center">
-                            <FileText className="h-16 w-16 text-orange-500 animate-bounce" />
-                            <h3 className="text-lg font-semibold text-white">Download Resource</h3>
-                            <a
-                                href={displayFileUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="rounded-xl bg-orange-600 px-5 py-2.5 min-h-[44px] flex items-center justify-center font-bold text-xs uppercase tracking-wider text-white transition hover:bg-orange-700 shadow-lg"
-                            >
-                                Open File
-                            </a>
-                        </div>
-                    )
+                    <div className="w-full">
+                        {displayFileUrl && displayFileUrl.toLowerCase().includes(".pdf") ? (
+                            <PdfViewer fileUrl={displayFileUrl} title={content?.title} />
+                        ) : displayFileUrl && (displayFileUrl.toLowerCase().includes(".ppt") || displayFileUrl.toLowerCase().includes(".pptx")) && (displayFileUrl.includes("blob.vercel-storage.com") || displayFileUrl.includes("/content-uploads/")) ? (
+                            <PptViewer fileUrl={displayFileUrl} title={content?.title} />
+                        ) : (
+                            <ExternalDocumentViewer fileUrl={displayFileUrl} title={content?.title} />
+                        )}
+                    </div>
                 )}
 
                 {/* IMAGE */}

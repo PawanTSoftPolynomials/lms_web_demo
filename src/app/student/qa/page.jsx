@@ -2,248 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  HelpCircle,
-  Search,
-  Plus,
-  ThumbsUp,
-  MessageCircle,
-  ChevronDown,
-  ChevronUp,
-  Send,
-  CircleCheckBig,
-  Clock,
-  X,
-  BookOpen,
-  LayoutGrid,
-} from "lucide-react";
-
+import { HelpCircle, Search, Plus, BookOpen, LayoutGrid } from "lucide-react";
+import PageHeader from "@/components/layouts/PageHeader";
 import { useQa } from "@/context/QaContext";
-
-function timeAgo(timestamp) {
-  const diffMs = Date.now() - timestamp;
-  const minutes = Math.floor(diffMs / (1000 * 60));
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function initials(name = "") {
-  return name.trim().charAt(0).toUpperCase() || "?";
-}
-
-const STATUS_FILTERS = ["All", "Unanswered", "Answered"];
-
-function AskQuestionModal({ enrolledCourses, defaultCourseId, onClose, onSubmit }) {
-  const [courseId, setCourseId] = useState(defaultCourseId || enrolledCourses[0]?.courseId || "");
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-
-  const canSubmit = !!courseId && title.trim().length > 3 && body.trim().length > 0;
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!canSubmit) return;
-    const course = enrolledCourses.find((c) => c.courseId === courseId);
-    onSubmit({ courseId, courseTitle: course?.title || "", title, body });
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 text-white shadow-2xl">
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-sm font-black text-white">Ask a Question</h2>
-          <button onClick={onClose} className="cursor-pointer text-slate-400 transition hover:text-white">
-            <X size={18} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Course *</label>
-            <select
-              value={courseId}
-              onChange={(e) => setCourseId(e.target.value)}
-              required
-              className="w-full cursor-pointer rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white outline-none transition focus:border-orange-500"
-            >
-              {enrolledCourses.map((c) => (
-                <option key={c.courseId} value={c.courseId} className="bg-slate-950">
-                  {c.title}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Question title *</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. How does async/await handle errors?"
-              required
-              className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white outline-none transition focus:border-orange-500"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Details *</label>
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Add any context that will help others answer your question..."
-              rows={5}
-              required
-              className="w-full resize-none rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white outline-none transition focus:border-orange-500"
-            />
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 cursor-pointer rounded-xl border border-slate-800 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-800"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="flex-1 cursor-pointer rounded-xl bg-orange-500 py-2 text-sm font-bold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Post Question
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-function ThreadCard({ thread, expanded, onToggle, onUpvote, onReply }) {
-  const [replyText, setReplyText] = useState("");
-  const answered = thread.replies.length > 0;
-
-  const handleReply = (e) => {
-    e.preventDefault();
-    if (!replyText.trim()) return;
-    onReply(thread.id, replyText);
-    setReplyText("");
-  };
-
-  return (
-    <div className="rounded-2xl border border-slate-800/80 bg-slate-900/50 shadow-luxury-md backdrop-blur-md transition hover:border-orange-500/30">
-      <div className="flex gap-4 p-5">
-        {/* Upvote column */}
-        <button
-          onClick={() => onUpvote(thread.id)}
-          className={`flex h-fit shrink-0 flex-col items-center gap-1 rounded-xl border px-2.5 py-2 transition cursor-pointer ${
-            thread.upvotedByMe
-              ? "border-orange-500/40 bg-orange-500/10 text-orange-400"
-              : "border-slate-800 bg-slate-950/50 text-slate-400 hover:border-orange-500/30 hover:text-orange-400"
-          }`}
-        >
-          <ThumbsUp size={14} className={thread.upvotedByMe ? "fill-orange-400" : ""} />
-          <span className="text-[11px] font-black">{thread.upvotes}</span>
-        </button>
-
-        {/* Main content */}
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-500/15 text-[10px] font-black text-orange-400">
-                {initials(thread.askedByName)}
-              </span>
-              <span className="text-xs font-bold text-white">{thread.askedByName}</span>
-              <span className="rounded-full bg-slate-800/80 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                {thread.courseTitle}
-              </span>
-            </div>
-            <span
-              className={`flex items-center gap-1 rounded-md border px-2 py-0.5 text-[8.5px] font-black uppercase tracking-wider ${
-                answered
-                  ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
-                  : "border-amber-500/20 bg-amber-500/10 text-amber-400"
-              }`}
-            >
-              {answered ? <CircleCheckBig size={10} /> : <Clock size={10} />}
-              {answered ? "Answered" : "Awaiting reply"}
-            </span>
-          </div>
-
-          <button onClick={() => onToggle(thread.id)} className="mt-3 block w-full cursor-pointer text-left">
-            <h3 className="text-sm font-black leading-snug text-white">{thread.title}</h3>
-            <p className={`mt-1.5 text-xs leading-relaxed text-slate-400 ${expanded ? "" : "line-clamp-2"}`}>{thread.body}</p>
-          </button>
-
-          <div className="mt-3 flex items-center justify-between">
-            <button
-              onClick={() => onToggle(thread.id)}
-              className="flex cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition hover:text-slate-300"
-            >
-              <MessageCircle size={13} />
-              {thread.replies.length} {thread.replies.length === 1 ? "reply" : "replies"}
-              {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-            </button>
-            <span className="text-[10px] text-slate-500">{timeAgo(thread.createdAt)}</span>
-          </div>
-        </div>
-      </div>
-
-      {expanded && (
-        <div className="space-y-3 border-t border-slate-800/80 px-5 py-4">
-          {thread.replies.map((r) => (
-            <div key={r.id} className="flex gap-3">
-              <span
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-black ${
-                  r.authorRole === "INSTRUCTOR" ? "bg-purple-500/15 text-purple-400" : "bg-orange-500/15 text-orange-400"
-                }`}
-              >
-                {initials(r.authorName)}
-              </span>
-              <div className="min-w-0 flex-1 rounded-xl border border-slate-800/80 bg-slate-950/50 p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-1.5 text-[11px] font-bold text-white">
-                    {r.authorName}
-                    {r.authorRole === "INSTRUCTOR" && (
-                      <span className="rounded-full bg-purple-500/15 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-purple-400">
-                        Instructor
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-[9px] text-slate-500">{timeAgo(r.createdAt)}</span>
-                </div>
-                <p className="mt-1 text-xs leading-relaxed text-slate-300">{r.body}</p>
-              </div>
-            </div>
-          ))}
-
-          <form onSubmit={handleReply} className="flex gap-2 pt-1">
-            <input
-              type="text"
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              placeholder="Write a reply..."
-              className="flex-1 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-white outline-none transition focus:border-orange-500"
-            />
-            <button
-              type="submit"
-              disabled={!replyText.trim()}
-              className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-orange-500 px-3 py-2 text-xs font-bold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Send size={12} /> Reply
-            </button>
-          </form>
-        </div>
-      )}
-    </div>
-  );
-}
+import { STATUS_FILTERS } from "@/features/student/constants/qaConfig";
+import AskQuestionModal from "@/components/student/qa/AskQuestionModal";
+import ThreadCard from "@/components/student/qa/ThreadCard";
 
 export default function QaPage() {
   const { threads, enrolledCourses, askQuestion, addReply, toggleUpvote } = useQa();
@@ -297,10 +61,10 @@ export default function QaPage() {
   if (enrolledCourses.length === 0) {
     return (
       <div className="space-y-6 text-white">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Q&amp;A</h1>
-          <p className="mt-1 text-xs text-slate-400">Ask questions about your courses and get answers from instructors and classmates.</p>
-        </div>
+        <PageHeader
+          title="Q&A"
+          subtitle="Ask questions about your courses and get answers from instructors and classmates."
+        />
         <div className="rounded-2xl border border-slate-800/80 bg-slate-900/50 p-6 py-20 text-center text-slate-400">
           <BookOpen size={40} className="mx-auto mb-3 text-slate-600 opacity-40" />
           <p className="text-sm font-semibold text-white">No enrolled courses yet</p>
@@ -318,21 +82,17 @@ export default function QaPage() {
 
   return (
     <div className="space-y-6 text-white">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Q&amp;A</h1>
-          <p className="mt-1 text-xs text-slate-400">
-            Ask questions about your courses and get answers from instructors and classmates.
-          </p>
-        </div>
+      <PageHeader
+        title="Q&A"
+        subtitle="Ask questions about your courses and get answers from instructors and classmates."
+      >
         <button
           onClick={() => setShowAskModal(true)}
           className="flex cursor-pointer items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-xs font-bold text-white shadow-md transition hover:bg-orange-600"
         >
           <Plus size={15} /> Ask a Question
         </button>
-      </div>
+      </PageHeader>
 
       {/* Course-wise selector */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">

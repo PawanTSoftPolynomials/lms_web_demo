@@ -11,10 +11,13 @@ import BatchCard from "@/components/student/batches/BatchCard";
 import { useMyBatches } from "@/hooks/queries/student/useBatches";
 import useDashboard from "@/hooks/queries/student/useDashboard";
 import useAssignments from "@/hooks/queries/student/useAssignments";
+import { BATCHES_PAGE_SIZE } from "@/features/student/constants/batchesConfig";
+import { normalizeAssignmentStatus } from "@/features/student/constants/assignmentsConfig";
 
-const PAGE_SIZE = 6;
-
-const isPendingAssignment = (a) => a.status !== "Submitted" && a.status !== "Graded";
+const isPendingAssignment = (a) => {
+  const status = normalizeAssignmentStatus(a);
+  return status !== "Submitted" && status !== "Graded";
+};
 
 export default function StudentBatchesPage() {
   const router = useRouter();
@@ -53,8 +56,8 @@ export default function StudentBatchesPage() {
     return list;
   }, [batches, search, statusFilter, instructorFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredBatches.length / PAGE_SIZE));
-  const pagedBatches = filteredBatches.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filteredBatches.length / BATCHES_PAGE_SIZE));
+  const pagedBatches = filteredBatches.slice((page - 1) * BATCHES_PAGE_SIZE, page * BATCHES_PAGE_SIZE);
 
   const enrolledCoursesList = dashboardData?.enrolledCoursesList ?? [];
   const avgProgress = useMemo(() => {
@@ -69,11 +72,11 @@ export default function StudentBatchesPage() {
   const pendingAssignmentsCount = assignments.filter(isPendingAssignment).length;
 
   const kpis = [
-    { key: "total", label: "Total Batches", value: batches.length, icon: Layers, iconBg: "bg-purple-500/10", iconColor: "text-purple-400" },
-    { key: "active", label: "Active Batches", value: activeBatchesCount, icon: CheckCircle2, iconBg: "bg-emerald-500/10", iconColor: "text-emerald-400" },
-    { key: "classmates", label: "Classmates", value: totalClassmates, icon: Users, iconBg: "bg-blue-500/10", iconColor: "text-blue-400" },
-    { key: "progress", label: "Avg. Progress", value: `${avgProgress}%`, icon: TrendingUp, iconBg: "bg-orange-500/10", iconColor: "text-orange-400" },
-    { key: "assignments", label: "Assignments Due", value: pendingAssignmentsCount, icon: ClipboardList, iconBg: "bg-amber-500/10", iconColor: "text-amber-400" },
+    { key: "total", label: "Total Batches", value: batches.length, icon: Layers, iconBg: "bg-purple-500/10", iconColor: "text-purple-400", bottomText: "All cohorts" },
+    { key: "active", label: "Active Batches", value: activeBatchesCount, icon: CheckCircle2, iconBg: "bg-emerald-500/10", iconColor: "text-emerald-400", bottomText: "Currently running" },
+    { key: "classmates", label: "Classmates", value: totalClassmates, icon: Users, iconBg: "bg-blue-500/10", iconColor: "text-blue-400", bottomText: "Across all batches" },
+    { key: "progress", label: "Avg. Progress", value: `${avgProgress}%`, icon: TrendingUp, iconBg: "bg-orange-500/10", iconColor: "text-orange-400", bottomText: "Across all courses" },
+    { key: "assignments", label: "Assignments Due", value: pendingAssignmentsCount, icon: ClipboardList, iconBg: "bg-amber-500/10", iconColor: "text-amber-400", bottomText: "Pending" },
   ];
 
   if (isError) {
@@ -90,9 +93,7 @@ export default function StudentBatchesPage() {
     <div className="space-y-5">
       <PageHeader title="Batches" subtitle="The cohorts you're enrolled in, across all your courses." />
 
-      {/* Mobile: compact grid, same card recipe as the Dashboard's stat cards.
-          Odd item count (5) — the last card spans both columns instead of
-          leaving an empty cell in the last row. */}
+      {/* Mobile: compact grid */}
       <div className="grid grid-cols-2 gap-2 sm:hidden">
         {kpis.map((k, idx) => (
           <div
@@ -110,48 +111,19 @@ export default function StudentBatchesPage() {
         ))}
       </div>
 
-      {/* Desktop / tablet: full KpiTile row (shared with the Instructor batches page) */}
+      {/* Desktop / tablet: full KpiTile row */}
       <div className="hidden sm:flex flex-wrap md:flex-nowrap items-center gap-3 w-full">
-        <KpiTile
-          label="Total Batches"
-          value={batches.length}
-          icon={Layers}
-          iconBg="bg-purple-500/10"
-          iconColor="text-purple-400"
-          bottomText="All cohorts"
-        />
-        <KpiTile
-          label="Active Batches"
-          value={activeBatchesCount}
-          icon={CheckCircle2}
-          iconBg="bg-emerald-500/10"
-          iconColor="text-emerald-400"
-          bottomText="Currently running"
-        />
-        <KpiTile
-          label="Classmates"
-          value={totalClassmates}
-          icon={Users}
-          iconBg="bg-blue-500/10"
-          iconColor="text-blue-400"
-          bottomText="Across all batches"
-        />
-        <KpiTile
-          label="Avg. Progress"
-          value={`${avgProgress}%`}
-          icon={TrendingUp}
-          iconBg="bg-orange-500/10"
-          iconColor="text-orange-400"
-          bottomText="Across all courses"
-        />
-        <KpiTile
-          label="Assignments Due"
-          value={pendingAssignmentsCount}
-          icon={ClipboardList}
-          iconBg="bg-amber-500/10"
-          iconColor="text-amber-400"
-          bottomText="Pending"
-        />
+        {kpis.map((k) => (
+          <KpiTile
+            key={k.key}
+            label={k.label}
+            value={k.value}
+            icon={k.icon}
+            iconBg={k.iconBg}
+            iconColor={k.iconColor}
+            bottomText={k.bottomText}
+          />
+        ))}
       </div>
 
       <div className="flex flex-col lg:flex-row gap-2.5">

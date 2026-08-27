@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getCalendarEvents } from "@/services/calendar.service";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import Card from "@/components/ui/Card";
 import { FaChevronLeft, FaChevronRight, FaCalendarAlt } from "react-icons/fa";
 
@@ -15,44 +17,43 @@ const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
 export default function MiniCalendar({ role }) {
   const router = useRouter();
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const loadData = useCallback(async () => {
-    try {
-      const data = await getCalendarEvents();
-      if (role === "INSTRUCTOR" && typeof window !== "undefined") {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
+  const { data: rawEvents = [], isLoading: loading } = useQuery({
+    queryKey: [QUERY_KEYS.CALENDAR],
+    queryFn: getCalendarEvents,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const events = useMemo(() => {
+    if (role === "INSTRUCTOR" && typeof window !== "undefined") {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
           const user = JSON.parse(storedUser);
           const instId = user.id || user._id;
-          const instructorEvents = data.filter(e => e.instructorId === instId || e.instructorId === "inst-current");
-          setEvents(instructorEvents);
-          setLoading(false);
-          return;
+          return rawEvents.filter(
+            (e) => e.instructorId === instId || e.instructorId === "inst-current"
+          );
+        } catch {
+          return rawEvents;
         }
       }
-      setEvents(data);
-    } catch (err) {
-      console.error("Failed to load mini calendar events", err);
-    } finally {
-      setLoading(false);
     }
-  }, [role]);
+    return rawEvents;
+  }, [rawEvents, role]);
 
   useEffect(() => {
-    loadData();
-
     const handleStorageChange = (e) => {
       if (e.key === "calendar_events") {
-        loadData();
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CALENDAR] });
       }
     };
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, [loadData]);
+  }, [queryClient]);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();

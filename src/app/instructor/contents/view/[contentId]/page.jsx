@@ -35,6 +35,9 @@ import { useModule } from "@/hooks/queries/instructor/useModule";
 import { useContents } from "@/hooks/queries/instructor/useContents";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
 import LessonStickySidebar from "@/components/instructor/lessons/LessonStickySidebar";
+import PdfViewer from "@/components/student/learn/PdfViewer";
+import PptViewer from "@/components/shared/PptViewer";
+import ExternalDocumentViewer from "@/components/shared/ExternalDocumentViewer";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -363,34 +366,15 @@ export default function ContentDetailsPage() {
             {/* Presentation / Document Preview */}
             {(isPresentation || isDocument) && (
               content.fileUrl ? (
-                (isPresentation ? presentationViewerUrl : documentViewerUrl) ? (
-                  <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 shadow-lg">
-                    <iframe
-                      src={isPresentation ? presentationViewerUrl : documentViewerUrl}
-                      title={content.title}
-                      className="absolute inset-0 w-full h-full"
-                      allowFullScreen
-                    />
-                  </div>
-                ) : (
-                  <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-[#060913] flex flex-col items-center justify-center p-8 text-center my-2">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-400 mb-4 animate-pulse">
-                      <FileText size={32} />
-                    </div>
-                    <h3 className="text-lg font-bold text-white mb-1.5">{content.title}</h3>
-                    <p className="text-xs text-slate-400 max-w-sm mb-6 leading-relaxed">
-                      {isPresentation ? "Presentation file attached and ready for download." : "Document resource ready."}
-                    </p>
-                    <a
-                      href={content.fileUrl}
-                      download
-                      className="inline-flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold text-xs px-6 py-3 transition shadow-lg shadow-orange-500/10 active:scale-95 cursor-pointer"
-                    >
-                      <Download size={14} />
-                      <span>Download {isPresentation ? "Presentation" : "Document"}</span>
-                    </a>
-                  </div>
-                )
+                <div className="w-full my-2">
+                  {content.fileUrl.toLowerCase().includes(".pdf") ? (
+                    <PdfViewer fileUrl={content.fileUrl.startsWith("http") ? content.fileUrl : `/api/blob-proxy?url=${encodeURIComponent(content.fileUrl)}`} title={content.title} />
+                  ) : (content.fileUrl.toLowerCase().includes(".ppt") || content.fileUrl.toLowerCase().includes(".pptx")) && (content.fileUrl.includes("blob.vercel-storage.com") || content.fileUrl.includes("/content-uploads/")) ? (
+                    <PptViewer fileUrl={content.fileUrl.startsWith("http") ? content.fileUrl : `/api/blob-proxy?url=${encodeURIComponent(content.fileUrl)}`} title={content.title} />
+                  ) : (
+                    <ExternalDocumentViewer fileUrl={content.fileUrl} title={content.title} />
+                  )}
+                </div>
               ) : (
                 <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-[#060913] flex flex-col items-center justify-center p-8 text-center my-2">
                   <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-400 mb-4">

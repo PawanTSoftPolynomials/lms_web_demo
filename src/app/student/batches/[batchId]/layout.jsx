@@ -2,28 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
-import {
-  ChevronLeft,
-  LayoutGrid,
-  Calendar,
-  Megaphone,
-  ClipboardList,
-  FolderOpen,
-  MessageSquare,
-  Users,
-} from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 
 import { useBatchDashboard } from "@/hooks/queries/student/useBatches";
-
-const TABS = [
-  { id: "overview", label: "Overview", icon: LayoutGrid },
-  { id: "schedule", label: "Schedule", icon: Calendar },
-  { id: "announcements", label: "Announcements", icon: Megaphone },
-  { id: "assignments", label: "Assignments", icon: ClipboardList },
-  { id: "resources", label: "Resources", icon: FolderOpen },
-  { id: "discussions", label: "Discussions", icon: MessageSquare },
-  { id: "classmates", label: "Classmates", icon: Users },
-];
+import { BATCH_WORKSPACE_TABS as TABS } from "@/features/student/constants/batchesConfig";
 
 // Shared workspace shell for a single batch — header + tab nav. Each tab is
 // its own route/page under this layout (student/batches/[batchId]/<tab>/page.jsx),

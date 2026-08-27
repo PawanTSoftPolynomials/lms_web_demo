@@ -1,4 +1,3 @@
-import Cookies from "js-cookie";
 import api from "@/lib/axios";
 
 export const getContents = async (topicId) => {
@@ -17,39 +16,23 @@ export const getContentById = async (contentId) => {
   return response.data;
 };
 
-/** Uploads a raw file (PDF/PPT/DOCX/ZIP/Video/Image) to Next.js Vercel Blob API route (/api/upload) and returns { url, pathname }. */
-export const uploadFileToVercelBlob = async (file) => {
-  const formData = new FormData();
-  formData.append("file", file);
+import { uploadFileToBlob } from "./blobUpload.service";
 
-  const token = Cookies.get("accessToken") || (typeof window !== "undefined" ? localStorage.getItem("accessToken") : "");
-
-  const response = await fetch("/api/upload", {
-    method: "POST",
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `Upload failed with status ${response.status}`);
-  }
-
-  return await response.json();
+/** Uploads a raw file (PDF/PPT/DOCX/ZIP/Video/Image) directly to Vercel Blob and returns { url, fileUrl, originalName, size }. */
+export const uploadFileToVercelBlob = async (file, options = {}) => {
+  return await uploadFileToBlob(file, options);
 };
 
-/** Uploads a raw file (PDF/PPT/DOCX/ZIP/Video) and returns its hosted URL, for use as a Content's fileUrl. */
-export const uploadContentFile = async (file) => {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const { data } = await api.post("/contents/upload-file", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-
-  return data;
+/** Uploads a content file directly to Vercel Blob and returns its hosted URL and file metadata. */
+export const uploadContentFile = async (file, options = {}) => {
+  const result = await uploadFileToBlob(file, options);
+  return {
+    success: true,
+    fileUrl: result.url,
+    originalName: result.originalName,
+    size: result.size,
+    ...result,
+  };
 };
 
 export const createContent = async (data) => {

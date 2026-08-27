@@ -4,11 +4,7 @@ import { useParams } from "next/navigation";
 import { Megaphone } from "lucide-react";
 
 import { useBatchAnnouncements } from "@/hooks/queries/student/useBatches";
-
-function formatDate(value) {
-  if (!value) return "";
-  return new Date(value).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
-}
+import { formatShortDate } from "@/lib/dateUtils";
 
 export default function BatchAnnouncementsPage() {
   const params = useParams();
@@ -42,7 +38,7 @@ export default function BatchAnnouncementsPage() {
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold text-white">{a.title}</p>
             {a.message && <p className="text-xs text-slate-400 mt-1 leading-relaxed">{a.message}</p>}
-            <p className="text-[10px] text-slate-500 mt-1.5">{formatDate(a.createdAt)}</p>
+            <p className="text-[10px] text-slate-500 mt-1.5">{formatShortDate(a.createdAt)}</p>
           </div>
         </div>
       ))}

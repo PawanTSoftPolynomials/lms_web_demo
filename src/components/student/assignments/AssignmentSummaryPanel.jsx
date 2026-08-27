@@ -12,6 +12,8 @@ import {
   Send,
 } from "lucide-react";
 
+import { ASSIGNMENT_QUICK_TIPS } from "@/features/student/constants/assignmentsConfig";
+
 // Dynamically imported so recharts is bundled once via this shared
 // dynamic() boundary instead of duplicated into this route's own chunk.
 const DoughnutChartCard = dynamic(() => import("@/components/dashboard/common/DoughnutChartCard"), {
@@ -136,10 +138,9 @@ export default function AssignmentSummaryPanel({
         <div className="rounded-3xl border border-slate-800 bg-slate-900 p-4 shadow-lg shadow-black/20">
           <h2 className="text-xl font-semibold text-white">Quick Tips</h2>
           <ul className="mt-3 space-y-2 text-sm text-slate-400">
-            <li>• Review the assignment instructions carefully.</li>
-            <li>• Track due dates and prioritize upcoming work.</li>
-            <li>• Submit before the deadline for full credit.</li>
-            <li>• Keep your files and answers organized.</li>
+            {ASSIGNMENT_QUICK_TIPS.map((tip) => (
+              <li key={tip}>• {tip}</li>
+            ))}
           </ul>
         </div>
       </div>
@@ -267,10 +268,9 @@ export default function AssignmentSummaryPanel({
 
           {tipsExpanded && (
             <ul className="mt-3 space-y-2 text-sm text-slate-400">
-              <li>• Review the assignment instructions carefully.</li>
-              <li>• Track due dates and prioritize upcoming work.</li>
-              <li>• Submit before the deadline for full credit.</li>
-              <li>• Keep your files and answers organized.</li>
+              {ASSIGNMENT_QUICK_TIPS.map((tip) => (
+                <li key={tip}>• {tip}</li>
+              ))}
             </ul>
           )}
         </div>

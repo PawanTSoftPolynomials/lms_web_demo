@@ -5,11 +5,7 @@ import Link from "next/link";
 import { ClipboardList, ChevronRight } from "lucide-react";
 
 import { useBatchDashboard } from "@/hooks/queries/student/useBatches";
-
-function formatDate(value) {
-  if (!value) return "No due date";
-  return new Date(value).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
-}
+import { formatShortDate } from "@/lib/dateUtils";
 
 export default function BatchAssignmentsPage() {
   const params = useParams();
@@ -48,7 +44,7 @@ export default function BatchAssignmentsPage() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold text-white truncate">{assignment.title}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">Due {formatDate(assignment.dueDate)}</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">Due {formatShortDate(assignment.dueDate, "No due date")}</p>
           </div>
           <ChevronRight size={16} className="text-slate-600 shrink-0" />
         </Link>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarDays, Clock, BookOpen, FileText } from "lucide-react";
 
 import Button from "@/components/ui/Button";
+import { normalizeAssignmentStatus } from "@/features/student/constants/assignmentsConfig";
 
 const statusStyles = {
   "Not Submitted": "bg-red-500/10 text-red-200 border border-red-500/20",
@@ -24,11 +25,12 @@ export default function AssignmentCard({ assignment }) {
     description,
     course,
     dueDate,
-    status,
     totalQuestions,
     estimatedTime,
     resources,
   } = assignment;
+
+  const status = normalizeAssignmentStatus(assignment);
 
   const dueDateLabel = dueDate
     ? new Date(dueDate).toLocaleString([], {

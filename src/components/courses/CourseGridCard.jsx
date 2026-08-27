@@ -15,6 +15,14 @@ const ACCENT_BAR = {
   ARCHIVED: "bg-destructive",
 };
 
+/**
+ * Fixed banner color for every card. The gradient itself stays at a normal,
+ * identifiable saturation; `brightness`/`contrast` filters are applied on a
+ * separate background layer (not on the text) to knock the perceived
+ * intensity down by ~40% without graying out content.
+ */
+const THEME = { gradient: "bg-gradient-to-br from-teal-500 to-teal-700", viewText: "text-teal-900" };
+
 function Stat({ icon: Icon, value, label }) {
   return (
     <div className="flex flex-col items-center gap-0.5 md:gap-1 rounded-lg border border-border bg-muted/60 py-1 md:py-2 text-foreground">
@@ -33,7 +41,8 @@ export default function CourseGridCard({ course }) {
   const [exporting, setExporting] = useState(false);
 
   const lessonsCount = course.modules?.reduce((sum, m) => sum + (m.lessons?.length ?? 0), 0) ?? course.stats?.lessonsCount ?? 0;
-  const accentBar = ACCENT_BAR[course.status] || ACCENT_BAR.DRAFT;
+  const accent = STATUS_ACCENT[course.status] || STATUS_ACCENT.DRAFT;
+  const theme = THEME;
 
   const goTo = (path) => (e) => {
     e.stopPropagation();

@@ -37,6 +37,7 @@ interface CellShellProps {
   isSelected?: boolean;
   badgeText?: string;
   badgeVariant?: "heading" | "text" | "code" | "image" | "video" | "document" | "default";
+  headerActions?: ReactNode;
   children: ReactNode;
 }
 
@@ -66,6 +67,7 @@ export function CellShell({
   isSelected = false,
   badgeText,
   badgeVariant = "default",
+  headerActions,
   children,
 }: CellShellProps) {
   const badgeClass = BADGE_STYLES[badgeVariant] || BADGE_STYLES.default;
@@ -147,7 +149,7 @@ export function CellShell({
       <div className="flex-1 min-w-0 space-y-2">
         {/* Header Metadata — shown for named/file blocks OR when editing */}
         {(title || !isTextOrHeading || mode === "edit") && (
-          <div className="flex items-center justify-between gap-3 border-b border-slate-800/60 pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/60 pb-2">
             <div className="min-w-0">
               <h4 className="truncate text-xs font-bold text-slate-200">
                 {title || (isTextOrHeading ? "Text Block" : "Untitled Block")}
@@ -157,46 +159,50 @@ export function CellShell({
               </p>
             </div>
 
-            {/* Block Action Menu */}
-            <div className={cn("flex items-center shrink-0", hoverVisible)}>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                    aria-label="Block Settings & Actions"
-                    title="Settings & Actions"
-                  >
-                    <Settings size={14} />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onSelect={onEdit} disabled={mode === "edit"}>
-                    <Pencil className="size-3.5" />
-                    Edit Block
-                  </DropdownMenuItem>
-                  {onSettingsSelect && (
-                    <DropdownMenuItem onSelect={onSettingsSelect}>
-                      <Settings className="size-3.5" />
-                      Block Settings
+            {/* Header Actions (PDF Navigation, Zoom, Download) & Block Action Menu */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap">
+              {headerActions}
+
+              <div className={cn("flex items-center shrink-0", hoverVisible)}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                      aria-label="Block Settings & Actions"
+                      title="Settings & Actions"
+                    >
+                      <Settings size={14} />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={onEdit} disabled={mode === "edit"}>
+                      <Pencil className="size-3.5" />
+                      Edit Block
                     </DropdownMenuItem>
-                  )}
-                  {onDuplicate && (
-                    <DropdownMenuItem onSelect={onDuplicate} disabled={isDuplicating}>
-                      <Copy className="size-3.5" />
-                      {isDuplicating ? "Duplicating…" : "Duplicate Block"}
+                    {onSettingsSelect && (
+                      <DropdownMenuItem onSelect={onSettingsSelect}>
+                        <Settings className="size-3.5" />
+                        Block Settings
+                      </DropdownMenuItem>
+                    )}
+                    {onDuplicate && (
+                      <DropdownMenuItem onSelect={onDuplicate} disabled={isDuplicating}>
+                        <Copy className="size-3.5" />
+                        {isDuplicating ? "Duplicating…" : "Duplicate Block"}
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onSelect={onDelete}
+                      disabled={isDeleting}
+                    >
+                      <Trash2 className="size-3.5" />
+                      {isDeleting ? "Deleting…" : "Delete Block"}
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onSelect={onDelete}
-                    disabled={isDeleting}
-                  >
-                    <Trash2 className="size-3.5" />
-                    {isDeleting ? "Deleting…" : "Delete Block"}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
         )}

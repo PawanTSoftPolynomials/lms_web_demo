@@ -11,6 +11,7 @@ import {
   Plus,
   Check,
   X,
+  Sparkles,
 } from "lucide-react";
 
 import LessonNavItem from "@/components/instructor/composer/LessonNavItem";
@@ -32,6 +33,7 @@ export default function ModuleAccordionItem({
   onSelectLesson,
   onMoveModuleUp,
   onMoveModuleDown,
+  onOpenAiAssistant,
   defaultOpen,
 }) {
   const [open, setOpen] = useState(Boolean(defaultOpen));
@@ -188,13 +190,22 @@ export default function ModuleAccordionItem({
               />
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => setAddingLesson(true)}
-              className="w-full flex items-center gap-1.5 px-2 py-1.5 text-xs font-semibold text-slate-500 hover:text-orange-400"
-            >
-              <Plus size={12} /> Add Lesson
-            </button>
+            <div className="flex items-center justify-between pt-1 border-t border-slate-800/40">
+              <button
+                type="button"
+                onClick={() => setAddingLesson(true)}
+                className="flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-slate-500 hover:text-white"
+              >
+                <Plus size={12} /> Add Lesson
+              </button>
+              <button
+                type="button"
+                onClick={() => onOpenAiAssistant && onOpenAiAssistant("LESSON", { moduleId: mod.id, moduleTitle: mod.title })}
+                className="flex items-center gap-1 px-2 py-1 text-xs font-semibold text-orange-400 hover:text-orange-300"
+              >
+                <Sparkles size={11} /> AI Lesson
+              </button>
+            </div>
           )}
         </div>
       )}
