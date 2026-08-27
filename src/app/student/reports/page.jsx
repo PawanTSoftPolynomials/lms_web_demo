@@ -17,6 +17,7 @@ import useProgress from "@/hooks/queries/student/useProgress";
 import useQuizzes from "@/hooks/queries/student/useQuizzes";
 import useAssignments from "@/hooks/queries/student/useAssignments";
 import useCertificates from "@/hooks/queries/student/useCertificates";
+import { normalizeAssignmentStatus } from "@/features/student/constants/assignmentsConfig";
 
 export default function StudentReportsPage() {
   const [selectedCourseId, setSelectedCourseId] = useState("all");
@@ -65,8 +66,11 @@ export default function StudentReportsPage() {
     : 0;
 
   const assignmentBuckets = {
-    Graded: filteredAssignments.filter((a) => a.status === "Graded").length,
-    Pending: filteredAssignments.filter((a) => a.status !== "Submitted" && a.status !== "Graded").length,
+    Graded: filteredAssignments.filter((a) => normalizeAssignmentStatus(a) === "Graded").length,
+    Pending: filteredAssignments.filter((a) => {
+      const status = normalizeAssignmentStatus(a);
+      return status !== "Submitted" && status !== "Graded";
+    }).length,
   };
 
   return (

@@ -2,86 +2,64 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-
-import {
-  getQuizzes,
-} from "@/services/quiz.service";
+import PageHeader from "@/components/layouts/PageHeader";
+import Card from "@/components/ui/Card";
+import Loader from "@/components/common/Loader";
+import useQuizzes from "@/hooks/queries/student/useQuizzes";
 
 export default function QuizPage() {
-  const { courseId } =
-    useParams();
+  const { courseId } = useParams();
+  const { data: quizzes = [], isLoading, isError } = useQuizzes(courseId);
 
-  const [quizzes,
-    setQuizzes] =
-    useState([]);
+  if (isLoading) return <Loader />;
 
-  useEffect(() => {
-    loadQuizzes();
-  }, []);
-
-  const loadQuizzes =
-    async () => {
-      const response =
-        await getQuizzes(
-          courseId
-        );
-
-      setQuizzes(response);
-    };
+  if (isError) {
+    return (
+      <Card className="p-8 text-center text-red-400">
+        Failed to load course quizzes. Please try again later.
+      </Card>
+    );
+  }
 
   return (
-    <div>
-      <h1 className="text-4xl font-bold mb-8">
-        Course Quizzes
-      </h1>
+    <div className="space-y-6">
+      <PageHeader
+        title="Course Quizzes"
+        subtitle="Test your knowledge and practice key concepts."
+      />
 
-      <div className="space-y-5">
-        {quizzes.map(
-          (quiz) => (
+      {quizzes.length === 0 ? (
+        <Card className="p-12 text-center text-slate-400">
+          No quizzes available for this course yet.
+        </Card>
+      ) : (
+        <div className="space-y-5">
+          {quizzes.map((quiz) => (
             <div
               key={quiz.id}
-              className="
-                bg-slate-900
-                p-6
-                rounded-xl
-              "
+              className="bg-slate-900 p-6 rounded-xl border border-slate-800"
             >
-              <h2 className="text-2xl font-bold">
-                {quiz.title}
-              </h2>
+              <h2 className="text-2xl font-bold text-white">{quiz.title}</h2>
 
-              <p className="text-slate-400 mt-2">
-                {quiz.description}
-              </p>
+              {quiz.description && (
+                <p className="text-slate-400 mt-2 text-sm">{quiz.description}</p>
+              )}
 
-              <p className="mt-3">
-                Passing Score:
-                {quiz.passingScore}%
-              </p>
-
-              <p>
-                Time Limit:
-                {quiz.timeLimit} min
-              </p>
+              <div className="mt-3 flex gap-4 text-xs text-slate-300 font-semibold">
+                <span>Passing Score: {quiz.passingScore}%</span>
+                <span>Time Limit: {quiz.timeLimit} min</span>
+              </div>
 
               <Link
                 href={`/student/attempt/${quiz.id}`}
-                className="
-                  inline-block
-                  mt-4
-                  bg-orange-600
-                  px-4
-                  py-2
-                  rounded
-                "
+                className="inline-block mt-4 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold px-4 py-2 rounded transition cursor-pointer"
               >
                 Start Quiz
               </Link>
             </div>
-          )
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

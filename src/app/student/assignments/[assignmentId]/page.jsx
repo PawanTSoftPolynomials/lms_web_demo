@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, use } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
 import Loader from "@/components/common/Loader";
@@ -9,7 +8,8 @@ import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import useAssignment from "@/hooks/queries/student/useAssignment";
-import { submitAssignment } from "@/services/assignment.service";
+import useSubmitAssignment from "@/hooks/queries/student/useSubmitAssignment";
+import { normalizeAssignmentStatus } from "@/features/student/constants/assignmentsConfig";
 
 export default function AssignmentDetailPage({ params }) {
   const { assignmentId } = use(params);
@@ -22,12 +22,18 @@ export default function AssignmentDetailPage({ params }) {
     isError,
   } = useAssignment(assignmentId);
 
-  const mutation = useMutation({
-    mutationFn: (payload) => submitAssignment(assignmentId, payload),
-    onSuccess: () => {
-      router.push("/student/assignments");
-    },
-  });
+  const mutation = useSubmitAssignment(assignmentId);
+
+  const handleSubmit = () => {
+    mutation.mutate(
+      { notes },
+      {
+        onSuccess: () => {
+          router.push("/student/assignments");
+        },
+      }
+    );
+  };
 
   if (isLoading) {
     return <Loader />;
@@ -46,7 +52,7 @@ export default function AssignmentDetailPage({ params }) {
     );
   }
 
-  const status = assignment.status || assignment.submissionStatus || "Not Submitted";
+  const status = normalizeAssignmentStatus(assignment);
 
   return (
     <div className="space-y-8">
@@ -112,8 +118,8 @@ export default function AssignmentDetailPage({ params }) {
               </label>
               <Button
                 type="button"
-                onClick={() => mutation.mutate({ notes })}
-                loading={mutation.isLoading}
+                onClick={handleSubmit}
+                loading={mutation.isPending}
                 disabled={status === "Graded"}
               >
                 {status === "Graded" ? "Already Graded" : "Submit Assignment"}

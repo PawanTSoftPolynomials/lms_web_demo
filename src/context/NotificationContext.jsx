@@ -12,6 +12,7 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from "@/services/notification.service";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 
 const NotificationContext = createContext();
 
@@ -71,7 +72,7 @@ export const playNotificationChime = () => {
 // that lands within staleTime of the mount fetch (or of each other, if
 // effects re-fire back-to-back) reuses the cached result instead of
 // issuing a second uncached network round-trip.
-const NOTIFICATION_CALENDAR_POLL_KEY = ["notifications", "calendar-poll"];
+const NOTIFICATION_CALENDAR_POLL_KEY = [QUERY_KEYS.CALENDAR];
 const NOTIFICATION_CALENDAR_POLL_STALE_TIME = 55000; // just under the 60s poll interval
 
 export function NotificationProvider({ children }) {
@@ -92,6 +93,16 @@ export function NotificationProvider({ children }) {
     [queryClient]
   );
 
+  const fetchNotificationsCached = useCallback(
+    () =>
+      queryClient.fetchQuery({
+        queryKey: [QUERY_KEYS.NOTIFICATIONS],
+        queryFn: getNotifications,
+        staleTime: 1000 * 60 * 2,
+      }),
+    [queryClient]
+  );
+
   // State for login hover card
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginUnreadCount, setLoginUnreadCount] = useState(0);
@@ -107,7 +118,7 @@ export function NotificationProvider({ children }) {
         return;
       }
       try {
-        const data = await getNotifications();
+        const data = await fetchNotificationsCached();
         const formatted = data.map(n => {
           let displayType = "system";
           const backendType = n.type.toUpperCase();
@@ -166,7 +177,7 @@ export function NotificationProvider({ children }) {
       }
     };
     initSeenEvents();
-  }, [user, fetchCalendarEventsCached]);
+  }, [user, fetchCalendarEventsCached, fetchNotificationsCached]);
 
   const addNotification = useCallback((title, message, type = "system", link = "") => {
     const newNotif = {

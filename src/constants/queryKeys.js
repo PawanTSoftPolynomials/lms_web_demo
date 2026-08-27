@@ -33,8 +33,12 @@ export const QUERY_KEYS = {
     DASHBOARD: "dashboard",
     PROGRESS: "progress",
     ENTRY_ASSESSMENT: "entry-assessment",
+    CALENDAR: "calendar_events",
+    NOTIFICATIONS: "notifications",
     COURSE_STATE: "course-state",
     LEARNING_PATH: "learning-path",
+    COURSE_REVIEWS: "course-reviews",
+    COURSE_REVIEW_STATS: "course-review-stats",
 
     // ==========================
     // Admin

@@ -1,7 +1,9 @@
 "use client";
 
 import { Loader2, AlertCircle, Trophy, Star, Zap, BookOpen, Award } from "lucide-react";
+import PageHeader from "@/components/layouts/PageHeader";
 import { useMyAchievements, useCheckAchievements } from "@/hooks/queries/student/useAchievements";
+import { useToast } from "@/components/ui/ToastProvider";
 
 const typeColor = (type) => {
   switch (type) {
@@ -26,6 +28,7 @@ const typeIcon = (type) => {
 export default function AchievementsPage() {
   const { data, isLoading, isError } = useMyAchievements();
   const checkAchievements = useCheckAchievements();
+  const { showToast } = useToast();
 
   const achievements = data?.achievements || [];
   const totalXp = data?.totalXp || 0;
@@ -36,21 +39,19 @@ export default function AchievementsPage() {
     try {
       const result = await checkAchievements.mutateAsync();
       if (result?.length > 0) {
-        alert(`🎉 You earned ${result.length} new achievement(s)!`);
+        showToast(`🎉 You earned ${result.length} new achievement(s)!`, "success");
       } else {
-        alert("No new achievements unlocked yet. Keep learning!");
+        showToast("No new achievements unlocked yet. Keep learning!", "info");
       }
     } catch {}
   };
 
   return (
     <div className="space-y-6 text-white">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Achievements</h1>
-          <p className="text-xs text-slate-400 mt-1">Track your badges, XP, and milestones</p>
-        </div>
+      <PageHeader
+        title="Achievements"
+        subtitle="Track your badges, XP, and milestones"
+      >
         <button
           onClick={handleCheck}
           disabled={checkAchievements.isPending}
@@ -59,7 +60,7 @@ export default function AchievementsPage() {
           {checkAchievements.isPending ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
           Check for New
         </button>
-      </div>
+      </PageHeader>
 
       {/* XP Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">

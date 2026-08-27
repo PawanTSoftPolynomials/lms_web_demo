@@ -10,16 +10,11 @@ import AssignmentFilters from "@/components/student/assignments/AssignmentFilter
 import AssignmentCard from "@/components/student/assignments/AssignmentCard";
 import AssignmentSummaryPanel from "@/components/student/assignments/AssignmentSummaryPanel";
 import useAssignments from "@/hooks/queries/student/useAssignments";
-
-const TABS = [
-  { label: "All", value: "all" },
-  { label: "Pending", value: "upcoming" },
-  { label: "Submitted", value: "Submitted" },
-  { label: "Graded", value: "Graded" },
-];
-
-const normalizeStatus = (assignment) =>
-  assignment.status || assignment.submissionStatus || "Not Submitted";
+import {
+  ASSIGNMENT_TABS,
+  ASSIGNMENT_STATUSES,
+  normalizeAssignmentStatus,
+} from "@/features/student/constants/assignmentsConfig";
 
 // Loading state — mirrors the real layout (header, filter bar, a few
 // assignment cards, summary panel) so nothing jumps around once data arrives.
@@ -70,16 +65,11 @@ function AssignmentsPageSkeleton() {
   );
 }
 
-// useSearchParams() requires a Suspense boundary (see default export below),
-// so the actual page body lives here rather than in the exported component.
 function AssignmentsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: assignments = [], isLoading, isError } = useAssignments();
 
-  // Course context arriving from navigation (e.g. My Courses → a course →
-  // Assignments). When present, the Course dimension is already decided by
-  // where the student came from, so the filter for it should not appear.
   const courseContext = searchParams.get("course") || "";
   const isCourseScoped = Boolean(courseContext);
 
@@ -89,8 +79,6 @@ function AssignmentsPageContent() {
   const [sortBy, setSortBy] = useState("due-earliest");
   const [activeTab, setActiveTab] = useState("all");
 
-  // Lifted (not local to AssignmentSummaryPanel) so the empty state's "View
-  // Upcoming Deadlines" button can expand + scroll to it directly.
   const [deadlinesExpanded, setDeadlinesExpanded] = useState(false);
   const deadlinesSectionRef = useRef(null);
   const scrollToDeadlines = () => {
@@ -98,8 +86,6 @@ function AssignmentsPageContent() {
     deadlinesSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
-  // Course isn't counted here when it arrived from navigation — it's context,
-  // not something the student chose and might want cleared.
   const hasActiveFilters = Boolean(
     search.trim() || (!isCourseScoped && courseFilter) || statusFilter || activeTab !== "all"
   );
@@ -145,7 +131,7 @@ function AssignmentsPageContent() {
 
     if (statusFilter) {
       list = list.filter(
-        (assignment) => normalizeStatus(assignment) === statusFilter
+        (assignment) => normalizeAssignmentStatus(assignment) === statusFilter
       );
     }
 
@@ -156,7 +142,7 @@ function AssignmentsPageContent() {
           return due && due >= new Date();
         });
       } else {
-        list = list.filter((assignment) => normalizeStatus(assignment) === activeTab);
+        list = list.filter((assignment) => normalizeAssignmentStatus(assignment) === activeTab);
       }
     }
 
@@ -183,15 +169,10 @@ function AssignmentsPageContent() {
 
   const statusCounts = useMemo(() => {
     return assignments.reduce((counts, assignment) => {
-      const status = normalizeStatus(assignment);
+      const status = normalizeAssignmentStatus(assignment);
       counts[status] = (counts[status] || 0) + 1;
       return counts;
-    }, {
-      "Not Submitted": 0,
-      "In Progress": 0,
-      Submitted: 0,
-      Graded: 0,
-    });
+    }, Object.fromEntries(ASSIGNMENT_STATUSES.map((status) => [status, 0])));
   }, [assignments]);
 
   const upcomingDeadlines = useMemo(() => {
@@ -223,8 +204,6 @@ function AssignmentsPageContent() {
   return (
     <div className="space-y-5 xl:space-y-8">
       <div className="flex items-start gap-3">
-        {/* Back navigation — mobile & tablet only; desktop's Assignments entry
-            doesn't currently have one and wasn't asked to gain one. */}
         <button
           type="button"
           onClick={() => router.back()}
@@ -242,9 +221,9 @@ function AssignmentsPageContent() {
                 : "Review, submit, and track all your course assignments."
             }
           >
-            {/* Desktop (xl+): unchanged pill tabs */}
+            {/* Desktop (xl+): tab pills */}
             <div className="hidden xl:flex flex-wrap items-center gap-2">
-              {TABS.map((tab) => {
+              {ASSIGNMENT_TABS.map((tab) => {
                 const active = activeTab === tab.value;
                 return (
                   <button
@@ -263,12 +242,10 @@ function AssignmentsPageContent() {
               })}
             </div>
 
-            {/* Mobile & tablet: underline-style tab strip, same activeTab state.
-                pb-1.5 keeps the visible strip short; min-h-[44px] on each button
-                still guarantees a full-height tap target regardless. */}
+            {/* Mobile & tablet: tab strip */}
             <div className="xl:hidden w-full overflow-x-auto scrollbar-none">
               <div className="flex items-center gap-4 border-b border-slate-800/80">
-                {TABS.map((tab) => {
+                {ASSIGNMENT_TABS.map((tab) => {
                   const active = activeTab === tab.value;
                   return (
                     <button
@@ -317,7 +294,7 @@ function AssignmentsPageContent() {
             </div>
           ) : (
             <>
-              {/* Desktop (xl+): unchanged existing empty state */}
+              {/* Desktop (xl+): empty state */}
               <Card className="hidden xl:block p-8 text-center">
                 <h2 className="text-xl font-semibold text-white">
                   No assignments found
@@ -327,9 +304,7 @@ function AssignmentsPageContent() {
                 </p>
               </Card>
 
-              {/* Mobile & tablet: context-aware empty state — genuinely no
-                  assignments reads as a celebration; filtered-to-zero offers
-                  a way out instead of a dead end. */}
+              {/* Mobile & tablet: context-aware empty state */}
               <div className="xl:hidden rounded-3xl border border-slate-800 bg-slate-900 p-8 text-center">
                 <div className="relative mx-auto mb-4 h-16 w-16">
                   <Plus size={14} className="absolute -top-2 left-1 text-orange-500/50" />

@@ -22,6 +22,7 @@ import useChat from "@/hooks/useChat";
 import { useAuth } from "@/context/AuthContext";
 import useMessages from "@/features/chat/hooks/useMessages";
 import useSendMessage from "@/hooks/useSendMessage";
+import useFindOrCreateDirectConversation from "@/features/chat/hooks/useFindOrCreateDirectConversation";
 
 function MessagesPageContent() {
   const { user: currentUser } = useAuth();
@@ -32,7 +33,6 @@ function MessagesPageContent() {
   // Real database chat hooks
   const {
     conversations = [],
-    setConversations,
     activeConversation,
     setActiveConversation,
     messages = [],
@@ -42,6 +42,7 @@ function MessagesPageContent() {
 
   const { loadMessages } = useMessages();
   const sendMessage = useSendMessage();
+  const { findOrCreateDirectConversation } = useFindOrCreateDirectConversation();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [inputText, setInputText] = useState("");
@@ -77,39 +78,10 @@ function MessagesPageContent() {
   useEffect(() => {
     if (!instructorId || chatLoading || conversations.length === 0) return;
 
-    const findAndSelectConversation = async () => {
-      // Find direct conversation with this instructorId
-      const matched = conversations.find(c =>
-        c.type !== "GROUP" && c.participants?.some(p => {
-          const pId = p.userId || p.user?.id || p.id;
-          return pId === instructorId;
-        })
-      );
-
-      if (matched) {
-        setActiveConversation(matched);
-      } else {
-        // Create new direct conversation
-        try {
-          const { createConversation } = await import("@/features/chat/api/chat.api");
-          const res = await createConversation({
-            participantIds: [instructorId],
-            courseId: courseId,
-            isGroup: false
-          });
-          const newConv = res.data || res;
-          if (newConv) {
-            setConversations(prev => [newConv, ...prev]);
-            setActiveConversation(newConv);
-          }
-        } catch (err) {
-          console.error("Failed to auto-create conversation with instructor:", err);
-        }
-      }
-    };
-
-    findAndSelectConversation();
-  }, [instructorId, conversations, chatLoading, courseId, setActiveConversation, setConversations]);
+    findOrCreateDirectConversation({ participantId: instructorId, courseId }).catch((err) => {
+      console.error("Failed to auto-create conversation with instructor:", err);
+    });
+  }, [instructorId, conversations, chatLoading, courseId, findOrCreateDirectConversation]);
 
   // Load messages when conversation changes
   useEffect(() => {

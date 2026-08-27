@@ -15,13 +15,13 @@ import {
   AlertCircle,
   FolderOpen,
 } from "lucide-react";
+import PageHeader from "@/components/layouts/PageHeader";
 import {
   useBookmarks,
   useDeleteBookmark,
 } from "@/hooks/queries/student/useBookmarks";
 import { useConfirm } from "@/context/ConfirmContext";
-
-const TYPE_TABS = ["All", "Lesson", "Video", "Document", "Note", "Web Link", "Course"];
+import { BOOKMARK_TYPE_TABS } from "@/features/student/constants/bookmarksConfig";
 
 const typeIcon = (type) => {
   switch (type) {
@@ -49,7 +49,7 @@ export default function BookmarksPage() {
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: bookmarks = [], isLoading, isError, refetch } = useBookmarks();
+  const { data: bookmarks = [], isLoading, isError } = useBookmarks();
   const deleteBookmark = useDeleteBookmark();
 
   const filtered = useMemo(() => {
@@ -73,7 +73,6 @@ export default function BookmarksPage() {
     if (!confirmed) return;
     try {
       await deleteBookmark.mutateAsync(id);
-      refetch();
     } catch {}
   };
 
@@ -95,13 +94,10 @@ export default function BookmarksPage() {
 
   return (
     <div className="space-y-6 text-white">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Bookmarks</h1>
-          <p className="text-xs text-slate-400 mt-1">{bookmarks.length} saved items</p>
-        </div>
-      </div>
+      <PageHeader
+        title="Bookmarks"
+        subtitle={`${bookmarks.length} saved items`}
+      />
 
       {/* Search + Tabs */}
       <div className="flex flex-wrap gap-4 items-center">
@@ -119,7 +115,7 @@ export default function BookmarksPage() {
 
       {/* Type Tabs */}
       <div className="flex gap-2 flex-wrap">
-        {TYPE_TABS.map((tab) => (
+        {BOOKMARK_TYPE_TABS.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}

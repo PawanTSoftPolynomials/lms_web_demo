@@ -4,6 +4,7 @@ import { useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 
 import Input from "@/components/ui/Input";
+import { ASSIGNMENT_STATUSES } from "@/features/student/constants/assignmentsConfig";
 
 export default function AssignmentFilters({
   search,
@@ -47,10 +48,11 @@ export default function AssignmentFilters({
       className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition focus:border-orange-500"
     >
       <option value="">All Statuses</option>
-      <option value="Not Submitted">Not Submitted</option>
-      <option value="In Progress">In Progress</option>
-      <option value="Submitted">Submitted</option>
-      <option value="Graded">Graded</option>
+      {ASSIGNMENT_STATUSES.map((status) => (
+        <option key={status} value={status}>
+          {status}
+        </option>
+      ))}
     </select>
   );
 

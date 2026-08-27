@@ -49,7 +49,7 @@ function Stat({ icon: Icon, value, label }) {
 /** My Courses grid card for students — same bold gradient shell as the
  *  instructor CourseGridCard (banner, translucent stat pills, audit row,
  *  edit/view-style actions), driven by enrollment + progress data. */
-export default function MyCourseCard({ enrollment, course: rawCourse, index = 0 }) {
+export default function MyCourseCard({ enrollment, course: rawCourse }) {
   const router = useRouter();
   const course = enrollment?.course || rawCourse;
 

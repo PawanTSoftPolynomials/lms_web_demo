@@ -18,17 +18,13 @@ import {
   ChevronRight,
   Camera,
   Upload,
-  UserCheck,
   Bell,
   Monitor,
   HelpCircle,
-  Sparkles,
   Zap,
   Trash2,
-  CheckCircle2,
   Smartphone,
   Globe,
-  Sliders,
   Save,
 } from "lucide-react";
 import DatePicker from "@/components/ui/DatePicker";
@@ -107,7 +103,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
       if (student.dateOfBirth) {
         try {
           dobStr = new Date(student.dateOfBirth).toISOString().split("T")[0];
-        } catch (e) {
+        } catch {
           dobStr = "";
         }
       }
@@ -177,7 +173,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
       setAvatarPreview(objectUrl);
 
       // Upload to backend API
-      const result = await uploadAvatar(file);
+      await uploadAvatar(file);
       setAvatarMessage("Profile photo uploaded successfully!");
       if (onRefresh) onRefresh();
     } catch (err) {
@@ -195,7 +191,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
       await removeAvatar();
       setAvatarMessage("Profile photo removed.");
       if (onRefresh) onRefresh();
-    } catch (err) {
+    } catch {
       setAvatarMessage("Failed to remove photo.");
     } finally {
       setIsUploadingAvatar(false);

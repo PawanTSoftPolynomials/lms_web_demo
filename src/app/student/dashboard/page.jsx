@@ -1,287 +1,36 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import {
-  BookOpen,
   GraduationCap,
   Trophy,
   CheckCircle,
   Activity,
   Clock,
   ClipboardList,
-  ClipboardCheck,
-  Video,
   HelpCircle,
-  Star,
   Play,
-  Bookmark as BookmarkIcon,
   CalendarIcon,
 } from "lucide-react";
 
-import { useQuery } from "@tanstack/react-query";
-import { getCalendarEvents } from "@/services/calendar.service";
-
 import useDashboard from "@/hooks/queries/student/useDashboard";
 import useCourses from "@/hooks/queries/student/useCourses";
+import useStudentCalendar from "@/hooks/queries/student/useStudentCalendar";
 import MiniCalendar from "@/components/dashboard/MiniCalendar";
 import RecommendedCoursesCarousel from "@/components/dashboard/RecommendedCoursesCarousel";
+import ContinueLearningRow from "@/components/dashboard/ContinueLearningRow";
+import RecommendedCourseCard from "@/components/dashboard/RecommendedCourseCard";
+import QuickActionButton from "@/components/dashboard/QuickActionButton";
+import MobileContinueCard from "@/components/dashboard/MobileContinueCard";
+import StudentStatCard from "@/components/dashboard/StudentStatCard";
+import UpcomingEventCard from "@/components/dashboard/UpcomingEventCard";
+import AchievementItem from "@/components/dashboard/AchievementItem";
 import { useAuth } from "@/context/AuthContext";
-
-const QUOTES = [
-  "The beautiful thing about learning is that no one can take it away from you.",
-  "Success is the sum of small efforts, repeated day in and day out.",
-  "Learning never exhausts the mind, it only fuels it.",
-  "The expert in anything was once a beginner.",
-];
-
-const ROW_ACCENTS = [
-  { text: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20" },
-  { text: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20" },
-  { text: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20" },
-  { text: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
-];
-
-const formatTime = (timeStr) => {
-  if (!timeStr) return "";
-  if (timeStr.toLowerCase().includes("am") || timeStr.toLowerCase().includes("pm")) return timeStr;
-  const parts = timeStr.split(":");
-  if (parts.length < 2) return timeStr;
-  let hours = parseInt(parts[0], 10);
-  const minutes = parts[1];
-  const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12;
-  hours = hours ? hours : 12;
-  return `${String(hours).padStart(2, "0")}:${minutes} ${ampm}`;
-};
-
-const toMinutesSinceMidnight = (timeStr) => {
-  if (!timeStr) return null;
-  const t = timeStr.trim().toLowerCase();
-  const ampmMatch = t.match(/(\d{1,2}):(\d{2})\s*(am|pm)/);
-  if (ampmMatch) {
-    let h = parseInt(ampmMatch[1], 10);
-    const m = parseInt(ampmMatch[2], 10);
-    if (ampmMatch[3] === "pm" && h !== 12) h += 12;
-    if (ampmMatch[3] === "am" && h === 12) h = 0;
-    return h * 60 + m;
-  }
-  const parts = t.split(":");
-  if (parts.length < 2) return null;
-  const h = parseInt(parts[0], 10);
-  const m = parseInt(parts[1], 10);
-  if (Number.isNaN(h) || Number.isNaN(m)) return null;
-  return h * 60 + m;
-};
-
-const getBadgeStyle = (type) => {
-  const t = (type || "").toLowerCase();
-  if (t === "class" || t === "lecture") {
-    return { label: "Lecture", className: "bg-blue-500/10 text-blue-400 border-blue-500/20" };
-  }
-  if (t === "office hours" || t === "session" || t === "q&a" || t === "live_class") {
-    return { label: "Live Class", className: "bg-purple-500/10 text-purple-400 border-purple-500/20" };
-  }
-  if (t === "assignment" || t === "deadline") {
-    return { label: "Assignment Due", className: "bg-rose-500/10 text-rose-400 border-rose-500/20" };
-  }
-  if (t === "exam") {
-    return { label: "Exam", className: "bg-rose-500/10 text-rose-400 border-rose-500/20" };
-  }
-  if (t === "quiz") {
-    return { label: "Quiz Starts", className: "bg-orange-500/10 text-orange-400 border-orange-500/20" };
-  }
-  return { label: type || "Event", className: "bg-orange-500/10 text-orange-400 border-orange-500/20" };
-};
-
-const getEventIcon = (type) => {
-  const t = (type || "").toLowerCase();
-  if (t === "class" || t === "lecture" || t === "office hours" || t === "session" || t === "q&a" || t === "live_class") return Video;
-  if (t === "assignment" || t === "deadline") return ClipboardList;
-  if (t === "exam") return ClipboardCheck;
-  if (t === "quiz") return HelpCircle;
-  return Clock;
-};
-
-// Mobile "Upcoming (Next 7 Days)" uses its own compact badge palette so the
-// desktop sidebar's existing colors (getBadgeStyle) stay untouched.
-const getMobileEventBadge = (type) => {
-  const t = (type || "").toLowerCase();
-  if (t === "assignment" || t === "deadline") return { label: "Assignment", className: "bg-purple-500/15 text-purple-300" };
-  if (t === "exam") return { label: "Exam", className: "bg-rose-500/15 text-rose-300" };
-  if (t === "quiz") return { label: "Quiz", className: "bg-orange-500/15 text-orange-300" };
-  return { label: "Live Class", className: "bg-blue-500/15 text-blue-300" };
-};
-
-const formatDueIn = (dateObj) => {
-  const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const diffDays = Math.round((dateObj - startOfToday) / 86400000);
-  const dateLabel = dateObj.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-  if (diffDays <= 0) return `Due today • ${dateLabel}`;
-  if (diffDays === 1) return `Due tomorrow • ${dateLabel}`;
-  return `Due in ${diffDays} days • ${dateLabel}`;
-};
-
-function ContinueLearningRow({ enrollment, accentIdx }) {
-  const [bookmarked, setBookmarked] = useState(false);
-  const course = enrollment.course || {};
-  const courseId = enrollment.courseId || course.id;
-  const progress = enrollment.progress ?? 0;
-  const completedLessons = enrollment.completedLessons ?? 0;
-  const totalLessons = course.lessons ?? 0;
-  const accent = ROW_ACCENTS[accentIdx % ROW_ACCENTS.length];
-
-  return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3.5 rounded-xl border border-[#1A1F35] bg-[#0A0D1B] hover:border-slate-700 transition">
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <div className={`shrink-0 h-10 w-10 rounded-xl ${accent.bg} ${accent.text} border ${accent.border} flex items-center justify-center font-black text-sm`}>
-          {course.title?.[0]?.toUpperCase() || "C"}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="text-sm font-extrabold text-white truncate">{course.title || "Untitled Course"}</h4>
-          </div>
-          <p className="text-[11px] text-slate-500 truncate mt-0.5">
-            {totalLessons > 0 ? `${completedLessons}/${totalLessons} lessons` : "Self-paced"} &middot; {progress}% complete
-          </p>
-          <div className="w-full max-w-[220px] h-1.5 rounded-full bg-slate-800 overflow-hidden mt-1.5">
-            <div className="h-full rounded-full bg-orange-500 transition-all duration-500" style={{ width: `${progress}%` }} />
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-        <Link href={`/student/learn/${enrollment.courseId || course.id}`} className="flex-1 sm:flex-none">
-          <button className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 text-xs font-black uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer">
-            <Play size={12} className="fill-slate-950" /> Continue
-          </button>
-        </Link>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            setBookmarked((v) => !v);
-          }}
-          title={bookmarked ? "Remove bookmark" : "Bookmark course"}
-          className={`shrink-0 h-9 w-9 rounded-xl border flex items-center justify-center transition cursor-pointer ${
-            bookmarked
-              ? "bg-orange-500/15 border-orange-500/30 text-orange-400"
-              : "bg-[#0D1021] border-[#1A1F35] text-slate-500 hover:text-slate-200"
-          }`}
-        >
-          <BookmarkIcon size={14} className={bookmarked ? "fill-orange-400" : ""} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function RecommendedCourseCard({ course }) {
-  const isNew = course.createdAt && Date.now() - new Date(course.createdAt).getTime() < 1000 * 60 * 60 * 24 * 14;
-  const hasReviews = Array.isArray(course.reviews) && course.reviews.length > 0;
-  const rating = hasReviews
-    ? (course.reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / course.reviews.length).toFixed(1)
-    : "4.8";
-
-  return (
-    <div className="group rounded-xl border border-[#1A1F35] bg-[#0A0D1B] p-2.5 hover:border-orange-500/40 transition-all flex flex-col gap-1 min-w-0">
-      <Link href={`/student/courses/${course.id}`} className="block">
-        <div className="flex items-start justify-between gap-1.5">
-          <div className="h-6 w-6 rounded-lg bg-slate-800 flex items-center justify-center shrink-0 text-slate-400">
-            <BookOpen size={11} />
-          </div>
-          {isNew && (
-            <span className="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/25 shrink-0">
-              New
-            </span>
-          )}
-        </div>
-        <h4 className="text-xs font-extrabold text-white leading-snug line-clamp-2 group-hover:text-orange-400 transition-colors mt-1">
-          {course.title}
-        </h4>
-        <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mt-1">
-          <span className="truncate">{course.level || "Beginner"}</span>
-          <span className="flex items-center gap-1 text-amber-400 shrink-0">
-            <Star size={10} className="fill-amber-400" /> {rating}
-          </span>
-        </div>
-      </Link>
-
-      <Link
-        href={`/student/courses/${course.id}`}
-        className="mt-2 w-full py-1.5 px-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-slate-950 text-[10px] font-black uppercase tracking-wider transition cursor-pointer text-center"
-      >
-        View Course
-      </Link>
-    </div>
-  );
-}
-
-// Mobile-only: one compact, equally-sized shortcut button (Quick Actions row).
-function QuickActionButton({ href, icon: Icon, label, color, bg }) {
-  return (
-    <Link
-      href={href}
-      className="flex flex-col items-center justify-center gap-1.5 rounded-xl bg-[#0D1021] border border-[#1A1F35] py-3 min-h-[44px] active:scale-95 transition"
-    >
-      <div className={`h-8 w-8 rounded-full ${bg} flex items-center justify-center`}>
-        <Icon size={15} className={color} />
-      </div>
-      <span className="text-[10px] font-bold text-slate-300">{label}</span>
-    </Link>
-  );
-}
-
-// Mobile-only: the single most-prominent "resume where you left off" card —
-// only the top enrollment, not the full list the desktop sidebar shows.
-function MobileContinueCard({ enrollment }) {
-  const [bookmarked, setBookmarked] = useState(false);
-  const course = enrollment.course || {};
-  const progress = enrollment.progress ?? 0;
-  const completedLessons = enrollment.completedLessons ?? 0;
-  const totalLessons = course.lessons ?? 0;
-  const lessonLabel = totalLessons > 0 ? `Lesson ${Math.min(completedLessons + 1, totalLessons)} of ${totalLessons}` : "Self-paced";
-
-  return (
-    <div className="rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-4">
-      <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 font-black text-base shrink-0">
-          {course.title?.[0]?.toUpperCase() || "C"}
-        </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-extrabold text-white truncate">{course.title || "Untitled Course"}</h3>
-          <p className="text-[11px] text-slate-500 truncate mt-0.5">{lessonLabel}</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setBookmarked((v) => !v)}
-          title={bookmarked ? "Remove bookmark" : "Bookmark course"}
-          className={`shrink-0 h-9 w-9 rounded-full border flex items-center justify-center transition ${
-            bookmarked
-              ? "bg-orange-500/15 border-orange-500/30 text-orange-400"
-              : "bg-[#141930] border-[#1A1F35] text-slate-500"
-          }`}
-        >
-          <BookmarkIcon size={15} className={bookmarked ? "fill-orange-400" : ""} />
-        </button>
-      </div>
-
-      <div className="flex items-center gap-2 mt-3.5">
-        <div className="flex-1 h-2 rounded-full bg-slate-800 overflow-hidden">
-          <div className="h-full rounded-full bg-orange-500 transition-all duration-500" style={{ width: `${progress}%` }} />
-        </div>
-        <span className="text-xs font-black text-white shrink-0">{progress}%</span>
-      </div>
-
-      <Link
-        href={`/student/learn/${enrollment.courseId || course.id}`}
-        className="mt-3.5 flex items-center justify-center gap-2 w-full rounded-xl bg-orange-500 active:bg-orange-600 text-slate-950 font-black text-sm py-3 min-h-[44px] transition"
-      >
-        <Play size={15} className="fill-slate-950" /> Continue
-      </Link>
-    </div>
-  );
-}
+import { toMinutesSinceMidnight } from "@/lib/dateUtils";
+import { QUOTES } from "@/constants/dashboardQuotes";
+import { getAchievementsList } from "@/features/student/constants/achievementsConfig";
+import { getStatCards } from "@/features/student/constants/dashboardConfig";
 
 export default function StudentDashboardPage() {
   const { user } = useAuth();
@@ -289,11 +38,7 @@ export default function StudentDashboardPage() {
   const { data: dashboardData, isLoading: isDashboardLoading, isError } = useDashboard();
   const { data: allCourses = [], isLoading: isCoursesLoading } = useCourses();
 
-  const { data: calendarEvents = [], isLoading: isCalendarEventsLoading } = useQuery({
-    queryKey: ["calendar_events"],
-    queryFn: getCalendarEvents,
-    staleTime: 1000 * 60 * 5,
-  });
+  const { data: calendarEvents = [], isLoading: isCalendarEventsLoading } = useStudentCalendar();
 
   const stats = dashboardData?.stats ?? {};
   const enrolledCourses = dashboardData?.enrolledCoursesList ?? [];
@@ -304,79 +49,14 @@ export default function StudentDashboardPage() {
   const totalLessonsCount = stats.totalLessons ?? 0;
   const completionRate = totalLessonsCount > 0 ? Math.round((completedLessonsCount / totalLessonsCount) * 100) : 0;
 
-  const statCards = [
-    {
-      key: "enrolled",
-      label: "Enrolled Courses",
-      value: enrolledCourses.length,
-      icon: BookOpen,
-      color: "text-purple-400",
-      bg: "bg-purple-500/10",
-      hint: "View all courses",
-      href: "/student/my-courses",
-    },
-    {
-      key: "completed",
-      label: "Completed Lessons",
-      value: completedLessonsCount,
-      icon: CheckCircle,
-      color: "text-emerald-400",
-      bg: "bg-emerald-500/10",
-      hint: "Keep it up! 🎉",
-    },
-    {
-      key: "rate",
-      label: "Completion Rate",
-      value: `${completionRate}%`,
-      icon: Activity,
-      color: "text-blue-400",
-      bg: "bg-blue-500/10",
-      progress: completionRate,
-    },
-    {
-      key: "certificates",
-      label: "Certificates Earned",
-      value: stats.certificatesCount ?? 0,
-      icon: Trophy,
-      color: "text-orange-400",
-      bg: "bg-orange-500/10",
-      hint: "View certificates",
-      href: "/student/certificates",
-    },
-  ];
+  const statCards = getStatCards({
+    enrolledCount: enrolledCourses.length,
+    completedLessonsCount,
+    completionRate,
+    certificatesCount: stats.certificatesCount ?? 0,
+  });
 
-  const achievementsList = useMemo(
-    () => [
-      {
-        name: "Quiz Master",
-        icon: "🏆",
-        description: "Scored 90%+ average in quizzes",
-        active: (stats.avgQuizScore ?? 0) >= 90,
-        bg: "bg-amber-500/10",
-        color: "text-amber-400",
-        border: "border-amber-500/25",
-      },
-      {
-        name: "Consistency Star",
-        icon: "⭐",
-        description: `${stats.streak ?? 0} day learning streak`,
-        active: (stats.streak ?? 0) >= 3,
-        bg: "bg-purple-500/10",
-        color: "text-purple-400",
-        border: "border-purple-500/25",
-      },
-      {
-        name: "Top Learner",
-        icon: "🧠",
-        description: "Completed 5+ lessons",
-        active: (stats.completedLessons ?? 0) >= 5,
-        bg: "bg-emerald-500/10",
-        color: "text-emerald-400",
-        border: "border-emerald-500/25",
-      },
-    ],
-    [stats]
-  );
+  const achievementsList = useMemo(() => getAchievementsList(stats), [stats]);
   const unlockedAchievements = achievementsList.filter((a) => a.active);
 
   const upcomingEvents = useMemo(() => {
@@ -459,17 +139,7 @@ export default function StudentDashboardPage() {
         {/* Compact Statistics — all four fit on one row on a 375px screen, no scrolling */}
         <div className="grid grid-cols-4 gap-2">
           {statCards.map((s) => (
-            <div key={s.key} className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-2">
-              <div className={`h-6 w-6 rounded-md ${s.bg} flex items-center justify-center mb-1`}>
-                <s.icon size={11} className={s.color} />
-              </div>
-              {isDashboardLoading ? (
-                <div className="h-4 w-8 bg-slate-800 rounded animate-pulse" />
-              ) : (
-                <p className="text-sm font-black text-white leading-none">{s.value}</p>
-              )}
-              <p className="text-[8.5px] text-slate-400 font-semibold leading-tight mt-1">{s.label}</p>
-            </div>
+            <StudentStatCard key={s.key} stat={s} isLoading={isDashboardLoading} variant="mobile" />
           ))}
         </div>
 
@@ -531,24 +201,9 @@ export default function StudentDashboardPage() {
             </div>
           ) : (
             <div className="space-y-2.5">
-              {mobileUpcomingEvents.map((task) => {
-                const badge = getMobileEventBadge(task.type);
-                const Icon = getEventIcon(task.type);
-                return (
-                  <div key={task.id} className="rounded-xl bg-[#0D1021] border border-[#1A1F35] p-3 flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-lg bg-[#141930] border border-[#1A1F35] flex items-center justify-center shrink-0">
-                      <Icon size={16} className="text-slate-300" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-xs font-bold text-white truncate">{task.title}</h4>
-                      <p className="text-[10px] text-slate-500 mt-0.5">{formatDueIn(task._date)}</p>
-                    </div>
-                    <span className={`shrink-0 text-[9px] font-bold px-2 py-1 rounded-full ${badge.className}`}>
-                      {badge.label}
-                    </span>
-                  </div>
-                );
-              })}
+              {mobileUpcomingEvents.map((task) => (
+                <UpcomingEventCard key={task.id} task={task} variant="mobile" />
+              ))}
             </div>
           )}
         </div>
@@ -574,38 +229,7 @@ export default function StudentDashboardPage() {
         <div className="mt-4 mb-2">
           <div className="flex flex-wrap md:flex-nowrap items-center gap-3 w-full">
             {statCards.map((s) => (
-              <div
-                key={s.key}
-                className="flex-1 min-w-[140px] flex items-center gap-3 rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-3 shadow-sm hover:border-slate-700 transition"
-              >
-                <div className={`p-2 rounded-xl ${s.bg} shrink-0`}>
-                  <s.icon size={16} className={s.color} />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <p className="text-slate-400 text-[9px] font-bold uppercase tracking-wider truncate">{s.label}</p>
-                  {isDashboardLoading ? (
-                    <div className="h-5 w-10 bg-slate-800 rounded animate-pulse mt-1.5" />
-                  ) : (
-                    <p className="text-lg font-black text-white leading-none mt-1">{s.value}</p>
-                  )}
-
-                  {s.progress !== undefined ? (
-                    <div className="w-full max-w-[110px] h-1.5 rounded-full bg-slate-800 overflow-hidden mt-2">
-                      <div
-                        className="h-full bg-blue-400 rounded-full transition-all duration-500"
-                        style={{ width: `${s.progress}%` }}
-                      />
-                    </div>
-                  ) : s.href ? (
-                    <Link href={s.href} className="text-[9px] font-bold text-orange-400 hover:text-orange-300 transition truncate block mt-1.5">
-                      {s.hint} &rarr;
-                    </Link>
-                  ) : (
-                    <p className="text-[9px] text-slate-500 font-medium truncate mt-1.5">{s.hint}</p>
-                  )}
-                </div>
-              </div>
+              <StudentStatCard key={s.key} stat={s} isLoading={isDashboardLoading} variant="desktop" />
             ))}
           </div>
         </div>
@@ -728,31 +352,9 @@ export default function StudentDashboardPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {upcomingEvents.map((task) => {
-                    const badge = getBadgeStyle(task.type);
-                    const Icon = getEventIcon(task.type);
-                    const timeLabel = task.startTime ? formatTime(task.startTime) : "All Day";
-
-                    return (
-                      <div
-                        key={task.id}
-                        className="p-3 rounded-xl border bg-[#141930] border-[#1A1F35] hover:border-slate-700 transition"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className={`shrink-0 h-9 w-9 rounded-lg flex items-center justify-center border ${badge.className}`}>
-                              <Icon size={15} />
-                            </div>
-                            <div className="min-w-0">
-                              <h4 className="text-xs font-bold text-white truncate">{task.title}</h4>
-                              <p className="text-[10px] text-slate-400 truncate">{task.courseName || task.subtitle || badge.label}</p>
-                            </div>
-                          </div>
-                          <span className="shrink-0 text-[10px] font-black text-sky-400">{timeLabel}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {upcomingEvents.map((task) => (
+                    <UpcomingEventCard key={task.id} task={task} variant="desktop" />
+                  ))}
                 </div>
               )}
             </div>
@@ -790,15 +392,7 @@ export default function StudentDashboardPage() {
               ) : (
                 <div className="space-y-5">
                   {unlockedAchievements.map((ach) => (
-                    <div key={ach.name} className="flex items-start gap-3">
-                      <div className={`p-2 rounded-lg border ${ach.bg} ${ach.border} shrink-0 flex items-center justify-center text-base`}>
-                        {ach.icon}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-200">{ach.name}</p>
-                        <p className="text-[10px] text-slate-500 line-clamp-1">{ach.description}</p>
-                      </div>
-                    </div>
+                    <AchievementItem key={ach.name} achievement={ach} />
                   ))}
                 </div>
               )}

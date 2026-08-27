@@ -34,7 +34,6 @@ export default function CourseGrid({
                         key={item.id || idx}
                         course={courseObj}
                         enrollment={enrollmentObj}
-                        index={idx}
                     />
                 );
             })}

@@ -1,6 +1,6 @@
 "use client";
 
-import {useMemo, useState} from "react";
+import {useState} from "react";
 
 import Loader from "@/components/common/Loader";
 import PageHeader from "@/components/layouts/PageHeader";
@@ -13,6 +13,7 @@ import CourseToolbar from "@/components/student/courses/CourseToolbar";
 
 import useCourses from "@/hooks/queries/student/useCourses";
 import useMyCourses from "@/hooks/queries/student/useMyCourses";
+import useAvailableCourseFilters from "@/hooks/queries/student/useAvailableCourseFilters";
 
 export default function StudentCoursesPage() {
     const {data: courses = [], isLoading, isError} = useCourses();
@@ -22,45 +23,13 @@ export default function StudentCoursesPage() {
     const [category, setCategory] = useState("");
     const [level, setLevel] = useState("");
 
-    const enrolledCourseIds = useMemo(() => {
-        return new Set((myEnrollments || []).map((e) => e.courseId || e.course?.id).filter(Boolean));
-    }, [myEnrollments]);
-
-    const availableCourses = useMemo(() => {
-        return courses.filter((course) => !enrolledCourseIds.has(course.id));
-    }, [courses, enrolledCourseIds]);
-
-    const categories = useMemo(() => {
-        return [...new Set(availableCourses.map((course) => course.category).filter(Boolean))];
-    }, [availableCourses]);
-
-    const levels = useMemo(() => {
-        return [...new Set(availableCourses.map((course) => course.level).filter(Boolean))];
-    }, [availableCourses]);
-
-    const filteredCourses = useMemo(() => {
-        return availableCourses.filter((course) => {
-            const matchesSearch =
-                course.title
-                    .toLowerCase()
-                    .includes(search.toLowerCase()) ||
-                course.description
-                    .toLowerCase()
-                    .includes(search.toLowerCase());
-
-            const matchesCategory =
-                !category || course.category === category;
-
-            const matchesLevel =
-                !level || course.level === level;
-
-            return (
-                matchesSearch &&
-                matchesCategory &&
-                matchesLevel
-            );
-        });
-    }, [availableCourses, search, category, level]);
+    const {categories, levels, filteredCourses} = useAvailableCourseFilters({
+        courses,
+        myEnrollments,
+        search,
+        category,
+        level,
+    });
 
     const activeFilters = [
         search,
