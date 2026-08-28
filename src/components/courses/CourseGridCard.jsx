@@ -2,55 +2,45 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { format, formatDistanceToNow } from "date-fns";
-import { BookOpen, Layers, FileText, HelpCircle, Clock, UserRound, CalendarPlus, History, Pencil, ArrowUpRight, Download, Loader2 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { BookOpen, Clock, Users, Pencil, ArrowUpRight, Loader2 } from "lucide-react";
 
-import CourseStatusBadge from "@/components/courses/CourseStatusBadge";
+import ActionMenu from "@/components/menus/ActionMenu";
+import { useConfirm } from "@/context/ConfirmContext";
+import { useDeleteCourse } from "@/hooks/queries/instructor/useDeleteCourse";
 import { exportCourse } from "@/services/course.service";
 import { getDisplayUrl } from "@/lib/blob";
 
-const ACCENT_BAR = {
-  PUBLISHED: "bg-primary",
-  DRAFT: "bg-muted-foreground/40",
-  ARCHIVED: "bg-destructive",
+const STATUS_STYLE = {
+  PUBLISHED: { label: "Published", dot: "bg-emerald-400" },
+  DRAFT: { label: "Draft", dot: "bg-amber-400" },
+  ARCHIVED: { label: "Archived", dot: "bg-rose-400" },
 };
 
-/**
- * Fixed banner color for every card. The gradient itself stays at a normal,
- * identifiable saturation; `brightness`/`contrast` filters are applied on a
- * separate background layer (not on the text) to knock the perceived
- * intensity down by ~40% without graying out content.
- */
-const THEME = { gradient: "bg-gradient-to-br from-teal-500 to-teal-700", viewText: "text-teal-900" };
+const LEVEL_STYLE = {
+  Beginner: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
+  Intermediate: "bg-amber-500/15 text-amber-400 border-amber-500/20",
+  Advanced: "bg-rose-500/15 text-rose-400 border-rose-500/20",
+};
 
-function Stat({ icon: Icon, value, label }) {
-  return (
-    <div className="flex flex-col items-center gap-0.5 md:gap-1 rounded-lg border border-border bg-muted/60 py-1 md:py-2 text-foreground">
-      <div className="flex items-center gap-1.5">
-        <Icon size={15} className="text-primary" />
-        <p className="text-sm md:text-base font-black tabular-nums">{value}</p>
-      </div>
-      <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
-    </div>
-  );
-}
-
-/** My Courses grid card — banner, stats, duration, creator, audit fields, description, edit/view actions. */
+/** My Courses grid card — banner, meta row, tag pills, edit/view actions, and a
+ *  kebab menu for export/delete. */
 export default function CourseGridCard({ course }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [exporting, setExporting] = useState(false);
 
-  const lessonsCount = course.modules?.reduce((sum, m) => sum + (m.lessons?.length ?? 0), 0) ?? course.stats?.lessonsCount ?? 0;
-  const accent = STATUS_ACCENT[course.status] || STATUS_ACCENT.DRAFT;
-  const theme = THEME;
+  const deleteCourseMutation = useDeleteCourse();
+
+  const statusStyle = STATUS_STYLE[course.status] || STATUS_STYLE.DRAFT;
+  const studentsCount = course._count?.enrollments ?? 0;
 
   const goTo = (path) => (e) => {
     e.stopPropagation();
     router.push(path);
   };
 
-  const handleExport = async (e) => {
-    e.stopPropagation();
+  const handleExport = async () => {
     if (exporting) return;
     setExporting(true);
     try {
@@ -79,99 +69,122 @@ export default function CourseGridCard({ course }) {
     }
   };
 
+  const handleDelete = async () => {
+    const confirmed = await confirm({
+      title: "Delete Course",
+      message: `Are you sure you want to delete "${course.title}"? This cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+    if (!confirmed) return;
+    try {
+      await deleteCourseMutation.mutateAsync(course.id);
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
+  };
+
+  const menuItems = [
+    { label: exporting ? "Exporting…" : "Export ZIP", onClick: handleExport },
+    { label: "Delete Course", onClick: handleDelete },
+  ];
+
   return (
     <div
       onClick={() => router.push(`/instructor/courses/${course.id}`)}
-      className="group relative flex w-[90%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-80 md:shrink flex-col overflow-hidden rounded-2xl bg-card border border-card-border shadow-luxury-sm hover:shadow-luxury-md transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+      className="group relative flex w-[70%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-56 md:shrink flex-col overflow-hidden rounded-2xl bg-muted border border-card-border shadow-luxury-sm hover:shadow-luxury-md transition-all duration-300 hover:-translate-y-1 cursor-pointer"
     >
       {/* Banner */}
-      <div className="relative h-16 md:h-28 shrink-0 overflow-hidden bg-muted">
-        <div className={`absolute inset-x-0 top-0 h-1 ${accentBar} z-10`} />
-        {course.thumbnailUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={getDisplayUrl(course.thumbnailUrl)}
-            alt=""
-            loading="lazy"
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="relative flex h-full w-full items-center justify-center">
-            <BookOpen size={36} className="text-muted-foreground/40" />
-          </div>
-        )}
+      <div className="relative h-28 md:h-32 shrink-0 bg-muted pt-1.5 px-1.5 md:pt-2 md:px-2">
+        <div className="relative h-full w-full overflow-hidden rounded-xl bg-card">
+          {course.thumbnailUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={getDisplayUrl(course.thumbnailUrl)}
+              alt=""
+              loading="lazy"
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="relative flex h-full w-full items-center justify-center">
+              <BookOpen size={36} className="text-muted-foreground/40" />
+            </div>
+          )}
 
-        <span className="absolute top-2 left-2 md:top-3 md:left-3 rounded-md border border-white/30 bg-black/50 backdrop-blur px-2 py-0.5 md:py-1 text-[10px] md:text-[11px] font-bold text-white">
-          {course.category || "Uncategorized"}
-        </span>
-        <div className="absolute top-2 right-2 md:top-3 md:right-3">
-          <CourseStatusBadge status={course.status} />
+          <span className="absolute top-1.5 left-1.5 flex items-center gap-1 rounded-md bg-black/55 backdrop-blur px-1.5 py-0.5 text-[9px] font-bold text-white">
+            <span className={`h-1.5 w-1.5 rounded-full ${statusStyle.dot}`} />
+            {statusStyle.label}
+          </span>
+
+          <div className="absolute top-1.5 right-1.5" onClick={(e) => e.stopPropagation()}>
+            <ActionMenu items={menuItems} />
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-1.5 md:gap-2.5 p-3 md:p-4">
+      <div className="flex flex-1 flex-col gap-1 md:gap-1.5 p-2 md:p-2.5">
         <div>
-          <h3 className="text-base md:text-lg font-black text-foreground leading-snug line-clamp-1">
+          <h3 className="text-xs md:text-sm font-black text-foreground leading-snug line-clamp-1">
             {course.title}
           </h3>
           {course.description ? (
-            <p className="mt-0.5 md:mt-1 text-xs md:text-[13px] leading-relaxed text-muted-foreground line-clamp-1 md:line-clamp-2">{course.description}</p>
+            <p className="mt-0.5 text-[10px] md:text-[11px] leading-relaxed text-muted-foreground line-clamp-1">{course.description}</p>
           ) : null}
         </div>
 
-        <div className="grid grid-cols-3 gap-1.5 md:gap-2">
-          <Stat icon={Layers} value={course._count?.modules ?? 0} label="Modules" />
-          <Stat icon={FileText} value={lessonsCount} label="Lessons" />
-          <Stat icon={HelpCircle} value={course._count?.quizzes ?? 0} label="Quizzes" />
-        </div>
-
-        <div className="flex items-center justify-between gap-2 text-[11px] md:text-xs">
-          <span className="flex min-w-0 items-center gap-1.5 truncate rounded-lg border border-border bg-muted/60 px-2 py-0.5 md:py-1 text-foreground">
-            <UserRound size={13} className="shrink-0 text-muted-foreground" />
-            <span className="truncate">{course.creator?.name || "Unknown"}</span>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] md:text-[10px] text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <Users size={11} />
+            {studentsCount} Students
           </span>
-          <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-muted/60 px-2 py-0.5 md:py-1 text-foreground">
-            <Clock size={13} className="text-muted-foreground" />
+          <span className="flex items-center gap-1">
+            <Clock size={11} />
             {course.estimatedLearningHours ? `${course.estimatedLearningHours}h` : "—"}
           </span>
-        </div>
-
-        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <CalendarPlus size={13} />
-            {course.createdAt ? format(new Date(course.createdAt), "MMM d, yyyy") : "—"}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <History size={13} />
-            {course.updatedAt ? formatDistanceToNow(new Date(course.updatedAt), { addSuffix: true }) : "—"}
+          <span className="truncate">
+            Updated {course.updatedAt ? formatDistanceToNow(new Date(course.updatedAt), { addSuffix: true }) : "—"}
           </span>
         </div>
 
-        <div className="mt-auto flex items-center gap-2 pt-0.5 md:pt-1.5">
+        <div className="flex flex-wrap items-center gap-1">
+          <span className="rounded-md border border-sky-500/20 bg-sky-500/15 px-1.5 py-0.5 text-[9px] font-bold text-sky-400">
+            {course.category || "Uncategorized"}
+          </span>
+          {course.tags?.[0] ? (
+            <span className="rounded-md border border-violet-500/20 bg-violet-500/15 px-1.5 py-0.5 text-[9px] font-bold text-violet-400">
+              {course.tags[0]}
+            </span>
+          ) : null}
+          {course.level ? (
+            <span className={`rounded-md border px-1.5 py-0.5 text-[9px] font-bold ${LEVEL_STYLE[course.level] || LEVEL_STYLE.Beginner}`}>
+              {course.level}
+            </span>
+          ) : null}
+        </div>
+
+        <div className="mt-auto flex items-center gap-1.5 pt-0.5">
           <button
             onClick={goTo(`/instructor/courses/edit/${course.id}`)}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-border bg-muted/40 px-3 py-1.5 md:py-2 text-xs md:text-[13px] font-extrabold text-foreground transition hover:bg-muted"
+            className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg border border-border bg-card/60 px-2 py-1 text-[10px] md:text-[11px] font-extrabold text-foreground transition hover:bg-card"
           >
-            <Pencil size={13} />
+            <Pencil size={11} />
             Edit
           </button>
           <button
-            onClick={handleExport}
-            disabled={exporting}
-            title="Export Course ZIP"
-            className="inline-flex items-center justify-center p-2 rounded-xl border border-border bg-muted/40 text-foreground transition hover:bg-muted disabled:opacity-50"
-          >
-            {exporting ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
-          </button>
-          <button
             onClick={goTo(`/instructor/courses/${course.id}`)}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-3 py-1.5 md:py-2 text-xs md:text-[13px] font-extrabold transition hover:brightness-110 active:scale-95"
+            className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg bg-primary text-primary-foreground px-2 py-1 text-[10px] md:text-[11px] font-extrabold transition hover:brightness-110 active:scale-95"
           >
-            View
-            <ArrowUpRight size={13} />
+            View Course
+            <ArrowUpRight size={11} />
           </button>
         </div>
       </div>
+
+      {exporting && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-background/60 backdrop-blur-sm">
+          <Loader2 size={20} className="animate-spin text-foreground" />
+        </div>
+      )}
     </div>
   );
 }
