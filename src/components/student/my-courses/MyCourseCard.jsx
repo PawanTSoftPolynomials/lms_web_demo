@@ -6,48 +6,18 @@ import { BookOpen, Clock, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/shadcn/badge";
 import { getDisplayUrl } from "@/lib/blob";
 
-/** Not Started / Completed use a fixed neutral / green treatment; In Progress
- *  and Enrolled pull a solid accent color from ACCENT_PALETTE (deterministic
- *  per course) so active cards read with the same varied vividness as the
- *  reference design instead of all sharing one color. */
-const NEUTRAL_STYLE = { badge: "bg-slate-500 text-white border-transparent", dot: "bg-white", fill: "bg-slate-400", button: "bg-slate-500 text-white" };
-const COMPLETE_STYLE = { badge: "bg-emerald-500 text-white border-transparent", dot: "bg-white", fill: "bg-emerald-500", button: "bg-emerald-500 text-white" };
+/** Status color is kept out of the card's 3-color hierarchy on purpose:
+ *  Completed stays a universal success-green (a functional status signal,
+ *  same reasoning as the app's own --success token) and Not Started stays
+ *  neutral; every "active" state (Enrolled/In Progress) shares the card's
+ *  one highlight color rather than a different hue per course. */
+const NEUTRAL_STYLE = { badge: "bg-white/15 text-white/80 border-white/10", dot: "bg-white/70" };
+const COMPLETE_STYLE = { badge: "bg-emerald-500 text-white border-transparent", dot: "bg-white" };
 
-const ACCENT_PALETTE = [
-  { badge: "bg-violet-500 text-white border-transparent", fill: "bg-violet-500", button: "bg-violet-500 text-white" },
-  { badge: "bg-sky-500 text-white border-transparent", fill: "bg-sky-500", button: "bg-sky-500 text-white" },
-  { badge: "bg-amber-500 text-white border-transparent", fill: "bg-amber-500", button: "bg-amber-500 text-white" },
-  { badge: "bg-rose-500 text-white border-transparent", fill: "bg-rose-500", button: "bg-rose-500 text-white" },
-  { badge: "bg-emerald-500 text-white border-transparent", fill: "bg-emerald-500", button: "bg-emerald-500 text-white" },
-];
-
-function hashIndex(id, mod) {
-  const key = String(id ?? "");
-  let hash = 0;
-  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) | 0;
-  return Math.abs(hash) % mod;
-}
-
-function getStatusStyle(status, courseId) {
+function getStatusStyle(status) {
   if (status === "Not Started") return NEUTRAL_STYLE;
   if (status === "Completed") return COMPLETE_STYLE;
-  const accent = ACCENT_PALETTE[hashIndex(courseId, ACCENT_PALETTE.length)];
-  return { ...accent, dot: "bg-white" };
-}
-
-/** Vivid gradient bank for the banner of courses with no thumbnailUrl, picked
- *  deterministically per course so the placeholder still has color instead of
- *  a flat gray box. */
-const PLACEHOLDER_GRADIENTS = [
-  "from-violet-500 to-purple-700",
-  "from-sky-500 to-blue-700",
-  "from-emerald-500 to-teal-700",
-  "from-amber-500 to-orange-700",
-  "from-rose-500 to-pink-700",
-];
-
-function placeholderGradient(id) {
-  return PLACEHOLDER_GRADIENTS[hashIndex(id, PLACEHOLDER_GRADIENTS.length)];
+  return { badge: "border-transparent", dot: "bg-black/40" };
 }
 
 /** My Courses grid card for students — banner image with a status pill and
@@ -68,7 +38,7 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
   const progress = Math.min(100, Math.max(0, Math.round(enrollment?.progress ?? 0)));
   const isComplete = isEnrolled && progress >= 100;
   const status = isEnrolled ? (isComplete ? "Completed" : progress > 0 ? "In Progress" : "Enrolled") : "Not Started";
-  const style = getStatusStyle(status, course.id);
+  const style = getStatusStyle(status);
 
   const estimatedHours =
     course.estimatedLearningHours ?? (lessonsTotal > 0 ? Math.max(1, Math.round(lessonsTotal * 0.75)) : null);
@@ -79,10 +49,10 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
   return (
     <div
       onClick={() => router.push(destination)}
-      className="group relative flex w-full shrink-0 flex-col overflow-hidden rounded-2xl bg-card border border-card-border shadow-luxury-sm hover:shadow-luxury-md transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+      className="card-photo-jellyfish group relative flex w-full shrink-0 flex-col overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--card-photo-bg-from)] to-[var(--card-photo-bg-to)] border border-[var(--card-photo-border)] shadow-luxury-sm hover:shadow-luxury-md transition-all duration-300 hover:-translate-y-1 cursor-pointer"
     >
       {/* Banner */}
-      <div className="relative h-36 md:h-40 shrink-0 overflow-hidden bg-muted">
+      <div className="relative h-36 md:h-40 shrink-0 overflow-hidden">
         {course.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -92,13 +62,21 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${placeholderGradient(course.id)}`}>
-            <BookOpen size={40} className="text-white/50" />
+          <div className="flex h-full w-full items-center justify-center bg-black/20">
+            <BookOpen size={40} className="text-white/25" />
           </div>
         )}
 
+        {/* Blends the image's bottom edge into the card body's gradient
+            color instead of a hard cutoff, echoing the soft-edged glow
+            of the reference art. */}
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-14"
+          style={{ background: "linear-gradient(to bottom, transparent, var(--card-photo-bg-to))" }}
+        />
+
         <div className="absolute top-3 left-3 md:top-4 md:left-4">
-          <Badge className={style.badge}>
+          <Badge className={style.badge} style={status !== "Not Started" && status !== "Completed" ? { backgroundColor: "var(--card-photo-highlight)", color: "#1a1200" } : undefined}>
             <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
             {status}
           </Badge>
@@ -111,26 +89,26 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
 
       <div className="flex flex-1 flex-col gap-3.5 p-4 md:p-5">
         <div>
-          <h3 className="text-lg md:text-xl font-black text-foreground leading-snug line-clamp-1">
+          <h3 className="card-photo-title text-lg md:text-xl font-bold leading-snug line-clamp-1 text-[var(--card-photo-h1)]">
             {course.title}
           </h3>
           {course.description ? (
-            <p className="mt-1 text-xs md:text-sm leading-relaxed text-muted-foreground line-clamp-2">
+            <p className="mt-1 text-xs md:text-sm leading-relaxed line-clamp-2 text-[var(--card-photo-subtitle)]">
               {course.description}
             </p>
           ) : null}
         </div>
 
         <div className="mt-auto space-y-3">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
             <div
-              className={`h-full rounded-full transition-all duration-500 ease-out ${style.fill}`}
-              style={{ width: `${progress}%` }}
+              className="h-full rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${progress}%`, backgroundColor: status === "Completed" ? "#10b981" : "var(--card-photo-highlight)" }}
             />
           </div>
 
           <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-3 text-xs md:text-sm text-muted-foreground">
+            <div className="flex min-w-0 items-center gap-3 text-xs md:text-sm text-white/50">
               <span className="flex items-center gap-1.5">
                 <BookOpen size={14} />
                 {lessonsTotal} Lessons
@@ -147,7 +125,8 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
                 router.push(destination);
               }}
               aria-label={isEnrolled ? (isComplete ? "Review course" : "Continue learning") : "View course"}
-              className={`flex h-9 w-9 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-full transition hover:brightness-110 active:scale-95 cursor-pointer ${style.button}`}
+              className="flex h-9 w-9 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-full transition hover:brightness-110 active:scale-95 cursor-pointer"
+              style={{ backgroundColor: "var(--card-photo-highlight)", color: "#1a1200" }}
             >
               <ArrowRight size={16} />
             </button>

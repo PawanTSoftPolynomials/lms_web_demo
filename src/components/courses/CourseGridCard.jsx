@@ -92,11 +92,11 @@ export default function CourseGridCard({ course }) {
   return (
     <div
       onClick={() => router.push(`/instructor/courses/${course.id}`)}
-      className="group relative flex w-[70%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-56 md:shrink flex-col overflow-hidden rounded-2xl bg-muted border border-card-border shadow-luxury-sm hover:shadow-luxury-md transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+      className="card-photo-jellyfish group relative flex w-[70%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-56 md:shrink flex-col overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--card-photo-bg-from)] to-[var(--card-photo-bg-to)] border border-[var(--card-photo-border)] shadow-luxury-sm hover:shadow-luxury-md transition-all duration-300 hover:-translate-y-1 cursor-pointer"
     >
       {/* Banner */}
-      <div className="relative h-28 md:h-32 shrink-0 bg-muted pt-1.5 px-1.5 md:pt-2 md:px-2">
-        <div className="relative h-full w-full overflow-hidden rounded-xl bg-card">
+      <div className="relative h-28 md:h-32 shrink-0 pt-1.5 px-1.5 md:pt-2 md:px-2">
+        <div className="relative h-full w-full overflow-hidden rounded-xl bg-black/20">
           {course.thumbnailUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -107,9 +107,17 @@ export default function CourseGridCard({ course }) {
             />
           ) : (
             <div className="relative flex h-full w-full items-center justify-center">
-              <BookOpen size={36} className="text-muted-foreground/40" />
+              <BookOpen size={36} className="text-white/25" />
             </div>
           )}
+
+          {/* Blends the image's bottom edge into the card body's gradient
+              color instead of a hard cutoff, echoing the soft-edged glow
+              of the reference art. */}
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-10"
+            style={{ background: "linear-gradient(to bottom, transparent, var(--card-photo-bg-to))" }}
+          />
 
           <span className="absolute top-1.5 left-1.5 flex items-center gap-1 rounded-md bg-black/55 backdrop-blur px-1.5 py-0.5 text-[9px] font-bold text-white">
             <span className={`h-1.5 w-1.5 rounded-full ${statusStyle.dot}`} />
@@ -124,15 +132,15 @@ export default function CourseGridCard({ course }) {
 
       <div className="flex flex-1 flex-col gap-1 md:gap-1.5 p-2 md:p-2.5">
         <div>
-          <h3 className="text-xs md:text-sm font-black text-foreground leading-snug line-clamp-1">
+          <h3 className="card-photo-title text-xs md:text-sm font-bold leading-snug line-clamp-1 text-[var(--card-photo-h1)]">
             {course.title}
           </h3>
           {course.description ? (
-            <p className="mt-0.5 text-[10px] md:text-[11px] leading-relaxed text-muted-foreground line-clamp-1">{course.description}</p>
+            <p className="mt-0.5 text-[10px] md:text-[11px] leading-relaxed line-clamp-1 text-[var(--card-photo-subtitle)]">{course.description}</p>
           ) : null}
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] md:text-[10px] text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] md:text-[10px] text-white/50">
           <span className="flex items-center gap-1">
             <Users size={11} />
             {studentsCount} Students
@@ -147,11 +155,17 @@ export default function CourseGridCard({ course }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-1">
-          <span className="rounded-md border border-sky-500/20 bg-sky-500/15 px-1.5 py-0.5 text-[9px] font-bold text-sky-400">
+          <span
+            className="rounded-md border px-1.5 py-0.5 text-[9px] font-bold"
+            style={{ borderColor: "color-mix(in oklab, var(--card-photo-highlight) 35%, transparent)", backgroundColor: "color-mix(in oklab, var(--card-photo-highlight) 15%, transparent)", color: "var(--card-photo-highlight)" }}
+          >
             {course.category || "Uncategorized"}
           </span>
           {course.tags?.[0] ? (
-            <span className="rounded-md border border-violet-500/20 bg-violet-500/15 px-1.5 py-0.5 text-[9px] font-bold text-violet-400">
+            <span
+              className="rounded-md border px-1.5 py-0.5 text-[9px] font-bold"
+              style={{ borderColor: "color-mix(in oklab, var(--card-photo-subtitle) 35%, transparent)", backgroundColor: "color-mix(in oklab, var(--card-photo-subtitle) 15%, transparent)", color: "var(--card-photo-subtitle)" }}
+            >
               {course.tags[0]}
             </span>
           ) : null}
@@ -165,14 +179,15 @@ export default function CourseGridCard({ course }) {
         <div className="mt-auto flex items-center gap-1.5 pt-0.5">
           <button
             onClick={goTo(`/instructor/courses/edit/${course.id}`)}
-            className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg border border-border bg-card/60 px-2 py-1 text-[10px] md:text-[11px] font-extrabold text-foreground transition hover:bg-card"
+            className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-[10px] md:text-[11px] font-extrabold text-white/80 transition hover:bg-white/10"
           >
             <Pencil size={11} />
             Edit
           </button>
           <button
             onClick={goTo(`/instructor/courses/${course.id}`)}
-            className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg bg-primary text-primary-foreground px-2 py-1 text-[10px] md:text-[11px] font-extrabold transition hover:brightness-110 active:scale-95"
+            className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1 text-[10px] md:text-[11px] font-extrabold transition hover:brightness-110 active:scale-95"
+            style={{ backgroundColor: "var(--card-photo-highlight)", color: "#1a1200" }}
           >
             View Course
             <ArrowUpRight size={11} />
@@ -181,8 +196,8 @@ export default function CourseGridCard({ course }) {
       </div>
 
       {exporting && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-background/60 backdrop-blur-sm">
-          <Loader2 size={20} className="animate-spin text-foreground" />
+        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-black/60 backdrop-blur-sm">
+          <Loader2 size={20} className="animate-spin text-white" />
         </div>
       )}
     </div>

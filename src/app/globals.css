@@ -470,3 +470,33 @@ body {
     opacity: 0.6;
   }
 }
+
+/* ==========================================================================
+   Experimental photo-derived card palettes — course cards only, applied via
+   a wrapper class on the card root. Each candidate photo gets its own block
+   of CSS custom properties (background gradient + 3-color text hierarchy:
+   h1 / subtitle / highlight); switching which photo is "live" on a card is
+   just swapping which .card-photo-* class is applied, not re-touching the
+   component. Deliberately NOT tied to light/dark mode — these are fixed,
+   self-contained dark card faces regardless of the page's own theme, same
+   as the mood-board reference art they're drawn from.
+   ========================================================================== */
+
+/* Palette 1 — abstract underwater/jellyfish art: deep navy field, glowing
+   magenta-pink centers, soft teal fins, small warm-gold accents. */
+.card-photo-jellyfish {
+  --card-photo-bg-from: #0a0c1e;
+  --card-photo-bg-to: #181b3a;
+  --card-photo-border: #2a2d52;
+  --card-photo-h1: #f472b6;
+  --card-photo-subtitle: #5fd1c4;
+  --card-photo-highlight: #e8ae68;
+}
+
+/* Title font for every card-photo-* variant — Playfair Display (already
+   loaded app-wide via @fontsource, previously only used on one certificate
+   page) for headline character; body copy stays on Poppins, the app's
+   existing default, so the whole system is still just 2 fonts total. */
+.card-photo-title {
+  font-family: "Playfair Display", serif;
+}
