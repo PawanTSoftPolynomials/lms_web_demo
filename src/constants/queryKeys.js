@@ -72,7 +72,6 @@ export const QUERY_KEYS = {
     // Instructor
     // ==========================
     INSTRUCTOR_DASHBOARD: "instructor-dashboard",
-    TEACHER_INSIGHTS: "teacher-insights",
 
     INSTRUCTOR_COURSES: "instructor-courses",
     INSTRUCTOR_COURSES_TABLE: "instructor-courses-table",
@@ -117,10 +116,4 @@ export const QUERY_KEYS = {
     RESULTS: "results",
     ASSESSMENTS: "assessments",
     INSTRUCTOR_CERTIFICATES: "instructor-certificates",
-
-    // ==========================
-    // Mentor AI
-    // ==========================
-    MENTOR_CONVERSATIONS: "mentor-conversations",
-    MENTOR_MESSAGES: "mentor-messages",
 };

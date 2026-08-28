@@ -60,15 +60,15 @@ export default function QuestionCard({
   if (!question) return null;
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4 sm:p-5 shadow-xl">
+    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-3 sm:p-4 shadow-xl">
       {/* Question Progress Header */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between">
         <div>
           <p className="text-sm text-slate-400">
             Question {currentQuestion} of {totalQuestions}
           </p>
 
-          <div className="mt-2 h-2 w-56 overflow-hidden rounded-full bg-slate-800">
+          <div className="mt-1.5 h-1.5 w-56 overflow-hidden rounded-full bg-slate-800">
             <div
               className="h-full rounded-full bg-orange-500 transition-all duration-300"
               style={{
@@ -78,45 +78,40 @@ export default function QuestionCard({
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-1">
-          <div className="flex items-center gap-3">
-            {question.concept && (
-              <div className="rounded-lg bg-slate-800 border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300">
-                Concept: <span className="text-orange-400 font-semibold">{question.concept}</span>
-              </div>
-            )}
-
-            {onToggleBookmark && (
-              <button
-                type="button"
-                onClick={onToggleBookmark}
-                title={isBookmarked ? "Remove bookmark" : "Bookmark this question"}
-                className={`flex h-9 w-9 items-center justify-center rounded-lg border transition cursor-pointer ${
-                  isBookmarked
-                    ? "border-orange-500/40 bg-orange-500/10 text-orange-400"
-                    : "border-slate-700 bg-slate-800 text-slate-400 hover:text-orange-400"
-                }`}
-              >
-                <Bookmark
-                  className="h-4 w-4"
-                  fill={isBookmarked ? "currentColor" : "none"}
-                />
-              </button>
-            )}
-
-            <div className="rounded-lg bg-orange-500/10 px-4 py-2 text-sm font-semibold text-orange-400">
-              {question.marks} {question.marks === 1 ? "Mark" : "Marks"}
+        <div className="flex items-center gap-2">
+          {question.concept && (
+            <div className="hidden sm:block rounded-lg bg-slate-800 border border-slate-700 px-2.5 py-1 text-xs font-medium text-slate-300">
+              Concept: <span className="text-orange-400 font-semibold">{question.concept}</span>
             </div>
+          )}
+
+          {onToggleBookmark && (
+            <button
+              type="button"
+              onClick={onToggleBookmark}
+              title={isBookmarked ? "Remove bookmark" : "Bookmark this question"}
+              className={`flex h-8 w-8 items-center justify-center rounded-lg border transition cursor-pointer ${
+                isBookmarked
+                  ? "border-orange-500/40 bg-orange-500/10 text-orange-400"
+                  : "border-slate-700 bg-slate-800 text-slate-400 hover:text-orange-400"
+              }`}
+            >
+              <Bookmark
+                className="h-4 w-4"
+                fill={isBookmarked ? "currentColor" : "none"}
+              />
+            </button>
+          )}
+
+          <div className="rounded-lg bg-orange-500/10 px-3 py-1.5 text-xs font-semibold text-orange-400 whitespace-nowrap">
+            {question.marks} {question.marks === 1 ? "Mark" : "Marks"}
           </div>
-          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-            Type: {type.replace("_", " ")}
-          </span>
         </div>
       </div>
 
       {/* Question Text */}
-      <div className="mb-4">
-        <h2 className="text-xl sm:text-2xl font-semibold leading-relaxed text-white">
+      <div className="mb-3">
+        <h2 className="text-lg sm:text-xl font-semibold leading-snug text-white">
           {question.question}
         </h2>
       </div>

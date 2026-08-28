@@ -192,8 +192,8 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo }) {
 
     return (
         <>
-            <div className="space-y-4 lg:grid lg:grid-cols-[1fr_260px] lg:items-start lg:gap-4 lg:space-y-0">
-                <div className="space-y-4 min-w-0">
+            <div className="space-y-3 lg:grid lg:grid-cols-[1fr_260px] lg:items-start lg:gap-4 lg:space-y-0">
+                <div className="space-y-3 min-w-0">
                     <QuizHeader
                         quiz={quiz}
                         onBack={onBack}

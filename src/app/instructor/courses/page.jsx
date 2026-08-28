@@ -10,7 +10,7 @@ import Pagination from "@/components/ui/Pagination";
 import CourseGridCard from "@/components/courses/CourseGridCard";
 import { useInstructorCoursesTable } from "@/hooks/queries/instructor/useInstructorCoursesTable";
 
-const INITIAL_FILTERS = { search: "", status: "", category: "", level: "", sortBy: "newest", page: 1, limit: 10 };
+const INITIAL_FILTERS = { search: "", status: "", category: "", level: "", sortBy: "recently_updated", page: 1, limit: 12 };
 
 export default function InstructorCoursesPage() {
   const router = useRouter();
@@ -19,7 +19,7 @@ export default function InstructorCoursesPage() {
   const { data, isLoading, isError, refetch } = useInstructorCoursesTable(filters);
 
   const courses = data?.courses || [];
-  const pagination = data?.pagination || { page: 1, limit: 10, total: 0, totalPages: 1 };
+  const pagination = data?.pagination || { page: 1, limit: 12, total: 0, totalPages: 1 };
 
   const set = (key) => (value) => setFilters((f) => ({ ...f, [key]: value, page: key === "page" ? value : 1 }));
 
@@ -86,17 +86,19 @@ export default function InstructorCoursesPage() {
           onAction={() => router.push("/instructor/courses/create")}
         />
       ) : (
-        <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] px-3 py-4 md:px-12 md:py-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4 md:mb-6">
-            <div className="relative w-full sm:max-w-md">
-              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-              <input
-                type="text"
-                placeholder="Search your courses..."
-                value={filters.search}
-                onChange={(e) => set("search")(e.target.value)}
-                className="w-full rounded-xl border border-[#1A1F35] bg-[#0D1021] pl-9 pr-4 py-2 md:py-2.5 text-sm text-slate-200 placeholder-slate-500 outline-none transition focus:border-orange-500/60"
-              />
+        <div className="flex flex-col min-h-[70vh] rounded-2xl border border-[#1A1F35] bg-[#0D1021] px-3 py-4 md:px-12 md:py-6">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4 mb-4 md:mb-6">
+            <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center md:flex-wrap">
+              <div className="relative w-full min-w-0 md:max-w-xs">
+                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="Search courses..."
+                  value={filters.search}
+                  onChange={(e) => set("search")(e.target.value)}
+                  className="w-full rounded-xl border border-[#1A1F35] bg-[#0D1021] pl-9 pr-4 py-2 md:py-2.5 text-sm text-slate-200 placeholder-slate-500 outline-none transition focus:border-orange-500/60"
+                />
+              </div>
             </div>
 
             <div className="flex items-center gap-2 md:gap-3 shrink-0">
@@ -109,7 +111,7 @@ export default function InstructorCoursesPage() {
               </Link>
               <button
                 onClick={() => router.push("/instructor/courses/create")}
-                className="btn-rainbow [--btn-rainbow-fill:var(--color-orange-500)] hover:[--btn-rainbow-fill:var(--color-orange-600)] inline-flex items-center justify-center rounded-lg px-3 md:px-5 py-2 md:py-2.5 text-xs font-bold text-white transition whitespace-nowrap"
+                className="btn-rainbow [--btn-rainbow-fill:var(--primary)] inline-flex items-center justify-center rounded-lg px-3 md:px-5 py-2 md:py-2.5 text-xs font-bold text-primary-foreground transition whitespace-nowrap"
               >
                 <span className="md:hidden">+ Create</span>
                 <span className="hidden md:inline">+ Create Course</span>
@@ -117,7 +119,7 @@ export default function InstructorCoursesPage() {
             </div>
           </div>
 
-          <div className="md:max-h-[68vh] md:overflow-y-auto md:pr-1 md:-mr-1">
+          <div className="flex-1 md:max-h-[68vh] md:overflow-y-auto md:pr-1 md:-mr-1">
             {/* Mobile: centered peek carousel — the active card snaps to the middle
                 of the viewport with a small sliver of its neighbors visible on
                 each side (App Store / Apple Music style), one card in focus at a
@@ -126,7 +128,7 @@ export default function InstructorCoursesPage() {
             <div
               ref={sliderRef}
               onScroll={courses.length > 0 ? handleSliderScroll : undefined}
-              className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-6 md:pb-0 md:grid md:justify-center md:grid-cols-[repeat(auto-fill,320px)] md:overflow-visible md:snap-none"
+              className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-4 md:pb-0 md:grid md:justify-center md:grid-cols-[repeat(auto-fill,224px)] md:overflow-visible md:snap-none"
             >
               {courses.length === 0 ? (
                 <div className="w-full col-span-full">

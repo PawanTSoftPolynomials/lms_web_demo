@@ -22,7 +22,7 @@ export default function QuizNavigation({
         currentQuestion === totalQuestions;
 
     return (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-3">
             <div className="flex items-center justify-between gap-3">
                 <Button
                     type="button"

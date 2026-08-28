@@ -20,7 +20,11 @@ export const PALETTES: Palette[] = [
 
 export const DEFAULT_PALETTE: PaletteId = "teal";
 
-export const PALETTE_STORAGE_KEY = "lms-palette";
+// Bumped to v2 so browsers that already had "orange" saved from before the
+// Relearn (violet/black) retheme pick up the new default instead of being
+// stuck on the old one forever. Deliberate future palette choices are still
+// respected under the new key going forward.
+export const PALETTE_STORAGE_KEY = "lms-palette-v2";
 
 export function isPaletteId(value: string | null): value is PaletteId {
   return !!value && PALETTES.some((p) => p.id === value);

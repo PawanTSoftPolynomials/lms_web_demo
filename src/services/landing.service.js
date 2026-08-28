@@ -28,7 +28,8 @@ export const getLandingData = async () => {
           reviewsCount: 120,
           lessonsCount: 24,
           level: "Intermediate",
-          category: "Web Development"
+          category: "Web Development",
+          store: { price: 2999, discountPrice: 1999, currency: "INR", isFree: false }
         },
         {
           id: "course-node-express",
@@ -40,7 +41,8 @@ export const getLandingData = async () => {
           reviewsCount: 98,
           lessonsCount: 18,
           level: "Advanced",
-          category: "Backend"
+          category: "Backend",
+          store: { price: 0, discountPrice: null, currency: "INR", isFree: true }
         }
       ]
     };

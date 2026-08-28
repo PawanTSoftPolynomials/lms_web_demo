@@ -1,4 +1,5 @@
 import Card from "@/components/ui/Card";
+import Eyebrow from "@/components/ui/Eyebrow";
 
 export default function Features() {
   const features = [
@@ -26,12 +27,14 @@ export default function Features() {
 
   return (
     <section className="py-20">
-      <div className="text-center mb-12">
-        <h2 className="text-4xl font-bold">
+      <div className="text-center mb-12 flex flex-col items-center">
+        <Eyebrow>Why Choose Us</Eyebrow>
+
+        <h2 className="text-4xl font-bold mt-4 text-foreground">
           Platform Features
         </h2>
 
-        <p className="text-slate-400 mt-4">
+        <p className="text-muted-foreground mt-4">
           Everything you need to manage learning.
         </p>
       </div>
@@ -39,11 +42,11 @@ export default function Features() {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {features.map((feature) => (
           <Card key={feature.title}>
-            <h3 className="text-xl font-semibold">
+            <h3 className="text-xl font-semibold text-foreground">
               {feature.title}
             </h3>
 
-            <p className="text-slate-400 mt-3">
+            <p className="text-muted-foreground mt-3">
               {feature.description}
             </p>
           </Card>

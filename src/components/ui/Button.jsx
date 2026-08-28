@@ -1,9 +1,11 @@
 const VARIANT_CLASSES = {
-  primary: "btn-rainbow [--btn-rainbow-fill:var(--color-orange-600)] hover:[--btn-rainbow-fill:var(--color-orange-700)] text-white",
+  primary: "btn-rainbow [--btn-rainbow-fill:var(--primary)] text-primary-foreground",
   secondary:
-    "bg-transparent border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600",
-  danger: "btn-rainbow [--btn-rainbow-fill:var(--color-red-600)] hover:[--btn-rainbow-fill:var(--color-red-700)] text-white",
-  ghost: "bg-transparent text-slate-400 hover:text-white hover:bg-white/5",
+    "bg-transparent border border-border text-muted-foreground hover:text-foreground hover:border-primary/40",
+  danger: "btn-rainbow [--btn-rainbow-fill:var(--destructive)] text-destructive-foreground",
+  ghost: "bg-transparent text-muted-foreground hover:text-foreground hover:bg-primary/10",
+  outline:
+    "bg-transparent border border-border text-foreground hover:border-primary/40 hover:bg-primary/5",
 };
 
 export default function Button({
