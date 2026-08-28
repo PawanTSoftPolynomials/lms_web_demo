@@ -409,15 +409,15 @@ body {
   background: linear-gradient(135deg, #f97316, #ec4899);
 }
 
-/* Animated scrolling-rainbow border for primary CTA buttons, always running
-   (not hover-gated — a static rainbow border reads as broken/half-loaded).
-   Two background-image layers clipped separately: a flat "fill" gradient
-   clipped to padding-box repaints the button's own interior color, and the
-   rainbow gradient clipped to border-box shows only in the 2px gutter left
-   by the transparent border. --btn-rainbow-fill is set per variant so each
-   keeps its own brand color; falls back to currentColor if unset. Adapts to
-   any button's real size/shape (border-radius: inherit), unlike the fixed
-   pixel dimensions of the original reference design. */
+/* Static rainbow border for primary CTA buttons (no scrolling/animation —
+   was found to read as blinking/flashing). Two background-image layers
+   clipped separately: a flat "fill" gradient clipped to padding-box repaints
+   the button's own interior color, and the rainbow gradient clipped to
+   border-box shows only in the 2px gutter left by the transparent border.
+   --btn-rainbow-fill is set per variant so each keeps its own brand color;
+   falls back to currentColor if unset. Adapts to any button's real
+   size/shape (border-radius: inherit), unlike the fixed pixel dimensions of
+   the original reference design. */
 @utility btn-rainbow {
   position: relative;
   isolation: isolate;
@@ -428,7 +428,6 @@ body {
   background-size: 100% 100%, 200% 100%;
   background-clip: padding-box, border-box;
   background-origin: border-box, border-box;
-  animation: btn-rainbow-scroll 3s linear infinite;
 
   &::before {
     content: "";
@@ -441,25 +440,10 @@ body {
     filter: blur(10px);
     opacity: 0;
     transition: opacity 0.3s ease;
-    animation: btn-rainbow-scroll 3s linear infinite;
   }
 
   &:hover::before,
   &:focus-visible::before {
     opacity: 0.6;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-
-    &::before {
-      animation: none;
-    }
-  }
-}
-
-@keyframes btn-rainbow-scroll {
-  to {
-    background-position: 0% 0%, 200% 0%;
   }
 }

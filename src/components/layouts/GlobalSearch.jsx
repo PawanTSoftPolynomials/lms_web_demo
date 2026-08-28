@@ -9,6 +9,8 @@ import {
   CheckSquare,
   Video,
   StickyNote,
+  Users,
+  Layers,
   CornerDownLeft,
 } from "lucide-react";
 
@@ -16,44 +18,67 @@ import { getCourses } from "@/services/course.service";
 import { getAssignments } from "@/services/assignment.service";
 import { getLiveClasses } from "@/services/liveClass.service";
 import { getNotes } from "@/services/note.service";
+import { getStudents } from "@/services/student.service";
+import { listBatches } from "@/services/batch.service";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
 const RESULTS_PER_CATEGORY = 4;
 
-// Global Search covers the data students actually have live hooks for today
-// (Courses, Assignments, Live Classes, Notes). Lessons and Files don't yet
-// have a student-facing list endpoint, so they're intentionally left out
-// rather than faked.
-export default function GlobalSearch() {
+// Global Search covers the data each role actually has live list hooks for
+// today. Student: Courses, Assignments, Live Classes, Notes. Instructor:
+// Courses (own, any status), Students, Batches. Lessons/Modules/Quizzes
+// don't yet have a flat, filterable list endpoint, so they're intentionally
+// left out rather than faked.
+export default function GlobalSearch({ role = "student" }) {
   const router = useRouter();
+  const isInstructor = role === "instructor";
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef(null);
   const panelRef = useRef(null);
 
-  const { data: courses = [] } = useQuery({
+  const { data: studentCourses = [] } = useQuery({
     queryKey: [QUERY_KEYS.COURSES],
     queryFn: async () => (await getCourses()).filter((c) => c.status === "PUBLISHED"),
-    enabled: open,
+    enabled: open && !isInstructor,
     staleTime: 1000 * 60 * 5,
   });
   const { data: assignments = [] } = useQuery({
     queryKey: [QUERY_KEYS.STUDENT_ASSIGNMENTS],
     queryFn: getAssignments,
-    enabled: open,
+    enabled: open && !isInstructor,
     staleTime: 1000 * 60 * 5,
   });
   const { data: liveClasses = [] } = useQuery({
     queryKey: [QUERY_KEYS.LIVE_CLASSES, {}],
     queryFn: () => getLiveClasses({}),
-    enabled: open,
+    enabled: open && !isInstructor,
     staleTime: 1000 * 60 * 5,
   });
   const { data: notes = [] } = useQuery({
     queryKey: [QUERY_KEYS.NOTES, {}],
     queryFn: () => getNotes({}),
-    enabled: open,
+    enabled: open && !isInstructor,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: instructorCourses = [] } = useQuery({
+    queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES],
+    queryFn: getCourses,
+    enabled: open && isInstructor,
+    staleTime: 1000 * 60 * 5,
+  });
+  const { data: students = [] } = useQuery({
+    queryKey: [QUERY_KEYS.ADMIN_STUDENTS || "students"],
+    queryFn: getStudents,
+    enabled: open && isInstructor,
+    staleTime: 1000 * 60 * 5,
+  });
+  const { data: batches = [] } = useQuery({
+    queryKey: [QUERY_KEYS.MY_BATCHES, {}],
+    queryFn: () => listBatches({}),
+    enabled: open && isInstructor,
     staleTime: 1000 * 60 * 5,
   });
 
@@ -86,12 +111,44 @@ export default function GlobalSearch() {
 
     const matches = (...fields) => fields.some((f) => f && String(f).toLowerCase().includes(q));
 
+    if (isInstructor) {
+      return [
+        {
+          id: "courses",
+          label: "Courses",
+          icon: BookOpen,
+          results: instructorCourses
+            .filter((c) => matches(c.title, c.category))
+            .slice(0, RESULTS_PER_CATEGORY)
+            .map((c) => ({ id: c.id, title: c.title, subtitle: c.category || c.status || "Course", href: `/instructor/courses/${c.id}` })),
+        },
+        {
+          id: "students",
+          label: "Students",
+          icon: Users,
+          results: students
+            .filter((s) => matches(s.name, s.email))
+            .slice(0, RESULTS_PER_CATEGORY)
+            .map((s) => ({ id: s.id, title: s.name, subtitle: s.email || "Student", href: "/instructor/students" })),
+        },
+        {
+          id: "batches",
+          label: "Batches",
+          icon: Layers,
+          results: batches
+            .filter((b) => matches(b.name, ...(b.courseTitles || [])))
+            .slice(0, RESULTS_PER_CATEGORY)
+            .map((b) => ({ id: b.id, title: b.name, subtitle: (b.courseTitles || []).join(", ") || "Batch", href: `/instructor/batches/${b.id}` })),
+        },
+      ].filter((group) => group.results.length > 0);
+    }
+
     return [
       {
         id: "courses",
         label: "Courses",
         icon: BookOpen,
-        results: courses
+        results: studentCourses
           .filter((c) => matches(c.title, c.category))
           .slice(0, RESULTS_PER_CATEGORY)
           .map((c) => ({ id: c.id, title: c.title, subtitle: c.category || "Course", href: `/student/courses/${c.id}` })),
@@ -129,7 +186,7 @@ export default function GlobalSearch() {
           .map((n) => ({ id: n.id, title: n.title, subtitle: n.category || "Note", href: "/student/notes" })),
       },
     ].filter((group) => group.results.length > 0);
-  }, [query, courses, assignments, liveClasses, notes]);
+  }, [query, isInstructor, studentCourses, assignments, liveClasses, notes, instructorCourses, students, batches]);
 
   const flatResults = useMemo(() => groups.flatMap((g) => g.results.map((r) => ({ ...r, group: g.label }))), [groups]);
 
@@ -188,7 +245,7 @@ export default function GlobalSearch() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Search courses, assignments, live classes, notes..."
+                placeholder={isInstructor ? "Search courses, students, batches..." : "Search courses, assignments, live classes, notes..."}
                 aria-label="Search dashboard"
                 className="w-full bg-transparent text-sm text-slate-100 outline-none placeholder-slate-500"
               />
@@ -200,7 +257,9 @@ export default function GlobalSearch() {
             <div className="max-h-[60vh] overflow-y-auto p-2 scrollbar-none">
               {!query.trim() ? (
                 <p className="px-3 py-10 text-center text-xs text-slate-500">
-                  Search across your courses, assignments, live classes, and notes.
+                  {isInstructor
+                    ? "Search across your courses, students, and batches."
+                    : "Search across your courses, assignments, live classes, and notes."}
                 </p>
               ) : flatResults.length === 0 ? (
                 <p className="px-3 py-10 text-center text-xs text-slate-500">No results for &ldquo;{query}&rdquo;</p>

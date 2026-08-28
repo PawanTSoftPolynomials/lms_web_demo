@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
@@ -11,13 +12,20 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from "@/components/ui/shadcn/dropdown-menu";
-import type { NavItem } from "@/components/instructor/NavigationStrip/navigationItems";
+import type { NavItem, NavSubItem } from "@/components/instructor/NavigationStrip/navigationItems";
 
 // The floating "quick action" strip used by both the Instructor and Student
 // dashboards. Layout, styling, responsiveness, and animations live here once;
-// each role only supplies its own `items` + `ariaLabel`.
-export function QuickActionStrip({ items, ariaLabel }: { items: NavItem[]; ariaLabel: string }) {
+// each role only supplies its own `items` + `ariaLabel`. `bare` drops the
+// own rounded/bordered pill-container chrome and lets the row scroll
+// horizontally instead of wrapping — for embedding directly inside another
+// bar (e.g. the top navbar) as plain flex children, not a nested strip.
+export function QuickActionStrip({ items, ariaLabel, bare = false }: { items: NavItem[]; ariaLabel: string; bare?: boolean }) {
   const pathname = usePathname();
 
   const mobilePrimary = items.filter((item) => item.primaryOnMobile);
@@ -25,10 +33,17 @@ export function QuickActionStrip({ items, ariaLabel }: { items: NavItem[]; ariaL
   return (
     <nav
       aria-label={ariaLabel}
-      className="-mx-1 rounded-2xl border border-card-border bg-card/80 backdrop-blur-md px-2 py-2 shadow-sm"
+      className={bare ? "min-w-0" : "-mx-1 rounded-2xl border border-card-border bg-card/80 backdrop-blur-md px-2 py-2 shadow-sm"}
     >
-      {/* Desktop / tablet: full pill row, wraps so every item fits in window */}
-      <div className="hidden sm:flex flex-wrap justify-center items-center gap-1.5 p-1">
+      {/* Desktop / tablet: full pill row. Bare mode scrolls horizontally
+          (fixed-height host bar); standalone mode wraps to fit the window. */}
+      <div
+        className={
+          bare
+            ? "hidden sm:flex items-center gap-1 overflow-x-auto scrollbar-none"
+            : "hidden sm:flex flex-wrap justify-center items-center gap-1.5 p-1"
+        }
+      >
         {items.map((item) => (
           <NavPill key={item.label} item={item} active={isItemActive(pathname, item)} pathname={pathname} ariaLabel={ariaLabel} />
         ))}
@@ -51,14 +66,44 @@ export function QuickActionStrip({ items, ariaLabel }: { items: NavItem[]; ariaL
   );
 }
 
-function isHrefActive(pathname: string, href: string) {
+function isHrefActive(pathname: string, href?: string) {
+  if (!href) return false;
   if (href.endsWith("/dashboard")) return pathname === href;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+// A sub-item may itself hold one further level of children (e.g. "Work"
+// nested under "Learning") — recurse so the whole chain highlights as active.
+function isSubItemActive(pathname: string, item: NavSubItem): boolean {
+  if (item.children) return item.children.some((child) => isSubItemActive(pathname, child));
+  return isHrefActive(pathname, item.href);
+}
+
 function isItemActive(pathname: string, item: NavItem) {
-  if (item.children) return item.children.some((child) => isHrefActive(pathname, child.href));
-  return item.href ? isHrefActive(pathname, item.href) : false;
+  if (item.children) return item.children.some((child) => isSubItemActive(pathname, child));
+  return isHrefActive(pathname, item.href);
+}
+
+// Opens immediately on hover, closes after a short delay so moving the
+// pointer from trigger to content (or between a submenu and its parent)
+// doesn't close the menu before it lands. Click still works via onOpenChange.
+function useHoverOpen(closeDelayMs = 150) {
+  const [open, setOpen] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+  }, []);
+
+  const onMouseEnter = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setOpen(true);
+  };
+  const onMouseLeave = () => {
+    closeTimer.current = setTimeout(() => setOpen(false), closeDelayMs);
+  };
+
+  return { open, setOpen, onMouseEnter, onMouseLeave };
 }
 
 function NavPill({
@@ -76,6 +121,10 @@ function NavPill({
 }) {
   const Icon = item.icon;
   const layoutId = `nav-strip-active-pill-${ariaLabel}`;
+  // Called unconditionally (rules-of-hooks) even though only the
+  // item.children branch below uses it — item.children is stable per
+  // NavPill instance, so this never actually changes across renders.
+  const hover = useHoverOpen();
 
   const pillClass = cn(
     "relative flex items-center gap-1.5 rounded-xl font-bold whitespace-nowrap transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0",
@@ -89,9 +138,15 @@ function NavPill({
 
   if (item.children) {
     return (
-      <DropdownMenu>
+      <DropdownMenu open={hover.open} onOpenChange={hover.setOpen}>
         <DropdownMenuTrigger asChild>
-          <button type="button" className={pillClass} aria-current={active ? "page" : undefined}>
+          <button
+            type="button"
+            className={pillClass}
+            aria-current={active ? "page" : undefined}
+            onMouseEnter={hover.onMouseEnter}
+            onMouseLeave={hover.onMouseLeave}
+          >
             {active && !mobile && (
               <motion.span
                 layoutId={layoutId}
@@ -104,22 +159,22 @@ function NavPill({
             <ChevronDown className="size-3 relative z-10" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          {item.children.map((child) => {
-            const ChildIcon = child.icon;
-            const childActive = isHrefActive(pathname, child.href);
-            return (
+        <DropdownMenuContent align="start" onMouseEnter={hover.onMouseEnter} onMouseLeave={hover.onMouseLeave}>
+          {item.children.map((child) =>
+            child.children ? (
+              <NestedSubMenuItem key={child.label} child={child} pathname={pathname} />
+            ) : (
               <DropdownMenuItem key={child.href} asChild>
                 <Link
-                  href={child.href}
-                  className={cn("flex items-center gap-2", childActive && "font-bold text-primary")}
+                  href={child.href!}
+                  className={cn("flex items-center gap-2", isHrefActive(pathname, child.href) && "font-bold text-primary")}
                 >
-                  <ChildIcon className="size-3.5" />
+                  <child.icon className="size-3.5" />
                   {child.label}
                 </Link>
               </DropdownMenuItem>
-            );
-          })}
+            )
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -137,5 +192,40 @@ function NavPill({
       <Icon className="size-3.5 relative z-10" />
       <span className="relative z-10">{item.label}</span>
     </Link>
+  );
+}
+
+// One nested level (e.g. "Work" under "Learning") — its own component so it
+// can hold its own hover-open state, same pattern as the top-level dropdown.
+function NestedSubMenuItem({ child, pathname }: { child: NavSubItem; pathname: string }) {
+  const hover = useHoverOpen();
+  const childActive = isSubItemActive(pathname, child);
+
+  return (
+    <DropdownMenuSub open={hover.open} onOpenChange={hover.setOpen}>
+      <DropdownMenuSubTrigger
+        className={cn("flex items-center gap-2", childActive && "font-bold text-primary")}
+        onMouseEnter={hover.onMouseEnter}
+        onMouseLeave={hover.onMouseLeave}
+      >
+        <child.icon className="size-3.5" />
+        {child.label}
+      </DropdownMenuSubTrigger>
+      <DropdownMenuPortal>
+        <DropdownMenuSubContent onMouseEnter={hover.onMouseEnter} onMouseLeave={hover.onMouseLeave}>
+          {child.children!.map((grandchild) => (
+            <DropdownMenuItem key={grandchild.href} asChild>
+              <Link
+                href={grandchild.href!}
+                className={cn("flex items-center gap-2", isHrefActive(pathname, grandchild.href) && "font-bold text-primary")}
+              >
+                <grandchild.icon className="size-3.5" />
+                {grandchild.label}
+              </Link>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuSubContent>
+      </DropdownMenuPortal>
+    </DropdownMenuSub>
   );
 }

@@ -25,6 +25,7 @@ import { useQuestion } from "@/hooks/queries/instructor/useQuestion";
 import GlobalSearch from "@/components/layouts/GlobalSearch";
 import { NotificationsMenu, ProfileMenu } from "@/components/layouts/NavUserMenus";
 import { ThemeSwitcher } from "@/components/ui/shadcn/theme-switcher";
+import { NavigationStrip } from "@/components/instructor/NavigationStrip/NavigationStrip";
 
 function ProfileDropdown({ user, onLogoutRequest, role }) {
   const [open, setOpen] = useState(false);
@@ -286,29 +287,10 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
   const [isMounted, setIsMounted] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
-  // Dynamic Header State
-  const [internetSpeed, setInternetSpeed] = useState(null);
-  const [textSize, setTextSize] = useState(16);
-
   // Client-side initialization to prevent hydration mismatch
   useEffect(() => {
     setIsMounted(true);
-    
-    // Init network speed
-    if (navigator.connection) {
-      setInternetSpeed(navigator.connection.downlink);
-      const updateConnectionStatus = () => setInternetSpeed(navigator.connection.downlink);
-      navigator.connection.addEventListener('change', updateConnectionStatus);
-      return () => navigator.connection.removeEventListener('change', updateConnectionStatus);
-    } else {
-      setInternetSpeed(25); // Fallback mock for unsupported browsers
-    }
   }, []);
-
-  const changeTextSize = (size) => {
-    setTextSize(size);
-    document.documentElement.style.fontSize = `${size}px`;
-  };
 
   // Listen to new messages in all background conversations
   useEffect(() => {
@@ -422,8 +404,8 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     const openRoleNavDrawer = role === 'ADMIN' ? openAdminNavDrawer : openInstructorNavDrawer;
     return (
       <>
-      <header className="bg-[#080B11] border-b border-[#1A1F35] px-6 py-3 flex items-center justify-between text-slate-200">
-        <div className="flex items-center gap-6">
+      <header className="bg-[#080B11] border-b border-[#1A1F35] px-6 py-3 flex items-center gap-4 text-slate-200">
+        <div className="flex items-center gap-6 shrink-0">
           {/* Mobile menu toggle — opens the role's nav drawer (see
               Instructor/AdminNavDrawer); this used to call the unrelated
               `setOpen` prop, which controls a Sidebar that never renders for
@@ -446,29 +428,28 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
             </div>
           </Link>
 
-          {!pathname?.includes("/instructor/courses/") && (
-            <div className="hidden lg:flex flex-col ml-4 border-l border-slate-800 pl-4">
-              <span className="text-sm font-bold text-white">Welcome to Orange Tree LMS</span>
-              <span className="text-[10px] text-slate-500">Last Login : {new Date().toLocaleString('en-IN', { hour12: true, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit', second:'2-digit'})}</span>
-            </div>
-          )}
         </div>
 
+        {/* Primary nav — moved in from the strip that used to sit below this
+            bar (mobile nav is still handled separately by InstructorBottomNav).
+            `bare` renders the items as plain flex children with no pill-strip
+            chrome of their own, scrolling horizontally if they don't fit. */}
+        {role === 'INSTRUCTOR' && (
+          <div className="hidden sm:flex flex-1 min-w-0">
+            <NavigationStrip bare />
+          </div>
+        )}
+        {role !== 'INSTRUCTOR' && <div className="flex-1" />}
+
+        {/* Global search — Courses, Students, Batches for the instructor role. */}
+        {role === 'INSTRUCTOR' && (
+          <div className="hidden sm:block shrink-0">
+            <GlobalSearch role="instructor" />
+          </div>
+        )}
+
         {/* Right side items */}
-        <div className="flex items-center gap-4">
-
-          {/* Internet Speed */}
-          <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold" title="Estimated Download Speed">
-             <span className="animate-pulse">📶</span>
-             <span>{internetSpeed ? `${internetSpeed} Mbps` : 'Calculating...'}</span>
-          </div>
-
-          {/* Text Sizing */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0D1021] border border-[#1A1F35] text-slate-300 text-xs font-medium">
-             <button onClick={() => changeTextSize(14)} className={`transition hover:text-white ${textSize === 14 ? 'text-orange-400 font-bold' : ''}`}>A-</button>
-             <button onClick={() => changeTextSize(16)} className={`transition hover:text-white ${textSize === 16 ? 'text-orange-400 font-bold' : ''}`}>A</button>
-             <button onClick={() => changeTextSize(18)} className={`transition hover:text-white ${textSize === 18 ? 'text-orange-400 font-bold' : ''}`}>A+</button>
-          </div>
+        <div className="flex items-center gap-4 shrink-0">
 
           {/* Messages */}
           <button
@@ -489,9 +470,6 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
               </span>
             )}
           </button>
-
-          {/* Theme Switcher */}
-          <ThemeSwitcher />
 
           {/* Notifications */}
           <NotificationsMenu
