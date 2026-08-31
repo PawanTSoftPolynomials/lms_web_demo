@@ -54,8 +54,8 @@ export default function ChatSearch({ value, onChange }) {
           focus:border-primary/60
           focus:bg-background
           focus:ring-1
-          focus:ring-orange-500/30
-          focus:shadow-[0_0_15px_rgba(249,115,22,0.1)]
+          focus:ring-ring
+          focus:shadow-[0_0_15px_rgba(242,199,199,0.1)]
           "
         />
       </div>

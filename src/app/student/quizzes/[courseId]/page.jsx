@@ -39,7 +39,7 @@ export default function QuizPage() {
               key={quiz.id}
               className="bg-background p-6 rounded-xl border border-transparent"
             >
-              <h2 className="text-2xl font-bold text-foreground">{quiz.title}</h2>
+              <h2 className="text-h4 text-foreground">{quiz.title}</h2>
 
               {quiz.description && (
                 <p className="text-muted-foreground mt-2 text-sm">{quiz.description}</p>

@@ -45,15 +45,10 @@ export default function ChatWindow() {
           border-l
           border-border/80
 
-          bg-background/90
-          backdrop-blur-xl
-
-          shadow-[-10px_0_50px_rgba(0,0,0,0.6)]
+          bg-background
+          shadow-luxury-md
           "
         >
-          {/* Top Neon Glow Bar */}
-          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-orange-500 via-pink-500 to-indigo-500 z-[10000]" />
-          
           <ChatHeader />
 
           <div className="flex flex-1 overflow-hidden">
@@ -64,13 +59,13 @@ export default function ChatWindow() {
               border-r
               border-border/80
 
-              bg-background/40
+              bg-muted/40
               "
             >
               <ChatSidebar />
             </div>
 
-            <div className="flex-1 bg-background/40">
+            <div className="flex-1 bg-background">
               <ChatConversation />
             </div>
 
@@ -78,11 +73,11 @@ export default function ChatWindow() {
 
           {/* Custom Confirm Dialog Overlay */}
           {confirmDialog?.isOpen && (
-            <div className="absolute inset-0 bg-background/85 backdrop-blur-md flex items-center justify-center p-6 z-[10005] animate-in fade-in duration-200 rounded-2xl">
+            <div className="absolute inset-0 bg-background/85 flex items-center justify-center p-6 z-[10005] animate-in fade-in duration-200 rounded-2xl">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-background/90 border border-border/80 rounded-2xl p-6 shadow-2xl max-w-sm w-full text-center backdrop-blur-lg"
+                className="bg-popover border border-border/80 rounded-2xl p-6 shadow-luxury-md max-w-sm w-full text-center"
               >
                 <h3 className="text-lg font-bold text-foreground mb-2">
                   {confirmDialog.title || "Confirmation"}
@@ -102,7 +97,7 @@ export default function ChatWindow() {
                       if (confirmDialog.onConfirm) confirmDialog.onConfirm();
                       setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
                     }}
-                    className="px-4 py-2.5 rounded-xl bg-gradient-to-br from-orange-500 to-pink-600 text-foreground shadow-md shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary-hover hover:scale-[1.02] active:scale-[0.98] transition-all"
                   >
                     Confirm
                   </button>

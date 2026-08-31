@@ -1,3 +1,8 @@
+// Thin adapter over the canonical shadcn Card (src/components/ui/shadcn/card.tsx)
+// so there is one real card implementation app-wide, while the 75+ existing
+// callers of this component keep their current `padding` prop unchanged.
+import { Card as ShadcnCard } from "@/components/ui/shadcn/card";
+
 export default function Card({
   children,
   className = "",
@@ -5,21 +10,11 @@ export default function Card({
   onClick,
 }) {
   return (
-    <div
+    <ShadcnCard
       onClick={onClick}
-      className={`
-        rounded-2xl
-        border
-        border-card-border
-        bg-card
-        backdrop-blur-md
-        shadow-luxury-md
-        ${padding}
-        ${onClick ? "cursor-pointer" : ""}
-        ${className}
-      `}
+      className={`${padding} ${onClick ? "cursor-pointer" : ""} ${className}`}
     >
       {children}
-    </div>
+    </ShadcnCard>
   );
 }

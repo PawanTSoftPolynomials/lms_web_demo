@@ -102,12 +102,12 @@ export default function StudentNavDrawer() {
                 onClick={close}
                 className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 ${
                   active
-                    ? "bg-primary text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]"
+                    ? "bg-primary text-primary-foreground font-bold"
                     : "text-foreground hover:text-foreground hover:bg-muted/50 font-semibold"
                 }`}
               >
-                <Icon size={18} className={active ? "text-slate-950" : "text-muted-foreground"} />
-                <span className="text-sm">{item.label}</span>
+                <Icon size={18} className={active ? "text-primary-foreground" : "text-muted-foreground"} />
+                <span className="text-nav">{item.label}</span>
               </Link>
             );
           })}
@@ -122,7 +122,7 @@ export default function StudentNavDrawer() {
             className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 font-semibold transition-all duration-200 cursor-pointer"
           >
             <LogOut size={18} className="text-rose-400" />
-            <span className="text-sm">Logout</span>
+            <span className="text-nav">Logout</span>
           </button>
         </nav>
       </div>

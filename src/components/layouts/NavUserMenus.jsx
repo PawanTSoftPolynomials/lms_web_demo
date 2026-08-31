@@ -75,7 +75,7 @@ export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkA
         <div
           role="menu"
           aria-label="Notifications"
-          className="absolute right-0 top-[calc(100%+10px)] z-50 w-80 sm:w-96 rounded-2xl border border-border bg-[#0B0F19]/95 p-3.5 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-150"
+          className="absolute right-0 top-[calc(100%+10px)] z-50 w-80 sm:w-96 rounded-2xl border border-border bg-popover/95 p-3.5 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
         >
           {/* Header */}
           <div className="mb-2.5 flex items-center justify-between border-b border-border/80 pb-2.5">
@@ -93,7 +93,7 @@ export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkA
                 <button
                   type="button"
                   onClick={onMarkAllRead}
-                  className="flex items-center gap-1 text-primary hover:text-orange-300 transition cursor-pointer"
+                  className="flex items-center gap-1 text-primary hover:text-primary-hover transition cursor-pointer"
                   title="Mark all as read"
                 >
                   <CheckCheck size={13} />
@@ -205,10 +205,10 @@ export function ProfileMenu({ user, onLogout, profileHref = "/student/profile", 
         aria-haspopup="menu"
         aria-expanded={open}
         className={`flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 transition-all duration-200 hover:-translate-y-0.5 ${
-          open ? "bg-white/[0.08]" : "hover:bg-white/[0.06]"
+          open ? "bg-muted" : "hover:bg-muted"
         }`}
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-[11px] font-black text-foreground shadow-[0_2px_8px_rgba(255,140,0,0.4)]">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[11px] font-black text-primary-foreground">
           {user?.name?.[0]?.toUpperCase() || "S"}
         </span>
         <span className="hidden max-w-[100px] truncate text-[13px] font-semibold text-foreground lg:inline">
@@ -221,7 +221,7 @@ export function ProfileMenu({ user, onLogout, profileHref = "/student/profile", 
         <div
           role="menu"
           aria-label="Profile menu"
-          className="absolute right-0 top-[calc(100%+10px)] z-50 w-52 rounded-2xl border border-white/[0.08] bg-[#0D0D18]/95 p-1.5 shadow-2xl backdrop-blur-xl"
+          className="absolute right-0 top-[calc(100%+10px)] z-50 w-52 rounded-2xl border border-white/[0.08] bg-popover/95 p-1.5 shadow-2xl"
         >
           <div className="mb-1 border-b border-white/[0.06] px-3 py-2">
             <p className="truncate text-xs font-bold text-foreground">{user?.name}</p>

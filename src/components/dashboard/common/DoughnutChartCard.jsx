@@ -12,7 +12,7 @@ import {
 import DashboardChart from "@/components/dashboard/common/DashboardChart";
 import ChartTooltip from "@/components/dashboard/components/ChartTooltip";
 
-const DEFAULT_COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7", "#ef4444"];
+const DEFAULT_COLORS = ["#f2c7c7", "#3b82f6", "#22c55e", "#a855f7", "#ef4444"];
 
 export default function DoughnutChartCard({
   title,

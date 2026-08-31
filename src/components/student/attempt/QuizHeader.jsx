@@ -40,7 +40,7 @@ export default function QuizHeader({
             </div>
 
             <div className="min-w-0 flex-1">
-                <h1 className="truncate text-base font-bold text-foreground sm:text-lg">
+                <h1 className="truncate text-h2 text-foreground">
                     {quiz.title}
                 </h1>
 

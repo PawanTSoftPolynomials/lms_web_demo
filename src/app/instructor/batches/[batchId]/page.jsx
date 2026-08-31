@@ -873,7 +873,7 @@ export default function BatchDetailPage() {
           {performanceBatch && (
             <Section title="Batch Performance" icon={Award} iconBg="bg-pink-500/10" iconColor="text-pink-400">
               <div className="space-y-3">
-                <TrendSparkline label="Completion Trend" data={performanceBatch.trend.completion} color="#ff7a00" />
+                <TrendSparkline label="Completion Trend" data={performanceBatch.trend.completion} color="#f2c7c7" />
                 <TrendSparkline label="Quiz Trend" data={performanceBatch.trend.quiz} color="#38bdf8" />
               </div>
               <div className="grid grid-cols-2 gap-3 mt-3">

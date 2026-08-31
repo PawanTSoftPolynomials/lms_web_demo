@@ -7,7 +7,7 @@ export default function Input({
   return (
     <div className="space-y-2">
       {label && (
-        <label className="text-sm text-foreground">
+        <label className="text-label text-foreground">
           {label}
         </label>
       )}

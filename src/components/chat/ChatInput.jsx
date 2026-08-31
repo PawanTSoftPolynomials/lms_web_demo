@@ -155,8 +155,7 @@ export default function ChatInput() {
           focus:border-primary/60
           focus:bg-background
           focus:ring-1
-          focus:ring-orange-500/30
-          focus:shadow-[0_0_15px_rgba(249,115,22,0.08)]
+          focus:ring-ring
           "
         />
 
@@ -169,13 +168,10 @@ export default function ChatInput() {
           disabled={uploading || sending || (!message.trim() && attachments.length === 0)}
           className="
           rounded-full
-          bg-gradient-to-br
-          from-orange-500
-          to-orange-600
+          bg-primary
           p-3
-          text-foreground
-          shadow-[0_4px_15px_rgba(249,115,22,0.3)]
-          hover:shadow-[0_4px_20px_rgba(249,115,22,0.45)]
+          text-primary-foreground
+          hover:bg-primary-hover
           hover:scale-105
           active:scale-95
           transition-all

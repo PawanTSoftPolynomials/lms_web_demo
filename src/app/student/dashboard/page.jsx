@@ -116,37 +116,37 @@ export default function StudentDashboardPage() {
           {/* Left main column */}
           <div className="xl:col-span-8 flex flex-col gap-6">
 
-            {/* Welcome Hero Card */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0B0F1A] to-[#12182B] border border-border p-5 shadow-sm flex flex-col md:flex-row items-center justify-between min-h-[140px]">
-              <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-primary/10 blur-[60px] pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full bg-purple-500/10 blur-[40px] pointer-events-none" />
-
+            {/* Welcome Hero Card — the one deliberate use of the navy
+                learning-surface token on this page, matching the design
+                system's rule that course/learning visual areas may use it
+                for an immersive accent (see design-audit report, section F). */}
+            <div className="relative overflow-hidden rounded-2xl bg-learning-surface border border-border p-5 shadow-sm flex flex-col md:flex-row items-center justify-between min-h-[140px]">
               <div className="relative z-10 w-full md:w-2/3 space-y-2">
                 <div className="space-y-0.5">
-                  <p className="text-muted-foreground text-xs font-medium">Welcome back,</p>
-                  <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight flex items-center gap-2">
+                  <p className="text-learning-surface-foreground/70 text-xs font-medium">Welcome back,</p>
+                  <h1 className="text-2xl sm:text-3xl font-black text-learning-surface-foreground tracking-tight flex items-center gap-2">
                     {user?.name ? user.name.split(" ")[0] : "Student"}! <span className="animate-wave origin-bottom-right inline-block text-xl">👋</span>
                   </h1>
-                  <p className="text-muted-foreground text-xs">Let&apos;s continue your learning journey. You&apos;ve got this!</p>
+                  <p className="text-learning-surface-foreground/70 text-xs">Let&apos;s continue your learning journey. You&apos;ve got this!</p>
                 </div>
 
-                <div className="mt-2 p-2.5 rounded-xl bg-primary/5 border border-primary/20 max-w-lg inline-block">
-                  <p className="text-primary text-xs font-semibold italic">&quot;{dailyQuote}&quot;</p>
+                <div className="mt-2 p-2.5 rounded-xl bg-learning-surface-foreground/10 border border-learning-surface-foreground/20 max-w-lg inline-block">
+                  <p className="text-learning-surface-foreground text-xs font-semibold italic">&quot;{dailyQuote}&quot;</p>
                 </div>
               </div>
 
               <div className="relative z-10 hidden md:flex w-1/3 justify-end items-center gap-3">
-                <div className="h-24 w-24 lg:h-28 lg:w-28 rounded-3xl bg-gradient-to-br from-orange-500/15 to-purple-500/15 border border-border flex items-center justify-center shrink-0">
-                  <GraduationCap size={40} className="text-primary" />
+                <div className="h-24 w-24 lg:h-28 lg:w-28 rounded-3xl bg-learning-surface-foreground/10 border border-learning-surface-foreground/20 flex items-center justify-center shrink-0">
+                  <GraduationCap size={40} className="text-learning-surface-foreground" />
                 </div>
                 <div className="flex flex-col gap-3">
-                  <div className="h-11 w-11 rounded-2xl bg-card border border-border flex items-center justify-center text-purple-400 shadow-lg">
+                  <div className="h-11 w-11 rounded-2xl bg-learning-surface-foreground/10 border border-learning-surface-foreground/20 flex items-center justify-center text-learning-surface-foreground">
                     <Trophy size={18} />
                   </div>
-                  <div className="h-11 w-11 rounded-2xl bg-card border border-border flex items-center justify-center text-emerald-400 shadow-lg">
+                  <div className="h-11 w-11 rounded-2xl bg-learning-surface-foreground/10 border border-learning-surface-foreground/20 flex items-center justify-center text-learning-surface-foreground">
                     <CheckCircle size={18} />
                   </div>
-                  <div className="h-11 w-11 rounded-2xl bg-card border border-border flex items-center justify-center text-blue-400 shadow-lg">
+                  <div className="h-11 w-11 rounded-2xl bg-learning-surface-foreground/10 border border-learning-surface-foreground/20 flex items-center justify-center text-learning-surface-foreground">
                     <Activity size={18} />
                   </div>
                 </div>
@@ -156,8 +156,8 @@ export default function StudentDashboardPage() {
             {/* Continue Learning */}
             <div className="rounded-2xl bg-card border border-border p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-black text-foreground">Continue Learning</h3>
-                <Link href="/student/my-courses" className="text-[11px] text-primary font-bold hover:text-orange-300">
+                <h3 className="text-h3 text-foreground">Continue Learning</h3>
+                <Link href="/student/my-courses" className="text-[11px] text-primary font-bold hover:text-primary-hover">
                   View all courses &rarr;
                 </Link>
               </div>
@@ -172,7 +172,7 @@ export default function StudentDashboardPage() {
                 <div className="py-10 text-center border border-dashed border-border rounded-xl">
                   <p className="text-xs text-muted-foreground">You have not enrolled in any courses yet.</p>
                   <Link href="/student/courses" className="inline-block mt-3">
-                    <button className="px-5 py-2.5 bg-primary hover:bg-orange-600 text-slate-950 rounded-xl text-xs font-black uppercase tracking-widest transition cursor-pointer">
+                    <button className="px-5 py-2.5 bg-primary hover:bg-primary-hover text-primary-foreground rounded-xl text-xs font-black uppercase tracking-widest transition cursor-pointer">
                       Explore Courses
                     </button>
                   </Link>
@@ -205,11 +205,11 @@ export default function StudentDashboardPage() {
             {/* Upcoming */}
             <div className="rounded-2xl bg-card border border-border p-5">
               <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
-                <h3 className="text-sm font-black text-foreground flex items-center gap-2">
+                <h3 className="text-h3 text-foreground flex items-center gap-2">
                   <CalendarIcon size={14} className="text-primary" />
                   Upcoming (Next 30 Min)
                 </h3>
-                <Link href="/student/calendar" className="text-[11px] text-primary font-bold hover:text-orange-300">
+                <Link href="/student/calendar" className="text-[11px] text-primary font-bold hover:text-primary-hover">
                   View all
                 </Link>
               </div>
@@ -239,7 +239,7 @@ export default function StudentDashboardPage() {
             {/* Calendar */}
             <div className="rounded-2xl bg-card border border-border p-5">
               <div className="mb-2">
-                <h3 className="text-sm font-black text-foreground">Calendar</h3>
+                <h3 className="text-h3 text-foreground">Calendar</h3>
               </div>
               <div className="dashboard-calendar-wrapper text-foreground scale-[0.95] origin-top">
                 <MiniCalendar role="STUDENT" />
@@ -249,11 +249,11 @@ export default function StudentDashboardPage() {
             {/* Recent Achievements */}
             <div className="rounded-2xl bg-card border border-border p-5">
               <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
-                <h3 className="text-sm font-black text-foreground flex items-center gap-2">
+                <h3 className="text-h3 text-foreground flex items-center gap-2">
                   <Trophy size={14} className="text-amber-400" />
                   Recent Achievements
                 </h3>
-                <Link href="/student/achievements" className="text-[11px] text-primary font-bold hover:text-orange-300">
+                <Link href="/student/achievements" className="text-[11px] text-primary font-bold hover:text-primary-hover">
                   View all
                 </Link>
               </div>

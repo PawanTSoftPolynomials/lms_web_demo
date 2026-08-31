@@ -5,7 +5,6 @@ import {
   CalendarDays,
   ClipboardList,
   Database,
-  FileCheck2,
   FileEdit,
   HelpCircle,
   Home,
@@ -58,7 +57,6 @@ export const PRIMARY_NAV_ITEMS: NavItem[] = [
         children: [
           { label: "Create Quiz", href: "/instructor/work/quiz", icon: ClipboardList },
           { label: "Create Assessment", href: "/instructor/work/assessment", icon: FileEdit },
-          { label: "Create Test", href: "/instructor/work/test", icon: FileCheck2 },
           { label: "Question Repository", href: "/instructor/work/questions", icon: Database },
           { label: "Upload Documents", href: "/instructor/work/documents", icon: UploadCloud },
           { label: "Notes", href: "/instructor/work/notes", icon: NotebookPen },

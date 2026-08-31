@@ -19,7 +19,7 @@ export default function MobileContinueCard({ enrollment }) {
           {course.title?.[0]?.toUpperCase() || "C"}
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-extrabold text-foreground truncate">{course.title || "Untitled Course"}</h3>
+          <h3 className="text-h4 text-foreground truncate">{course.title || "Untitled Course"}</h3>
           <p className="text-[11px] text-muted-foreground truncate mt-0.5">{lessonLabel}</p>
         </div>
         <button

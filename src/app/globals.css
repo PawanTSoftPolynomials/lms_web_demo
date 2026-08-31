@@ -25,110 +25,242 @@
   --color-slate-900: #131321;
   --color-slate-950: #0a0a0f;
 
-  --color-orange-400: #ffa14a;
-  --color-orange-500: #ff7a00;
-  --color-orange-600: #e06000;
-  --color-orange-700: #b34a00;
+  /* Original brand scale — true orange, matching the app's name/identity
+     and the ~2000 hardcoded orange utility classes (bg-orange, text-orange,
+     border-orange) across the app that were always meant to read as
+     literal orange, not a swappable retheme. */
+  --color-orange-400: #fb923c;
+  --color-orange-500: #f97316;
+  --color-orange-600: #ea580c;
+  --color-orange-700: #c2410c;
 
-  --color-pink-400: #ff6bb5;
-  --color-pink-500: #ff2e93;
-  --color-pink-600: #d61c72;
-  --color-pink-700: #a80e55;
+  --color-pink-400: #67e8f9;
+  --color-pink-500: #22d3ee;
+  --color-pink-600: #06b6d4;
+  --color-pink-700: #0891b2;
 
-  --radius-xl: 0.875rem;
+  /* Moderate, soft-rounded control radius (buttons, badges, inputs) — the
+     shared design-system radius per the Phase 2 audit. Card/panel/modal
+     radii live in their own --radius-card/--radius-panel below. */
+  --radius-xl: 0.75rem;
   --radius-2xl: 1.125rem;
+  --radius-card: 1.25rem;
+  --radius-panel: 1.75rem;
+
+  /* Phase 4B — the one net-new size in the type scale. Absorbs the app's
+     8–13px arbitrary micro-text sprawl (table headers, eyebrow labels,
+     timestamps) into a single real token instead of one-off text-[Npx]
+     values. Everything text-xs and above already existed in Tailwind's
+     default scale and did not need a token here. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
 }
 
 /* ==========================================================================
-   LIGHT MODE — "Orange Tree" cream & sage theme (default, no .dark class)
+   SEMANTIC TYPOGRAPHY TOKENS (Phase 4B)
+   ========================================================================== */
+@utility text-display {
+  font-size: var(--text-4xl);
+  line-height: var(--text-4xl--line-height);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+
+  @media (min-width: 768px) {
+    font-size: var(--text-5xl);
+    line-height: var(--text-5xl--line-height);
+  }
+}
+
+@utility text-h1 {
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+
+  @media (min-width: 640px) {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+  }
+}
+
+@utility text-h2 {
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+@utility text-h3 {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+@utility text-h4 {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 700;
+}
+
+@utility text-card-title {
+  font-size: var(--text-xs);
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+@utility text-body {
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+@utility text-body-small {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+@utility text-label {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 600;
+}
+
+@utility text-caption {
+  font-size: var(--text-2xs, 0.6875rem);
+  line-height: var(--text-2xs--line-height, 1rem);
+  font-weight: 600;
+}
+
+@utility text-nav {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   LIGHT MODE — Soft White & Sage design foundation (default, no .dark class)
    ========================================================================== */
 :root {
-  --background: #f2eee8;
-  --foreground: #2b2822;
+  --background: #fafafa;
+  --foreground: #252522;
 
   --surface: #ffffff;
-  --surface-foreground: #2b2822;
-  --surface-muted: #eae5dc;
+  --surface-foreground: #252522;
+  --surface-muted: #f5f5f4;
 
   --card: #ffffff;
-  --card-foreground: #2b2822;
+  --card-foreground: #252522;
   --card-border: #e8e2d6;
 
   --popover: #ffffff;
-  --popover-foreground: #2b2822;
+  --popover-foreground: #252522;
 
-  --muted: #ede8df;
-  --muted-foreground: #8a8375;
+  --muted: #f5f5f4;
+  --muted-foreground: #858982;
+  --text-secondary: #5f625d;
 
-  --border: #e5dfd3;
+  --border: #e5e5e5;
+  --border-strong: #cfc6b4;
   --input: #ffffff;
   --ring: #8fae95;
 
-  --primary: #a8c6ae;
-  --primary-foreground: #1f2e22;
+  --primary: #356859;
+  --primary-hover: #2a5748;
+  --primary-subtle: #e7edeb;
+  --primary-foreground: #ffffff;
 
   --secondary: #f4f0ea;
-  --secondary-foreground: #2b2822;
+  --secondary-foreground: #252522;
 
   --accent: #f3e3cd;
   --accent-foreground: #7a4a12;
 
-  --success: #4ade80;
+  --success: #3f8a5b;
   --success-foreground: #14251a;
-  --warning: #facc15;
+  --warning: #b7791f;
   --warning-foreground: #2b2205;
-  --destructive: #f87171;
+  --destructive: #c84b4b;
   --destructive-foreground: #2b0a0a;
+  --error: #c84b4b;
+  --error-foreground: #2b0a0a;
+  --info: #3978a8;
+  --info-foreground: #16233a;
 
-  --heading-color: #201d18;
+  /* Deliberately dark, immersive backdrop for course/lesson/quiz content
+     surfaces (Course Composer preview, the learning player) — not the
+     app's default background. */
+  --learning-surface: #202b25;
+  --learning-surface-foreground: #e7ecf6;
+
+  --heading-color: var(--foreground);
 
   --shadow-color: 30 15% 40%;
 }
 
 /* ==========================================================================
-   DARK MODE — Cyber Gold theme (unchanged from the current app)
+   DARK MODE — same Orange Tree system, dark value set (no separate "Cyber
+   Gold" identity: same brand color, same component language, same
+   typography/spacing/radius/interaction rules as light mode — only the
+   background/surface/text values invert). Warm dark charcoal, not a cool
+   near-black, to echo the light theme's warm cream undertone.
    ========================================================================== */
 .dark {
-  --background: #090B0F;
-  --foreground: #D1D6E0;
+  --background: #201e19;
+  --foreground: #ece7dc;
 
-  --surface: #10141C;
-  --surface-foreground: #D1D6E0;
-  --surface-muted: #181D29;
+  --surface: #29271f;
+  --surface-foreground: #ece7dc;
+  --surface-muted: #322f26;
 
-  --card: #10141C;
-  --card-foreground: #D1D6E0;
-  --card-border: #1E2433;
+  --card: #29271f;
+  --card-foreground: #ece7dc;
+  --card-border: #3c3830;
 
-  --popover: #10141C;
-  --popover-foreground: #D1D6E0;
+  --popover: #2d2b23;
+  --popover-foreground: #ece7dc;
 
-  --muted: #181D29;
-  --muted-foreground: #7E8A9F;
+  --muted: #322f26;
+  --muted-foreground: #a39c8c;
+  --text-secondary: #c1baa9;
 
-  --border: #1E2433;
-  --input: #10141C;
-  --ring: #D4A352;
+  --border: #3c3830;
+  --border-strong: #4d4839;
+  --input: #29271f;
+  --ring: #a8c6ae;
 
-  --primary: #D4A352;
-  --primary-foreground: #090B0F;
+  /* Same brand hue as light mode — a light, pale-sage primary reads with
+     good contrast against this dark ground, so it carries over unchanged
+     rather than being re-picked per mode. */
+  --primary: #a8c6ae;
+  --primary-hover: #bcd4c1;
+  --primary-subtle: #2a3830;
+  --primary-foreground: #16241a;
 
-  --secondary: #181D29;
-  --secondary-foreground: #D4A352;
+  --secondary: #322f26;
+  --secondary-foreground: #ece7dc;
 
-  --accent: #D4A352;
-  --accent-foreground: #090B0F;
+  --accent: #3d3221;
+  --accent-foreground: #e8c17a;
 
   --success: #4ade80;
-  --success-foreground: #090B0F;
+  --success-foreground: #0d2015;
   --warning: #facc15;
-  --warning-foreground: #090B0F;
+  --warning-foreground: #241c04;
   --destructive: #f87171;
-  --destructive-foreground: #090B0F;
+  --destructive-foreground: #240707;
+  --error: #f87171;
+  --error-foreground: #240707;
+  --info: #82a5d3;
+  --info-foreground: #0e1c2f;
 
-  --heading-color: #E8C17A;
+  --learning-surface: #1f2a44;
+  --learning-surface-foreground: #e7ecf6;
 
-  --shadow-color: 0 0% 0%;
+  --heading-color: var(--foreground);
+
+  --shadow-color: 230 25% 3%;
 }
 
 /* Light mode: mirror-invert the neutral slate scale (50<->950, 100<->900, ...) so the thousands
@@ -167,12 +299,16 @@
 
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-text-secondary: var(--text-secondary);
 
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-subtle: var(--primary-subtle);
   --color-primary-foreground: var(--primary-foreground);
 
   --color-secondary: var(--secondary);
@@ -187,21 +323,21 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-}
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
 
-body {
-  background-color: var(--background) !important;
-  background-image: none !important;
-  color: var(--foreground);
-  font-family: "Inter", sans-serif;
-  -webkit-font-smoothing: antialiased;
+  --color-learning-surface: var(--learning-surface);
+  --color-learning-surface-foreground: var(--learning-surface-foreground);
 }
 
 /* Global chrome remap — most of the app's layout chrome (navbars, cards, panels, dropdowns) was
    built with one-off hardcoded hex utility classes (bg-[#0D1021], border-[#1A1F35], ...) instead
    of the semantic tokens above, so switching theme mode has no visible effect on those elements.
    Rather than rewriting every file, this repaints those exact classes wherever they appear by
-   pointing them at the equivalent semantic token. */
+   pointing them at the equivalent semantic token. Kept as a stopgap for files not yet migrated
+   to semantic classes directly (Phase 2 migration is ongoing, see design-audit report). */
 [class~="bg-[#05070E]"] { background-color: var(--background); }
 [class~="bg-[#05070E]/50"] { background-color: color-mix(in oklab, var(--background) 50%, transparent); }
 [class~="bg-[#060913]"] { background-color: var(--background); }
@@ -242,6 +378,12 @@ body {
 [class~="to-[#12182B]"] { --tw-gradient-to: var(--surface); }
 [class~="via-[#0D1021]"] { --tw-gradient-via: var(--surface); }
 
+/* Same idea, but for the (very common) literal Tailwind `bg-white` utility rather than
+   a one-off arbitrary hex — 54 files use it directly as their card/panel/modal fill,
+   bypassing --card/--surface entirely. Scoped to backgrounds only (not text-white,
+   border-white, ring-white, etc.), so this doesn't touch anything but container fills. */
+[class~="bg-white"] { background-color: var(--card); }
+
 /* Sidebar's hardcoded orange active-state glow (a literal rgba() box-shadow, not the
    swappable --color-orange-* scale) — repainted to the current --primary so it follows
    the active theme instead of staying orange under every mode. */
@@ -250,7 +392,7 @@ body {
 }
 
 /* Soft ambient card/panel shadow used across the app (Card.jsx and others), tinted by
-   --shadow-color (set per light/dark mode above). */
+   --shadow-color (set per light/dark mode above). Restrained by design — no glow, no blur. */
 @utility shadow-luxury-sm {
   box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.06),
     0 4px 16px -6px hsl(var(--shadow-color) / 0.18);
@@ -259,6 +401,80 @@ body {
 @utility shadow-luxury-md {
   box-shadow: 0 2px 4px hsl(var(--shadow-color) / 0.08),
     0 12px 32px -8px hsl(var(--shadow-color) / 0.28);
+}
+
+/* ==========================================================================
+   Surface utilities — flat, bordered, softly shadowed panels. Previously a
+   glassmorphism system (backdrop-filter: blur() on every card/modal/nav);
+   redefined here to the restrained, non-glass treatment the design system
+   now calls for. Class names kept as-is (glass-primary, glass-modal, ...)
+   since ~80 files already reference them — only what they DO changed, not
+   what they're called, so no consuming file needs to change.
+   ========================================================================== */
+
+/* Primary cards, section panels, major containers. */
+@utility glass-primary {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.06), 0 4px 16px -6px hsl(var(--shadow-color) / 0.18);
+  border-radius: var(--radius-card);
+}
+
+/* Nested components inside a primary surface (a sub-panel, a stat tile
+   inside a card) — one step muted so it reads as "one level in". */
+@utility glass-secondary {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+}
+
+/* Dropdowns, popovers, tooltips: anything that floats above the interface. */
+@utility glass-floating {
+  background: var(--popover);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px -6px hsl(var(--shadow-color) / 0.22);
+  border-radius: var(--radius-card);
+}
+
+/* Modals are the floating treatment plus the larger panel radius. */
+@utility glass-modal {
+  background: var(--popover);
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 32px -8px hsl(var(--shadow-color) / 0.28);
+  border-radius: var(--radius-panel);
+}
+
+/* Top navigation bar. */
+@utility glass-nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Buttons — a hover lift/press-down for tactile feedback, no glow/gradient.
+   Pair with a background-color utility (bg-primary, bg-card, transparent, ...)
+   for the actual fill. */
+@utility glass-button {
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1), background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+/* Inputs — a soft focus ring instead of a hard outline. */
+@utility glass-input {
+  background: var(--input);
+  border: 1px solid var(--border);
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+
+  &:focus, &:focus-within {
+    outline: none;
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 22%, transparent);
+  }
 }
 
 /* Horizontally-scrollable strips (action bars, tab strips, etc.):
@@ -274,40 +490,89 @@ body {
   }
 }
 
-/* Static "rainbow" fill+border used by Button.jsx's primary/danger variants. Two
-   background-image layers clipped separately: a flat "fill" gradient clipped to
-   padding-box repaints the button's own interior color (--btn-rainbow-fill, set per
-   variant), and a rainbow gradient clipped to border-box shows only in the 2px gutter
-   left by the transparent border. Adapts to any button's real size/shape
-   (border-radius: inherit). */
-@utility btn-rainbow {
-  position: relative;
-  isolation: isolate;
-  border: 2px solid transparent;
-  background-image:
-    linear-gradient(var(--btn-rainbow-fill, currentColor), var(--btn-rainbow-fill, currentColor)),
-    linear-gradient(90deg, hsl(0 90% 63%), hsl(60 90% 63%), hsl(120 90% 63%), hsl(180 90% 63%), hsl(240 90% 63%), hsl(300 90% 63%), hsl(360 90% 63%));
-  background-size: 100% 100%, 200% 100%;
-  background-clip: padding-box, border-box;
-  background-origin: border-box, border-box;
+/* ==========================================================================
+   Phase 4B — semantic typography roles (approved Phase 4A scale).
+   Small and intentional by design: each role bundles size + weight + leading
+   + tracking behind one class, built on Tailwind's existing scale/variables
+   rather than inventing a parallel system. Not every role in the audit
+   became a class here — `button` is already consistent via the shadcn
+   Button component's own size variants and needed no new utility; the
+   active/inactive weight distinction for nav items is intentionally left
+   out of `text-nav` so each nav component keeps controlling that itself.
+   ========================================================================== */
+@utility text-display {
+  font-size: var(--text-4xl);
+  font-weight: 800;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}
 
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    background: linear-gradient(90deg, hsl(0 90% 63%), hsl(60 90% 63%), hsl(120 90% 63%), hsl(180 90% 63%), hsl(240 90% 63%), hsl(300 90% 63%), hsl(360 90% 63%));
-    background-size: 200% 100%;
-    filter: blur(10px);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
+@utility text-h1 {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}
 
-  &:hover::before,
-  &:focus-visible::before {
-    opacity: 0.6;
-  }
+@utility text-h2 {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+}
+
+@utility text-h3 {
+  font-size: var(--text-sm);
+  font-weight: 900;
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+}
+
+@utility text-h4 {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: var(--leading-snug);
+}
+
+@utility text-body {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  line-height: var(--leading-relaxed);
+}
+
+@utility text-body-small {
+  font-size: var(--text-xs);
+  font-weight: 400;
+  line-height: var(--leading-snug);
+}
+
+@utility text-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: var(--leading-none);
+  letter-spacing: var(--tracking-wide);
+}
+
+@utility text-caption {
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  line-height: var(--leading-none);
+  letter-spacing: var(--tracking-wide);
+}
+
+@utility text-nav {
+  font-size: var(--text-xs);
+  line-height: var(--leading-none);
+  letter-spacing: var(--tracking-wide);
+}
+
+/* Atmospheric background — flat token color, no gradient/glow. */
+body {
+  background-color: var(--background) !important;
+  background-image: none !important;
+  color: var(--foreground);
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ==========================================================================
@@ -329,16 +594,19 @@ body {
 }
 
 /* ==========================================================================
-   Shared surface/control styling — same shape language in both themes
-   (rounded "squircle" cards, fully pill-shaped buttons/inputs), colored via
-   the semantic tokens above so it repaints automatically per mode.
+   Shared surface/control shape — same shape language in both themes
+   (rounded "squircle" cards, soft-rounded buttons/inputs — not full pills),
+   colored via the semantic tokens above so it repaints automatically per
+   mode. This is the app-wide baseline; components may still set their own
+   radius/shadow explicitly where they need to.
    ========================================================================== */
 
 .bg-card, .bg-surface, .bg-popover, .card-photo-jellyfish {
   background-color: var(--card) !important;
   border: 1px solid var(--border) !important;
   border-radius: 20px !important;
-  transition: all 0.3s ease;
+  box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.06), 0 4px 16px -6px hsl(var(--shadow-color) / 0.18);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 input, select {
@@ -354,17 +622,17 @@ input:focus, select:focus {
   outline: none;
 }
 
-button, a[class*="bg-"], .btn-rainbow {
-  border-radius: 9999px !important;
+button, a[class*="bg-"] {
+  border-radius: var(--radius-xl) !important;
   box-shadow: none !important;
   font-weight: 600;
   transition: all 0.2s ease;
   border: 1px solid transparent;
 }
 
-.bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {
+.bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-error"]):not([class*="bg-info"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {
   background-color: var(--primary) !important;
-  border-radius: 9999px !important;
+  border-radius: var(--radius-xl) !important;
 }
 
 /* Custom scrollbars — colored via tokens, so they already adapt per theme. */
@@ -381,74 +649,4 @@ button, a[class*="bg-"], .btn-rainbow {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
-}
-
-/* ==========================================================================
-   CYBER GOLD THEME — dark-mode-only decorative skin (glows, uppercase gold
-   headings, terminal-style inset shadows). Light mode uses the plain
-   surface/control styling above with no extra treatment, matching the
-   reference design (flat cards, solid-fill buttons, plain headings).
-   ========================================================================== */
-
-.dark .bg-card, .dark .bg-surface, .dark .bg-popover, .dark .card-photo-jellyfish {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-}
-
-.dark .bg-card:hover, .dark .card-photo-jellyfish:hover {
-  border-color: rgba(212, 163, 82, 0.3) !important;
-  box-shadow: 0 0 25px rgba(212, 163, 82, 0.1) !important;
-}
-
-.dark input, .dark select {
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
-}
-
-.dark input:focus, .dark select:focus {
-  box-shadow: 0 0 10px rgba(212, 163, 82, 0.2) !important;
-}
-
-/* Glowing Primary Buttons */
-.dark button.bg-primary, .dark a.bg-primary, .dark .btn-rainbow {
-  background-color: transparent !important;
-  color: var(--primary) !important;
-  border: 1px solid var(--primary) !important;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  box-shadow: inset 0 0 10px rgba(212, 163, 82, 0.1) !important;
-}
-
-.dark button.bg-primary:hover, .dark a.bg-primary:hover, .dark .btn-rainbow:hover {
-  background-color: var(--primary) !important;
-  color: var(--primary-foreground) !important;
-  box-shadow: 0 0 20px rgba(212, 163, 82, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
-  transform: translateY(-1px);
-}
-
-/* Typography fixes */
-.dark h1, .dark h2, .dark h3, .dark h4, .dark .text-xl, .dark .text-2xl, .dark .text-3xl, .dark .text-4xl, .dark .text-5xl,
-.dark [class*="text-lg"][class*="font-semibold"],
-.dark [class*="text-lg"][class*="font-bold"] {
-  font-family: "Inter", sans-serif !important;
-  font-weight: 600 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-/* Gold heading color, but never override an explicitly chosen status/semantic color
-   (e.g. green/red success-failure counts, amber warnings, "Danger Zone" red). */
-.dark :is(h1, h2, h3, h4, .text-xl, .text-2xl, .text-3xl, .text-4xl, .text-5xl,
-  [class*="text-lg"][class*="font-semibold"],
-  [class*="text-lg"][class*="font-bold"]):not([class*="text-red-"]):not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-rose-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-yellow-"]):not([class*="text-orange-"]):not([class*="text-destructive"]):not([class*="text-success"]):not([class*="text-warning"]) {
-  color: var(--heading-color) !important;
-}
-
-/* Special text glow on very prominent titles */
-.dark h1 {
-  text-shadow: 0 0 15px rgba(232, 193, 122, 0.3);
-}
-
-.dark .bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {
-  box-shadow: 0 0 10px rgba(212, 163, 82, 0.5) !important;
 }

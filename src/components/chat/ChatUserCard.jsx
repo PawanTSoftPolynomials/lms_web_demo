@@ -59,7 +59,7 @@ export default function ChatUserCard({ conversation, active, onClick }) {
 
         ${
           active
-            ? "bg-muted/30 border-l-[3px] border-l-orange-500 pl-[13px] bg-gradient-to-r from-orange-500/5 to-transparent"
+            ? "bg-primary/5 border-l-[3px] border-l-primary pl-[13px]"
             : "hover:bg-muted/20 border-l-[3px] border-l-transparent"
         }
       `}

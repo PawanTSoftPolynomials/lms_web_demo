@@ -12,7 +12,7 @@ export function CourseOverviewTable({ courses, isLoading }: { courses: CoursePro
   return (
     <div className="rounded-2xl bg-card border border-border p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-black text-foreground">Course Overview</h3>
+        <h3 className="text-h3 text-foreground">Course Overview</h3>
         <Link href="/instructor/courses" className="text-[11px] text-primary font-bold flex items-center gap-1 hover:opacity-80">
           View all courses &rarr;
         </Link>
@@ -21,7 +21,7 @@ export function CourseOverviewTable({ courses, isLoading }: { courses: CoursePro
       <div className="overflow-x-auto">
         <table className="min-w-[560px] w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-border text-[9px] uppercase tracking-widest text-muted-foreground font-black">
+            <tr className="border-b border-border text-caption uppercase text-muted-foreground">
               <th className="pb-3 pr-2 font-medium whitespace-nowrap">Course</th>
               <th className="pb-3 px-2 font-medium text-center whitespace-nowrap">Students</th>
               <th className="pb-3 px-2 font-medium whitespace-nowrap">Progress</th>

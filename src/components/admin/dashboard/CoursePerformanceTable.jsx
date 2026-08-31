@@ -24,7 +24,7 @@ export function CoursePerformanceTable({ courses = [], isLoading }) {
     <div className="rounded-2xl bg-card border border-border p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-black text-foreground">Course Performance</h3>
+          <h3 className="text-h3 text-foreground">Course Performance</h3>
           <p className="text-[10px] text-muted-foreground mt-0.5">Top courses by enrollment</p>
         </div>
         <Link href="/admin/courses" className="text-[11px] text-primary font-bold flex items-center gap-1 hover:text-orange-300">
@@ -35,7 +35,7 @@ export function CoursePerformanceTable({ courses = [], isLoading }) {
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-border text-[9px] uppercase tracking-widest text-muted-foreground font-black">
+            <tr className="border-b border-border text-caption uppercase text-muted-foreground">
               <th className="pb-3 font-medium">Course</th>
               <th className="pb-3 font-medium text-center">Students</th>
               <th className="pb-3 font-medium text-center">Completion</th>

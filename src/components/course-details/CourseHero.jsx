@@ -4,7 +4,7 @@ import { FaArrowLeft, FaLayerGroup, FaSignal } from "react-icons/fa";
 import { MdOutlineSchool } from "react-icons/md";
 
 import Button from "@/components/ui/Button";
-import StatusBadge from "@/components/courses/StatusBadge";
+import StatusBadge from "@/components/courses/CourseStatusBadge";
 
 export default function CourseHero({
   course,

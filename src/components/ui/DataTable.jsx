@@ -22,7 +22,7 @@ export default function DataTable({
   stickyHeader = false,
   skeletonRows = 0,
 }) {
-  const headerClass = `border-b border-border text-[9.5px] font-black text-muted-foreground uppercase tracking-widest ${stickyHeader ? "sticky top-0 z-10 bg-card" : ""}`;
+  const headerClass = `border-b border-border text-caption text-muted-foreground uppercase ${stickyHeader ? "sticky top-0 z-10 bg-card" : ""}`;
 
   if (isLoading && skeletonRows > 0) {
     return (

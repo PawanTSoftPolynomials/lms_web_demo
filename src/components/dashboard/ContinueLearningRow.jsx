@@ -28,7 +28,7 @@ export default function ContinueLearningRow({ enrollment, accentIdx }) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="text-sm font-extrabold text-foreground truncate">{course.title || "Untitled Course"}</h4>
+            <h4 className="text-h4 text-foreground truncate">{course.title || "Untitled Course"}</h4>
           </div>
           <p className="text-[11px] text-muted-foreground truncate mt-0.5">
             {totalLessons > 0 ? `${completedLessons}/${totalLessons} lessons` : "Self-paced"} &middot; {progress}% complete

@@ -138,7 +138,7 @@ export default function Sidebar({
                       onClick={() => setMobileExpandedMenu(isExpanded ? null : item.title)}
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 cursor-pointer ${
                         isActive || isExpanded
-                          ? 'bg-primary text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]'
+                          ? 'bg-primary text-primary-foreground font-bold'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 font-medium'
                       }`}
                     >
@@ -147,15 +147,15 @@ export default function Sidebar({
                           {typeof Icon === "string" ? (
                             <span className="text-base select-none">{Icon}</span>
                           ) : (
-                            <Icon className={`text-base ${isActive || isExpanded ? 'text-slate-950' : 'text-muted-foreground'}`} />
+                            <Icon className={`text-base ${isActive || isExpanded ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
                           )}
                         </div>
-                        <span className="text-xs tracking-wide">{item.title}</span>
+                        <span className="text-nav">{item.title}</span>
                       </div>
                       {isExpanded ? (
-                        <ChevronDown size={14} className={isActive || isExpanded ? 'text-slate-950' : 'text-muted-foreground'} />
+                        <ChevronDown size={14} className={isActive || isExpanded ? 'text-primary-foreground' : 'text-muted-foreground'} />
                       ) : (
-                        <ChevronRight size={14} className={isActive || isExpanded ? 'text-slate-950' : 'text-muted-foreground'} />
+                        <ChevronRight size={14} className={isActive || isExpanded ? 'text-primary-foreground' : 'text-muted-foreground'} />
                       )}
                     </button>
                   ) : (
@@ -164,7 +164,7 @@ export default function Sidebar({
                       onClick={() => setOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 ${
                         isActive
-                          ? 'bg-primary text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]'
+                          ? 'bg-primary text-primary-foreground font-bold'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 font-medium'
                       }`}
                     >
@@ -172,10 +172,10 @@ export default function Sidebar({
                         {typeof Icon === "string" ? (
                           <span className="text-base select-none">{Icon}</span>
                         ) : (
-                          <Icon className={`text-base ${isActive ? 'text-slate-950' : 'text-muted-foreground'}`} />
+                          <Icon className={`text-base ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
                         )}
                       </div>
-                      <span className="text-xs tracking-wide">{item.title}</span>
+                      <span className="text-nav">{item.title}</span>
                     </Link>
                   )}
 
@@ -192,13 +192,13 @@ export default function Sidebar({
                               setOpen(false);
                               setMobileExpandedMenu(null);
                             }}
-                            className={`flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-lg transition-all duration-200 ${
+                            className={`flex items-center gap-2 px-2.5 py-1.5 text-nav rounded-lg transition-all duration-200 ${
                               isSubActive
                                 ? 'bg-primary/15 text-primary font-bold border border-primary/20'
                                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
                             }`}
                           >
-                            <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${isSubActive ? 'bg-primary' : 'bg-slate-600'}`} />
+                            <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${isSubActive ? 'bg-primary' : 'bg-muted-foreground'}`} />
                             <span>{sub.title}</span>
                           </Link>
                         );
@@ -267,7 +267,7 @@ export default function Sidebar({
         )}
 
         {/* Desktop Navigation Link List */}
-        <nav className="flex-1 overflow-y-auto p-2.5 space-y-1 relative scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+        <nav className="flex-1 overflow-y-auto p-2.5 space-y-1 relative scrollbar-none">
           {menus.map((item, idx) => {
             const Icon = item.icon;
             const isActive = pathname === item.href || 
@@ -297,7 +297,7 @@ export default function Sidebar({
                       cursor-pointer
                       ${
                         isActive || isExpanded
-                          ? 'bg-primary text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]'
+                          ? 'bg-primary text-primary-foreground font-bold'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 font-medium'
                       }
                     `}
@@ -307,17 +307,17 @@ export default function Sidebar({
                         {typeof Icon === "string" ? (
                           <span className="text-base select-none">{Icon}</span>
                         ) : (
-                          <Icon className={`text-base transition-colors duration-200 ${isActive || isExpanded ? 'text-slate-950' : 'text-muted-foreground group-hover:text-primary'}`} />
+                          <Icon className={`text-base transition-colors duration-200 ${isActive || isExpanded ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-primary'}`} />
                         )}
                       </div>
-                      <span className="text-xs tracking-wide truncate">
+                      <span className="text-nav truncate">
                         {item.title}
                       </span>
                     </div>
                     {isExpanded ? (
-                      <ChevronDown size={14} className={isActive || isExpanded ? 'text-slate-950 shrink-0 ml-1' : 'text-muted-foreground shrink-0 ml-1 group-hover:text-primary'} />
+                      <ChevronDown size={14} className={isActive || isExpanded ? 'text-primary-foreground shrink-0 ml-1' : 'text-muted-foreground shrink-0 ml-1 group-hover:text-primary'} />
                     ) : (
-                      <ChevronRight size={14} className={isActive || isExpanded ? 'text-slate-950 shrink-0 ml-1' : 'text-muted-foreground shrink-0 ml-1 group-hover:text-primary'} />
+                      <ChevronRight size={14} className={isActive || isExpanded ? 'text-primary-foreground shrink-0 ml-1' : 'text-muted-foreground shrink-0 ml-1 group-hover:text-primary'} />
                     )}
                   </button>
                 ) : (
@@ -336,7 +336,7 @@ export default function Sidebar({
                       transition-all duration-200
                       ${
                         isActive
-                          ? 'bg-primary text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]'
+                          ? 'bg-primary text-primary-foreground font-bold'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 font-medium'
                       }
                     `}
@@ -345,11 +345,11 @@ export default function Sidebar({
                       {typeof Icon === "string" ? (
                         <span className="text-base select-none">{Icon}</span>
                       ) : (
-                        <Icon className={`text-base transition-colors duration-200 ${isActive ? 'text-slate-950' : 'text-muted-foreground group-hover:text-primary'}`} />
+                        <Icon className={`text-base transition-colors duration-200 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-primary'}`} />
                       )}
                     </div>
                     {!collapsed && (
-                      <span className="text-xs tracking-wide truncate">
+                      <span className="text-nav truncate">
                         {item.title}
                       </span>
                     )}
@@ -366,7 +366,7 @@ export default function Sidebar({
                           key={sub.href}
                           href={sub.href}
                           className={`
-                            flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-lg transition-all duration-200
+                            flex items-center gap-2 px-2.5 py-1.5 text-nav rounded-lg transition-all duration-200
                             ${
                               isSubActive
                                 ? 'bg-primary/15 text-primary font-bold border border-primary/20'
@@ -374,7 +374,7 @@ export default function Sidebar({
                             }
                           `}
                         >
-                          <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${isSubActive ? 'bg-primary' : 'bg-slate-600'}`} />
+                          <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${isSubActive ? 'bg-primary' : 'bg-muted-foreground'}`} />
                           <span className="truncate">{sub.title}</span>
                         </Link>
                       );
@@ -384,17 +384,17 @@ export default function Sidebar({
 
                 {/* Custom styled hover tooltip when sidebar is collapsed */}
                 {!hasSubmenus && collapsed && hoveredMenu === item.title && (
-                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-[100] px-3 py-2 rounded-[8px] border border-transparent/60 bg-[#111827] text-foreground text-xs font-semibold whitespace-nowrap shadow-xl shadow-black/40 animate-in fade-in slide-in-from-left-2 duration-150 pointer-events-none flex items-center">
+                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-[100] px-3 py-2 rounded-[8px] border border-border/60 bg-popover text-foreground text-xs font-semibold whitespace-nowrap shadow-xl shadow-black/40 animate-in fade-in slide-in-from-left-2 duration-150 pointer-events-none flex items-center">
                     {/* Arrow pointing toward the sidebar icon */}
-                    <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#111827] border-l border-b border-transparent/60 rotate-45" />
+                    <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-popover border-l border-b border-border/60 rotate-45" />
                     <span className="relative z-10">{item.title}</span>
                   </div>
                 )}
 
                 {/* Submenu selection flyout container when collapsed */}
                 {hasSubmenus && collapsed && hoveredMenu === item.title && (
-                  <div className="absolute left-full top-0 ml-3 z-[100] w-48 rounded-[8px] border border-transparent/60 bg-[#111827] backdrop-blur-xl p-2 shadow-xl shadow-black/40 animate-in fade-in slide-in-from-left-2 duration-150">
-                    <div className="absolute -left-1 top-4 w-2 h-2 bg-[#111827] border-l border-b border-transparent/60 rotate-45" />
+                  <div className="absolute left-full top-0 ml-3 z-[100] w-48 rounded-[8px] border border-border/60 bg-popover backdrop-blur-xl p-2 shadow-xl shadow-black/40 animate-in fade-in slide-in-from-left-2 duration-150">
+                    <div className="absolute -left-1 top-4 w-2 h-2 bg-popover border-l border-b border-border/60 rotate-45" />
                     <div className="relative z-10 text-[10px] text-primary font-bold px-2 py-1 uppercase tracking-wider border-b border-border/60 mb-1 flex items-center gap-1.5">
                       <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                       <span>{item.title}</span>
@@ -418,7 +418,7 @@ export default function Sidebar({
                               }
                             `}
                           >
-                            <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${isSubActive ? 'bg-primary' : 'bg-slate-600'}`} />
+                            <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${isSubActive ? 'bg-primary' : 'bg-muted-foreground'}`} />
                             <span>{sub.title}</span>
                           </Link>
                         );

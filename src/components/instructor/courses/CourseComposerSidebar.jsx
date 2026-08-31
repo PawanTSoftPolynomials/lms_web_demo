@@ -278,7 +278,7 @@ function TopicContentRows({
             >
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                 <Icon size={12} className={`shrink-0 ${isContentActive ? "text-primary" : meta.color}`} />
-                <span className="truncate text-[10.5px] leading-snug">
+                <span className="truncate text-body-small">
                   {content.title || `Untitled ${meta.label}`}
                 </span>
               </div>
@@ -429,7 +429,7 @@ export function CourseComposerSidebar({
       </div>
 
       {/* Compact subtitle */}
-      <div className="text-[10.5px] text-muted-foreground mb-3 pb-3 border-b border-border/80">
+      <div className="text-caption text-muted-foreground mb-3 pb-3 border-b border-border/80">
         Course structure
       </div>
 
@@ -487,7 +487,7 @@ export function CourseComposerSidebar({
                 >
                   <div className="flex items-center gap-1.5 min-w-0 flex-1">
                     <HelpCircle size={14} className="text-emerald-400 shrink-0" />
-                    <span className="truncate text-[11.5px] font-semibold">{quiz.title || "Course Quiz"}</span>
+                    <span className="truncate text-caption font-semibold">{quiz.title || "Course Quiz"}</span>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
@@ -576,7 +576,7 @@ export function CourseComposerSidebar({
                     <span className="text-[9px] font-black text-muted-foreground tabular-nums shrink-0">
                       M{mIdx + 1}
                     </span>
-                    <span className="truncate text-xs font-bold" title={mod.title}>
+                    <span className="truncate text-h4" title={mod.title}>
                       {mod.title}
                     </span>
                   </div>
@@ -625,7 +625,7 @@ export function CourseComposerSidebar({
                               >
                                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                   <HelpCircle size={13} className="text-emerald-400 shrink-0" />
-                                  <span className="truncate text-[11px] font-semibold">{quiz.title || "Module Quiz"}</span>
+                                  <span className="truncate text-caption font-semibold">{quiz.title || "Module Quiz"}</span>
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0">
                                   <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
@@ -727,7 +727,7 @@ export function CourseComposerSidebar({
                                 <span className="text-[8.5px] font-black text-slate-600 tabular-nums shrink-0">
                                   L{lIdx + 1}
                                 </span>
-                                <span className="truncate text-[11px] leading-snug" title={lesson.title}>
+                                <span className="truncate text-body-small" title={lesson.title}>
                                   {lesson.title}
                                 </span>
                               </div>
@@ -776,7 +776,7 @@ export function CourseComposerSidebar({
                                           >
                                             <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                               <HelpCircle size={13} className="text-emerald-400 shrink-0" />
-                                              <span className="truncate text-[11px] font-semibold">{quiz.title || "Lesson Quiz"}</span>
+                                              <span className="truncate text-caption font-semibold">{quiz.title || "Lesson Quiz"}</span>
                                             </div>
                                             <div className="flex items-center gap-1 shrink-0">
                                               <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
@@ -857,7 +857,7 @@ export function CourseComposerSidebar({
                                               />
                                             </button>
                                             <TopicIcon size={12} className={`shrink-0 ${isTopicActive ? "text-primary" : topicMeta.color}`} />
-                                            <span className="truncate text-[11px] leading-snug" title={topic.title}>
+                                            <span className="truncate text-body-small" title={topic.title}>
                                               {displayTitle}
                                             </span>
                                             {topicMeta.type !== "theory" && (
@@ -910,7 +910,7 @@ export function CourseComposerSidebar({
                                                       >
                                                         <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                                           <HelpCircle size={13} className="text-emerald-400 shrink-0" />
-                                                          <span className="truncate text-[11px] font-semibold">{quiz.title || "Topic Quiz"}</span>
+                                                          <span className="truncate text-caption font-semibold">{quiz.title || "Topic Quiz"}</span>
                                                         </div>
                                                         <div className="flex items-center gap-1 shrink-0">
                                                           <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">

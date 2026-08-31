@@ -8,7 +8,7 @@ import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
  * (e.g. no quiz submissions that week) — recharts renders a gap, not a
  * fabricated zero.
  */
-export default function TrendSparkline({ label, data, color = "#ff7a00", suffix = "%", emptyLabel }) {
+export default function TrendSparkline({ label, data, color = "#f2c7c7", suffix = "%", emptyLabel }) {
   const hasAnyValue = data?.some((d) => d.value !== null && d.value !== undefined);
   const gradientId = `trend-${label.replace(/\s+/g, "-").toLowerCase()}`;
 

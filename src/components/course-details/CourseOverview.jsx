@@ -1,7 +1,7 @@
 "use client";
 
 import Card from "@/components/ui/Card";
-import StatusBadge from "@/components/courses/StatusBadge";
+import StatusBadge from "@/components/courses/CourseStatusBadge";
 
 export default function CourseOverview({
   course,

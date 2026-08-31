@@ -20,8 +20,8 @@ export default function OnlineBadge({
 
       ${
         online
-          ? "bg-green-500"
-          : "bg-slate-500"
+          ? "bg-success"
+          : "bg-muted-foreground"
       }
       `}
     />

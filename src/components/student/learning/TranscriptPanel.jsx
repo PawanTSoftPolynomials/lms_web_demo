@@ -141,7 +141,7 @@ const TranscriptRow = React.memo(
       >
         {/* Subtle Active Left Accent Bar */}
         {isActive && (
-          <div className="absolute left-0 top-1 bottom-1 w-1 bg-orange-400 rounded-r-full shadow-[0_0_8px_rgba(249,115,22,0.7)]" />
+          <div className="absolute left-0 top-1 bottom-1 w-1 bg-orange-400 rounded-r-full shadow-[0_0_8px_rgba(242,199,199,0.7)]" />
         )}
 
         {/* Compact Margin Timestamp (replaces bullet/pill button) */}

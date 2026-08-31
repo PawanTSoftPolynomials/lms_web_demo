@@ -71,7 +71,7 @@ export default function FeaturedCourseCard({ course, highlighted = false }) {
           </span>
         )}
 
-        <h3 className="text-lg font-bold tracking-tight leading-snug line-clamp-2 mb-3">
+        <h3 className="text-h4 line-clamp-2 mb-3">
           {course.title}
         </h3>
 

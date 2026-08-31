@@ -88,92 +88,117 @@ export default function CourseGridCard({ course }) {
     { label: exporting ? "Exporting…" : "Export ZIP", onClick: handleExport },
     { label: "Delete Course", onClick: handleDelete },
   ];
+  const updatedTime = course.updatedAt
+    ? formatDistanceToNow(new Date(course.updatedAt), { addSuffix: true })
+    : null;
+
   return (
     <div
       onClick={() => router.push(`/instructor/courses/${course.id}`)}
-      className="bg-card group relative flex w-[85%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-full md:shrink-0 flex-col overflow-hidden p-3 md:p-4 transition-all duration-300 cursor-pointer"
+      className="group relative flex w-[85%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-full md:shrink-0 flex-col overflow-hidden rounded-2xl bg-white border border-[#E5E5E5] dark:bg-[#0F172A] dark:border-[#1E293B] p-3 md:p-3.5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.25)] transition-all duration-200 hover:shadow-md dark:hover:border-slate-700 hover:-translate-y-1 cursor-pointer h-full"
     >
-      {/* Soft rounded image wrapper */}
-      <div className="relative h-32 md:h-40 shrink-0 w-full overflow-hidden rounded-[24px] shadow-inner bg-muted/50 mb-4">
+      {/* Course Thumbnail (16:9 Aspect Ratio) */}
+      <div className="relative aspect-video w-full shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900 mb-2.5">
         {course.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={getDisplayUrl(course.thumbnailUrl)}
-            alt=""
+            alt={course.title || "Course thumbnail"}
             loading="lazy"
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="relative flex h-full w-full items-center justify-center">
-            <BookOpen size={36} className="text-muted-foreground/30" />
+          <div className="relative flex h-full w-full items-center justify-center bg-slate-100 dark:bg-slate-900">
+            <BookOpen size={32} className="text-slate-400 dark:text-slate-700" />
           </div>
         )}
 
-        <div className="absolute top-3 left-3 flex items-center gap-2">
-          <span className="flex items-center gap-1.5 rounded-full bg-black/50 border border-primary/20 backdrop-blur-md px-3 py-1 text-[10px] font-black uppercase tracking-wider text-primary shadow-sm">
+        {/* Status Badge (Top-Left, High Contrast, Compact Rounded Square) */}
+        <div className="absolute top-2 left-2 flex items-center gap-2">
+          <span className="flex items-center gap-1.5 rounded-md bg-white border border-[#D9D9D9] dark:bg-[#1E293B] dark:border-slate-700 px-2 py-0.5 text-[11px] font-bold text-[#111827] dark:text-slate-100 shadow-sm">
             <span className={`h-2 w-2 rounded-full ${statusStyle.dot}`} />
             {statusStyle.label}
           </span>
         </div>
 
-        <div className="absolute top-3 right-3" onClick={(e) => e.stopPropagation()}>
-          <div className="bg-black/50 border border-primary/20 backdrop-blur-md rounded-full shadow-sm text-primary">
+        {/* Three-Dot Menu (Top-Right, Compact Rounded Square, High Contrast Button) */}
+        <div className="absolute top-2 right-2" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white border border-[#D9D9D9] dark:bg-[#1E293B] dark:border-slate-700 rounded-md shadow-sm text-[#111827] dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center justify-center p-0.5">
             <ActionMenu items={menuItems} />
           </div>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col px-1">
-        <h3 className="text-sm md:text-base font-black leading-tight line-clamp-2 text-foreground mb-1">
+      {/* Course Info Body */}
+      <div className="flex flex-1 flex-col">
+        {/* Title (1-2 lines) */}
+        <h3 className="text-[#111827] dark:text-[#F8FAFC] text-sm font-bold leading-snug line-clamp-2 mb-1 group-hover:text-primary dark:group-hover:text-white transition-colors">
           {course.title}
         </h3>
+
+        {/* Description (1-2 lines) */}
         {course.description ? (
-          <p className="text-[11px] leading-relaxed line-clamp-1 text-muted-foreground mb-3">{course.description}</p>
+          <p className="text-xs text-[#4B5563] dark:text-[#94A3B8] leading-relaxed line-clamp-2 mb-2 font-normal">
+            {course.description}
+          </p>
         ) : null}
 
-        <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold text-muted-foreground/70 mb-4">
-          <span className="flex items-center gap-1.5">
-            <Users size={14} />
-            {studentsCount}
+        {/* Metadata Row */}
+        <div className="flex items-center gap-3 text-[11px] text-[#4B5563] dark:text-[#94A3B8] font-medium mb-2.5">
+          <span className="flex items-center gap-1">
+            <Users size={12} className="text-[#6B7280] dark:text-slate-500 shrink-0" />
+            <span>{studentsCount} {studentsCount === 1 ? "Student" : "Students"}</span>
           </span>
-          <span className="flex items-center gap-1.5">
-            <Clock size={14} />
-            {course.estimatedLearningHours ? `${course.estimatedLearningHours}h` : "?"}
-          </span>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 mb-4">
-          <span className="rounded-full bg-primary/20 px-3 py-1 text-[10px] font-extrabold text-primary">
-            {course.category || "General"}
-          </span>
-          {course.level && (
-            <span className="rounded-full bg-secondary/30 px-3 py-1 text-[10px] font-extrabold text-foreground">
-              {course.level}
+          {updatedTime && (
+            <span className="flex items-center gap-1 truncate">
+              <Clock size={12} className="text-[#6B7280] dark:text-slate-500 shrink-0" />
+              <span className="truncate">Updated {updatedTime}</span>
             </span>
           )}
         </div>
 
-        <div className="mt-auto flex items-center gap-2 pt-2">
+        {/* Tag Badges */}
+        <div className="flex flex-wrap items-center gap-1.5 mb-3">
+          {course.category && (
+            <span className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">
+              {course.category}
+            </span>
+          )}
+          {course.level && (
+            <span className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">
+              {course.level}
+            </span>
+          )}
+          {!course.category && !course.level && (
+            <span className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">
+              General
+            </span>
+          )}
+        </div>
+
+        {/* Action Buttons (Strictly Single Line View Course) */}
+        <div className="mt-auto flex items-center gap-2 pt-1">
           <button
             onClick={goTo(`/instructor/courses/edit/${course.id}`)}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full bg-background px-3 py-2.5 text-[11px] font-extrabold text-foreground transition hover:bg-muted"
+            className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg bg-white hover:bg-slate-50 border border-[#D9D9D9] text-[#111827] font-bold dark:bg-[#1E293B] dark:hover:bg-slate-700 dark:border-slate-700 dark:text-[#F8FAFC] px-2 py-1.5 text-xs transition cursor-pointer active:scale-[0.98] whitespace-nowrap"
           >
-            <Pencil size={12} />
+            <Pencil size={12} className="text-[#111827] dark:text-[#F8FAFC] shrink-0" />
             Edit
           </button>
           <button
             onClick={goTo(`/instructor/courses/${course.id}`)}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full bg-primary px-3 py-2.5 text-[11px] font-extrabold text-primary-foreground transition shadow-md hover:-translate-y-0.5"
+            className="flex-[1.15] inline-flex items-center justify-center gap-1 rounded-lg bg-[#F59E0B] hover:bg-[#D97706] px-2 py-1.5 text-xs font-bold text-[#111827] transition shadow-sm cursor-pointer active:scale-[0.98] whitespace-nowrap flex-nowrap shrink-0"
           >
-            View
-            <ArrowUpRight size={12} />
+            <span className="whitespace-nowrap">View Course</span>
+            <ArrowUpRight size={13} className="stroke-[2.5] text-[#111827] shrink-0" />
           </button>
         </div>
       </div>
 
+      {/* Export Loader Overlay */}
       {exporting && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-[32px] bg-background/80 backdrop-blur-sm">
-          <Loader2 size={24} className="animate-spin text-primary" />
+        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm">
+          <Loader2 size={24} className="animate-spin text-amber-500" />
         </div>
       )}
     </div>

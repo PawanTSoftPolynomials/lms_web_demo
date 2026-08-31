@@ -88,8 +88,8 @@ export default function ChatMessage({ message }) {
   const bubbleClass = isOnlyAttachments
     ? "relative w-full"
     : isMine
-      ? "rounded-2xl rounded-tr-none bg-gradient-to-br from-orange-500 via-orange-600 to-pink-600 text-foreground shadow-[0_4px_15px_rgba(249,115,22,0.2)] px-4.5 py-3"
-      : "rounded-2xl rounded-tl-none border border-border/80 bg-background/60 backdrop-blur-sm text-foreground shadow-[0_4px_15px_rgba(0,0,0,0.1)] px-4.5 py-3";
+      ? "rounded-2xl rounded-tr-none bg-primary text-primary-foreground px-4.5 py-3"
+      : "rounded-2xl rounded-tl-none border border-border/80 bg-background/60 text-foreground px-4.5 py-3";
 
   return (
     <motion.div
@@ -122,7 +122,7 @@ export default function ChatMessage({ message }) {
       <div className={`flex flex-col ${isMine ? "items-end" : "items-start"}`}>
         {/* Sender Name for incoming messages */}
         {!isMine && senderName && (
-          <span className="text-[10px] font-bold text-primary/80 mb-1 ml-1 tracking-wider uppercase">
+          <span className="text-caption text-primary/80 mb-1 ml-1 uppercase">
             {senderName}
           </span>
         )}
@@ -224,7 +224,7 @@ export default function ChatMessage({ message }) {
                         />
                         {/* Overlay for time and status when only an image */}
                         {isOnlyAttachments && (
-                          <div className="absolute bottom-2 right-2 bg-background/70 backdrop-blur-sm px-2 py-0.5 rounded-full flex items-center gap-1 text-[9px] font-semibold text-foreground">
+                          <div className="absolute bottom-2 right-2 bg-background/70 backdrop-blur-sm px-2 py-0.5 rounded-full flex items-center gap-1 text-caption text-foreground">
                             <span>{message.time}</span>
                             {message.isStarred && <Star size={9} className="fill-current text-amber-400" />}
                             {isMine && (
@@ -248,11 +248,11 @@ export default function ChatMessage({ message }) {
                         rel="noreferrer"
                         className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all text-xs font-semibold leading-tight ${
                           isMine
-                            ? "border-orange-400/30 bg-orange-950/20 text-orange-100 hover:bg-orange-950/45"
+                            ? "border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/15"
                             : "border-border bg-background/40 text-foreground hover:bg-background/60"
                         }`}
                       >
-                        <div className={`p-2 rounded-lg ${isMine ? "bg-primary/20 text-orange-200" : "bg-muted text-muted-foreground"}`}>
+                        <div className={`p-2 rounded-lg ${isMine ? "bg-primary-foreground/10 text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
                           {att.type === "VIDEO" ? (
                             <Video size={16} />
                           ) : att.type === "AUDIO" ? (
@@ -263,7 +263,7 @@ export default function ChatMessage({ message }) {
                         </div>
                         <div className="flex-1 overflow-hidden">
                           <p className="truncate text-left">{att.fileName}</p>
-                          <span className={`text-[10px] font-normal ${isMine ? "text-orange-200/60" : "text-muted-foreground"}`}>
+                          <span className={`text-caption ${isMine ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
                             {att.size ? `${(att.size / 1024).toFixed(1)} KB` : ""}
                           </span>
                         </div>
@@ -271,7 +271,7 @@ export default function ChatMessage({ message }) {
                       
                       {/* Document Card time and status below it when only document */}
                       {isOnlyAttachments && (
-                        <div className={`flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground mt-0.5 px-1 ${isMine ? "justify-end" : "justify-start"}`}>
+                        <div className={`flex items-center gap-1.5 text-caption text-muted-foreground mt-0.5 px-1 ${isMine ? "justify-end" : "justify-start"}`}>
                           <span>{message.time}</span>
                           {message.isStarred && <Star size={9} className="fill-current text-amber-500" />}
                           {isMine && (
@@ -294,23 +294,23 @@ export default function ChatMessage({ message }) {
                 <textarea
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
-                  className="bg-transparent text-[14px] text-foreground focus:outline-none w-full resize-none leading-relaxed border-b border-orange-300/60 pb-1"
+                  className="bg-transparent text-sm text-foreground focus:outline-none w-full resize-none leading-relaxed border-b border-primary-foreground/40 pb-1"
                   rows={1}
                   autoFocus
                 />
-                <div className="flex justify-end gap-1.5 text-[9px] font-bold">
+                <div className="flex justify-end gap-1.5 text-caption">
                   <button
                     onClick={() => {
                       setIsEditing(false);
                       setEditText(message.text || message.content || "");
                     }}
-                    className="text-foreground hover:text-foreground bg-muted px-2 py-1 rounded-md transition-colors"
+                    className="text-primary-foreground hover:bg-primary-foreground/15 bg-primary-foreground/10 px-2 py-1 rounded-md transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleEdit}
-                    className="text-foreground bg-primary hover:bg-orange-600 px-2 py-1 rounded-md shadow-sm transition-all"
+                    className="text-primary bg-primary-foreground hover:opacity-90 px-2 py-1 rounded-md transition-all"
                   >
                     Save
                   </button>
@@ -318,7 +318,7 @@ export default function ChatMessage({ message }) {
               </div>
             ) : (
               (message.text || message.content) && (
-                <p className="text-[14px] leading-relaxed break-words font-medium tracking-wide">
+                <p className="text-sm leading-relaxed break-words font-medium tracking-wide">
                   {message.text || message.content}
                 </p>
               )
@@ -332,13 +332,11 @@ export default function ChatMessage({ message }) {
                   items-center
                   justify-end
                   gap-1
-                  text-[9px]
-                  font-semibold
-                  tracking-wider
+                  text-caption
 
                   ${
                     isMine
-                      ? "text-orange-100/80"
+                      ? "text-primary-foreground/70"
                       : "text-muted-foreground"
                   }
                 `}
@@ -354,7 +352,7 @@ export default function ChatMessage({ message }) {
                     <Star
                       size={10}
                       className={`fill-current ${
-                        isMine ? "text-orange-200" : "text-amber-500"
+                        isMine ? "text-primary-foreground/80" : "text-amber-500"
                       }`}
                     />
                   )}
@@ -365,12 +363,12 @@ export default function ChatMessage({ message }) {
                     {message.read ? (
                       <CheckCheck
                         size={12}
-                        className="text-sky-300 drop-shadow-[0_0_5px_rgba(125,211,252,0.4)]"
+                        className="text-info"
                       />
                     ) : (
                       <Check
                         size={12}
-                        className="text-orange-200"
+                        className="text-primary-foreground/70"
                       />
                     )}
                   </>

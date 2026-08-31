@@ -346,7 +346,7 @@ export default function QuestionForm({
               <div className="space-y-5">
                 {/* Question Title */}
                 <div className="space-y-2">
-                  <label className="text-xs text-muted-foreground font-bold uppercase tracking-wider flex justify-between">
+                  <label className="text-label text-muted-foreground flex justify-between">
                     <span>Question Title *</span>
                     <span className="font-mono">{formData.question.length}/500</span>
                   </label>
@@ -366,7 +366,7 @@ export default function QuestionForm({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {/* Type */}
                   <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Question Type *</label>
+                    <label className="text-label text-muted-foreground">Question Type *</label>
                     <select
                       name="type"
                       value={formData.type}
@@ -383,7 +383,7 @@ export default function QuestionForm({
 
                   {/* Marks */}
                   <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Marks *</label>
+                    <label className="text-label text-muted-foreground">Marks *</label>
                     <select
                       name="marks"
                       value={formData.marks}
@@ -398,7 +398,7 @@ export default function QuestionForm({
 
                   {/* Difficulty */}
                   <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Difficulty *</label>
+                    <label className="text-label text-muted-foreground">Difficulty *</label>
                     <select
                       name="difficulty"
                       value={formData.difficulty}
@@ -413,7 +413,7 @@ export default function QuestionForm({
 
                   {/* Category / Concept */}
                   <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Category</label>
+                    <label className="text-label text-muted-foreground">Category</label>
                     <input
                       type="text"
                       name="concept"
@@ -639,7 +639,7 @@ export default function QuestionForm({
               {/* SELF_ASSESSMENT Options */}
               {formData.type === "SELF_ASSESSMENT" && (
                 <div className="space-y-3 bg-background/30 p-4 rounded-xl border border-slate-850">
-                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  <label className="block text-label text-muted-foreground">
                     Grading Rubric / Criteria
                   </label>
                   <textarea
@@ -758,7 +758,7 @@ export default function QuestionForm({
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs text-muted-foreground font-bold uppercase tracking-wider flex justify-between">
+                <label className="text-label text-muted-foreground flex justify-between">
                   <span>Hint Content</span>
                   <span className="font-mono">{formData.explanation.length}/500</span>
                 </label>

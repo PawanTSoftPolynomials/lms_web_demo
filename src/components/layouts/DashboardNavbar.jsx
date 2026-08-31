@@ -47,7 +47,7 @@ function ProfileDropdown({ user, onLogoutRequest, role }) {
           {user?.name?.[0]?.toUpperCase() || (isAdmin ? 'A' : 'I')}
         </span>
         <span className="hidden md:inline truncate max-w-[80px]">{user?.name || "Profile"}</span>
-        <span className="hidden md:inline text-[9px] text-slate-550 shrink-0">▼</span>
+        <span className="hidden md:inline text-[9px] text-muted-foreground shrink-0">▼</span>
       </button>
 
       {open && (
@@ -583,7 +583,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                   const isLast = idx === breadcrumbs.length - 1;
                   return (
                     <div key={idx} className="flex items-center gap-2 min-w-0">
-                      {idx > 0 && <ChevronRight size={12} className="text-slate-700 stroke-[3] shrink-0" />}
+                      {idx > 0 && <ChevronRight size={12} className="text-muted-foreground stroke-[3] shrink-0" />}
                       {b.href && !isLast ? (
                         <Link href={b.href} className="text-muted-foreground hover:text-foreground transition truncate">
                           {b.label}

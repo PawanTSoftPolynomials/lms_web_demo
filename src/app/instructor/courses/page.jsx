@@ -62,6 +62,8 @@ export default function InstructorCoursesPage() {
 
   return (
     <div className="-m-3 sm:-m-6 -mt-8 sm:-mt-12 md:-mt-16 -mx-8 sm:-mx-12 md:-mx-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6">
+      <h1 className="text-h1 text-foreground">My Courses</h1>
+
       {isError ? (
         <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
           <p className="text-sm font-bold text-foreground">Unable to load courses.</p>
@@ -111,7 +113,7 @@ export default function InstructorCoursesPage() {
               </Link>
               <button
                 onClick={() => router.push("/instructor/courses/create")}
-                className="btn-rainbow [--btn-rainbow-fill:var(--primary)] inline-flex items-center justify-center rounded-lg px-3 md:px-5 py-2 md:py-2.5 text-xs font-bold text-primary-foreground transition whitespace-nowrap"
+                className="inline-flex items-center justify-center rounded-lg bg-primary px-3 md:px-5 py-2 md:py-2.5 text-xs font-bold text-primary-foreground transition hover:bg-primary-hover whitespace-nowrap"
               >
                 <span className="md:hidden">+ Create</span>
                 <span className="hidden md:inline">+ Create Course</span>
@@ -128,7 +130,7 @@ export default function InstructorCoursesPage() {
             <div
               ref={sliderRef}
               onScroll={courses.length > 0 ? handleSliderScroll : undefined}
-              className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-4 md:gap-10 md:pb-0 md:grid md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:overflow-visible md:snap-none"
+              className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-4 md:pb-0 md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 md:overflow-visible md:snap-none"
             >
               {courses.length === 0 ? (
                 <div className="w-full col-span-full">

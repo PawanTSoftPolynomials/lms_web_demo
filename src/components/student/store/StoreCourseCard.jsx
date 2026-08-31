@@ -75,7 +75,7 @@ export default function StoreCourseCard({ course }) {
 
       <div className="flex flex-1 flex-col gap-2.5 p-4">
         <div>
-          <h3 className="text-base font-black text-foreground leading-snug line-clamp-1">{course.title}</h3>
+          <h3 className="text-h4 text-foreground line-clamp-2">{course.title}</h3>
           {course.description && (
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-2">{course.description}</p>
           )}
