@@ -116,24 +116,24 @@ function formatTopicDisplayTitle(title = "", index = 0) {
  * meaningful icon instead of falling back silently.
  */
 const CONTENT_TYPE_META = {
-  VIDEO: { icon: Video, label: "Video", color: "text-red-400" },
-  AUDIO: { icon: Music2, label: "Audio", color: "text-teal-400" },
-  DOCUMENT: { icon: FileText, label: "Document", color: "text-blue-400" },
-  TEXT: { icon: AlignLeft, label: "Text", color: "text-blue-300" },
-  HTML: { icon: AlignLeft, label: "Text", color: "text-blue-300" },
-  IMAGE: { icon: ImageIcon, label: "Image", color: "text-purple-400" },
-  LINK: { icon: Link2, label: "Link", color: "text-green-400" },
-  EXTERNAL_LINK: { icon: Link2, label: "Link", color: "text-green-400" },
-  PRESENTATION: { icon: Presentation, label: "Presentation", color: "text-amber-400" },
-  SLIDE: { icon: Presentation, label: "Slide", color: "text-amber-400" },
-  PDF: { icon: File, label: "PDF", color: "text-sky-400" },
-  FILE: { icon: File, label: "File", color: "text-sky-400" },
-  CODE: { icon: Code2, label: "Code", color: "text-violet-400" },
-  CODING_EXERCISE: { icon: Code2, label: "Coding Exercise", color: "text-violet-400" },
-  ASSIGNMENT: { icon: ClipboardList, label: "Assignment", color: "text-amber-300" },
+  VIDEO: { icon: Video, label: "Video", color: "text-red-600 dark:text-red-400" },
+  AUDIO: { icon: Music2, label: "Audio", color: "text-teal-600 dark:text-teal-400" },
+  DOCUMENT: { icon: FileText, label: "Document", color: "text-blue-600 dark:text-blue-400" },
+  TEXT: { icon: AlignLeft, label: "Text", color: "text-blue-600 dark:text-blue-400" },
+  HTML: { icon: AlignLeft, label: "Text", color: "text-blue-600 dark:text-blue-400" },
+  IMAGE: { icon: ImageIcon, label: "Image", color: "text-purple-600 dark:text-purple-400" },
+  LINK: { icon: Link2, label: "Link", color: "text-emerald-600 dark:text-emerald-400" },
+  EXTERNAL_LINK: { icon: Link2, label: "Link", color: "text-emerald-600 dark:text-emerald-400" },
+  PRESENTATION: { icon: Presentation, label: "Presentation", color: "text-amber-600 dark:text-amber-400" },
+  SLIDE: { icon: Presentation, label: "Slide", color: "text-amber-600 dark:text-amber-400" },
+  PDF: { icon: File, label: "PDF", color: "text-sky-600 dark:text-sky-400" },
+  FILE: { icon: File, label: "File", color: "text-sky-600 dark:text-sky-400" },
+  CODE: { icon: Code2, label: "Code", color: "text-violet-600 dark:text-violet-400" },
+  CODING_EXERCISE: { icon: Code2, label: "Coding Exercise", color: "text-violet-600 dark:text-violet-400" },
+  ASSIGNMENT: { icon: ClipboardList, label: "Assignment", color: "text-amber-600 dark:text-amber-400" },
   SCORM: { icon: PackageOpen, label: "SCORM", color: "text-muted-foreground" },
-  INTERACTIVE_LAB: { icon: FlaskConical, label: "Interactive Lab", color: "text-pink-400" },
-  EMBED: { icon: MonitorPlay, label: "Embed", color: "text-indigo-400" },
+  INTERACTIVE_LAB: { icon: FlaskConical, label: "Interactive Lab", color: "text-pink-600 dark:text-pink-400" },
+  EMBED: { icon: MonitorPlay, label: "Embed", color: "text-indigo-600 dark:text-indigo-400" },
 };
 const DEFAULT_CONTENT_META = { icon: File, label: "Content", color: "text-muted-foreground" };
 
@@ -273,7 +273,7 @@ function TopicContentRows({
               className={`group/content flex items-center justify-between gap-2 pl-2 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
                 isContentActive
                   ? "bg-primary/15 text-primary font-semibold"
-                  : "text-muted-foreground hover:text-slate-50 hover:bg-background/70"
+                  : "text-foreground/65 hover:text-foreground hover:bg-background/70"
               }`}
             >
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
@@ -480,13 +480,13 @@ export function CourseComposerSidebar({
                 <div
                   className={`flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl transition cursor-pointer text-xs border-l-[3px] ${
                     isQuizActive
-                      ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
-                      : "border-transparent text-foreground hover:bg-background"
+                      ? "bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold"
+                      : "border-transparent text-emerald-600/90 dark:text-emerald-400/90 hover:bg-background"
                   }`}
                   onClick={() => onSelectQuiz?.(quiz, null, null)}
                 >
                   <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                    <HelpCircle size={14} className="text-emerald-400 shrink-0" />
+                    <HelpCircle size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
                     <span className="truncate text-caption font-semibold">{quiz.title || "Course Quiz"}</span>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
@@ -618,13 +618,13 @@ export function CourseComposerSidebar({
                               <div
                                 className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
                                   isQuizActive
-                                    ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
-                                    : "border-transparent text-emerald-300/80 hover:text-emerald-300 hover:bg-background/60"
+                                    ? "bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold"
+                                    : "border-transparent text-emerald-600/90 dark:text-emerald-400/90 hover:bg-background/60"
                                 }`}
                                 onClick={() => onSelectQuiz?.(quiz, mod, null)}
                               >
                                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                  <HelpCircle size={13} className="text-emerald-400 shrink-0" />
+                                  <HelpCircle size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
                                   <span className="truncate text-caption font-semibold">{quiz.title || "Module Quiz"}</span>
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0">
@@ -696,7 +696,7 @@ export function CourseComposerSidebar({
                                   ? "bg-primary/15 border-primary text-primary font-bold"
                                   : lessonHasActiveChild
                                   ? "bg-background/30 border-primary/30 text-foreground"
-                                  : "border-transparent text-muted-foreground hover:text-slate-50 hover:bg-background/50"
+                                  : "border-transparent text-foreground/85 hover:text-foreground hover:bg-background/50"
                               }`}
                               onClick={() => !isLessonLocked && onSelectLesson(lesson.id)}
                               title={isLessonLocked ? "Complete the previous lesson to unlock" : undefined}
@@ -769,13 +769,13 @@ export function CourseComposerSidebar({
                                           <div
                                             className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
                                               isQuizActive
-                                                ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
-                                                : "border-transparent text-emerald-300/80 hover:text-emerald-300 hover:bg-background/60"
+                                                ? "bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold"
+                                                : "border-transparent text-emerald-600/90 dark:text-emerald-400/90 hover:bg-background/60"
                                             }`}
                                             onClick={() => onSelectQuiz?.(quiz, mod, lesson)}
                                           >
                                             <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                              <HelpCircle size={13} className="text-emerald-400 shrink-0" />
+                                              <HelpCircle size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
                                               <span className="truncate text-caption font-semibold">{quiz.title || "Lesson Quiz"}</span>
                                             </div>
                                             <div className="flex items-center gap-1 shrink-0">
@@ -837,7 +837,7 @@ export function CourseComposerSidebar({
                                           className={`group/topic flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
                                             isTopicActive
                                               ? "bg-primary/15 text-primary font-semibold"
-                                              : "text-muted-foreground hover:text-slate-50 hover:bg-background/40"
+                                              : "text-foreground/75 hover:text-foreground hover:bg-background/40"
                                           }`}
                                           onClick={() => onSelectTopic?.(topic.id, lesson.id, mod.id)}
                                         >
@@ -903,13 +903,13 @@ export function CourseComposerSidebar({
                                                       <div
                                                         className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
                                                           isQuizActive
-                                                            ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
-                                                            : "border-transparent text-emerald-300/80 hover:text-emerald-300 hover:bg-background/60"
+                                                            ? "bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold"
+                                                            : "border-transparent text-emerald-600/90 dark:text-emerald-400/90 hover:bg-background/60"
                                                         }`}
                                                         onClick={() => onSelectQuiz?.(quiz, mod, lesson, topic)}
                                                       >
                                                         <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                                          <HelpCircle size={13} className="text-emerald-400 shrink-0" />
+                                                          <HelpCircle size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
                                                           <span className="truncate text-caption font-semibold">{quiz.title || "Topic Quiz"}</span>
                                                         </div>
                                                         <div className="flex items-center gap-1 shrink-0">

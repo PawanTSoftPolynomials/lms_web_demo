@@ -135,7 +135,7 @@ export function CourseComposerHeader({
         {isPublished && (
           <button
             type="button"
-            className="btn rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-bold text-xs px-3.5 py-1.5 transition cursor-pointer"
+            className="btn rounded-xl border border-amber-500/40 bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-300 font-bold text-xs px-3.5 py-1.5 transition cursor-pointer shadow-xs"
             onClick={onUnpublishClick}
           >
             Unpublish
