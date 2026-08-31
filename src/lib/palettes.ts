@@ -10,7 +10,7 @@ export interface Palette {
 }
 
 export const PALETTES: Palette[] = [
-  { id: "orange", name: "Orange", swatchLight: "#ff7a00", swatchDark: "#ff8c1a" },
+  { id: "orange", name: "Blossom", swatchLight: "#f2c7c7", swatchDark: "#f2c7c7" },
   { id: "ocean", name: "Ocean", swatchLight: "#0284c7", swatchDark: "#38bdf8" },
   { id: "forest", name: "Forest", swatchLight: "#059669", swatchDark: "#34d399" },
   { id: "violet", name: "Violet", swatchLight: "#7c3aed", swatchDark: "#a78bfa" },
@@ -18,13 +18,13 @@ export const PALETTES: Palette[] = [
   { id: "teal", name: "Teal", swatchLight: "#44a1a4", swatchDark: "#60afb2" },
 ];
 
-export const DEFAULT_PALETTE: PaletteId = "teal";
+export const DEFAULT_PALETTE: PaletteId = "orange";
 
-// Bumped to v2 so browsers that already had "orange" saved from before the
-// Relearn (violet/black) retheme pick up the new default instead of being
-// stuck on the old one forever. Deliberate future palette choices are still
-// respected under the new key going forward.
-export const PALETTE_STORAGE_KEY = "lms-palette-v2";
+// Bumped to v3 for the earlier Crimson retheme. The "orange" id's resolved
+// colors have moved twice since (Amber Forest, then this pastel "Blossom"
+// palette — see globals.css) without needing another bump: id and storage
+// key stay put, only the tokens underneath them change.
+export const PALETTE_STORAGE_KEY = "lms-palette-v3";
 
 export function isPaletteId(value: string | null): value is PaletteId {
   return !!value && PALETTES.some((p) => p.id === value);

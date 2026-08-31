@@ -101,7 +101,7 @@ export default function StudentNavDrawer() {
                 onClick={close}
                 className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 ${
                   active
-                    ? "bg-orange-500 text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]"
+                    ? "bg-orange-500 text-slate-950 font-bold shadow-[0_2px_12px_rgba(242,199,199,0.35)]"
                     : "text-slate-300 hover:text-white hover:bg-slate-800/50 font-semibold"
                 }`}
               >

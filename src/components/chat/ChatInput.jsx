@@ -156,7 +156,7 @@ export default function ChatInput() {
           focus:bg-slate-950
           focus:ring-1
           focus:ring-orange-500/30
-          focus:shadow-[0_0_15px_rgba(249,115,22,0.08)]
+          focus:shadow-[0_0_15px_rgba(242,199,199,0.08)]
           "
         />
 
@@ -174,8 +174,8 @@ export default function ChatInput() {
           to-orange-600
           p-3
           text-white
-          shadow-[0_4px_15px_rgba(249,115,22,0.3)]
-          hover:shadow-[0_4px_20px_rgba(249,115,22,0.45)]
+          shadow-[0_4px_15px_rgba(242,199,199,0.3)]
+          hover:shadow-[0_4px_20px_rgba(242,199,199,0.45)]
           hover:scale-105
           active:scale-95
           transition-all

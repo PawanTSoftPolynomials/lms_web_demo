@@ -8,12 +8,7 @@ export default function Card({
     <div
       onClick={onClick}
       className={`
-        rounded-2xl
-        border
-        border-card-border
-        bg-card
-        backdrop-blur-md
-        shadow-luxury-md
+        glass-primary
         ${padding}
         ${onClick ? "cursor-pointer" : ""}
         ${className}

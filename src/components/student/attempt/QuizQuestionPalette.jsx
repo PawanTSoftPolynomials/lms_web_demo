@@ -6,7 +6,7 @@ import Button from "@/components/ui/Button";
 
 const STATUS_STYLES = {
     current:
-        "border-orange-500 bg-orange-500 text-white shadow-[0_0_0_3px_rgba(249,115,22,0.25)]",
+        "border-orange-500 bg-orange-500 text-white shadow-[0_0_0_3px_rgba(242,199,199,0.25)]",
     answered:
         "border-emerald-500/60 bg-emerald-500/15 text-emerald-400 hover:border-emerald-400",
     visited:

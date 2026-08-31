@@ -57,13 +57,13 @@ export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkA
         aria-label="Notifications"
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition-all duration-200 cursor-pointer ${
+        className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition-all duration-200 cursor-pointer text-slate-300 ${
           open
-            ? "bg-[#1A1F35] border-slate-700 text-white"
-            : "bg-[#0D1021] border-[#1A1F35] text-slate-400 hover:bg-[#1A1F35] hover:text-white hover:border-slate-800"
+            ? "bg-[#1A1F35] border-slate-700"
+            : "bg-[#0D1021] border-[#1A1F35] hover:bg-[#1A1F35] hover:border-slate-800"
         }`}
       >
-        <Bell size={16} aria-hidden="true" />
+        <Bell size={18} strokeWidth={2.5} aria-hidden="true" />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-orange-500 px-1 text-[9px] font-black text-white shadow-sm animate-pulse">
             {unreadCount > 99 ? "99+" : unreadCount}
@@ -204,17 +204,17 @@ export function ProfileMenu({ user, onLogout, profileHref = "/student/profile", 
         aria-label="Profile menu"
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 transition-all duration-200 hover:-translate-y-0.5 ${
+        className={`flex items-center gap-2 rounded-full border border-[#1A1F35] py-1.5 pl-1.5 pr-3 transition-all duration-200 hover:-translate-y-0.5 ${
           open ? "bg-white/[0.08]" : "hover:bg-white/[0.06]"
         }`}
       >
         <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-[11px] font-black text-white shadow-[0_2px_8px_rgba(255,140,0,0.4)]">
           {user?.name?.[0]?.toUpperCase() || "S"}
         </span>
-        <span className="hidden max-w-[100px] truncate text-[13px] font-semibold text-slate-200 lg:inline">
+        <span className="hidden max-w-[100px] truncate text-sm font-bold text-slate-200 lg:inline">
           {user?.name || "Profile"}
         </span>
-        <ChevronDown size={14} className={`hidden text-slate-500 transition-transform duration-200 lg:inline ${open ? "rotate-180" : ""}`} aria-hidden="true" />
+        <ChevronDown size={16} strokeWidth={2.5} className={`hidden text-slate-400 transition-transform duration-200 lg:inline ${open ? "rotate-180" : ""}`} aria-hidden="true" />
       </button>
 
       {open && (

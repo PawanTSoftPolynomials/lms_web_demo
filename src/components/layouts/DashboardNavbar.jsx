@@ -404,7 +404,9 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     const openRoleNavDrawer = role === 'ADMIN' ? openAdminNavDrawer : openInstructorNavDrawer;
     return (
       <>
-      <header className="bg-[#080B11] border-b border-[#1A1F35] px-6 py-3 flex items-center gap-4 text-slate-200">
+      <header
+        className="glass-nav sticky top-0 z-30 px-6 py-3 flex items-center gap-4 text-white"
+      >
         <div className="flex items-center gap-6 shrink-0">
           {/* Mobile menu toggle — opens the role's nav drawer (see
               Instructor/AdminNavDrawer); this used to call the unrelated
@@ -420,7 +422,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
           </button>
 
           {/* Logo */}
-          <Link href={dashboardHref} className="flex items-center gap-2 font-black text-slate-100 hover:opacity-90">
+          <Link href={dashboardHref} className="flex items-center gap-2 font-black text-white hover:opacity-90">
             <span className="text-2xl text-orange-500">🍊</span>
             <div className="flex flex-col">
               <span className="text-sm tracking-wider font-extrabold text-orange-500 leading-none">ORANGE TREE</span>
@@ -455,15 +457,15 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
           <button
             type="button"
             onClick={toggleChat}
-            className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition cursor-pointer ${
+            className={`glass-button relative flex h-9 w-9 items-center justify-center rounded-xl border cursor-pointer text-white ${
               isOpen
-                ? "bg-[#1A1F35] border-slate-700 text-orange-400"
-                : "bg-[#0D1021] border-[#1A1F35] text-slate-400 hover:text-slate-100 hover:border-slate-800"
+                ? "bg-primary/15 border-primary/30"
+                : "bg-[#0D1021] border-border hover:border-primary/30"
             }`}
             title="Messages"
             aria-label="Messages"
           >
-            <MessageSquare size={16} />
+            <MessageSquare size={18} strokeWidth={2.5} />
             {isMounted && chatUnreadCount > 0 && (
               <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-orange-500 px-1 text-[9px] font-black text-white shadow-sm">
                 {chatUnreadCount}
@@ -523,15 +525,15 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
   return (
     <>
       <header
-        className={`
-        ${role === 'INSTRUCTOR' ? 'bg-[#080B11] border-[#1A1F35]' : 'bg-slate-900 border-slate-800'}
-        border-b
+        className="
+        glass-nav
         flex
         flex-col
         sticky
         top-0
         z-40
-      `}
+        text-white
+      "
       >
         <div className="px-4 py-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
@@ -554,7 +556,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                   type="button"
                   onClick={openStudentNavDrawer}
                   aria-label="Open navigation menu"
-                  className="sm:hidden shrink-0 flex h-9 w-9 items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-white/[0.06] transition-colors"
+                  className="sm:hidden shrink-0 flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
                 >
                   <Menu size={20} aria-hidden="true" />
                 </button>
@@ -578,13 +580,13 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                   const isLast = idx === breadcrumbs.length - 1;
                   return (
                     <div key={idx} className="flex items-center gap-2 min-w-0">
-                      {idx > 0 && <ChevronRight size={12} className="text-slate-700 stroke-[3] shrink-0" />}
+                      {idx > 0 && <ChevronRight size={12} className="text-slate-500 stroke-[3] shrink-0" />}
                       {b.href && !isLast ? (
-                        <Link href={b.href} className="text-slate-400 hover:text-slate-200 transition truncate">
+                        <Link href={b.href} className="text-slate-400 hover:text-white transition truncate">
                           {b.label}
                         </Link>
                       ) : (
-                        <span className={`truncate ${isLast && idx > 0 ? "text-primary font-black tracking-widest" : "text-slate-300"}`}>
+                        <span className={`truncate ${isLast && idx > 0 ? "text-primary tracking-widest" : "text-white"}`}>
                           {b.label}
                         </span>
                       )}
@@ -593,7 +595,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                 })}
               </div>
             ) : (
-              <h1 className="text-lg font-semibold truncate">{title}</h1>
+              <h1 className="text-lg font-bold truncate text-white">{title}</h1>
             )}
           </div>
 
@@ -627,7 +629,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
             >
               <MessageSquare size={18} />
               {isMounted && chatUnreadCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-bold text-white shadow-[0_0_10px_rgba(249,115,22,0.45)]">
+                <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-bold text-white shadow-[0_0_10px_rgba(242,199,199,0.45)]">
                   {chatUnreadCount}
                 </span>
               )}

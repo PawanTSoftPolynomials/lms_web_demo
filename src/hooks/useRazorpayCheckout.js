@@ -81,7 +81,7 @@ export function useRazorpayCheckout() {
             email: user?.email || "",
           },
           theme: {
-            color: "#f97316", // Brand Orange Accent
+            color: "#f2c7c7", // Brand accent
           },
           handler: async function (response) {
             // User completed payment in Razorpay modal -> verify server-side

@@ -170,7 +170,7 @@ export default function CertificateTemplateBuilderPage() {
 
   // Certificate Designer
   const [assets, setAssets] = useState({ background: null, logo: null, signature: null, seal: null });
-  const [primaryColor, setPrimaryColor] = useState("#f97316");
+  const [primaryColor, setPrimaryColor] = useState("#f2c7c7");
   const [font, setFont] = useState(FONT_OPTIONS[0].value);
 
   // Dynamic Fields / body text

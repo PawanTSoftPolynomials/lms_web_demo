@@ -3,7 +3,7 @@
  */
 export function deriveCourseStatusPie(publishedCourses = 0, draftCourses = 0) {
   return [
-    { name: "Published", value: publishedCourses, color: "#f97316" },
+    { name: "Published", value: publishedCourses, color: "#f2c7c7" },
     { name: "Draft", value: draftCourses, color: "#38bdf8" },
   ];
 }

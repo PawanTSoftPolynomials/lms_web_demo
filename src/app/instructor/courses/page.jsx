@@ -87,7 +87,7 @@ export default function InstructorCoursesPage() {
         />
       ) : (
         <div className="flex flex-col min-h-[70vh] rounded-2xl border border-[#1A1F35] bg-[#0D1021] px-3 py-4 md:px-12 md:py-6">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4 mb-4 md:mb-6">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4 mb-2 md:mb-3">
             <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center md:flex-wrap">
               <div className="relative w-full min-w-0 md:max-w-xs">
                 <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -96,7 +96,7 @@ export default function InstructorCoursesPage() {
                   placeholder="Search courses..."
                   value={filters.search}
                   onChange={(e) => set("search")(e.target.value)}
-                  className="w-full rounded-xl border border-[#1A1F35] bg-[#0D1021] pl-9 pr-4 py-2 md:py-2.5 text-sm text-slate-200 placeholder-slate-500 outline-none transition focus:border-orange-500/60"
+                  className="w-full rounded-xl border border-[#1A1F35] bg-[#0D1021] pl-9 pr-4 py-1 md:py-1.5 text-sm text-slate-200 placeholder-slate-500 outline-none transition focus:border-orange-500/60"
                 />
               </div>
             </div>
@@ -104,14 +104,14 @@ export default function InstructorCoursesPage() {
             <div className="flex items-center gap-2 md:gap-3 shrink-0">
               <Link
                 href="/instructor/courses/import"
-                className="inline-flex items-center justify-center rounded-lg bg-slate-800 border border-amber-500/40 px-3 md:px-4 py-2 md:py-2.5 text-xs font-bold text-amber-400 transition hover:bg-slate-700 hover:border-amber-400 whitespace-nowrap"
+                className="inline-flex items-center justify-center rounded-lg bg-slate-800 border border-amber-500/40 px-3 md:px-4 py-1 md:py-1.5 text-xs font-bold text-amber-400 transition hover:bg-slate-700 hover:border-amber-400 whitespace-nowrap"
               >
                 <span className="md:hidden">Import</span>
                 <span className="hidden md:inline">Import Course</span>
               </Link>
               <button
                 onClick={() => router.push("/instructor/courses/create")}
-                className="btn-rainbow [--btn-rainbow-fill:var(--primary)] inline-flex items-center justify-center rounded-lg px-3 md:px-5 py-2 md:py-2.5 text-xs font-bold text-primary-foreground transition whitespace-nowrap"
+                className="btn-rainbow [--btn-rainbow-fill:var(--primary)] inline-flex items-center justify-center rounded-lg px-3 md:px-5 py-1 md:py-1.5 text-xs font-bold text-primary-foreground transition whitespace-nowrap"
               >
                 <span className="md:hidden">+ Create</span>
                 <span className="hidden md:inline">+ Create Course</span>
@@ -119,7 +119,7 @@ export default function InstructorCoursesPage() {
             </div>
           </div>
 
-          <div className="flex-1 md:max-h-[68vh] md:overflow-y-auto md:pr-1 md:-mr-1">
+          <div className="flex-1">
             {/* Mobile: centered peek carousel — the active card snaps to the middle
                 of the viewport with a small sliver of its neighbors visible on
                 each side (App Store / Apple Music style), one card in focus at a
@@ -155,18 +155,20 @@ export default function InstructorCoursesPage() {
                 ))}
               </div>
             )}
-          </div>
 
-          {!isLoading && courses.length > 0 && (
-            <Pagination
-              page={pagination.page}
-              totalPages={pagination.totalPages}
-              total={pagination.total}
-              limit={filters.limit}
-              onPageChange={set("page")}
-              onLimitChange={(limit) => setFilters((f) => ({ ...f, limit, page: 1 }))}
-            />
-          )}
+            {/* Scrolls with the card list instead of staying pinned outside it —
+                only comes into view once the user scrolls to the end. */}
+            {!isLoading && courses.length > 0 && (
+              <Pagination
+                page={pagination.page}
+                totalPages={pagination.totalPages}
+                total={pagination.total}
+                limit={filters.limit}
+                onPageChange={set("page")}
+                onLimitChange={(limit) => setFilters((f) => ({ ...f, limit, page: 1 }))}
+              />
+            )}
+          </div>
         </div>
       )}
     </div>

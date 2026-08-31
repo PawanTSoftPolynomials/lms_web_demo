@@ -65,7 +65,7 @@ export default function CertificateViewerModal({ cert, onClose, onPrint }) {
           {/* Certificate Header */}
           <div className="space-y-1">
             <div className="flex justify-center text-orange-500 print:text-slate-600 mb-2">
-              <Award size={40} className="drop-shadow-[0_0_10px_rgba(249,115,22,0.3)] print:drop-shadow-none" />
+              <Award size={40} className="drop-shadow-[0_0_10px_rgba(242,199,199,0.3)] print:drop-shadow-none" />
             </div>
             <h1 className="text-xl font-bold tracking-widest uppercase text-slate-200 print:text-black">
               Certificate of Completion

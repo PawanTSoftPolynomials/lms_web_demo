@@ -111,7 +111,7 @@ export default function ChatUserCard({ conversation, active, onClick }) {
           text-[10px]
           font-bold
           text-white
-          shadow-[0_0_10px_rgba(249,115,22,0.4)]
+          shadow-[0_0_10px_rgba(242,199,199,0.4)]
         ">
           {conversation.unread}
         </div>

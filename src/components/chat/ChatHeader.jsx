@@ -37,7 +37,7 @@ export default function ChatHeader() {
 
             ${
               sidebarMode === "users"
-                ? "bg-orange-500/10 text-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.15)]"
+                ? "bg-orange-500/10 text-orange-500 shadow-[0_0_10px_rgba(242,199,199,0.15)]"
                 : "text-slate-400 hover:bg-slate-800 hover:text-white"
             }
           `}

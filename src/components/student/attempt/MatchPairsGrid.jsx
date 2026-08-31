@@ -115,7 +115,7 @@ export default function MatchPairsGrid({
                   flex w-full items-center justify-between gap-4 rounded-xl border p-4 text-left cursor-pointer transition-all duration-300
                   ${
                     isActive
-                      ? "border-orange-500 bg-orange-500/10 shadow-[0_0_15px_rgba(249,115,22,0.15)]"
+                      ? "border-orange-500 bg-orange-500/10 shadow-[0_0_15px_rgba(242,199,199,0.15)]"
                       : isMatched
                       ? `${style.border} text-white`
                       : "border-slate-800 bg-slate-900/50 text-slate-300 hover:border-slate-700 hover:bg-slate-800/80"

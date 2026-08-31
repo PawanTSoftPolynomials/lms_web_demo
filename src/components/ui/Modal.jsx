@@ -36,8 +36,8 @@ export default function Modal({
   flex
   items-center
   justify-center
-  bg-slate-950/80
-  backdrop-blur-sm
+  bg-black/40
+  backdrop-blur-md
   animate-in
   fade-in
   duration-200
@@ -50,17 +50,13 @@ export default function Modal({
           e.stopPropagation()
         }
         className={`
+  glass-modal
   w-full
   ${width[size]}
   max-h-[85vh]
   flex
   flex-col
   overflow-hidden
-  rounded-2xl
-  border
-  border-slate-800
-  bg-slate-900
-  shadow-[0_20px_80px_rgba(0,0,0,0.55)]
   animate-in
   zoom-in-95
   duration-200
@@ -73,29 +69,28 @@ export default function Modal({
     items-center
     justify-between
     border-b
-    border-slate-800
-    bg-slate-900/80
+    border-border
     px-6
     py-4
   "
         >
-          <h2 className="text-xl font-bold text-white">
+          <h2 className="text-xl font-bold text-foreground">
             {title}
           </h2>
 
           <button
             onClick={onClose}
             className="
+    glass-button
     flex
     h-9
     w-9
     items-center
     justify-center
-    rounded-xl
-    text-slate-400
-    transition-all
-    hover:bg-slate-800
-    hover:text-white
+    rounded-[0.625rem]
+    text-muted-foreground
+    hover:bg-muted
+    hover:text-foreground
     cursor-pointer
   "
           >
@@ -103,7 +98,7 @@ export default function Modal({
           </button>
         </div>
 
-        <div className="p-6 flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="p-6 flex-1 min-h-0 flex flex-col overflow-hidden text-foreground">
           {children}
         </div>
       </div>

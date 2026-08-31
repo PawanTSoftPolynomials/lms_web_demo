@@ -353,7 +353,7 @@ export default function InstructorDashboardHomePage() {
       <div className="hidden sm:block -m-3 sm:-m-6 min-h-[calc(100vh-3.5rem)] bg-[#080B11] p-3 sm:p-6 pt-0 sm:pt-0">
         <div className="flex flex-col max-w-[1600px] mx-auto">
 
-          <div className="mt-4 mb-2">
+          <div className="mt-4 mb-1">
             <InstructorKPIs
               coursesCount={Number(totalCourses)}
               studentsCount={Number(totalStudents)}
@@ -363,9 +363,9 @@ export default function InstructorDashboardHomePage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mt-4">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-1 mt-1.5">
             {/* Left Main Column (occupies 8/12 on large screens) */}
-            <div className="xl:col-span-8 flex flex-col gap-6">
+            <div className="xl:col-span-8 flex flex-col gap-1">
               {/* <WelcomeHeroCard instructorName={user?.name || "Instructor"} /> */}
 
               <CourseOverviewTable
@@ -374,7 +374,7 @@ export default function InstructorDashboardHomePage() {
               />
 
               {/* Bottom Row inside Main Column */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-1">
                 <RecentSubmissionsList
                   submissions={submissions.data}
                   isLoading={submissions.isLoading}
@@ -389,7 +389,7 @@ export default function InstructorDashboardHomePage() {
             </div>
 
             {/* Right Sidebar Column (occupies 4/12 on large screens) */}
-            <div className="xl:col-span-4 flex flex-col gap-6">
+            <div className="xl:col-span-4 flex flex-col gap-1">
               <UpcomingEventsPanel
                 events={schedule.data?.today || []}
                 isLoading={schedule.isLoading}

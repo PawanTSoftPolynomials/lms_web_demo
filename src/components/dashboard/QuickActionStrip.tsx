@@ -126,19 +126,23 @@ function NavPill({
   // NavPill instance, so this never actually changes across renders.
   const hover = useHoverOpen();
 
+  // `bare` used to need its own hardcoded palette here, tuned for a fixed
+  // solid navy topbar. The topbar is a glass-nav surface now (its own
+  // --popover/--popover-foreground tokens, same as the rest of the app),
+  // so both bare and standalone modes can share one token-driven style.
   const pillClass = cn(
     "relative flex items-center gap-1.5 rounded-xl font-bold whitespace-nowrap transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0",
-    mobile ? "px-3 py-2 text-[11px]" : "px-3 py-1.5 text-[11px]",
+    mobile ? "px-3 py-2 text-sm" : "px-3 py-1.5 text-sm",
     active
       ? mobile
         ? "bg-primary text-primary-foreground"
         : "text-primary-foreground"
-      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+      : "text-slate-300 hover:bg-white/5"
   );
 
   if (item.children) {
     return (
-      <DropdownMenu open={hover.open} onOpenChange={hover.setOpen}>
+      <DropdownMenu open={hover.open} onOpenChange={hover.setOpen} modal={false}>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
@@ -150,7 +154,7 @@ function NavPill({
             {active && !mobile && (
               <motion.span
                 layoutId={layoutId}
-                className="absolute inset-0 rounded-xl bg-primary shadow-sm"
+                className="absolute inset-0 rounded-xl shadow-sm bg-primary"
                 transition={{ type: "spring", stiffness: 400, damping: 32 }}
               />
             )}
@@ -159,7 +163,7 @@ function NavPill({
             <ChevronDown className="size-3 relative z-10" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" onMouseEnter={hover.onMouseEnter} onMouseLeave={hover.onMouseLeave}>
+        <DropdownMenuContent align="start" sideOffset={0} onMouseEnter={hover.onMouseEnter} onMouseLeave={hover.onMouseLeave}>
           {item.children.map((child) =>
             child.children ? (
               <NestedSubMenuItem key={child.label} child={child} pathname={pathname} />

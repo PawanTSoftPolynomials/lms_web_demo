@@ -219,11 +219,11 @@ export default function GlobalSearch({ role = "student" }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Search dashboard (Ctrl+K)"
-        className="flex items-center gap-2 rounded-xl border border-[#1A1F35] bg-[#0D1021] px-3.5 py-1.5 text-xs font-semibold text-slate-400 transition-colors hover:border-slate-800 hover:text-slate-100"
+        className="flex items-center gap-2 rounded-xl border border-[#1A1F35] bg-[#0D1021] px-3.5 py-1.5 text-sm font-bold text-slate-300 transition-colors hover:border-slate-800"
       >
         <Search size={16} aria-hidden="true" />
         <span className="hidden sm:inline">Search</span>
-        <kbd className="hidden rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[9px] font-bold text-slate-500 lg:inline">
+        <kbd className="hidden rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-bold text-slate-500 lg:inline">
           Ctrl K
         </kbd>
       </button>

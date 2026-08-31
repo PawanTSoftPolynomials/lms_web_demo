@@ -226,7 +226,7 @@ export default function StudentDashboardPage() {
       <div className="flex flex-col max-w-[1600px] mx-auto">
 
         {/* Stat / KPI Strip */}
-        <div className="mt-4 mb-2">
+        <div className="mt-4 mb-1">
           <div className="flex flex-wrap md:flex-nowrap items-center gap-3 w-full">
             {statCards.map((s) => (
               <StudentStatCard key={s.key} stat={s} isLoading={isDashboardLoading} variant="desktop" />
@@ -235,9 +235,9 @@ export default function StudentDashboardPage() {
         </div>
 
         {/* Main grid: content (8/12) + sidebar (4/12) */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mt-4">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-1 mt-1.5">
           {/* Left main column */}
-          <div className="xl:col-span-8 flex flex-col gap-6">
+          <div className="xl:col-span-8 flex flex-col gap-1">
 
             {/* Welcome Hero Card */}
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0B0F1A] to-[#12182B] border border-[#1A1F35] p-5 shadow-sm flex flex-col md:flex-row items-center justify-between min-h-[140px]">
@@ -323,7 +323,7 @@ export default function StudentDashboardPage() {
           </div>
 
           {/* Right sidebar column */}
-          <div className="xl:col-span-4 flex flex-col gap-6">
+          <div className="xl:col-span-4 flex flex-col gap-1">
 
             {/* Upcoming */}
             <div className="rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-5">

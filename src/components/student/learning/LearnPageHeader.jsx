@@ -59,7 +59,7 @@ export default function LearnPageHeader({
         >
           <MessageSquare size={16} />
           {chatUnreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-orange-500 px-1 text-[8px] font-bold text-white shadow-[0_0_8px_rgba(249,115,22,0.4)]">
+            <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-orange-500 px-1 text-[8px] font-bold text-white shadow-[0_0_8px_rgba(242,199,199,0.4)]">
               {chatUnreadCount}
             </span>
           )}

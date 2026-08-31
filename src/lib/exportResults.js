@@ -58,7 +58,7 @@ export async function exportResultsPdf(summary, studentResults, filenamePrefix =
       r.passed ? "Yes" : "No",
     ]),
     styles: { fontSize: 8 },
-    headStyles: { fillColor: [249, 115, 22] },
+    headStyles: { fillColor: [242, 199, 199] },
   });
 
   doc.save(`${filenamePrefix}-${new Date().toISOString().split("T")[0]}.pdf`);

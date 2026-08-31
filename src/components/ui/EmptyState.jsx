@@ -10,7 +10,7 @@ export default function EmptyState({
 }) {
   if (!title && !Icon && !actionText) {
     return (
-      <div className="py-10 text-center text-slate-400">
+      <div className="py-10 text-center text-muted-foreground">
         {message}
       </div>
     );
@@ -19,13 +19,13 @@ export default function EmptyState({
   return (
     <div className="py-16 text-center flex flex-col items-center gap-3">
       {Icon && (
-        <div className="h-14 w-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-450 flex items-center justify-center">
+        <div className="glass-secondary h-14 w-14 rounded-2xl bg-primary/10 border-primary/20 text-primary flex items-center justify-center">
           <Icon size={26} />
         </div>
       )}
-      {title && <h3 className="text-lg font-bold text-white">{title}</h3>}
+      {title && <h3 className="text-lg font-bold text-foreground">{title}</h3>}
       {(description || message) && (
-        <p className="text-sm text-slate-400 max-w-sm">{description || message}</p>
+        <p className="text-sm text-muted-foreground max-w-sm">{description || message}</p>
       )}
       {actionText && (
         <Button onClick={onAction} className="mt-2">

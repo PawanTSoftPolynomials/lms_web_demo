@@ -7,29 +7,27 @@ export default function Input({
   return (
     <div className="space-y-2">
       {label && (
-        <label className="text-sm text-slate-300">
+        <label className="text-sm text-muted-foreground">
           {label}
         </label>
       )}
 
       <input
         className={`
+          glass-input
           w-full
-          rounded-lg
-          border
-          border-slate-700
-          bg-slate-800
+          rounded-[0.625rem]
           px-4
           py-3
-          outline-none
-          focus:border-orange-500
+          text-foreground
+          placeholder:text-muted-foreground
           ${className}
         `}
         {...props}
       />
 
       {error && (
-        <p className="text-sm text-red-500">
+        <p className="text-sm text-destructive">
           {error}
         </p>
       )}

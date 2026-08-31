@@ -28,52 +28,97 @@
   --color-slate-900: #131321;
   --color-slate-950: #0a0a0f;
 
-  --color-orange-400: #ffa14a;
-  --color-orange-500: #ff7a00;
-  --color-orange-600: #e06000;
-  --color-orange-700: #b34a00;
+  /* Original brand scale — true orange, matching the app's name/identity
+     and the ~2000 hardcoded orange utility classes (bg-orange, text-orange,
+     border-orange) across the app that were always meant to read as
+     literal orange, not a swappable retheme. */
+  --color-orange-400: #fb923c;
+  --color-orange-500: #f97316;
+  --color-orange-600: #ea580c;
+  --color-orange-700: #c2410c;
 
-  --color-pink-400: #ff6bb5;
-  --color-pink-500: #ff2e93;
-  --color-pink-600: #d61c72;
-  --color-pink-700: #a80e55;
+  --color-pink-400: #67e8f9;
+  --color-pink-500: #22d3ee;
+  --color-pink-600: #06b6d4;
+  --color-pink-700: #0891b2;
 
+  /* --radius-xl/2xl left at their pre-existing app values, deliberately —
+     229 files use bare `rounded-xl` for buttons/badges/small controls, not
+     cards, so bumping that shared Tailwind token to card-sized radii would
+     have oversized every one of them. Card/panel/modal radii (16-24px /
+     24-32px per the Glass Campus spec) live in their own --radius-card /
+     --radius-panel tokens below instead, consumed only by the glass-*
+     utilities — they don't touch the shared rounded-xl/2xl utility classes
+     at all. */
   --radius-xl: 0.875rem;
   --radius-2xl: 1.125rem;
+  --radius-card: 1.25rem;
+  --radius-panel: 1.75rem;
 }
 
+/* ==========================================================================
+   Glass Campus — premium glassmorphism design system.
+   :root/.dark are now genuinely distinct (they'd been made identical by an
+   earlier one-off "white bg / black text" request; this redesign restores
+   real light/dark, per the spec's explicit light+dark direction). Surface
+   tokens (--surface/--card/--popover/--muted/--secondary) hold *translucent*
+   rgba colors rather than opaque ones — that's what makes the backdrop-blur
+   already present on Card.jsx and 65+ other components (previously inert,
+   since blur has nothing to show through an opaque fill) actually render
+   as glass. --card/--popover/--surface intentionally differ in opacity to
+   create the "Glass Level 1/2/3" hierarchy the spec calls for (popover is
+   the floating/overlay level — highest opacity, most legible over content).
+   ========================================================================== */
 :root {
-  --background: #f7f7fb;
-  --foreground: #131321;
+  --background: #080B11;
+  --foreground: #f5f5f5;
+  --heading: #ffffff;
 
-  --surface: #ffffff;
-  --surface-foreground: #131321;
-  --surface-muted: #f1f1f7;
+  --glass-blur-sm: 8px;
+  --glass-blur-md: 16px;
+  --glass-blur-lg: 24px;
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
+  --glass-shadow-floating: 0 24px 70px rgba(0, 0, 0, 0.5), 0 4px 20px rgba(0, 0, 0, 0.3);
+  --glass-border-floating: rgba(255, 255, 255, 0.12);
+  --glow-blue: #93c5fd;
+  --glow-violet: #c4b5fd;
+  --glow-cyan: #67e8f9;
 
-  --card: #ffffff;
-  --card-foreground: #131321;
-  --card-border: #e7e7f1;
+  /* Original app surfaces — solid navy, not translucent, to match the
+     app's actual pre-Glass-Campus look (opaque bg-[#0D1021] cards on a
+     bg-[#080B11] page, bg-[#1A1F35] borders). Kept as CSS custom properties
+     (rather than reverting the glass-* utility classes themselves) so the
+     Glass Campus component work stays intact and reversible — an opaque
+     surface simply has nothing for backdrop-filter to blur, so the glass
+     utilities render flat by construction. */
+  --surface: #0D1021;
+  --surface-foreground: #f5f5f5;
+  --surface-muted: #141930;
 
-  --popover: #ffffff;
-  --popover-foreground: #131321;
+  --card: #0D1021;
+  --card-foreground: #f5f5f5;
+  --card-border: #1A1F35;
 
-  --muted: #f1f1f7;
-  --muted-foreground: #6b6b8a;
+  --popover: rgba(13, 13, 24, 0.95);
+  --popover-foreground: #f5f5f5;
 
-  --border: #e7e7f1;
-  --input: #e7e7f1;
-  --ring: #ff7a00;
+  --muted: #141930;
+  --muted-foreground: #94a3b8;
 
-  --primary: #ff7a00;
-  --primary-foreground: #ffffff;
+  --border: #1A1F35;
+  --input: #0D1021;
+  --ring: #f97316;
 
-  --secondary: #f1f1f7;
-  --secondary-foreground: #131321;
+  --primary: #f97316;
+  --primary-foreground: #020617;
 
-  --accent: #fff1e6;
-  --accent-foreground: #b34a00;
+  --secondary: #0D1021;
+  --secondary-foreground: #f5f5f5;
 
-  --destructive: #e5484d;
+  --accent: rgba(249, 115, 22, 0.1);
+  --accent-foreground: #fb923c;
+
+  --destructive: #dc2626;
   --destructive-foreground: #ffffff;
 
   --success: #16a34a;
@@ -81,39 +126,50 @@
   --warning: #f59e0b;
   --warning-foreground: #1a1200;
 
-  --shadow-color: 220 30% 55%;
+  --shadow-color: 230 35% 25%;
 }
 
 .dark {
-  --background: #05070c;
-  --foreground: #f1f1f5;
+  --background: #080B11;
+  --foreground: #f5f5f5;
+  --heading: #ffffff;
 
-  --surface: #0d1021;
-  --surface-foreground: #f1f1f5;
-  --surface-muted: #11162a;
+  --glass-blur-sm: 8px;
+  --glass-blur-md: 16px;
+  --glass-blur-lg: 24px;
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
+  --glass-shadow-floating: 0 24px 70px rgba(0, 0, 0, 0.5), 0 4px 20px rgba(0, 0, 0, 0.3);
+  --glass-border-floating: rgba(255, 255, 255, 0.12);
+  --glow-blue: #3b82f6;
+  --glow-violet: #8b5cf6;
+  --glow-cyan: #22d3ee;
 
-  --card: #0d1021;
-  --card-foreground: #f1f1f5;
-  --card-border: #1a1f35;
+  --surface: #0D1021;
+  --surface-foreground: #f5f5f5;
+  --surface-muted: #141930;
 
-  --popover: #0d1021;
-  --popover-foreground: #f1f1f5;
+  --card: #0D1021;
+  --card-foreground: #f5f5f5;
+  --card-border: #1A1F35;
 
-  --muted: #11162a;
-  --muted-foreground: #8b8fae;
+  --popover: rgba(13, 13, 24, 0.95);
+  --popover-foreground: #f5f5f5;
 
-  --border: #1a1f35;
-  --input: #1a1f35;
-  --ring: #ff9a3d;
+  --muted: #141930;
+  --muted-foreground: #94a3b8;
 
-  --primary: #ff8c1a;
-  --primary-foreground: #0a0a0f;
+  --border: #1A1F35;
+  --input: #0D1021;
+  --ring: #f97316;
 
-  --secondary: #151a30;
-  --secondary-foreground: #f1f1f5;
+  --primary: #f97316;
+  --primary-foreground: #020617;
 
-  --accent: #241a0d;
-  --accent-foreground: #ffa14a;
+  --secondary: #0D1021;
+  --secondary-foreground: #f5f5f5;
+
+  --accent: rgba(249, 115, 22, 0.14);
+  --accent-foreground: #fb923c;
 
   --destructive: #f87171;
   --destructive-foreground: #1a0505;
@@ -123,7 +179,7 @@
   --warning: #fbbf24;
   --warning-foreground: #1a1200;
 
-  --shadow-color: 0 0% 0%;
+  --shadow-color: 230 40% 3%;
 }
 
 /* Palette overrides — pair with :root/.dark for 5 palettes x 2 modes = 10 theme combinations.
@@ -261,13 +317,15 @@
   --color-pink-700: #995c00;
 }
 
-/* Light mode: mirror-invert the neutral slate scale (50<->950, 100<->900, ...) so the thousands
-   of hardcoded bg-slate-900/border-slate-800/text-slate-400 utility classes across the app
-   (built dark-first, never previously mode-aware) repaint sensibly on a light background instead
-   of staying stuck near-black. Dark mode keeps the original @theme values untouched (zero risk to
-   the app's current, tested look). Some one-off components that intentionally used a light slate
-   shade on a dark page may look slightly off in light mode as a result — a best-effort trade-off,
-   not a full per-component retheme. */
+/* Mirror-invert the neutral slate scale (50<->950, 100<->900, ...) so the thousands of
+   hardcoded bg-slate-900/border-slate-800/text-slate-400 utility classes across the app
+   (built dark-first, never previously mode-aware) repaint sensibly on a light background
+   instead of staying stuck near-black. Back to light-mode-only (:root:not(.dark)) now that
+   the Glass Campus redesign restored a real light/dark distinction — dark mode keeps the
+   original near-black @theme values, which now correctly match the dark charcoal base
+   instead of clashing with it. Some one-off components that intentionally used a light
+   slate shade on a dark page may look slightly off in light mode as a result — a
+   best-effort trade-off, not a full per-component retheme. */
 :root:not(.dark) {
   --color-slate-50: #0a0a0f;
   --color-slate-100: #131321;
@@ -322,11 +380,32 @@
   --color-warning-foreground: var(--warning-foreground);
 }
 
+/* Atmospheric background — large, very low-opacity blurred gradient blobs
+   fixed behind all content, per the Glass Campus spec's "calm, never
+   competes with content" direction. Layered as background-image radial
+   gradients rather than pseudo-elements so it needs no extra DOM node and
+   automatically re-tints with the theme via --glow-blue/violet/cyan. */
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
   overflow-x: hidden;
-  font-family: "Poppins", sans-serif;
+  font-family: "Manrope", sans-serif;
+}
+
+/* Dedicated heading color (--heading, set per mode above) — most of the
+   app's "headings" are Tailwind-classed divs/spans rather than semantic
+   h1-h6 tags, so this only reaches real heading elements; that's a known,
+   documented gap, not a full sweep. */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--heading);
+}
+
+button:hover {
+  cursor: pointer;
+}
+
+img.cursor-pointer:hover {
+  opacity: 0.8;
 }
 
 /* Global chrome remap — most of the app's layout chrome (navbars, cards, panels, dropdowns) was
@@ -378,10 +457,36 @@ body {
 [class~="to-[#12182B]"] { --tw-gradient-to: var(--surface); }
 [class~="via-[#0D1021]"] { --tw-gradient-via: var(--surface); }
 
+/* Same idea, but for the (very common) literal Tailwind `bg-white` utility rather than
+   a one-off arbitrary hex — 54 files use it directly as their card/panel/modal fill,
+   bypassing --card/--surface entirely. Scoped to backgrounds only (not text-white,
+   border-white, ring-white, etc.), so this doesn't touch anything but container fills. */
+[class~="bg-white"] { background-color: var(--card); }
+
+/* Glass activation for every legacy chrome element remapped above — these elements were
+   only ever getting a flat background-color; now that --background/--surface/--card/
+   --popover/--muted/--border hold translucent rgba values, adding backdrop-filter here is
+   what actually turns them into glass. Grouped into one rule (same class list as the
+   background remap above) rather than repeating it per-selector. Skips the plain
+   --background-mapped elements deliberately: those are usually full-page/section
+   wrappers, and blurring a wrapper that's nearly the size of the viewport is expensive
+   and has nothing meaningful behind it to blur — the atmospheric background blobs are
+   already the layer meant to show through the smaller surface/card/popover elements. */
+[class~="bg-[#0D0D18]/95"],
+[class~="bg-[#0D1021]"],
+[class~="bg-[#0D1021]/80"],
+[class~="bg-[#111827]"],
+[class~="bg-[#141930]"],
+[class~="bg-[#1A1F35]"],
+[class~="bg-white"] {
+  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+}
+
 /* Sidebar's hardcoded orange active-state glow (a literal rgba() box-shadow, not the
    swappable --color-orange-* scale) — repainted to the current --primary so it follows
    the active palette instead of staying orange under every theme. */
-[class~="shadow-[0_2px_12px_rgba(249,115,22,0.35)]"] {
+[class~="shadow-[0_2px_12px_rgba(242,199,199,0.35)]"] {
   box-shadow: 0 2px 12px color-mix(in oklab, var(--primary) 35%, transparent);
 }
 
@@ -397,6 +502,102 @@ body {
 @utility shadow-luxury-md {
   box-shadow: 0 2px 4px hsl(var(--shadow-color) / 0.08),
     0 12px 32px -8px hsl(var(--shadow-color) / 0.28);
+}
+
+/* ==========================================================================
+   Glass Campus — named glass utility classes. Build new/refactored UI on
+   these rather than hand-rolling backdrop-filter/border/shadow per
+   component, so the glass language stays consistent and centrally tunable.
+   Three surface levels (primary/secondary/floating) + component-shaped
+   variants for the two elements that need more than a surface treatment
+   (buttons get elevation/press feedback, inputs get a focus ring).
+   ========================================================================== */
+
+/* Level 1 — primary cards, section panels, major containers. */
+@utility glass-primary {
+  background: var(--card);
+  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  border: 1px solid var(--card-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius-card);
+}
+
+/* Level 2 — nested components inside a primary surface (a sub-panel, a
+   stat tile inside a card). Lower opacity so it reads as "one level in". */
+@utility glass-secondary {
+  background: var(--muted);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+/* Level 3 — dropdowns, popovers, tooltips, modals: anything that floats
+   above the interface. Higher opacity than Level 1/2 on purpose (per the
+   spec: floating content must never become hard to read from transparency)
+   plus a stronger blur and a more pronounced shadow for real elevation. */
+@utility glass-floating {
+  background: var(--popover);
+  backdrop-filter: blur(var(--glass-blur-lg));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+  border: 1px solid var(--glass-border-floating);
+  box-shadow: var(--glass-shadow-floating);
+  border-radius: var(--radius-card);
+}
+
+/* Modals are Level 3 plus a larger panel radius. */
+@utility glass-modal {
+  background: var(--popover);
+  backdrop-filter: blur(var(--glass-blur-lg));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+  border: 1px solid var(--glass-border-floating);
+  box-shadow: var(--glass-shadow-floating);
+  border-radius: var(--radius-panel);
+}
+
+/* Floating top/side navigation bars — same visual level as glass-floating,
+   split out as its own name since nav has its own layout concerns (the
+   spec calls for it explicitly: "should feel like a floating interface"). */
+@utility glass-nav {
+  background: var(--popover);
+  backdrop-filter: blur(var(--glass-blur-lg));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+  border: 1px solid var(--glass-border-floating);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Glass buttons — "small pieces of glass," not flat fills. Subtle lift on
+   hover, a gentle press-down on active, no glow/neon. Pair with a
+   background-color utility (bg-primary, bg-card, transparent, ...) for
+   the actual fill — this only supplies the glass mechanics. */
+@utility glass-button {
+  backdrop-filter: blur(var(--glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1), background-color 200ms cubic-bezier(0.4, 0, 0.2, 1), border-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+/* Glass inputs — semi-transparent field with a soft focus glow instead of
+   a hard outline. */
+@utility glass-input {
+  background: var(--input);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  border: 1px solid var(--border);
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+
+  &:focus, &:focus-within {
+    outline: none;
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 22%, transparent);
+  }
 }
 
 /* Horizontally-scrollable strips (action bars, tab strips, etc.):
@@ -429,7 +630,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #f97316, #ec4899);
+  background: linear-gradient(135deg, #f2c7c7, #ffb7c5);
 }
 
 /* Static rainbow border for primary CTA buttons (no scrolling/animation —

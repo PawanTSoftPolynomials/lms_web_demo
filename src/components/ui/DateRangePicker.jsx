@@ -48,7 +48,7 @@ function DayButtonImpl({ day, modifiers, className, children, ...props }) {
         modifiers.outside && !isEdge && "text-slate-600",
         modifiers.today && !isEdge && "border border-orange-500 text-orange-400",
         isMiddle && "text-orange-200 hover:bg-orange-500/20",
-        isEdge && "bg-orange-500 text-white shadow-[0_2px_10px_-2px_rgba(255,122,0,0.6)] hover:bg-orange-600",
+        isEdge && "bg-orange-500 text-white shadow-[0_2px_10px_-2px_rgba(242,199,199,0.6)] hover:bg-orange-600",
         modifiers.disabled && "pointer-events-none text-slate-700 opacity-40 hover:bg-transparent"
       )}
     >

@@ -60,7 +60,7 @@ export default function MCQMultiOptionList({
               duration-300
               ${
                 isSelected
-                  ? "border-orange-500 bg-orange-500/10 shadow-[0_0_20px_rgba(249,115,22,0.15)]"
+                  ? "border-orange-500 bg-orange-500/10 shadow-[0_0_20px_rgba(242,199,199,0.15)]"
                   : "border-slate-800 bg-slate-900/60 hover:border-orange-500/30 hover:bg-slate-800/80 hover:shadow-lg"
               }
             `}
