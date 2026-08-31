@@ -33,11 +33,11 @@ export function ModuleOverviewView({
   const nextModule = currentModIdx >= 0 && currentModIdx < allModules.length - 1 ? allModules[currentModIdx + 1] : null;
 
   return (
-    <div className="notebook-cell rounded-2xl border border-slate-800 bg-slate-950 p-5 sm:p-6 shadow-md space-y-6">
+    <div className="notebook-cell rounded-2xl border border-border bg-background p-5 sm:p-6 shadow-md space-y-6">
       {/* Module Header Toolbar */}
-      <div className="cell-header flex items-center justify-between border-b border-slate-800/80 pb-3 flex-wrap gap-2">
+      <div className="cell-header flex items-center justify-between border-b border-border/80 pb-3 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <span className="cell-badge rounded bg-orange-500/15 border border-orange-500/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-orange-400 flex items-center gap-1.5">
+          <span className="cell-badge rounded bg-primary/15 border border-primary/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
             <Folder size={12} />
             Module Header
           </span>
@@ -45,7 +45,7 @@ export function ModuleOverviewView({
         <div className="cell-controls">
           <button
             type="button"
-            className="border border-slate-800 text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+            className="border border-border text-foreground hover:text-foreground bg-background hover:bg-muted rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
             onClick={() => onEditModule?.(module)}
           >
             <Pencil size={13} />
@@ -56,24 +56,24 @@ export function ModuleOverviewView({
 
       {/* Module Title & Description */}
       <div className="space-y-2">
-        <h2 className="text-xl font-bold text-white">{module.title || "Untitled Module"}</h2>
+        <h2 className="text-xl font-bold text-foreground">{module.title || "Untitled Module"}</h2>
         {module.subtitle && (
-          <p className="text-xs font-semibold text-orange-400 italic">{module.subtitle}</p>
+          <p className="text-xs font-semibold text-primary italic">{module.subtitle}</p>
         )}
         {(module.summary || module.description) && (
-          <p className="text-xs text-slate-300 leading-relaxed bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+          <p className="text-xs text-foreground leading-relaxed bg-background/60 p-3 rounded-xl border border-border/80">
             {module.summary || module.description}
           </p>
         )}
       </div>
 
       {/* LESSONS SECTION */}
-      <div className="pt-4 border-t border-slate-800 space-y-4">
+      <div className="pt-4 border-t border-border space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
-            <BookOpen size={16} className="text-orange-400" />
-            <h3 className="text-sm font-bold text-white">Lessons</h3>
-            <span className="text-xs font-mono font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+            <BookOpen size={16} className="text-primary" />
+            <h3 className="text-sm font-bold text-foreground">Lessons</h3>
+            <span className="text-xs font-mono font-bold text-muted-foreground bg-background px-2 py-0.5 rounded border border-border">
               {lessons.length}
             </span>
           </div>
@@ -82,7 +82,7 @@ export function ModuleOverviewView({
             <button
               type="button"
               onClick={() => onAddLesson?.(module.id)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-orange-500/40 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 text-xs font-bold transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold transition cursor-pointer"
             >
               <Plus size={14} />
               Add Lesson
@@ -92,20 +92,20 @@ export function ModuleOverviewView({
 
         {/* LESSONS GRID OR EMPTY STATE */}
         {lessons.length === 0 ? (
-          <div className="p-8 text-center bg-slate-900/40 rounded-2xl border border-slate-800/80 space-y-3">
-            <div className="p-3 rounded-xl bg-orange-500/10 text-orange-400 inline-block">
+          <div className="p-8 text-center bg-background/40 rounded-2xl border border-border/80 space-y-3">
+            <div className="p-3 rounded-xl bg-primary/10 text-primary inline-block">
               <BookOpen size={24} />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-200">No lessons yet</h4>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
+              <h4 className="text-sm font-bold text-foreground">No lessons yet</h4>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1">
                 Add your first lesson to start organizing topics and learning materials.
               </p>
             </div>
             <button
               type="button"
               onClick={() => onAddLesson?.(module.id)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition shadow-lg shadow-orange-600/20 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-orange-600 hover:bg-primary text-foreground text-xs font-bold transition shadow-lg shadow-orange-600/20 cursor-pointer"
             >
               <Plus size={14} />
               Add Lesson
@@ -153,10 +153,10 @@ export function ModuleOverviewView({
                   metadataText={`${topicsCount} ${topicsCount === 1 ? "Topic" : "Topics"} · ${contentsCount} ${contentsCount === 1 ? "Content" : "Contents"}`}
                   onClick={() => onSelectLesson?.(lesson.id)}
                   menuItems={menuItems}
-                  badgeColorClass="bg-orange-500/15 text-orange-400 border-orange-500/30"
-                  hoverTextClass="group-hover:text-orange-400"
-                  hoverBorderClass="hover:border-orange-500/40"
-                  arrowColorClass="group-hover:text-orange-400"
+                  badgeColorClass="bg-primary/15 text-primary border-primary/30"
+                  hoverTextClass="group-hover:text-primary"
+                  hoverBorderClass="hover:border-primary/40"
+                  arrowColorClass="group-hover:text-primary"
                 />
               );
             })}
@@ -166,17 +166,17 @@ export function ModuleOverviewView({
 
       {/* NEXT MODULE NAVIGATION FOOTER */}
       {nextModule && (
-        <div className="pt-6 border-t border-slate-800 flex items-center justify-end">
+        <div className="pt-6 border-t border-border flex items-center justify-end">
           <button
             type="button"
             onClick={() => onSelectModule?.(nextModule)}
-            className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-orange-500/40 bg-orange-500/10 hover:bg-orange-500/20 text-right transition group cursor-pointer max-w-[280px]"
+            className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 text-right transition group cursor-pointer max-w-[280px]"
           >
             <div className="overflow-hidden">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-orange-400 block">Next Module</span>
-              <span className="text-xs font-bold text-white truncate block">{nextModule.title}</span>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-primary block">Next Module</span>
+              <span className="text-xs font-bold text-foreground truncate block">{nextModule.title}</span>
             </div>
-            <ChevronRight size={16} className="text-orange-400 group-hover:translate-x-0.5 transition shrink-0" />
+            <ChevronRight size={16} className="text-primary group-hover:translate-x-0.5 transition shrink-0" />
           </button>
         </div>
       )}

@@ -84,9 +84,9 @@ function StudentsDirectoryContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen text-slate-100 flex items-center justify-center bg-[#080B11]">
+      <div className="min-h-screen text-foreground flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-2">
-          <Loader2 className="animate-spin text-orange-500" size={24} />
+          <Loader2 className="animate-spin text-primary" size={24} />
           <span className="text-xs font-black text-slate-450 uppercase tracking-widest font-mono">Loading Students...</span>
         </div>
       </div>
@@ -95,40 +95,40 @@ function StudentsDirectoryContent() {
 
   if (isError) {
     return (
-      <div className="min-h-screen text-slate-100 flex items-center justify-center bg-[#080B11]">
+      <div className="min-h-screen text-foreground flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-2 text-center">
           <AlertTriangle className="text-red-500" size={24} />
-          <span className="text-xs font-black text-slate-400 uppercase tracking-widest font-mono">Failed to load students</span>
-          <p className="text-[10px] text-slate-500">Please try again later.</p>
+          <span className="text-xs font-black text-muted-foreground uppercase tracking-widest font-mono">Failed to load students</span>
+          <p className="text-[10px] text-muted-foreground">Please try again later.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen text-slate-100 flex flex-col gap-6 bg-[#080B11] pb-10">
+    <div className="min-h-screen text-foreground flex flex-col gap-6 bg-background pb-10">
       
       {/* HEADER BAR */}
-      <div className="flex items-center justify-between border-b border-[#1A1F35] pb-4">
+      <div className="flex items-center justify-between border-b border-border pb-4">
         <div className="flex items-center gap-3">
           {selectedStudentId && (
             <button
               onClick={handleBackToList}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-slate-150 transition cursor-pointer"
+              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-slate-150 transition cursor-pointer"
             >
               <ArrowLeft size={14} />
             </button>
           )}
           <div>
-            <h1 className="text-sm font-black text-slate-400 uppercase tracking-widest font-mono">
+            <h1 className="text-sm font-black text-muted-foreground uppercase tracking-widest font-mono">
               {selectedStudentId ? 'Student Profile' : 'Student Directory'}
             </h1>
-            <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+            <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">
               {selectedStudentId ? `Viewing ${selectedStudent?.name}` : `${filteredStudents.length} Students Active`}
             </p>
           </div>
         </div>
-        <Link href="/instructor/dashboard" className="text-[10px] font-black text-slate-500 hover:text-slate-300 flex items-center gap-1">
+        <Link href="/instructor/dashboard" className="text-[10px] font-black text-muted-foreground hover:text-foreground flex items-center gap-1">
           &larr; Back to Dashboard
         </Link>
       </div>
@@ -138,27 +138,27 @@ function StudentsDirectoryContent() {
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 items-start">
           
           {/* Profile Sidebar Info */}
-          <div className="bg-[#0D1021] border border-[#1A1F35] rounded-2xl p-5 flex flex-col gap-5">
-            <div className="flex flex-col items-center text-center pb-4 border-b border-[#1A1F35]">
-              <div className="h-16 w-16 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-450 flex items-center justify-center text-xl font-black mb-3">
+          <div className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-5">
+            <div className="flex flex-col items-center text-center pb-4 border-b border-border">
+              <div className="h-16 w-16 rounded-full bg-primary/10 border border-primary/20 text-orange-450 flex items-center justify-center text-xl font-black mb-3">
                 {selectedStudent.name[0]}
               </div>
-              <h2 className="text-sm font-black text-slate-200">{selectedStudent.name}</h2>
-              <p className="text-[9px] font-extrabold text-orange-400 uppercase tracking-wider mt-1">{selectedStudent.status}</p>
+              <h2 className="text-sm font-black text-foreground">{selectedStudent.name}</h2>
+              <p className="text-[9px] font-extrabold text-primary uppercase tracking-wider mt-1">{selectedStudent.status}</p>
             </div>
 
             <div className="space-y-3.5 text-xs">
               <div>
-                <p className="text-[9px] text-slate-500 font-black uppercase tracking-wider">Email Address</p>
-                <p className="text-slate-300 font-semibold mt-0.5 truncate">{selectedStudent.email}</p>
+                <p className="text-[9px] text-muted-foreground font-black uppercase tracking-wider">Email Address</p>
+                <p className="text-foreground font-semibold mt-0.5 truncate">{selectedStudent.email}</p>
               </div>
               <div>
-                <p className="text-[9px] text-slate-500 font-black uppercase tracking-wider">Enrolled Course</p>
-                <p className="text-slate-300 font-semibold mt-0.5">{selectedStudent.course}</p>
+                <p className="text-[9px] text-muted-foreground font-black uppercase tracking-wider">Enrolled Course</p>
+                <p className="text-foreground font-semibold mt-0.5">{selectedStudent.course}</p>
               </div>
               <div>
-                <p className="text-[9px] text-slate-500 font-black uppercase tracking-wider">Member Since</p>
-                <p className="text-slate-400 font-semibold mt-0.5">{selectedStudent.joinedDate}</p>
+                <p className="text-[9px] text-muted-foreground font-black uppercase tracking-wider">Member Since</p>
+                <p className="text-muted-foreground font-semibold mt-0.5">{selectedStudent.joinedDate}</p>
               </div>
             </div>
 
@@ -171,16 +171,16 @@ function StudentsDirectoryContent() {
           </div>
 
           {/* Details & Tab contents */}
-          <div className="bg-[#0D1021] border border-[#1A1F35] rounded-2xl p-5 flex flex-col gap-5">
+          <div className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-5">
             
             {/* Tabs Selector */}
-            <div className="flex gap-4 border-b border-[#1A1F35] pb-1">
+            <div className="flex gap-4 border-b border-border pb-1">
               {['Progress', 'Assignments', 'Certificates'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`pb-2.5 px-1 text-xs font-black transition relative cursor-pointer ${
-                    activeTab === tab ? 'text-orange-400' : 'text-slate-500 hover:text-slate-350'
+                    activeTab === tab ? 'text-primary' : 'text-muted-foreground hover:text-slate-350'
                   }`}
                 >
                   {tab}
@@ -196,17 +196,17 @@ function StudentsDirectoryContent() {
               {activeTab === 'Progress' && (
                 <div className="space-y-5">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="p-3 bg-white/[0.01] border border-[#1A1F35] rounded-xl text-center">
-                      <p className="text-[9px] text-slate-500 font-black uppercase">Overall Progress</p>
-                      <p className="text-lg font-black text-slate-200 mt-1">{selectedStudent.progress}%</p>
+                    <div className="p-3 bg-white/[0.01] border border-border rounded-xl text-center">
+                      <p className="text-[9px] text-muted-foreground font-black uppercase">Overall Progress</p>
+                      <p className="text-lg font-black text-foreground mt-1">{selectedStudent.progress}%</p>
                     </div>
-                    <div className="p-3 bg-white/[0.01] border border-[#1A1F35] rounded-xl text-center">
-                      <p className="text-[9px] text-slate-500 font-black uppercase">Assignments Done</p>
-                      <p className="text-lg font-black text-slate-200 mt-1">{selectedStudent.assignmentRate}%</p>
+                    <div className="p-3 bg-white/[0.01] border border-border rounded-xl text-center">
+                      <p className="text-[9px] text-muted-foreground font-black uppercase">Assignments Done</p>
+                      <p className="text-lg font-black text-foreground mt-1">{selectedStudent.assignmentRate}%</p>
                     </div>
-                    <div className="p-3 bg-white/[0.01] border border-[#1A1F35] rounded-xl text-center">
-                      <p className="text-[9px] text-slate-500 font-black uppercase">Attendance Rate</p>
-                      <p className="text-lg font-black text-slate-200 mt-1">
+                    <div className="p-3 bg-white/[0.01] border border-border rounded-xl text-center">
+                      <p className="text-[9px] text-muted-foreground font-black uppercase">Attendance Rate</p>
+                      <p className="text-lg font-black text-foreground mt-1">
                         {selectedStudent.attendanceRate != null ? `${selectedStudent.attendanceRate}%` : "N/A"}
                       </p>
                     </div>
@@ -214,7 +214,7 @@ function StudentsDirectoryContent() {
 
                   {/* Modules detail */}
                   <div className="space-y-3">
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest font-mono">Module Completion</h3>
+                    <h3 className="text-xs font-black text-muted-foreground uppercase tracking-widest font-mono">Module Completion</h3>
                     <div className="space-y-3">
                       {selectedStudent.modules.map((mod, idx) => (
                         <div key={idx} className="p-3.5 bg-white/[0.01] border border-white/5 rounded-xl space-y-2">
@@ -226,9 +226,9 @@ function StudentsDirectoryContent() {
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                              <div className="h-full bg-orange-500 rounded-full" style={{ width: `${mod.progress}%` }} />
+                              <div className="h-full bg-primary rounded-full" style={{ width: `${mod.progress}%` }} />
                             </div>
-                            <span className="text-[9.5px] font-bold text-slate-400">{mod.progress}%</span>
+                            <span className="text-[9.5px] font-bold text-muted-foreground">{mod.progress}%</span>
                           </div>
                         </div>
                       ))}
@@ -239,16 +239,16 @@ function StudentsDirectoryContent() {
 
               {activeTab === 'Assignments' && (
                 <div className="space-y-3">
-                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest font-mono mb-2">Assignment Grades</h3>
+                  <h3 className="text-xs font-black text-muted-foreground uppercase tracking-widest font-mono mb-2">Assignment Grades</h3>
                   <div className="space-y-2.5">
                     {selectedStudent.assignments.length === 0 ? (
-                      <p className="text-xs text-slate-500 py-6 text-center">No assignments assigned yet</p>
+                      <p className="text-xs text-muted-foreground py-6 text-center">No assignments assigned yet</p>
                     ) : (
                       selectedStudent.assignments.map((as) => (
                         <div key={as.id} className="p-3.5 bg-white/[0.01] border border-white/5 rounded-xl flex justify-between items-center text-xs">
                           <div>
                             <p className="font-extrabold text-slate-250 leading-tight">{as.title}</p>
-                            <p className="text-[9px] text-slate-500 mt-1 font-semibold">Due/Submitted: {as.date}</p>
+                            <p className="text-[9px] text-muted-foreground mt-1 font-semibold">Due/Submitted: {as.date}</p>
                           </div>
                           <div className="text-right shrink-0 ml-4">
                             <span className={`text-[8.5px] font-black px-2 py-0.5 rounded inline-block ${
@@ -273,13 +273,13 @@ function StudentsDirectoryContent() {
 
               {activeTab === 'Certificates' && (
                 <div className="space-y-3">
-                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest font-mono mb-2">Issued Certificates</h3>
+                  <h3 className="text-xs font-black text-muted-foreground uppercase tracking-widest font-mono mb-2">Issued Certificates</h3>
                   <div className="space-y-3">
                     {selectedStudent.certificates.length === 0 ? (
-                      <div className="py-12 border border-dashed border-[#1A1F35] rounded-xl text-center flex flex-col items-center justify-center">
+                      <div className="py-12 border border-dashed border-border rounded-xl text-center flex flex-col items-center justify-center">
                         <span className="text-2xl mb-1.5">📜</span>
-                        <p className="text-xs font-black text-slate-400">No Certificates Issued Yet</p>
-                        <p className="text-[9.5px] text-slate-500 max-w-[200px] mt-1 leading-normal">
+                        <p className="text-xs font-black text-muted-foreground">No Certificates Issued Yet</p>
+                        <p className="text-[9.5px] text-muted-foreground max-w-[200px] mt-1 leading-normal">
                           Student has not yet completed the full course path requirements to generate a certificate.
                         </p>
                       </div>
@@ -291,10 +291,10 @@ function StudentsDirectoryContent() {
                             <p className="text-[9px] text-slate-550 mt-1 font-semibold">Credential ID: {cert.code}</p>
                           </div>
                           <div className="text-right shrink-0 ml-4">
-                            <span className="text-[8.5px] font-black px-2 py-0.5 rounded bg-orange-500/10 text-orange-450 border border-orange-500/20">
+                            <span className="text-[8.5px] font-black px-2 py-0.5 rounded bg-primary/10 text-orange-450 border border-primary/20">
                               Issued
                             </span>
-                            <p className="text-[9.5px] text-slate-500 mt-1 font-bold">{cert.date}</p>
+                            <p className="text-[9.5px] text-muted-foreground mt-1 font-bold">{cert.date}</p>
                           </div>
                         </div>
                       ))
@@ -308,7 +308,7 @@ function StudentsDirectoryContent() {
         </div>
       ) : (
         /* DIRECTORY LIST VIEW */
-        <div className="bg-[#0D1021] border border-[#1A1F35] rounded-2xl p-5 flex flex-col gap-4">
+        <div className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-4">
           
           {/* Controls: Search & Status Filters */}
           <div className="flex flex-col sm:flex-row gap-3 justify-between items-center">
@@ -321,7 +321,7 @@ function StudentsDirectoryContent() {
                 placeholder="Search students, email, course..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/[0.02] border border-[#1A1F35] text-xs pl-8 pr-3.5 py-2 rounded-xl outline-none text-slate-200 placeholder-slate-500 focus:border-slate-700 transition"
+                className="w-full bg-white/[0.02] border border-border text-xs pl-8 pr-3.5 py-2 rounded-xl outline-none text-foreground placeholder-slate-500 focus:border-transparent transition"
               />
             </div>
 
@@ -332,8 +332,8 @@ function StudentsDirectoryContent() {
                   onClick={() => setStatusFilter(filter)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition whitespace-nowrap cursor-pointer ${
                     statusFilter === filter
-                      ? 'bg-orange-500/10 border border-orange-500/20 text-orange-450'
-                      : 'bg-white/[0.02] border border-[#1A1F35] text-slate-500 hover:text-slate-350'
+                      ? 'bg-primary/10 border border-primary/20 text-orange-450'
+                      : 'bg-white/[0.02] border border-border text-muted-foreground hover:text-slate-350'
                   }`}
                 >
                   {filter}
@@ -345,11 +345,11 @@ function StudentsDirectoryContent() {
           {/* Controls: Course & Batch Filters */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="w-full sm:w-64">
-              <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Course</label>
+              <label className="block text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Course</label>
               <select
                 value={courseFilter}
                 onChange={(e) => handleCourseFilterChange(e.target.value)}
-                className="w-full bg-white/[0.02] border border-[#1A1F35] text-xs px-3.5 py-2 rounded-xl outline-none text-slate-200 focus:border-slate-700 transition cursor-pointer"
+                className="w-full bg-white/[0.02] border border-border text-xs px-3.5 py-2 rounded-xl outline-none text-foreground focus:border-transparent transition cursor-pointer"
               >
                 <option value="All">All Courses</option>
                 {courses.map((c) => (
@@ -359,12 +359,12 @@ function StudentsDirectoryContent() {
             </div>
 
             <div className="w-full sm:w-64">
-              <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Batch</label>
+              <label className="block text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Batch</label>
               <select
                 value={batchFilter}
                 onChange={(e) => setBatchFilter(e.target.value)}
                 disabled={courseFilter === 'All' || loadingBatches}
-                className="w-full bg-white/[0.02] border border-[#1A1F35] text-xs px-3.5 py-2 rounded-xl outline-none text-slate-200 focus:border-slate-700 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full bg-white/[0.02] border border-border text-xs px-3.5 py-2 rounded-xl outline-none text-foreground focus:border-transparent transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 <option value="All">{courseFilter === 'All' ? 'Select a course first' : 'All Batches'}</option>
                 {courseBatches.map((b) => (
@@ -372,7 +372,7 @@ function StudentsDirectoryContent() {
                 ))}
               </select>
               {batchFilter !== 'All' && (
-                <p className="flex items-center gap-1 text-[9px] text-slate-500 mt-1.5">
+                <p className="flex items-center gap-1 text-[9px] text-muted-foreground mt-1.5">
                   <Info size={10} className="shrink-0" />
                   Batch rosters aren&apos;t linked to students yet — this doesn&apos;t narrow the list below.
                 </p>
@@ -384,7 +384,7 @@ function StudentsDirectoryContent() {
           <div className="overflow-x-auto my-1">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-[#1A1F35] text-[9.5px] font-black text-slate-500 uppercase tracking-widest">
+                <tr className="border-b border-border text-[9.5px] font-black text-muted-foreground uppercase tracking-widest">
                   <th className="pb-3 pl-2">Name</th>
                   <th className="pb-3">Course</th>
                   <th className="pb-3 text-center">Status</th>
@@ -396,7 +396,7 @@ function StudentsDirectoryContent() {
               <tbody className="divide-y divide-[#1A1F35]/50">
                 {filteredStudents.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="py-12 text-center text-slate-500">
+                    <td colSpan="6" className="py-12 text-center text-muted-foreground">
                       No students found matching your criteria.
                     </td>
                   </tr>
@@ -405,7 +405,7 @@ function StudentsDirectoryContent() {
                     <tr key={student.id} className="hover:bg-white/[0.01] transition">
                       <td className="py-4 pl-2">
                         <div className="font-extrabold text-slate-250">{student.name}</div>
-                        <div className="text-[9.5px] text-slate-500 font-semibold mt-0.5">{student.email}</div>
+                        <div className="text-[9.5px] text-muted-foreground font-semibold mt-0.5">{student.email}</div>
                       </td>
                       <td className="py-4 text-slate-350 font-semibold">{student.course}</td>
                       <td className="py-4 text-center">
@@ -413,7 +413,7 @@ function StudentsDirectoryContent() {
                           student.status === 'Top Performer' 
                             ? 'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20' 
                             : student.status === 'Not Started'
-                            ? 'bg-slate-800 text-slate-400 border border-slate-700/50'
+                            ? 'bg-muted text-muted-foreground border border-transparent/50'
                             : student.status === 'Struggling' || student.status === 'Behind Average'
                             ? 'bg-rose-500/10 text-rose-455 border border-rose-500/20' 
                             : 'bg-amber-500/10 text-amber-450 border border-amber-500/20'
@@ -424,18 +424,18 @@ function StudentsDirectoryContent() {
                       <td className="py-4 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <div className="h-1.5 w-16 bg-white/5 rounded-full overflow-hidden hidden sm:block">
-                            <div className="h-full bg-orange-500 rounded-full" style={{ width: `${student.progress}%` }} />
+                            <div className="h-full bg-primary rounded-full" style={{ width: `${student.progress}%` }} />
                           </div>
-                          <span className="font-bold text-slate-300">{student.progress}%</span>
+                          <span className="font-bold text-foreground">{student.progress}%</span>
                         </div>
                       </td>
-                      <td className="py-4 text-center font-bold text-slate-300">
+                      <td className="py-4 text-center font-bold text-foreground">
                         {student.attendanceRate != null ? `${student.attendanceRate}%` : "N/A"}
                       </td>
                       <td className="py-4 text-right pr-2">
                         <button
                           onClick={() => handleSelectStudent(student.id)}
-                          className="px-3.5 py-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500/15 border border-orange-550/20 text-orange-450 text-[10px] font-black transition cursor-pointer"
+                          className="px-3.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/15 border border-orange-550/20 text-orange-450 text-[10px] font-black transition cursor-pointer"
                         >
                           View Profile
                         </button>
@@ -455,9 +455,9 @@ function StudentsDirectoryContent() {
 export default function StudentsDirectoryPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen text-slate-100 flex items-center justify-center bg-[#080B11]">
+      <div className="min-h-screen text-foreground flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-2">
-          <Loader2 className="animate-spin text-orange-500" size={24} />
+          <Loader2 className="animate-spin text-primary" size={24} />
           <span className="text-xs font-black text-slate-450 uppercase tracking-widest font-mono">Loading Directory...</span>
         </div>
       </div>

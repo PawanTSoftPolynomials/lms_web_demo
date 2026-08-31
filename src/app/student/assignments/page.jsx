@@ -20,14 +20,14 @@ import {
 // assignment cards, summary panel) so nothing jumps around once data arrives.
 function AssignmentCardSkeleton() {
   return (
-    <div className="rounded-2xl xl:rounded-3xl border border-slate-800 bg-slate-900 p-4 xl:p-6 space-y-3">
+    <div className="rounded-2xl xl:rounded-3xl border border-transparent bg-background p-4 xl:p-6 space-y-3">
       <div className="flex items-center gap-2">
-        <div className="h-5 w-20 rounded-full bg-slate-800 animate-pulse" />
-        <div className="h-5 w-16 rounded-full bg-slate-800 animate-pulse" />
+        <div className="h-5 w-20 rounded-full bg-muted animate-pulse" />
+        <div className="h-5 w-16 rounded-full bg-muted animate-pulse" />
       </div>
-      <div className="h-5 w-3/4 rounded bg-slate-800 animate-pulse" />
-      <div className="h-4 w-1/2 rounded bg-slate-800 animate-pulse" />
-      <div className="h-10 w-full rounded-xl bg-slate-800 animate-pulse xl:hidden" />
+      <div className="h-5 w-3/4 rounded bg-muted animate-pulse" />
+      <div className="h-4 w-1/2 rounded bg-muted animate-pulse" />
+      <div className="h-10 w-full rounded-xl bg-muted animate-pulse xl:hidden" />
     </div>
   );
 }
@@ -36,13 +36,13 @@ function AssignmentsPageSkeleton() {
   return (
     <div className="space-y-5 xl:space-y-8">
       <div className="flex items-start gap-3">
-        <div className="h-11 w-11 shrink-0 rounded-xl bg-slate-800 animate-pulse xl:hidden" />
+        <div className="h-11 w-11 shrink-0 rounded-xl bg-muted animate-pulse xl:hidden" />
         <div className="flex-1 space-y-3">
-          <div className="h-8 w-40 rounded-lg bg-slate-800 animate-pulse" />
-          <div className="h-4 w-64 max-w-full rounded bg-slate-800 animate-pulse" />
+          <div className="h-8 w-40 rounded-lg bg-muted animate-pulse" />
+          <div className="h-4 w-64 max-w-full rounded bg-muted animate-pulse" />
           <div className="flex gap-4 pt-1">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-4 w-14 rounded bg-slate-800 animate-pulse" />
+              <div key={i} className="h-4 w-14 rounded bg-muted animate-pulse" />
             ))}
           </div>
         </div>
@@ -50,15 +50,15 @@ function AssignmentsPageSkeleton() {
 
       <div className="grid gap-4 xl:gap-6 xl:grid-cols-[2fr_1fr] items-start">
         <div className="space-y-4 xl:space-y-6">
-          <div className="h-14 rounded-2xl border border-slate-800 bg-slate-900 animate-pulse" />
+          <div className="h-14 rounded-2xl border border-transparent bg-background animate-pulse" />
           {[1, 2, 3].map((i) => (
             <AssignmentCardSkeleton key={i} />
           ))}
         </div>
         <div className="space-y-3">
-          <div className="h-24 rounded-3xl border border-slate-800 bg-slate-900 animate-pulse" />
-          <div className="h-16 rounded-3xl border border-slate-800 bg-slate-900 animate-pulse" />
-          <div className="h-16 rounded-3xl border border-slate-800 bg-slate-900 animate-pulse" />
+          <div className="h-24 rounded-3xl border border-transparent bg-background animate-pulse" />
+          <div className="h-16 rounded-3xl border border-transparent bg-background animate-pulse" />
+          <div className="h-16 rounded-3xl border border-transparent bg-background animate-pulse" />
         </div>
       </div>
     </div>
@@ -191,10 +191,10 @@ function AssignmentsPageContent() {
   if (isError) {
     return (
       <Card className="p-8 text-center">
-        <h2 className="text-xl font-semibold text-white">
+        <h2 className="text-xl font-semibold text-foreground">
           Unable to load assignments
         </h2>
-        <p className="mt-2 text-slate-400">
+        <p className="mt-2 text-muted-foreground">
           Please try again later.
         </p>
       </Card>
@@ -207,7 +207,7 @@ function AssignmentsPageContent() {
         <button
           type="button"
           onClick={() => router.back()}
-          className="xl:hidden shrink-0 flex h-11 w-11 items-center justify-center rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors duration-200 cursor-pointer bg-transparent border-0"
+          className="xl:hidden shrink-0 flex h-11 w-11 items-center justify-center rounded-xl text-foreground hover:text-foreground hover:bg-muted/60 transition-colors duration-200 cursor-pointer bg-transparent border-0"
         >
           <ArrowLeft size={18} />
         </button>
@@ -232,8 +232,8 @@ function AssignmentsPageContent() {
                     onClick={() => setActiveTab(tab.value)}
                     className={`rounded-full px-4 py-2 text-sm transition ${
                       active
-                        ? "bg-orange-600 text-white"
-                        : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                        ? "bg-orange-600 text-foreground"
+                        : "bg-muted text-foreground hover:bg-muted"
                     }`}
                   >
                     {tab.label}
@@ -244,7 +244,7 @@ function AssignmentsPageContent() {
 
             {/* Mobile & tablet: tab strip */}
             <div className="xl:hidden w-full overflow-x-auto scrollbar-none">
-              <div className="flex items-center gap-4 border-b border-slate-800/80">
+              <div className="flex items-center gap-4 border-b border-transparent/80">
                 {ASSIGNMENT_TABS.map((tab) => {
                   const active = activeTab === tab.value;
                   return (
@@ -254,8 +254,8 @@ function AssignmentsPageContent() {
                       onClick={() => setActiveTab(tab.value)}
                       className={`relative flex min-h-[44px] items-center pb-1.5 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors duration-200 cursor-pointer bg-transparent border-x-0 border-t-0 ${
                         active
-                          ? "text-orange-400 border-orange-500"
-                          : "text-slate-400 border-transparent hover:text-slate-200"
+                          ? "text-primary border-primary"
+                          : "text-muted-foreground border-transparent hover:text-foreground"
                       }`}
                     >
                       {tab.label}
@@ -296,49 +296,49 @@ function AssignmentsPageContent() {
             <>
               {/* Desktop (xl+): empty state */}
               <Card className="hidden xl:block p-8 text-center">
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-xl font-semibold text-foreground">
                   No assignments found
                 </h2>
-                <p className="mt-2 text-slate-400">
+                <p className="mt-2 text-muted-foreground">
                   Try adjusting your filters or search term.
                 </p>
               </Card>
 
               {/* Mobile & tablet: context-aware empty state */}
-              <div className="xl:hidden rounded-3xl border border-slate-800 bg-slate-900 p-8 text-center">
+              <div className="xl:hidden rounded-3xl border border-transparent bg-background p-8 text-center">
                 <div className="relative mx-auto mb-4 h-16 w-16">
-                  <Plus size={14} className="absolute -top-2 left-1 text-orange-500/50" />
-                  <Plus size={10} className="absolute top-7 -right-2 text-orange-500/30" />
-                  <Plus size={12} className="absolute -bottom-1 left-0 text-orange-500/40" />
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-700 bg-slate-800/80">
-                    <ClipboardCheck size={28} className="text-orange-500" />
+                  <Plus size={14} className="absolute -top-2 left-1 text-primary/50" />
+                  <Plus size={10} className="absolute top-7 -right-2 text-primary/30" />
+                  <Plus size={12} className="absolute -bottom-1 left-0 text-primary/40" />
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-transparent bg-muted/80">
+                    <ClipboardCheck size={28} className="text-primary" />
                   </div>
                 </div>
 
                 {hasActiveFilters ? (
                   <>
-                    <h2 className="text-lg font-bold text-white">No matches found</h2>
-                    <p className="mt-1 text-sm text-slate-400">
+                    <h2 className="text-lg font-bold text-foreground">No matches found</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
                       No assignments match your current filters.
                     </p>
                     <button
                       type="button"
                       onClick={clearFilters}
-                      className="mt-5 inline-flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 px-5 py-2.5 min-h-[44px] text-sm font-bold text-slate-950 transition-colors duration-200 cursor-pointer"
+                      className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary hover:bg-orange-600 px-5 py-2.5 min-h-[44px] text-sm font-bold text-slate-950 transition-colors duration-200 cursor-pointer"
                     >
                       Clear Filters
                     </button>
                   </>
                 ) : (
                   <>
-                    <h2 className="text-lg font-bold text-white">🎉 You&apos;re all caught up!</h2>
-                    <p className="mt-1 text-sm text-slate-400">
+                    <h2 className="text-lg font-bold text-foreground">🎉 You&apos;re all caught up!</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
                       No assignments are available right now.
                     </p>
                     <button
                       type="button"
                       onClick={scrollToDeadlines}
-                      className="mt-5 inline-flex items-center gap-2 rounded-xl border border-orange-500/60 px-5 py-2.5 min-h-[44px] text-sm font-bold text-orange-400 hover:bg-orange-500/10 transition-colors duration-200 cursor-pointer bg-transparent"
+                      className="mt-5 inline-flex items-center gap-2 rounded-xl border border-primary/60 px-5 py-2.5 min-h-[44px] text-sm font-bold text-primary hover:bg-primary/10 transition-colors duration-200 cursor-pointer bg-transparent"
                     >
                       <CalendarDays size={16} />
                       View Upcoming Deadlines

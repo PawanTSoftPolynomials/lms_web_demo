@@ -33,7 +33,7 @@ export default function StudentRow({
                     />
 
                     <div>
-                        <p className="font-medium text-white">
+                        <p className="font-medium text-foreground">
                             {student.name}
                         </p>
 
@@ -67,7 +67,7 @@ export default function StudentRow({
                 STATUS_COLORS[
                     student.status
                     ] ||
-                "bg-gray-700 text-white"
+                "bg-gray-700 text-foreground"
             }
           `}
         >

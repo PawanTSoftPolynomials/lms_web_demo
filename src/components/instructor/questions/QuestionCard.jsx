@@ -29,13 +29,13 @@ export default function QuestionCard({
                 cursor-pointer
                 rounded-2xl
                 border
-                border-slate-800
-                bg-slate-900
+                border-border
+                bg-background
                 p-6
                 transition-all
                 duration-300
                 hover:-translate-y-1
-                hover:border-orange-500
+                hover:border-primary
             "
         >
             <div className="flex h-full flex-col justify-between">
@@ -52,19 +52,19 @@ export default function QuestionCard({
                                     items-center
                                     justify-center
                                     rounded-xl
-                                    bg-orange-500/15
-                                    text-orange-400
+                                    bg-primary/15
+                                    text-primary
                                 "
                             >
                                 <FaQuestionCircle size={20}/>
                             </div>
 
                             <div className="flex-1">
-                                <h3 className="line-clamp-2 text-lg font-semibold text-white">
+                                <h3 className="line-clamp-2 text-lg font-semibold text-foreground">
                                     {question.question}
                                 </h3>
 
-                                <p className="mt-3 text-sm text-slate-400">
+                                <p className="mt-3 text-sm text-muted-foreground">
                                     {Array.isArray(question.options)
                                         ? `${question.options.length} Options`
                                         : "No options"}
@@ -104,7 +104,7 @@ export default function QuestionCard({
                 </div>
 
                 {/* Footer */}
-                <div className="mt-6 border-t border-slate-800 pt-4">
+                <div className="mt-6 border-t border-border pt-4">
                     <div className="mb-4 flex flex-wrap gap-3">
                         <span
                             className="
@@ -112,12 +112,12 @@ export default function QuestionCard({
                                 items-center
                                 gap-2
                                 rounded-full
-                                bg-orange-500/15
+                                bg-primary/15
                                 px-3
                                 py-1
                                 text-xs
                                 font-medium
-                                text-orange-400
+                                text-primary
                             "
                         >
                             <FaStar size={12}/>
@@ -161,7 +161,7 @@ export default function QuestionCard({
                             py-2
                             text-sm
                             font-medium
-                            text-white
+                            text-foreground
                             transition
                             hover:bg-orange-700
                         "

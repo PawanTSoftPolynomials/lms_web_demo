@@ -69,7 +69,7 @@ export default function ChangeRoleModal({ open, onClose, user }) {
         <Modal open={open} onClose={onClose} title="Change User Role" size="sm">
             <div className="space-y-5">
                 <div>
-                    <p className="font-medium text-white">{user.name}</p>
+                    <p className="font-medium text-foreground">{user.name}</p>
                     <p className="text-sm text-gray-400">{user.email}</p>
                 </div>
 
@@ -86,13 +86,13 @@ export default function ChangeRoleModal({ open, onClose, user }) {
                             rounded-lg
                             border
                             border-white/10
-                            bg-slate-900
+                            bg-background
                             px-4
                             py-2.5
                             text-sm
-                            text-white
+                            text-foreground
                             outline-none
-                            focus:border-orange-500
+                            focus:border-primary
                         "
                     >
                         {ROLES.map((role) => (

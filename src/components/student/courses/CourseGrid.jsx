@@ -9,12 +9,12 @@ export default function CourseGrid({
 
     if (!items.length) {
         return (
-            <div className="rounded-xl border border-dashed border-slate-700 p-12 text-center">
-                <h3 className="text-lg font-semibold text-white">
+            <div className="rounded-xl border border-dashed border-transparent p-12 text-center">
+                <h3 className="text-lg font-semibold text-foreground">
                     No courses found
                 </h3>
 
-                <p className="mt-2 text-slate-400">
+                <p className="mt-2 text-muted-foreground">
                     You have enrolled in all available courses or no courses match your filter criteria.
                 </p>
             </div>

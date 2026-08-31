@@ -25,10 +25,10 @@ export default function UrlOrUploadField({ label, value, onChange, accept }) {
 
   return (
     <div className="space-y-2">
-      {label && <label className="text-sm text-slate-300">{label}</label>}
+      {label && <label className="text-sm text-foreground">{label}</label>}
       <div className="flex flex-col sm:flex-row gap-2">
-        <div className="flex items-center gap-2 flex-1 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2">
-          <LinkIcon size={14} className="text-slate-500 shrink-0" />
+        <div className="flex items-center gap-2 flex-1 rounded-lg border border-transparent bg-muted px-3 py-2">
+          <LinkIcon size={14} className="text-muted-foreground shrink-0" />
           <input
             value={value || ""}
             onChange={(e) => onChange(e.target.value)}
@@ -36,7 +36,7 @@ export default function UrlOrUploadField({ label, value, onChange, accept }) {
             className="w-full bg-transparent outline-none text-sm"
           />
         </div>
-        <label className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-lg cursor-pointer transition shrink-0">
+        <label className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-foreground hover:text-foreground bg-muted hover:bg-slate-750 border border-transparent/60 rounded-lg cursor-pointer transition shrink-0">
           <UploadCloud size={14} />
           {uploading ? "Uploading…" : "Upload"}
           <input

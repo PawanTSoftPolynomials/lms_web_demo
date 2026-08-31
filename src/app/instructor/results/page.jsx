@@ -14,14 +14,14 @@ import { useResults } from "@/hooks/queries/instructor/useResults";
 import { exportResultsCsv, exportResultsPdf } from "@/lib/exportResults";
 
 const selectClass =
-  "w-full bg-white/[0.02] border border-[#1A1F35] text-xs px-3 py-2.5 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition disabled:opacity-40";
-const labelClass = "text-[9.5px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block";
+  "w-full bg-white/[0.02] border border-border text-xs px-3 py-2.5 rounded-xl outline-none text-foreground focus:border-primary/60 transition disabled:opacity-40";
+const labelClass = "text-[9.5px] font-black text-muted-foreground uppercase tracking-widest mb-1.5 block";
 
 function StatCard({ label, value }) {
   return (
-    <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-4">
-      <p className="text-[9.5px] font-black text-slate-500 uppercase tracking-widest">{label}</p>
-      <p className="text-2xl font-black text-white mt-1.5 tabular-nums">{value}</p>
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <p className="text-[9.5px] font-black text-muted-foreground uppercase tracking-widest">{label}</p>
+      <p className="text-2xl font-black text-foreground mt-1.5 tabular-nums">{value}</p>
     </div>
   );
 }
@@ -75,29 +75,29 @@ export default function ResultsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-xl font-black text-white tracking-tight">Results</h1>
-          <p className="text-xs text-slate-400 mt-1">Student performance across quizzes and assessments.</p>
+          <h1 className="text-xl font-black text-foreground tracking-tight">Results</h1>
+          <p className="text-xs text-muted-foreground mt-1">Student performance across quizzes and assessments.</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => exportResultsCsv(studentResults)}
             disabled={studentResults.length === 0}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10.5px] font-bold text-slate-300 border border-slate-700 hover:text-white hover:bg-slate-800 transition disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10.5px] font-bold text-foreground border border-transparent hover:text-foreground hover:bg-muted transition disabled:opacity-40"
           >
             <Download size={12} /> Export CSV
           </button>
           <button
             onClick={() => exportResultsPdf(summary, studentResults)}
             disabled={studentResults.length === 0}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10.5px] font-bold text-slate-300 border border-slate-700 hover:text-white hover:bg-slate-800 transition disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10.5px] font-bold text-foreground border border-transparent hover:text-foreground hover:bg-muted transition disabled:opacity-40"
           >
             <FileDown size={12} /> Export PDF
           </button>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-4">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
           <div>
             <label className={labelClass}>Course</label>
             <select className={selectClass} value={filters.courseId} onChange={set("courseId")}>
@@ -140,7 +140,7 @@ export default function ResultsPage() {
               {students.map((s) => <option key={s.id} value={s.studentProfileId}>{s.name}</option>)}
             </select>
           </div>
-          <div>
+          <div className="sm:col-span-2">
             <label className={labelClass}>Date Range</label>
             <div className="flex items-center gap-1.5">
               <input type="date" className={selectClass} value={filters.startDate} onChange={set("startDate")} />
@@ -166,7 +166,7 @@ export default function ResultsPage() {
         <StatCard label="Pending Evals" value={summary.pendingEvaluations} />
       </div>
 
-      <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-5">
+      <div className="rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp size={14} className="text-orange-450" />
           <h3 className="text-[10.5px] font-black uppercase tracking-widest text-slate-350">Student Results</h3>
@@ -175,11 +175,11 @@ export default function ResultsPage() {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-5">
+        <div className="rounded-2xl border border-border bg-card p-5">
           <h3 className="text-[10.5px] font-black uppercase tracking-widest text-slate-350 mb-4">Question-wise Analysis</h3>
           <DataTable columns={analysisColumns("question")} rows={questionWise} isLoading={isLoading} rowKey="questionId" emptyLabel="No question-level data yet." />
         </div>
-        <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-5">
+        <div className="rounded-2xl border border-border bg-card p-5">
           <h3 className="text-[10.5px] font-black uppercase tracking-widest text-slate-350 mb-4">Topic-wise Analysis</h3>
           <DataTable columns={analysisColumns("topic")} rows={topicWise} isLoading={isLoading} rowKey="topic" emptyLabel="No topic-level data yet." />
         </div>

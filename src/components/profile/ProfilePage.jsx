@@ -10,7 +10,7 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <Card className="p-12 border border-slate-800 bg-slate-900/60 shadow-lg flex justify-center">
+      <Card className="p-12 border border-border bg-background/60 shadow-lg flex justify-center">
         <Loader />
       </Card>
     );
@@ -18,9 +18,9 @@ export default function ProfilePage() {
 
   if (isError || !profile) {
     return (
-      <Card className="p-10 text-center border border-slate-800 bg-slate-900/60">
-        <h2 className="text-xl font-semibold text-white">Unable to load profile</h2>
-        <p className="mt-2 text-slate-400">Please refresh the page or try again later.</p>
+      <Card className="p-10 text-center border border-border bg-background/60">
+        <h2 className="text-xl font-semibold text-foreground">Unable to load profile</h2>
+        <p className="mt-2 text-muted-foreground">Please refresh the page or try again later.</p>
       </Card>
     );
   }

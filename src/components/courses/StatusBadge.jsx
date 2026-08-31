@@ -34,7 +34,7 @@ export default function StatusBadge({
 
   if (!config) {
     return (
-      <span className="px-3 py-1 rounded-full text-xs bg-slate-700 text-white">
+      <span className="px-3 py-1 rounded-full text-xs bg-slate-700 text-foreground">
         {status}
       </span>
     );

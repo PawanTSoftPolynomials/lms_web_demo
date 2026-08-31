@@ -12,13 +12,13 @@ export default function CodeBlockEdit({ block, onChange }) {
         placeholder="e.g. javascript"
       />
       <div className="space-y-2">
-        <label className="text-sm text-slate-300">Code</label>
+        <label className="text-sm text-foreground">Code</label>
         <textarea
           value={block.code || ""}
           onChange={(e) => onChange({ code: e.target.value })}
           rows={10}
           placeholder="Paste code here…"
-          className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm font-mono outline-none focus:border-orange-500 resize-y"
+          className="w-full rounded-lg border border-transparent bg-muted px-3 py-2 text-sm font-mono outline-none focus:border-primary resize-y"
         />
       </div>
     </div>

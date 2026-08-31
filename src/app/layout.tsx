@@ -8,6 +8,13 @@ import "@fontsource/poppins/400.css";
 import "@fontsource/poppins/500.css";
 import "@fontsource/poppins/700.css";
 import "@fontsource/playfair-display/700.css";
+import "@fontsource/dm-sans/400.css";
+import "@fontsource/dm-sans/500.css";
+import "@fontsource/dm-sans/700.css";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
 import "./globals.css";
 import { ChatProvider } from "@/context/ChatContext";
 import { ToastProvider } from "@/components/ui/ToastProvider";
@@ -40,11 +47,13 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
+      <head>
+      </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <script
           dangerouslySetInnerHTML={{ __html: PALETTE_ANTI_FLASH_SCRIPT }}
         />
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <PaletteProvider>
             <QueryProvider>
               <AuthProvider>

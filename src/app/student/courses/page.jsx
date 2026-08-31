@@ -50,11 +50,11 @@ export default function StudentCoursesPage() {
     if (isError) {
         return (
             <Card className="p-8 text-center">
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-xl font-semibold text-foreground">
                     Unable to load courses
                 </h2>
 
-                <p className="mt-2 text-slate-400">
+                <p className="mt-2 text-muted-foreground">
                     Please try again later.
                 </p>
             </Card>

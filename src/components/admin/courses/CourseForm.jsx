@@ -78,12 +78,12 @@ export default function CourseForm({
               rounded-lg
               border
               border-white/10
-              bg-slate-900
+              bg-background
               px-4
               py-3
-              text-white
+              text-foreground
               outline-none
-              focus:border-orange-500
+              focus:border-primary
             "
                         required
                     />
@@ -120,12 +120,12 @@ export default function CourseForm({
                 rounded-lg
                 border
                 border-white/10
-                bg-slate-900
+                bg-background
                 px-4
                 py-3
-                text-white
+                text-foreground
                 outline-none
-                focus:border-orange-500
+                focus:border-primary
               "
                         >
                             <option value="Beginner">
@@ -184,12 +184,12 @@ export default function CourseForm({
               rounded-lg
               border
               border-white/10
-              bg-slate-900
+              bg-background
               px-4
               py-3
-              text-white
+              text-foreground
               outline-none
-              focus:border-orange-500
+              focus:border-primary
             "
                     >
                         <option value="DRAFT">

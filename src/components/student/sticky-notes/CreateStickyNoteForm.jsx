@@ -57,7 +57,7 @@ export default function CreateStickyNoteForm({
         }
         rows={4}
         placeholder="Write a sticky note..."
-        className="w-full rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-white outline-none focus:border-orange-500"
+        className="w-full rounded-lg border border-transparent bg-background p-3 text-sm text-foreground outline-none focus:border-primary"
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -79,7 +79,7 @@ export default function CreateStickyNoteForm({
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-muted-foreground">
            Timestamp: {formatDuration(currentTimestamp)}
           </span>
 
@@ -89,7 +89,7 @@ export default function CreateStickyNoteForm({
               isPending ||
               !content.trim()
             }
-            className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-foreground transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isPending
               ? "Saving..."

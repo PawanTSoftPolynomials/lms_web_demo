@@ -96,12 +96,12 @@ export default function MarkdownEditor({
   };
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col overflow-hidden rounded-lg border border-slate-700 bg-slate-900 h-full min-h-[260px]">
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden rounded-lg border border-transparent bg-background h-full min-h-[260px]">
       <div className="shrink-0">
         <MarkdownToolbar onAction={handleAction} />
       </div>
 
-      <div className="flex sm:hidden border-b border-slate-800 shrink-0">
+      <div className="flex sm:hidden border-b border-border shrink-0">
         {[
           { id: "edit", label: "Edit", icon: Pencil },
           { id: "preview", label: "Preview", icon: Eye },
@@ -111,7 +111,7 @@ export default function MarkdownEditor({
             type="button"
             onClick={() => setMobileTab(id)}
             className={`flex flex-1 items-center justify-center gap-1.5 py-2 text-xs font-bold transition cursor-pointer ${
-              mobileTab === id ? "text-orange-400 bg-slate-900" : "text-slate-500 hover:text-slate-300"
+              mobileTab === id ? "text-primary bg-background" : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <Icon size={13} />
@@ -127,13 +127,13 @@ export default function MarkdownEditor({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="w-full flex-1 min-h-0 overflow-y-auto resize-none bg-slate-900 px-4 py-3 font-mono text-sm text-slate-200 outline-none placeholder:text-slate-600"
+            className="w-full flex-1 min-h-0 overflow-y-auto resize-none bg-background px-4 py-3 font-mono text-sm text-foreground outline-none placeholder:text-slate-600"
             style={{ minHeight: `${minHeight}px` }}
           />
         </div>
 
         <div
-          className={`flex-1 min-h-0 h-full overflow-y-auto bg-slate-950/60 px-4 py-3 ${mobileTab === "preview" ? "block" : "hidden sm:block"}`}
+          className={`flex-1 min-h-0 h-full overflow-y-auto bg-background/60 px-4 py-3 ${mobileTab === "preview" ? "block" : "hidden sm:block"}`}
           style={{ minHeight: `${minHeight}px` }}
         >
           <MarkdownRenderer source={value} emptyText="Nothing to preview yet." />

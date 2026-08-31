@@ -54,12 +54,12 @@ function AssetUploader({ icon: Icon, label, hint, asset, onChange, onRemove }) {
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-bold text-slate-300 flex items-center gap-2">
-        <Icon size={16} className="text-orange-400" /> {label}
+      <label className="text-sm font-bold text-foreground flex items-center gap-2">
+        <Icon size={16} className="text-primary" /> {label}
       </label>
       <div
         onClick={() => inputRef.current?.click()}
-        className="relative h-28 rounded-xl border border-dashed border-slate-800 bg-slate-900/50 hover:border-orange-500/40 transition-all cursor-pointer flex items-center justify-center overflow-hidden group"
+        className="relative h-28 rounded-xl border border-dashed border-transparent bg-background/50 hover:border-primary/40 transition-all cursor-pointer flex items-center justify-center overflow-hidden group"
       >
         {asset ? (
           <>
@@ -70,13 +70,13 @@ function AssetUploader({ icon: Icon, label, hint, asset, onChange, onRemove }) {
                 e.stopPropagation();
                 onRemove();
               }}
-              className="absolute top-1.5 right-1.5 p-1 rounded-lg bg-slate-950/80 text-slate-400 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute top-1.5 right-1.5 p-1 rounded-lg bg-background/80 text-muted-foreground hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <X size={12} />
             </button>
           </>
         ) : (
-          <div className="flex flex-col items-center gap-1.5 text-slate-500">
+          <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
             <UploadCloud size={20} />
             <span className="text-[11px] font-semibold">Click to upload</span>
           </div>
@@ -101,7 +101,7 @@ function CertificatePreview({ assets, primaryColor, font, bodyText, values, size
 
   return (
     <div
-      className="relative w-full aspect-[1.414/1] rounded-xl overflow-hidden border-2 shadow-lg bg-slate-950 flex flex-col"
+      className="relative w-full aspect-[1.414/1] rounded-xl overflow-hidden border-2 shadow-lg bg-background flex flex-col"
       style={{ borderColor: primaryColor, fontFamily: font }}
     >
       {assets.background && (
@@ -115,7 +115,7 @@ function CertificatePreview({ assets, primaryColor, font, bodyText, values, size
             <img src={assets.logo.url} alt="Institute logo" className={isLg ? "h-14 object-contain" : "h-7 object-contain"} />
           )}
           <p
-            className="uppercase tracking-[0.25em] text-slate-100 font-bold"
+            className="uppercase tracking-[0.25em] text-foreground font-bold"
             style={{ fontSize: isLg ? 12 : 7 }}
           >
             {values["{{Institute Name}}"]}
@@ -127,7 +127,7 @@ function CertificatePreview({ assets, primaryColor, font, bodyText, values, size
             Certificate of Completion
           </h2>
           <p
-            className={`text-white/90 leading-relaxed whitespace-pre-line ${
+            className={`text-foreground/90 leading-relaxed whitespace-pre-line ${
               isLg ? "text-sm max-w-xl mx-auto" : "text-[7px] max-w-[220px] mx-auto"
             }`}
           >
@@ -143,7 +143,7 @@ function CertificatePreview({ assets, primaryColor, font, bodyText, values, size
               <div className={isLg ? "h-10" : "h-5"} />
             )}
             <p
-              className={`border-t border-white/30 text-white/70 font-semibold whitespace-nowrap ${
+              className={`border-t border-white/30 text-foreground/70 font-semibold whitespace-nowrap ${
                 isLg ? "text-[10px] px-6 pt-1" : "text-[5px] px-2 pt-0.5"
               }`}
             >
@@ -262,24 +262,24 @@ export default function CertificateTemplateBuilderPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-16">
-      <Link href="/instructor/dashboard" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-orange-400 transition-colors">
+      <Link href="/instructor/dashboard" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
         <ArrowLeft size={16} /> Back to Dashboard
       </Link>
 
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
-            <Award className="text-orange-500" size={30} />
+          <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight flex items-center gap-3">
+            <Award className="text-primary" size={30} />
             Certificate Template Builder
           </h1>
-          <p className="text-slate-400 mt-2 text-sm max-w-2xl">
+          <p className="text-muted-foreground mt-2 text-sm max-w-2xl">
             Design the certificate students receive automatically. Certificates are issued by the system the
             moment a student completes 100% of the course — no manual issuing required.
           </p>
         </div>
         <span
           className={`shrink-0 self-start inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest ${
-            status === "published" ? "bg-emerald-500/10 text-emerald-400" : "bg-slate-800/60 text-slate-400"
+            status === "published" ? "bg-emerald-500/10 text-emerald-400" : "bg-muted/60 text-muted-foreground"
           }`}
         >
           <Sparkles size={12} /> {status === "published" ? "Published" : "Draft"}
@@ -290,14 +290,14 @@ export default function CertificateTemplateBuilderPage() {
         {/* Left column: form sections */}
         <div className="space-y-6 min-w-0">
           {/* 1. Template Information */}
-          <Card className="p-6 md:p-8 border-[#1A1F35] bg-[#0D1021] space-y-5">
-            <h2 className="text-base font-black text-white flex items-center gap-2">
-              <Type size={17} className="text-orange-400" /> Template Information
+          <Card className="p-6 md:p-8 border-border bg-card space-y-5">
+            <h2 className="text-base font-black text-foreground flex items-center gap-2">
+              <Type size={17} className="text-primary" /> Template Information
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-300">Template Name</label>
+                <label className="text-sm font-bold text-foreground">Template Name</label>
                 <Input
                   placeholder="e.g. Standard Completion Certificate"
                   value={templateName}
@@ -306,18 +306,18 @@ export default function CertificateTemplateBuilderPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-300 flex items-center gap-2">
-                  <BookOpen size={16} className="text-orange-400" /> Applicable Course
+                <label className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <BookOpen size={16} className="text-primary" /> Applicable Course
                 </label>
                 {loadingCourses ? (
-                  <div className="h-12 flex items-center px-4 rounded-xl bg-slate-900/50 border border-slate-800 text-slate-500 text-sm">
+                  <div className="h-12 flex items-center px-4 rounded-xl bg-background/50 border border-transparent text-muted-foreground text-sm">
                     Loading courses...
                   </div>
                 ) : (
                   <select
                     value={courseId}
                     onChange={(e) => setCourseId(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl bg-slate-900/50 border border-slate-800 text-white focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 transition-all outline-none"
+                    className="w-full h-12 px-4 rounded-xl bg-background/50 border border-transparent text-foreground focus:border-primary/50 focus:ring-1 focus:ring-orange-500/20 transition-all outline-none"
                   >
                     <option value="">-- Choose a course --</option>
                     {myCourses.map((c) => (
@@ -331,21 +331,21 @@ export default function CertificateTemplateBuilderPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-300">Template Description</label>
+              <label className="text-sm font-bold text-foreground">Template Description</label>
               <textarea
                 rows={3}
                 placeholder="Internal note describing when/why this template is used..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-800 text-white text-sm placeholder-slate-600 focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 transition-all outline-none resize-none"
+                className="w-full px-4 py-3 rounded-xl bg-background/50 border border-transparent text-foreground text-sm placeholder-slate-600 focus:border-primary/50 focus:ring-1 focus:ring-orange-500/20 transition-all outline-none resize-none"
               />
             </div>
           </Card>
 
           {/* 2. Certificate Designer */}
-          <Card className="p-6 md:p-8 border-[#1A1F35] bg-[#0D1021] space-y-5">
-            <h2 className="text-base font-black text-white flex items-center gap-2">
-              <Palette size={17} className="text-orange-400" /> Certificate Designer
+          <Card className="p-6 md:p-8 border-border bg-card space-y-5">
+            <h2 className="text-base font-black text-foreground flex items-center gap-2">
+              <Palette size={17} className="text-primary" /> Certificate Designer
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -385,28 +385,28 @@ export default function CertificateTemplateBuilderPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-1">
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-300 flex items-center gap-2">
-                  <Palette size={16} className="text-orange-400" /> Primary Color
+                <label className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <Palette size={16} className="text-primary" /> Primary Color
                 </label>
-                <div className="flex items-center gap-3 h-12 px-3 rounded-xl bg-slate-900/50 border border-slate-800">
+                <div className="flex items-center gap-3 h-12 px-3 rounded-xl bg-background/50 border border-transparent">
                   <input
                     type="color"
                     value={primaryColor}
                     onChange={(e) => setPrimaryColor(e.target.value)}
                     className="h-8 w-10 rounded-lg cursor-pointer bg-transparent border-none"
                   />
-                  <span className="text-sm text-slate-300 font-mono uppercase">{primaryColor}</span>
+                  <span className="text-sm text-foreground font-mono uppercase">{primaryColor}</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-300 flex items-center gap-2">
-                  <Type size={16} className="text-orange-400" /> Font Selection
+                <label className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <Type size={16} className="text-primary" /> Font Selection
                 </label>
                 <select
                   value={font}
                   onChange={(e) => setFont(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl bg-slate-900/50 border border-slate-800 text-white focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 transition-all outline-none"
+                  className="w-full h-12 px-4 rounded-xl bg-background/50 border border-transparent text-foreground focus:border-primary/50 focus:ring-1 focus:ring-orange-500/20 transition-all outline-none"
                 >
                   {FONT_OPTIONS.map((f) => (
                     <option key={f.value} value={f.value}>
@@ -419,12 +419,12 @@ export default function CertificateTemplateBuilderPage() {
           </Card>
 
           {/* 3. Dynamic Fields */}
-          <Card className="p-6 md:p-8 border-[#1A1F35] bg-[#0D1021] space-y-4">
+          <Card className="p-6 md:p-8 border-border bg-card space-y-4">
             <div>
-              <h2 className="text-base font-black text-white flex items-center gap-2">
-                <Plus size={17} className="text-orange-400" /> Dynamic Fields
+              <h2 className="text-base font-black text-foreground flex items-center gap-2">
+                <Plus size={17} className="text-primary" /> Dynamic Fields
               </h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Click a field to insert it into the certificate text at your cursor position.
               </p>
             </div>
@@ -435,7 +435,7 @@ export default function CertificateTemplateBuilderPage() {
                   key={field.token}
                   type="button"
                   onClick={() => insertField(field.token)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/50 border border-slate-800 text-xs font-bold text-slate-300 hover:border-orange-500/50 hover:text-orange-400 transition-all"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background/50 border border-transparent text-xs font-bold text-foreground hover:border-primary/50 hover:text-primary transition-all"
                 >
                   <Plus size={12} /> {field.label}
                 </button>
@@ -443,30 +443,30 @@ export default function CertificateTemplateBuilderPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-300">Certificate Text</label>
+              <label className="text-sm font-bold text-foreground">Certificate Text</label>
               <textarea
                 ref={bodyTextRef}
                 rows={5}
                 value={bodyText}
                 onChange={(e) => setBodyText(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-800 text-white text-sm placeholder-slate-600 focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 transition-all outline-none resize-none font-mono"
+                className="w-full px-4 py-3 rounded-xl bg-background/50 border border-transparent text-foreground text-sm placeholder-slate-600 focus:border-primary/50 focus:ring-1 focus:ring-orange-500/20 transition-all outline-none resize-none font-mono"
               />
             </div>
           </Card>
 
           {/* 5. Auto-Issue Settings */}
-          <Card className="p-6 md:p-8 border-[#1A1F35] bg-[#0D1021] space-y-5">
-            <h2 className="text-base font-black text-white flex items-center gap-2">
-              <Zap size={17} className="text-orange-400" /> Auto-Issue Settings
+          <Card className="p-6 md:p-8 border-border bg-card space-y-5">
+            <h2 className="text-base font-black text-foreground flex items-center gap-2">
+              <Zap size={17} className="text-primary" /> Auto-Issue Settings
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Certificates are generated and delivered automatically — there is no manual issuing step.
             </p>
 
-            <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-slate-900/50 border border-slate-800">
+            <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-background/50 border border-transparent">
               <div>
-                <p className="text-sm font-bold text-white">Auto-issue on 100% course completion</p>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-sm font-bold text-foreground">Auto-issue on 100% course completion</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
                   The system automatically generates and issues this certificate the moment a student reaches 100% progress.
                 </p>
               </div>
@@ -476,7 +476,7 @@ export default function CertificateTemplateBuilderPage() {
                 aria-checked={autoIssueEnabled}
                 onClick={() => setAutoIssueEnabled((v) => !v)}
                 className={`relative shrink-0 w-11 h-6 rounded-full transition-colors ${
-                  autoIssueEnabled ? "bg-orange-500" : "bg-slate-700"
+                  autoIssueEnabled ? "bg-primary" : "bg-slate-700"
                 }`}
               >
                 <span
@@ -487,10 +487,10 @@ export default function CertificateTemplateBuilderPage() {
               </button>
             </div>
 
-            <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-slate-900/50 border border-slate-800">
+            <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-background/50 border border-transparent">
               <div>
-                <p className="text-sm font-bold text-white">Notify student by email</p>
-                <p className="text-xs text-slate-500 mt-0.5">Send an email with the certificate once it is auto-issued.</p>
+                <p className="text-sm font-bold text-foreground">Notify student by email</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Send an email with the certificate once it is auto-issued.</p>
               </div>
               <button
                 type="button"
@@ -498,7 +498,7 @@ export default function CertificateTemplateBuilderPage() {
                 aria-checked={notifyStudent}
                 onClick={() => setNotifyStudent((v) => !v)}
                 className={`relative shrink-0 w-11 h-6 rounded-full transition-colors ${
-                  notifyStudent ? "bg-orange-500" : "bg-slate-700"
+                  notifyStudent ? "bg-primary" : "bg-slate-700"
                 }`}
               >
                 <span
@@ -511,26 +511,26 @@ export default function CertificateTemplateBuilderPage() {
           </Card>
 
           {/* 6. Actions */}
-          <Card className="p-5 sm:p-6 border-[#1A1F35] bg-[#0D1021]">
+          <Card className="p-5 sm:p-6 border-border bg-card">
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 type="button"
                 onClick={handleSaveDraft}
-                className="flex-1 h-12 bg-slate-800 hover:bg-slate-700 flex items-center justify-center gap-2 font-bold"
+                className="flex-1 h-12 bg-muted hover:bg-muted flex items-center justify-center gap-2 font-bold"
               >
                 <Save size={16} /> Save Template
               </Button>
               <Button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="flex-1 h-12 bg-slate-800 hover:bg-slate-700 flex items-center justify-center gap-2 font-bold"
+                className="flex-1 h-12 bg-muted hover:bg-muted flex items-center justify-center gap-2 font-bold"
               >
                 <Eye size={16} /> Preview Template
               </Button>
               <Button
                 type="button"
                 onClick={handlePublish}
-                className="flex-1 h-12 bg-orange-600 hover:bg-orange-500 flex items-center justify-center gap-2 font-bold"
+                className="flex-1 h-12 bg-orange-600 hover:bg-primary flex items-center justify-center gap-2 font-bold"
               >
                 <Sparkles size={16} /> Publish Template
               </Button>
@@ -540,9 +540,9 @@ export default function CertificateTemplateBuilderPage() {
 
         {/* Right column: 4. Live Certificate Preview */}
         <div className="xl:sticky xl:top-6 space-y-3">
-          <Card className="p-5 border-[#1A1F35] bg-[#0D1021] space-y-4">
-            <h2 className="text-base font-black text-white flex items-center gap-2">
-              <Eye size={17} className="text-orange-400" /> Live Certificate Preview
+          <Card className="p-5 border-border bg-card space-y-4">
+            <h2 className="text-base font-black text-foreground flex items-center gap-2">
+              <Eye size={17} className="text-primary" /> Live Certificate Preview
             </h2>
             <CertificatePreview
               assets={assets}

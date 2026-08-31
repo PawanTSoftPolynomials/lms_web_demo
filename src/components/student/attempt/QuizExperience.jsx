@@ -179,11 +179,11 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo }) {
     if (isError || !quiz) {
         return (
             <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-8 text-center">
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-xl font-semibold text-foreground">
                     Quiz not found
                 </h2>
 
-                <p className="mt-2 text-slate-400">
+                <p className="mt-2 text-muted-foreground">
                     Unable to load this quiz.
                 </p>
             </div>

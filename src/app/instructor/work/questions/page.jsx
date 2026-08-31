@@ -4,7 +4,7 @@ import QuestionRepositoryView from "@/components/instructor/questions/QuestionRe
 
 export default function WorkQuestionRepositoryPage() {
   return (
-    <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-5 sm:p-8">
+    <div className="rounded-2xl border border-border bg-card p-5 sm:p-8">
       <QuestionRepositoryView showImportShortcuts />
     </div>
   );

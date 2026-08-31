@@ -25,7 +25,7 @@ export default function LessonTabs({ lesson, course }) {
 
   if (!lesson) {
     return (
-      <div className="rounded-3xl border border-slate-800 bg-[#0d0e16]/60 p-8 text-center text-xs font-semibold text-slate-500">
+      <div className="rounded-3xl border border-border bg-[#0d0e16]/60 p-8 text-center text-xs font-semibold text-muted-foreground">
         Select a lesson to view its details.
       </div>
     );
@@ -60,7 +60,7 @@ export default function LessonTabs({ lesson, course }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-[#1e2030] bg-[#0d0e16]/60 backdrop-blur-md shadow-xl">
       {/* Tabs Selector Bar */}
-      <div className="flex items-center gap-2 border-b border-slate-800/80 p-3.5 bg-slate-950/40 overflow-x-auto scrollbar-none">
+      <div className="flex items-center gap-2 border-b border-border/80 p-3.5 bg-background/40 overflow-x-auto scrollbar-none">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -71,8 +71,8 @@ export default function LessonTabs({ lesson, course }) {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition cursor-pointer border ${
                 isActive
-                  ? "bg-orange-500 text-slate-950 border-orange-400 shadow-md shadow-orange-500/20"
-                  : "bg-slate-900/40 text-slate-400 border-slate-800 hover:text-white hover:border-slate-700"
+                  ? "bg-primary text-slate-950 border-orange-400 shadow-md shadow-orange-500/20"
+                  : "bg-background/40 text-muted-foreground border-border hover:text-foreground hover:border-transparent"
               }`}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -81,8 +81,8 @@ export default function LessonTabs({ lesson, course }) {
                 <span
                   className={`ml-1 rounded-full px-1.5 py-0.2 text-[10px] font-mono font-bold ${
                     isActive
-                      ? "bg-slate-950/30 text-slate-950"
-                      : "bg-orange-500/10 text-orange-400 border border-orange-500/20"
+                      ? "bg-background/30 text-slate-950"
+                      : "bg-primary/10 text-primary border border-primary/20"
                   }`}
                 >
                   {tab.badge}
@@ -98,12 +98,12 @@ export default function LessonTabs({ lesson, course }) {
         {/* OVERVIEW TAB */}
         {activeTab === "overview" && (
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/40 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-4">
               <div>
-                <h2 className="text-xl font-black text-white tracking-wide">
+                <h2 className="text-xl font-black text-foreground tracking-wide">
                   {lesson.title}
                 </h2>
-                <p className="text-xs text-slate-400 font-semibold mt-1">
+                <p className="text-xs text-muted-foreground font-semibold mt-1">
                   Module Concept • Objective Overview
                 </p>
               </div>
@@ -113,8 +113,8 @@ export default function LessonTabs({ lesson, course }) {
                 onClick={toggleLessonBookmark}
                 className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold transition cursor-pointer shrink-0 ${
                   isLessonBookmarked
-                    ? "bg-orange-500 text-slate-950 border-orange-400 shadow-md"
-                    : "bg-slate-950/60 text-slate-300 border-slate-800 hover:border-orange-500/40 hover:text-white"
+                    ? "bg-primary text-slate-950 border-orange-400 shadow-md"
+                    : "bg-background/60 text-foreground border-border hover:border-primary/40 hover:text-foreground"
                 }`}
               >
                 {isLessonBookmarked ? (
@@ -131,7 +131,7 @@ export default function LessonTabs({ lesson, course }) {
               </button>
             </div>
 
-            <div className="prose prose-invert max-w-none text-xs leading-relaxed text-slate-300 font-medium">
+            <div className="prose prose-invert max-w-none text-xs leading-relaxed text-foreground font-medium">
               {lesson.description || "No specific lesson objectives provided."}
             </div>
           </div>
@@ -140,18 +140,18 @@ export default function LessonTabs({ lesson, course }) {
         {/* NOTES & ATTACHMENTS TAB */}
         {activeTab === "notes" && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-800/40 pb-3">
-              <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                <FileText className="text-orange-500" size={16} />
+            <div className="flex items-center justify-between border-b border-border/40 pb-3">
+              <h2 className="text-sm font-black text-foreground uppercase tracking-wider flex items-center gap-2">
+                <FileText className="text-primary" size={16} />
                 <span>Class Notes & Downloadable Files</span>
               </h2>
-              <span className="text-[10px] text-slate-400 font-mono">
+              <span className="text-[10px] text-muted-foreground font-mono">
                 {instructorAttachments.length} File Attachment(s)
               </span>
             </div>
 
             {/* Section 1: Uploaded File Attachments */}
-            <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-3">
+            <div className="p-4 rounded-2xl bg-background/60 border border-border/80 space-y-3">
               <LessonResourcesPanel
                 attachments={instructorAttachments}
                 columns={2}
@@ -163,10 +163,10 @@ export default function LessonTabs({ lesson, course }) {
             {/* Section 2: Personal Student Notes */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-extrabold text-slate-200">
+                <label className="text-xs font-extrabold text-foreground">
                   Personal Scratchpad Notes
                 </label>
-                <span className="text-[10px] text-slate-500 font-mono">
+                <span className="text-[10px] text-muted-foreground font-mono">
                   Auto-saved to workspace
                 </span>
               </div>
@@ -180,7 +180,7 @@ export default function LessonTabs({ lesson, course }) {
                   }
                 }}
                 placeholder="Write personal study notes, reminders, or code snippets..."
-                className="w-full rounded-2xl border border-slate-800 bg-[#07080f]/90 p-4 text-xs text-white placeholder-slate-500 outline-none focus:border-orange-500/50 transition font-mono leading-relaxed"
+                className="w-full rounded-2xl border border-border bg-[#07080f]/90 p-4 text-xs text-foreground placeholder-slate-500 outline-none focus:border-primary/50 transition font-mono leading-relaxed"
               />
             </div>
           </div>

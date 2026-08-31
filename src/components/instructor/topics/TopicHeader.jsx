@@ -20,7 +20,7 @@ export default function TopicHeader({
             className="
         rounded-2xl
         border
-        border-slate-800
+        border-border
         bg-gradient-to-br from-slate-900 to-slate-950
         p-5
         shadow-lg
@@ -38,8 +38,8 @@ export default function TopicHeader({
                 items-center
                 justify-center
                 rounded-lg
-                bg-orange-500/15
-                text-orange-400
+                bg-primary/15
+                text-primary
                 shrink-0
               "
                         >
@@ -48,7 +48,7 @@ export default function TopicHeader({
 
                         <div>
                             <div className="flex items-center gap-2 mb-1">
-                                <h1 className="text-2xl font-bold text-white tracking-tight">
+                                <h1 className="text-2xl font-bold text-foreground tracking-tight">
                                     {topic.title}
                                 </h1>
                                 <span
@@ -62,13 +62,13 @@ export default function TopicHeader({
                                 </span>
                             </div>
 
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                                 Topic Details
                             </p>
                         </div>
                     </div>
 
-                    <p className="max-w-4xl text-sm text-slate-400 leading-relaxed mt-1">
+                    <p className="max-w-4xl text-sm text-muted-foreground leading-relaxed mt-1">
                         {topic.description}
                     </p>
                 </div>
@@ -99,7 +99,7 @@ export default function TopicHeader({
             items-center
             gap-2
             rounded-xl
-            bg-orange-500
+            bg-primary
             hover:bg-orange-600
             text-slate-950
             font-extrabold
@@ -126,17 +126,17 @@ export default function TopicHeader({
                     className="
             rounded-xl
             border
-            border-slate-800/80
-            bg-slate-950/40
+            border-border/80
+            bg-background/40
             p-3
             px-4.5
           "
                 >
-                    <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">
+                    <p className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">
                         Topic Order
                     </p>
 
-                    <p className="mt-1 text-xl font-black text-slate-200">
+                    <p className="mt-1 text-xl font-black text-foreground">
                         #{topic.order}
                     </p>
                 </div>
@@ -145,21 +145,21 @@ export default function TopicHeader({
                     className="
             rounded-xl
             border
-            border-slate-800/80
-            bg-slate-950/40
+            border-border/80
+            bg-background/40
             p-3
             px-4.5
           "
                 >
                     <div className="flex items-center gap-1.5">
-                        <FaFileAlt className="text-orange-400" size={12} />
+                        <FaFileAlt className="text-primary" size={12} />
 
-                        <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">
+                        <p className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider">
                             Contents
                         </p>
                     </div>
 
-                    <p className="mt-1 text-xl font-black text-slate-200">
+                    <p className="mt-1 text-xl font-black text-foreground">
                         {topic.contents?.length ?? 0}
                     </p>
                 </div>

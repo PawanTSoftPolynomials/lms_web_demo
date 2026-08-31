@@ -55,10 +55,10 @@ export default function WorkNotesPage() {
   const isSaving = createNote.isPending || updateNote.isPending;
 
   return (
-    <Card className="mx-auto max-w-5xl bg-[#0D1021] border border-[#1A1F35] p-6 sm:p-8 rounded-2xl shadow-2xl space-y-6">
+    <Card className="mx-auto max-w-5xl bg-card border border-border p-6 sm:p-8 rounded-2xl shadow-2xl space-y-6">
       <div>
-        <h1 className="text-3xl font-black text-white tracking-tight">Notes</h1>
-        <p className="mt-2 text-sm text-slate-400">Write private lesson notes with rich formatting, images, and file attachments.</p>
+        <h1 className="text-3xl font-black text-foreground tracking-tight">Notes</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Write private lesson notes with rich formatting, images, and file attachments.</p>
       </div>
 
       <CourseModuleLessonSelect
@@ -69,12 +69,12 @@ export default function WorkNotesPage() {
       />
 
       {!lessonId ? (
-        <div className="rounded-2xl border border-dashed border-[#1A1F35] bg-[#05070E] py-16 text-center">
-          <p className="text-xs font-bold text-slate-500">Select a Course, Module, and Lesson above to write notes.</p>
+        <div className="rounded-2xl border border-dashed border-border bg-[#05070E] py-16 text-center">
+          <p className="text-xs font-bold text-muted-foreground">Select a Course, Module, and Lesson above to write notes.</p>
         </div>
       ) : (
         <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
-          <div className="rounded-2xl border border-[#1A1F35] bg-[#05070E] p-5 space-y-4">
+          <div className="rounded-2xl border border-border bg-[#05070E] p-5 space-y-4">
             <h3 className="text-[10.5px] font-black uppercase tracking-widest text-slate-350">
               {editingId ? "Edit Note" : "New Note"}
             </h3>
@@ -90,7 +90,7 @@ export default function WorkNotesPage() {
                 <button
                   type="button"
                   onClick={reset}
-                  className="px-3.5 py-2 rounded-xl text-[10.5px] font-bold text-slate-400 border border-slate-700 hover:text-white hover:bg-slate-800 transition"
+                  className="px-3.5 py-2 rounded-xl text-[10.5px] font-bold text-muted-foreground border border-transparent hover:text-foreground hover:bg-muted transition"
                 >
                   Cancel
                 </button>
@@ -99,7 +99,7 @@ export default function WorkNotesPage() {
                 type="button"
                 onClick={() => handleSave("DRAFT")}
                 disabled={isSaving}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10.5px] font-bold text-slate-300 border border-slate-700 hover:text-white hover:bg-slate-800 transition disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10.5px] font-bold text-foreground border border-transparent hover:text-foreground hover:bg-muted transition disabled:opacity-50"
               >
                 {isSaving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
                 Save Draft
@@ -108,41 +108,41 @@ export default function WorkNotesPage() {
                 type="button"
                 onClick={() => handleSave("PUBLISHED")}
                 disabled={isSaving}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10.5px] font-black text-white bg-orange-500 hover:bg-orange-600 shadow-sm transition disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10.5px] font-black text-foreground bg-primary hover:bg-orange-600 shadow-sm transition disabled:opacity-50"
               >
                 Publish
               </button>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#1A1F35] bg-[#05070E] p-5 space-y-3">
+          <div className="rounded-2xl border border-border bg-[#05070E] p-5 space-y-3">
             <h3 className="text-[10.5px] font-black uppercase tracking-widest text-slate-350">
               Notes for this Lesson ({notes.length})
             </h3>
             {isLoading ? (
               <div className="py-12 flex justify-center"><Loader2 size={18} className="animate-spin text-orange-450" /></div>
             ) : notes.length === 0 ? (
-              <div className="py-12 text-center text-slate-500 space-y-2">
+              <div className="py-12 text-center text-muted-foreground space-y-2">
                 <StickyNote size={22} className="mx-auto text-slate-600" />
                 <p className="text-xs font-bold">No notes for this lesson yet.</p>
               </div>
             ) : (
               <div className="space-y-2.5 max-h-[420px] overflow-y-auto pr-1">
                 {notes.map((note) => (
-                  <div key={note.id} className="p-3 rounded-xl border border-[#1A1F35] bg-white/[0.015] space-y-2">
+                  <div key={note.id} className="p-3 rounded-xl border border-border bg-white/[0.015] space-y-2">
                     <div className="flex items-center justify-between">
                       <span className={`text-[8.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                         note.status === "PUBLISHED"
                           ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                          : "bg-slate-800 text-slate-400 border-slate-700"
+                          : "bg-muted text-muted-foreground border-transparent"
                       }`}>
                         {note.status || "DRAFT"}
                       </span>
-                      <span className="text-[9px] text-slate-500">{new Date(note.createdAt).toLocaleDateString()}</span>
+                      <span className="text-[9px] text-muted-foreground">{new Date(note.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <div className="text-xs text-slate-300 leading-relaxed [&_a]:text-orange-400" dangerouslySetInnerHTML={{ __html: note.content }} />
-                    <div className="flex justify-end gap-2 pt-1 border-t border-[#1A1F35]/40">
-                      <button onClick={() => startEdit(note)} className="text-slate-400 hover:text-white text-[10px] flex items-center gap-1">
+                    <div className="text-xs text-foreground leading-relaxed [&_a]:text-primary" dangerouslySetInnerHTML={{ __html: note.content }} />
+                    <div className="flex justify-end gap-2 pt-1 border-t border-border/40">
+                      <button onClick={() => startEdit(note)} className="text-muted-foreground hover:text-foreground text-[10px] flex items-center gap-1">
                         <Edit3 size={11} /> Edit
                       </button>
                       <button onClick={() => deleteNote.mutate(note.id)} className="text-rose-400 hover:text-rose-300 text-[10px] flex items-center gap-1">

@@ -105,18 +105,18 @@ export default function ModuleAccordionItem({
   };
 
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/30 overflow-hidden">
+    <div className="rounded-lg border border-border bg-background/30 overflow-hidden">
       <div
         onClick={() => setOpen((v) => !v)}
-        className="group flex items-center gap-1.5 px-2.5 py-2 cursor-pointer hover:bg-slate-800/40"
+        className="group flex items-center gap-1.5 px-2.5 py-2 cursor-pointer hover:bg-muted/40"
       >
         {open ? (
-          <ChevronDown size={14} className="text-slate-500 shrink-0" />
+          <ChevronDown size={14} className="text-muted-foreground shrink-0" />
         ) : (
-          <ChevronRight size={14} className="text-slate-500 shrink-0" />
+          <ChevronRight size={14} className="text-muted-foreground shrink-0" />
         )}
 
-        <span className="flex-1 min-w-0 truncate text-sm font-bold text-white">{mod.title}</span>
+        <span className="flex-1 min-w-0 truncate text-sm font-bold text-foreground">{mod.title}</span>
 
         <div className="hidden group-hover:flex items-center gap-0.5 shrink-0">
           <button
@@ -126,7 +126,7 @@ export default function ModuleAccordionItem({
               e.stopPropagation();
               onMoveModuleUp();
             }}
-            className="p-1 rounded text-slate-500 hover:text-white disabled:opacity-20"
+            className="p-1 rounded text-muted-foreground hover:text-foreground disabled:opacity-20"
           >
             <ArrowUp size={12} />
           </button>
@@ -137,7 +137,7 @@ export default function ModuleAccordionItem({
               e.stopPropagation();
               onMoveModuleDown();
             }}
-            className="p-1 rounded text-slate-500 hover:text-white disabled:opacity-20"
+            className="p-1 rounded text-muted-foreground hover:text-foreground disabled:opacity-20"
           >
             <ArrowDown size={12} />
           </button>
@@ -147,14 +147,14 @@ export default function ModuleAccordionItem({
               e.stopPropagation();
               openEditModal();
             }}
-            className="p-1 rounded text-slate-500 hover:text-white"
+            className="p-1 rounded text-muted-foreground hover:text-foreground"
           >
             <Pencil size={12} />
           </button>
           <button
             type="button"
             onClick={handleDelete}
-            className="p-1 rounded text-slate-500 hover:text-red-400"
+            className="p-1 rounded text-muted-foreground hover:text-red-400"
           >
             <Trash2 size={12} />
           </button>
@@ -162,7 +162,7 @@ export default function ModuleAccordionItem({
       </div>
 
       {open && (
-        <div className="px-2 pb-2 space-y-0.5 border-t border-slate-800/60 pt-1.5">
+        <div className="px-2 pb-2 space-y-0.5 border-t border-border/60 pt-1.5">
           {lessons.map((lesson, i) => (
             <LessonNavItem
               key={lesson.id}
@@ -186,22 +186,22 @@ export default function ModuleAccordionItem({
                 onKeyDown={(e) => e.key === "Enter" && handleAddLesson()}
                 onBlur={() => !newLessonTitle.trim() && setAddingLesson(false)}
                 placeholder="Lesson title…"
-                className="flex-1 min-w-0 bg-slate-800 rounded px-1.5 py-1 text-xs outline-none border border-orange-500"
+                className="flex-1 min-w-0 bg-muted rounded px-1.5 py-1 text-xs outline-none border border-primary"
               />
             </div>
           ) : (
-            <div className="flex items-center justify-between pt-1 border-t border-slate-800/40">
+            <div className="flex items-center justify-between pt-1 border-t border-border/40">
               <button
                 type="button"
                 onClick={() => setAddingLesson(true)}
-                className="flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-slate-500 hover:text-white"
+                className="flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
               >
                 <Plus size={12} /> Add Lesson
               </button>
               <button
                 type="button"
                 onClick={() => onOpenAiAssistant && onOpenAiAssistant("LESSON", { moduleId: mod.id, moduleTitle: mod.title })}
-                className="flex items-center gap-1 px-2 py-1 text-xs font-semibold text-orange-400 hover:text-orange-300"
+                className="flex items-center gap-1 px-2 py-1 text-xs font-semibold text-primary hover:text-orange-300"
               >
                 <Sparkles size={11} /> AI Lesson
               </button>
@@ -214,20 +214,20 @@ export default function ModuleAccordionItem({
         <div className="space-y-4">
           <Input label="Module Title" value={title} onChange={(e) => setTitle(e.target.value)} />
           <div className="space-y-2">
-            <label className="text-sm text-slate-300">Subtitle / Description</label>
+            <label className="text-sm text-foreground">Subtitle / Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               placeholder="What does this module cover?"
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm outline-none focus:border-orange-500 resize-y"
+              className="w-full rounded-lg border border-transparent bg-muted px-3 py-2 text-sm outline-none focus:border-primary resize-y"
             />
           </div>
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+          <div className="flex justify-end gap-2 pt-2 border-t border-border">
             <button
               type="button"
               onClick={() => setEditOpen(false)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-lg transition"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground hover:text-foreground bg-muted hover:bg-slate-750 border border-transparent/60 rounded-lg transition"
             >
               <X size={12} /> Cancel
             </button>
@@ -235,7 +235,7 @@ export default function ModuleAccordionItem({
               type="button"
               onClick={saveEdit}
               disabled={updateModule.isPending}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground bg-emerald-600 hover:bg-emerald-700 rounded-lg transition disabled:opacity-50"
             >
               <Check size={12} /> {updateModule.isPending ? "Saving…" : "Done"}
             </button>

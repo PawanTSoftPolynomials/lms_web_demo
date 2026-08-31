@@ -14,12 +14,12 @@ export default function AdaptiveTutorMessage({ text }) {
   if (paragraphs.length === 0) return null;
 
   return (
-    <div className="space-y-2.5 text-sm text-slate-200 leading-relaxed">
+    <div className="space-y-2.5 text-sm text-foreground leading-relaxed">
       {paragraphs.map((paragraph, pIndex) => (
         <p key={pIndex}>
           {parseInlineEmphasis(paragraph).map((segment, sIndex) =>
             segment.bold ? (
-              <strong key={sIndex} className="text-white font-semibold">
+              <strong key={sIndex} className="text-foreground font-semibold">
                 {segment.text}
               </strong>
             ) : (

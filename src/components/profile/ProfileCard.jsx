@@ -20,19 +20,19 @@ export default function ProfileCard({
             <div className="flex flex-col items-center text-center">
                 {/* Avatar */}
                 <div
-                    className="flex h-28 w-28 items-center justify-center rounded-full bg-orange-600 text-4xl font-bold text-white">
+                    className="flex h-28 w-28 items-center justify-center rounded-full bg-orange-600 text-4xl font-bold text-foreground">
                     {profile.name
                         ?.charAt(0)
                         ?.toUpperCase()}
                 </div>
 
                 {/* Name */}
-                <h2 className="mt-5 text-2xl font-bold text-white">
+                <h2 className="mt-5 text-2xl font-bold text-foreground">
                     {profile.name}
                 </h2>
 
                 {/* Role */}
-                <span className="mt-2 rounded-full bg-orange-500/20 px-4 py-1 text-sm font-medium text-orange-400">
+                <span className="mt-2 rounded-full bg-primary/20 px-4 py-1 text-sm font-medium text-primary">
           {profile.role}
         </span>
 
@@ -69,7 +69,7 @@ export default function ProfileCard({
                     <div className="flex items-center gap-3">
                         <Mail
                             size={18}
-                            className="text-orange-500"
+                            className="text-primary"
                         />
 
                         <span className="text-gray-300">
@@ -80,7 +80,7 @@ export default function ProfileCard({
                     <div className="flex items-center gap-3">
                         <Phone
                             size={18}
-                            className="text-orange-500"
+                            className="text-primary"
                         />
 
                         <span className="text-gray-300">
@@ -92,7 +92,7 @@ export default function ProfileCard({
                     <div className="flex items-center gap-3">
                         <MapPin
                             size={18}
-                            className="text-orange-500"
+                            className="text-primary"
                         />
 
                         <span className="text-gray-300">
@@ -104,7 +104,7 @@ export default function ProfileCard({
                     <div className="flex items-center gap-3">
                         <ShieldCheck
                             size={18}
-                            className="text-orange-500"
+                            className="text-primary"
                         />
 
                         <span className="text-gray-300">

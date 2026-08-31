@@ -20,15 +20,15 @@ export default function ThreadCard({ thread, expanded, onToggle, onUpvote, onRep
   };
 
   return (
-    <div className="rounded-2xl border border-slate-800/80 bg-slate-900/50 shadow-luxury-md backdrop-blur-md transition hover:border-orange-500/30">
+    <div className="rounded-2xl border border-border/80 bg-background/50 shadow-luxury-md backdrop-blur-md transition hover:border-primary/30">
       <div className="flex gap-4 p-5">
         {/* Upvote column */}
         <button
           onClick={() => onUpvote(thread.id)}
           className={`flex h-fit shrink-0 flex-col items-center gap-1 rounded-xl border px-2.5 py-2 transition cursor-pointer ${
             thread.upvotedByMe
-              ? "border-orange-500/40 bg-orange-500/10 text-orange-400"
-              : "border-slate-800 bg-slate-950/50 text-slate-400 hover:border-orange-500/30 hover:text-orange-400"
+              ? "border-primary/40 bg-primary/10 text-primary"
+              : "border-border bg-background/50 text-muted-foreground hover:border-primary/30 hover:text-primary"
           }`}
         >
           <ThumbsUp size={14} className={thread.upvotedByMe ? "fill-orange-400" : ""} />
@@ -39,11 +39,11 @@ export default function ThreadCard({ thread, expanded, onToggle, onUpvote, onRep
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-500/15 text-[10px] font-black text-orange-400">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-[10px] font-black text-primary">
                 {initials(thread.askedByName)}
               </span>
-              <span className="text-xs font-bold text-white">{thread.askedByName}</span>
-              <span className="rounded-full bg-slate-800/80 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-xs font-bold text-foreground">{thread.askedByName}</span>
+              <span className="rounded-full bg-muted/80 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
                 {thread.courseTitle}
               </span>
             </div>
@@ -60,38 +60,38 @@ export default function ThreadCard({ thread, expanded, onToggle, onUpvote, onRep
           </div>
 
           <button onClick={() => onToggle(thread.id)} className="mt-3 block w-full cursor-pointer text-left">
-            <h3 className="text-sm font-black leading-snug text-white">{thread.title}</h3>
-            <p className={`mt-1.5 text-xs leading-relaxed text-slate-400 ${expanded ? "" : "line-clamp-2"}`}>{thread.body}</p>
+            <h3 className="text-sm font-black leading-snug text-foreground">{thread.title}</h3>
+            <p className={`mt-1.5 text-xs leading-relaxed text-muted-foreground ${expanded ? "" : "line-clamp-2"}`}>{thread.body}</p>
           </button>
 
           <div className="mt-3 flex items-center justify-between">
             <button
               onClick={() => onToggle(thread.id)}
-              className="flex cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition hover:text-slate-300"
+              className="flex cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-muted-foreground transition hover:text-foreground"
             >
               <MessageCircle size={13} />
               {thread.replies.length} {thread.replies.length === 1 ? "reply" : "replies"}
               {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
             </button>
-            <span className="text-[10px] text-slate-500">{timeAgo(thread.createdAt)}</span>
+            <span className="text-[10px] text-muted-foreground">{timeAgo(thread.createdAt)}</span>
           </div>
         </div>
       </div>
 
       {expanded && (
-        <div className="space-y-3 border-t border-slate-800/80 px-5 py-4">
+        <div className="space-y-3 border-t border-border/80 px-5 py-4">
           {thread.replies.map((r) => (
             <div key={r.id} className="flex gap-3">
               <span
                 className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-black ${
-                  r.authorRole === "INSTRUCTOR" ? "bg-purple-500/15 text-purple-400" : "bg-orange-500/15 text-orange-400"
+                  r.authorRole === "INSTRUCTOR" ? "bg-purple-500/15 text-purple-400" : "bg-primary/15 text-primary"
                 }`}
               >
                 {initials(r.authorName)}
               </span>
-              <div className="min-w-0 flex-1 rounded-xl border border-slate-800/80 bg-slate-950/50 p-3">
+              <div className="min-w-0 flex-1 rounded-xl border border-border/80 bg-background/50 p-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-1.5 text-[11px] font-bold text-white">
+                  <span className="flex items-center gap-1.5 text-[11px] font-bold text-foreground">
                     {r.authorName}
                     {r.authorRole === "INSTRUCTOR" && (
                       <span className="rounded-full bg-purple-500/15 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-purple-400">
@@ -99,9 +99,9 @@ export default function ThreadCard({ thread, expanded, onToggle, onUpvote, onRep
                       </span>
                     )}
                   </span>
-                  <span className="text-[9px] text-slate-500">{timeAgo(r.createdAt)}</span>
+                  <span className="text-[9px] text-muted-foreground">{timeAgo(r.createdAt)}</span>
                 </div>
-                <p className="mt-1 text-xs leading-relaxed text-slate-300">{r.body}</p>
+                <p className="mt-1 text-xs leading-relaxed text-foreground">{r.body}</p>
               </div>
             </div>
           ))}
@@ -112,12 +112,12 @@ export default function ThreadCard({ thread, expanded, onToggle, onUpvote, onRep
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               placeholder="Write a reply..."
-              className="flex-1 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-white outline-none transition focus:border-orange-500"
+              className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground outline-none transition focus:border-primary"
             />
             <button
               type="submit"
               disabled={!replyText.trim()}
-              className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-orange-500 px-3 py-2 text-xs font-bold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-foreground transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Send size={12} /> Reply
             </button>

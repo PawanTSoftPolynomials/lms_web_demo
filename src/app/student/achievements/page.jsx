@@ -17,11 +17,11 @@ const typeColor = (type) => {
 
 const typeIcon = (type) => {
   switch (type) {
-    case "QUIZ": return <Star size={20} className="text-white" />;
-    case "COURSE": return <BookOpen size={20} className="text-white" />;
-    case "STREAK": return <Zap size={20} className="text-white" />;
-    case "NOTE": return <Award size={20} className="text-white" />;
-    default: return <Trophy size={20} className="text-white" />;
+    case "QUIZ": return <Star size={20} className="text-foreground" />;
+    case "COURSE": return <BookOpen size={20} className="text-foreground" />;
+    case "STREAK": return <Zap size={20} className="text-foreground" />;
+    case "NOTE": return <Award size={20} className="text-foreground" />;
+    default: return <Trophy size={20} className="text-foreground" />;
   }
 };
 
@@ -47,7 +47,7 @@ export default function AchievementsPage() {
   };
 
   return (
-    <div className="space-y-6 text-white">
+    <div className="space-y-6 text-foreground">
       <PageHeader
         title="Achievements"
         subtitle="Track your badges, XP, and milestones"
@@ -55,7 +55,7 @@ export default function AchievementsPage() {
         <button
           onClick={handleCheck}
           disabled={checkAchievements.isPending}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50 cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-orange-600 text-foreground text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50 cursor-pointer"
         >
           {checkAchievements.isPending ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
           Check for New
@@ -64,23 +64,23 @@ export default function AchievementsPage() {
 
       {/* XP Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-slate-900/50 border border-slate-800/80 backdrop-blur-md rounded-2xl p-5 shadow-luxury-md text-center">
-          <p className="text-2xl font-black text-orange-500">{totalXp}</p>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1.5">Total XP</p>
+        <div className="bg-background/50 border border-transparent/80 backdrop-blur-md rounded-2xl p-5 shadow-luxury-md text-center">
+          <p className="text-2xl font-black text-primary">{totalXp}</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1.5">Total XP</p>
         </div>
-        <div className="bg-slate-900/50 border border-slate-800/80 backdrop-blur-md rounded-2xl p-5 shadow-luxury-md text-center">
+        <div className="bg-background/50 border border-transparent/80 backdrop-blur-md rounded-2xl p-5 shadow-luxury-md text-center">
           <p className="text-2xl font-black text-emerald-500">{earnedCount}</p>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1.5">Earned</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1.5">Earned</p>
         </div>
-        <div className="bg-slate-900/50 border border-slate-800/80 backdrop-blur-md rounded-2xl p-5 shadow-luxury-md text-center">
-          <p className="text-2xl font-black text-slate-200">{totalCount}</p>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1.5">Total Badges</p>
+        <div className="bg-background/50 border border-transparent/80 backdrop-blur-md rounded-2xl p-5 shadow-luxury-md text-center">
+          <p className="text-2xl font-black text-foreground">{totalCount}</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1.5">Total Badges</p>
         </div>
       </div>
 
       {/* Achievements Grid */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20 text-slate-400">
+        <div className="flex items-center justify-center py-20 text-muted-foreground">
           <Loader2 className="animate-spin mr-2" size={20} /> Loading achievements…
         </div>
       ) : isError ? (
@@ -88,20 +88,20 @@ export default function AchievementsPage() {
           <AlertCircle size={18} /> Failed to load achievements.
         </div>
       ) : achievements.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6">
+        <div className="text-center py-20 text-muted-foreground bg-background/50 border border-transparent/80 rounded-2xl p-6">
           <Trophy size={40} className="mx-auto mb-3 opacity-40 text-slate-450" />
-          <p className="text-sm font-semibold text-white">No achievements yet</p>
-          <p className="text-xs mt-1 text-slate-400">Complete courses, quizzes, and take notes to earn badges.</p>
+          <p className="text-sm font-semibold text-foreground">No achievements yet</p>
+          <p className="text-xs mt-1 text-muted-foreground">Complete courses, quizzes, and take notes to earn badges.</p>
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {achievements.map((achievement) => (
             <div
               key={achievement.id}
-              className={`bg-slate-900/50 border backdrop-blur-md rounded-2xl p-5 shadow-luxury-md transition ${
+              className={`bg-background/50 border backdrop-blur-md rounded-2xl p-5 shadow-luxury-md transition ${
                 achievement.earned
-                  ? "border-orange-500/25 hover:border-orange-500/40 hover:shadow-lg"
-                  : "border-slate-800/80 opacity-55 grayscale"
+                  ? "border-primary/25 hover:border-primary/40 hover:shadow-lg"
+                  : "border-transparent/80 opacity-55 grayscale"
               }`}
             >
               {/* Badge Icon */}
@@ -109,13 +109,13 @@ export default function AchievementsPage() {
                 {typeIcon(achievement.type)}
               </div>
 
-              <h3 className="text-sm font-black text-white mb-1">{achievement.name}</h3>
+              <h3 className="text-sm font-black text-foreground mb-1">{achievement.name}</h3>
               {achievement.description && (
-                <p className="text-[11px] text-slate-400 leading-relaxed mb-3">{achievement.description}</p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed mb-3">{achievement.description}</p>
               )}
 
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-orange-400 bg-orange-500/10 border border-orange-500/20 px-2.5 py-0.5 rounded-full">
+                <span className="text-[10px] font-black text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full">
                   +{achievement.xpReward} XP
                 </span>
                 {achievement.earned ? (
@@ -123,14 +123,14 @@ export default function AchievementsPage() {
                     ✓ Earned
                   </span>
                 ) : (
-                  <span className="text-[9px] font-bold text-slate-400 bg-slate-800/50 border border-slate-700/50 px-2.5 py-0.5 rounded-full">
+                  <span className="text-[9px] font-bold text-muted-foreground bg-muted/50 border border-transparent/50 px-2.5 py-0.5 rounded-full">
                     Locked
                   </span>
                 )}
               </div>
 
               {achievement.earned && achievement.earnedAt && (
-                <p className="text-[9px] text-slate-500 mt-2.5 font-semibold">
+                <p className="text-[9px] text-muted-foreground mt-2.5 font-semibold">
                   {new Date(achievement.earnedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                 </p>
               )}

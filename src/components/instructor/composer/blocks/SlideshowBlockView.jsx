@@ -18,7 +18,7 @@ export default function SlideshowBlockView({ block }) {
   return (
     <div className="space-y-3">
       {css && <style>{css}</style>}
-      <div className="relative rounded-lg border border-slate-800 bg-slate-950/40 p-4 min-h-[220px] overflow-auto">
+      <div className="relative rounded-lg border border-border bg-background/40 p-4 min-h-[220px] overflow-auto">
         <div
           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(slides[current], { ADD_TAGS: ["section"] }) }}
         />
@@ -29,7 +29,7 @@ export default function SlideshowBlockView({ block }) {
         />
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-muted-foreground">
           Slide {current + 1} of {slides.length}
         </span>
         <div className="flex gap-2">
@@ -37,7 +37,7 @@ export default function SlideshowBlockView({ block }) {
             type="button"
             disabled={current === 0}
             onClick={() => setIndex((i) => Math.max(i - 1, 0))}
-            className="p-1.5 rounded-lg border border-slate-700 text-slate-300 disabled:opacity-30 hover:bg-slate-800"
+            className="p-1.5 rounded-lg border border-transparent text-foreground disabled:opacity-30 hover:bg-muted"
           >
             <ChevronLeft size={14} />
           </button>
@@ -45,7 +45,7 @@ export default function SlideshowBlockView({ block }) {
             type="button"
             disabled={current === slides.length - 1}
             onClick={() => setIndex((i) => Math.min(i + 1, slides.length - 1))}
-            className="p-1.5 rounded-lg border border-slate-700 text-slate-300 disabled:opacity-30 hover:bg-slate-800"
+            className="p-1.5 rounded-lg border border-transparent text-foreground disabled:opacity-30 hover:bg-muted"
           >
             <ChevronRight size={14} />
           </button>

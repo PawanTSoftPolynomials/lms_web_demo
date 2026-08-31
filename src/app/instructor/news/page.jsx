@@ -7,7 +7,7 @@ import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCo
 import { DateRangePicker } from "@/components/ui/DateRangePicker";
 
 const toolbarControlClass =
-  "h-9 bg-[#0D1021] border border-[#1A1F35] text-xs px-3 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-[#0D1021] [&>option]:text-slate-200";
+  "h-9 bg-card border border-border text-xs px-3 rounded-xl outline-none text-foreground focus:border-primary/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-card [&>option]:text-foreground";
 
 /** Compact search + filter toolbar, structurally ready for a future News API
  * (search/course/date all operate on real state already) — Category is left
@@ -25,13 +25,13 @@ function NewsFilters({ search, setSearch, courseId, setCourseId, startDate, endD
   return (
     <div className="space-y-3">
       <div className="relative">
-        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search news, announcements, updates..."
-          className="w-full h-11 bg-[#0D1021] border border-[#1A1F35] text-sm pl-10 pr-4 rounded-xl outline-none text-slate-200 placeholder-slate-500 focus:border-orange-500/60 transition"
+          className="w-full h-11 bg-card border border-border text-sm pl-10 pr-4 rounded-xl outline-none text-foreground placeholder-slate-500 focus:border-primary/60 transition"
         />
       </div>
 
@@ -58,7 +58,7 @@ function NewsFilters({ search, setSearch, courseId, setCourseId, startDate, endD
           <button
             type="button"
             onClick={handleReset}
-            className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-slate-400 transition hover:text-white"
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-muted-foreground transition hover:text-foreground"
           >
             <RotateCcw size={12} />
             Reset
@@ -78,16 +78,16 @@ function NewsCard({ item }) {
     : null;
 
   return (
-    <div className="p-4 rounded-xl border border-[#1A1F35] bg-[#0D1021]">
+    <div className="p-4 rounded-xl border border-border bg-card">
       <div className="flex items-start justify-between gap-3">
-        <span className="text-[9.5px] font-black uppercase tracking-widest text-orange-400">{item.category}</span>
-        {publishedLabel && <span className="shrink-0 text-[10px] text-slate-500 font-mono">{publishedLabel}</span>}
+        <span className="text-[9.5px] font-black uppercase tracking-widest text-primary">{item.category}</span>
+        {publishedLabel && <span className="shrink-0 text-[10px] text-muted-foreground font-mono">{publishedLabel}</span>}
       </div>
-      <p className="text-[13px] font-bold text-slate-100 mt-2 leading-relaxed">{item.title}</p>
-      {item.description && <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">{item.description}</p>}
-      <div className="flex items-center justify-between gap-3 mt-3 pt-3 border-t border-[#1A1F35]/60">
-        <span className="text-[10.5px] text-slate-500">{item.course || ""}</span>
-        <button type="button" className="text-[10.5px] font-bold text-orange-400 hover:text-orange-300 transition">
+      <p className="text-[13px] font-bold text-foreground mt-2 leading-relaxed">{item.title}</p>
+      {item.description && <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{item.description}</p>}
+      <div className="flex items-center justify-between gap-3 mt-3 pt-3 border-t border-border/60">
+        <span className="text-[10.5px] text-muted-foreground">{item.course || ""}</span>
+        <button type="button" className="text-[10.5px] font-bold text-primary hover:text-orange-300 transition">
           Read More →
         </button>
       </div>
@@ -99,8 +99,8 @@ function NewsEmptyState() {
   return (
     <div className="min-h-[260px] flex flex-col items-center justify-center gap-2 text-center py-14">
       <Newspaper size={22} className="text-slate-600" />
-      <p className="text-sm font-bold text-slate-300">No news yet</p>
-      <p className="text-xs text-slate-500 max-w-xs">
+      <p className="text-sm font-bold text-foreground">No news yet</p>
+      <p className="text-xs text-muted-foreground max-w-xs">
         Platform and course updates will appear here when they are published.
       </p>
     </div>
@@ -138,8 +138,8 @@ export default function InstructorNewsPage() {
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-black text-white tracking-tight">News</h1>
-          <p className="text-xs text-slate-400 mt-1">Platform and course-related news for instructors.</p>
+          <h1 className="text-xl font-black text-foreground tracking-tight">News</h1>
+          <p className="text-xs text-muted-foreground mt-1">Platform and course-related news for instructors.</p>
         </div>
       </div>
 
@@ -157,9 +157,9 @@ export default function InstructorNewsPage() {
       />
 
       <div>
-        <div className="flex items-center justify-between pb-3 border-b border-[#1A1F35]">
-          <h2 className="text-sm font-black text-white tracking-tight">Latest Updates</h2>
-          <span className="text-xs font-bold text-slate-500">
+        <div className="flex items-center justify-between pb-3 border-b border-border">
+          <h2 className="text-sm font-black text-foreground tracking-tight">Latest Updates</h2>
+          <span className="text-xs font-bold text-muted-foreground">
             {filteredItems.length} update{filteredItems.length === 1 ? "" : "s"}
           </span>
         </div>

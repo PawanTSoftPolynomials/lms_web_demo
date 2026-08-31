@@ -7,8 +7,8 @@ export default function AchievementItem({ achievement }) {
         {achievement.icon}
       </div>
       <div className="min-w-0">
-        <p className="text-xs font-bold text-slate-200">{achievement.name}</p>
-        <p className="text-[10px] text-slate-500 line-clamp-1">{achievement.description}</p>
+        <p className="text-xs font-bold text-foreground">{achievement.name}</p>
+        <p className="text-[10px] text-muted-foreground line-clamp-1">{achievement.description}</p>
       </div>
     </div>
   );

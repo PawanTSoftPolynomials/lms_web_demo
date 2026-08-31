@@ -3,9 +3,9 @@ import StoreCourseCard from "./StoreCourseCard";
 export default function StoreCourseGrid({ courses = [] }) {
   if (!courses.length) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-700 p-12 text-center">
-        <h3 className="text-lg font-semibold text-white">No courses found</h3>
-        <p className="mt-2 text-slate-400">
+      <div className="rounded-xl border border-dashed border-transparent p-12 text-center">
+        <h3 className="text-lg font-semibold text-foreground">No courses found</h3>
+        <p className="mt-2 text-muted-foreground">
           You're already enrolled in every published course, or no courses match your filters.
         </p>
       </div>

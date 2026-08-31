@@ -12,22 +12,22 @@ export default function StatCard({
         p-5
         transition-all
         duration-300
-        hover:border-orange-500/40
+        hover:border-primary/40
         hover:-translate-y-1
       "
         >
             <div className="flex items-start justify-between">
                 <div>
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-muted-foreground">
                         {title}
                     </p>
 
-                    <h3 className="mt-2 text-3xl font-bold text-white">
+                    <h3 className="mt-2 text-3xl font-bold text-foreground">
                         {value}
                     </h3>
 
                     {description && (
-                        <p className="mt-2 text-sm text-slate-500">
+                        <p className="mt-2 text-sm text-muted-foreground">
                             {description}
                         </p>
                     )}
@@ -42,8 +42,8 @@ export default function StatCard({
               items-center
               justify-center
               rounded-xl
-              bg-orange-500/10
-              text-orange-500
+              bg-primary/10
+              text-primary
             "
                     >
                         {icon}

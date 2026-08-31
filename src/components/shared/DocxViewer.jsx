@@ -90,18 +90,18 @@ export default function DocxViewer({
   const controlsNode = (
     <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
       {/* Zoom Controls */}
-      <div className="flex items-center gap-1 rounded-xl bg-slate-950 border border-slate-800 px-2 py-1">
+      <div className="flex items-center gap-1 rounded-xl bg-background border border-border px-2 py-1">
         <button
           type="button"
           onClick={handleZoomOut}
           disabled={zoomScale <= 0.7}
-          className="rounded-lg p-1 text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-30 transition cursor-pointer"
+          className="rounded-lg p-1 text-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 transition cursor-pointer"
           title="Zoom Out"
         >
           <ZoomOut size={15} />
         </button>
 
-        <span className="text-[11px] font-semibold text-slate-300 min-w-[36px] text-center font-mono">
+        <span className="text-[11px] font-semibold text-foreground min-w-[36px] text-center font-mono">
           {Math.round(zoomScale * 100)}%
         </span>
 
@@ -109,7 +109,7 @@ export default function DocxViewer({
           type="button"
           onClick={handleZoomIn}
           disabled={zoomScale >= 2.0}
-          className="rounded-lg p-1 text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-30 transition cursor-pointer"
+          className="rounded-lg p-1 text-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 transition cursor-pointer"
           title="Zoom In"
         >
           <ZoomIn size={15} />
@@ -119,7 +119,7 @@ export default function DocxViewer({
           <button
             type="button"
             onClick={handleResetZoom}
-            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-orange-400 hover:bg-orange-500/10 border border-orange-500/30 transition cursor-pointer"
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-primary hover:bg-primary/10 border border-primary/30 transition cursor-pointer"
             title="Reset Zoom"
           >
             <Maximize2 size={12} />
@@ -134,7 +134,7 @@ export default function DocxViewer({
         download
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 px-3 py-1.5 text-xs font-extrabold text-slate-950 transition cursor-pointer shadow-md"
+        className="flex items-center gap-1.5 rounded-xl bg-primary hover:bg-orange-600 px-3 py-1.5 text-xs font-extrabold text-slate-950 transition cursor-pointer shadow-md"
         title="Download Word Document"
       >
         <Download size={14} />
@@ -156,8 +156,8 @@ export default function DocxViewer({
 
   if (!isMounted) {
     return (
-      <div className="flex h-96 w-full items-center justify-center rounded-2xl border border-slate-800 bg-[#0B101D]">
-        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      <div className="flex h-96 w-full items-center justify-center rounded-2xl border border-border bg-[#0B101D]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -166,18 +166,18 @@ export default function DocxViewer({
     <div
       className={`flex flex-col w-full ${
         !hideToolbar
-          ? "rounded-2xl border border-slate-800 bg-[#0B101D] shadow-2xl overflow-hidden"
+          ? "rounded-2xl border border-border bg-[#0B101D] shadow-2xl overflow-hidden"
           : ""
       } ${className}`}
     >
       {/* Header Toolbar */}
       {!hideToolbar && (
-        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-800/80 bg-[#0D1222] px-3.5 py-2.5 text-slate-300 rounded-t-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border/80 bg-[#0D1222] px-3.5 py-2.5 text-foreground rounded-t-2xl">
           <div className="flex items-center gap-2 min-w-0">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-400 shrink-0">
               <FileText size={15} />
             </div>
-            <span className="text-xs font-bold text-white truncate max-w-[160px] sm:max-w-xs md:max-w-md">
+            <span className="text-xs font-bold text-foreground truncate max-w-[160px] sm:max-w-xs md:max-w-md">
               {title || "Word Document"}
             </span>
           </div>
@@ -187,12 +187,12 @@ export default function DocxViewer({
       )}
 
       {/* DOCUMENT PAPER VIEWPORT */}
-      <div className="relative w-full h-[78vh] min-h-[520px] max-h-[900px] overflow-auto bg-[#060913] p-4 sm:p-8 flex justify-center items-start scroll-smooth rounded-2xl border border-slate-800/80">
+      <div className="relative w-full h-[78vh] min-h-[520px] max-h-[900px] overflow-auto bg-[#060913] p-4 sm:p-8 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80">
         {/* Loading Overlay */}
         {loadingStep && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#060913]/90 z-20 rounded-2xl">
-            <Loader2 className="h-9 w-9 animate-spin text-orange-500" />
-            <p className="text-xs font-bold text-slate-300">{loadingStep}</p>
+            <Loader2 className="h-9 w-9 animate-spin text-primary" />
+            <p className="text-xs font-bold text-foreground">{loadingStep}</p>
           </div>
         )}
 
@@ -203,8 +203,8 @@ export default function DocxViewer({
               <AlertCircle size={24} />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-white mb-1">Document preview unavailable</h4>
-              <p className="text-xs text-slate-400 leading-relaxed mb-4">
+              <h4 className="text-sm font-bold text-foreground mb-1">Document preview unavailable</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-4">
                 This Word document cannot be rendered directly in the browser preview. You can download the file to view it on your device.
               </p>
             </div>
@@ -213,7 +213,7 @@ export default function DocxViewer({
               download
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 px-5 py-2.5 text-xs font-bold text-slate-950 transition shadow-lg"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary hover:bg-orange-600 px-5 py-2.5 text-xs font-bold text-slate-950 transition shadow-lg"
             >
               <Download size={15} />
               <span>Download Document</span>
@@ -222,7 +222,7 @@ export default function DocxViewer({
         ) : elements.length > 0 ? (
           /* Render Document Paper Container */
           <div
-            className="w-full max-w-4xl bg-slate-900 border border-slate-800 text-slate-100 p-6 sm:p-12 shadow-2xl rounded-2xl transition-transform duration-150 origin-top"
+            className="w-full max-w-4xl bg-background border border-border text-foreground p-6 sm:p-12 shadow-2xl rounded-2xl transition-transform duration-150 origin-top"
             style={{
               transform: `scale(${zoomScale})`,
             }}
@@ -234,20 +234,20 @@ export default function DocxViewer({
                     <img
                       src={elem.src}
                       alt="Document graphic"
-                      className="max-w-full max-h-[500px] object-contain rounded-lg border border-slate-800 shadow-md"
+                      className="max-w-full max-h-[500px] object-contain rounded-lg border border-border shadow-md"
                     />
                   </div>
                 );
               }
 
               if (elem.type === "paragraph") {
-                let textClass = "text-sm text-slate-300 leading-relaxed mb-3";
+                let textClass = "text-sm text-foreground leading-relaxed mb-3";
                 if (elem.style === "h1") {
-                  textClass = "text-2xl font-bold text-white mb-4 mt-6 border-b border-slate-800 pb-2";
+                  textClass = "text-2xl font-bold text-foreground mb-4 mt-6 border-b border-border pb-2";
                 } else if (elem.style === "h2") {
-                  textClass = "text-xl font-bold text-slate-100 mb-3 mt-5";
+                  textClass = "text-xl font-bold text-foreground mb-3 mt-5";
                 } else if (elem.style === "h3") {
-                  textClass = "text-lg font-semibold text-slate-200 mb-2 mt-4";
+                  textClass = "text-lg font-semibold text-foreground mb-2 mt-4";
                 }
 
                 return (
@@ -275,13 +275,13 @@ export default function DocxViewer({
 
               if (elem.type === "table") {
                 return (
-                  <div key={idx} className="my-6 overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/60 p-2">
-                    <table className="w-full text-xs text-slate-200 border-collapse">
+                  <div key={idx} className="my-6 overflow-x-auto rounded-xl border border-border bg-background/60 p-2">
+                    <table className="w-full text-xs text-foreground border-collapse">
                       <tbody>
                         {elem.rows?.map((row, rIdx) => (
-                          <tr key={rIdx} className="border-b border-slate-800/80">
+                          <tr key={rIdx} className="border-b border-border/80">
                             {row?.map((cell, cIdx) => (
-                              <td key={cIdx} className="p-2 border-r border-slate-800/80">
+                              <td key={cIdx} className="p-2 border-r border-border/80">
                                 {cell}
                               </td>
                             ))}

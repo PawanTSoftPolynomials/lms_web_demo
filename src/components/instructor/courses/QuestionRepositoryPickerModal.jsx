@@ -77,7 +77,7 @@ export default function QuestionRepositoryPickerModal({ open, onClose, onAddQues
     <Modal open={open} onClose={onClose} title="Add from Question Repository" size="lg">
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <div className="relative shrink-0 mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
           <input
             type="text"
             value={search}
@@ -86,20 +86,20 @@ export default function QuestionRepositoryPickerModal({ open, onClose, onAddQues
               setPage(1);
             }}
             placeholder="Search repository questions..."
-            className="w-full rounded-xl border border-slate-700 bg-slate-950 pl-9 pr-3 py-2 text-xs text-white outline-none focus:border-emerald-500"
+            className="w-full rounded-xl border border-transparent bg-background pl-9 pr-3 py-2 text-xs text-foreground outline-none focus:border-emerald-500"
           />
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
           {isLoading ? (
-            <div className="flex items-center justify-center gap-2 py-10 text-xs text-slate-400">
+            <div className="flex items-center justify-center gap-2 py-10 text-xs text-muted-foreground">
               <Loader2 size={14} className="animate-spin" />
               Loading questions…
             </div>
           ) : error ? (
             <div className="py-10 text-center text-xs text-red-400">{error}</div>
           ) : items.length === 0 ? (
-            <div className="py-10 text-center text-xs text-slate-500 italic">
+            <div className="py-10 text-center text-xs text-muted-foreground italic">
               {search ? "No questions match your search." : "No repository questions yet."}
             </div>
           ) : (
@@ -114,21 +114,21 @@ export default function QuestionRepositoryPickerModal({ open, onClose, onAddQues
                   onClick={() => toggleSelect(q.id)}
                   className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition ${
                     alreadyInQuiz
-                      ? "border-slate-800 bg-slate-900/30 opacity-50 cursor-not-allowed"
+                      ? "border-border bg-background/30 opacity-50 cursor-not-allowed"
                       : isChecked
                         ? "border-emerald-500/60 bg-emerald-500/10 cursor-pointer"
-                        : "border-slate-800 bg-slate-900/60 hover:border-slate-700 cursor-pointer"
+                        : "border-border bg-background/60 hover:border-transparent cursor-pointer"
                   }`}
                 >
                   {isChecked ? (
                     <CheckSquare size={16} className="text-emerald-400 shrink-0 mt-0.5" />
                   ) : (
-                    <Square size={16} className="text-slate-500 shrink-0 mt-0.5" />
+                    <Square size={16} className="text-muted-foreground shrink-0 mt-0.5" />
                   )}
                   <div className="min-w-0 flex-1 space-y-1">
-                    <p className="text-xs font-semibold text-white leading-relaxed">{q.question}</p>
+                    <p className="text-xs font-semibold text-foreground leading-relaxed">{q.question}</p>
                     <div className="flex items-center gap-1.5 flex-wrap text-[10px] font-mono">
-                      <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">{q.questionType}</span>
+                      <span className="px-1.5 py-0.5 rounded bg-muted text-foreground">{q.questionType}</span>
                       {q.difficulty && (
                         <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">{q.difficulty}</span>
                       )}
@@ -136,7 +136,7 @@ export default function QuestionRepositoryPickerModal({ open, onClose, onAddQues
                         <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400">Already in this quiz</span>
                       )}
                       {!alreadyInQuiz && q.usedInQuizzesCount > 0 && (
-                        <span className="text-slate-500">Used in {q.usedInQuizzesCount} quiz{q.usedInQuizzesCount === 1 ? "" : "zes"}</span>
+                        <span className="text-muted-foreground">Used in {q.usedInQuizzesCount} quiz{q.usedInQuizzesCount === 1 ? "" : "zes"}</span>
                       )}
                     </div>
                   </div>
@@ -147,34 +147,34 @@ export default function QuestionRepositoryPickerModal({ open, onClose, onAddQues
         </div>
 
         {totalPages > 1 && (
-          <div className="shrink-0 flex items-center justify-between pt-3 mt-2 border-t border-slate-800">
+          <div className="shrink-0 flex items-center justify-between pt-3 mt-2 border-t border-border">
             <button
               type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-bold text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="px-3 py-1.5 rounded-lg border border-transparent text-xs font-bold text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               Previous
             </button>
-            <span className="text-xs font-mono text-slate-400">Page {page} of {totalPages}</span>
+            <span className="text-xs font-mono text-muted-foreground">Page {page} of {totalPages}</span>
             <button
               type="button"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-bold text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="px-3 py-1.5 rounded-lg border border-transparent text-xs font-bold text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               Next
             </button>
           </div>
         )}
 
-        <div className="shrink-0 flex items-center justify-between pt-4 mt-1 border-t border-slate-800">
-          <span className="text-xs text-slate-400">{selectedIds.size} selected</span>
+        <div className="shrink-0 flex items-center justify-between pt-4 mt-1 border-t border-border">
+          <span className="text-xs text-muted-foreground">{selectedIds.size} selected</span>
           <button
             type="button"
             onClick={handleAddSelected}
             disabled={selectedIds.size === 0}
-            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-foreground text-xs font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             Add Selected ({selectedIds.size})
           </button>

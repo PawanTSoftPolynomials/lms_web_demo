@@ -12,7 +12,7 @@ export default function EnrollmentTable({
     if (!enrollments.length) {
         return (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-lg font-semibold text-foreground">
                     No Enrollments Found
                 </h3>
 
@@ -85,7 +85,7 @@ export default function EnrollmentTable({
                         >
                             <div className="flex items-start justify-between gap-3">
                                 <div>
-                                    <h3 className="font-semibold text-white">
+                                    <h3 className="font-semibold text-foreground">
                                         {
                                             enrollment
                                                 .student
@@ -135,7 +135,7 @@ export default function EnrollmentTable({
                                         Course
                                     </p>
 
-                                    <span className="font-medium text-white">
+                                    <span className="font-medium text-foreground">
                     {
                         enrollment
                             .course
@@ -149,7 +149,7 @@ export default function EnrollmentTable({
                                         Phone
                                     </p>
 
-                                    <span className="text-white">
+                                    <span className="text-foreground">
                     {enrollment
                             .student
                             ?.phone ||
@@ -162,7 +162,7 @@ export default function EnrollmentTable({
                                         Enrolled
                                     </p>
 
-                                    <span className="text-white">
+                                    <span className="text-foreground">
                     {new Date(
                         enrollment.enrolledAt
                     ).toLocaleDateString()}

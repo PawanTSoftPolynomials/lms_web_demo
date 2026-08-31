@@ -239,7 +239,7 @@ export default function QuizzesPage() {
       <Card>
         <div className="py-16 text-center">
           <h2 className="text-2xl font-semibold">Failed to Load Quizzes</h2>
-          <p className="mt-2 text-slate-400">Please try again later.</p>
+          <p className="mt-2 text-muted-foreground">Please try again later.</p>
         </div>
       </Card>
     );
@@ -261,20 +261,20 @@ export default function QuizzesPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight">Quizzes</h1>
-                <p className="mt-2 text-slate-400">Create and manage quizzes for your courses.</p>
+                <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">Quizzes</h1>
+                <p className="mt-2 text-muted-foreground">Create and manage quizzes for your courses.</p>
               </div>
 
               <div className="flex items-center space-x-3">
                 <Link href="/instructor/questions">
-                  <button className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-400 font-bold text-sm px-5 py-3.5 hover:bg-slate-800 transition">
+                  <button className="flex items-center justify-center gap-2 rounded-xl bg-background border border-amber-500/40 text-amber-400 font-bold text-sm px-5 py-3.5 hover:bg-muted transition">
                     <FileText size={16} />
                     <span>Question Repository</span>
                   </button>
                 </Link>
 
                 <Link href="/instructor/quizzes/create">
-                  <button className="flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold text-sm px-6 py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95">
+                  <button className="flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 font-extrabold text-sm px-6 py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95">
                     <Plus size={16} />
                     <span>Create Quiz</span>
                   </button>
@@ -285,52 +285,52 @@ export default function QuizzesPage() {
             {/* KPI Metrics Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {/* Total Quizzes */}
-              <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800/80 rounded-2xl p-6 flex items-center gap-5">
+              <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-transparent/80 rounded-2xl p-6 flex items-center gap-5">
                 <div className="p-4 rounded-xl bg-blue-500/10 text-blue-400 shrink-0">
                   <FileText size={24} />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Quizzes</p>
-                  <h3 className="text-3xl font-black text-white mt-1">{metrics.total}</h3>
-                  <p className="text-[10px] text-slate-500 mt-1">Across all courses</p>
+                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Total Quizzes</p>
+                  <h3 className="text-3xl font-black text-foreground mt-1">{metrics.total}</h3>
+                  <p className="text-[10px] text-muted-foreground mt-1">Across all courses</p>
                 </div>
               </div>
 
               {/* Published */}
-              <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800/80 rounded-2xl p-6 flex items-center gap-5">
+              <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-transparent/80 rounded-2xl p-6 flex items-center gap-5">
                 <div className="p-4 rounded-xl bg-emerald-500/10 text-emerald-400 shrink-0">
                   <CheckSquare size={24} />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Published</p>
-                  <h3 className="text-3xl font-black text-white mt-1">{metrics.published}</h3>
-                  <p className="text-[10px] text-slate-500 mt-1">Active quizzes</p>
+                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Published</p>
+                  <h3 className="text-3xl font-black text-foreground mt-1">{metrics.published}</h3>
+                  <p className="text-[10px] text-muted-foreground mt-1">Active quizzes</p>
                 </div>
               </div>
 
               {/* Drafts */}
-              <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800/80 rounded-2xl p-6 flex items-center gap-5">
+              <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-transparent/80 rounded-2xl p-6 flex items-center gap-5">
                 <div className="p-4 rounded-xl bg-amber-500/10 text-amber-400 shrink-0">
                   <Edit size={24} />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Drafts</p>
-                  <h3 className="text-3xl font-black text-white mt-1">{metrics.drafts}</h3>
-                  <p className="text-[10px] text-slate-500 mt-1">Unpublished quizzes</p>
+                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Drafts</p>
+                  <h3 className="text-3xl font-black text-foreground mt-1">{metrics.drafts}</h3>
+                  <p className="text-[10px] text-muted-foreground mt-1">Unpublished quizzes</p>
                 </div>
               </div>
 
               {/* Total Attempts */}
-              <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800/80 rounded-2xl p-6 flex items-center gap-5">
+              <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-transparent/80 rounded-2xl p-6 flex items-center gap-5">
                 <div className="p-4 rounded-xl bg-purple-500/10 text-purple-400 shrink-0">
                   <Play size={24} className="rotate-90" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Attempts</p>
-                  <h3 className="text-3xl font-black text-white mt-1">
+                  <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Total Attempts</p>
+                  <h3 className="text-3xl font-black text-foreground mt-1">
                     {metrics.attempts.toLocaleString()}
                   </h3>
-                  <p className="text-[10px] text-slate-500 mt-1">By all students</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">By all students</p>
                 </div>
               </div>
             </div>
@@ -339,13 +339,13 @@ export default function QuizzesPage() {
             <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
               {/* Search */}
               <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                 <input
                   type="text"
                   placeholder="Search quizzes..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3 pl-12 text-sm"
+                  className="w-full bg-background border border-transparent text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3 pl-12 text-sm"
                 />
               </div>
 
@@ -355,7 +355,7 @@ export default function QuizzesPage() {
                 <select
                   value={selectedCourse}
                   onChange={(e) => setSelectedCourse(e.target.value)}
-                  className="bg-slate-900 border border-slate-800 text-slate-300 rounded-xl focus:border-orange-500 outline-none transition px-4 py-3 text-sm cursor-pointer max-w-[200px]"
+                  className="bg-background border border-transparent text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3 text-sm cursor-pointer max-w-[200px]"
                 >
                   <option value="all">All Courses</option>
                   {courses.map((c) => (
@@ -369,7 +369,7 @@ export default function QuizzesPage() {
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="bg-slate-900 border border-slate-800 text-slate-300 rounded-xl focus:border-orange-500 outline-none transition px-4 py-3 text-sm cursor-pointer min-w-[130px]"
+                  className="bg-background border border-transparent text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3 text-sm cursor-pointer min-w-[130px]"
                 >
                   <option value="all">All Status</option>
                   <option value="published">Published</option>
@@ -380,7 +380,7 @@ export default function QuizzesPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-slate-900 border border-slate-800 text-slate-300 rounded-xl focus:border-orange-500 outline-none transition px-4 py-3 text-sm cursor-pointer min-w-[140px]"
+                  className="bg-background border border-transparent text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3 text-sm cursor-pointer min-w-[140px]"
                 >
                   <option value="newest">Sort by: Newest</option>
                   <option value="oldest">Sort by: Oldest</option>
@@ -390,11 +390,11 @@ export default function QuizzesPage() {
             </div>
 
             {/* Quizzes Table */}
-            <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800/80 rounded-2xl overflow-hidden">
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-transparent/80 rounded-2xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-800 bg-slate-900/40 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                    <tr className="border-b border-transparent bg-background/40 text-muted-foreground text-xs font-bold uppercase tracking-wider">
                       <th className="p-5 pl-6">Quiz Title</th>
                       <th className="p-5">Course</th>
                       <th className="p-5 text-center">Questions</th>
@@ -407,7 +407,7 @@ export default function QuizzesPage() {
                   <tbody>
                     {paginatedQuizzes.length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="p-12 text-center text-slate-500 italic text-sm">
+                        <td colSpan="7" className="p-12 text-center text-muted-foreground italic text-sm">
                           No quizzes found matching your filter criteria.
                         </td>
                       </tr>
@@ -418,35 +418,35 @@ export default function QuizzesPage() {
                           <tr
                             key={quiz.id}
                             onClick={() => setSelectedQuiz(quiz)}
-                            className="border-b border-slate-800/50 hover:bg-slate-850/40 transition-all duration-200 text-sm text-slate-300 cursor-pointer group"
+                            className="border-b border-transparent/50 hover:bg-slate-850/40 transition-all duration-200 text-sm text-foreground cursor-pointer group"
                           >
                             {/* Quiz Title & Description */}
                             <td className="p-5 pl-6 max-w-xs">
-                              <p className="font-bold text-white group-hover:text-orange-400 transition-colors leading-snug truncate">{quiz.title}</p>
-                              <p className="text-xs text-slate-500 leading-normal truncate mt-0.5">
+                              <p className="font-bold text-foreground group-hover:text-primary transition-colors leading-snug truncate">{quiz.title}</p>
+                              <p className="text-xs text-muted-foreground leading-normal truncate mt-0.5">
                                 {quiz.description || "No description provided."}
                               </p>
                             </td>
 
                             {/* Course & Category */}
                             <td className="p-5 max-w-[180px]">
-                              <p className="font-medium text-slate-200 leading-snug truncate">
+                              <p className="font-medium text-foreground leading-snug truncate">
                                 {quiz.course?.title || "Standalone Quiz"}
                               </p>
                               {quiz.course?.category && (
-                                <p className="text-xs text-slate-500 mt-0.5 truncate uppercase font-semibold text-[10px]">
+                                <p className="text-xs text-muted-foreground mt-0.5 truncate uppercase font-semibold text-[10px]">
                                   {quiz.course.category}
                                 </p>
                               )}
                             </td>
 
                             {/* Questions Count */}
-                            <td className="p-5 text-center font-bold text-slate-200">
+                            <td className="p-5 text-center font-bold text-foreground">
                               {quiz._count?.questions ?? 0}
                             </td>
 
                             {/* Attempts Count */}
-                            <td className="p-5 text-center font-bold text-slate-200">
+                            <td className="p-5 text-center font-bold text-foreground">
                               {quiz._count?.quizSubmissions ?? 0}
                             </td>
 
@@ -464,7 +464,7 @@ export default function QuizzesPage() {
                             </td>
 
                             {/* Created At Date */}
-                            <td className="p-5 text-slate-400 text-xs">
+                            <td className="p-5 text-muted-foreground text-xs">
                               {new Date(quiz.createdAt).toLocaleDateString("en-US", {
                                 month: "short",
                                 day: "numeric",
@@ -476,20 +476,20 @@ export default function QuizzesPage() {
                             <td className="p-5 pr-6" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center justify-center gap-2">
                                 <Link href={`/instructor/questions/create/${quiz.id}`}>
-                                  <button className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-orange-400 hover:text-orange-300 transition" title="Add Question">
+                                  <button className="p-2.5 rounded-lg border border-transparent bg-background/60 hover:bg-muted text-primary hover:text-orange-300 transition" title="Add Question">
                                     <Plus size={14} />
                                   </button>
                                 </Link>
                                 
                                 <Link href={`/instructor/quizzes/edit/${quiz.id}`}>
-                                  <button className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Edit Quiz Details">
+                                  <button className="p-2.5 rounded-lg border border-transparent bg-background/60 hover:bg-muted text-muted-foreground hover:text-foreground transition" title="Edit Quiz Details">
                                     <Edit size={14} />
                                   </button>
                                 </Link>
 
                                 <button
                                   onClick={() => handleDeleteQuiz(quiz.id, quiz.courseId)}
-                                  className="p-2.5 rounded-lg border border-slate-850 bg-slate-900/20 hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition"
+                                  className="p-2.5 rounded-lg border border-slate-850 bg-background/20 hover:bg-red-500/10 text-muted-foreground hover:text-red-400 transition"
                                   title="Delete Quiz"
                                 >
                                   <Trash2 size={14} />
@@ -506,11 +506,11 @@ export default function QuizzesPage() {
 
               {/* Pagination Footer */}
               {totalItems > 0 && (
-                <div className="border-t border-slate-800 bg-slate-900/20 p-5 pl-6 pr-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <span className="text-xs text-slate-400">
-                    Showing <span className="font-bold text-white">{startIndex + 1}</span> to{" "}
-                    <span className="font-bold text-white">{endIndex}</span> of{" "}
-                    <span className="font-bold text-white">{totalItems}</span> quizzes
+                <div className="border-t border-transparent bg-background/20 p-5 pl-6 pr-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <span className="text-xs text-muted-foreground">
+                    Showing <span className="font-bold text-foreground">{startIndex + 1}</span> to{" "}
+                    <span className="font-bold text-foreground">{endIndex}</span> of{" "}
+                    <span className="font-bold text-foreground">{totalItems}</span> quizzes
                   </span>
 
                   {/* Pagination Controls */}
@@ -518,7 +518,7 @@ export default function QuizzesPage() {
                     <button
                       disabled={currentPage === 1}
                       onClick={() => handlePageChange(currentPage - 1)}
-                      className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white disabled:opacity-40 disabled:hover:text-slate-400 transition cursor-pointer"
+                      className="p-2.5 rounded-lg border border-transparent bg-background/60 text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:hover:text-muted-foreground transition cursor-pointer"
                     >
                       <ChevronLeft size={16} />
                     </button>
@@ -531,8 +531,8 @@ export default function QuizzesPage() {
                           onClick={() => handlePageChange(page)}
                           className={`h-9 w-9 text-xs rounded-lg font-bold border transition ${
                             isActive
-                              ? "bg-orange-500 border-orange-500 text-slate-950 shadow-md shadow-orange-500/15"
-                              : "border-slate-800 bg-slate-900/40 text-slate-400 hover:text-white"
+                              ? "bg-primary border-primary text-slate-950 shadow-md shadow-orange-500/15"
+                              : "border-transparent bg-background/40 text-muted-foreground hover:text-foreground"
                           }`}
                         >
                           {page}
@@ -543,7 +543,7 @@ export default function QuizzesPage() {
                     <button
                       disabled={currentPage === totalPages}
                       onClick={() => handlePageChange(currentPage + 1)}
-                      className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white disabled:opacity-40 disabled:hover:text-slate-400 transition cursor-pointer"
+                      className="p-2.5 rounded-lg border border-transparent bg-background/60 text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:hover:text-muted-foreground transition cursor-pointer"
                     >
                       <ChevronRight size={16} />
                     </button>
@@ -566,7 +566,7 @@ export default function QuizzesPage() {
             <div className="space-y-4">
               <button
                 onClick={() => setSelectedQuiz(null)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition"
               >
                 <ArrowLeft size={14} />
                 Back to Quizzes
@@ -574,15 +574,15 @@ export default function QuizzesPage() {
 
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-xs text-slate-400 font-extrabold uppercase tracking-widest pl-0.5">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground font-extrabold uppercase tracking-widest pl-0.5">
                     <span>QUIZZES</span>
                     <span>&gt;</span>
-                    <span className="text-orange-400">{selectedQuiz.title}</span>
+                    <span className="text-primary">{selectedQuiz.title}</span>
                   </div>
-                  <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight">Quiz Questions</h1>
+                  <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">Quiz Questions</h1>
                   <div className="flex flex-wrap gap-2.5 items-center mt-2">
-                    <span className="text-slate-500 text-xs font-semibold">
-                      Course: <span className="text-slate-300 font-bold">{selectedQuiz.course?.title || "Standalone"}</span>
+                    <span className="text-muted-foreground text-xs font-semibold">
+                      Course: <span className="text-foreground font-bold">{selectedQuiz.course?.title || "Standalone"}</span>
                     </span>
                     <span className="text-slate-700 font-mono text-xs">•</span>
                     <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase border ${
@@ -593,14 +593,14 @@ export default function QuizzesPage() {
                       {selectedQuiz.isPublished || selectedQuiz.status === "Published" || selectedQuiz.status === "PUBLISHED" ? "Published" : "Draft"}
                     </span>
                     <span className="text-slate-700 font-mono text-xs">•</span>
-                    <span className="text-slate-500 text-xs font-semibold">
-                      Questions: <span className="text-slate-300 font-bold">{questions.length}</span>
+                    <span className="text-muted-foreground text-xs font-semibold">
+                      Questions: <span className="text-foreground font-bold">{questions.length}</span>
                     </span>
                   </div>
                 </div>
 
                 <Link href={`/instructor/questions/create/${selectedQuiz.id}`}>
-                  <button className="flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-extrabold text-sm px-6 py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95">
+                  <button className="flex items-center gap-2 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 font-extrabold text-sm px-6 py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95">
                     <Plus size={16} />
                     <span>Add Question</span>
                   </button>
@@ -612,13 +612,13 @@ export default function QuizzesPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
               {/* Search */}
               <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                 <input
                   type="text"
                   placeholder="Search questions..."
                   value={qSearchQuery}
                   onChange={(e) => setQSearchQuery(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3 pl-12 text-sm"
+                  className="w-full bg-background border border-transparent text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3 pl-12 text-sm"
                 />
               </div>
 
@@ -626,7 +626,7 @@ export default function QuizzesPage() {
               <select
                 value={qSelectedType}
                 onChange={(e) => setQSelectedType(e.target.value)}
-                className="bg-slate-900 border border-slate-800 text-slate-300 rounded-xl focus:border-orange-500 outline-none transition px-4 py-3 text-sm cursor-pointer min-w-[170px]"
+                className="bg-background border border-transparent text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3 text-sm cursor-pointer min-w-[170px]"
               >
                 <option value="all">All Question Types</option>
                 <option value="MCQ_SINGLE">Single Choice (MCQ)</option>
@@ -638,11 +638,11 @@ export default function QuizzesPage() {
             </div>
 
             {/* Questions Table */}
-            <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800/80 rounded-2xl overflow-hidden">
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-transparent/80 rounded-2xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-800 bg-slate-900/40 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                    <tr className="border-b border-transparent bg-background/40 text-muted-foreground text-xs font-bold uppercase tracking-wider">
                       <th className="p-5 pl-6">Question</th>
                       <th className="p-5">Type</th>
                       <th className="p-5 text-center">Marks</th>
@@ -659,7 +659,7 @@ export default function QuizzesPage() {
                       </tr>
                     ) : paginatedQuestions.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="p-12 text-center text-slate-500 italic text-sm">
+                        <td colSpan="5" className="p-12 text-center text-muted-foreground italic text-sm">
                           No questions found matching your filter criteria.
                         </td>
                       </tr>
@@ -669,11 +669,11 @@ export default function QuizzesPage() {
                         return (
                           <tr
                             key={q.id}
-                            className="border-b border-slate-800/50 hover:bg-slate-850/20 transition text-sm text-slate-300"
+                            className="border-b border-transparent/50 hover:bg-slate-850/20 transition text-sm text-foreground"
                           >
                             {/* Question Text */}
                             <td className="p-5 pl-6 max-w-sm">
-                              <p className="font-bold text-white leading-relaxed line-clamp-2">{q.question}</p>
+                              <p className="font-bold text-foreground leading-relaxed line-clamp-2">{q.question}</p>
                               {q.concept && (
                                 <span className="inline-block text-[9px] text-purple-400 font-extrabold uppercase mt-1">
                                   {q.concept}
@@ -690,7 +690,7 @@ export default function QuizzesPage() {
                                     : type === "MCQ_MULTI"
                                     ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
                                     : type === "ARRANGE_TOKENS"
-                                    ? "bg-orange-500/10 text-orange-400 border-orange-500/20"
+                                    ? "bg-primary/10 text-primary border-primary/20"
                                     : type === "MATCH_PAIRS"
                                     ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
                                     : "bg-amber-500/10 text-amber-400 border-amber-500/20"
@@ -702,15 +702,15 @@ export default function QuizzesPage() {
 
                             {/* Marks */}
                             <td className="p-5 text-center">
-                              <span className="inline-flex items-center gap-1 text-slate-200 font-bold bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-850">
-                                <Star size={11} className="text-orange-400 fill-orange-400/20" />
+                              <span className="inline-flex items-center gap-1 text-foreground font-bold bg-background px-2.5 py-1 rounded-lg border border-slate-850">
+                                <Star size={11} className="text-primary fill-orange-400/20" />
                                 <span>{q.marks}</span>
                               </span>
                             </td>
 
                             {/* Options Details */}
                             <td className="p-5">
-                              <span className="text-xs text-slate-400">
+                              <span className="text-xs text-muted-foreground">
                                 {type === "MATCH_PAIRS"
                                   ? `${q.options?.left?.length ?? 0} Pairs`
                                   : type === "ARRANGE_TOKENS"
@@ -728,20 +728,20 @@ export default function QuizzesPage() {
                               <div className="flex items-center justify-center gap-2">
                                 {/* View */}
                                 <Link href={`/instructor/questions/view/${q.id}`}>
-                                  <button className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-white transition">
+                                  <button className="p-2.5 rounded-lg border border-transparent bg-background/60 hover:bg-muted text-muted-foreground hover:text-foreground transition">
                                     <Eye size={14} />
                                   </button>
                                 </Link>
                                 {/* Edit */}
                                 <Link href={`/instructor/questions/edit/${q.id}`}>
-                                  <button className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-white transition">
+                                  <button className="p-2.5 rounded-lg border border-transparent bg-background/60 hover:bg-muted text-muted-foreground hover:text-foreground transition">
                                     <Edit size={14} />
                                   </button>
                                 </Link>
                                 {/* Delete */}
                                 <button
                                   onClick={() => handleDeleteQuestion(q.id)}
-                                  className="p-2.5 rounded-lg border border-slate-850 bg-slate-900/20 hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition"
+                                  className="p-2.5 rounded-lg border border-slate-850 bg-background/20 hover:bg-red-500/10 text-muted-foreground hover:text-red-400 transition"
                                 >
                                   <Trash2 size={14} />
                                 </button>
@@ -757,11 +757,11 @@ export default function QuizzesPage() {
 
               {/* Questions Pagination Footer */}
               {totalQItems > 0 && (
-                <div className="border-t border-slate-800 bg-slate-900/20 p-5 pl-6 pr-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <span className="text-xs text-slate-400">
-                    Showing <span className="font-bold text-white">{startQIndex + 1}</span> to{" "}
-                    <span className="font-bold text-white">{endQIndex}</span> of{" "}
-                    <span className="font-bold text-white">{totalQItems}</span> questions
+                <div className="border-t border-transparent bg-background/20 p-5 pl-6 pr-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <span className="text-xs text-muted-foreground">
+                    Showing <span className="font-bold text-foreground">{startQIndex + 1}</span> to{" "}
+                    <span className="font-bold text-foreground">{endQIndex}</span> of{" "}
+                    <span className="font-bold text-foreground">{totalQItems}</span> questions
                   </span>
 
                   {/* Pagination Controls */}
@@ -769,7 +769,7 @@ export default function QuizzesPage() {
                     <button
                       disabled={qCurrentPage === 1}
                       onClick={() => handleQPageChange(qCurrentPage - 1)}
-                      className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white disabled:opacity-40 disabled:hover:text-slate-400 transition cursor-pointer"
+                      className="p-2.5 rounded-lg border border-transparent bg-background/60 text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:hover:text-muted-foreground transition cursor-pointer"
                     >
                       <ChevronLeft size={16} />
                     </button>
@@ -782,8 +782,8 @@ export default function QuizzesPage() {
                           onClick={() => handleQPageChange(page)}
                           className={`h-9 w-9 text-xs rounded-lg font-bold border transition ${
                             isActive
-                              ? "bg-orange-500 border-orange-500 text-slate-950 shadow-md shadow-orange-500/15"
-                              : "border-slate-800 bg-slate-900/40 text-slate-400 hover:text-white"
+                              ? "bg-primary border-primary text-slate-950 shadow-md shadow-orange-500/15"
+                              : "border-transparent bg-background/40 text-muted-foreground hover:text-foreground"
                           }`}
                         >
                           {page}
@@ -794,7 +794,7 @@ export default function QuizzesPage() {
                     <button
                       disabled={qCurrentPage === totalQPages}
                       onClick={() => handleQPageChange(qCurrentPage + 1)}
-                      className="p-2.5 rounded-lg border border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white disabled:opacity-40 disabled:hover:text-slate-400 transition cursor-pointer"
+                      className="p-2.5 rounded-lg border border-transparent bg-background/60 text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:hover:text-muted-foreground transition cursor-pointer"
                     >
                       <ChevronRight size={16} />
                     </button>

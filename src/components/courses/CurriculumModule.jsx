@@ -35,7 +35,7 @@ const getContentIcon = (type) => {
 
         default:
             return (
-                <FaBook className="text-orange-400"/>
+                <FaBook className="text-primary"/>
             );
     }
 };
@@ -59,8 +59,8 @@ export default function CurriculumModule({
         <Card
             className="
     border
-    border-slate-800
-    hover:border-orange-500/30
+    border-border
+    hover:border-primary/30
     transition-all
     duration-300
   "
@@ -96,10 +96,10 @@ export default function CurriculumModule({
       items-center
       justify-center
       rounded-xl
-      bg-orange-500/10
+      bg-primary/10
     ">
 
-                                <FaBook className="text-orange-400 text-lg"/>
+                                <FaBook className="text-primary text-lg"/>
 
                             </div>
 
@@ -108,14 +108,14 @@ export default function CurriculumModule({
   <span
       className="
       rounded-full
-      bg-orange-500/10
+      bg-primary/10
       px-3
       py-1
       text-xs
       font-bold
       uppercase
       tracking-wider
-      text-orange-400
+      text-primary
     "
   >
     Module {index + 1}
@@ -134,7 +134,7 @@ export default function CurriculumModule({
 
                         {module.description && (
 
-                            <p className="mt-4 text-slate-400 leading-7">
+                            <p className="mt-4 text-muted-foreground leading-7">
 
                                 {module.description}
 
@@ -148,7 +148,7 @@ export default function CurriculumModule({
 
                 <div className="flex items-center gap-3">
 
-                    <div className="rounded-full bg-slate-800 px-3 py-1 text-sm text-slate-400">
+                    <div className="rounded-full bg-muted px-3 py-1 text-sm text-muted-foreground">
 
                         {module.lessons?.length || 0} Lessons
 
@@ -168,7 +168,7 @@ export default function CurriculumModule({
 
             {open && (
 
-                <div className="relative mt-8 ml-5 border-l border-slate-800 pl-8 space-y-6">
+                <div className="relative mt-8 ml-5 border-l border-border pl-8 space-y-6">
 
                     {module.lessons?.length ? (
 
@@ -184,12 +184,12 @@ export default function CurriculumModule({
     relative
     rounded-2xl
     border
-    border-slate-700
-    bg-slate-950/40
+    border-transparent
+    bg-background/40
     p-7
     transition-all
     duration-300
-    hover:border-orange-500/30
+    hover:border-primary/30
   "
                                 >
 
@@ -229,7 +229,7 @@ export default function CurriculumModule({
 
                                             {lesson.description && (
 
-                                                <p className="mt-4 text-slate-400 leading-7">
+                                                <p className="mt-4 text-muted-foreground leading-7">
 
                                                     {lesson.description}
 
@@ -260,7 +260,7 @@ export default function CurriculumModule({
 
                                     </div>
 
-                                    <div className="mt-6 rounded-xl bg-slate-950/40 p-4 space-y-3">
+                                    <div className="mt-6 rounded-xl bg-background/40 p-4 space-y-3">
                                         {(() => {
                                             const lessonContents = (lesson.topics || []).flatMap((topic) => topic.contents || []);
                                             return lessonContents.length ? (
@@ -275,13 +275,13 @@ export default function CurriculumModule({
     justify-between
     rounded-xl
     border
-    border-slate-800
-    bg-slate-900/70
+    border-border
+    bg-background/70
     p-4
     transition-all
     duration-300
-    hover:border-orange-500/30
-    hover:bg-slate-900
+    hover:border-primary/30
+    hover:bg-background
   "
                                                     >
 
@@ -292,7 +292,7 @@ export default function CurriculumModule({
                                                             )}
                                                             <div>
 
-                                                                <h4 className="font-semibold text-white">
+                                                                <h4 className="font-semibold text-foreground">
 
                                                                     {content.title}
 
@@ -303,12 +303,12 @@ export default function CurriculumModule({
       mt-2
       inline-flex
       rounded-full
-      bg-slate-800
+      bg-muted
       px-3
       py-1
       text-xs
       font-medium
-      text-slate-300
+      text-foreground
     "
                                                                 >
     {content.type}
@@ -341,17 +341,17 @@ export default function CurriculumModule({
     rounded-xl
     border
     border-dashed
-    border-slate-700
-    bg-slate-950/40
+    border-transparent
+    bg-background/40
     py-10
     text-center
   "
                                             >
 
                                                 <div
-                                                    className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-800">
+                                                    className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
 
-                                                    <FaFileAlt className="text-slate-500"/>
+                                                    <FaFileAlt className="text-muted-foreground"/>
 
                                                 </div>
 
@@ -359,7 +359,7 @@ export default function CurriculumModule({
                                                     No Content Yet
                                                 </h4>
 
-                                                <p className="mt-2 text-sm text-slate-400">
+                                                <p className="mt-2 text-sm text-muted-foreground">
                                                     Add your first learning material.
                                                 </p>
 
@@ -377,13 +377,13 @@ export default function CurriculumModule({
 
                     ) : (
 
-                        <div className="rounded-xl border border-dashed border-slate-700 py-10 text-center">
+                        <div className="rounded-xl border border-dashed border-transparent py-10 text-center">
 
                             <h3 className="text-lg font-semibold">
                                 No Lessons Found
                             </h3>
 
-                            <p className="mt-2 text-slate-400">
+                            <p className="mt-2 text-muted-foreground">
                                 Start by adding your first lesson.
                             </p>
 

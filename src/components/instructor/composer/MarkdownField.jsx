@@ -16,7 +16,7 @@ export default function MarkdownField({
   return (
     <div className="space-y-2">
       {label && (
-        <label className="text-sm text-slate-300">{label}</label>
+        <label className="text-sm text-foreground">{label}</label>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <textarea
@@ -24,10 +24,10 @@ export default function MarkdownField({
           onChange={(e) => onChange(e.target.value)}
           rows={rows}
           placeholder={placeholder}
-          className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm font-mono outline-none focus:border-orange-500 resize-y"
+          className="w-full rounded-lg border border-transparent bg-muted px-3 py-2 text-sm font-mono outline-none focus:border-primary resize-y"
         />
         <div
-          className="rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2 text-sm prose prose-invert prose-sm max-w-none overflow-auto"
+          className="rounded-lg border border-border bg-background/40 px-3 py-2 text-sm prose prose-invert prose-sm max-w-none overflow-auto"
           style={{ minHeight: `${rows * 1.5}rem` }}
           dangerouslySetInnerHTML={{ __html: html || '<p class="text-slate-600">Preview…</p>' }}
         />

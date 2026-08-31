@@ -85,29 +85,29 @@ export default function UpdateCertificatePage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <Link href="/instructor/dashboard" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-orange-400 transition-colors">
+      <Link href="/instructor/dashboard" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
         <ArrowLeft size={16} /> Back to Dashboard
       </Link>
 
       <div>
-        <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
+        <h1 className="text-3xl font-black text-foreground tracking-tight flex items-center gap-3">
           <Edit3 className="text-blue-500" size={32} />
           Update Certificate
         </h1>
-        <p className="text-slate-400 mt-2">Modify the details of an existing credential.</p>
+        <p className="text-muted-foreground mt-2">Modify the details of an existing credential.</p>
       </div>
 
-      <Card className="p-6 md:p-8 border-[#1A1F35] bg-[#0D1021]">
+      <Card className="p-6 md:p-8 border-border bg-card">
         {successMsg ? (
           <div className="flex flex-col items-center justify-center py-10 text-center space-y-4">
             <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500">
               <CheckCircle2 size={32} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Success!</h2>
-              <p className="text-slate-400 mt-1">{successMsg}</p>
+              <h2 className="text-xl font-bold text-foreground">Success!</h2>
+              <p className="text-muted-foreground mt-1">{successMsg}</p>
             </div>
-            <p className="text-sm text-slate-500 mt-4">Redirecting to dashboard...</p>
+            <p className="text-sm text-muted-foreground mt-4">Redirecting to dashboard...</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -118,19 +118,19 @@ export default function UpdateCertificatePage() {
             )}
 
             {/* Certificate Selection */}
-            <div className="space-y-2 pb-6 border-b border-[#1A1F35]">
-              <label className="text-sm font-bold text-slate-300 flex items-center gap-2">
+            <div className="space-y-2 pb-6 border-b border-border">
+              <label className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Search size={16} className="text-blue-400" /> Select Certificate to Edit
               </label>
               {loadingCerts ? (
-                <div className="h-12 flex items-center px-4 rounded-xl bg-slate-900/50 border border-slate-800 text-slate-500 text-sm">
+                <div className="h-12 flex items-center px-4 rounded-xl bg-background/50 border border-transparent text-muted-foreground text-sm">
                   Loading certificates...
                 </div>
               ) : (
                 <select
                   value={selectedCertId}
                   onChange={(e) => setSelectedCertId(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl bg-slate-900/50 border border-slate-800 text-white focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all outline-none"
+                  className="w-full h-12 px-4 rounded-xl bg-background/50 border border-transparent text-foreground focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all outline-none"
                   required
                 >
                   <option value="">-- Choose a certificate --</option>
@@ -153,11 +153,11 @@ export default function UpdateCertificatePage() {
                 
                 {/* Course Selection */}
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-300 flex items-center gap-2">
+                  <label className="text-sm font-bold text-foreground flex items-center gap-2">
                     <BookOpen size={16} className="text-blue-400" /> Update Course
                   </label>
                   {loadingCourses ? (
-                    <div className="h-12 flex items-center px-4 rounded-xl bg-slate-900/50 border border-slate-800 text-slate-500 text-sm">
+                    <div className="h-12 flex items-center px-4 rounded-xl bg-background/50 border border-transparent text-muted-foreground text-sm">
                       Loading courses...
                     </div>
                   ) : (
@@ -167,7 +167,7 @@ export default function UpdateCertificatePage() {
                         setCourseId(e.target.value);
                         setStudentId(""); // reset student when course changes
                       }}
-                      className="w-full h-12 px-4 rounded-xl bg-slate-900/50 border border-slate-800 text-white focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all outline-none"
+                      className="w-full h-12 px-4 rounded-xl bg-background/50 border border-transparent text-foreground focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all outline-none"
                       required
                     >
                       <option value="">-- Choose a course --</option>
@@ -180,19 +180,19 @@ export default function UpdateCertificatePage() {
 
                 {/* Student Selection */}
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-300 flex items-center gap-2">
+                  <label className="text-sm font-bold text-foreground flex items-center gap-2">
                     <User size={16} className="text-blue-400" /> Update Student
                   </label>
                   {!courseId ? (
-                    <div className="h-12 flex items-center px-4 rounded-xl bg-slate-900/50 border border-slate-800/50 text-slate-600 text-sm italic">
+                    <div className="h-12 flex items-center px-4 rounded-xl bg-background/50 border border-transparent/50 text-slate-600 text-sm italic">
                       Select a course first to load students.
                     </div>
                   ) : loadingStudents ? (
-                    <div className="h-12 flex items-center px-4 rounded-xl bg-slate-900/50 border border-slate-800 text-slate-500 text-sm">
+                    <div className="h-12 flex items-center px-4 rounded-xl bg-background/50 border border-transparent text-muted-foreground text-sm">
                       Loading students...
                     </div>
                   ) : students.length === 0 ? (
-                    <div className="h-12 flex items-center px-4 rounded-xl bg-slate-900/50 border border-slate-800 text-slate-500 text-sm">
+                    <div className="h-12 flex items-center px-4 rounded-xl bg-background/50 border border-transparent text-muted-foreground text-sm">
                       No students found in this course.
                       {studentId && <span className="ml-2 text-blue-400">(Selected student ID: {studentId})</span>}
                     </div>
@@ -200,7 +200,7 @@ export default function UpdateCertificatePage() {
                     <select
                       value={studentId}
                       onChange={(e) => setStudentId(e.target.value)}
-                      className="w-full h-12 px-4 rounded-xl bg-slate-900/50 border border-slate-800 text-white focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all outline-none"
+                      className="w-full h-12 px-4 rounded-xl bg-background/50 border border-transparent text-foreground focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all outline-none"
                       required
                     >
                       <option value="">-- Choose a student --</option>
@@ -219,7 +219,7 @@ export default function UpdateCertificatePage() {
 
                 {/* Issue Date */}
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-300 flex items-center gap-2">
+                  <label className="text-sm font-bold text-foreground flex items-center gap-2">
                     <Calendar size={16} className="text-blue-400" /> Update Issue Date
                   </label>
                   <Input
@@ -231,7 +231,7 @@ export default function UpdateCertificatePage() {
                   />
                 </div>
 
-                <div className="pt-4 border-t border-[#1A1F35]">
+                <div className="pt-4 border-t border-border">
                   <Button
                     type="submit"
                     disabled={updateMutation.isPending || !courseId || !studentId}

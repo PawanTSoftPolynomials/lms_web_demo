@@ -42,10 +42,10 @@ export default function AssignmentDetailPage({ params }) {
   if (isError || !assignment) {
     return (
       <Card className="p-8 text-center">
-        <h2 className="text-xl font-semibold text-white">
+        <h2 className="text-xl font-semibold text-foreground">
           Assignment not found
         </h2>
-        <p className="mt-2 text-slate-400">
+        <p className="mt-2 text-muted-foreground">
           The requested assignment could not be loaded.
         </p>
       </Card>
@@ -67,32 +67,32 @@ export default function AssignmentDetailPage({ params }) {
             <div className="space-y-5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm text-slate-400">Status</p>
-                  <p className="mt-1 text-lg font-semibold text-white">{status}</p>
+                  <p className="text-sm text-muted-foreground">Status</p>
+                  <p className="mt-1 text-lg font-semibold text-foreground">{status}</p>
                 </div>
-                <div className="rounded-full bg-slate-800 px-4 py-2 text-sm text-slate-300">
+                <div className="rounded-full bg-muted px-4 py-2 text-sm text-foreground">
                   Due {assignment.dueDate ? new Date(assignment.dueDate).toLocaleString() : "No due date"}
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Description</h3>
-                  <p className="mt-3 text-slate-400 whitespace-pre-line">
+                  <h3 className="text-lg font-semibold text-foreground">Description</h3>
+                  <p className="mt-3 text-muted-foreground whitespace-pre-line">
                     {assignment.description || "No description available."}
                   </p>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-2xl bg-slate-950 p-4">
-                    <p className="text-sm text-slate-400">Questions</p>
-                    <p className="mt-2 text-lg font-semibold text-white">
+                  <div className="rounded-2xl bg-background p-4">
+                    <p className="text-sm text-muted-foreground">Questions</p>
+                    <p className="mt-2 text-lg font-semibold text-foreground">
                       {assignment.totalQuestions ?? "—"}
                     </p>
                   </div>
-                  <div className="rounded-2xl bg-slate-950 p-4">
-                    <p className="text-sm text-slate-400">Estimated Time</p>
-                    <p className="mt-2 text-lg font-semibold text-white">
+                  <div className="rounded-2xl bg-background p-4">
+                    <p className="text-sm text-muted-foreground">Estimated Time</p>
+                    <p className="mt-2 text-lg font-semibold text-foreground">
                       {assignment.estimatedTime ? `${assignment.estimatedTime} min` : "—"}
                     </p>
                   </div>
@@ -103,17 +103,17 @@ export default function AssignmentDetailPage({ params }) {
 
           <Card>
             <div className="space-y-5">
-              <h3 className="text-lg font-semibold text-white">Submit Your Work</h3>
-              <p className="text-sm text-slate-400">
+              <h3 className="text-lg font-semibold text-foreground">Submit Your Work</h3>
+              <p className="text-sm text-muted-foreground">
                 Provide a summary or submission notes for your assignment here. You can revise this before submission.
               </p>
-              <label className="space-y-2 text-sm text-slate-200">
+              <label className="space-y-2 text-sm text-foreground">
                 <span>Submission Notes</span>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Enter your assignment submission details..."
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition focus:border-orange-500 min-h-40 resize-none"
+                  className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary min-h-40 resize-none"
                 />
               </label>
               <Button
@@ -130,28 +130,28 @@ export default function AssignmentDetailPage({ params }) {
 
         <div className="space-y-6">
           <Card>
-            <h3 className="text-lg font-semibold text-white">Assignment Summary</h3>
-            <div className="mt-4 space-y-4 text-sm text-slate-400">
-              <div className="flex items-center justify-between rounded-2xl bg-slate-950 p-4">
+            <h3 className="text-lg font-semibold text-foreground">Assignment Summary</h3>
+            <div className="mt-4 space-y-4 text-sm text-muted-foreground">
+              <div className="flex items-center justify-between rounded-2xl bg-background p-4">
                 <span>Course</span>
-                <span className="text-white">{assignment.course?.title || assignment.courseTitle || "—"}</span>
+                <span className="text-foreground">{assignment.course?.title || assignment.courseTitle || "—"}</span>
               </div>
-              <div className="flex items-center justify-between rounded-2xl bg-slate-950 p-4">
+              <div className="flex items-center justify-between rounded-2xl bg-background p-4">
                 <span>Due Date</span>
-                <span className="text-white">
+                <span className="text-foreground">
                   {assignment.dueDate ? new Date(assignment.dueDate).toLocaleString() : "—"}
                 </span>
               </div>
-              <div className="flex items-center justify-between rounded-2xl bg-slate-950 p-4">
+              <div className="flex items-center justify-between rounded-2xl bg-background p-4">
                 <span>Status</span>
-                <span className="text-white">{status}</span>
+                <span className="text-foreground">{status}</span>
               </div>
             </div>
           </Card>
 
           <Card>
-            <h3 className="text-lg font-semibold text-white">Need Help?</h3>
-            <p className="mt-4 text-sm text-slate-400">
+            <h3 className="text-lg font-semibold text-foreground">Need Help?</h3>
+            <p className="mt-4 text-sm text-muted-foreground">
               Contact your instructor if you have questions about the assignment requirements or submission format.
             </p>
           </Card>

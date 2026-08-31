@@ -7,7 +7,7 @@ export default function Input({
   return (
     <div className="space-y-2">
       {label && (
-        <label className="text-sm text-slate-300">
+        <label className="text-sm text-foreground">
           {label}
         </label>
       )}
@@ -17,12 +17,12 @@ export default function Input({
           w-full
           rounded-lg
           border
-          border-slate-700
-          bg-slate-800
+          border-transparent
+          bg-muted
           px-4
           py-3
           outline-none
-          focus:border-orange-500
+          focus:border-primary
           ${className}
         `}
         {...props}

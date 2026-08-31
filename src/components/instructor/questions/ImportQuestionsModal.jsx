@@ -95,19 +95,19 @@ export default function ImportQuestionsModal({ quizId, onClose, onSuccess }) {
             />
 
             {/* Modal */}
-            <div className="relative z-10 w-full max-w-2xl rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
+            <div className="relative z-10 w-full max-w-2xl rounded-2xl border border-transparent bg-background shadow-2xl">
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-slate-700 px-6 py-5">
+                <div className="flex items-center justify-between border-b border-transparent px-6 py-5">
                     <div>
-                        <h2 className="text-xl font-bold text-white">Import Questions</h2>
-                        <p className="mt-1 text-sm text-slate-400">
+                        <h2 className="text-xl font-bold text-foreground">Import Questions</h2>
+                        <p className="mt-1 text-sm text-muted-foreground">
                             Upload a file to import multiple questions at once.
                         </p>
                     </div>
                     <button
                         onClick={handleClose}
                         disabled={importMutation.isPending}
-                        className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+                        className="rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
                     >
                         <FaTimes size={18} />
                     </button>
@@ -115,13 +115,13 @@ export default function ImportQuestionsModal({ quizId, onClose, onSuccess }) {
 
                 <div className="space-y-5 p-6">
                     {/* Supported Formats */}
-                    <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-4">
-                        <p className="mb-3 text-sm font-medium text-slate-300">Supported File Formats</p>
+                    <div className="rounded-xl border border-transparent bg-muted/50 p-4">
+                        <p className="mb-3 text-sm font-medium text-foreground">Supported File Formats</p>
                         <div className="flex flex-wrap gap-2">
                             {FORMAT_LABELS.map((fmt) => (
                                 <span
                                     key={fmt}
-                                    className="rounded-md bg-slate-700 px-3 py-1 text-xs font-medium text-slate-300"
+                                    className="rounded-md bg-slate-700 px-3 py-1 text-xs font-medium text-foreground"
                                 >
                                     {fmt}
                                 </span>
@@ -138,10 +138,10 @@ export default function ImportQuestionsModal({ quizId, onClose, onSuccess }) {
                         className={`
                             cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition
                             ${dragOver
-                                ? "border-orange-500 bg-orange-500/5"
+                                ? "border-primary bg-primary/5"
                                 : selectedFile
                                     ? "border-green-500/50 bg-green-500/5"
-                                    : "border-slate-600 bg-slate-800/30 hover:border-orange-500/50 hover:bg-orange-500/5"
+                                    : "border-transparent bg-muted/30 hover:border-primary/50 hover:bg-primary/5"
                             }
                         `}
                     >
@@ -156,18 +156,18 @@ export default function ImportQuestionsModal({ quizId, onClose, onSuccess }) {
                         {selectedFile ? (
                             <div className="flex flex-col items-center gap-3">
                                 <FaFileAlt size={36} className="text-green-400" />
-                                <p className="font-semibold text-white">{selectedFile.name}</p>
-                                <p className="text-sm text-slate-400">
+                                <p className="font-semibold text-foreground">{selectedFile.name}</p>
+                                <p className="text-sm text-muted-foreground">
                                     {(selectedFile.size / 1024).toFixed(1)} KB — click to change file
                                 </p>
                             </div>
                         ) : (
                             <div className="flex flex-col items-center gap-3">
-                                <FaCloudUploadAlt size={40} className="text-slate-500" />
-                                <p className="font-medium text-slate-300">
+                                <FaCloudUploadAlt size={40} className="text-muted-foreground" />
+                                <p className="font-medium text-foreground">
                                     Drop your file here, or click to browse
                                 </p>
-                                <p className="text-sm text-slate-500">Max file size: 20 MB</p>
+                                <p className="text-sm text-muted-foreground">Max file size: 20 MB</p>
                             </div>
                         )}
                     </div>
@@ -182,30 +182,30 @@ export default function ImportQuestionsModal({ quizId, onClose, onSuccess }) {
 
                     {/* Result */}
                     {result && (
-                        <div className="space-y-3 rounded-xl border border-slate-700 bg-slate-800 p-4">
+                        <div className="space-y-3 rounded-xl border border-transparent bg-muted p-4">
                             <div className="flex items-center gap-2">
                                 <FaCheckCircle className="text-green-400" size={16} />
-                                <h3 className="font-semibold text-white">Import Complete</h3>
+                                <h3 className="font-semibold text-foreground">Import Complete</h3>
                             </div>
 
                             <div className="grid grid-cols-3 gap-3">
-                                <div className="rounded-lg bg-slate-900 p-3 text-center">
-                                    <p className="text-2xl font-bold text-white">{result.total ?? result.inserted}</p>
-                                    <p className="text-xs text-slate-400">Total Parsed</p>
+                                <div className="rounded-lg bg-background p-3 text-center">
+                                    <p className="text-2xl font-bold text-foreground">{result.total ?? result.inserted}</p>
+                                    <p className="text-xs text-muted-foreground">Total Parsed</p>
                                 </div>
-                                <div className="rounded-lg bg-slate-900 p-3 text-center">
+                                <div className="rounded-lg bg-background p-3 text-center">
                                     <p className="text-2xl font-bold text-green-400">{result.inserted}</p>
-                                    <p className="text-xs text-slate-400">Inserted</p>
+                                    <p className="text-xs text-muted-foreground">Inserted</p>
                                 </div>
-                                <div className="rounded-lg bg-slate-900 p-3 text-center">
+                                <div className="rounded-lg bg-background p-3 text-center">
                                     <p className="text-2xl font-bold text-red-400">{result.failed ?? 0}</p>
-                                    <p className="text-xs text-slate-400">Failed</p>
+                                    <p className="text-xs text-muted-foreground">Failed</p>
                                 </div>
                             </div>
 
                             {result.errors?.length > 0 && (
                                 <div className="mt-2 max-h-40 space-y-2 overflow-y-auto">
-                                    <p className="text-xs font-medium text-slate-400">Failed Rows:</p>
+                                    <p className="text-xs font-medium text-muted-foreground">Failed Rows:</p>
                                     {result.errors.map((err, i) => (
                                         <div
                                             key={i}
@@ -222,14 +222,14 @@ export default function ImportQuestionsModal({ quizId, onClose, onSuccess }) {
 
                     {/* Templates */}
                     <div>
-                        <p className="mb-2 text-xs font-medium text-slate-500 uppercase tracking-wide">
+                        <p className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
                             Download Sample Templates
                         </p>
                         <div className="flex flex-wrap gap-3">
                             <button
                                 type="button"
                                 onClick={() => downloadTemplate(CSV_TEMPLATE, "questions_template.csv", "text/csv")}
-                                className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-slate-300 transition hover:border-orange-500/50 hover:text-orange-400"
+                                className="flex items-center gap-2 rounded-lg border border-transparent bg-muted px-3 py-2 text-xs text-foreground transition hover:border-primary/50 hover:text-primary"
                             >
                                 <FaDownload size={12} />
                                 CSV Template
@@ -237,7 +237,7 @@ export default function ImportQuestionsModal({ quizId, onClose, onSuccess }) {
                             <button
                                 type="button"
                                 onClick={() => downloadTemplate(JSON_TEMPLATE, "questions_template.json", "application/json")}
-                                className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-slate-300 transition hover:border-orange-500/50 hover:text-orange-400"
+                                className="flex items-center gap-2 rounded-lg border border-transparent bg-muted px-3 py-2 text-xs text-foreground transition hover:border-primary/50 hover:text-primary"
                             >
                                 <FaDownload size={12} />
                                 JSON Template
@@ -247,12 +247,12 @@ export default function ImportQuestionsModal({ quizId, onClose, onSuccess }) {
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-end gap-3 border-t border-slate-700 px-6 py-4">
+                <div className="flex items-center justify-end gap-3 border-t border-transparent px-6 py-4">
                     <button
                         type="button"
                         onClick={handleClose}
                         disabled={importMutation.isPending}
-                        className="rounded-xl border border-slate-700 px-5 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800"
+                        className="rounded-xl border border-transparent px-5 py-2.5 text-sm font-medium text-foreground transition hover:bg-muted"
                     >
                         {result ? "Close" : "Cancel"}
                     </button>
@@ -262,7 +262,7 @@ export default function ImportQuestionsModal({ quizId, onClose, onSuccess }) {
                             type="button"
                             onClick={handleImport}
                             disabled={!selectedFile || importMutation.isPending}
-                            className="flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-medium text-foreground transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <FaCloudUploadAlt size={15} />
                             {importMutation.isPending ? "Importing..." : "Import Questions"}

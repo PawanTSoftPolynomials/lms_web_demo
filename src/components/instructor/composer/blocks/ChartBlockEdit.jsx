@@ -21,7 +21,7 @@ export default function ChartBlockEdit({ block, onChange }) {
 
   return (
     <div className="space-y-3">
-      <label className="text-sm text-slate-300">Chart rows (label + value 0-100)</label>
+      <label className="text-sm text-foreground">Chart rows (label + value 0-100)</label>
       {rows.map((row, i) => (
         <div key={i} className="flex items-center gap-2">
           <Input
@@ -50,7 +50,7 @@ export default function ChartBlockEdit({ block, onChange }) {
       <button
         type="button"
         onClick={addRow}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-lg transition"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground hover:text-foreground bg-muted hover:bg-slate-750 border border-transparent/60 rounded-lg transition"
       >
         <Plus size={12} /> Add Row
       </button>

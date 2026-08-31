@@ -24,7 +24,7 @@ export default function Layout({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
         <Loader />
       </div>
     );
@@ -37,7 +37,7 @@ export default function Layout({ children }) {
   return (
     <AdminNavDrawerProvider>
       <DashboardLayout role="ADMIN" title="Admin Dashboard">
-        <div className="flex flex-col gap-4 max-w-[1600px] mx-auto mb-6 sticky top-0 z-30 bg-[#080B11]/90 backdrop-blur-md pt-2 pb-2">
+        <div className="flex flex-col gap-4 max-w-[1600px] mx-auto mb-6 sticky top-0 z-30 bg-background/90 backdrop-blur-md pt-2 pb-2">
           <NavigationStrip />
         </div>
         <div className="max-w-[1600px] mx-auto w-full">

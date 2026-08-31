@@ -54,7 +54,7 @@ export default function EditModulePage() {
                     Module Not Found
                 </h2>
 
-                <p className="mt-2 text-slate-400">
+                <p className="mt-2 text-muted-foreground">
                     Unable to load module.
                 </p>
             </div>

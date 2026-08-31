@@ -23,7 +23,7 @@ export default function AdminBottomNav() {
   return (
     <nav
       aria-label="Admin bottom navigation"
-      className="sm:hidden fixed bottom-0 inset-x-0 z-50 border-t border-[#1A1F35] bg-[#080B11]/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
+      className="sm:hidden fixed bottom-0 inset-x-0 z-50 border-t border-border bg-background/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
     >
       <div className="flex items-stretch justify-around">
         {TABS.map((tab) => {
@@ -36,8 +36,8 @@ export default function AdminBottomNav() {
               aria-current={active ? "page" : undefined}
               className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] transition-colors"
             >
-              <Icon size={20} strokeWidth={2.25} className={active ? "text-orange-500" : "text-slate-500"} />
-              <span className={`text-[10px] font-bold ${active ? "text-orange-500" : "text-slate-500"}`}>
+              <Icon size={20} strokeWidth={2.25} className={active ? "text-primary" : "text-muted-foreground"} />
+              <span className={`text-[10px] font-bold ${active ? "text-primary" : "text-muted-foreground"}`}>
                 {tab.label}
               </span>
             </Link>

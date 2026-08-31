@@ -13,7 +13,7 @@ export default function CourseFilters({
                                           levels = [],
                                       }) {
     return (
-        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+        <div className="rounded-xl border border-border bg-background p-5">
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <Input
                     placeholder="Search courses..."
@@ -31,14 +31,14 @@ export default function CourseFilters({
                     className="
             rounded-lg
             border
-            border-slate-700
-            bg-slate-800
+            border-transparent
+            bg-muted
             px-4
             py-3
-            text-white
+            text-foreground
             outline-none
             transition
-            focus:border-orange-500
+            focus:border-primary
           "
                 >
                     <option value="">
@@ -63,14 +63,14 @@ export default function CourseFilters({
                     className="
             rounded-lg
             border
-            border-slate-700
-            bg-slate-800
+            border-transparent
+            bg-muted
             px-4
             py-3
-            text-white
+            text-foreground
             outline-none
             transition
-            focus:border-orange-500
+            focus:border-primary
           "
                 >
                     <option value="">

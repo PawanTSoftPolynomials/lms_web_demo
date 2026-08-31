@@ -13,7 +13,7 @@ export default function ChartBlockView({ block }) {
     <div className="space-y-3">
       {rows.map((row, i) => (
         <div key={i} className="space-y-1">
-          <span className="text-sm text-slate-300">{row.label}</span>
+          <span className="text-sm text-foreground">{row.label}</span>
           <ProgressBar value={Math.max(0, Math.min(100, Number(row.value) || 0))} />
         </div>
       ))}

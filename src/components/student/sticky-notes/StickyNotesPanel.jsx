@@ -25,10 +25,10 @@ export default function StickyNotesPanel({
     <div className="rounded-3xl border border-[#1e2030] bg-[#0d0e16]/60 p-5 backdrop-blur-md shadow-xl">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+          <h2 className="text-sm font-black text-foreground uppercase tracking-wider flex items-center gap-2">
             <span>📌 Sticky Notes</span>
           </h2>
-          <p className="mt-0.5 text-[11px] text-slate-400 font-semibold">
+          <p className="mt-0.5 text-[11px] text-muted-foreground font-semibold">
             Timestamped notes anchored to video playback.
           </p>
         </div>
@@ -41,7 +41,7 @@ export default function StickyNotesPanel({
 
       <div className="mt-5">
         {isLoading ? (
-          <div className="py-8 text-center text-xs font-semibold text-slate-400">
+          <div className="py-8 text-center text-xs font-semibold text-muted-foreground">
             Loading notes...
           </div>
         ) : isError ? (

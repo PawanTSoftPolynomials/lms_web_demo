@@ -68,7 +68,7 @@ export default function EditLessonPage() {
                         Lesson Not Found
                     </h2>
 
-                    <p className="mt-2 text-slate-400">
+                    <p className="mt-2 text-muted-foreground">
                         Unable to load lesson.
                     </p>
                 </div>

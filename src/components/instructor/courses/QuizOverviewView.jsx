@@ -125,10 +125,10 @@ export function QuizOverviewView({
 
   if (!quiz && quizMode !== "create") {
     return (
-      <div className="notebook-cell rounded-2xl border border-slate-800 bg-slate-950 p-8 text-center shadow-md space-y-3">
+      <div className="notebook-cell rounded-2xl border border-border bg-background p-8 text-center shadow-md space-y-3">
         <HelpCircle className="w-10 h-10 text-slate-600 mx-auto" />
-        <h3 className="text-base font-bold text-slate-300">Quiz Not Found</h3>
-        <p className="text-xs text-slate-500">Select a quiz from the Course Map on the left to view details.</p>
+        <h3 className="text-base font-bold text-foreground">Quiz Not Found</h3>
+        <p className="text-xs text-muted-foreground">Select a quiz from the Course Map on the left to view details.</p>
       </div>
     );
   }
@@ -349,9 +349,9 @@ export function QuizOverviewView({
   const activeQuestion = questions[currentQuestionIndex] || null;
 
   return (
-    <div className="notebook-cell rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-md space-y-5">
+    <div className="notebook-cell rounded-2xl border border-border bg-background p-5 shadow-md space-y-5">
       {/* Header Bar */}
-      <div className="cell-header flex items-center justify-between border-b border-slate-800/80 pb-3 flex-wrap gap-2">
+      <div className="cell-header flex items-center justify-between border-b border-border/80 pb-3 flex-wrap gap-2">
         <div className="flex items-center space-x-2">
           <span className="rounded bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
             <HelpCircle size={12} />
@@ -384,7 +384,7 @@ export function QuizOverviewView({
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-bold transition cursor-pointer"
               >
                 <X size={14} />
                 Cancel
@@ -392,7 +392,7 @@ export function QuizOverviewView({
               <button
                 type="button"
                 onClick={handleSaveChanges}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold transition shadow-lg shadow-emerald-600/20 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-foreground text-xs font-extrabold transition shadow-lg shadow-emerald-600/20 cursor-pointer"
               >
                 <Save size={14} />
                 Save Changes
@@ -413,76 +413,76 @@ export function QuizOverviewView({
       {!isEditing && (
         <div className="space-y-6">
           <div className="space-y-3">
-            <h2 className="text-xl font-bold text-white">{quiz?.title || quizForm.title || "Untitled Quiz"}</h2>
+            <h2 className="text-xl font-bold text-foreground">{quiz?.title || quizForm.title || "Untitled Quiz"}</h2>
             {(quiz?.description || quizForm.description) && (
-              <p className="text-xs text-slate-300 leading-relaxed bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+              <p className="text-xs text-foreground leading-relaxed bg-background/60 p-3 rounded-xl border border-border/80">
                 {quiz?.description || quizForm.description}
               </p>
             )}
 
             {/* Metadata Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs font-medium text-slate-300">
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs font-medium text-foreground">
+              <div className="p-3 rounded-xl bg-background/80 border border-border flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 shrink-0">
                   <ListChecks size={16} />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-mono text-slate-500 block">Questions</span>
-                  <span className="font-bold text-white text-sm">{questions.length}</span>
+                  <span className="text-[10px] uppercase font-mono text-muted-foreground block">Questions</span>
+                  <span className="font-bold text-foreground text-sm">{questions.length}</span>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-background/80 border border-border flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 shrink-0">
                   <Award size={16} />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-mono text-slate-500 block">Total Marks</span>
-                  <span className="font-bold text-white text-sm">{totalMarks} pts</span>
+                  <span className="text-[10px] uppercase font-mono text-muted-foreground block">Total Marks</span>
+                  <span className="font-bold text-foreground text-sm">{totalMarks} pts</span>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-background/80 border border-border flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-sky-500/10 text-sky-400 shrink-0">
                   <CheckCircle2 size={16} />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-mono text-slate-500 block">Passing Score</span>
-                  <span className="font-bold text-white text-sm">{quizForm.passingScore}%</span>
+                  <span className="text-[10px] uppercase font-mono text-muted-foreground block">Passing Score</span>
+                  <span className="font-bold text-foreground text-sm">{quizForm.passingScore}%</span>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-background/80 border border-border flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400 shrink-0">
                   <Clock size={16} />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-mono text-slate-500 block">Time Limit</span>
-                  <span className="font-bold text-white text-sm">{quizForm.timeLimit ? `${quizForm.timeLimit} mins` : "No limit"}</span>
+                  <span className="text-[10px] uppercase font-mono text-muted-foreground block">Time Limit</span>
+                  <span className="font-bold text-foreground text-sm">{quizForm.timeLimit ? `${quizForm.timeLimit} mins` : "No limit"}</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* ALL QUESTIONS LIST */}
-          <div className="pt-4 border-t border-slate-800 space-y-3">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+          <div className="pt-4 border-t border-border space-y-3">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground block">
               {questions.length > 0 ? `${questions.length} Question${questions.length === 1 ? "" : "s"}` : "No Questions"}
             </span>
 
             {questions.length === 0 ? (
-              <div className="p-6 text-center text-slate-500 text-xs italic bg-slate-900/40 rounded-xl border border-slate-800/80">
+              <div className="p-6 text-center text-muted-foreground text-xs italic bg-background/40 rounded-xl border border-border/80">
                 No questions available to preview.
               </div>
             ) : (
               questions.map((q, qIdx) => (
-                <div key={q.id || qIdx} className="p-4 rounded-xl border border-slate-800/90 bg-slate-900/60 space-y-3 shadow-md">
+                <div key={q.id || qIdx} className="p-4 rounded-xl border border-border/90 bg-background/60 space-y-3 shadow-md">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="px-2.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-xs font-mono font-bold border border-emerald-500/30">
                         #{qIdx + 1}
                       </span>
-                      <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10.5px] font-mono font-bold">
+                      <span className="px-2 py-0.5 rounded bg-muted text-foreground text-[10.5px] font-mono font-bold">
                         {q.questionType}
                       </span>
                       {q.difficulty && (
@@ -497,14 +497,14 @@ export function QuizOverviewView({
                   </div>
 
                   {/* Question Text */}
-                  <h4 className="text-sm font-semibold text-white leading-relaxed pt-1">
+                  <h4 className="text-sm font-semibold text-foreground leading-relaxed pt-1">
                     {q.question}
                   </h4>
 
                   {/* Options List with Correct Answer Highlight */}
                   {Array.isArray(q.options) && q.options.length > 0 && (
                     <div className="space-y-1.5 pt-2">
-                      <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 block">Options:</span>
+                      <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground block">Options:</span>
                       <div className="grid grid-cols-1 gap-1.5">
                         {q.options.map((opt, optIdx) => {
                           const correctAnswerStr = typeof q.correctAnswer === "string" || typeof q.correctAnswer === "number"
@@ -518,7 +518,7 @@ export function QuizOverviewView({
                               className={`p-2.5 rounded-lg text-xs font-medium border flex items-center justify-between ${
                                 isCorrect
                                   ? "bg-emerald-950/40 border-emerald-500/60 text-emerald-300 font-bold"
-                                  : "bg-slate-950/80 border-slate-800/80 text-slate-300"
+                                  : "bg-background/80 border-border/80 text-foreground"
                               }`}
                             >
                               <span>{opt}</span>
@@ -544,8 +544,8 @@ export function QuizOverviewView({
 
                   {/* Explanation / Feedback */}
                   {q.explanation && (
-                    <div className="p-3 rounded-lg bg-slate-950/90 border border-slate-800/80 text-xs text-slate-400 space-y-1">
-                      <span className="font-mono font-bold uppercase text-[10px] text-slate-500 block">Explanation:</span>
+                    <div className="p-3 rounded-lg bg-background/90 border border-border/80 text-xs text-muted-foreground space-y-1">
+                      <span className="font-mono font-bold uppercase text-[10px] text-muted-foreground block">Explanation:</span>
                       <p className="leading-relaxed">{q.explanation}</p>
                     </div>
                   )}
@@ -560,60 +560,60 @@ export function QuizOverviewView({
       {isEditing && (
         <form onSubmit={handleSaveChanges} className="space-y-5">
           {/* Quiz Metadata Editing Header Block */}
-          <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+          <div className="p-4 rounded-xl bg-background/80 border border-border space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">Quiz Settings</h3>
-              <span className="text-[11px] font-mono text-slate-400">
+              <span className="text-[11px] font-mono text-muted-foreground">
                 {questions.length} Questions • {totalMarks} Total Marks
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">Quiz Title *</label>
+                <label className="text-xs font-semibold text-foreground">Quiz Title *</label>
                 <input
                   type="text"
                   value={quizForm.title}
                   onChange={(e) => setQuizForm((prev) => ({ ...prev, title: e.target.value }))}
                   placeholder="e.g. C Programming Final Assessment"
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-1.5 text-xs text-white outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl border border-transparent bg-background px-3.5 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-3 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-300">Time (Mins)</label>
+                  <label className="text-[11px] font-semibold text-foreground">Time (Mins)</label>
                   <input
                     type="number"
                     min="0"
                     value={quizForm.timeLimit}
                     onChange={(e) => setQuizForm((prev) => ({ ...prev, timeLimit: e.target.value }))}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-white outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl border border-transparent bg-background px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-300">Passing %</label>
+                  <label className="text-[11px] font-semibold text-foreground">Passing %</label>
                   <input
                     type="number"
                     min="0"
                     max="100"
                     value={quizForm.passingScore}
                     onChange={(e) => setQuizForm((prev) => ({ ...prev, passingScore: e.target.value }))}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-white outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl border border-transparent bg-background px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500"
                   />
                 </div>
 
                 <div className="space-y-1 flex flex-col justify-end">
-                  <label className="flex items-center gap-1.5 p-2 rounded-xl border border-slate-800 bg-slate-950 cursor-pointer">
+                  <label className="flex items-center gap-1.5 p-2 rounded-xl border border-border bg-background cursor-pointer">
                     <input
                       type="checkbox"
                       checked={quizForm.isPublished}
                       onChange={(e) => setQuizForm((prev) => ({ ...prev, isPublished: e.target.checked }))}
                       className="accent-emerald-500 h-3.5 w-3.5"
                     />
-                    <span className="text-[10.5px] font-semibold text-slate-200">Published</span>
+                    <span className="text-[10.5px] font-semibold text-foreground">Published</span>
                   </label>
                 </div>
               </div>
@@ -625,19 +625,19 @@ export function QuizOverviewView({
                 value={quizForm.description}
                 onChange={(e) => setQuizForm((prev) => ({ ...prev, description: e.target.value }))}
                 placeholder="Brief description / instructions..."
-                className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-300 outline-none focus:border-emerald-500"
+                className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500"
               />
             </div>
           </div>
 
           {/* QUESTION NAVIGATION BAR (Top) */}
-          <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+          <div className="p-3 rounded-xl bg-background/90 border border-border flex items-center justify-between gap-3 flex-wrap">
             {/* Left: Previous Button */}
             <button
               type="button"
               onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
               disabled={currentQuestionIndex === 0 || questions.length === 0}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-200 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-transparent bg-background hover:bg-muted text-foreground text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               <ChevronLeft size={14} />
               Previous
@@ -654,7 +654,7 @@ export function QuizOverviewView({
                   <select
                     value={currentQuestionIndex}
                     onChange={(e) => setCurrentQuestionIndex(Number(e.target.value))}
-                    className="bg-slate-950 border border-slate-700 text-slate-200 text-xs font-semibold rounded-lg px-2.5 py-1 outline-none focus:border-emerald-500 cursor-pointer"
+                    className="bg-background border border-transparent text-foreground text-xs font-semibold rounded-lg px-2.5 py-1 outline-none focus:border-emerald-500 cursor-pointer"
                   >
                     {questions.map((q, idx) => (
                       <option key={idx} value={idx}>
@@ -690,7 +690,7 @@ export function QuizOverviewView({
                 type="button"
                 onClick={() => setCurrentQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1))}
                 disabled={currentQuestionIndex >= questions.length - 1 || questions.length === 0}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-200 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-transparent bg-background hover:bg-muted text-foreground text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 Next
                 <ChevronRight size={14} />
@@ -700,14 +700,14 @@ export function QuizOverviewView({
 
           {/* SINGLE ACTIVE QUESTION EDITOR */}
           {activeQuestion ? (
-            <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/90 space-y-4 shadow-md">
+            <div className="p-4 rounded-xl border border-border bg-background/90 space-y-4 shadow-md">
               {/* Question Header */}
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+              <div className="flex items-center justify-between border-b border-border pb-2.5">
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-mono font-bold text-xs border border-emerald-500/30">
                     Question #{currentQuestionIndex + 1}
                   </span>
-                  <span className="text-[11px] font-mono text-slate-500">ID: {activeQuestion.id}</span>
+                  <span className="text-[11px] font-mono text-muted-foreground">ID: {activeQuestion.id}</span>
                 </div>
 
                 <button
@@ -722,13 +722,13 @@ export function QuizOverviewView({
 
               {/* Question Text */}
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">Question Text *</label>
+                <label className="text-xs font-semibold text-foreground">Question Text *</label>
                 <textarea
                   rows={3}
                   value={activeQuestion.question}
                   onChange={(e) => handleCurrentQuestionChange("question", e.target.value)}
                   placeholder="e.g. Which keyword is used to allocate memory dynamically in C?"
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-white outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl border border-transparent bg-background px-3.5 py-2 text-xs text-foreground outline-none focus:border-emerald-500"
                   required
                 />
               </div>
@@ -736,11 +736,11 @@ export function QuizOverviewView({
               {/* Control Grid: Type, Difficulty, Marks */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-300">Question Type</label>
+                  <label className="text-[11px] font-semibold text-foreground">Question Type</label>
                   <select
                     value={activeQuestion.questionType}
                     onChange={(e) => handleCurrentQuestionChange("questionType", e.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs text-white outline-none focus:border-emerald-500 cursor-pointer"
+                    className="w-full rounded-xl border border-transparent bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500 cursor-pointer"
                   >
                     <option value="MCQ_SINGLE">Single Choice (MCQ)</option>
                     <option value="MCQ_MULTI">Multiple Choice (MCQ)</option>
@@ -755,11 +755,11 @@ export function QuizOverviewView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-300">Difficulty</label>
+                  <label className="text-[11px] font-semibold text-foreground">Difficulty</label>
                   <select
                     value={activeQuestion.difficulty}
                     onChange={(e) => handleCurrentQuestionChange("difficulty", e.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs text-white outline-none focus:border-emerald-500 cursor-pointer"
+                    className="w-full rounded-xl border border-transparent bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500 cursor-pointer"
                   >
                     <option value="EASY">EASY</option>
                     <option value="MEDIUM">MEDIUM</option>
@@ -768,22 +768,22 @@ export function QuizOverviewView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-300">Marks</label>
+                  <label className="text-[11px] font-semibold text-foreground">Marks</label>
                   <input
                     type="number"
                     min="1"
                     value={activeQuestion.marks}
                     onChange={(e) => handleCurrentQuestionChange("marks", e.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs text-white outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl border border-transparent bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
               {/* Options & Correct Answer Editor */}
               {(activeQuestion.questionType === "MCQ_SINGLE" || activeQuestion.questionType === "MCQ_MULTI") && (
-                <div className="space-y-2 pt-2 border-t border-slate-800/60">
+                <div className="space-y-2 pt-2 border-t border-border/60">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold text-slate-300">
+                    <label className="text-xs font-semibold text-foreground">
                       Options (Select correct {activeQuestion.questionType === "MCQ_MULTI" ? "answers" : "answer"})
                     </label>
                     <button
@@ -817,7 +817,7 @@ export function QuizOverviewView({
                             value={optStr}
                             onChange={(e) => handleOptionTextChange(optIdx, e.target.value)}
                             placeholder={`Option ${optIdx + 1}`}
-                            className="flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs text-white outline-none focus:border-emerald-500"
+                            className="flex-1 rounded-lg border border-transparent bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500"
                           />
                           {(activeQuestion.options || []).length > 2 && (
                             <button
@@ -838,11 +838,11 @@ export function QuizOverviewView({
 
               {/* True/False Selection */}
               {activeQuestion.questionType === "TRUE_FALSE" && (
-                <div className="space-y-2 pt-2 border-t border-slate-800/60">
-                  <label className="text-xs font-semibold text-slate-300 block">Select Correct Answer</label>
+                <div className="space-y-2 pt-2 border-t border-border/60">
+                  <label className="text-xs font-semibold text-foreground block">Select Correct Answer</label>
                   <div className="flex items-center gap-4">
                     {["True", "False"].map((tfVal) => (
-                      <label key={tfVal} className="flex items-center gap-2 text-xs text-slate-200 cursor-pointer">
+                      <label key={tfVal} className="flex items-center gap-2 text-xs text-foreground cursor-pointer">
                         <input
                           type="radio"
                           name={`tf-${currentQuestionIndex}`}
@@ -861,38 +861,38 @@ export function QuizOverviewView({
               {activeQuestion.questionType !== "MCQ_SINGLE" &&
                activeQuestion.questionType !== "MCQ_MULTI" &&
                activeQuestion.questionType !== "TRUE_FALSE" && (
-                <div className="space-y-1 pt-2 border-t border-slate-800/60">
-                  <label className="text-xs font-semibold text-slate-300">Correct Answer</label>
+                <div className="space-y-1 pt-2 border-t border-border/60">
+                  <label className="text-xs font-semibold text-foreground">Correct Answer</label>
                   <input
                     type="text"
                     value={typeof activeQuestion.correctAnswer === "string" ? activeQuestion.correctAnswer : JSON.stringify(activeQuestion.correctAnswer || "")}
                     onChange={(e) => handleCurrentQuestionChange("correctAnswer", e.target.value)}
                     placeholder="Expected answer string..."
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-1.5 text-xs text-white outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl border border-transparent bg-background px-3.5 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500"
                   />
                 </div>
               )}
 
               {/* Explanation Field */}
               <div className="space-y-1 pt-1">
-                <label className="text-[11px] font-semibold text-slate-400">Explanation / Feedback</label>
+                <label className="text-[11px] font-semibold text-muted-foreground">Explanation / Feedback</label>
                 <input
                   type="text"
                   value={activeQuestion.explanation}
                   onChange={(e) => handleCurrentQuestionChange("explanation", e.target.value)}
                   placeholder="Optional explanation shown to students after submission..."
-                  className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-300 outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500"
                 />
               </div>
             </div>
           ) : (
-            <div className="p-6 text-center text-slate-500 text-xs italic bg-slate-900/40 rounded-xl border border-slate-800/80 space-y-2">
+            <div className="p-6 text-center text-muted-foreground text-xs italic bg-background/40 rounded-xl border border-border/80 space-y-2">
               <p>No questions in this quiz yet.</p>
               <div className="flex items-center justify-center gap-2">
                 <button
                   type="button"
                   onClick={handleAddQuestion}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold cursor-pointer"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-foreground text-xs font-bold cursor-pointer"
                 >
                   <Plus size={14} /> Add First Question
                 </button>
@@ -914,12 +914,12 @@ export function QuizOverviewView({
                 type="button"
                 onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
                 disabled={currentQuestionIndex === 0}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-200 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-transparent bg-background hover:bg-muted text-foreground text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 <ChevronLeft size={14} /> Previous
               </button>
 
-              <span className="text-xs font-mono font-bold text-slate-400">
+              <span className="text-xs font-mono font-bold text-muted-foreground">
                 Question {currentQuestionIndex + 1} / {questions.length}
               </span>
 
@@ -927,7 +927,7 @@ export function QuizOverviewView({
                 type="button"
                 onClick={() => setCurrentQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1))}
                 disabled={currentQuestionIndex >= questions.length - 1}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-200 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-transparent bg-background hover:bg-muted text-foreground text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 Next <ChevronRight size={14} />
               </button>

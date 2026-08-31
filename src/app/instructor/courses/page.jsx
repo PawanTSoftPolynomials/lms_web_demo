@@ -61,21 +61,21 @@ export default function InstructorCoursesPage() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="-m-3 sm:-m-6 -mt-8 sm:-mt-12 md:-mt-16 -mx-8 sm:-mx-12 md:-mx-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6">
       {isError ? (
-        <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] py-16 text-center space-y-3">
-          <p className="text-sm font-bold text-slate-300">Unable to load courses.</p>
+        <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
+          <p className="text-sm font-bold text-foreground">Unable to load courses.</p>
           <button
             onClick={() => refetch()}
-            className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition"
+            className="px-4 py-2 rounded-xl bg-primary hover:bg-orange-600 text-foreground text-xs font-bold transition"
           >
             Retry
           </button>
         </div>
       ) : isLoading ? (
-        <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] py-16 text-center space-y-3">
-          <div className="mx-auto w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-bold text-slate-400">Loading courses...</p>
+        <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
+          <div className="mx-auto w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-bold text-muted-foreground">Loading courses...</p>
         </div>
       ) : courses.length === 0 && pagination.total === 0 && !filters.search && !filters.status && !filters.category && !filters.level ? (
         <EmptyState
@@ -86,17 +86,17 @@ export default function InstructorCoursesPage() {
           onAction={() => router.push("/instructor/courses/create")}
         />
       ) : (
-        <div className="flex flex-col min-h-[70vh] rounded-2xl border border-[#1A1F35] bg-[#0D1021] px-3 py-4 md:px-12 md:py-6">
+        <div className="flex flex-col min-h-[calc(100vh-3.5rem)] rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4 mb-4 md:mb-6">
             <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center md:flex-wrap">
               <div className="relative w-full min-w-0 md:max-w-xs">
-                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder="Search courses..."
                   value={filters.search}
                   onChange={(e) => set("search")(e.target.value)}
-                  className="w-full rounded-xl border border-[#1A1F35] bg-[#0D1021] pl-9 pr-4 py-2 md:py-2.5 text-sm text-slate-200 placeholder-slate-500 outline-none transition focus:border-orange-500/60"
+                  className="w-full rounded-xl border border-border bg-card pl-9 pr-4 py-2 md:py-2.5 text-sm text-foreground placeholder-slate-500 outline-none transition focus:border-primary/60"
                 />
               </div>
             </div>
@@ -104,7 +104,7 @@ export default function InstructorCoursesPage() {
             <div className="flex items-center gap-2 md:gap-3 shrink-0">
               <Link
                 href="/instructor/courses/import"
-                className="inline-flex items-center justify-center rounded-lg bg-slate-800 border border-amber-500/40 px-3 md:px-4 py-2 md:py-2.5 text-xs font-bold text-amber-400 transition hover:bg-slate-700 hover:border-amber-400 whitespace-nowrap"
+                className="inline-flex items-center justify-center rounded-lg bg-muted border border-amber-500/40 px-3 md:px-4 py-2 md:py-2.5 text-xs font-bold text-amber-400 transition hover:bg-muted hover:border-amber-400 whitespace-nowrap"
               >
                 <span className="md:hidden">Import</span>
                 <span className="hidden md:inline">Import Course</span>
@@ -128,7 +128,7 @@ export default function InstructorCoursesPage() {
             <div
               ref={sliderRef}
               onScroll={courses.length > 0 ? handleSliderScroll : undefined}
-              className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-4 md:pb-0 md:grid md:justify-center md:grid-cols-[repeat(auto-fill,224px)] md:overflow-visible md:snap-none"
+              className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-4 md:gap-10 md:pb-0 md:grid md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:overflow-visible md:snap-none"
             >
               {courses.length === 0 ? (
                 <div className="w-full col-span-full">
@@ -149,7 +149,7 @@ export default function InstructorCoursesPage() {
                     aria-label={`Go to ${course.title}`}
                     onClick={() => goToSlide(i)}
                     className={`rounded-full transition-all duration-300 ${
-                      i === activeSlide ? "w-2 h-2 bg-orange-500" : "w-1.5 h-1.5 bg-slate-600"
+                      i === activeSlide ? "w-2 h-2 bg-primary" : "w-1.5 h-1.5 bg-slate-600"
                     }`}
                   />
                 ))}

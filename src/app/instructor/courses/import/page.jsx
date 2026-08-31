@@ -574,7 +574,7 @@ export default function CourseImportPage() {
     quizzesList.length;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-8 lg:p-10 font-sans pb-32">
+    <div className="min-h-screen bg-background text-foreground p-4 md:p-8 lg:p-10 font-sans pb-32">
       {/* Hidden File Inputs */}
       <input
         type="file"
@@ -596,7 +596,7 @@ export default function CourseImportPage() {
         <div className="flex items-center space-x-3">
           <Link
             href="/instructor/courses"
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition"
+            className="p-2 rounded-xl bg-background border border-transparent text-muted-foreground hover:text-foreground transition"
             aria-label="Back to courses"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -607,7 +607,7 @@ export default function CourseImportPage() {
                 Create & Import Course
               </h1>
             </div>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Build a new course with AI, import a local ZIP package, or load an Orange Tree LMS JSON course structure.
             </p>
           </div>
@@ -638,8 +638,8 @@ export default function CourseImportPage() {
         {!showAiForm && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div className="text-left">
-              <h2 className="text-xl font-extrabold text-white">How would you like to create your course?</h2>
-              <p className="text-xs text-slate-400 mt-1">
+              <h2 className="text-xl font-extrabold text-foreground">How would you like to create your course?</h2>
+              <p className="text-xs text-muted-foreground mt-1">
                 Select one of the three creation entry points below to build or import your course.
               </p>
             </div>
@@ -648,26 +648,26 @@ export default function CourseImportPage() {
               {/* ---------------------------------------------------- */}
               {/* OPTION 1: ASK OTREE AI */}
               {/* ---------------------------------------------------- */}
-              <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl flex flex-col justify-between space-y-6 hover:border-orange-500/40 transition">
+              <div className="p-6 md:p-8 rounded-3xl bg-background/90 border border-transparent shadow-2xl flex flex-col justify-between space-y-6 hover:border-primary/40 transition">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="w-10 h-10 rounded-2xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400">
+                    <div className="w-10 h-10 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
                       <Sparkles className="w-5 h-5" />
                     </div>
-                    <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider bg-orange-500/20 border border-orange-500/30 text-orange-300 rounded-full flex items-center space-x-1">
+                    <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider bg-primary/20 border border-primary/30 text-orange-300 rounded-full flex items-center space-x-1">
                       <Bot className="w-3 h-3" />
                       <span>AI Powered</span>
                     </span>
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-extrabold text-white">Ask OTree AI</h3>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                    <h3 className="text-lg font-extrabold text-foreground">Ask OTree AI</h3>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                       Create a complete course using AI. Describe what you want to teach, who the learners are, and what the course should cover. OTree AI will generate a structured course draft for your review.
                     </p>
                   </div>
 
-                  <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800/80 text-xs font-mono text-orange-300 flex items-center space-x-1.5 flex-wrap">
+                  <div className="p-3.5 rounded-2xl bg-background border border-transparent/80 text-xs font-mono text-orange-300 flex items-center space-x-1.5 flex-wrap">
                     <span className="font-bold text-amber-400">Complete Course</span>
                     <span className="text-slate-600">→</span>
                     <span>Modules</span>
@@ -678,7 +678,7 @@ export default function CourseImportPage() {
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-slate-800">
+                <div className="pt-2 border-t border-transparent">
                   <button
                     type="button"
                     onClick={() => {
@@ -696,7 +696,7 @@ export default function CourseImportPage() {
               {/* ---------------------------------------------------- */}
               {/* OPTION 2: IMPORT FROM ZIP */}
               {/* ---------------------------------------------------- */}
-              <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl flex flex-col justify-between space-y-6 hover:border-sky-500/40 transition">
+              <div className="p-6 md:p-8 rounded-3xl bg-background/90 border border-transparent shadow-2xl flex flex-col justify-between space-y-6 hover:border-sky-500/40 transition">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="w-10 h-10 rounded-2xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400">
@@ -708,8 +708,8 @@ export default function CourseImportPage() {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-extrabold text-white">Import from ZIP</h3>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                    <h3 className="text-lg font-extrabold text-foreground">Import from ZIP</h3>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                       Import an existing course package with content and local media files. Supports exported Orange Tree LMS ZIP packages.
                     </p>
                   </div>
@@ -739,24 +739,24 @@ export default function CourseImportPage() {
                   </div>
                 )}
 
-                <div className="space-y-2 pt-2 border-t border-slate-800">
+                <div className="space-y-2 pt-2 border-t border-transparent">
                   <button
                     type="button"
                     disabled={Boolean(zipImportingState)}
                     onClick={() => zipInputRef.current?.click()}
-                    className="w-full py-3.5 rounded-2xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-sm font-extrabold shadow-lg shadow-sky-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
+                    className="w-full py-3.5 rounded-2xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-foreground text-sm font-extrabold shadow-lg shadow-sky-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
                   >
                     <Upload className="w-4 h-4" />
                     <span>Select ZIP Package</span>
                   </button>
-                  <p className="text-[11px] text-slate-500 text-center font-mono">.zip file up to 2GB</p>
+                  <p className="text-[11px] text-muted-foreground text-center font-mono">.zip file up to 2GB</p>
                 </div>
               </div>
 
               {/* ---------------------------------------------------- */}
               {/* OPTION 3: IMPORT FROM JSON */}
               {/* ---------------------------------------------------- */}
-              <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl flex flex-col justify-between space-y-6 hover:border-indigo-500/40 transition">
+              <div className="p-6 md:p-8 rounded-3xl bg-background/90 border border-transparent shadow-2xl flex flex-col justify-between space-y-6 hover:border-indigo-500/40 transition">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
@@ -768,13 +768,13 @@ export default function CourseImportPage() {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-extrabold text-white">Import from JSON</h3>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                    <h3 className="text-lg font-extrabold text-foreground">Import from JSON</h3>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                       Create/import a course using the Orange Tree LMS JSON structure. Upload a file or paste raw JSON text directly.
                     </p>
                   </div>
 
-                  <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-mono text-indigo-300 flex items-center justify-center space-x-1.5 flex-wrap">
+                  <div className="p-3.5 rounded-2xl bg-background border border-transparent text-xs font-mono text-indigo-300 flex items-center justify-center space-x-1.5 flex-wrap">
                     <span className="font-bold text-amber-400">Course</span>
                     <span className="text-slate-600">→</span>
                     <span>Module</span>
@@ -787,12 +787,12 @@ export default function CourseImportPage() {
                   </div>
                 </div>
 
-                <div className="space-y-3 pt-2 border-t border-slate-800">
+                <div className="space-y-3 pt-2 border-t border-transparent">
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => jsonInputRef.current?.click()}
-                      className="py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                      className="py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-foreground text-xs font-extrabold shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer"
                     >
                       <Upload className="w-3.5 h-3.5" />
                       <span>Select JSON File</span>
@@ -804,7 +804,7 @@ export default function CourseImportPage() {
                         setPasteValidationErrors([]);
                         setShowPasteModal(true);
                       }}
-                      className="py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-indigo-300 border border-indigo-500/30 hover:border-indigo-500/60 text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                      className="py-3 rounded-xl bg-muted hover:bg-slate-750 text-indigo-300 border border-indigo-500/30 hover:border-indigo-500/60 text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
                     >
                       <Clipboard className="w-3.5 h-3.5" />
                       <span>Paste JSON</span>
@@ -815,7 +815,7 @@ export default function CourseImportPage() {
                     <button
                       type="button"
                       onClick={() => setShowFormatGuideModal(true)}
-                      className="text-slate-400 hover:text-indigo-300 font-semibold flex items-center space-x-1 transition cursor-pointer"
+                      className="text-muted-foreground hover:text-indigo-300 font-semibold flex items-center space-x-1 transition cursor-pointer"
                     >
                       <HelpCircle className="w-3.5 h-3.5" />
                       <span>View Format Guide</span>
@@ -842,43 +842,43 @@ export default function CourseImportPage() {
         {showAiForm && (
           <div className="space-y-6 animate-in fade-in duration-200">
             {/* Top Navigation Bar inside AI Form */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-transparent">
               <button
                 type="button"
                 onClick={() => {
                   setShowAiForm(false);
                   setWorkflowState("INPUT");
                 }}
-                className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-xs font-bold transition flex items-center space-x-2 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-background border border-transparent hover:border-transparent text-foreground hover:text-foreground text-xs font-bold transition flex items-center space-x-2 cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Creation Options</span>
               </button>
 
-              <div className="flex items-center space-x-2 text-xs text-slate-400 font-mono">
+              <div className="flex items-center space-x-2 text-xs text-muted-foreground font-mono">
                 <span>AI Course Creator</span>
                 <span>•</span>
-                <span className="text-orange-400 font-bold">Complete Course Mode</span>
+                <span className="text-primary font-bold">Complete Course Mode</span>
               </div>
             </div>
 
             {/* INPUT FORM STATE */}
             {workflowState === "INPUT" && (
-              <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl space-y-6">
+              <div className="p-6 md:p-8 rounded-3xl bg-background/90 border border-transparent shadow-2xl space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-2xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400">
+                    <div className="w-10 h-10 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
                       <Wand2 className="w-5 h-5" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-bold text-white flex items-center space-x-2">
+                      <h2 className="text-lg font-bold text-foreground flex items-center space-x-2">
                         <span>Compose Course with AI Agent</span>
-                        <span className="px-2 py-0.5 text-[10px] font-black tracking-wider uppercase bg-orange-500/20 border border-orange-500/30 text-orange-300 rounded-full flex items-center space-x-1">
+                        <span className="px-2 py-0.5 text-[10px] font-black tracking-wider uppercase bg-primary/20 border border-primary/30 text-orange-300 rounded-full flex items-center space-x-1">
                           <Bot className="w-3 h-3" />
                           <span>Gemini 3.6 Flash</span>
                         </span>
                       </h2>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         Describe your course goals in plain text. The AI Agent will generate a structured draft with modules, lessons, topics, and quizzes.
                       </p>
                     </div>
@@ -895,13 +895,13 @@ export default function CourseImportPage() {
                     }}
                     placeholder="e.g. Create a beginner Python course for college students. Cover variables, control flow, functions, OOP, and data structures with practical code examples and quizzes..."
                     rows={5}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500/60 focus:ring-1 focus:ring-orange-500/50 transition leading-relaxed resize-y font-sans shadow-inner"
+                    className="w-full bg-background border border-transparent rounded-2xl p-4 text-sm text-foreground placeholder-slate-500 focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-orange-500/50 transition leading-relaxed resize-y font-sans shadow-inner"
                   />
                 </div>
 
                 {/* Example Prompt Pills */}
                 <div className="space-y-2">
-                  <span className="text-xs font-semibold text-slate-400 tracking-wider uppercase">
+                  <span className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">
                     Try an example:
                   </span>
                   <div className="flex flex-wrap gap-2">
@@ -913,7 +913,7 @@ export default function CourseImportPage() {
                           setPrompt(ex.text);
                           if (errorMsg) setErrorMsg("");
                         }}
-                        className="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-orange-500/40 text-xs font-medium text-slate-300 hover:text-amber-400 transition cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-background border border-transparent hover:border-primary/40 text-xs font-medium text-foreground hover:text-amber-400 transition cursor-pointer"
                       >
                         {ex.label}
                       </button>
@@ -922,29 +922,29 @@ export default function CourseImportPage() {
                 </div>
 
                 {/* Collapsible Advanced Options Accordion */}
-                <div className="pt-2 border-t border-slate-800/80">
+                <div className="pt-2 border-t border-transparent/80">
                   <button
                     type="button"
                     onClick={() => setShowAdvanced(!showAdvanced)}
-                    className="flex items-center space-x-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition py-1 cursor-pointer"
+                    className="flex items-center space-x-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition py-1 cursor-pointer"
                   >
-                    <SlidersHorizontal className="w-4 h-4 text-orange-400" />
+                    <SlidersHorizontal className="w-4 h-4 text-primary" />
                     <span>Customize Generation (Advanced options)</span>
                     {showAdvanced ? (
-                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
                     ) : (
-                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
                     )}
                   </button>
 
                   {showAdvanced && (
-                    <div className="mt-4 p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in slide-in-from-top-2 duration-200">
+                    <div className="mt-4 p-4 rounded-2xl bg-background/80 border border-transparent/80 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in slide-in-from-top-2 duration-200">
                       <div>
-                        <label className="text-xs font-medium text-slate-400 block mb-1">Course Size</label>
+                        <label className="text-xs font-medium text-muted-foreground block mb-1">Course Size</label>
                         <select
                           value={size}
                           onChange={(e) => setSize(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
+                          className="w-full bg-background border border-transparent rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:border-primary/50"
                         >
                           <option value="AUTO">Auto (Inferred)</option>
                           <option value="SMALL">Small (3-4 modules)</option>
@@ -954,11 +954,11 @@ export default function CourseImportPage() {
                       </div>
 
                       <div>
-                        <label className="text-xs font-medium text-slate-400 block mb-1">Difficulty Level</label>
+                        <label className="text-xs font-medium text-muted-foreground block mb-1">Difficulty Level</label>
                         <select
                           value={level}
                           onChange={(e) => setLevel(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
+                          className="w-full bg-background border border-transparent rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:border-primary/50"
                         >
                           <option value="AUTO">Auto (Inferred)</option>
                           <option value="BEGINNER">Beginner</option>
@@ -968,23 +968,23 @@ export default function CourseImportPage() {
                       </div>
 
                       <div>
-                        <label className="text-xs font-medium text-slate-400 block mb-1">Target Audience</label>
+                        <label className="text-xs font-medium text-muted-foreground block mb-1">Target Audience</label>
                         <input
                           type="text"
                           value={targetAudience}
                           onChange={(e) => setTargetAudience(e.target.value)}
                           placeholder="e.g. Beginners, Employees (Auto)"
-                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
+                          className="w-full bg-background border border-transparent rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:border-primary/50"
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-medium text-slate-400 block mb-1">Language</label>
+                        <label className="text-xs font-medium text-muted-foreground block mb-1">Language</label>
                         <input
                           type="text"
                           value={language}
                           onChange={(e) => setLanguage(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-orange-500/50"
+                          className="w-full bg-background border border-transparent rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:border-primary/50"
                         />
                       </div>
                     </div>
@@ -992,8 +992,8 @@ export default function CourseImportPage() {
                 </div>
 
                 {/* Action Footer: ONLY Launch AI Composer button! */}
-                <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-                  <div className="flex items-center space-x-2 text-xs text-slate-400">
+                <div className="flex items-center justify-between pt-4 border-t border-transparent">
+                  <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                     <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
                     <span>Generates canonical course structure with modules & quizzes</span>
                   </div>
@@ -1012,16 +1012,16 @@ export default function CourseImportPage() {
 
             {/* AI GENERATING STATE */}
             {workflowState === "GENERATING" && (
-              <div className="p-8 md:p-12 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl text-center space-y-8 animate-in fade-in duration-300">
+              <div className="p-8 md:p-12 rounded-3xl bg-background/90 border border-transparent shadow-2xl text-center space-y-8 animate-in fade-in duration-300">
                 <div className="relative inline-flex items-center justify-center">
-                  <div className="w-20 h-20 rounded-full bg-orange-500/10 border-2 border-orange-500/30 flex items-center justify-center animate-pulse">
-                    <Sparkles className="w-10 h-10 text-orange-400" />
+                  <div className="w-20 h-20 rounded-full bg-primary/10 border-2 border-primary/30 flex items-center justify-center animate-pulse">
+                    <Sparkles className="w-10 h-10 text-primary" />
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-extrabold text-white">Creating your course with AI...</h3>
-                  <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+                  <h3 className="text-xl font-extrabold text-foreground">Creating your course with AI...</h3>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
                     Gemini 3.6 Flash is authoring your modules, lessons, topic materials, and quizzes.
                   </p>
                 </div>
@@ -1035,22 +1035,22 @@ export default function CourseImportPage() {
                         key={step.id}
                         className={`p-3.5 rounded-2xl border transition flex items-center space-x-3.5 ${
                           isDone
-                            ? "bg-slate-950/80 border-emerald-500/30 text-emerald-300"
+                            ? "bg-background/80 border-emerald-500/30 text-emerald-300"
                             : isCurrent
-                            ? "bg-slate-950 border-orange-500/50 text-orange-400 shadow-lg"
-                            : "bg-slate-950/40 border-slate-800 text-slate-500"
+                            ? "bg-background border-primary/50 text-primary shadow-lg"
+                            : "bg-background/40 border-transparent text-muted-foreground"
                         }`}
                       >
                         {isDone ? (
                           <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
                         ) : isCurrent ? (
-                          <RefreshCw className="w-5 h-5 text-orange-400 animate-spin shrink-0" />
+                          <RefreshCw className="w-5 h-5 text-primary animate-spin shrink-0" />
                         ) : (
-                          <div className="w-5 h-5 rounded-full border border-slate-700 shrink-0" />
+                          <div className="w-5 h-5 rounded-full border border-transparent shrink-0" />
                         )}
                         <div>
                           <span className="text-xs font-bold block">{step.label}</span>
-                          <span className="text-[11px] text-slate-400 font-mono">{step.desc}</span>
+                          <span className="text-[11px] text-muted-foreground font-mono">{step.desc}</span>
                         </div>
                       </div>
                     );
@@ -1061,46 +1061,46 @@ export default function CourseImportPage() {
 
             {/* AI PREVIEW STATE */}
             {workflowState === "PREVIEW" && (
-              <div className="p-6 md:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl space-y-6 animate-in fade-in duration-300">
+              <div className="p-6 md:p-8 rounded-3xl bg-background/90 border border-transparent shadow-2xl space-y-6 animate-in fade-in duration-300">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Eye className="w-5 h-5 text-emerald-400" />
-                    <h3 className="text-lg font-bold text-white">Course Draft Preview</h3>
+                    <h3 className="text-lg font-bold text-foreground">Course Draft Preview</h3>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => setWorkflowState("INPUT")}
-                    className="text-xs font-semibold text-orange-400 hover:text-orange-300 transition underline"
+                    className="text-xs font-semibold text-primary hover:text-orange-300 transition underline"
                   >
                     Edit Prompt / Re-generate
                   </button>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-center">
-                    <span className="text-xs text-slate-400 uppercase font-bold block">Modules</span>
+                  <div className="p-4 bg-background border border-transparent rounded-2xl text-center">
+                    <span className="text-xs text-muted-foreground uppercase font-bold block">Modules</span>
                     <span className="text-xl font-black text-amber-400 mt-1 block">{totalModulesCount}</span>
                   </div>
-                  <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-center">
-                    <span className="text-xs text-slate-400 uppercase font-bold block">Lessons</span>
-                    <span className="text-xl font-black text-orange-400 mt-1 block">{totalLessonsCount}</span>
+                  <div className="p-4 bg-background border border-transparent rounded-2xl text-center">
+                    <span className="text-xs text-muted-foreground uppercase font-bold block">Lessons</span>
+                    <span className="text-xl font-black text-primary mt-1 block">{totalLessonsCount}</span>
                   </div>
-                  <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-center">
-                    <span className="text-xs text-slate-400 uppercase font-bold block">Quizzes</span>
+                  <div className="p-4 bg-background border border-transparent rounded-2xl text-center">
+                    <span className="text-xs text-muted-foreground uppercase font-bold block">Quizzes</span>
                     <span className="text-xl font-black text-emerald-400 mt-1 block">{totalQuizzesCount}</span>
                   </div>
                 </div>
 
-                <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl max-h-[50vh] overflow-y-auto space-y-4">
+                <div className="p-5 bg-background border border-transparent rounded-2xl max-h-[50vh] overflow-y-auto space-y-4">
                   <div>
                     <h4 className="text-base font-extrabold text-amber-400">
                       {targetMetadata?.title || "AI Generated Course"}
                     </h4>
-                    <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                    <p className="text-xs text-foreground mt-1 leading-relaxed">
                       {targetMetadata?.description || "Course description generated by AI."}
                     </p>
-                    <div className="flex items-center space-x-3 text-[11px] font-mono text-slate-400 mt-2">
+                    <div className="flex items-center space-x-3 text-[11px] font-mono text-muted-foreground mt-2">
                       <span>Level: {targetMetadata?.level || "BEGINNER"}</span>
                       <span>•</span>
                       <span>Category: {targetMetadata?.category || "General"}</span>
@@ -1108,26 +1108,26 @@ export default function CourseImportPage() {
                   </div>
 
                   {modulesList.length > 0 && (
-                    <div className="space-y-3 pt-3 border-t border-slate-800">
+                    <div className="space-y-3 pt-3 border-t border-transparent">
                       {modulesList.map((m, idx) => (
-                        <div key={idx} className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
-                          <div className="flex items-center justify-between text-xs font-bold text-slate-100">
+                        <div key={idx} className="p-4 bg-background border border-transparent rounded-xl space-y-2">
+                          <div className="flex items-center justify-between text-xs font-bold text-foreground">
                             <span className="flex items-center space-x-2">
                               <Layers className="w-4 h-4 text-amber-400" />
                               <span>Module {idx + 1}: {m.title}</span>
                             </span>
-                            <span className="text-[11px] text-slate-400 font-mono">
+                            <span className="text-[11px] text-muted-foreground font-mono">
                               {Array.isArray(m.lessons) ? `${m.lessons.length} lessons` : "0 lessons"}
                             </span>
                           </div>
-                          {m.description && <p className="text-xs text-slate-400 leading-relaxed pl-6">{m.description}</p>}
+                          {m.description && <p className="text-xs text-muted-foreground leading-relaxed pl-6">{m.description}</p>}
 
                           {Array.isArray(m.lessons) && m.lessons.length > 0 && (
-                            <div className="pl-6 border-l border-slate-800 space-y-1.5 mt-2">
+                            <div className="pl-6 border-l border-transparent space-y-1.5 mt-2">
                               {m.lessons.map((l, lIdx) => (
-                                <div key={lIdx} className="text-xs text-slate-300 flex items-center justify-between">
+                                <div key={lIdx} className="text-xs text-foreground flex items-center justify-between">
                                   <span className="flex items-center space-x-2">
-                                    <BookOpen className="w-3.5 h-3.5 text-orange-400" />
+                                    <BookOpen className="w-3.5 h-3.5 text-primary" />
                                     <span>• {l.title}</span>
                                   </span>
                                 </div>
@@ -1140,11 +1140,11 @@ export default function CourseImportPage() {
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+                <div className="flex items-center justify-between pt-4 border-t border-transparent">
                   <button
                     type="button"
                     onClick={() => setWorkflowState("INPUT")}
-                    className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition"
+                    className="px-5 py-2.5 rounded-xl bg-muted hover:bg-muted text-foreground text-xs font-semibold border border-transparent transition"
                   >
                     Back to Prompt
                   </button>
@@ -1168,17 +1168,17 @@ export default function CourseImportPage() {
       {/* MODAL 1: PASTE JSON MODAL */}
       {/* ======================================================== */}
       {showPasteModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl p-6 md:p-8 space-y-6 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-background border border-transparent rounded-3xl w-full max-w-2xl p-6 md:p-8 space-y-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-transparent pb-4">
               <div className="flex items-center space-x-2">
                 <Clipboard className="w-5 h-5 text-indigo-400" />
-                <h3 className="text-lg font-bold text-white">Paste Orange Tree LMS JSON</h3>
+                <h3 className="text-lg font-bold text-foreground">Paste Orange Tree LMS JSON</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowPasteModal(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"
+                className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-muted transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1199,7 +1199,7 @@ export default function CourseImportPage() {
             )}
 
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-300 block">
+              <label className="text-xs font-semibold text-foreground block">
                 Paste JSON Course Content below:
               </label>
               <textarea
@@ -1207,22 +1207,22 @@ export default function CourseImportPage() {
                 onChange={(e) => setPastedJsonText(e.target.value)}
                 placeholder='{\n  "metadata": {\n    "title": "My Custom Course",\n    "category": "Computer Science"\n  },\n  "modules": [...]\n}'
                 rows={10}
-                className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-xs text-slate-100 font-mono focus:outline-none focus:border-indigo-500 transition resize-y"
+                className="w-full bg-background border border-transparent rounded-2xl p-4 text-xs text-foreground font-mono focus:outline-none focus:border-indigo-500 transition resize-y"
               />
             </div>
 
-            <div className="flex items-center justify-end space-x-3 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-end space-x-3 pt-2 border-t border-transparent">
               <button
                 type="button"
                 onClick={() => setShowPasteModal(false)}
-                className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition"
+                className="px-5 py-2.5 rounded-xl bg-muted hover:bg-muted text-foreground text-xs font-semibold transition"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleValidateAndImportPastedJson}
-                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold transition flex items-center space-x-1.5 cursor-pointer shadow-lg shadow-indigo-600/20"
+                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-foreground text-xs font-extrabold transition flex items-center space-x-1.5 cursor-pointer shadow-lg shadow-indigo-600/20"
               >
                 <Check className="w-4 h-4" />
                 <span>Validate & Import JSON</span>
@@ -1236,72 +1236,72 @@ export default function CourseImportPage() {
       {/* MODAL 2: FORMAT GUIDE MODAL */}
       {/* ======================================================== */}
       {showFormatGuideModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-3xl p-6 md:p-8 space-y-6 shadow-2xl max-h-[85vh] overflow-y-auto animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-background border border-transparent rounded-3xl w-full max-w-3xl p-6 md:p-8 space-y-6 shadow-2xl max-h-[85vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-transparent pb-4">
               <div className="flex items-center space-x-2">
                 <FileJson className="w-5 h-5 text-indigo-400" />
-                <h3 className="text-lg font-bold text-white">Orange Tree LMS Course JSON Format Guide (v2)</h3>
+                <h3 className="text-lg font-bold text-foreground">Orange Tree LMS Course JSON Format Guide (v2)</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowFormatGuideModal(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"
+                className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-muted transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Hierarchy Explanation */}
-            <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
+            <div className="space-y-4 text-xs text-foreground leading-relaxed">
               <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-800/40 space-y-2">
                 <h4 className="font-bold text-indigo-300 uppercase tracking-wider text-[11px]">
                   Course Structure Hierarchy
                 </h4>
-                <p className="text-slate-300">
+                <p className="text-foreground">
                   Orange Tree LMS organizes courses using a 5-level nested structure:
                 </p>
-                <div className="p-2.5 bg-slate-950 border border-slate-800 rounded-xl font-mono text-[11px] text-amber-300 flex items-center space-x-2 flex-wrap">
+                <div className="p-2.5 bg-background border border-transparent rounded-xl font-mono text-[11px] text-amber-300 flex items-center space-x-2 flex-wrap">
                   <span className="font-bold">Course</span> → <span>Module</span> → <span>Lesson</span> → <span>Topic</span> → <span className="text-emerald-400">Content / Quiz</span>
                 </div>
               </div>
 
               {/* Schema Fields Breakdown */}
               <div className="space-y-3">
-                <h4 className="font-bold text-white text-sm">Supported Top-Level Fields</h4>
+                <h4 className="font-bold text-foreground text-sm">Supported Top-Level Fields</h4>
 
                 <div className="space-y-2">
-                  <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                  <div className="p-3 bg-background border border-transparent rounded-xl">
                     <span className="font-bold text-amber-400 font-mono block">metadata</span>
-                    <span className="text-slate-400 block mt-0.5">
+                    <span className="text-muted-foreground block mt-0.5">
                       Contains course title, description, category, difficulty level (BEGINNER | INTERMEDIATE | ADVANCED), language, estimatedLearningHours, price, and tags array.
                     </span>
                   </div>
 
-                  <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                  <div className="p-3 bg-background border border-transparent rounded-xl">
                     <span className="font-bold text-indigo-400 font-mono block">settings</span>
-                    <span className="text-slate-400 block mt-0.5">
+                    <span className="text-muted-foreground block mt-0.5">
                       visibility (PUBLIC | PRIVATE), certificatesEnabled (boolean), discussionEnabled (boolean), dripContentEnabled (boolean).
                     </span>
                   </div>
 
-                  <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                  <div className="p-3 bg-background border border-transparent rounded-xl">
                     <span className="font-bold text-emerald-400 font-mono block">modules [ ]</span>
-                    <span className="text-slate-400 block mt-0.5">
+                    <span className="text-muted-foreground block mt-0.5">
                       Array of module objects. Each module has title, description, order, and nested lessons array.
                     </span>
                   </div>
 
-                  <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                  <div className="p-3 bg-background border border-transparent rounded-xl">
                     <span className="font-bold text-sky-400 font-mono block">contents [ ] (Topic Content Items)</span>
-                    <span className="text-slate-400 block mt-0.5">
+                    <span className="text-muted-foreground block mt-0.5">
                       Supported types: HTML (rich text / markdown), VIDEO (videoUrl), DOCUMENT (fileUrl), PRESENTATION (fileUrl).
                     </span>
                   </div>
 
-                  <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                  <div className="p-3 bg-background border border-transparent rounded-xl">
                     <span className="font-bold text-purple-400 font-mono block">quizzes [ ]</span>
-                    <span className="text-slate-400 block mt-0.5">
+                    <span className="text-muted-foreground block mt-0.5">
                       Course or module level assessment quizzes with passingScore, timeLimit, and questions array (MCQ_SINGLE, MCQ_MULTI, TRUE_FALSE, SHORT_ANSWER, CODING).
                     </span>
                   </div>
@@ -1309,7 +1309,7 @@ export default function CourseImportPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+            <div className="flex items-center justify-between pt-4 border-t border-transparent">
               <button
                 type="button"
                 onClick={handleDownloadTemplate}
@@ -1322,7 +1322,7 @@ export default function CourseImportPage() {
               <button
                 type="button"
                 onClick={() => setShowFormatGuideModal(false)}
-                className="px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-white text-xs font-bold transition"
+                className="px-6 py-2 rounded-xl bg-muted hover:bg-slate-750 text-foreground text-xs font-bold transition"
               >
                 Close Guide
               </button>

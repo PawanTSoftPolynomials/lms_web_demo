@@ -18,20 +18,20 @@ export default function QuestionPreview({
                 className="
                     rounded-2xl
                     border
-                    border-slate-800
-                    bg-slate-900
+                    border-border
+                    bg-background
                     p-8
                 "
             >
                 <div className="mb-5 flex items-center gap-3">
-                    <FaQuestionCircle className="text-xl text-orange-400" />
+                    <FaQuestionCircle className="text-xl text-primary" />
 
                     <h2 className="text-2xl font-semibold">
                         Question
                     </h2>
                 </div>
 
-                <p className="text-lg leading-8 text-white">
+                <p className="text-lg leading-8 text-foreground">
                     {question.question}
                 </p>
             </div>
@@ -41,8 +41,8 @@ export default function QuestionPreview({
                 className="
                     rounded-2xl
                     border
-                    border-slate-800
-                    bg-slate-900
+                    border-border
+                    bg-background
                     p-8
                 "
             >
@@ -73,7 +73,7 @@ export default function QuestionPreview({
                                             ${
                                             isCorrect
                                                 ? "border-green-500 bg-green-500/10"
-                                                : "border-slate-800 bg-slate-950"
+                                                : "border-border bg-background"
                                         }
                                         `}
                                     >
@@ -89,8 +89,8 @@ export default function QuestionPreview({
                                                     font-semibold
                                                     ${
                                                     isCorrect
-                                                        ? "bg-green-500 text-white"
-                                                        : "bg-slate-800 text-slate-300"
+                                                        ? "bg-green-500 text-foreground"
+                                                        : "bg-muted text-foreground"
                                                 }
                                                 `}
                                             >
@@ -99,7 +99,7 @@ export default function QuestionPreview({
                                                 )}
                                             </span>
 
-                                            <span className="text-white">
+                                            <span className="text-foreground">
                                                 {optionText}
                                             </span>
                                         </div>
@@ -135,20 +135,20 @@ export default function QuestionPreview({
                 className="
                     rounded-2xl
                     border
-                    border-slate-800
-                    bg-slate-900
+                    border-border
+                    bg-background
                     p-8
                 "
             >
                 <div className="flex items-center gap-3">
-                    <FaStar className="text-xl text-orange-400" />
+                    <FaStar className="text-xl text-primary" />
 
                     <h2 className="text-2xl font-semibold">
                         Marks
                     </h2>
                 </div>
 
-                <p className="mt-5 text-4xl font-bold text-orange-400">
+                <p className="mt-5 text-4xl font-bold text-primary">
                     {question.marks}
                 </p>
             </div>

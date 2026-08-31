@@ -2,16 +2,16 @@
 
 export default function EmptyStickyNotes() {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 py-12 text-center">
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-transparent py-12 text-center">
       <div className="mb-4 text-5xl">
         📝
       </div>
 
-      <h3 className="text-lg font-semibold text-white">
+      <h3 className="text-lg font-semibold text-foreground">
         No Sticky Notes Yet
       </h3>
 
-      <p className="mt-2 max-w-sm text-sm text-slate-400">
+      <p className="mt-2 max-w-sm text-sm text-muted-foreground">
         Create your first sticky note while learning.
         Save important concepts, interview questions,
         or reminders for later.

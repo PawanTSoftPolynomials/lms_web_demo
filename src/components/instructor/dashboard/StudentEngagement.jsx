@@ -30,10 +30,10 @@ export default function StudentEngagement({ courseId }) {
           <div className="flex justify-center text-red-400">
             <AlertTriangle size={24} />
           </div>
-          <h4 className="font-bold text-white text-xs">Failed to load Student Engagement</h4>
+          <h4 className="font-bold text-foreground text-xs">Failed to load Student Engagement</h4>
           <button
             onClick={() => refetch()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-white bg-red-500 hover:bg-red-650 rounded-lg transition self-center"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-foreground bg-red-500 hover:bg-red-650 rounded-lg transition self-center"
           >
             <RefreshCw size={10} />
             Retry
@@ -68,7 +68,7 @@ export default function StudentEngagement({ courseId }) {
             margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
           >
             <CartesianGrid
-              stroke="#1e293b"
+              stroke="var(--border)"
               strokeDasharray="4 4"
               vertical={false}
             />
@@ -76,20 +76,20 @@ export default function StudentEngagement({ courseId }) {
               dataKey="name"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#94a3b8', fontSize: 10 }}
+              tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }}
             />
             <YAxis
               domain={['auto', 'auto']}
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#94a3b8', fontSize: 10 }}
+              tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#0f172a',
-                borderColor: '#1e293b',
+                backgroundColor: 'var(--popover)',
+                borderColor: 'var(--border)',
                 borderRadius: '12px',
-                color: '#fff',
+                color: 'var(--popover-foreground)',
               }}
               itemStyle={{ fontSize: '11px' }}
               labelStyle={{ fontSize: '11px', fontWeight: 'bold' }}
@@ -105,27 +105,27 @@ export default function StudentEngagement({ courseId }) {
               type="monotone"
               dataKey="active"
               name="Active Students"
-              stroke="#a855f7"
+              stroke="var(--primary)"
               strokeWidth={3}
-              dot={{ r: 4, stroke: '#a855f7', strokeWidth: 2 }}
+              dot={{ r: 4, stroke: 'var(--primary)', strokeWidth: 2 }}
               activeDot={{ r: 6 }}
             />
             <Line
               type="monotone"
               dataKey="lessons"
               name="Course completed"
-              stroke="#3b82f6"
+              stroke="var(--foreground)"
               strokeWidth={3}
-              dot={{ r: 4, stroke: '#3b82f6', strokeWidth: 2 }}
+              dot={{ r: 4, stroke: 'var(--foreground)', strokeWidth: 2 }}
               activeDot={{ r: 6 }}
             />
             <Line
               type="monotone"
               dataKey="quizzes"
               name="Quiz Attempts"
-              stroke="#10b981"
+              stroke="var(--secondary)"
               strokeWidth={3}
-              dot={{ r: 4, stroke: '#10b981', strokeWidth: 2 }}
+              dot={{ r: 4, stroke: 'var(--secondary)', strokeWidth: 2 }}
               activeDot={{ r: 6 }}
             />
           </LineChart>

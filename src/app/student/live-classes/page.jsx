@@ -19,13 +19,13 @@ import { LIVE_CLASSES_FILTERS } from "@/features/student/constants/liveClassesCo
 const statusBadge = (status) => {
   switch (status) {
     case "LIVE":
-      return <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 bg-red-500 text-white rounded-full animate-pulse"><RadioTower size={10} /> Live Now</span>;
+      return <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 bg-red-500 text-foreground rounded-full animate-pulse"><RadioTower size={10} /> Live Now</span>;
     case "COMPLETED":
       return <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full"><CheckCircle size={10} /> Completed</span>;
     case "CANCELLED":
-      return <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-1 bg-slate-800 border border-slate-700/50 text-slate-400 rounded-full">Cancelled</span>;
+      return <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-1 bg-muted border border-transparent/50 text-muted-foreground rounded-full">Cancelled</span>;
     default:
-      return <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-full"><Calendar size={10} /> Scheduled</span>;
+      return <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 bg-primary/10 border border-primary/20 text-primary rounded-full"><Calendar size={10} /> Scheduled</span>;
   }
 };
 
@@ -54,7 +54,7 @@ export default function LiveClassesPage() {
     : [...liveNow, ...upcoming];
 
   return (
-    <div className="space-y-6 text-white">
+    <div className="space-y-6 text-foreground">
       <PageHeader
         title="Live Classes"
         subtitle="Join instructor-led live sessions for your courses"
@@ -62,7 +62,7 @@ export default function LiveClassesPage() {
 
       {/* Live Now Banner */}
       {liveNow.length > 0 && (
-        <div className="bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-2xl p-5 shadow-lg">
+        <div className="bg-gradient-to-r from-red-600 to-rose-600 text-foreground rounded-2xl p-5 shadow-lg">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white/20 rounded-xl">
@@ -96,8 +96,8 @@ export default function LiveClassesPage() {
             onClick={() => setStatusFilter(tab.value)}
             className={`px-4 py-2 rounded-xl text-[10px] font-bold border transition cursor-pointer ${
               statusFilter === tab.value
-                ? "bg-orange-500 text-white border-orange-500"
-                : "bg-slate-900/50 text-slate-400 border-slate-800/80 hover:border-orange-500/50"
+                ? "bg-primary text-foreground border-primary"
+                : "bg-background/50 text-muted-foreground border-transparent/80 hover:border-primary/50"
             }`}
           >
             {tab.label}
@@ -107,7 +107,7 @@ export default function LiveClassesPage() {
 
       {/* Content */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20 text-slate-400">
+        <div className="flex items-center justify-center py-20 text-muted-foreground">
           <Loader2 className="animate-spin mr-2" size={20} /> Loading classes…
         </div>
       ) : isError ? (
@@ -115,34 +115,34 @@ export default function LiveClassesPage() {
           <AlertCircle size={18} /> Failed to load live classes.
         </div>
       ) : displayed.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6">
+        <div className="text-center py-20 text-muted-foreground bg-background/50 border border-transparent/80 rounded-2xl p-6">
           <Video size={40} className="mx-auto mb-3 opacity-40 text-slate-450" />
-          <p className="text-sm font-semibold text-white">No classes scheduled</p>
-          <p className="text-xs mt-1 text-slate-400">Your instructor hasn't scheduled any live classes yet.</p>
+          <p className="text-sm font-semibold text-foreground">No classes scheduled</p>
+          <p className="text-xs mt-1 text-muted-foreground">Your instructor hasn't scheduled any live classes yet.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {displayed.map((cls) => {
             const date = new Date(cls.scheduledAt);
             return (
-              <div key={cls.id} className="bg-slate-900/50 border border-slate-800/80 backdrop-blur-md rounded-2xl p-5 shadow-luxury-md hover:border-orange-500/30 transition">
+              <div key={cls.id} className="bg-background/50 border border-transparent/80 backdrop-blur-md rounded-2xl p-5 shadow-luxury-md hover:border-primary/30 transition">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div className="flex items-start gap-4">
-                    <div className="p-3 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-xl flex-shrink-0">
+                    <div className="p-3 bg-primary/10 text-primary border border-primary/20 rounded-xl flex-shrink-0">
                       <Video size={20} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                        <h3 className="text-sm font-black text-white">{cls.title}</h3>
+                        <h3 className="text-sm font-black text-foreground">{cls.title}</h3>
                         {statusBadge(cls.status)}
                       </div>
-                      {cls.topic && <p className="text-xs text-slate-400 mb-2">{cls.topic}</p>}
+                      {cls.topic && <p className="text-xs text-muted-foreground mb-2">{cls.topic}</p>}
                       {cls.course && (
-                        <span className="text-[9px] font-bold text-orange-400 bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-full">
+                        <span className="text-[9px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
                           {cls.course.title}
                         </span>
                       )}
-                      <div className="flex items-center gap-4 mt-3 text-[10px] text-slate-500 font-semibold">
+                      <div className="flex items-center gap-4 mt-3 text-[10px] text-muted-foreground font-semibold">
                         <span className="flex items-center gap-1"><Calendar size={11} />{date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</span>
                         <span className="flex items-center gap-1"><Clock size={11} />{date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</span>
                         {cls.duration && <span className="flex items-center gap-1"><Clock size={11} />{cls.duration} min</span>}
@@ -157,8 +157,8 @@ export default function LiveClassesPage() {
                       rel="noreferrer"
                       className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-xl transition flex-shrink-0 cursor-pointer ${
                         cls.status === "LIVE"
-                          ? "bg-red-650 text-white hover:bg-red-700 shadow"
-                          : "bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 border border-orange-500/20"
+                          ? "bg-red-650 text-foreground hover:bg-red-700 shadow"
+                          : "bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20"
                       }`}
                     >
                       <ExternalLink size={13} />

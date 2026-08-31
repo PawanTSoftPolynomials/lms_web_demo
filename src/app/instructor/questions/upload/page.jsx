@@ -152,12 +152,12 @@ JavaScript Async,SHORT_ANSWER,Web Development,MEDIUM,2,What does a Promise repre
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10 font-sans">
+    <div className="min-h-screen bg-background text-foreground p-6 md:p-10 font-sans">
       <div className="max-w-4xl mx-auto mb-8">
         <div className="flex items-center space-x-3">
           <Link
             href="/instructor/questions"
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+            className="p-2 rounded-xl bg-background border border-transparent text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -165,7 +165,7 @@ JavaScript Async,SHORT_ANSWER,Web Development,MEDIUM,2,What does a Promise repre
             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">
               Bulk Upload Questions
             </h1>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Upload questions via Excel (.xlsx), CSV (.csv), or JSON (.json) files into your repository.
             </p>
           </div>
@@ -174,19 +174,19 @@ JavaScript Async,SHORT_ANSWER,Web Development,MEDIUM,2,What does a Promise repre
 
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Sample Download Bar */}
-        <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          <span className="text-slate-300 font-medium">Download Sample Template Formats:</span>
+        <div className="p-4 rounded-2xl bg-background/90 border border-transparent flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <span className="text-foreground font-medium">Download Sample Template Formats:</span>
           <div className="flex items-center space-x-2">
             <button
               onClick={handleDownloadSampleCsv}
-              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 flex items-center space-x-1.5"
+              className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted text-amber-400 border border-amber-500/30 flex items-center space-x-1.5"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Sample CSV</span>
             </button>
             <button
               onClick={handleDownloadSampleJson}
-              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 flex items-center space-x-1.5"
+              className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted text-amber-400 border border-amber-500/30 flex items-center space-x-1.5"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Sample JSON</span>
@@ -202,7 +202,7 @@ JavaScript Async,SHORT_ANSWER,Web Development,MEDIUM,2,What does a Promise repre
               <p className="font-semibold">Upload Error</p>
               <p className="mt-1 text-xs">{errorMessage}</p>
             </div>
-            <button onClick={() => setErrorMessage("")} className="text-rose-400 hover:text-white">
+            <button onClick={() => setErrorMessage("")} className="text-rose-400 hover:text-foreground">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -218,7 +218,7 @@ JavaScript Async,SHORT_ANSWER,Web Development,MEDIUM,2,What does a Promise repre
               ? "border-amber-400 bg-amber-500/10 scale-[1.01]"
               : selectedFile
               ? "border-emerald-500/60 bg-emerald-950/10"
-              : "border-slate-800 hover:border-slate-700 bg-slate-900/50"
+              : "border-transparent hover:border-transparent bg-background/50"
           }`}
         >
           <input
@@ -229,27 +229,27 @@ JavaScript Async,SHORT_ANSWER,Web Development,MEDIUM,2,What does a Promise repre
           />
 
           <div className="flex flex-col items-center justify-center space-y-4 pointer-events-none">
-            <div className="w-16 h-16 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-amber-400">
+            <div className="w-16 h-16 rounded-2xl bg-muted/80 border border-transparent flex items-center justify-center text-amber-400">
               <FileSpreadsheet className="w-8 h-8" />
             </div>
 
             {selectedFile ? (
               <div>
                 <p className="text-lg font-semibold text-emerald-300">{selectedFile.name}</p>
-                <p className="text-xs text-slate-400 mt-1">{(selectedFile.size / 1024).toFixed(1)} KB • Ready for validation</p>
+                <p className="text-xs text-muted-foreground mt-1">{(selectedFile.size / 1024).toFixed(1)} KB • Ready for validation</p>
               </div>
             ) : (
               <div>
-                <p className="text-lg font-medium text-slate-200">
+                <p className="text-lg font-medium text-foreground">
                   Drag & Drop your <span className="text-amber-400 font-semibold">Excel, CSV, or JSON</span> file
                 </p>
-                <p className="text-xs text-slate-400 mt-1">Files must specify question, subject, topic, difficulty, type, and options/answers</p>
+                <p className="text-xs text-muted-foreground mt-1">Files must specify question, subject, topic, difficulty, type, and options/answers</p>
               </div>
             )}
 
             <button
               type="button"
-              className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium border border-slate-700 pointer-events-auto transition"
+              className="px-5 py-2.5 rounded-xl bg-muted hover:bg-muted text-foreground text-sm font-medium border border-transparent pointer-events-auto transition"
             >
               {selectedFile ? "Change File" : "Browse File"}
             </button>
@@ -280,7 +280,7 @@ JavaScript Async,SHORT_ANSWER,Web Development,MEDIUM,2,What does a Promise repre
 
         {/* Upload Summary Report */}
         {uploadResult && (
-          <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-6">
+          <div className="p-6 rounded-3xl bg-background/90 border border-transparent space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3 text-emerald-400">
                 <CheckCircle2 className="w-6 h-6" />
@@ -290,7 +290,7 @@ JavaScript Async,SHORT_ANSWER,Web Development,MEDIUM,2,What does a Promise repre
               {uploadResult.errors && uploadResult.errors.length > 0 && (
                 <button
                   onClick={handleDownloadErrorReport}
-                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-800 text-xs flex items-center space-x-1.5"
+                  className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted text-rose-300 border border-rose-800 text-xs flex items-center space-x-1.5"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Download Error Report</span>
@@ -300,42 +300,42 @@ JavaScript Async,SHORT_ANSWER,Web Development,MEDIUM,2,What does a Promise repre
 
             {/* Metrics */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800">
-                <p className="text-2xl font-bold text-slate-200">{uploadResult.total}</p>
-                <p className="text-[11px] text-slate-400 uppercase tracking-wider mt-1">Total Processed</p>
+              <div className="p-4 rounded-2xl bg-background/60 border border-transparent">
+                <p className="text-2xl font-bold text-foreground">{uploadResult.total}</p>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider mt-1">Total Processed</p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800">
+              <div className="p-4 rounded-2xl bg-background/60 border border-transparent">
                 <p className="text-2xl font-bold text-emerald-400">{uploadResult.importedCount}</p>
-                <p className="text-[11px] text-slate-400 uppercase tracking-wider mt-1">Successfully Imported</p>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider mt-1">Successfully Imported</p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800">
+              <div className="p-4 rounded-2xl bg-background/60 border border-transparent">
                 <p className="text-2xl font-bold text-rose-400">{uploadResult.failedCount}</p>
-                <p className="text-[11px] text-slate-400 uppercase tracking-wider mt-1">Failed</p>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider mt-1">Failed</p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800">
+              <div className="p-4 rounded-2xl bg-background/60 border border-transparent">
                 <p className="text-2xl font-bold text-amber-400">{uploadResult.duplicateCount}</p>
-                <p className="text-[11px] text-slate-400 uppercase tracking-wider mt-1">Duplicates Skipped</p>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider mt-1">Duplicates Skipped</p>
               </div>
             </div>
 
             {/* Error List */}
             {uploadResult.errors && uploadResult.errors.length > 0 && (
-              <div className="space-y-3 pt-4 border-t border-slate-800">
+              <div className="space-y-3 pt-4 border-t border-transparent">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-rose-400">
                   Validation Error Log ({uploadResult.errors.length})
                 </h4>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                   {uploadResult.errors.map((err, idx) => (
-                    <div key={idx} className="p-3 rounded-xl bg-slate-950/80 border border-rose-900/60 flex items-start justify-between text-xs">
+                    <div key={idx} className="p-3 rounded-xl bg-background/80 border border-rose-900/60 flex items-start justify-between text-xs">
                       <div>
                         <span className="font-mono text-rose-400 font-bold mr-2">Row {err.row}:</span>
-                        <span className="font-semibold text-slate-200 mr-2">[{err.code}]</span>
-                        <span className="text-slate-300">{err.message}</span>
+                        <span className="font-semibold text-foreground mr-2">[{err.code}]</span>
+                        <span className="text-foreground">{err.message}</span>
                       </div>
-                      <span className="text-slate-500 font-mono text-[11px] truncate max-w-xs">{err.question}</span>
+                      <span className="text-muted-foreground font-mono text-[11px] truncate max-w-xs">{err.question}</span>
                     </div>
                   ))}
                 </div>

@@ -45,10 +45,10 @@ const BADGE_STYLES = {
   heading: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
   text: "bg-blue-500/20 text-blue-400 border-blue-500/30",
   code: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-  image: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+  image: "bg-primary/20 text-primary border-primary/30",
   video: "bg-purple-500/20 text-purple-400 border-purple-500/30",
   document: "bg-sky-500/20 text-sky-400 border-sky-500/30",
-  default: "bg-slate-800 text-slate-300 border-slate-700",
+  default: "bg-muted text-foreground border-transparent",
 };
 
 export function CellShell({
@@ -94,9 +94,9 @@ export function CellShell({
       className={cn(
         "group relative flex items-start gap-3 transition-all duration-200",
         isTextOrHeading && mode === "view"
-          ? "rounded-xl border border-transparent bg-transparent hover:border-slate-800/80 hover:bg-slate-900/40 p-2.5 sm:p-3.5"
-          : "rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-5 shadow-sm hover:border-slate-700/80 hover:bg-slate-900/90",
-        mode === "edit" && "rounded-2xl border-orange-500/50 bg-slate-900/95 ring-2 ring-orange-500/50 p-4 sm:p-5"
+          ? "rounded-xl border border-transparent bg-transparent hover:border-border/80 hover:bg-background/40 p-2.5 sm:p-3.5"
+          : "rounded-2xl border border-border bg-background/70 p-4 sm:p-5 shadow-sm hover:border-transparent/80 hover:bg-background/90",
+        mode === "edit" && "rounded-2xl border-primary/50 bg-background/95 ring-2 ring-orange-500/50 p-4 sm:p-5"
       )}
     >
       {/* Add Above — top center, fades in over the block's top edge */}
@@ -108,7 +108,7 @@ export function CellShell({
             onAddAbove();
           }}
           className={cn(
-            "absolute -top-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-slate-800 bg-slate-950 px-2.5 py-1 text-[10px] font-bold text-slate-400 shadow-md transition-colors hover:border-orange-500 hover:bg-orange-500 hover:text-slate-950 cursor-pointer",
+            "absolute -top-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[10px] font-bold text-muted-foreground shadow-md transition-colors hover:border-primary hover:bg-primary hover:text-slate-950 cursor-pointer",
             addControlsVisible
           )}
           title="Add block above"
@@ -122,7 +122,7 @@ export function CellShell({
       <div className="flex items-center gap-2 shrink-0 pt-0.5">
         <div
           className={cn(
-            "flex h-8 w-4 items-center justify-center text-slate-400 cursor-grab active:cursor-grabbing transition",
+            "flex h-8 w-4 items-center justify-center text-muted-foreground cursor-grab active:cursor-grabbing transition",
             hoverVisible
           )}
           title="Drag to reorder"
@@ -149,12 +149,12 @@ export function CellShell({
       <div className="flex-1 min-w-0 space-y-2">
         {/* Header Metadata — shown for named/file blocks OR when editing */}
         {(title || !isTextOrHeading || mode === "edit") && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/60 pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-2">
             <div className="min-w-0">
-              <h4 className="truncate text-xs font-bold text-slate-200">
+              <h4 className="truncate text-xs font-bold text-foreground">
                 {title || (isTextOrHeading ? "Text Block" : "Untitled Block")}
               </h4>
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+              <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
                 {typeLabel}
               </p>
             </div>
@@ -168,7 +168,7 @@ export function CellShell({
                   <DropdownMenuTrigger asChild>
                     <button
                       type="button"
-                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-background/60 text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
                       aria-label="Block Settings & Actions"
                       title="Settings & Actions"
                     >
@@ -214,7 +214,7 @@ export function CellShell({
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-800 bg-slate-950/80 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer shadow-sm"
+                  className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-background/80 text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer shadow-sm"
                   aria-label="Block Settings & Actions"
                   title="Settings & Actions"
                 >
@@ -264,7 +264,7 @@ export function CellShell({
             onAddBelow();
           }}
           className={cn(
-            "absolute -bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-slate-800 bg-slate-950 px-2.5 py-1 text-[10px] font-bold text-slate-400 shadow-md transition-colors hover:border-orange-500 hover:bg-orange-500 hover:text-slate-950 cursor-pointer",
+            "absolute -bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[10px] font-bold text-muted-foreground shadow-md transition-colors hover:border-primary hover:bg-primary hover:text-slate-950 cursor-pointer",
             addControlsVisible
           )}
           title="Add block below"

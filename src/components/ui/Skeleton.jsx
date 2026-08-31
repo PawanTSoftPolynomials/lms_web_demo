@@ -3,7 +3,7 @@
 // Helper for standard pulsing container
 function Pulse({ className = '', children }) {
   return (
-    <div className={`animate-pulse bg-slate-800 rounded-lg ${className}`}>
+    <div className={`animate-pulse bg-muted rounded-lg ${className}`}>
       {children}
     </div>
   );
@@ -21,7 +21,7 @@ export function KPICardSkeleton() {
         <Pulse className="h-12 w-12 rounded-xl" />
       </div>
       
-      <div className="space-y-4 pt-4 border-t border-slate-800/80">
+      <div className="space-y-4 pt-4 border-t border-border/80">
         <Pulse className="h-6 w-full rounded-full" />
         <Pulse className="h-3.5 w-1/3" />
       </div>
@@ -33,7 +33,7 @@ export function KPICardSkeleton() {
 export function ChartCardSkeleton({ height = "h-96" }) {
   return (
     <div className="rounded-2xl border border-card-border bg-card shadow-sm overflow-hidden">
-      <div className="flex justify-between items-center border-b border-slate-800/80 px-6 py-5">
+      <div className="flex justify-between items-center border-b border-border/80 px-6 py-5">
         <div className="space-y-2">
           <Pulse className="h-5 w-32" />
           <Pulse className="h-3.5 w-48" />
@@ -41,7 +41,7 @@ export function ChartCardSkeleton({ height = "h-96" }) {
         <Pulse className="h-8 w-20 rounded-lg" />
       </div>
       <div className="p-6">
-        <div className={`${height} flex items-end justify-between gap-3 pt-6 border-b border-l border-slate-800`}>
+        <div className={`${height} flex items-end justify-between gap-3 pt-6 border-b border-l border-border`}>
           <Pulse className="h-[40%] w-full rounded-t-lg" />
           <Pulse className="h-[75%] w-full rounded-t-lg" />
           <Pulse className="h-[55%] w-full rounded-t-lg" />
@@ -69,7 +69,7 @@ export function CourseProgressSkeleton() {
       
       <div className="grid gap-6 sm:grid-cols-2">
         {[1, 2].map((i) => (
-          <div key={i} className="rounded-2xl border border-slate-800 bg-slate-950/20 p-5 space-y-4">
+          <div key={i} className="rounded-2xl border border-border bg-background/20 p-5 space-y-4">
             <div className="flex justify-between">
               <Pulse className="h-5 w-36" />
               <Pulse className="h-4 w-16 rounded-full" />
@@ -84,7 +84,7 @@ export function CourseProgressSkeleton() {
               <Pulse className="h-2 w-full rounded-full" />
             </div>
             
-            <div className="flex justify-between items-center border-t border-slate-800 pt-3">
+            <div className="flex justify-between items-center border-t border-border pt-3">
               <Pulse className="h-3 w-16" />
               <Pulse className="h-4 w-20 rounded-lg" />
             </div>
@@ -113,7 +113,7 @@ export function ActionCardSkeleton() {
 // 5. List Row Skeleton
 export function ListRowSkeleton() {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-slate-800/60 last:border-0">
+    <div className="flex items-center justify-between py-3 border-b border-border/60 last:border-0">
       <div className="flex items-center gap-3 w-2/3">
         <Pulse className="h-8 w-8 rounded-lg shrink-0" />
         <div className="space-y-1.5 w-full">

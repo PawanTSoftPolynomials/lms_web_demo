@@ -276,7 +276,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
     .slice(0, 2);
 
   return (
-    <div className="space-y-6 pb-12 animate-in fade-in duration-200 text-slate-100">
+    <div className="space-y-6 pb-12 animate-in fade-in duration-200 text-foreground">
       {/* Hidden File Input for Avatar */}
       <input
         type="file"
@@ -287,16 +287,16 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
       />
 
       {/* Top Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
-        <span className="hover:text-white transition cursor-pointer">Profile</span>
+      <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+        <span className="hover:text-foreground transition cursor-pointer">Profile</span>
         <ChevronRight size={12} className="text-slate-600" />
-        <span className="text-orange-400 font-bold">Edit Profile</span>
+        <span className="text-primary font-bold">Edit Profile</span>
       </div>
 
       {/* 1. HERO PROFILE HEADER CARD */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-[#0B0F17] to-slate-950 p-6 md:p-8 shadow-2xl">
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-slate-900 via-[#0B0F17] to-slate-950 p-6 md:p-8 shadow-2xl">
         {/* Ambient Glow */}
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 h-64 w-64 rounded-full bg-orange-500/5 blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 h-64 w-64 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           {/* Avatar & Identifiers */}
@@ -304,7 +304,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
             {/* Avatar block */}
             <div className="relative group">
               <div className="h-28 w-28 rounded-full bg-gradient-to-tr from-orange-500 via-amber-500 to-pink-500 p-1 shadow-xl shadow-orange-500/10">
-                <div className="h-full w-full rounded-full bg-slate-950 flex items-center justify-center text-3xl font-black text-white overflow-hidden relative">
+                <div className="h-full w-full rounded-full bg-background flex items-center justify-center text-3xl font-black text-foreground overflow-hidden relative">
                   {avatarPreview ? (
                     <img
                       src={avatarPreview}
@@ -317,7 +317,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
 
                   {isUploadingAvatar && (
                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                      <div className="h-6 w-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                      <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}
                 </div>
@@ -327,7 +327,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-orange-500 hover:bg-orange-600 text-slate-950 flex items-center justify-center shadow-lg transition active:scale-90 cursor-pointer"
+                className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-primary hover:bg-orange-600 text-slate-950 flex items-center justify-center shadow-lg transition active:scale-90 cursor-pointer"
                 title="Upload Profile Photo"
               >
                 <Camera size={15} className="stroke-[2.5]" />
@@ -337,7 +337,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
             {/* Name & Metadata Badges */}
             <div className="space-y-2">
               <div className="flex items-center justify-center sm:justify-start gap-2">
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">
                   {formData.name || profile?.name || "Pawan Manoharprasad Tiwari"}
                 </h1>
                 <div className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/40" title="Verified Account">
@@ -345,13 +345,13 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                 </div>
               </div>
 
-              <p className="text-sm font-medium text-slate-400">
+              <p className="text-sm font-medium text-muted-foreground">
                 {profile?.email || "pt349031@gmail.com"}
               </p>
 
               {/* Status Badges */}
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
-                <span className="inline-flex items-center gap-1 rounded-lg bg-orange-500/15 border border-orange-500/30 px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-orange-400">
+                <span className="inline-flex items-center gap-1 rounded-lg bg-primary/15 border border-primary/30 px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-primary">
                   <User size={12} />
                   <span>{profile?.role || "STUDENT"}</span>
                 </span>
@@ -361,19 +361,19 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                   <span>Active</span>
                 </span>
 
-                <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800/80 border border-slate-700 px-2.5 py-1 text-[11px] font-bold text-slate-300">
+                <span className="inline-flex items-center gap-1.5 rounded-lg bg-muted/80 border border-transparent px-2.5 py-1 text-[11px] font-bold text-foreground">
                   <ShieldCheck size={13} className="text-emerald-400" />
                   <span>Verified Account</span>
                 </span>
 
-                <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 ml-1">
+                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground ml-1">
                   <Calendar size={13} />
                   <span>Member since {memberSinceStr}</span>
                 </span>
               </div>
 
               {avatarMessage && (
-                <p className="text-xs font-semibold text-orange-400 animate-in fade-in pt-1">
+                <p className="text-xs font-semibold text-primary animate-in fade-in pt-1">
                   {avatarMessage}
                 </p>
               )}
@@ -385,7 +385,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-5 py-2.5 transition shadow-lg shadow-orange-500/15 cursor-pointer"
+              className="flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-5 py-2.5 transition shadow-lg shadow-orange-500/15 cursor-pointer"
             >
               <Upload size={14} className="stroke-[2.5]" />
               <span>Upload Photo</span>
@@ -405,7 +405,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
             <button
               type="button"
               onClick={() => setActiveModal("password")}
-              className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs px-5 py-2.5 transition active:scale-95 cursor-pointer"
+              className="flex items-center justify-center gap-2 rounded-xl bg-background hover:bg-muted border border-transparent text-foreground font-bold text-xs px-5 py-2.5 transition active:scale-95 cursor-pointer"
             >
               <Lock size={14} />
               <span>Change Password</span>
@@ -414,7 +414,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
             <button
               type="button"
               onClick={() => setActiveModal("privacy")}
-              className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs px-5 py-2.5 transition active:scale-95 cursor-pointer"
+              className="flex items-center justify-center gap-2 rounded-xl bg-background hover:bg-muted border border-transparent text-foreground font-bold text-xs px-5 py-2.5 transition active:scale-95 cursor-pointer"
             >
               <Shield size={14} />
               <span>Privacy Settings</span>
@@ -428,19 +428,19 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
         {/* LEFT COLUMN (70% = 7 cols on lg grid) */}
         <div className="lg:col-span-7 space-y-6">
           {/* A. PERSONAL INFORMATION CARD */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 md:p-7 shadow-xl space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+          <div className="rounded-2xl border border-border bg-background/70 p-6 md:p-7 shadow-xl space-y-6">
+            <div className="flex items-center justify-between border-b border-border/80 pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-orange-500/10 text-orange-400 border border-orange-500/20 flex items-center justify-center">
+                <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
                   <User size={18} />
                 </div>
-                <h2 className="text-lg font-bold text-white">Personal Information</h2>
+                <h2 className="text-lg font-bold text-foreground">Personal Information</h2>
               </div>
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={updateProfileMutation.isPending}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-slate-700 hover:border-orange-500 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-transparent hover:border-primary text-xs font-bold text-foreground hover:text-foreground transition cursor-pointer disabled:opacity-50"
               >
                 <Save size={13} />
                 <span>Save</span>
@@ -450,24 +450,24 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
             <div className="grid gap-5 md:grid-cols-2">
               {/* Full Name */}
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User size={16} className="absolute left-3.5 top-3 text-slate-500" />
+                  <User size={16} className="absolute left-3.5 top-3 text-muted-foreground" />
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
 
               {/* Email Address (Read-only) */}
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">
                   Email Address
                 </label>
                 <div className="relative">
@@ -476,25 +476,25 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                     type="email"
                     value={profile?.email || "pt349031@gmail.com"}
                     disabled
-                    className="w-full bg-slate-950/60 border border-slate-800/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-500 outline-none cursor-not-allowed"
+                    className="w-full bg-background/60 border border-border/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-muted-foreground outline-none cursor-not-allowed"
                   />
                 </div>
               </div>
 
               {/* Phone Number */}
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">
                   Phone Number
                 </label>
                 <div className="relative">
-                  <Phone size={16} className="absolute left-3.5 top-3 text-slate-500" />
+                  <Phone size={16} className="absolute left-3.5 top-3 text-muted-foreground" />
                   <input
                     type="text"
                     name="phoneNumber"
                     value={formData.phoneNumber}
                     onChange={handleChange}
                     placeholder="+91 98765 43210"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
@@ -512,24 +512,24 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
 
               {/* Gender */}
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">
                   Gender
                 </label>
                 <div className="relative">
-                  <User size={16} className="absolute left-3.5 top-3 text-slate-500" />
+                  <User size={16} className="absolute left-3.5 top-3 text-muted-foreground" />
                   <select
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-8 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition appearance-none cursor-pointer"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-8 py-2.5 text-sm text-foreground outline-none focus:border-primary transition appearance-none cursor-pointer"
                   >
                     {GENDER_OPTIONS.map((g) => (
-                      <option key={g} value={g} className="bg-slate-900 text-white">
+                      <option key={g} value={g} className="bg-background text-foreground">
                         {g}
                       </option>
                     ))}
                   </select>
-                  <span className="absolute right-3.5 top-3.5 text-slate-400 text-xs pointer-events-none">
+                  <span className="absolute right-3.5 top-3.5 text-muted-foreground text-xs pointer-events-none">
                     ▼
                   </span>
                 </div>
@@ -537,18 +537,18 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
 
               {/* Address (Spans Full Width) */}
               <div className="md:col-span-2">
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">
                   Address
                 </label>
                 <div className="relative">
-                  <MapPin size={16} className="absolute left-3.5 top-3.5 text-slate-500" />
+                  <MapPin size={16} className="absolute left-3.5 top-3.5 text-muted-foreground" />
                   <textarea
                     name="address"
                     rows={2}
                     value={formData.address}
                     onChange={handleChange}
                     placeholder="Near kalaram mandir, Samadhi ward, Chandrapur, Maharashtra, India"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition resize-none"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition resize-none"
                   />
                 </div>
               </div>
@@ -556,19 +556,19 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
           </div>
 
           {/* B. EDUCATION DETAILS CARD */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 md:p-7 shadow-xl space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+          <div className="rounded-2xl border border-border bg-background/70 p-6 md:p-7 shadow-xl space-y-6">
+            <div className="flex items-center justify-between border-b border-border/80 pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-orange-500/10 text-orange-400 border border-orange-500/20 flex items-center justify-center">
+                <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
                   <GraduationCap size={18} />
                 </div>
-                <h2 className="text-lg font-bold text-white">Education Details</h2>
+                <h2 className="text-lg font-bold text-foreground">Education Details</h2>
               </div>
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={updateProfileMutation.isPending}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-slate-700 hover:border-orange-500 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-transparent hover:border-primary text-xs font-bold text-foreground hover:text-foreground transition cursor-pointer disabled:opacity-50"
               >
                 <Save size={13} />
                 <span>Save</span>
@@ -578,24 +578,24 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
             <div className="grid gap-5 md:grid-cols-2">
               {/* Education (Select Dropdown) */}
               <div className="md:col-span-2">
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">
                   Education Degree
                 </label>
                 <div className="relative">
-                  <GraduationCap size={16} className="absolute left-3.5 top-3.5 text-slate-500" />
+                  <GraduationCap size={16} className="absolute left-3.5 top-3.5 text-muted-foreground" />
                   <select
                     name="education"
                     value={formData.education}
                     onChange={handleChange}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-8 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition appearance-none cursor-pointer"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-8 py-2.5 text-sm text-foreground outline-none focus:border-primary transition appearance-none cursor-pointer"
                   >
                     {EDUCATION_OPTIONS.map((edu) => (
-                      <option key={edu} value={edu} className="bg-slate-900 text-white">
+                      <option key={edu} value={edu} className="bg-background text-foreground">
                         {edu}
                       </option>
                     ))}
                   </select>
-                  <span className="absolute right-3.5 top-3.5 text-slate-400 text-xs pointer-events-none">
+                  <span className="absolute right-3.5 top-3.5 text-muted-foreground text-xs pointer-events-none">
                     ▼
                   </span>
                 </div>
@@ -603,58 +603,58 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
 
               {/* Institution / University */}
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">
                   Institution / University
                 </label>
                 <div className="relative">
-                  <Building size={16} className="absolute left-3.5 top-3 text-slate-500" />
+                  <Building size={16} className="absolute left-3.5 top-3 text-muted-foreground" />
                   <input
                     type="text"
                     name="institution"
                     value={formData.institution}
                     onChange={handleChange}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
 
               {/* Year of Graduation */}
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">
                   Year of Graduation
                 </label>
                 <div className="relative">
-                  <Calendar size={16} className="absolute left-3.5 top-3 text-slate-500" />
+                  <Calendar size={16} className="absolute left-3.5 top-3 text-muted-foreground" />
                   <input
                     type="text"
                     name="graduationYear"
                     value={formData.graduationYear}
                     onChange={handleChange}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
 
               {/* Guardian Name */}
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">
                   Guardian Name
                 </label>
                 <div className="relative">
-                  <User size={16} className="absolute left-3.5 top-3 text-slate-500" />
+                  <User size={16} className="absolute left-3.5 top-3 text-muted-foreground" />
                   <input
                     type="text"
                     name="guardianName"
                     value={formData.guardianName}
                     onChange={handleChange}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
 
               {/* Member Since (Read-only) */}
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">
                   Member Since
                 </label>
                 <div className="relative">
@@ -663,7 +663,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                     type="text"
                     value={memberSinceStr}
                     disabled
-                    className="w-full bg-slate-950/60 border border-slate-800/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-500 outline-none cursor-not-allowed"
+                    className="w-full bg-background/60 border border-border/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-muted-foreground outline-none cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -671,18 +671,18 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
           </div>
 
           {/* C. SECURITY & PRIVACY CARD */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 md:p-7 shadow-xl space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+          <div className="rounded-2xl border border-border bg-background/70 p-6 md:p-7 shadow-xl space-y-6">
+            <div className="flex items-center justify-between border-b border-border/80 pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-orange-500/10 text-orange-400 border border-orange-500/20 flex items-center justify-center">
+                <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
                   <Shield size={18} />
                 </div>
-                <h2 className="text-lg font-bold text-white">Security & Privacy</h2>
+                <h2 className="text-lg font-bold text-foreground">Security & Privacy</h2>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal("password")}
-                className="px-3.5 py-1.5 rounded-lg border border-slate-700 hover:border-orange-500 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer"
+                className="px-3.5 py-1.5 rounded-lg border border-transparent hover:border-primary text-xs font-bold text-foreground hover:text-foreground transition cursor-pointer"
               >
                 Edit Section
               </button>
@@ -693,96 +693,96 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
               {/* Tile 1: Change Password */}
               <div
                 onClick={() => setActiveModal("password")}
-                className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 hover:border-orange-500/50 hover:bg-slate-900/80 transition cursor-pointer group flex items-start justify-between"
+                className="p-4 rounded-xl bg-background border border-border/80 hover:border-primary/50 hover:bg-background/80 transition cursor-pointer group flex items-start justify-between"
               >
                 <div className="space-y-1.5 min-w-0 pr-2">
-                  <div className="h-7 w-7 rounded-lg bg-orange-500/10 text-orange-400 flex items-center justify-center group-hover:scale-105 transition">
+                  <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center group-hover:scale-105 transition">
                     <Lock size={14} />
                   </div>
-                  <h3 className="text-xs font-bold text-white group-hover:text-orange-400 transition truncate">
+                  <h3 className="text-xs font-bold text-foreground group-hover:text-primary transition truncate">
                     Change Password
                   </h3>
-                  <p className="text-[10px] text-slate-400 line-clamp-2">
+                  <p className="text-[10px] text-muted-foreground line-clamp-2">
                     Update your account password
                   </p>
                 </div>
-                <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-400 group-hover:translate-x-0.5 transition shrink-0 mt-1" />
+                <ChevronRight size={14} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition shrink-0 mt-1" />
               </div>
 
               {/* Tile 2: Two-Factor Authentication */}
               <div
                 onClick={() => setActiveModal("2fa")}
-                className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 hover:border-orange-500/50 hover:bg-slate-900/80 transition cursor-pointer group flex items-start justify-between"
+                className="p-4 rounded-xl bg-background border border-border/80 hover:border-primary/50 hover:bg-background/80 transition cursor-pointer group flex items-start justify-between"
               >
                 <div className="space-y-1.5 min-w-0 pr-2">
                   <div className="h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-105 transition">
                     <ShieldCheck size={14} />
                   </div>
-                  <h3 className="text-xs font-bold text-white group-hover:text-orange-400 transition truncate">
+                  <h3 className="text-xs font-bold text-foreground group-hover:text-primary transition truncate">
                     Two-Factor Auth
                   </h3>
-                  <p className="text-[10px] text-slate-400 line-clamp-2">
+                  <p className="text-[10px] text-muted-foreground line-clamp-2">
                     {is2FAEnabled ? "Enabled (Secure)" : "Disabled (Click to configure)"}
                   </p>
                 </div>
-                <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-400 group-hover:translate-x-0.5 transition shrink-0 mt-1" />
+                <ChevronRight size={14} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition shrink-0 mt-1" />
               </div>
 
               {/* Tile 3: Active Sessions */}
               <div
                 onClick={() => setActiveModal("sessions")}
-                className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 hover:border-orange-500/50 hover:bg-slate-900/80 transition cursor-pointer group flex items-start justify-between"
+                className="p-4 rounded-xl bg-background border border-border/80 hover:border-primary/50 hover:bg-background/80 transition cursor-pointer group flex items-start justify-between"
               >
                 <div className="space-y-1.5 min-w-0 pr-2">
                   <div className="h-7 w-7 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center group-hover:scale-105 transition">
                     <Monitor size={14} />
                   </div>
-                  <h3 className="text-xs font-bold text-white group-hover:text-orange-400 transition truncate">
+                  <h3 className="text-xs font-bold text-foreground group-hover:text-primary transition truncate">
                     Active Sessions
                   </h3>
-                  <p className="text-[10px] text-slate-400 line-clamp-2">
+                  <p className="text-[10px] text-muted-foreground line-clamp-2">
                     Manage current active logins
                   </p>
                 </div>
-                <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-400 group-hover:translate-x-0.5 transition shrink-0 mt-1" />
+                <ChevronRight size={14} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition shrink-0 mt-1" />
               </div>
 
               {/* Tile 4: Privacy Settings */}
               <div
                 onClick={() => setActiveModal("privacy")}
-                className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 hover:border-orange-500/50 hover:bg-slate-900/80 transition cursor-pointer group flex items-start justify-between"
+                className="p-4 rounded-xl bg-background border border-border/80 hover:border-primary/50 hover:bg-background/80 transition cursor-pointer group flex items-start justify-between"
               >
                 <div className="space-y-1.5 min-w-0 pr-2">
                   <div className="h-7 w-7 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center group-hover:scale-105 transition">
                     <Globe size={14} />
                   </div>
-                  <h3 className="text-xs font-bold text-white group-hover:text-orange-400 transition truncate">
+                  <h3 className="text-xs font-bold text-foreground group-hover:text-primary transition truncate">
                     Privacy Settings
                   </h3>
-                  <p className="text-[10px] text-slate-400 line-clamp-2">
+                  <p className="text-[10px] text-muted-foreground line-clamp-2">
                     Visibility: {profileVisibility}
                   </p>
                 </div>
-                <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-400 group-hover:translate-x-0.5 transition shrink-0 mt-1" />
+                <ChevronRight size={14} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition shrink-0 mt-1" />
               </div>
 
               {/* Tile 5: Notification Preferences */}
               <div
                 onClick={() => setActiveModal("notifications")}
-                className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 hover:border-orange-500/50 hover:bg-slate-900/80 transition cursor-pointer group flex items-start justify-between"
+                className="p-4 rounded-xl bg-background border border-border/80 hover:border-primary/50 hover:bg-background/80 transition cursor-pointer group flex items-start justify-between"
               >
                 <div className="space-y-1.5 min-w-0 pr-2">
                   <div className="h-7 w-7 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center group-hover:scale-105 transition">
                     <Bell size={14} />
                   </div>
-                  <h3 className="text-xs font-bold text-white group-hover:text-orange-400 transition truncate">
+                  <h3 className="text-xs font-bold text-foreground group-hover:text-primary transition truncate">
                     Notification Prefs
                   </h3>
-                  <p className="text-[10px] text-slate-400 line-clamp-2">
+                  <p className="text-[10px] text-muted-foreground line-clamp-2">
                     Configure alert preferences
                   </p>
                 </div>
-                <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-400 group-hover:translate-x-0.5 transition shrink-0 mt-1" />
+                <ChevronRight size={14} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition shrink-0 mt-1" />
               </div>
             </div>
           </div>
@@ -820,7 +820,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                     });
                   }
                 }}
-                className="flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs px-5 py-3 transition active:scale-95 cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl bg-background hover:bg-muted border border-transparent text-foreground font-bold text-xs px-5 py-3 transition active:scale-95 cursor-pointer"
               >
                 <X size={14} />
                 <span>Cancel</span>
@@ -830,7 +830,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                 type="button"
                 onClick={handleSave}
                 disabled={updateProfileMutation.isPending}
-                className="flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-6 py-3 transition shadow-lg shadow-orange-500/15 cursor-pointer disabled:opacity-50"
+                className="flex items-center gap-2 rounded-xl bg-primary hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-6 py-3 transition shadow-lg shadow-orange-500/15 cursor-pointer disabled:opacity-50"
               >
                 <Check size={15} className="stroke-[3]" />
                 <span>{updateProfileMutation.isPending ? "Saving..." : "Save Changes"}</span>
@@ -842,23 +842,23 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
         {/* RIGHT COLUMN (30% = 3 cols on lg grid) */}
         <div className="lg:col-span-3 space-y-6">
           {/* 1. DYNAMIC PROFILE COMPLETION CARD */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl space-y-5">
+          <div className="rounded-2xl border border-border bg-background/70 p-6 shadow-xl space-y-5">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white">Profile Completion</h3>
-              <span className="text-xs font-black text-orange-400">
+              <h3 className="text-sm font-bold text-foreground">Profile Completion</h3>
+              <span className="text-xs font-black text-primary">
                 {completionPercentage}% Complete
               </span>
             </div>
 
             {/* Progress Bar */}
-            <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500"
                 style={{ width: `${completionPercentage}%` }}
               />
             </div>
 
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Complete missing fields to get full access and personalized recommendation features.
             </p>
 
@@ -871,9 +871,9 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                       <Check size={10} className="stroke-[3]" />
                     </div>
                   ) : (
-                    <div className="h-4 w-4 rounded-full border-2 border-orange-500/80 shrink-0" />
+                    <div className="h-4 w-4 rounded-full border-2 border-primary/80 shrink-0" />
                   )}
-                  <span className={item.isFilled ? "text-slate-300 font-medium" : "text-slate-400 font-normal"}>
+                  <span className={item.isFilled ? "text-foreground font-medium" : "text-muted-foreground font-normal"}>
                     {item.label}
                   </span>
                 </div>
@@ -888,91 +888,91 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                   dobRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
                 }
               }}
-              className="w-full py-2.5 rounded-xl border border-orange-500/40 text-orange-400 hover:bg-orange-500/10 font-bold text-xs transition cursor-pointer"
+              className="w-full py-2.5 rounded-xl border border-primary/40 text-primary hover:bg-primary/10 font-bold text-xs transition cursor-pointer"
             >
               Complete Missing Fields
             </button>
           </div>
 
           {/* 2. QUICK ACTIONS CARD */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl space-y-4">
-            <div className="flex items-center gap-2 text-white">
-              <Zap size={16} className="text-orange-400 fill-orange-400" />
+          <div className="rounded-2xl border border-border bg-background/70 p-6 shadow-xl space-y-4">
+            <div className="flex items-center gap-2 text-foreground">
+              <Zap size={16} className="text-primary fill-orange-400" />
               <h3 className="text-sm font-bold">Quick Actions</h3>
             </div>
 
             <div className="divide-y divide-slate-800/80 text-xs">
               <div
                 onClick={() => setActiveModal("password")}
-                className="py-3 flex items-center justify-between text-slate-300 hover:text-orange-400 transition cursor-pointer group"
+                className="py-3 flex items-center justify-between text-foreground hover:text-primary transition cursor-pointer group"
               >
                 <div className="flex items-center gap-2.5">
-                  <Lock size={14} className="text-slate-500 group-hover:text-orange-400" />
+                  <Lock size={14} className="text-muted-foreground group-hover:text-primary" />
                   <span>Change Password</span>
                 </div>
-                <ChevronRight size={13} className="text-slate-600 group-hover:text-orange-400 group-hover:translate-x-0.5 transition" />
+                <ChevronRight size={13} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition" />
               </div>
 
               <div
                 onClick={() => setActiveModal("2fa")}
-                className="py-3 flex items-center justify-between text-slate-300 hover:text-orange-400 transition cursor-pointer group"
+                className="py-3 flex items-center justify-between text-foreground hover:text-primary transition cursor-pointer group"
               >
                 <div className="flex items-center gap-2.5">
-                  <ShieldCheck size={14} className="text-slate-500 group-hover:text-orange-400" />
+                  <ShieldCheck size={14} className="text-muted-foreground group-hover:text-primary" />
                   <span>Two-Factor Auth</span>
                 </div>
-                <ChevronRight size={13} className="text-slate-600 group-hover:text-orange-400 group-hover:translate-x-0.5 transition" />
+                <ChevronRight size={13} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition" />
               </div>
 
               <div
                 onClick={() => setActiveModal("sessions")}
-                className="py-3 flex items-center justify-between text-slate-300 hover:text-orange-400 transition cursor-pointer group"
+                className="py-3 flex items-center justify-between text-foreground hover:text-primary transition cursor-pointer group"
               >
                 <div className="flex items-center gap-2.5">
-                  <Monitor size={14} className="text-slate-500 group-hover:text-orange-400" />
+                  <Monitor size={14} className="text-muted-foreground group-hover:text-primary" />
                   <span>Active Sessions</span>
                 </div>
-                <ChevronRight size={13} className="text-slate-600 group-hover:text-orange-400 group-hover:translate-x-0.5 transition" />
+                <ChevronRight size={13} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition" />
               </div>
 
               <div
                 onClick={() => setActiveModal("privacy")}
-                className="py-3 flex items-center justify-between text-slate-300 hover:text-orange-400 transition cursor-pointer group"
+                className="py-3 flex items-center justify-between text-foreground hover:text-primary transition cursor-pointer group"
               >
                 <div className="flex items-center gap-2.5">
-                  <Globe size={14} className="text-slate-500 group-hover:text-orange-400" />
+                  <Globe size={14} className="text-muted-foreground group-hover:text-primary" />
                   <span>Privacy Settings</span>
                 </div>
-                <ChevronRight size={13} className="text-slate-600 group-hover:text-orange-400 group-hover:translate-x-0.5 transition" />
+                <ChevronRight size={13} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition" />
               </div>
 
               <div
                 onClick={() => setActiveModal("notifications")}
-                className="py-3 flex items-center justify-between text-slate-300 hover:text-orange-400 transition cursor-pointer group"
+                className="py-3 flex items-center justify-between text-foreground hover:text-primary transition cursor-pointer group"
               >
                 <div className="flex items-center gap-2.5">
-                  <Bell size={14} className="text-slate-500 group-hover:text-orange-400" />
+                  <Bell size={14} className="text-muted-foreground group-hover:text-primary" />
                   <span>Notification Preferences</span>
                 </div>
-                <ChevronRight size={13} className="text-slate-600 group-hover:text-orange-400 group-hover:translate-x-0.5 transition" />
+                <ChevronRight size={13} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition" />
               </div>
             </div>
           </div>
 
           {/* 3. NEED HELP? / SUPPORT CARD */}
-          <div className="rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950 p-6 shadow-xl space-y-4">
-            <div className="flex items-center gap-2 text-white">
-              <HelpCircle size={17} className="text-orange-400" />
+          <div className="rounded-2xl border border-border bg-gradient-to-b from-slate-900 to-slate-950 p-6 shadow-xl space-y-4">
+            <div className="flex items-center gap-2 text-foreground">
+              <HelpCircle size={17} className="text-primary" />
               <h3 className="text-sm font-bold">Need Help?</h3>
             </div>
 
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-muted-foreground leading-relaxed">
               If you need any assistance with your account or profile, our support team is available 24/7.
             </p>
 
             <a
               href="mailto:support@orangetree.com"
-              className="block text-center w-full py-2.5 rounded-xl border border-orange-500/40 text-orange-400 hover:bg-orange-500/10 font-bold text-xs transition cursor-pointer"
+              className="block text-center w-full py-2.5 rounded-xl border border-primary/40 text-primary hover:bg-primary/10 font-bold text-xs transition cursor-pointer"
             >
               Contact Support
             </a>
@@ -989,19 +989,19 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
           <form
             onSubmit={handlePasswordChangeSubmit}
-            className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150"
+            className="w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150"
           >
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div className="flex items-center justify-between border-b border-border pb-4">
               <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-orange-500/10 text-orange-400 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                   <Key size={15} />
                 </div>
-                <h3 className="text-base font-bold text-white">Change Password</h3>
+                <h3 className="text-base font-bold text-foreground">Change Password</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="p-1 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                className="p-1 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -1021,7 +1021,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
                   Current Password
                 </label>
                 <input
@@ -1029,12 +1029,12 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                   required
                   value={passwordData.currentPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+                  className="w-full bg-background border border-border rounded-xl px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
                   New Password
                 </label>
                 <input
@@ -1042,12 +1042,12 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                   required
                   value={passwordData.newPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+                  className="w-full bg-background border border-border rounded-xl px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
                   Confirm Password
                 </label>
                 <input
@@ -1055,7 +1055,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                   required
                   value={passwordData.confirmPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+                  className="w-full bg-background border border-border rounded-xl px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                 />
               </div>
             </div>
@@ -1064,14 +1064,14 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={passwordStatus.loading}
-                className="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xs transition shadow-lg shadow-orange-500/10 cursor-pointer disabled:opacity-50"
+                className="px-5 py-2 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 font-black text-xs transition shadow-lg shadow-orange-500/10 cursor-pointer disabled:opacity-50"
               >
                 {passwordStatus.loading ? "Updating..." : "Update Password"}
               </button>
@@ -1083,32 +1083,32 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
       {/* 2. TWO-FACTOR AUTHENTICATION MODAL */}
       {activeModal === "2fa" && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-border pb-4">
               <div className="flex items-center gap-2.5">
                 <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
                   <ShieldCheck size={16} />
                 </div>
-                <h3 className="text-base font-bold text-white">Two-Factor Authentication</h3>
+                <h3 className="text-base font-bold text-foreground">Two-Factor Authentication</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="p-1 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                className="p-1 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="space-y-4 text-xs text-slate-300">
+            <div className="space-y-4 text-xs text-foreground">
               <p>
                 Two-Factor Authentication (2FA) adds an extra layer of security to your Orange Tree LMS account by requiring an OTP code during sign in.
               </p>
 
-              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+              <div className="p-4 rounded-xl bg-background border border-border flex items-center justify-between">
                 <div>
-                  <h4 className="font-bold text-white">2FA Status</h4>
-                  <p className="text-[11px] text-slate-400">
+                  <h4 className="font-bold text-foreground">2FA Status</h4>
+                  <p className="text-[11px] text-muted-foreground">
                     {is2FAEnabled ? "Active — Account Protected" : "Inactive — Standard Login"}
                   </p>
                 </div>
@@ -1119,7 +1119,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                   className={`px-4 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer ${
                     is2FAEnabled
                       ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
-                      : "bg-orange-500 text-slate-950 hover:bg-orange-400"
+                      : "bg-primary text-slate-950 hover:bg-orange-400"
                   }`}
                 >
                   {is2FAEnabled ? "Disable 2FA" : "Enable 2FA"}
@@ -1131,7 +1131,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-background hover:bg-muted text-foreground font-bold text-xs transition cursor-pointer"
               >
                 Done
               </button>
@@ -1143,43 +1143,43 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
       {/* 3. ACTIVE SESSIONS MODAL */}
       {activeModal === "sessions" && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-border pb-4">
               <div className="flex items-center gap-2.5">
                 <div className="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
                   <Monitor size={16} />
                 </div>
-                <h3 className="text-base font-bold text-white">Active Sessions</h3>
+                <h3 className="text-base font-bold text-foreground">Active Sessions</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="p-1 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                className="p-1 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-background border border-emerald-500/30 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Monitor size={18} className="text-emerald-400" />
                   <div>
-                    <h4 className="font-bold text-white flex items-center gap-1.5">
+                    <h4 className="font-bold text-foreground flex items-center gap-1.5">
                       <span>Windows PC — Chrome</span>
                       <span className="text-[10px] font-black text-emerald-400 uppercase bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">Current</span>
                     </h4>
-                    <p className="text-[11px] text-slate-400">192.168.1.9 • Active now</p>
+                    <p className="text-[11px] text-muted-foreground">192.168.1.9 • Active now</p>
                   </div>
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-background border border-border flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Smartphone size={18} className="text-slate-400" />
+                  <Smartphone size={18} className="text-muted-foreground" />
                   <div>
-                    <h4 className="font-bold text-slate-300">Android Device — Chrome Mobile</h4>
-                    <p className="text-[11px] text-slate-500">192.168.1.9 • Last active 2h ago</p>
+                    <h4 className="font-bold text-foreground">Android Device — Chrome Mobile</h4>
+                    <p className="text-[11px] text-muted-foreground">192.168.1.9 • Last active 2h ago</p>
                   </div>
                 </div>
               </div>
@@ -1189,7 +1189,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-background hover:bg-muted text-foreground font-bold text-xs transition cursor-pointer"
               >
                 Close
               </button>
@@ -1201,55 +1201,55 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
       {/* 4. PRIVACY SETTINGS MODAL */}
       {activeModal === "privacy" && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-border pb-4">
               <div className="flex items-center gap-2.5">
                 <div className="h-8 w-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
                   <Globe size={16} />
                 </div>
-                <h3 className="text-base font-bold text-white">Privacy Settings</h3>
+                <h3 className="text-base font-bold text-foreground">Privacy Settings</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="p-1 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                className="p-1 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
             <div className="space-y-4 text-xs">
-              <p className="text-slate-400">Control who can view your learning profile and achievements.</p>
+              <p className="text-muted-foreground">Control who can view your learning profile and achievements.</p>
 
               <div className="space-y-2">
                 <label
                   onClick={() => handleTogglePrivacy("Public")}
                   className={`p-3.5 rounded-xl border flex items-center justify-between cursor-pointer transition ${
                     profileVisibility === "Public"
-                      ? "bg-orange-500/10 border-orange-500 text-white"
-                      : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
+                      ? "bg-primary/10 border-primary text-foreground"
+                      : "bg-background border-border text-muted-foreground hover:border-transparent"
                   }`}
                 >
                   <div>
                     <h4 className="font-bold text-sm">Public Profile</h4>
-                    <p className="text-[11px] text-slate-400">Visible to instructors, fellow students, and leaderboards</p>
+                    <p className="text-[11px] text-muted-foreground">Visible to instructors, fellow students, and leaderboards</p>
                   </div>
-                  {profileVisibility === "Public" && <Check size={16} className="text-orange-400 stroke-[3]" />}
+                  {profileVisibility === "Public" && <Check size={16} className="text-primary stroke-[3]" />}
                 </label>
 
                 <label
                   onClick={() => handleTogglePrivacy("Private")}
                   className={`p-3.5 rounded-xl border flex items-center justify-between cursor-pointer transition ${
                     profileVisibility === "Private"
-                      ? "bg-orange-500/10 border-orange-500 text-white"
-                      : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
+                      ? "bg-primary/10 border-primary text-foreground"
+                      : "bg-background border-border text-muted-foreground hover:border-transparent"
                   }`}
                 >
                   <div>
                     <h4 className="font-bold text-sm">Private Profile</h4>
-                    <p className="text-[11px] text-slate-400">Only visible to administrators and system instructors</p>
+                    <p className="text-[11px] text-muted-foreground">Only visible to administrators and system instructors</p>
                   </div>
-                  {profileVisibility === "Private" && <Check size={16} className="text-orange-400 stroke-[3]" />}
+                  {profileVisibility === "Private" && <Check size={16} className="text-primary stroke-[3]" />}
                 </label>
               </div>
             </div>
@@ -1258,7 +1258,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xs transition cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 font-black text-xs transition cursor-pointer"
               >
                 Save Preferences
               </button>
@@ -1270,28 +1270,28 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
       {/* 5. NOTIFICATION PREFERENCES MODAL */}
       {activeModal === "notifications" && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-border pb-4">
               <div className="flex items-center gap-2.5">
                 <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
                   <Bell size={16} />
                 </div>
-                <h3 className="text-base font-bold text-white">Notification Preferences</h3>
+                <h3 className="text-base font-bold text-foreground">Notification Preferences</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="p-1 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                className="p-1 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-background border border-border flex items-center justify-between">
                 <div>
-                  <h4 className="font-bold text-white">Email Announcements</h4>
-                  <p className="text-[11px] text-slate-400">Receive course and platform announcements</p>
+                  <h4 className="font-bold text-foreground">Email Announcements</h4>
+                  <p className="text-[11px] text-muted-foreground">Receive course and platform announcements</p>
                 </div>
                 <input
                   type="checkbox"
@@ -1301,10 +1301,10 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                 />
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-background border border-border flex items-center justify-between">
                 <div>
-                  <h4 className="font-bold text-white">Course & Assignment Reminders</h4>
-                  <p className="text-[11px] text-slate-400">Notifications when assignments or quizzes are due</p>
+                  <h4 className="font-bold text-foreground">Course & Assignment Reminders</h4>
+                  <p className="text-[11px] text-muted-foreground">Notifications when assignments or quizzes are due</p>
                 </div>
                 <input
                   type="checkbox"
@@ -1319,7 +1319,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xs transition cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 font-black text-xs transition cursor-pointer"
               >
                 Save Preferences
               </button>

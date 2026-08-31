@@ -30,10 +30,10 @@ export default function FeaturedCourses() {
   if (loading) {
     return (
       <section className="py-20">
-        <h2 className="text-3xl font-bold mb-8 text-white">Featured Courses</h2>
+        <h2 className="text-3xl font-bold mb-8 text-foreground">Featured Courses</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
           {[...Array(3)].map((_, index) => (
-            <div key={index} className="h-[450px] bg-slate-900/60 border border-slate-800 rounded-2xl" />
+            <div key={index} className="h-[450px] bg-background/60 border border-border rounded-2xl" />
           ))}
         </div>
       </section>

@@ -29,7 +29,7 @@ export default function LearnPageHeader({
           <button
             type="button"
             onClick={onOpenSidebar}
-            className="hidden xl:flex shrink-0 h-9 w-9 items-center justify-center rounded-full border border-orange-500/50 bg-slate-900 text-orange-400 shadow-md transition hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-300 cursor-pointer"
+            className="hidden xl:flex shrink-0 h-9 w-9 items-center justify-center rounded-full border border-primary/50 bg-background text-primary shadow-md transition hover:bg-primary/10 hover:border-primary hover:text-orange-300 cursor-pointer"
             aria-label="Show course map"
             title="Show course map"
           >
@@ -37,10 +37,10 @@ export default function LearnPageHeader({
           </button>
         )}
         <div className="min-w-0">
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 truncate block">
+          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground truncate block">
             LEARNING WORKSPACE
           </span>
-          <h2 className="text-sm font-bold text-white truncate">
+          <h2 className="text-sm font-bold text-foreground truncate">
             {selectedLesson ? `Lesson: ${selectedLesson.title}` : course?.title || "Course Overview"}
           </h2>
         </div>
@@ -52,14 +52,14 @@ export default function LearnPageHeader({
           onClick={onToggleChat}
           className={`p-2.5 min-h-[44px] min-w-[44px] rounded-xl transition relative flex items-center justify-center border-0 cursor-pointer outline-none ${
             chatOpen
-              ? "bg-slate-800 text-orange-500"
-              : "bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-white"
+              ? "bg-muted text-primary"
+              : "bg-background/60 hover:bg-muted text-foreground hover:text-foreground"
           }`}
           title="Messages"
         >
           <MessageSquare size={16} />
           {chatUnreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-orange-500 px-1 text-[8px] font-bold text-white shadow-[0_0_8px_rgba(249,115,22,0.4)]">
+            <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[8px] font-bold text-foreground shadow-[0_0_8px_rgba(249,115,22,0.4)]">
               {chatUnreadCount}
             </span>
           )}
@@ -76,7 +76,7 @@ export default function LearnPageHeader({
         {/* Logout button */}
         <button
           onClick={onLogout}
-          className="bg-red-600/10 hover:bg-red-600 border border-red-500/20 text-red-400 hover:text-white transition p-2.5 min-h-[44px] min-w-[44px] rounded-xl flex items-center justify-center cursor-pointer outline-none"
+          className="bg-red-600/10 hover:bg-red-600 border border-red-500/20 text-red-400 hover:text-foreground transition p-2.5 min-h-[44px] min-w-[44px] rounded-xl flex items-center justify-center cursor-pointer outline-none"
           title="Sign Out"
         >
           <FaSignOutAlt size={14} />

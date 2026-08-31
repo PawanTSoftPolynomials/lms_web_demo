@@ -68,7 +68,7 @@ const formatTime = (seconds) => {
 const TYPE_META = {
   VIDEO:        { icon: Video,        color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/20",  label: "Video" },
   DOCUMENT:     { icon: FileText,     color: "text-blue-400",   bg: "bg-blue-500/10 border-blue-500/20",      label: "Document" },
-  PRESENTATION: { icon: Presentation, color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/20",  label: "Presentation" },
+  PRESENTATION: { icon: Presentation, color: "text-primary", bg: "bg-primary/10 border-primary/20",  label: "Presentation" },
   LINK:         { icon: LinkIcon,     color: "text-emerald-400",bg: "bg-emerald-500/10 border-emerald-500/20",label: "External Link" },
   TEXT:         { icon: FileCode,     color: "text-cyan-400",   bg: "bg-cyan-500/10 border-cyan-500/20",      label: "Text / HTML" },
 };
@@ -174,8 +174,8 @@ export default function ContentDetailsPage() {
     return (
       <Card>
         <div className="py-16 text-center">
-          <h2 className="text-2xl font-semibold text-white">Content Not Found</h2>
-          <p className="mt-2 text-slate-400">Unable to load this content.</p>
+          <h2 className="text-2xl font-semibold text-foreground">Content Not Found</h2>
+          <p className="mt-2 text-muted-foreground">Unable to load this content.</p>
         </div>
       </Card>
     );
@@ -221,19 +221,19 @@ export default function ContentDetailsPage() {
     <div className="space-y-6 pb-12 animate-fade-in duration-300">
       
       {/* 1. Header Navigation Bar */}
-      <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-5 shadow-xl">
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-xl">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push(`/instructor/topics/${topicId}`)}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#05070E] border border-[#1A1F35] text-slate-300 hover:text-white hover:border-orange-500 transition cursor-pointer"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#05070E] border border-border text-foreground hover:text-foreground hover:border-primary transition cursor-pointer"
               title="Back to Topic Details"
             >
               <ArrowLeft size={16} />
             </button>
             <div>
-              <h1 className="text-xl font-bold text-white tracking-tight">{content.title}</h1>
-              <p className="text-xs text-slate-400 mt-1">
+              <h1 className="text-xl font-bold text-foreground tracking-tight">{content.title}</h1>
+              <p className="text-xs text-muted-foreground mt-1">
                 {course?.title || "Course"} &bull; {moduleData?.title || "Module"} &bull; {lesson?.title || "Lesson"}
               </p>
             </div>
@@ -242,7 +242,7 @@ export default function ContentDetailsPage() {
           <div className="flex items-center gap-2.5 flex-wrap">
             <button
               onClick={() => router.push(`/instructor/contents/edit/${content.id}`)}
-              className="flex items-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 px-4 py-2 text-xs font-black text-slate-950 transition shadow-lg shadow-orange-500/10 cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl bg-primary hover:bg-orange-600 px-4 py-2 text-xs font-black text-slate-950 transition shadow-lg shadow-orange-500/10 cursor-pointer"
             >
               <Pencil size={13} />
               <span>Edit</span>
@@ -264,7 +264,7 @@ export default function ContentDetailsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch flex-1 min-w-0">
 
         {/* LEFT COLUMN: Media Preview Box */}
-        <div className="rounded-2xl border border-slate-800 bg-[#0B101D] p-6 shadow-sm flex flex-col justify-between">
+        <div className="rounded-2xl border border-transparent bg-[#0B101D] p-6 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-start gap-4 mb-5">
               <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border ${typeMeta.bg} ${typeMeta.color}`}>
@@ -272,22 +272,22 @@ export default function ContentDetailsPage() {
               </div>
               <div>
                 <div className="flex items-center gap-2.5">
-                  <h2 className="text-xl font-bold text-white leading-tight">{content.title}</h2>
+                  <h2 className="text-xl font-bold text-foreground leading-tight">{content.title}</h2>
                   <span className={`rounded-xl px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${typeMeta.bg} ${typeMeta.color}`}>
                     {typeMeta.label}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
                   {content.description || "No description provided."}
                 </p>
               </div>
-              {durationStr && <span className="text-[10px] font-mono text-slate-400 shrink-0 ml-auto">{durationStr}</span>}
+              {durationStr && <span className="text-[10px] font-mono text-muted-foreground shrink-0 ml-auto">{durationStr}</span>}
             </div>
 
             {/* Video Player or Document/Presentation Preview Box */}
             {isVideo && (
               isYouTube ? (
-                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-black flex flex-col justify-between shadow-2xl">
+                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-transparent bg-black flex flex-col justify-between shadow-2xl">
                   <iframe
                     src={ytEmbedUrl}
                     title={content.title || "YouTube video player"}
@@ -298,7 +298,7 @@ export default function ContentDetailsPage() {
                   />
                 </div>
               ) : (
-                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 flex flex-col justify-between group">
+                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-transparent bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 flex flex-col justify-between group">
                   <video
                     ref={videoRef}
                     src={videoSrc}
@@ -313,14 +313,14 @@ export default function ContentDetailsPage() {
                       onClick={togglePlay}
                       className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer z-20 transition-all duration-300"
                     >
-                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-500 text-slate-950 shadow-lg scale-100 hover:scale-110 active:scale-95 transition duration-300">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-slate-950 shadow-lg scale-100 hover:scale-110 active:scale-95 transition duration-300">
                         <Play size={26} className="fill-slate-950 translate-x-0.5" />
                       </div>
                     </div>
                   )}
 
                   {!isPlaying && (
-                    <div className="absolute top-4 right-4 bg-slate-950/80 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wider text-white border border-slate-800 z-20">
+                    <div className="absolute top-4 right-4 bg-background/80 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wider text-foreground border border-transparent z-20">
                       {content.title}
                     </div>
                   )}
@@ -328,32 +328,32 @@ export default function ContentDetailsPage() {
                   <div className="w-full space-y-3 mt-auto p-4 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <div 
                       onClick={handleSeek}
-                      className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden cursor-pointer relative"
+                      className="h-1.5 w-full bg-muted rounded-full overflow-hidden cursor-pointer relative"
                     >
                       <div 
-                        className="h-full bg-orange-500 rounded-full" 
+                        className="h-full bg-primary rounded-full" 
                         style={{ width: `${(currentTime / (videoDuration || 1)) * 100}%` }}
                       />
                     </div>
 
-                    <div className="flex items-center justify-between text-slate-300 text-xs">
+                    <div className="flex items-center justify-between text-foreground text-xs">
                       <div className="flex items-center gap-4">
-                        <button onClick={togglePlay} className="hover:text-white transition">
+                        <button onClick={togglePlay} className="hover:text-foreground transition">
                           {isPlaying ? <Pause size={14} className="fill-slate-300" /> : <Play size={14} className="fill-slate-300" />}
                         </button>
-                        <button onClick={toggleMute} className="hover:text-white transition flex items-center gap-1.5">
+                        <button onClick={toggleMute} className="hover:text-foreground transition flex items-center gap-1.5">
                           {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
                         </button>
-                        <span className="font-medium text-slate-400">
+                        <span className="font-medium text-muted-foreground">
                           {formatTime(currentTime)} / {formatTime(videoDuration || content.duration || 0)}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-4 font-semibold">
-                        <button onClick={cyclePlayback} className="text-[10px] tracking-widest hover:text-white transition bg-slate-800/80 px-1.5 py-0.5 rounded">
+                        <button onClick={cyclePlayback} className="text-[10px] tracking-widest hover:text-foreground transition bg-muted/80 px-1.5 py-0.5 rounded">
                           {playbackRate}x
                         </button>
-                        <button onClick={() => videoRef.current?.requestFullscreen()} className="hover:text-white transition">
+                        <button onClick={() => videoRef.current?.requestFullscreen()} className="hover:text-foreground transition">
                           <Maximize2 size={14} />
                         </button>
                       </div>
@@ -376,12 +376,12 @@ export default function ContentDetailsPage() {
                   )}
                 </div>
               ) : (
-                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-[#060913] flex flex-col items-center justify-center p-8 text-center my-2">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-400 mb-4">
+                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-transparent bg-[#060913] flex flex-col items-center justify-center p-8 text-center my-2">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 text-primary mb-4">
                     <FileText size={32} />
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-1.5">{content.title}</h3>
-                  <p className="text-xs text-slate-400 max-w-sm mb-6 leading-relaxed">
+                  <h3 className="text-lg font-bold text-foreground mb-1.5">{content.title}</h3>
+                  <p className="text-xs text-muted-foreground max-w-sm mb-6 leading-relaxed">
                     No file has been uploaded for this {isPresentation ? "presentation" : "document"} yet.
                   </p>
                 </div>
@@ -390,13 +390,13 @@ export default function ContentDetailsPage() {
 
             {/* External Link */}
             {isLink && (
-              <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-[#060913] flex flex-col items-center justify-center p-6 text-center gap-4">
+              <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-transparent bg-[#060913] flex flex-col items-center justify-center p-6 text-center gap-4">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
                   <LinkIcon size={32} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white mb-1">{content.title}</h3>
-                  <p className="text-xs text-slate-400 max-w-md break-all">{content.externalUrl || "No URL provided"}</p>
+                  <h3 className="text-lg font-bold text-foreground mb-1">{content.title}</h3>
+                  <p className="text-xs text-muted-foreground max-w-md break-all">{content.externalUrl || "No URL provided"}</p>
                 </div>
                 {content.externalUrl && (
                   <a
@@ -414,7 +414,7 @@ export default function ContentDetailsPage() {
 
             {/* Text / Markdown */}
             {isText && (
-              <div className="rounded-2xl border border-slate-800 bg-[#060913] p-6 min-h-[240px]">
+              <div className="rounded-2xl border border-transparent bg-[#060913] p-6 min-h-[240px]">
                 <MarkdownRenderer
                   source={unescapeFromContentApi(content.htmlContent || "")}
                   emptyText="No text content provided."
@@ -425,15 +425,15 @@ export default function ContentDetailsPage() {
         </div>
 
         {/* RIGHT COLUMN: Content Details & Tabs */}
-        <div className="rounded-2xl border border-slate-800 bg-[#0B101D] p-6 shadow-sm flex flex-col justify-between space-y-6">
+        <div className="rounded-2xl border border-transparent bg-[#0B101D] p-6 shadow-sm flex flex-col justify-between space-y-6">
           <div>
-            <div className="flex border-b border-slate-800 gap-6">
+            <div className="flex border-b border-transparent gap-6">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`pb-3 text-xs font-black tracking-wide uppercase transition cursor-pointer relative ${
-                    activeTab === tab.id ? "text-orange-400" : "text-slate-400 hover:text-white"
+                    activeTab === tab.id ? "text-primary" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {tab.label}
@@ -447,20 +447,20 @@ export default function ContentDetailsPage() {
             <div className="pt-6">
               {activeTab === "description" && (
                 <div className="space-y-6">
-                  <p className="text-slate-300 text-xs leading-relaxed">
+                  <p className="text-foreground text-xs leading-relaxed">
                     {content.description || "No description provided for this content."}
                   </p>
                 </div>
               )}
 
               {activeTab === "objectives" && (
-                <div className="py-6 text-center text-slate-500 text-xs">
+                <div className="py-6 text-center text-muted-foreground text-xs">
                   Learning objectives haven't been added for this content yet.
                 </div>
               )}
 
               {activeTab === "attachments" && (
-                <div className="py-6 text-center text-slate-500 text-xs">
+                <div className="py-6 text-center text-muted-foreground text-xs">
                   No extra attachment files attached to this lesson content.
                 </div>
               )}
@@ -487,8 +487,8 @@ export default function ContentDetailsPage() {
         <button
           disabled={!prevContent}
           onClick={() => navTo(prevContent)}
-          className={`flex items-center gap-2 rounded-xl border border-slate-800 bg-[#0B101D] px-5 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:border-slate-700 transition ${
-            !prevContent && "opacity-40 cursor-not-allowed text-slate-500"
+          className={`flex items-center gap-2 rounded-xl border border-transparent bg-[#0B101D] px-5 py-2.5 text-xs font-bold text-foreground hover:text-foreground hover:border-transparent transition ${
+            !prevContent && "opacity-40 cursor-not-allowed text-muted-foreground"
           }`}
         >
           <ChevronLeft size={14} />
@@ -498,8 +498,8 @@ export default function ContentDetailsPage() {
         <button
           disabled={!nextContent}
           onClick={() => navTo(nextContent)}
-          className={`flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-orange-600 transition ${
-            !nextContent && "opacity-40 cursor-not-allowed bg-orange-500/40 text-slate-400"
+          className={`flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-orange-600 transition ${
+            !nextContent && "opacity-40 cursor-not-allowed bg-primary/40 text-muted-foreground"
           }`}
         >
           Next

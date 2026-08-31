@@ -14,7 +14,7 @@ export default function StudentTable({
     if (!students.length) {
         return (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-lg font-semibold text-foreground">
                     No Students Found
                 </h3>
 
@@ -87,7 +87,7 @@ export default function StudentTable({
                                 />
 
                                 <div>
-                                    <h3 className="font-semibold text-white">
+                                    <h3 className="font-semibold text-foreground">
                                         {student.name}
                                     </h3>
 
@@ -127,7 +127,7 @@ export default function StudentTable({
                                     Course
                                 </p>
 
-                                <span className="font-medium text-white">
+                                <span className="font-medium text-foreground">
                   {student.course || "-"}
                 </span>
                             </div>
@@ -137,7 +137,7 @@ export default function StudentTable({
                                     Progress
                                 </p>
 
-                                <span className="font-medium text-white">
+                                <span className="font-medium text-foreground">
                   {student.progress ?? 0}%
                 </span>
                             </div>
@@ -147,7 +147,7 @@ export default function StudentTable({
                                     Status
                                 </p>
 
-                                <span className="text-white">
+                                <span className="text-foreground">
                   {student.status}
                 </span>
                             </div>
@@ -157,7 +157,7 @@ export default function StudentTable({
                                     Joined
                                 </p>
 
-                                <span className="text-white">
+                                <span className="text-foreground">
                   {student.joinedDate || "-"}
                 </span>
                             </div>

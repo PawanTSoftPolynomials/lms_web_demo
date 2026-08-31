@@ -18,7 +18,7 @@ function InfoItem({
                   }) {
     return (
         <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <div className="mb-3 flex items-center gap-2 text-orange-500">
+            <div className="mb-3 flex items-center gap-2 text-primary">
                 {icon}
 
                 <span className="text-sm font-medium">
@@ -40,7 +40,7 @@ export default function ProfileInfo({
 
     return (
         <Card>
-            <h2 className="mb-6 text-2xl font-semibold text-white">
+            <h2 className="mb-6 text-2xl font-semibold text-foreground">
                 Profile Information
             </h2>
 

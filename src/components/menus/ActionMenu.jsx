@@ -61,6 +61,9 @@ export default function ActionMenu({
     };
   }, []);
 
+  const MENU_WIDTH = 160;
+  const VIEWPORT_MARGIN = 8;
+
   const toggleMenu = () => {
     if (
       buttonRef.current
@@ -68,15 +71,28 @@ export default function ActionMenu({
       const rect =
         buttonRef.current.getBoundingClientRect();
 
+      const desiredLeft =
+        rect.right +
+        window.scrollX -
+        MENU_WIDTH;
+      const maxLeft =
+        window.scrollX +
+        window.innerWidth -
+        MENU_WIDTH -
+        VIEWPORT_MARGIN;
+      const minLeft =
+        window.scrollX +
+        VIEWPORT_MARGIN;
+
       setPosition({
         top:
           rect.bottom +
           window.scrollY +
           8,
-        left:
-          rect.right +
-          window.scrollX -
-          160,
+        left: Math.min(
+          Math.max(desiredLeft, minLeft),
+          maxLeft
+        ),
       });
     }
 
@@ -91,10 +107,11 @@ export default function ActionMenu({
         ref={buttonRef}
         onClick={toggleMenu}
         className="
-          p-2
+          p-2.5
+          md:p-2
           rounded-lg
-          bg-slate-800
-          hover:bg-slate-700
+          bg-muted
+          hover:bg-muted
           transition
         "
       >
@@ -115,9 +132,9 @@ export default function ActionMenu({
             }}
             className="
               w-40
-              bg-slate-900
+              bg-background
               border
-              border-slate-700
+              border-transparent
               rounded-lg
               shadow-xl
               z-[9999]
@@ -146,7 +163,7 @@ export default function ActionMenu({
                     px-4
                     py-3
                     text-sm
-                    hover:bg-slate-800
+                    hover:bg-muted
                     transition
                   "
                 >

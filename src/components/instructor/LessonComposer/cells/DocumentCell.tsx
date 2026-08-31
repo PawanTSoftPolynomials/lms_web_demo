@@ -162,14 +162,14 @@ function PresentationModeTabs({
   onChange: (mode: "slideshow" | "upload") => void;
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950 p-1.5">
+    <div className="flex items-center gap-2 rounded-xl border border-border bg-background p-1.5">
       <button
         type="button"
         onClick={() => onChange("slideshow")}
         className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold transition cursor-pointer ${
           presentationMode === "slideshow"
-            ? "bg-orange-500 text-slate-950 shadow-md"
-            : "text-slate-400 hover:text-white hover:bg-slate-900"
+            ? "bg-primary text-slate-950 shadow-md"
+            : "text-muted-foreground hover:text-foreground hover:bg-background"
         }`}
       >
         <Layers size={14} />
@@ -181,8 +181,8 @@ function PresentationModeTabs({
         onClick={() => onChange("upload")}
         className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold transition cursor-pointer ${
           presentationMode === "upload"
-            ? "bg-orange-500 text-slate-950 shadow-md"
-            : "text-slate-400 hover:text-white hover:bg-slate-900"
+            ? "bg-primary text-slate-950 shadow-md"
+            : "text-muted-foreground hover:text-foreground hover:bg-background"
         }`}
       >
         <Upload size={14} />
@@ -345,7 +345,7 @@ export function DocumentCell({
             />
           )}
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+          <div className="flex justify-end gap-2 pt-2 border-t border-border">
             <Button type="button" variant="ghost" size="sm" onClick={handleCancel}>
               Cancel
             </Button>
@@ -378,14 +378,14 @@ export function DocumentCell({
                 type="button"
                 onClick={() => setActiveSlideIndex(Math.max(0, activeSlideIndex - 1))}
                 disabled={activeSlideIndex === 0}
-                className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 cursor-pointer shrink-0"
+                className="flex items-center gap-1 rounded-lg border border-border bg-background px-2.5 py-1 text-xs font-bold text-foreground hover:bg-muted hover:text-foreground disabled:opacity-30 cursor-pointer shrink-0"
                 aria-label="Previous slide"
               >
                 <ChevronLeft size={13} />
               </button>
 
               <div className="flex items-center gap-1.5 min-w-0">
-                <span className="text-[11px] font-bold text-slate-400 shrink-0">
+                <span className="text-[11px] font-bold text-muted-foreground shrink-0">
                   {activeSlideIndex + 1} / {slides.length}
                 </span>
                 <div className="flex items-center gap-1 overflow-x-auto">
@@ -395,7 +395,7 @@ export function DocumentCell({
                       type="button"
                       onClick={() => setActiveSlideIndex(dotIdx)}
                       className={`h-1.5 rounded-full transition-all cursor-pointer shrink-0 ${
-                        activeSlideIndex === dotIdx ? "w-4 bg-orange-500" : "w-1.5 bg-slate-700 hover:bg-slate-500"
+                        activeSlideIndex === dotIdx ? "w-4 bg-primary" : "w-1.5 bg-slate-700 hover:bg-slate-500"
                       }`}
                       title={`Go to slide ${dotIdx + 1}`}
                     />
@@ -407,7 +407,7 @@ export function DocumentCell({
                 type="button"
                 onClick={() => setActiveSlideIndex(Math.min(slides.length - 1, activeSlideIndex + 1))}
                 disabled={activeSlideIndex === slides.length - 1}
-                className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 cursor-pointer shrink-0"
+                className="flex items-center gap-1 rounded-lg border border-border bg-background px-2.5 py-1 text-xs font-bold text-foreground hover:bg-muted hover:text-foreground disabled:opacity-30 cursor-pointer shrink-0"
                 aria-label="Next slide"
               >
                 <ChevronRight size={13} />
@@ -441,7 +441,7 @@ export function DocumentCell({
           )}
         </div>
       ) : (
-        <p className="text-xs italic text-slate-500">
+        <p className="text-xs italic text-muted-foreground">
           No {cellType.label.toLowerCase()} set yet.
         </p>
       )}
@@ -523,7 +523,7 @@ export function CreateFileForm({ topicId, order, cellType, accept, presentationM
         />
       )}
 
-      <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+      <div className="flex justify-end gap-2 pt-2 border-t border-border">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>

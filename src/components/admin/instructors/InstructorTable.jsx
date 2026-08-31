@@ -10,7 +10,7 @@ export default function InstructorTable({
                                         }) {
     if (!instructors.length) {
         return (<div className="flex flex-col items-center justify-center py-16 text-center">
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-lg font-semibold text-foreground">
                     No Instructors Found
                 </h3>
 
@@ -78,7 +78,7 @@ export default function InstructorTable({
                                 />
 
                                 <div>
-                                    <h3 className="font-semibold text-white">
+                                    <h3 className="font-semibold text-foreground">
                                         {instructor.user.name}
                                     </h3>
 
@@ -107,7 +107,7 @@ export default function InstructorTable({
                                     Specialization
                                 </p>
 
-                                <span className="font-medium text-white">
+                                <span className="font-medium text-foreground">
                   {instructor.specialization || "-"}
                 </span>
                             </div>
@@ -117,7 +117,7 @@ export default function InstructorTable({
                                     Experience
                                 </p>
 
-                                <span className="font-medium text-white">
+                                <span className="font-medium text-foreground">
                   {instructor.experience != null ? `${instructor.experience} Years` : "-"}
                 </span>
                             </div>
@@ -127,7 +127,7 @@ export default function InstructorTable({
                                     Qualification
                                 </p>
 
-                                <span className="text-white">
+                                <span className="text-foreground">
                   {instructor.qualification || "-"}
                 </span>
                             </div>

@@ -28,8 +28,8 @@ export default function MCQMultiOptionList({
   return (
     <div className="space-y-4">
       {/* Top Banner Alert / Instruction */}
-      <div className="flex items-center gap-2 rounded-xl bg-orange-500/5 border border-orange-500/10 px-4 py-3 text-xs text-orange-400 font-semibold mb-4">
-        <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+      <div className="flex items-center gap-2 rounded-xl bg-primary/5 border border-primary/10 px-4 py-3 text-xs text-primary font-semibold mb-4">
+        <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
         <span>Multiple Choice: Select all options that apply to this question.</span>
       </div>
 
@@ -60,8 +60,8 @@ export default function MCQMultiOptionList({
               duration-300
               ${
                 isSelected
-                  ? "border-orange-500 bg-orange-500/10 shadow-[0_0_20px_rgba(249,115,22,0.15)]"
-                  : "border-slate-800 bg-slate-900/60 hover:border-orange-500/30 hover:bg-slate-800/80 hover:shadow-lg"
+                  ? "border-primary bg-primary/10 shadow-[0_0_20px_rgba(249,115,22,0.15)]"
+                  : "border-border bg-background/60 hover:border-primary/30 hover:bg-muted/80 hover:shadow-lg"
               }
             `}
           >
@@ -90,8 +90,8 @@ export default function MCQMultiOptionList({
                 duration-300
                 ${
                   isSelected
-                    ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
-                    : "bg-slate-800 text-slate-400 border border-slate-700/50"
+                    ? "bg-primary text-foreground shadow-md shadow-orange-500/20"
+                    : "bg-muted text-muted-foreground border border-transparent/50"
                 }
               `}
             >
@@ -103,7 +103,7 @@ export default function MCQMultiOptionList({
               <p
                 className={`text-base leading-relaxed transition-colors duration-200 ${
                   isSelected
-                    ? "font-semibold text-white"
+                    ? "font-semibold text-foreground"
                     : "text-slate-350"
                 }`}
               >
@@ -120,7 +120,7 @@ export default function MCQMultiOptionList({
                     initial={{ scale: 0.6, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.6, opacity: 0 }}
-                    className="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-500 text-white shadow-md shadow-orange-500/25"
+                    className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-foreground shadow-md shadow-orange-500/25"
                   >
                     <Check className="h-4 w-4 stroke-[3.5]" />
                   </motion.div>
@@ -130,7 +130,7 @@ export default function MCQMultiOptionList({
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.8, opacity: 0 }}
-                    className="h-6 w-6 rounded-lg border border-slate-750 bg-slate-950/40 hover:border-orange-500/50 transition-colors"
+                    className="h-6 w-6 rounded-lg border border-slate-750 bg-background/40 hover:border-primary/50 transition-colors"
                   />
                 )}
               </AnimatePresence>

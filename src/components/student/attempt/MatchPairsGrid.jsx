@@ -74,10 +74,10 @@ export default function MatchPairsGrid({
   return (
     <div className="space-y-6">
       {/* Description & Action Bar */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div className="flex items-center justify-between border-b border-border pb-3">
         <div className="flex items-center gap-2">
           <HelpCircle className="h-4 w-4 text-slate-450" />
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-muted-foreground">
             Tap a card on the left, then tap its correct match on the right to pair them:
           </p>
         </div>
@@ -97,7 +97,7 @@ export default function MatchPairsGrid({
         
         {/* Left Column (Column A) */}
         <div className="space-y-3">
-          <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1 mb-2">Column A</h4>
+          <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest pl-1 mb-2">Column A</h4>
           {columnA.map((leftItem) => {
             const matchedVal = selectedPairs[leftItem];
             const isMatched = !!matchedVal;
@@ -115,10 +115,10 @@ export default function MatchPairsGrid({
                   flex w-full items-center justify-between gap-4 rounded-xl border p-4 text-left cursor-pointer transition-all duration-300
                   ${
                     isActive
-                      ? "border-orange-500 bg-orange-500/10 shadow-[0_0_15px_rgba(249,115,22,0.15)]"
+                      ? "border-primary bg-primary/10 shadow-[0_0_15px_rgba(249,115,22,0.15)]"
                       : isMatched
-                      ? `${style.border} text-white`
-                      : "border-slate-800 bg-slate-900/50 text-slate-300 hover:border-slate-700 hover:bg-slate-800/80"
+                      ? `${style.border} text-foreground`
+                      : "border-border bg-background/50 text-foreground hover:border-transparent hover:bg-muted/80"
                   }
                 `}
               >
@@ -127,10 +127,10 @@ export default function MatchPairsGrid({
                     flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-black
                     ${
                       isActive
-                        ? "bg-orange-500 text-white"
+                        ? "bg-primary text-foreground"
                         : isMatched
                         ? style.badgeBg
-                        : "bg-slate-800 text-slate-400"
+                        : "bg-muted text-muted-foreground"
                     }
                   `}>
                     {columnA.indexOf(leftItem) + 1}
@@ -144,7 +144,7 @@ export default function MatchPairsGrid({
                   </span>
                 )}
                 {isActive && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 font-bold uppercase shrink-0 animate-pulse">
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-primary/20 text-primary font-bold uppercase shrink-0 animate-pulse">
                     Select Match
                   </span>
                 )}
@@ -155,7 +155,7 @@ export default function MatchPairsGrid({
 
         {/* Right Column (Column B) */}
         <div className="space-y-3">
-          <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1 mb-2">Column B</h4>
+          <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest pl-1 mb-2">Column B</h4>
           {columnB.map((rightItem) => {
             // Find if this right option is matched to any left option
             const pairedLeftKey = Object.keys(selectedPairs).find(
@@ -175,15 +175,15 @@ export default function MatchPairsGrid({
                   flex w-full items-center justify-between gap-4 rounded-xl border p-4 text-left cursor-pointer transition-all duration-300
                   ${
                     isMatched
-                      ? `${style.border} text-white`
-                      : "border-slate-800 bg-slate-900/50 text-slate-350 hover:border-slate-700 hover:bg-slate-800/80"
+                      ? `${style.border} text-foreground`
+                      : "border-border bg-background/50 text-slate-350 hover:border-transparent hover:bg-muted/80"
                   }
                 `}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className={`
                     flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-black
-                    ${isMatched ? style.badgeBg : "bg-slate-800 text-slate-500"}
+                    ${isMatched ? style.badgeBg : "bg-muted text-muted-foreground"}
                   `}>
                     {isMatched ? columnA.indexOf(pairedLeftKey) + 1 : "?"}
                   </div>
@@ -197,7 +197,7 @@ export default function MatchPairsGrid({
                     </span>
                   )}
                   {activeLeft && !isMatched && (
-                    <span className="text-[9px] text-slate-500 font-bold group-hover:text-slate-400">
+                    <span className="text-[9px] text-muted-foreground font-bold group-hover:text-muted-foreground">
                       Link Item
                     </span>
                   )}

@@ -34,7 +34,7 @@ export function ToastProvider({ children }) {
             rounded-2xl
             p-4
             shadow-2xl
-            text-white
+            text-foreground
             transition-all
             border
             min-w-[280px]
@@ -45,10 +45,10 @@ export function ToastProvider({ children }) {
             duration-200
             ${
               toast.type === "success"
-                ? "bg-slate-900 border-green-500/20 shadow-green-950/20"
+                ? "bg-background border-green-500/20 shadow-green-950/20"
                 : toast.type === "error"
-                ? "bg-slate-900 border-red-500/20 shadow-red-950/20"
-                : "bg-slate-900 border-orange-500/20 shadow-orange-950/20"
+                ? "bg-background border-red-500/20 shadow-red-950/20"
+                : "bg-background border-primary/20 shadow-orange-950/20"
             }
           `}
         >
@@ -58,7 +58,7 @@ export function ToastProvider({ children }) {
                 ? "text-green-500 bg-green-500/10"
                 : toast.type === "error"
                 ? "text-red-500 bg-red-500/10"
-                : "text-orange-500 bg-orange-500/10"
+                : "text-primary bg-primary/10"
             }`}>
               {toast.type === "success" ? (
                 <CheckCircle2 size={16} />
@@ -70,11 +70,11 @@ export function ToastProvider({ children }) {
             </div>
             <div className="flex-1 min-w-0">
               {toast.title && (
-                <h4 className="font-extrabold text-xs text-white leading-tight uppercase tracking-wider mb-1">
+                <h4 className="font-extrabold text-xs text-foreground leading-tight uppercase tracking-wider mb-1">
                   {toast.title}
                 </h4>
               )}
-              <p className="text-xs text-slate-300 leading-relaxed font-medium break-words">
+              <p className="text-xs text-foreground leading-relaxed font-medium break-words">
                 {toast.message}
               </p>
             </div>

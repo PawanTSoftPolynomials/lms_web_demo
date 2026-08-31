@@ -20,15 +20,15 @@ export default function Dashboard() {
     }, [user, loading, router]);
 
     if (loading) {
-        return (<div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
+        return (<div className="min-h-screen bg-background flex items-center justify-center text-foreground">
                 Loading... </div>
         );
     }
 
-    return (<div className="min-h-screen bg-slate-950 text-white">
-            <header className="border-b border-slate-800 bg-slate-900">
+    return (<div className="min-h-screen bg-background text-foreground">
+            <header className="border-b border-transparent bg-background">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center"><h1
-                    className="text-2xl font-bold text-orange-500">
+                    className="text-2xl font-bold text-primary">
                     Orange Tree LMS </h1>
                     <button
                         onClick={() => {
@@ -43,18 +43,18 @@ export default function Dashboard() {
             </header>
 
             <main className="max-w-7xl mx-auto p-6">
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-6">
+                <div className="bg-background border border-transparent rounded-2xl p-6 mb-6">
                     <h2 className="text-3xl font-bold">
                         Welcome, {user?.name}
                     </h2>
 
-                    <p className="text-slate-400 mt-2">
+                    <p className="text-muted-foreground mt-2">
                         Role: {user?.role}
                     </p>
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-6">
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <div className="bg-background border border-transparent rounded-xl p-6">
                         <h3 className="text-lg font-semibold">
                             Courses
                         </h3>
@@ -64,7 +64,7 @@ export default function Dashboard() {
                         </p>
                     </div>
 
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <div className="bg-background border border-transparent rounded-xl p-6">
                         <h3 className="text-lg font-semibold">
                             Progress
                         </h3>
@@ -74,7 +74,7 @@ export default function Dashboard() {
                         </p>
                     </div>
 
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <div className="bg-background border border-transparent rounded-xl p-6">
                         <h3 className="text-lg font-semibold">
                             Certificates
                         </h3>

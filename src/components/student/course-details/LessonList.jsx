@@ -66,7 +66,7 @@ export default function LessonList({
                                    }) {
     if (!lessons.length) {
         return (
-            <p className="px-4 py-3 text-xs text-slate-500">
+            <p className="px-4 py-3 text-xs text-muted-foreground">
                 No lessons available in this module.
             </p>
         );
@@ -83,14 +83,14 @@ export default function LessonList({
                         className="flex items-center justify-between gap-3 px-4 py-3.5"
                     >
                         <div className="flex min-w-0 items-center gap-2.5">
-                            <Icon className="h-4 w-4 shrink-0 text-orange-500" />
+                            <Icon className="h-4 w-4 shrink-0 text-primary" />
 
-                            <span className="truncate text-sm text-slate-200">
+                            <span className="truncate text-sm text-foreground">
                                 {lesson.title}
                             </span>
                         </div>
 
-                        <span className="shrink-0 text-xs text-slate-500">
+                        <span className="shrink-0 text-xs text-muted-foreground">
                             {label}
                             {duration ? ` • ${duration}` : ""}
                         </span>

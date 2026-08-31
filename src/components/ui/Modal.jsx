@@ -36,7 +36,7 @@ export default function Modal({
   flex
   items-center
   justify-center
-  bg-slate-950/80
+  bg-background/80
   backdrop-blur-sm
   animate-in
   fade-in
@@ -58,8 +58,8 @@ export default function Modal({
   overflow-hidden
   rounded-2xl
   border
-  border-slate-800
-  bg-slate-900
+  border-border
+  bg-background
   shadow-[0_20px_80px_rgba(0,0,0,0.55)]
   animate-in
   zoom-in-95
@@ -73,13 +73,13 @@ export default function Modal({
     items-center
     justify-between
     border-b
-    border-slate-800
-    bg-slate-900/80
+    border-border
+    bg-background/80
     px-6
     py-4
   "
         >
-          <h2 className="text-xl font-bold text-white">
+          <h2 className="text-xl font-bold text-foreground">
             {title}
           </h2>
 
@@ -92,10 +92,10 @@ export default function Modal({
     items-center
     justify-center
     rounded-xl
-    text-slate-400
+    text-muted-foreground
     transition-all
-    hover:bg-slate-800
-    hover:text-white
+    hover:bg-muted
+    hover:text-foreground
     cursor-pointer
   "
           >

@@ -61,12 +61,12 @@ export default function MediaCropTool({ open, onClose, child, onApply }) {
   return (
     <Modal open={open} onClose={onClose} title="Crop" size="md">
       <div className="space-y-4">
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-muted-foreground">
           Drag the box to move it, drag the corner to resize the visible area.
         </p>
         <div
           ref={containerRef}
-          className="relative w-full aspect-video rounded-lg overflow-hidden border border-slate-700 bg-black select-none"
+          className="relative w-full aspect-video rounded-lg overflow-hidden border border-transparent bg-black select-none"
         >
           {child.blockType === "video" ? (
             <video src={child.url} className="absolute inset-0 w-full h-full object-contain" muted />
@@ -76,7 +76,7 @@ export default function MediaCropTool({ open, onClose, child, onApply }) {
 
           <div
             onPointerDown={(e) => beginDrag(e, "move")}
-            className="absolute border-2 border-orange-500 bg-orange-500/10 cursor-move"
+            className="absolute border-2 border-primary bg-primary/10 cursor-move"
             style={{
               left: `${crop.x}%`,
               top: `${crop.y}%`,
@@ -86,7 +86,7 @@ export default function MediaCropTool({ open, onClose, child, onApply }) {
           >
             <div
               onPointerDown={(e) => beginDrag(e, "resize")}
-              className="absolute -right-1.5 -bottom-1.5 w-3.5 h-3.5 rounded-sm bg-orange-500 border border-white cursor-se-resize"
+              className="absolute -right-1.5 -bottom-1.5 w-3.5 h-3.5 rounded-sm bg-primary border border-white cursor-se-resize"
             />
           </div>
         </div>
@@ -95,7 +95,7 @@ export default function MediaCropTool({ open, onClose, child, onApply }) {
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-lg transition"
+            className="px-3 py-1.5 text-xs font-bold text-foreground hover:text-foreground bg-muted hover:bg-slate-750 border border-transparent/60 rounded-lg transition"
           >
             Cancel
           </button>
@@ -105,7 +105,7 @@ export default function MediaCropTool({ open, onClose, child, onApply }) {
               onApply(crop);
               onClose();
             }}
-            className="px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition"
+            className="px-3 py-1.5 text-xs font-bold text-foreground bg-emerald-600 hover:bg-emerald-700 rounded-lg transition"
           >
             Apply Crop
           </button>

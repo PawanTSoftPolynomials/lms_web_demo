@@ -26,6 +26,7 @@ import {
 import useUpdateProfile from "@/hooks/queries/student/useUpdateProfile";
 import { changePassword } from "@/services/auth.service";
 import { uploadAvatar, removeAvatar } from "@/services/profile.service";
+import { getDisplayUrl } from "@/lib/blob";
 
 export default function InstructorProfileView({ profile, onRefresh }) {
   const updateProfileMutation = useUpdateProfile();
@@ -60,7 +61,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
         experience: teacher.experience ?? "",
         bio: teacher.bio || "",
       });
-      if (profile.avatar) setAvatarPreview(profile.avatar);
+      if (profile.avatar) setAvatarPreview(getDisplayUrl(profile.avatar));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
@@ -159,7 +160,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
     .slice(0, 2);
 
   return (
-    <div className="space-y-6 pb-12 animate-in fade-in duration-200 text-slate-100">
+    <div className="space-y-6 pb-12 animate-in fade-in duration-200 text-foreground">
       <input
         type="file"
         ref={fileInputRef}
@@ -169,14 +170,14 @@ export default function InstructorProfileView({ profile, onRefresh }) {
       />
 
       {/* HERO */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-[#0B0F17] to-slate-950 p-6 md:p-8 shadow-2xl">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 h-64 w-64 rounded-full bg-orange-500/5 blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-slate-900 via-[#0B0F17] to-slate-950 p-6 md:p-8 shadow-2xl">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 h-64 w-64 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
             <div className="relative group">
               <div className="h-28 w-28 rounded-full bg-gradient-to-tr from-orange-500 via-amber-500 to-pink-500 p-1 shadow-xl shadow-orange-500/10">
-                <div className="h-full w-full rounded-full bg-slate-950 flex items-center justify-center text-3xl font-black text-white overflow-hidden relative">
+                <div className="h-full w-full rounded-full bg-background flex items-center justify-center text-3xl font-black text-foreground overflow-hidden relative">
                   {avatarPreview ? (
                     <img src={avatarPreview} alt={profile?.name || "Avatar"} className="h-full w-full object-cover" />
                   ) : (
@@ -184,7 +185,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
                   )}
                   {isUploadingAvatar && (
                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                      <div className="h-6 w-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                      <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}
                 </div>
@@ -192,7 +193,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-orange-500 hover:bg-orange-600 text-slate-950 flex items-center justify-center shadow-lg transition active:scale-90 cursor-pointer"
+                className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-primary hover:bg-orange-600 text-slate-950 flex items-center justify-center shadow-lg transition active:scale-90 cursor-pointer"
                 title="Upload Profile Photo"
               >
                 <Camera size={15} className="stroke-[2.5]" />
@@ -201,7 +202,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
 
             <div className="space-y-2">
               <div className="flex items-center justify-center sm:justify-start gap-2">
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">{profile?.name}</h1>
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">{profile?.name}</h1>
                 {profile?.isVerified && (
                   <div className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/40" title="Verified Account">
                     <Check size={12} className="stroke-[3]" />
@@ -209,10 +210,10 @@ export default function InstructorProfileView({ profile, onRefresh }) {
                 )}
               </div>
 
-              <p className="text-sm font-medium text-slate-400">{profile?.email}</p>
+              <p className="text-sm font-medium text-muted-foreground">{profile?.email}</p>
 
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
-                <span className="inline-flex items-center gap-1 rounded-lg bg-orange-500/15 border border-orange-500/30 px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-orange-400">
+                <span className="inline-flex items-center gap-1 rounded-lg bg-primary/15 border border-primary/30 px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-primary">
                   <User size={12} />
                   <span>{profile?.role || "INSTRUCTOR"}</span>
                 </span>
@@ -228,13 +229,13 @@ export default function InstructorProfileView({ profile, onRefresh }) {
                   <span>{profile?.isVerified ? "Verified" : "Not Verified"}</span>
                 </span>
 
-                <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 ml-1">
+                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground ml-1">
                   <Clock size={13} />
                   <span>Member since {memberSinceStr}</span>
                 </span>
               </div>
 
-              {avatarMessage && <p className="text-xs font-semibold text-orange-400 animate-in fade-in pt-1">{avatarMessage}</p>}
+              {avatarMessage && <p className="text-xs font-semibold text-primary animate-in fade-in pt-1">{avatarMessage}</p>}
             </div>
           </div>
 
@@ -242,7 +243,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-5 py-2.5 transition shadow-lg shadow-orange-500/15 cursor-pointer"
+              className="flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-5 py-2.5 transition shadow-lg shadow-orange-500/15 cursor-pointer"
             >
               <Upload size={14} className="stroke-[2.5]" />
               <span>Upload Photo</span>
@@ -262,7 +263,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
             <button
               type="button"
               onClick={() => setShowPasswordModal(true)}
-              className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs px-5 py-2.5 transition active:scale-95 cursor-pointer"
+              className="flex items-center justify-center gap-2 rounded-xl bg-background hover:bg-muted border border-transparent text-foreground font-bold text-xs px-5 py-2.5 transition active:scale-95 cursor-pointer"
             >
               <Lock size={14} />
               <span>Change Password</span>
@@ -270,7 +271,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
 
             <Link
               href="/instructor/settings"
-              className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs px-5 py-2.5 transition active:scale-95"
+              className="flex items-center justify-center gap-2 rounded-xl bg-background hover:bg-muted border border-transparent text-foreground font-bold text-xs px-5 py-2.5 transition active:scale-95"
             >
               <SettingsIcon size={14} />
               <span>Settings</span>
@@ -282,19 +283,19 @@ export default function InstructorProfileView({ profile, onRefresh }) {
       <div className="grid gap-6 lg:grid-cols-10">
         <div className="lg:col-span-7 space-y-6">
           {/* PERSONAL INFO */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 md:p-7 shadow-xl space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+          <div className="rounded-2xl border border-border bg-background/70 p-6 md:p-7 shadow-xl space-y-6">
+            <div className="flex items-center justify-between border-b border-border/80 pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-orange-500/10 text-orange-400 border border-orange-500/20 flex items-center justify-center">
+                <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
                   <User size={18} />
                 </div>
-                <h2 className="text-lg font-bold text-white">Personal Information</h2>
+                <h2 className="text-lg font-bold text-foreground">Personal Information</h2>
               </div>
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={updateProfileMutation.isPending}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-slate-700 hover:border-orange-500 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-transparent hover:border-primary text-xs font-bold text-foreground hover:text-foreground transition cursor-pointer disabled:opacity-50"
               >
                 <Save size={13} />
                 <span>Save</span>
@@ -303,57 +304,57 @@ export default function InstructorProfileView({ profile, onRefresh }) {
 
             <div className="grid gap-5 md:grid-cols-2">
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Full Name</label>
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">Full Name</label>
                 <div className="relative">
-                  <User size={16} className="absolute left-3.5 top-3 text-slate-500" />
+                  <User size={16} className="absolute left-3.5 top-3 text-muted-foreground" />
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Email Address</label>
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">Email Address</label>
                 <div className="relative">
                   <Mail size={16} className="absolute left-3.5 top-3 text-slate-600" />
                   <input
                     type="email"
                     value={profile?.email || ""}
                     disabled
-                    className="w-full bg-slate-950/60 border border-slate-800/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-500 outline-none cursor-not-allowed"
+                    className="w-full bg-background/60 border border-border/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-muted-foreground outline-none cursor-not-allowed"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Phone Number</label>
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">Phone Number</label>
                 <div className="relative">
-                  <Phone size={16} className="absolute left-3.5 top-3 text-slate-500" />
+                  <Phone size={16} className="absolute left-3.5 top-3 text-muted-foreground" />
                   <input
                     type="text"
                     name="phoneNumber"
                     value={formData.phoneNumber}
                     onChange={handleChange}
                     placeholder="+91 98765 43210"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Address</label>
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">Address</label>
                 <div className="relative">
-                  <MapPin size={16} className="absolute left-3.5 top-3 text-slate-500" />
+                  <MapPin size={16} className="absolute left-3.5 top-3 text-muted-foreground" />
                   <input
                     type="text"
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
@@ -361,19 +362,19 @@ export default function InstructorProfileView({ profile, onRefresh }) {
           </div>
 
           {/* PROFESSIONAL INFO */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 md:p-7 shadow-xl space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+          <div className="rounded-2xl border border-border bg-background/70 p-6 md:p-7 shadow-xl space-y-6">
+            <div className="flex items-center justify-between border-b border-border/80 pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-orange-500/10 text-orange-400 border border-orange-500/20 flex items-center justify-center">
+                <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
                   <GraduationCap size={18} />
                 </div>
-                <h2 className="text-lg font-bold text-white">Professional Information</h2>
+                <h2 className="text-lg font-bold text-foreground">Professional Information</h2>
               </div>
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={updateProfileMutation.isPending}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-slate-700 hover:border-orange-500 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-transparent hover:border-primary text-xs font-bold text-foreground hover:text-foreground transition cursor-pointer disabled:opacity-50"
               >
                 <Save size={13} />
                 <span>Save</span>
@@ -382,61 +383,61 @@ export default function InstructorProfileView({ profile, onRefresh }) {
 
             <div className="grid gap-5 md:grid-cols-2">
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Specialization</label>
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">Specialization</label>
                 <div className="relative">
-                  <Award size={16} className="absolute left-3.5 top-3 text-slate-500" />
+                  <Award size={16} className="absolute left-3.5 top-3 text-muted-foreground" />
                   <input
                     type="text"
                     name="specialization"
                     value={formData.specialization}
                     onChange={handleChange}
                     placeholder="e.g. Full-Stack Web Development"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Qualification</label>
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">Qualification</label>
                 <div className="relative">
-                  <GraduationCap size={16} className="absolute left-3.5 top-3 text-slate-500" />
+                  <GraduationCap size={16} className="absolute left-3.5 top-3 text-muted-foreground" />
                   <input
                     type="text"
                     name="qualification"
                     value={formData.qualification}
                     onChange={handleChange}
                     placeholder="e.g. M.Tech, Computer Science"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Years of Experience</label>
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">Years of Experience</label>
                 <div className="relative">
-                  <Clock size={16} className="absolute left-3.5 top-3 text-slate-500" />
+                  <Clock size={16} className="absolute left-3.5 top-3 text-muted-foreground" />
                   <input
                     type="number"
                     min="0"
                     name="experience"
                     value={formData.experience}
                     onChange={handleChange}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Bio</label>
+                <label className="block text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">Bio</label>
                 <div className="relative">
-                  <FileText size={16} className="absolute left-3.5 top-3.5 text-slate-500" />
+                  <FileText size={16} className="absolute left-3.5 top-3.5 text-muted-foreground" />
                   <textarea
                     name="bio"
                     rows={3}
                     value={formData.bio}
                     onChange={handleChange}
                     placeholder="A short bio students and admins will see on your instructor profile..."
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition resize-none"
+                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition resize-none"
                   />
                 </div>
               </div>
@@ -456,7 +457,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
               type="button"
               onClick={handleSave}
               disabled={updateProfileMutation.isPending}
-              className="flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-6 py-3 transition shadow-lg shadow-orange-500/15 cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl bg-primary hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-6 py-3 transition shadow-lg shadow-orange-500/15 cursor-pointer disabled:opacity-50"
             >
               <Check size={15} className="stroke-[3]" />
               <span>{updateProfileMutation.isPending ? "Saving..." : "Save Changes"}</span>
@@ -466,13 +467,13 @@ export default function InstructorProfileView({ profile, onRefresh }) {
 
         {/* RIGHT COLUMN */}
         <div className="lg:col-span-3 space-y-6">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl space-y-5">
+          <div className="rounded-2xl border border-border bg-background/70 p-6 shadow-xl space-y-5">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white">Profile Completion</h3>
-              <span className="text-xs font-black text-orange-400">{completionPercentage}% Complete</span>
+              <h3 className="text-sm font-bold text-foreground">Profile Completion</h3>
+              <span className="text-xs font-black text-primary">{completionPercentage}% Complete</span>
             </div>
 
-            <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500"
                 style={{ width: `${completionPercentage}%` }}
@@ -487,9 +488,9 @@ export default function InstructorProfileView({ profile, onRefresh }) {
                       <Check size={10} className="stroke-[3]" />
                     </div>
                   ) : (
-                    <div className="h-4 w-4 rounded-full border-2 border-orange-500/80 shrink-0" />
+                    <div className="h-4 w-4 rounded-full border-2 border-primary/80 shrink-0" />
                   )}
-                  <span className={item.isFilled ? "text-slate-300 font-medium" : "text-slate-400 font-normal"}>{item.label}</span>
+                  <span className={item.isFilled ? "text-foreground font-medium" : "text-muted-foreground font-normal"}>{item.label}</span>
                 </div>
               ))}
             </div>
@@ -536,19 +537,19 @@ function ChangePasswordModal({ onClose }) {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150"
+        className="w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150"
       >
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-center justify-between border-b border-border pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-lg bg-orange-500/10 text-orange-400 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <Key size={15} />
             </div>
-            <h3 className="text-base font-bold text-white">Change Password</h3>
+            <h3 className="text-base font-bold text-foreground">Change Password</h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+            className="p-1 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition cursor-pointer"
           >
             <X size={18} />
           </button>
@@ -563,33 +564,33 @@ function ChangePasswordModal({ onClose }) {
 
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Current Password</label>
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Current Password</label>
             <input
               type="password"
               required
               value={passwordData.currentPassword}
               onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-              className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+              className="w-full bg-background border border-border rounded-xl px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">New Password</label>
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">New Password</label>
             <input
               type="password"
               required
               value={passwordData.newPassword}
               onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-              className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+              className="w-full bg-background border border-border rounded-xl px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Confirm Password</label>
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Confirm Password</label>
             <input
               type="password"
               required
               value={passwordData.confirmPassword}
               onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-              className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+              className="w-full bg-background border border-border rounded-xl px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
             />
           </div>
         </div>
@@ -598,14 +599,14 @@ function ChangePasswordModal({ onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+            className="px-4 py-2 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={status.loading}
-            className="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xs transition shadow-lg shadow-orange-500/10 cursor-pointer disabled:opacity-50"
+            className="px-5 py-2 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 font-black text-xs transition shadow-lg shadow-orange-500/10 cursor-pointer disabled:opacity-50"
           >
             {status.loading ? "Updating..." : "Update Password"}
           </button>

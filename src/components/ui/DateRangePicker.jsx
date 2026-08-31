@@ -44,11 +44,11 @@ function DayButtonImpl({ day, modifiers, className, children, ...props }) {
       {...props}
       className={cn(
         "relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[12.5px] font-bold outline-none transition-all duration-150",
-        !isEdge && !isMiddle && !modifiers.disabled && "text-slate-300 hover:bg-orange-500/15 hover:text-white",
+        !isEdge && !isMiddle && !modifiers.disabled && "text-foreground hover:bg-primary/15 hover:text-foreground",
         modifiers.outside && !isEdge && "text-slate-600",
-        modifiers.today && !isEdge && "border border-orange-500 text-orange-400",
-        isMiddle && "text-orange-200 hover:bg-orange-500/20",
-        isEdge && "bg-orange-500 text-white shadow-[0_2px_10px_-2px_rgba(255,122,0,0.6)] hover:bg-orange-600",
+        modifiers.today && !isEdge && "border border-primary text-primary",
+        isMiddle && "text-orange-200 hover:bg-primary/20",
+        isEdge && "bg-primary text-foreground shadow-[0_2px_10px_-2px_rgba(255,122,0,0.6)] hover:bg-orange-600",
         modifiers.disabled && "pointer-events-none text-slate-700 opacity-40 hover:bg-transparent"
       )}
     >
@@ -63,9 +63,9 @@ function DayImpl({ day, modifiers, className, children, ...props }) {
       {...props}
       className={cn(
         "p-0 text-center",
-        modifiers.range_middle && "bg-orange-500/10",
-        modifiers.range_start && "bg-orange-500/10 rounded-l-full",
-        modifiers.range_end && "bg-orange-500/10 rounded-r-full"
+        modifiers.range_middle && "bg-primary/10",
+        modifiers.range_start && "bg-primary/10 rounded-l-full",
+        modifiers.range_end && "bg-primary/10 rounded-r-full"
       )}
     >
       {children}
@@ -77,20 +77,20 @@ const calendarClassNames = {
   months: "flex flex-col",
   month: "relative space-y-3",
   month_caption: "flex items-center justify-center h-9 px-10",
-  caption_label: "text-[13px] font-black text-white tracking-tight",
+  caption_label: "text-[13px] font-black text-foreground tracking-tight",
   dropdowns: "flex items-center gap-1.5",
   dropdown_root: "relative",
   months_dropdown:
-    "bg-[#141930] border border-[#1A1F35] text-[12px] font-black text-white rounded-lg px-2 py-1 outline-none cursor-pointer",
+    "bg-[#141930] border border-border text-[12px] font-black text-foreground rounded-lg px-2 py-1 outline-none cursor-pointer",
   years_dropdown:
-    "bg-[#141930] border border-[#1A1F35] text-[12px] font-black text-white rounded-lg px-2 py-1 outline-none cursor-pointer",
+    "bg-[#141930] border border-border text-[12px] font-black text-foreground rounded-lg px-2 py-1 outline-none cursor-pointer",
   button_previous:
-    "absolute left-0 top-0 flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-white/5 hover:text-white transition disabled:opacity-30 disabled:pointer-events-none",
+    "absolute left-0 top-0 flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-white/5 hover:text-foreground transition disabled:opacity-30 disabled:pointer-events-none",
   button_next:
-    "absolute right-0 top-0 flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-white/5 hover:text-white transition disabled:opacity-30 disabled:pointer-events-none",
+    "absolute right-0 top-0 flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-white/5 hover:text-foreground transition disabled:opacity-30 disabled:pointer-events-none",
   month_grid: "w-full border-collapse mt-1",
   weekdays: "flex",
-  weekday: "w-9 h-8 text-[10px] font-black uppercase tracking-wider text-slate-500 text-center",
+  weekday: "w-9 h-8 text-[10px] font-black uppercase tracking-wider text-muted-foreground text-center",
   week: "flex w-full mt-0.5",
   day: "p-0 text-center",
 };
@@ -115,25 +115,25 @@ function CalendarBody({ range, onRangeChange, month, onMonthChange }) {
 
 function Footer({ onCancel, onToday, onApply }) {
   return (
-    <div className="flex items-center justify-between gap-2 border-t border-[#1A1F35] px-4 py-3">
+    <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
       <button
         type="button"
         onClick={onCancel}
-        className="inline-flex items-center px-3.5 py-2 rounded-xl text-[10.5px] font-bold text-slate-400 border border-slate-700 hover:text-white hover:bg-slate-800 transition"
+        className="inline-flex items-center px-3.5 py-2 rounded-xl text-[10.5px] font-bold text-muted-foreground border border-transparent hover:text-foreground hover:bg-muted transition"
       >
         Cancel
       </button>
       <button
         type="button"
         onClick={onToday}
-        className="inline-flex items-center px-3.5 py-2 rounded-xl text-[10.5px] font-bold text-orange-400 border border-orange-500/30 hover:bg-orange-500/10 transition"
+        className="inline-flex items-center px-3.5 py-2 rounded-xl text-[10.5px] font-bold text-primary border border-primary/30 hover:bg-primary/10 transition"
       >
         Today
       </button>
       <button
         type="button"
         onClick={onApply}
-        className="inline-flex items-center px-4 py-2 rounded-xl text-[10.5px] font-black text-white bg-orange-500 hover:bg-orange-600 shadow-sm transition"
+        className="inline-flex items-center px-4 py-2 rounded-xl text-[10.5px] font-black text-foreground bg-primary hover:bg-orange-600 shadow-sm transition"
       >
         Apply
       </button>
@@ -189,19 +189,19 @@ export function DateRangePicker({ startDate, endDate, onChange, triggerClassName
       type="button"
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 bg-[#141930] border border-[#1A1F35] text-[10.5px] px-3 py-2 rounded-lg outline-none text-slate-300 hover:border-orange-500/40 focus:border-orange-500/60 transition",
+        "flex items-center gap-2 bg-[#141930] border border-border text-[10.5px] px-3 py-2 rounded-lg outline-none text-foreground hover:border-primary/40 focus:border-primary/60 transition",
         triggerClassName
       )}
     >
-      <CalendarDays size={13} className="text-orange-400 shrink-0" />
+      <CalendarDays size={13} className="text-primary shrink-0" />
       {fromDisplay ? (
-        <span className="flex items-center gap-1.5 font-bold text-slate-200">
+        <span className="flex items-center gap-1.5 font-bold text-foreground">
           {fromDisplay}
-          <ArrowRight size={10} className="text-slate-500" />
+          <ArrowRight size={10} className="text-muted-foreground" />
           {toDisplay || fromDisplay}
         </span>
       ) : (
-        <span className="text-slate-500 font-semibold">Date Range</span>
+        <span className="text-muted-foreground font-semibold">Date Range</span>
       )}
     </button>
   );
@@ -213,7 +213,7 @@ export function DateRangePicker({ startDate, endDate, onChange, triggerClassName
         <Popover open={open && isDesktop} onOpenChange={handleOpenChange}>
           <PopoverTrigger asChild>{renderTrigger()}</PopoverTrigger>
           <PopoverContent
-            className="w-auto bg-[#111827] border-[#1A1F35] rounded-2xl p-0 shadow-2xl"
+            className="w-auto bg-[#111827] border-border rounded-2xl p-0 shadow-2xl"
             onOpenAutoFocus={(e) => e.preventDefault()}
             onFocusOutside={(e) => e.preventDefault()}
           >
@@ -236,7 +236,7 @@ export function DateRangePicker({ startDate, endDate, onChange, triggerClassName
         <Sheet open={open && !isDesktop} onOpenChange={handleOpenChange}>
           <SheetContent
             side="bottom"
-            className="h-[92dvh] max-h-[92dvh] bg-[#111827] border-[#1A1F35] rounded-t-2xl p-0 flex flex-col"
+            className="h-[92dvh] max-h-[92dvh] bg-[#111827] border-border rounded-t-2xl p-0 flex flex-col"
           >
             <SheetTitle className="sr-only">Select date range</SheetTitle>
             <div className="flex-1 overflow-y-auto p-4 flex flex-col items-center justify-center">

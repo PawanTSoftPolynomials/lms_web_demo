@@ -6,13 +6,13 @@ export default function CourseToolbar({
                                           onResetFilters,
                                       }) {
     return (
-        <div className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900 p-5 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-4 rounded-xl border border-border bg-background p-5 md:flex-row md:items-center md:justify-between">
             <div>
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-xl font-semibold text-foreground">
                     Browse Courses
                 </h2>
 
-                <p className="mt-1 text-sm text-slate-400">
+                <p className="mt-1 text-sm text-muted-foreground">
                     {totalCourses} course
                     {totalCourses !== 1 ? "s" : ""} available
                     {activeFilters > 0 &&

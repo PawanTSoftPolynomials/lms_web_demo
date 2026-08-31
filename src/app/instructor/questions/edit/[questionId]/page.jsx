@@ -48,7 +48,7 @@ export default function EditQuestionPage() {
                     Failed to Load Question
                 </h2>
 
-                <p className="mt-2 text-slate-400">
+                <p className="mt-2 text-muted-foreground">
                     Please try again later.
                 </p>
             </div>

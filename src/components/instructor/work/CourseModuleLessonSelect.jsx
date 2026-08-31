@@ -6,8 +6,8 @@ import { useLessons } from "@/hooks/queries/instructor/useLessons";
 import { useTopics } from "@/hooks/queries/instructor/useTopics";
 
 const selectClass =
-  "w-full bg-[#0D1021] border border-[#1A1F35] text-xs px-3 py-2.5 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-[#0D1021] [&>option]:text-slate-200";
-const labelClass = "text-[9.5px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block";
+  "w-full bg-card border border-border text-xs px-3 py-2.5 rounded-xl outline-none text-foreground focus:border-primary/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-card [&>option]:text-foreground";
+const labelClass = "text-[9.5px] font-black text-muted-foreground uppercase tracking-widest mb-1.5 block";
 
 /**
  * Inline Course -> Module -> Lesson (-> Topic) cascading picker embedded
@@ -24,7 +24,7 @@ export default function CourseModuleLessonSelect({ courseId, moduleId, lessonId,
   const { data: topics = [], isLoading: loadingTopics } = useTopics(includeTopic ? lessonId : undefined);
 
   return (
-    <div className={`rounded-2xl border border-[#1A1F35] bg-[#05070E] p-4 grid gap-3 ${includeTopic ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
+    <div className={`rounded-2xl border border-border bg-[#05070E] p-4 grid gap-3 ${includeTopic ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
       <div>
         <label className={labelClass}>Course</label>
         <select

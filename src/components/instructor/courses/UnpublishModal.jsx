@@ -13,22 +13,22 @@ export function UnpublishModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl space-y-5 text-slate-200">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-2xl space-y-5 text-foreground">
+        <div className="flex items-center justify-between border-b border-border pb-3">
           <div className="flex items-center gap-2 text-amber-400">
             <AlertTriangle size={18} />
-            <h3 className="text-lg font-black text-white">Unpublish Course?</h3>
+            <h3 className="text-lg font-black text-foreground">Unpublish Course?</h3>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition p-1 rounded-lg hover:bg-slate-900"
+            className="text-muted-foreground hover:text-foreground transition p-1 rounded-lg hover:bg-background"
           >
             <X size={18} />
           </button>
         </div>
 
-        <div className="space-y-3 text-xs leading-relaxed text-slate-300">
-          <p className="font-bold text-white text-sm">{courseTitle}</p>
+        <div className="space-y-3 text-xs leading-relaxed text-foreground">
+          <p className="font-bold text-foreground text-sm">{courseTitle}</p>
           <p>
             This course will no longer be available for new enrollment. Existing student learning data will remain preserved.
           </p>
@@ -39,7 +39,7 @@ export function UnpublishModal({
             type="button"
             onClick={onClose}
             disabled={isUnpublishing}
-            className="rounded-xl border border-slate-800 bg-slate-900 px-4 py-2 text-xs font-bold text-slate-300 hover:bg-slate-800 transition cursor-pointer"
+            className="rounded-xl border border-border bg-background px-4 py-2 text-xs font-bold text-foreground hover:bg-muted transition cursor-pointer"
           >
             Cancel
           </button>

@@ -13,7 +13,7 @@ export default function CourseHero({
   onBack,
 }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800 p-8">
+    <div className="rounded-2xl border border-border bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800 p-8">
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
 
@@ -28,8 +28,8 @@ export default function CourseHero({
             items-center
             justify-center
             rounded-2xl
-            bg-orange-500/15
-            text-orange-500
+            bg-primary/15
+            text-primary
           ">
             <MdOutlineSchool className="text-4xl" />
           </div>
@@ -44,28 +44,28 @@ export default function CourseHero({
                 items-center
                 gap-2
                 text-sm
-                text-slate-400
+                text-muted-foreground
                 transition
-                hover:text-white
+                hover:text-foreground
               "
             >
               <FaArrowLeft />
               Back to Courses
             </button>
 
-            <h1 className="text-4xl font-bold text-white">
+            <h1 className="text-4xl font-bold text-foreground">
               {course.title}
             </h1>
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
 
-              <div className="flex items-center gap-2 rounded-full bg-slate-800 px-4 py-2 text-sm text-slate-300">
-                <FaLayerGroup className="text-orange-500" />
+              <div className="flex items-center gap-2 rounded-full bg-muted px-4 py-2 text-sm text-foreground">
+                <FaLayerGroup className="text-primary" />
                 {course.category || "General"}
               </div>
 
-              <div className="flex items-center gap-2 rounded-full bg-slate-800 px-4 py-2 text-sm text-slate-300">
-                <FaSignal className="text-orange-500" />
+              <div className="flex items-center gap-2 rounded-full bg-muted px-4 py-2 text-sm text-foreground">
+                <FaSignal className="text-primary" />
                 {course.level || "Beginner"}
               </div>
 

@@ -17,14 +17,14 @@ export default function QuizSubmitModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-            <div className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl">
+            <div className="w-full max-w-lg rounded-2xl border border-border bg-background shadow-2xl">
                 {/* Header */}
-                <div className="border-b border-slate-800 px-6 py-5">
-                    <h2 className="text-2xl font-bold text-white">
+                <div className="border-b border-border px-6 py-5">
+                    <h2 className="text-2xl font-bold text-foreground">
                         {hasUnanswered ? "Incomplete Quiz Attempt" : "Submit Quiz"}
                     </h2>
 
-                    <p className="mt-2 text-slate-400">
+                    <p className="mt-2 text-muted-foreground">
                         {hasUnanswered
                             ? "Please answer all questions before submitting your attempt."
                             : "Please review your quiz before final submission."}
@@ -34,18 +34,18 @@ export default function QuizSubmitModal({
                 {/* Body */}
                 <div className="space-y-5 px-6 py-6">
                     <div className="grid grid-cols-3 gap-4">
-                        <div className="rounded-xl bg-slate-800 p-4 text-center">
-                            <p className="text-sm text-slate-400">
+                        <div className="rounded-xl bg-muted p-4 text-center">
+                            <p className="text-sm text-muted-foreground">
                                 Questions
                             </p>
 
-                            <p className="mt-2 text-2xl font-bold text-white">
+                            <p className="mt-2 text-2xl font-bold text-foreground">
                                 {totalQuestions}
                             </p>
                         </div>
 
                         <div className="rounded-xl bg-green-500/10 p-4 text-center">
-                            <p className="text-sm text-slate-400">
+                            <p className="text-sm text-muted-foreground">
                                 Answered
                             </p>
 
@@ -55,7 +55,7 @@ export default function QuizSubmitModal({
                         </div>
 
                         <div className="rounded-xl bg-red-500/10 p-4 text-center">
-                            <p className="text-sm text-slate-400">
+                            <p className="text-sm text-muted-foreground">
                                 Remaining
                             </p>
 
@@ -71,7 +71,7 @@ export default function QuizSubmitModal({
                                 Action Required
                             </p>
 
-                            <p className="mt-2 text-sm text-slate-300">
+                            <p className="mt-2 text-sm text-foreground">
                                 You still have{" "}
                                 <strong>
                                     {unansweredQuestions}
@@ -89,7 +89,7 @@ export default function QuizSubmitModal({
                                 All Questions Answered
                             </p>
 
-                            <p className="mt-2 text-sm text-slate-300">
+                            <p className="mt-2 text-sm text-foreground">
                                 Once you submit the quiz, you won't be able to modify your answers.
                             </p>
                         </div>
@@ -97,12 +97,12 @@ export default function QuizSubmitModal({
                 </div>
 
                 {/* Footer */}
-                <div className="flex justify-end gap-3 border-t border-slate-800 px-6 py-5">
+                <div className="flex justify-end gap-3 border-t border-border px-6 py-5">
                     {hasUnanswered ? (
                         <Button
                             type="button"
                             onClick={onClose}
-                            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+                            className="bg-primary hover:bg-orange-600 text-foreground font-semibold"
                         >
                             Back to Questions
                         </Button>
@@ -112,7 +112,7 @@ export default function QuizSubmitModal({
                                 type="button"
                                 onClick={onClose}
                                 disabled={isSubmitting}
-                                className="bg-slate-700 hover:bg-slate-600"
+                                className="bg-slate-700 hover:bg-muted"
                             >
                                 Cancel
                             </Button>

@@ -75,15 +75,15 @@ function SlideBackgroundControl({ value, onChange }: { value: string; onChange: 
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 hover:bg-slate-800 px-2.5 py-1.5 text-[11px] font-bold text-slate-300 hover:text-white transition cursor-pointer"
+          className="flex items-center gap-1.5 rounded-lg border border-border bg-background hover:bg-muted px-2.5 py-1.5 text-[11px] font-bold text-foreground hover:text-foreground transition cursor-pointer"
         >
           <Palette size={13} />
           Background
-          <span className="h-3.5 w-3.5 rounded-full border border-slate-600" style={{ backgroundColor: value }} />
+          <span className="h-3.5 w-3.5 rounded-full border border-transparent" style={{ backgroundColor: value }} />
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 p-3.5 space-y-3">
-        <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Background</p>
+        <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Background</p>
 
         <div className="flex flex-wrap gap-2">
           {SLIDE_BACKGROUND_PRESETS.map((preset) => (
@@ -92,7 +92,7 @@ function SlideBackgroundControl({ value, onChange }: { value: string; onChange: 
               type="button"
               onClick={() => applyPreset(preset.value)}
               className={`h-7 w-7 rounded-full border-2 transition cursor-pointer ${
-                value.toLowerCase() === preset.value ? "border-orange-500" : "border-slate-700 hover:border-slate-500"
+                value.toLowerCase() === preset.value ? "border-primary" : "border-transparent hover:border-slate-500"
               }`}
               style={{ backgroundColor: preset.value }}
               title={preset.label}
@@ -101,14 +101,14 @@ function SlideBackgroundControl({ value, onChange }: { value: string; onChange: 
           ))}
         </div>
 
-        <div className="space-y-1.5 pt-2 border-t border-slate-800">
-          <p className="text-[10.5px] font-semibold text-slate-400">Custom</p>
+        <div className="space-y-1.5 pt-2 border-t border-border">
+          <p className="text-[10.5px] font-semibold text-muted-foreground">Custom</p>
           <div className="flex items-center gap-2">
             <input
               type="color"
               value={isValidHexColor(draftHex) ? draftHex : value}
               onChange={(e) => handleHexInput(e.target.value)}
-              className="h-8 w-9 rounded-md border border-slate-800 bg-slate-900 cursor-pointer shrink-0"
+              className="h-8 w-9 rounded-md border border-border bg-background cursor-pointer shrink-0"
               title="Pick a color"
             />
             <input
@@ -116,19 +116,19 @@ function SlideBackgroundControl({ value, onChange }: { value: string; onChange: 
               value={draftHex}
               onChange={(e) => handleHexInput(e.target.value)}
               placeholder="#000000"
-              className={`flex-1 rounded-lg border bg-slate-900 px-2.5 py-1.5 text-xs text-white outline-none font-mono ${
-                hexError ? "border-red-500" : "border-slate-800 focus:border-orange-500"
+              className={`flex-1 rounded-lg border bg-background px-2.5 py-1.5 text-xs text-foreground outline-none font-mono ${
+                hexError ? "border-red-500" : "border-border focus:border-primary"
               }`}
             />
           </div>
           {hexError && <p className="text-[10px] text-red-400">Enter a valid hex color, e.g. #172554.</p>}
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+        <div className="flex items-center justify-between pt-2 border-t border-border">
           <button
             type="button"
             onClick={() => applyPreset(DEFAULT_SLIDE_BACKGROUND)}
-            className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-white transition cursor-pointer"
+            className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition cursor-pointer"
           >
             <RotateCcw size={11} />
             Reset
@@ -140,7 +140,7 @@ function SlideBackgroundControl({ value, onChange }: { value: string; onChange: 
                 onChange(originalValue);
                 handleOpenChange(false);
               }}
-              className="rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-slate-300 hover:bg-slate-800 transition cursor-pointer"
+              className="rounded-lg border border-border bg-background px-2.5 py-1 text-[11px] font-bold text-foreground hover:bg-muted transition cursor-pointer"
             >
               Cancel
             </button>
@@ -148,7 +148,7 @@ function SlideBackgroundControl({ value, onChange }: { value: string; onChange: 
               type="button"
               onClick={() => handleOpenChange(false)}
               disabled={hexError}
-              className="rounded-lg bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed px-2.5 py-1 text-[11px] font-black text-slate-950 transition cursor-pointer"
+              className="rounded-lg bg-primary hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed px-2.5 py-1 text-[11px] font-black text-slate-950 transition cursor-pointer"
             >
               Apply
             </button>
@@ -229,11 +229,11 @@ export function PresentationSlidesEditor({ slides, onChange }: PresentationSlide
     <div className="space-y-3">
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-semibold text-slate-300">Slides</label>
+          <label className="text-xs font-semibold text-foreground">Slides</label>
           <button
             type="button"
             onClick={openNewSlideModal}
-            className="flex items-center gap-1 rounded-lg border border-orange-500/40 bg-orange-500/10 hover:bg-orange-500/20 px-2.5 py-1 text-[11px] font-bold text-orange-300 transition cursor-pointer"
+            className="flex items-center gap-1 rounded-lg border border-primary/40 bg-primary/10 hover:bg-primary/20 px-2.5 py-1 text-[11px] font-bold text-orange-300 transition cursor-pointer"
           >
             <Plus size={12} />
             New Slide
@@ -247,8 +247,8 @@ export function PresentationSlidesEditor({ slides, onChange }: PresentationSlide
               onClick={() => selectSlide(index)}
               className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold transition cursor-pointer ${
                 index === activeIndex
-                  ? "border-orange-500 bg-orange-500/15 text-orange-300"
-                  : "border-slate-800 bg-slate-900 text-slate-300 hover:border-slate-700"
+                  ? "border-primary bg-primary/15 text-orange-300"
+                  : "border-border bg-background text-foreground hover:border-transparent"
               }`}
             >
               <span className="truncate max-w-[9rem]">{slide.title || `Slide ${index + 1}`}</span>
@@ -293,12 +293,12 @@ export function PresentationSlidesEditor({ slides, onChange }: PresentationSlide
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-slate-300 mb-1">Slide Title</label>
+        <label className="block text-xs font-semibold text-foreground mb-1">Slide Title</label>
         <input
           type="text"
           value={activeSlide.title}
           onChange={(e) => updateSlide(activeIndex, { title: e.target.value })}
-          className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white outline-none focus:border-orange-500 font-medium"
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-primary font-medium"
           placeholder="Slide title"
         />
       </div>
@@ -320,8 +320,8 @@ export function PresentationSlidesEditor({ slides, onChange }: PresentationSlide
     <Modal open={isNewSlideModalOpen} onClose={closeNewSlideModal} title="Add New Slide" size="sm">
       <div className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-            Slide Title <span className="text-orange-400">*</span>
+          <label className="block text-xs font-semibold text-foreground mb-1.5">
+            Slide Title <span className="text-primary">*</span>
           </label>
           <input
             type="text"
@@ -332,15 +332,15 @@ export function PresentationSlidesEditor({ slides, onChange }: PresentationSlide
               if (e.key === "Enter" && newSlideTitle.trim()) confirmNewSlide();
             }}
             placeholder="Enter slide title..."
-            className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-orange-500 font-medium"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary font-medium"
           />
         </div>
 
-        <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+        <div className="flex justify-end gap-2 pt-2 border-t border-border">
           <button
             type="button"
             onClick={closeNewSlideModal}
-            className="rounded-lg border border-slate-800 bg-slate-900 hover:bg-slate-800 px-3.5 py-2 text-xs font-bold text-slate-300 transition cursor-pointer"
+            className="rounded-lg border border-border bg-background hover:bg-muted px-3.5 py-2 text-xs font-bold text-foreground transition cursor-pointer"
           >
             Cancel
           </button>
@@ -348,7 +348,7 @@ export function PresentationSlidesEditor({ slides, onChange }: PresentationSlide
             type="button"
             onClick={confirmNewSlide}
             disabled={!newSlideTitle.trim()}
-            className="rounded-lg bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 text-xs font-black text-slate-950 transition cursor-pointer"
+            className="rounded-lg bg-primary hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 text-xs font-black text-slate-950 transition cursor-pointer"
           >
             Done
           </button>

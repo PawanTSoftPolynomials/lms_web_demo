@@ -32,7 +32,7 @@ export default function InstructorRow({
                     />
 
                     <div>
-                        <p className="font-medium text-white">
+                        <p className="font-medium text-foreground">
                             {instructor.user.name}
                         </p>
 
@@ -75,7 +75,7 @@ export default function InstructorRow({
                 statusColors[
                     instructor.user.status
                     ] ||
-                "bg-gray-700 text-white"
+                "bg-gray-700 text-foreground"
             }
           `}
         >

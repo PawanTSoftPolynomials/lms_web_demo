@@ -30,8 +30,8 @@ function CourseDetailsBody() {
   if (isError || !course) {
     return (
       <Card className="p-8 text-center">
-        <h2 className="text-xl font-semibold text-white">Course not found</h2>
-        <p className="mt-2 text-slate-400">The requested course could not be loaded.</p>
+        <h2 className="text-xl font-semibold text-foreground">Course not found</h2>
+        <p className="mt-2 text-muted-foreground">The requested course could not be loaded.</p>
       </Card>
     );
   }
@@ -63,7 +63,7 @@ function CourseDetailsBody() {
 export default function QaCoursePreview() {
   return (
     <StudentNavDrawerProvider>
-      <div className="min-h-screen bg-slate-950 flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col">
         <DashboardNavbar role="STUDENT" title="Course Details" />
         <main className="p-3 sm:p-6 flex-1 pb-24 sm:pb-6">
           <div className="max-w-[1600px] mx-auto w-full">

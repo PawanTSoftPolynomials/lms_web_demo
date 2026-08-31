@@ -35,7 +35,7 @@ export default function TextBlockView({ block, allLessonContents }) {
         const entry = blockRegistry[child.blockType] || blockRegistry.unknown;
         const ChildView = entry.ViewComponent;
         return (
-          <div className="rounded-lg border border-slate-800/80 bg-slate-950/40 p-3">
+          <div className="rounded-lg border border-border/80 bg-background/40 p-3">
             <ChildView block={child} allLessonContents={allLessonContents} />
           </div>
         );

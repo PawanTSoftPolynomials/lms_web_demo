@@ -5,23 +5,23 @@ import type { GradeDistribution } from "@/services/instructor/dashboardHome.serv
 
 export function PerformancePieChart({ data, isLoading }: { data: GradeDistribution[], isLoading?: boolean }) {
   if (isLoading) {
-    return <div className="h-48 animate-pulse bg-slate-800/50 rounded-2xl"></div>;
+    return <div className="h-48 animate-pulse bg-muted/50 rounded-2xl"></div>;
   }
 
   return (
-    <div className="rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-5 h-full flex flex-col">
+    <div className="rounded-2xl bg-card border border-border p-5 h-full flex flex-col">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-black text-slate-200">Students Performance</h3>
-        <button className="text-[11px] text-slate-500 font-bold hover:text-slate-300">
+        <h3 className="text-sm font-black text-foreground">Students Performance</h3>
+        <button className="text-[11px] text-muted-foreground font-bold hover:text-foreground">
           Last 30 days
         </button>
       </div>
       
-      <p className="text-[10px] text-slate-500 mb-4">Overall grade distribution across active courses.</p>
+      <p className="text-[10px] text-muted-foreground mb-4">Overall grade distribution across active courses.</p>
 
       <div className="h-[170px] shrink-0 relative flex items-center justify-center">
         {data.length === 0 ? (
-          <p className="text-xs text-slate-500">No data available</p>
+          <p className="text-xs text-muted-foreground">No data available</p>
         ) : (
           <ResponsiveContainer width="100%" height="100%" debounce={50}>
             <PieChart>
@@ -40,8 +40,9 @@ export function PerformancePieChart({ data, isLoading }: { data: GradeDistributi
                 ))}
               </Pie>
               <Tooltip 
-                contentStyle={{ backgroundColor: '#080B11', borderColor: '#1A1F35', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }}
-                itemStyle={{ color: '#E2E8F0' }}
+                cursor={{ fill: 'transparent' }}
+                contentStyle={{ backgroundColor: 'var(--popover)', borderColor: 'var(--border)', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }}
+                itemStyle={{ color: 'var(--popover-foreground)' }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -50,8 +51,8 @@ export function PerformancePieChart({ data, isLoading }: { data: GradeDistributi
         {/* Center Text */}
         {data.length > 0 && (
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-2xl font-black text-white">{data.reduce((sum, item) => sum + item.value, 0)}</span>
-            <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Total</span>
+            <span className="text-2xl font-black text-foreground">{data.reduce((sum, item) => sum + item.value, 0)}</span>
+            <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider">Total</span>
           </div>
         )}
       </div>
@@ -61,8 +62,8 @@ export function PerformancePieChart({ data, isLoading }: { data: GradeDistributi
           <div key={i} className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
             <div>
-              <p className="text-[9px] text-slate-500 font-bold line-clamp-1">{item.name}</p>
-              <p className="text-xs font-black text-slate-200">{item.value}</p>
+              <p className="text-[9px] text-muted-foreground font-bold line-clamp-1">{item.name}</p>
+              <p className="text-xs font-black text-foreground">{item.value}</p>
             </div>
           </div>
         ))}

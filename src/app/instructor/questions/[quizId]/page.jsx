@@ -51,7 +51,7 @@ export default function QuestionListPage() {
       <Card>
         <div className="py-16 text-center">
           <h2 className="text-2xl font-semibold">Failed to Load Questions</h2>
-          <p className="mt-2 text-slate-400">Please try again later.</p>
+          <p className="mt-2 text-muted-foreground">Please try again later.</p>
         </div>
       </Card>
     );

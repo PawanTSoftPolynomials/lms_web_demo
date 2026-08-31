@@ -25,7 +25,7 @@ const SLIDE_BASIS_CLASS = "basis-full sm:basis-[47%] lg:basis-[23%]";
 // centered pagination dots below the card.
 export default function RecommendedCoursesCarousel({
   title,
-  titleClassName = "text-sm font-black text-slate-200",
+  titleClassName = "text-sm font-black text-foreground",
   viewAllHref,
   headerClassName = "mb-4",
   viewportClassName = "",
@@ -91,7 +91,7 @@ export default function RecommendedCoursesCarousel({
               type="button"
               onClick={scrollPrev}
               aria-label={`Previous ${title}`}
-              className="h-7 w-7 shrink-0 rounded-lg border border-[#1A1F35] bg-[#0D1021] text-slate-400 hover:text-orange-400 hover:border-orange-500/40 flex items-center justify-center transition cursor-pointer"
+              className="h-7 w-7 shrink-0 rounded-lg border border-border bg-card text-muted-foreground hover:text-primary hover:border-primary/40 flex items-center justify-center transition cursor-pointer"
             >
               <ChevronLeft size={14} />
             </button>
@@ -101,14 +101,14 @@ export default function RecommendedCoursesCarousel({
               type="button"
               onClick={scrollNext}
               aria-label={`Next ${title}`}
-              className="h-7 w-7 shrink-0 rounded-lg border border-[#1A1F35] bg-[#0D1021] text-slate-400 hover:text-orange-400 hover:border-orange-500/40 flex items-center justify-center transition cursor-pointer"
+              className="h-7 w-7 shrink-0 rounded-lg border border-border bg-card text-muted-foreground hover:text-primary hover:border-primary/40 flex items-center justify-center transition cursor-pointer"
             >
               <ChevronRight size={14} />
             </button>
           )}
           <Link
             href={viewAllHref}
-            className="text-[11px] text-orange-400 font-bold hover:text-orange-300 ml-1 shrink-0"
+            className="text-[11px] text-primary font-bold hover:text-orange-300 ml-1 shrink-0"
           >
             View all
           </Link>
@@ -120,12 +120,12 @@ export default function RecommendedCoursesCarousel({
           {(navVariant === "dots" ? [1] : [1, 2, 3, 4]).map((n) => (
             <div
               key={n}
-              className={`shrink-0 grow-0 min-w-0 ${SLIDE_BASIS_CLASS} h-[92px] rounded-xl bg-slate-800/50 animate-pulse`}
+              className={`shrink-0 grow-0 min-w-0 ${SLIDE_BASIS_CLASS} h-[92px] rounded-xl bg-muted/50 animate-pulse`}
             />
           ))}
         </div>
       ) : !courses || courses.length === 0 ? (
-        <p className="text-xs text-slate-500 py-6 text-center">{emptyMessage}</p>
+        <p className="text-xs text-muted-foreground py-6 text-center">{emptyMessage}</p>
       ) : (
         <div
           ref={emblaRef}
@@ -159,7 +159,7 @@ export default function RecommendedCoursesCarousel({
               aria-label={`Go to slide ${index + 1} of ${scrollSnaps.length}`}
               aria-current={index === selectedIndex}
               className={`h-1.5 rounded-full transition-all duration-300 ease-out cursor-pointer ${
-                index === selectedIndex ? "w-5 bg-orange-500" : "w-1.5 bg-slate-700"
+                index === selectedIndex ? "w-5 bg-primary" : "w-1.5 bg-slate-700"
               }`}
             />
           ))}

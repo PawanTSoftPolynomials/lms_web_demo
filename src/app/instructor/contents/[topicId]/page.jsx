@@ -60,7 +60,7 @@ export default function TopicContentsPage() {
                         Failed to Load Contents
                     </h2>
 
-                    <p className="mt-2 text-slate-400">
+                    <p className="mt-2 text-muted-foreground">
                         Please try again later.
                     </p>
                 </div>
@@ -77,7 +77,7 @@ export default function TopicContentsPage() {
                         Contents
                     </h1>
 
-                    <p className="mt-2 text-slate-400">
+                    <p className="mt-2 text-muted-foreground">
                         Manage topic contents.
                     </p>
                 </div>
@@ -89,7 +89,7 @@ export default function TopicContentsPage() {
             bg-orange-600
             px-5
             py-3
-            text-white
+            text-foreground
             transition
             hover:bg-orange-700
           "

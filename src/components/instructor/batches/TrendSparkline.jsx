@@ -13,11 +13,11 @@ export default function TrendSparkline({ label, data, color = "#ff7a00", suffix 
   const gradientId = `trend-${label.replace(/\s+/g, "-").toLowerCase()}`;
 
   return (
-    <div className="rounded-xl border border-[#1A1F35] bg-[#141930] p-3">
+    <div className="rounded-xl border border-border bg-[#141930] p-3">
       <div className="flex items-center justify-between mb-1">
-        <p className="text-[9.5px] font-black uppercase tracking-wider text-slate-500">{label}</p>
+        <p className="text-[9.5px] font-black uppercase tracking-wider text-muted-foreground">{label}</p>
         {hasAnyValue && (
-          <p className="text-[11px] font-black text-slate-200">
+          <p className="text-[11px] font-black text-foreground">
             {data[data.length - 1].value ?? "—"}
             {suffix}
           </p>

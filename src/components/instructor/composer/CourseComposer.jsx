@@ -139,7 +139,7 @@ export default function CourseComposer({ courseId }) {
 
   if (isError || !course) {
     return (
-      <div className="text-center py-24 text-slate-400">
+      <div className="text-center py-24 text-muted-foreground">
         Could not load this course.
       </div>
     );
@@ -149,14 +149,14 @@ export default function CourseComposer({ courseId }) {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-md px-5 py-4 flex items-center justify-between">
+      <div className="rounded-2xl border border-border bg-background/50 backdrop-blur-md px-5 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
-          <LayoutTemplate size={16} className="text-orange-400 shrink-0" />
+          <LayoutTemplate size={16} className="text-primary shrink-0" />
           <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Course Composer
             </p>
-            <h1 className="text-sm font-bold text-white truncate">{course.title}</h1>
+            <h1 className="text-sm font-bold text-foreground truncate">{course.title}</h1>
           </div>
         </div>
 
@@ -193,7 +193,7 @@ export default function CourseComposer({ courseId }) {
           onOpenAiAssistant={(scope, ctx) => openAiAssistant(scope, ctx)}
         />
 
-        <main className="flex-1 min-w-0 w-full rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-md p-6">
+        <main className="flex-1 min-w-0 w-full rounded-2xl border border-border bg-background/50 backdrop-blur-md p-6">
           {view === "settings" ? (
             <CourseMetaPanel course={course} courseId={courseId} />
           ) : lesson ? (
@@ -204,12 +204,12 @@ export default function CourseComposer({ courseId }) {
               onOpenAiAssistant={(scope, ctx) => openAiAssistant(scope, ctx)}
             />
           ) : (
-            <div className="text-center py-16 text-slate-500 text-sm space-y-3">
+            <div className="text-center py-16 text-muted-foreground text-sm space-y-3">
               <p>Select or add a lesson from the Course Map to start building content.</p>
               <button
                 type="button"
                 onClick={() => openAiAssistant("MODULE")}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-xl transition"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-xl transition"
               >
                 <Sparkles size={13} />
                 <span>Generate Module with AI</span>

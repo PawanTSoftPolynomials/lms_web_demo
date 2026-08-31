@@ -10,20 +10,20 @@ import { useBatchPerformanceOverview } from "@/hooks/queries/instructor/useBatch
 import { DateRangePicker } from "@/components/ui/DateRangePicker";
 
 const selectClass =
-  "bg-[#141930] border border-[#1A1F35] text-[10.5px] px-2.5 py-1.5 rounded-lg outline-none text-slate-300 focus:border-orange-500/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-[#141930] [&>option]:text-slate-200";
+  "bg-[#141930] border border-border text-[10.5px] px-2.5 py-1.5 rounded-lg outline-none text-foreground focus:border-primary/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-[#141930] [&>option]:text-foreground";
 
 const ENGAGEMENT_STYLES = {
   High: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   Moderate: "bg-amber-500/10 text-amber-400 border-amber-500/20",
   Low: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-  "No Data": "bg-slate-800 text-slate-500 border-slate-700",
+  "No Data": "bg-muted text-muted-foreground border-transparent",
 };
 
 function MetricPill({ label, value }) {
   return (
     <div className="text-center">
-      <p className="text-[8.5px] text-slate-500 font-black uppercase tracking-wider">{label}</p>
-      <p className="text-[11px] font-black text-slate-200 mt-0.5">{value}</p>
+      <p className="text-[8.5px] text-muted-foreground font-black uppercase tracking-wider">{label}</p>
+      <p className="text-[11px] font-black text-foreground mt-0.5">{value}</p>
     </div>
   );
 }
@@ -33,24 +33,24 @@ function BatchCard({ batch }) {
   return (
     <Link
       href={primaryCourseId ? `/instructor/analytics?courseId=${primaryCourseId}` : "/instructor/analytics"}
-      className="block p-4 rounded-xl border border-[#1A1F35] bg-[#141930] hover:border-orange-500/40 transition"
+      className="block p-4 rounded-xl border border-border bg-[#141930] hover:border-primary/40 transition"
     >
       <div className="min-w-0 mb-3">
-        <h4 className="text-xs font-black text-white truncate">{batch.name}</h4>
-        <p className="text-[10px] text-slate-500 mt-0.5 truncate">{batch.courseTitles?.join(", ")}</p>
+        <h4 className="text-xs font-black text-foreground truncate">{batch.name}</h4>
+        <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{batch.courseTitles?.join(", ")}</p>
       </div>
 
-      <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold mb-3">
-        <Users size={11} className="text-orange-400" />
+      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold mb-3">
+        <Users size={11} className="text-primary" />
         {batch.studentsCount} Students
       </div>
 
       <div className="mb-3">
-        <div className="flex items-center justify-between text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+        <div className="flex items-center justify-between text-[9px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
           <span>Course Completion</span>
-          <span className="text-slate-300">{batch.completion}%</span>
+          <span className="text-foreground">{batch.completion}%</span>
         </div>
-        <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
           <div
             className="h-full rounded-full bg-gradient-to-r from-orange-500 to-pink-500"
             style={{ width: `${batch.completion}%` }}
@@ -58,13 +58,13 @@ function BatchCard({ batch }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 py-2.5 border-t border-[#1A1F35]">
+      <div className="grid grid-cols-3 gap-2 py-2.5 border-t border-border">
         <MetricPill label="Avg Quiz" value={batch.avgQuizScore != null ? `${batch.avgQuizScore}%` : "N/A"} />
         <MetricPill label="Assignments" value={batch.assignmentSubmissionRate != null ? `${batch.assignmentSubmissionRate}%` : "N/A"} />
         <MetricPill label="Attendance" value={batch.attendanceRate != null ? `${batch.attendanceRate}%` : "N/A"} />
       </div>
 
-      <div className="flex justify-center pt-2 border-t border-[#1A1F35]">
+      <div className="flex justify-center pt-2 border-t border-border">
         <span
           className={`text-[8.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${ENGAGEMENT_STYLES[batch.engagementStatus] || ENGAGEMENT_STYLES["No Data"]}`}
         >
@@ -97,10 +97,10 @@ export function BatchPerformanceOverviewWidget() {
   };
 
   return (
-    <div className="rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-5">
-      <div className="flex items-center justify-between mb-4 border-b border-[#1A1F35] pb-3">
-        <h3 className="text-sm font-black text-slate-200 flex items-center gap-2">
-          <Layers size={14} className="text-orange-400" />
+    <div className="rounded-2xl bg-card border border-border p-5">
+      <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
+        <h3 className="text-sm font-black text-foreground flex items-center gap-2">
+          <Layers size={14} className="text-primary" />
           Batch Performance Overview
         </h3>
         <div className="flex items-center gap-3">
@@ -108,14 +108,14 @@ export function BatchPerformanceOverviewWidget() {
             type="button"
             onClick={() => refetch()}
             disabled={isFetching}
-            className="text-slate-500 hover:text-slate-300 transition disabled:opacity-40"
+            className="text-muted-foreground hover:text-foreground transition disabled:opacity-40"
             title="Refresh"
           >
             <RefreshCw size={13} className={isFetching ? "animate-spin" : ""} />
           </button>
           <Link
             href={`/instructor/analytics${courseId ? `?courseId=${courseId}` : ""}`}
-            className="text-[11px] text-orange-400 font-bold flex items-center gap-1 hover:text-orange-300"
+            className="text-[11px] text-primary font-bold flex items-center gap-1 hover:text-orange-300"
           >
             View Analytics &rarr;
           </Link>
@@ -151,14 +151,14 @@ export function BatchPerformanceOverviewWidget() {
       </div>
 
       {isLoading ? (
-        <div className="h-40 animate-pulse bg-slate-800/50 rounded-xl" />
+        <div className="h-40 animate-pulse bg-muted/50 rounded-xl" />
       ) : batches.length === 0 ? (
         <div className="py-10 text-center">
-          <div className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-3">
-            <BarChart2 size={16} className="text-slate-500" />
+          <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-3">
+            <BarChart2 size={16} className="text-muted-foreground" />
           </div>
-          <p className="text-xs text-slate-400 font-bold">No batches available.</p>
-          <p className="text-[11px] text-slate-500 mt-1">Create your first batch to view analytics.</p>
+          <p className="text-xs text-muted-foreground font-bold">No batches available.</p>
+          <p className="text-[11px] text-muted-foreground mt-1">Create your first batch to view analytics.</p>
         </div>
       ) : (
         <>
@@ -169,28 +169,28 @@ export function BatchPerformanceOverviewWidget() {
           </div>
 
           {(comparison.bestBatch || comparison.needsAttentionBatch) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-[#1A1F35]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-border">
               {comparison.bestBatch && (
                 <div className="p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
                   <div className="flex items-center gap-1.5 mb-2">
                     <TrendingUp size={12} className="text-emerald-400" />
                     <p className="text-[9.5px] font-black uppercase tracking-widest text-emerald-400">Best Performing Batch</p>
                   </div>
-                  <p className="text-xs font-black text-white">{comparison.bestBatch.name}</p>
+                  <p className="text-xs font-black text-foreground">{comparison.bestBatch.name}</p>
                   <div className="flex gap-4 mt-2">
                     <div>
-                      <p className="text-[8.5px] text-slate-500 font-bold uppercase">Completion</p>
-                      <p className="text-[11px] font-black text-slate-200">{comparison.bestBatch.completion}%</p>
+                      <p className="text-[8.5px] text-muted-foreground font-bold uppercase">Completion</p>
+                      <p className="text-[11px] font-black text-foreground">{comparison.bestBatch.completion}%</p>
                     </div>
                     <div>
-                      <p className="text-[8.5px] text-slate-500 font-bold uppercase">Highest Quiz Score</p>
-                      <p className="text-[11px] font-black text-slate-200">
+                      <p className="text-[8.5px] text-muted-foreground font-bold uppercase">Highest Quiz Score</p>
+                      <p className="text-[11px] font-black text-foreground">
                         {comparison.bestBatch.avgQuizScore != null ? `${comparison.bestBatch.avgQuizScore}%` : "N/A"}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[8.5px] text-slate-500 font-bold uppercase">Attendance</p>
-                      <p className="text-[11px] font-black text-slate-200">
+                      <p className="text-[8.5px] text-muted-foreground font-bold uppercase">Attendance</p>
+                      <p className="text-[11px] font-black text-foreground">
                         {comparison.bestBatch.attendanceRate != null ? `${comparison.bestBatch.attendanceRate}%` : "N/A"}
                       </p>
                     </div>
@@ -204,15 +204,15 @@ export function BatchPerformanceOverviewWidget() {
                     <TrendingDown size={12} className="text-rose-400" />
                     <p className="text-[9.5px] font-black uppercase tracking-widest text-rose-400">Needs Attention</p>
                   </div>
-                  <p className="text-xs font-black text-white">{comparison.needsAttentionBatch.name}</p>
+                  <p className="text-xs font-black text-foreground">{comparison.needsAttentionBatch.name}</p>
                   <div className="flex gap-4 mt-2">
                     <div>
-                      <p className="text-[8.5px] text-slate-500 font-bold uppercase">Completion</p>
-                      <p className="text-[11px] font-black text-slate-200">{comparison.needsAttentionBatch.completion}%</p>
+                      <p className="text-[8.5px] text-muted-foreground font-bold uppercase">Completion</p>
+                      <p className="text-[11px] font-black text-foreground">{comparison.needsAttentionBatch.completion}%</p>
                     </div>
                     <div>
-                      <p className="text-[8.5px] text-slate-500 font-bold uppercase">Attendance</p>
-                      <p className="text-[11px] font-black text-slate-200">
+                      <p className="text-[8.5px] text-muted-foreground font-bold uppercase">Attendance</p>
+                      <p className="text-[11px] font-black text-foreground">
                         {comparison.needsAttentionBatch.attendanceRate != null ? `${comparison.needsAttentionBatch.attendanceRate}%` : "N/A"}
                       </p>
                     </div>
@@ -222,7 +222,7 @@ export function BatchPerformanceOverviewWidget() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-[#1A1F35]">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-border">
             <MetricPill label="Total Batches" value={stats.totalBatches} />
             <MetricPill label="Total Students" value={stats.totalStudents} />
             <MetricPill label="Avg Completion" value={`${stats.avgCompletion}%`} />

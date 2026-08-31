@@ -66,7 +66,7 @@ export default function ChatAvatar({
       ${palette}
       ${fontSize}
       font-bold
-      text-white
+      text-foreground
       shadow-lg
       `}
     >

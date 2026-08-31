@@ -14,7 +14,7 @@ export default function BatchSchedulePage() {
     return (
       <div className="space-y-2.5">
         {[1, 2, 3].map((n) => (
-          <div key={n} className="h-16 rounded-2xl bg-slate-800/50 animate-pulse" />
+          <div key={n} className="h-16 rounded-2xl bg-muted/50 animate-pulse" />
         ))}
       </div>
     );
@@ -29,7 +29,7 @@ export default function BatchSchedulePage() {
 
   if (items.length === 0) {
     return (
-      <div className="py-12 text-center text-xs text-slate-500 border border-dashed border-[#1A1F35] rounded-2xl">
+      <div className="py-12 text-center text-xs text-muted-foreground border border-dashed border-border rounded-2xl">
         No sessions or exams scheduled for this batch yet.
       </div>
     );
@@ -38,7 +38,7 @@ export default function BatchSchedulePage() {
   return (
     <div className="space-y-2.5">
       {items.map((item) => (
-        <div key={`${item.kind}-${item.id}`} className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-3.5 flex items-center gap-3">
+        <div key={`${item.kind}-${item.id}`} className="rounded-2xl border border-border bg-card p-3.5 flex items-center gap-3">
           <div
             className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border ${
               item.kind === "Exam"
@@ -49,8 +49,8 @@ export default function BatchSchedulePage() {
             {item.kind === "Exam" ? <FileCheck2 size={17} /> : <Calendar size={17} />}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-white truncate">{item.title}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-sm font-bold text-foreground truncate">{item.title}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               {item.kind} &middot; {formatShortDate(item.startDate || item.dueDate, "Date TBA")}
             </p>
           </div>

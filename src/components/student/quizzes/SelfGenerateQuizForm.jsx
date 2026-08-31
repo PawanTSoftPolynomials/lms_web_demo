@@ -16,32 +16,32 @@ export default function SelfGenerateQuizForm({
 
   return (
     <div className="max-w-xl mx-auto py-2">
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6 shadow-sm space-y-5">
+      <div className="rounded-2xl border border-border bg-background/60 p-4 sm:p-6 shadow-sm space-y-5">
         <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-orange-500/10 p-2.5 text-orange-400 border border-orange-500/20 shrink-0">
+          <div className="rounded-xl bg-primary/10 p-2.5 text-primary border border-primary/20 shrink-0">
             <Sparkles size={20} className="animate-pulse" />
           </div>
           <div>
-            <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">Self-Generate Practice Quiz</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Dynamically generate a practice quiz from course questions.</p>
+            <h3 className="text-sm sm:text-base font-bold text-foreground tracking-tight">Self-Generate Practice Quiz</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Dynamically generate a practice quiz from course questions.</p>
           </div>
         </div>
 
-        <div className="border-t border-slate-800/80 pt-4 space-y-4">
+        <div className="border-t border-border/80 pt-4 space-y-4">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Target Course</label>
-            <div className="rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 text-xs sm:text-sm font-semibold text-slate-200 min-h-[44px] flex items-center">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Target Course</label>
+            <div className="rounded-xl bg-background border border-border px-4 py-3 text-xs sm:text-sm font-semibold text-foreground min-h-[44px] flex items-center">
               {currentCourse?.title ?? "Target Course"}
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Number of Questions</label>
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Number of Questions</label>
             <select
               value={numQuestions}
               onChange={(e) => setNumQuestions(parseInt(e.target.value, 10))}
               disabled={isGenerating}
-              className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs sm:text-sm font-semibold text-white focus:outline-none focus:border-orange-500 transition w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
+              className="bg-background border border-border rounded-xl px-4 py-3 text-xs sm:text-sm font-semibold text-foreground focus:outline-none focus:border-primary transition w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
             >
               {QUESTION_COUNT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -61,7 +61,7 @@ export default function SelfGenerateQuizForm({
             type="button"
             onClick={onGenerate}
             disabled={isGenerating}
-            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black uppercase text-xs tracking-widest shadow-md shadow-orange-500/20 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer min-h-[44px]"
+            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 font-black uppercase text-xs tracking-widest shadow-md shadow-orange-500/20 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer min-h-[44px]"
           >
             {isGenerating ? (
               <>

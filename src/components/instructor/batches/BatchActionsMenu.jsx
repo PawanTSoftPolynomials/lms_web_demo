@@ -86,7 +86,7 @@ export default function BatchActionsMenu({ batch, stopPropagation = true, hideVi
   };
 
   const btnClass =
-    "flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg text-[10.5px] font-bold text-slate-300 border border-slate-800 hover:text-white hover:border-slate-700 transition disabled:opacity-50";
+    "flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg text-[10.5px] font-bold text-foreground border border-border hover:text-foreground hover:border-transparent transition disabled:opacity-50";
 
   return (
     <div className="flex items-center gap-1.5 w-full" onClick={(e) => stopPropagation && e.stopPropagation()}>
@@ -110,7 +110,7 @@ export default function BatchActionsMenu({ batch, stopPropagation = true, hideVi
             onClick={(e) => stopPropagation && e.stopPropagation()}
             title="More actions"
             aria-label="More actions"
-            className="p-2 rounded-lg border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition shrink-0"
+            className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-transparent transition shrink-0"
           >
             <MoreVertical size={13} />
           </button>

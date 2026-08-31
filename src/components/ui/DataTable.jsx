@@ -22,7 +22,7 @@ export default function DataTable({
   stickyHeader = false,
   skeletonRows = 0,
 }) {
-  const headerClass = `border-b border-[#1A1F35] text-[9.5px] font-black text-slate-500 uppercase tracking-widest ${stickyHeader ? "sticky top-0 z-10 bg-[#0D1021]" : ""}`;
+  const headerClass = `border-b border-border text-[9.5px] font-black text-muted-foreground uppercase tracking-widest ${stickyHeader ? "sticky top-0 z-10 bg-card" : ""}`;
 
   if (isLoading && skeletonRows > 0) {
     return (
@@ -40,7 +40,7 @@ export default function DataTable({
               <tr key={i}>
                 {columns.map((col) => (
                   <td key={col.key} className="py-3.5 px-2 first:pl-0 last:pr-0">
-                    <div className="h-3.5 rounded bg-slate-800 animate-pulse" style={{ width: `${60 + (i * 7) % 30}%` }} />
+                    <div className="h-3.5 rounded bg-muted animate-pulse" style={{ width: `${60 + (i * 7) % 30}%` }} />
                   </td>
                 ))}
               </tr>
@@ -63,7 +63,7 @@ export default function DataTable({
     return (
       <div className="py-16 flex flex-col items-center justify-center gap-2 text-center">
         <Inbox size={22} className="text-slate-600" />
-        <p className="text-xs font-bold text-slate-500">{emptyLabel}</p>
+        <p className="text-xs font-bold text-muted-foreground">{emptyLabel}</p>
       </div>
     );
   }
@@ -93,7 +93,7 @@ export default function DataTable({
               {columns.map((col) => (
                 <td
                   key={col.key}
-                  className={`py-3.5 px-2 first:pl-0 last:pr-0 text-slate-300 ${col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left"}`}
+                  className={`py-3.5 px-2 first:pl-0 last:pr-0 text-foreground ${col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left"}`}
                 >
                   {col.render ? col.render(row) : (row[col.key] ?? "—")}
                 </td>

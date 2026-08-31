@@ -29,10 +29,10 @@ function InlineMediaUrlEntry({ child, onUrlChange }) {
 
   return (
     <div
-      className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 p-2 bg-slate-900/80 rounded overflow-auto"
+      className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 p-2 bg-background/80 rounded overflow-auto"
       onPointerDown={(e) => e.stopPropagation()}
     >
-      <p className="text-[10px] text-slate-500">
+      <p className="text-[10px] text-muted-foreground">
         {child.blockType === "video" ? "Video" : child.blockType === "audio" ? "Audio" : "Image"} URL
       </p>
       <input
@@ -40,9 +40,9 @@ function InlineMediaUrlEntry({ child, onUrlChange }) {
         value={child.url || ""}
         onChange={(e) => onUrlChange(e.target.value)}
         placeholder="Paste a URL…"
-        className="w-[92%] rounded border border-slate-700 bg-slate-800 px-1.5 py-1 text-[10px] outline-none focus:border-orange-500"
+        className="w-[92%] rounded border border-transparent bg-muted px-1.5 py-1 text-[10px] outline-none focus:border-primary"
       />
-      <label className="inline-flex items-center gap-1 px-1.5 py-1 text-[10px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded cursor-pointer">
+      <label className="inline-flex items-center gap-1 px-1.5 py-1 text-[10px] font-bold text-foreground hover:text-foreground bg-muted hover:bg-slate-750 border border-transparent/60 rounded cursor-pointer">
         <UploadCloud size={10} />
         {uploading ? "Uploading…" : "Upload"}
         <input
@@ -77,7 +77,7 @@ function ChildPreview({ child, onUrlChange }) {
     }
 
     return (
-      <div className="absolute inset-0 flex items-center justify-center p-2 bg-slate-900/70 rounded">
+      <div className="absolute inset-0 flex items-center justify-center p-2 bg-background/70 rounded">
         <audio controls src={child.url} className="w-full" />
       </div>
     );
@@ -86,7 +86,7 @@ function ChildPreview({ child, onUrlChange }) {
   const entry = blockRegistry[child.blockType];
   const ViewComponent = entry.ViewComponent;
   return (
-    <div className="absolute inset-0 overflow-auto p-1.5 text-[11px] bg-slate-900/70 rounded">
+    <div className="absolute inset-0 overflow-auto p-1.5 text-[11px] bg-background/70 rounded">
       <ViewComponent block={child} />
     </div>
   );
@@ -144,7 +144,7 @@ export default function ChildBlockBox({ child, containerRef, onMove, onResize, o
 
   return (
     <div
-      className="group/child absolute pointer-events-auto rounded-md border-2 border-orange-500/70 bg-slate-950/30 hover:border-orange-400 transition-colors"
+      className="group/child absolute pointer-events-auto rounded-md border-2 border-primary/70 bg-background/30 hover:border-orange-400 transition-colors"
       style={{
         left: `${position.x}%`,
         top: `${position.y}%`,
@@ -159,18 +159,18 @@ export default function ChildBlockBox({ child, containerRef, onMove, onResize, o
           type="button"
           onPointerDown={(e) => beginDrag(e, "move")}
           title="Drag to reposition"
-          className="p-1 rounded bg-slate-900 border border-slate-700 text-slate-300 hover:text-white cursor-move"
+          className="p-1 rounded bg-background border border-transparent text-foreground hover:text-foreground cursor-move"
         >
           <Move size={11} />
         </button>
-        <span className="px-1.5 py-1 rounded bg-slate-900 border border-slate-700 text-[10px] text-slate-400">
+        <span className="px-1.5 py-1 rounded bg-background border border-transparent text-[10px] text-muted-foreground">
           {entry.label}
         </span>
         <button
           type="button"
           onClick={onEdit}
           title="Edit content"
-          className="p-1 rounded bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
+          className="p-1 rounded bg-background border border-transparent text-foreground hover:text-foreground"
         >
           <Pencil size={11} />
         </button>
@@ -179,7 +179,7 @@ export default function ChildBlockBox({ child, containerRef, onMove, onResize, o
             type="button"
             onClick={onCrop}
             title="Crop"
-            className="p-1 rounded bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
+            className="p-1 rounded bg-background border border-transparent text-foreground hover:text-foreground"
           >
             <CropIcon size={11} />
           </button>
@@ -188,7 +188,7 @@ export default function ChildBlockBox({ child, containerRef, onMove, onResize, o
           type="button"
           onClick={onDelete}
           title="Delete"
-          className="p-1 rounded bg-slate-900 border border-slate-700 text-red-400 hover:text-red-300"
+          className="p-1 rounded bg-background border border-transparent text-red-400 hover:text-red-300"
         >
           <Trash2 size={11} />
         </button>
@@ -197,7 +197,7 @@ export default function ChildBlockBox({ child, containerRef, onMove, onResize, o
       <div
         onPointerDown={(e) => beginDrag(e, "resize")}
         title="Drag to resize"
-        className="absolute -right-1.5 -bottom-1.5 w-3.5 h-3.5 rounded-sm bg-orange-500 border border-white cursor-se-resize opacity-0 group-hover/child:opacity-100"
+        className="absolute -right-1.5 -bottom-1.5 w-3.5 h-3.5 rounded-sm bg-primary border border-white cursor-se-resize opacity-0 group-hover/child:opacity-100"
       />
     </div>
   );

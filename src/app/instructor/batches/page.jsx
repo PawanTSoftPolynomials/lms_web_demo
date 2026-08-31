@@ -48,7 +48,7 @@ const STUDENT_COUNT_OPTIONS = [
 ];
 
 const toolbarControlClass =
-  "h-9 bg-[#0D1021] border border-[#1A1F35] text-xs px-3 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition [&>option]:bg-[#0D1021] [&>option]:text-slate-200";
+  "h-9 bg-card border border-border text-xs px-3 rounded-xl outline-none text-foreground focus:border-primary/60 transition [&>option]:bg-card [&>option]:text-foreground";
 
 function CreateBatchForm({ courses, onClose }) {
   const [courseIds, setCourseIds] = useState([]);
@@ -73,9 +73,9 @@ function CreateBatchForm({ courses, onClose }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 rounded-xl border border-[#1A1F35] bg-white/[0.02] grid gap-3 sm:grid-cols-2">
+    <form onSubmit={handleSubmit} className="p-4 rounded-xl border border-border bg-white/[0.02] grid gap-3 sm:grid-cols-2">
       <div>
-        <label className="block text-[9.5px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
+        <label className="block text-[9.5px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">
           Courses ({courseIds.length} selected)
         </label>
         <CourseMultiSelect courses={courses} selectedIds={courseIds} onChange={setCourseIds} />
@@ -88,7 +88,7 @@ function CreateBatchForm({ courses, onClose }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          className="w-full bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-white placeholder-slate-500 outline-none focus:border-orange-500"
+          className="w-full bg-background border border-transparent text-xs px-3 py-2.5 rounded-xl text-foreground placeholder-slate-500 outline-none focus:border-primary"
         />
         <div className="grid grid-cols-2 gap-3">
           <input
@@ -96,7 +96,7 @@ function CreateBatchForm({ courses, onClose }) {
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             required
-            className="bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-white outline-none focus:border-orange-500"
+            className="bg-background border border-transparent text-xs px-3 py-2.5 rounded-xl text-foreground outline-none focus:border-primary"
           />
           <input
             type="date"
@@ -104,7 +104,7 @@ function CreateBatchForm({ courses, onClose }) {
             onChange={(e) => setDueDate(e.target.value)}
             placeholder="End date"
             min={startDate || undefined}
-            className="bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-white outline-none focus:border-orange-500"
+            className="bg-background border border-transparent text-xs px-3 py-2.5 rounded-xl text-foreground outline-none focus:border-primary"
           />
         </div>
         {courseIds.length === 0 && (
@@ -113,13 +113,13 @@ function CreateBatchForm({ courses, onClose }) {
       </div>
 
       <div className="sm:col-span-2 flex justify-end gap-2">
-        <button type="button" onClick={onClose} className="px-3.5 py-2 rounded-xl text-[10.5px] font-bold text-slate-400 border border-slate-700 hover:text-white hover:bg-slate-800 transition">
+        <button type="button" onClick={onClose} className="px-3.5 py-2 rounded-xl text-[10.5px] font-bold text-muted-foreground border border-transparent hover:text-foreground hover:bg-muted transition">
           Cancel
         </button>
         <button
           type="submit"
           disabled={createBatch.isPending || courseIds.length === 0}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10.5px] font-black text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-50 transition"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10.5px] font-black text-foreground bg-primary hover:bg-orange-600 disabled:opacity-50 transition"
         >
           {createBatch.isPending ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
           Create Batch
@@ -152,8 +152,8 @@ function BatchStatsRow({ stats }) {
         label="Avg. Progress"
         value={`${stats.avgCompletion}%`}
         icon={TrendingUp}
-        iconBg="bg-orange-500/10"
-        iconColor="text-orange-400"
+        iconBg="bg-primary/10"
+        iconColor="text-primary"
         bottomText="Overall progress"
       />
       <KpiTile
@@ -222,18 +222,18 @@ function FilterToolbar({ minCompletion, setMinCompletion, minStudents, setMinStu
             type="button"
             className={`${toolbarControlClass} relative inline-flex items-center gap-1.5 pr-2.5`}
           >
-            <SlidersHorizontal size={12} className="text-slate-400" />
+            <SlidersHorizontal size={12} className="text-muted-foreground" />
             More Filters
-            <ChevronDown size={12} className="text-slate-500" />
+            <ChevronDown size={12} className="text-muted-foreground" />
             {hasAdvancedFilters && (
-              <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-orange-500" aria-hidden />
+              <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-primary" aria-hidden />
             )}
           </button>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-64 p-3.5">
           <div className="space-y-3">
             <div>
-              <label className="block text-[9.5px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
+              <label className="block text-[9.5px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">
                 Completion
               </label>
               <select
@@ -247,7 +247,7 @@ function FilterToolbar({ minCompletion, setMinCompletion, minStudents, setMinStu
               </select>
             </div>
             <div>
-              <label className="block text-[9.5px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
+              <label className="block text-[9.5px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">
                 Batch Size
               </label>
               <select
@@ -268,7 +268,7 @@ function FilterToolbar({ minCompletion, setMinCompletion, minStudents, setMinStu
         <button
           type="button"
           onClick={handleReset}
-          className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-slate-400 transition hover:text-white"
+          className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-muted-foreground transition hover:text-foreground"
         >
           <RotateCcw size={12} />
           Reset
@@ -324,12 +324,12 @@ function BatchesContent() {
     <div className="space-y-7">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight">Batches</h1>
-          <p className="text-sm text-slate-400 mt-1.5">Manage and monitor your student cohorts across courses.</p>
+          <h1 className="text-2xl font-black text-foreground tracking-tight">Batches</h1>
+          <p className="text-sm text-muted-foreground mt-1.5">Manage and monitor your student cohorts across courses.</p>
         </div>
         <button
           onClick={() => setShowForm((v) => !v)}
-          className="inline-flex shrink-0 items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black text-white bg-orange-500 hover:bg-orange-600 shadow-sm transition"
+          className="inline-flex shrink-0 items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black text-foreground bg-primary hover:bg-orange-600 shadow-sm transition"
         >
           {showForm ? <X size={13} /> : <Plus size={13} />}
           {showForm ? "Cancel" : "Create Batch"}
@@ -342,13 +342,13 @@ function BatchesContent() {
 
       <div className="space-y-3">
         <div className="relative">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search batches, students or courses..."
-            className="w-full h-11 bg-[#0D1021] border border-[#1A1F35] text-sm pl-10 pr-4 rounded-xl outline-none text-slate-200 placeholder-slate-500 focus:border-orange-500/60 transition"
+            className="w-full h-11 bg-card border border-border text-sm pl-10 pr-4 rounded-xl outline-none text-foreground placeholder-slate-500 focus:border-primary/60 transition"
           />
         </div>
 
@@ -362,8 +362,8 @@ function BatchesContent() {
 
       <div>
         <div className="flex items-center justify-between mb-3.5">
-          <h2 className="text-sm font-black text-white tracking-tight">Your Batches</h2>
-          <span className="text-xs font-bold text-slate-500">
+          <h2 className="text-sm font-black text-foreground tracking-tight">Your Batches</h2>
+          <span className="text-xs font-bold text-muted-foreground">
             {filteredBatches.length} batch{filteredBatches.length === 1 ? "" : "es"}
           </span>
         </div>
@@ -371,7 +371,7 @@ function BatchesContent() {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-64 animate-pulse bg-slate-800/50 rounded-2xl" />
+              <div key={i} className="h-64 animate-pulse bg-muted/50 rounded-2xl" />
             ))}
           </div>
         ) : filteredBatches.length === 0 ? (

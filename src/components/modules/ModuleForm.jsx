@@ -55,13 +55,13 @@ export default function ModuleForm({
 
       <div>
 
-        <h3 className="text-2xl font-bold text-white">
+        <h3 className="text-2xl font-bold text-foreground">
           {initialData
             ? "Edit Module"
             : "Create New Module"}
         </h3>
 
-        <p className="mt-2 text-slate-400">
+        <p className="mt-2 text-muted-foreground">
           Organize your course by creating
           modules that contain lessons and
           learning materials.
@@ -83,7 +83,7 @@ export default function ModuleForm({
 
       <div>
 
-        <label className="mb-3 block text-sm font-semibold text-slate-300">
+        <label className="mb-3 block text-sm font-semibold text-foreground">
           Description
         </label>
 
@@ -97,15 +97,15 @@ export default function ModuleForm({
             w-full
             rounded-xl
             border
-            border-slate-700
-            bg-slate-800
+            border-transparent
+            bg-muted
             px-4
             py-3
-            text-white
-            placeholder:text-slate-500
+            text-foreground
+            placeholder:text-muted-foreground
             outline-none
             transition-all
-            focus:border-orange-500
+            focus:border-primary
             focus:ring-2
             focus:ring-orange-500/20
           "
@@ -136,12 +136,12 @@ export default function ModuleForm({
           items-center
           justify-between
           border-t
-          border-slate-800
+          border-border
           pt-6
         "
       >
 
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted-foreground">
           Module order determines the
           sequence shown to students.
         </p>

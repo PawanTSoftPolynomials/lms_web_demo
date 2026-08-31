@@ -40,8 +40,8 @@ export default function StudentStorePage() {
   if (isError) {
     return (
       <Card className="p-8 text-center">
-        <h2 className="text-xl font-semibold text-white">Unable to load the store</h2>
-        <p className="mt-2 text-slate-400">Please try again later.</p>
+        <h2 className="text-xl font-semibold text-foreground">Unable to load the store</h2>
+        <p className="mt-2 text-muted-foreground">Please try again later.</p>
       </Card>
     );
   }
@@ -50,10 +50,10 @@ export default function StudentStorePage() {
     <div className="space-y-8">
       <PageHeader title="Store" subtitle="Browse every published course and enroll." />
 
-      <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="rounded-xl border border-transparent bg-background p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-white">All Courses</h2>
-          <p className="mt-1 text-sm text-slate-400">
+          <h2 className="text-xl font-semibold text-foreground">All Courses</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             {filteredCourses.length} course{filteredCourses.length !== 1 ? "s" : ""} available
             {paidCount > 0 && ` • ${paidCount} paid`}
             {freeCount > 0 && ` • ${freeCount} free`}

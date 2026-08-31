@@ -31,7 +31,7 @@ export default function AskInstructorCard({ course, setIsOpen }) {
   return (
     <button
       onClick={handleAskInstructor}
-      className="w-full p-4 sm:p-5 rounded-3xl border border-slate-800 bg-slate-900/50 hover:bg-slate-900/80 hover:border-orange-500/40 transition duration-300 group cursor-pointer text-left shadow-lg relative overflow-hidden min-h-[44px]"
+      className="w-full p-4 sm:p-5 rounded-3xl border border-border bg-background/50 hover:bg-background/80 hover:border-primary/40 transition duration-300 group cursor-pointer text-left shadow-lg relative overflow-hidden min-h-[44px]"
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
@@ -40,15 +40,15 @@ export default function AskInstructorCard({ course, setIsOpen }) {
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h4 className="text-sm font-black text-slate-100 group-hover:text-white transition truncate">Ask Instructor</h4>
+              <h4 className="text-sm font-black text-foreground group-hover:text-foreground transition truncate">Ask Instructor</h4>
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
             </div>
-            <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">Instructor Active • Avg response &lt; 2 hrs</p>
+            <p className="text-[10px] text-muted-foreground font-semibold mt-0.5 truncate">Instructor Active • Avg response &lt; 2 hrs</p>
           </div>
         </div>
-        <ChevronRight size={16} className="text-slate-500 group-hover:text-orange-400 transition-colors shrink-0" />
+        <ChevronRight size={16} className="text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
       </div>
-      <div className="flex items-center gap-2 pt-2 border-t border-slate-800/60 text-[10px] text-slate-400 font-bold flex-wrap">
+      <div className="flex items-center gap-2 pt-2 border-t border-border/60 text-[10px] text-muted-foreground font-bold flex-wrap">
         <span>Direct Q&amp;A Chat</span>
       </div>
     </button>

@@ -32,7 +32,7 @@ export default function ModulesPage() {
                         Failed to Load Modules
                     </h2>
 
-                    <p className="mt-2 text-slate-400">
+                    <p className="mt-2 text-muted-foreground">
                         Please try again later.
                     </p>
                 </div>
@@ -48,7 +48,7 @@ export default function ModulesPage() {
                         No Modules Found
                     </h2>
 
-                    <p className="mt-2 text-slate-400">
+                    <p className="mt-2 text-muted-foreground">
                         Create your first module.
                     </p>
                 </div>
@@ -60,11 +60,11 @@ export default function ModulesPage() {
         <div className="space-y-8">
             {/* Header */}
             <div>
-                <h1 className="text-4xl font-bold text-white">
+                <h1 className="text-4xl font-bold text-foreground">
                     Modules
                 </h1>
 
-                <p className="mt-2 text-slate-400">
+                <p className="mt-2 text-muted-foreground">
                     Manage all course modules.
                 </p>
             </div>
@@ -81,7 +81,7 @@ export default function ModulesPage() {
               cursor-pointer
               transition-all
               duration-300
-              hover:border-orange-500
+              hover:border-primary
               hover:-translate-y-1
             "
                     >
@@ -93,7 +93,7 @@ export default function ModulesPage() {
                                         {module.title}
                                     </h2>
 
-                                    <p className="mt-2 text-slate-400 line-clamp-2">
+                                    <p className="mt-2 text-muted-foreground line-clamp-2">
                                         {module.description}
                                     </p>
                                 </div>
@@ -112,9 +112,9 @@ export default function ModulesPage() {
                             </div>
 
                             {/* Footer */}
-                            <div className="flex items-center justify-between border-t border-slate-800 pt-4">
+                            <div className="flex items-center justify-between border-t border-transparent pt-4">
                                 <div>
-                                    <p className="text-sm text-slate-500">
+                                    <p className="text-sm text-muted-foreground">
                                         Module Order
                                     </p>
 
@@ -138,13 +138,13 @@ export default function ModulesPage() {
                                         className="
                       rounded-lg
                       border
-                      border-slate-700
+                      border-transparent
                       px-4
                       py-2
                       text-sm
                       transition
-                      hover:border-orange-500
-                      hover:text-orange-400
+                      hover:border-primary
+                      hover:text-primary
                     "
                                     >
                                         Edit

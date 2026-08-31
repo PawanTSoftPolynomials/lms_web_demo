@@ -41,7 +41,7 @@ function QuestionBlock({ index, data, onChange, onRemove, canRemove }) {
     const isValid = data.question.trim() && data.correctAnswer && data.options.filter(Boolean).length >= 2;
 
     return (
-        <div className="rounded-xl border border-slate-700 bg-slate-800/50 transition hover:border-slate-600">
+        <div className="rounded-xl border border-transparent bg-muted/50 transition hover:border-transparent">
             {/* Question block header */}
             <div
                 className="flex cursor-pointer items-center justify-between rounded-t-xl px-5 py-4"
@@ -50,12 +50,12 @@ function QuestionBlock({ index, data, onChange, onRemove, canRemove }) {
                 <div className="flex items-center gap-3">
                     <span
                         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold
-                            ${isValid ? "bg-green-500/20 text-green-400" : "bg-orange-500/20 text-orange-400"}`}
+                            ${isValid ? "bg-green-500/20 text-green-400" : "bg-primary/20 text-primary"}`}
                     >
                         {index + 1}
                     </span>
-                    <p className="max-w-md truncate text-sm text-slate-300">
-                        {data.question.trim() || <span className="text-slate-500 italic">Question {index + 1} — untitled</span>}
+                    <p className="max-w-md truncate text-sm text-foreground">
+                        {data.question.trim() || <span className="text-muted-foreground italic">Question {index + 1} — untitled</span>}
                     </p>
                 </div>
 
@@ -69,17 +69,17 @@ function QuestionBlock({ index, data, onChange, onRemove, canRemove }) {
                         <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); onRemove(index); }}
-                            className="rounded-lg p-1.5 text-slate-500 transition hover:bg-red-500/10 hover:text-red-400"
+                            className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-red-500/10 hover:text-red-400"
                         >
                             <FaTrash size={13} />
                         </button>
                     )}
-                    {collapsed ? <FaChevronDown size={14} className="text-slate-500" /> : <FaChevronUp size={14} className="text-slate-500" />}
+                    {collapsed ? <FaChevronDown size={14} className="text-muted-foreground" /> : <FaChevronUp size={14} className="text-muted-foreground" />}
                 </div>
             </div>
 
             {!collapsed && (
-                <div className="space-y-5 border-t border-slate-700 px-5 pb-5 pt-4">
+                <div className="space-y-5 border-t border-transparent px-5 pb-5 pt-4">
                     {/* Question text */}
                     <Input
                         label="Question *"
@@ -92,12 +92,12 @@ function QuestionBlock({ index, data, onChange, onRemove, canRemove }) {
                     {/* Options */}
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-slate-300">Answer Options *</p>
+                            <p className="text-sm font-medium text-foreground">Answer Options *</p>
                             {data.options.length < 6 && (
                                 <button
                                     type="button"
                                     onClick={addOption}
-                                    className="flex items-center gap-1 rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-400 transition hover:border-orange-500/50 hover:text-orange-400"
+                                    className="flex items-center gap-1 rounded-lg border border-transparent px-2 py-1 text-xs text-muted-foreground transition hover:border-primary/50 hover:text-primary"
                                 >
                                     <FaPlus size={10} /> Add Option
                                 </button>
@@ -106,7 +106,7 @@ function QuestionBlock({ index, data, onChange, onRemove, canRemove }) {
 
                         {data.options.map((opt, i) => (
                             <div key={i} className="flex items-center gap-2">
-                                <span className="w-5 shrink-0 text-center text-xs font-bold text-slate-500">
+                                <span className="w-5 shrink-0 text-center text-xs font-bold text-muted-foreground">
                                     {String.fromCharCode(65 + i)}.
                                 </span>
                                 <div className="flex-1">
@@ -132,12 +132,12 @@ function QuestionBlock({ index, data, onChange, onRemove, canRemove }) {
                     {/* Correct Answer + Marks + Difficulty */}
                     <div className="grid gap-4 sm:grid-cols-3">
                         <div>
-                            <label className="mb-1.5 block text-sm font-medium text-white">Correct Answer *</label>
+                            <label className="mb-1.5 block text-sm font-medium text-foreground">Correct Answer *</label>
                             <select
                                 value={data.correctAnswer}
                                 onChange={(e) => update("correctAnswer", e.target.value)}
                                 required
-                                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-orange-500"
+                                className="w-full rounded-xl border border-transparent bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary"
                             >
                                 <option value="">Select Answer</option>
                                 {data.options.map((opt, i) =>
@@ -151,22 +151,22 @@ function QuestionBlock({ index, data, onChange, onRemove, canRemove }) {
                         </div>
 
                         <div>
-                            <label className="mb-1.5 block text-sm font-medium text-white">Marks</label>
+                            <label className="mb-1.5 block text-sm font-medium text-foreground">Marks</label>
                             <input
                                 type="number"
                                 min={1}
                                 value={data.marks}
                                 onChange={(e) => update("marks", Number(e.target.value))}
-                                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-orange-500"
+                                className="w-full rounded-xl border border-transparent bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary"
                             />
                         </div>
 
                         <div>
-                            <label className="mb-1.5 block text-sm font-medium text-white">Difficulty</label>
+                            <label className="mb-1.5 block text-sm font-medium text-foreground">Difficulty</label>
                             <select
                                 value={data.difficulty}
                                 onChange={(e) => update("difficulty", e.target.value)}
-                                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-orange-500"
+                                className="w-full rounded-xl border border-transparent bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary"
                             >
                                 {DIFFICULTY_OPTIONS.map((d) => (
                                     <option key={d} value={d}>{d}</option>
@@ -177,13 +177,13 @@ function QuestionBlock({ index, data, onChange, onRemove, canRemove }) {
 
                     {/* Explanation */}
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-white">Explanation (optional)</label>
+                        <label className="mb-1.5 block text-sm font-medium text-foreground">Explanation (optional)</label>
                         <textarea
                             value={data.explanation}
                             onChange={(e) => update("explanation", e.target.value)}
                             placeholder="Why is this the correct answer?"
                             rows={2}
-                            className="w-full resize-none rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-orange-500"
+                            className="w-full resize-none rounded-xl border border-transparent bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
                         />
                     </div>
                 </div>
@@ -235,19 +235,19 @@ export default function BulkQuestionForm({ loading, onSubmit }) {
             {/* Header */}
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-white">Add Multiple Questions</h1>
-                    <p className="mt-1 text-slate-400">
+                    <h1 className="text-3xl font-bold text-foreground">Add Multiple Questions</h1>
+                    <p className="mt-1 text-muted-foreground">
                         Fill in each question below, then save all at once.
                     </p>
                 </div>
 
                 {/* Mode toggle */}
-                <div className="flex rounded-xl border border-slate-700 bg-slate-800 p-1">
+                <div className="flex rounded-xl border border-transparent bg-muted p-1">
                     <button
                         type="button"
                         onClick={() => setMode("form")}
                         className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition
-                            ${mode === "form" ? "bg-orange-600 text-white" : "text-slate-400 hover:text-white"}`}
+                            ${mode === "form" ? "bg-orange-600 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                     >
                         <FaListUl size={13} /> Form
                     </button>
@@ -255,7 +255,7 @@ export default function BulkQuestionForm({ loading, onSubmit }) {
                         type="button"
                         onClick={() => setMode("json")}
                         className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition
-                            ${mode === "json" ? "bg-orange-600 text-white" : "text-slate-400 hover:text-white"}`}
+                            ${mode === "json" ? "bg-orange-600 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                     >
                         <FaCode size={13} /> Paste JSON
                     </button>
@@ -266,16 +266,16 @@ export default function BulkQuestionForm({ loading, onSubmit }) {
                 {mode === "form" ? (
                     <>
                         {/* Summary bar */}
-                        <div className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-800/50 px-5 py-3">
-                            <p className="text-sm text-slate-400">
-                                <span className="font-semibold text-white">{questions.length}</span> question
+                        <div className="flex items-center justify-between rounded-xl border border-transparent bg-muted/50 px-5 py-3">
+                            <p className="text-sm text-muted-foreground">
+                                <span className="font-semibold text-foreground">{questions.length}</span> question
                                 {questions.length !== 1 ? "s" : ""} &nbsp;·&nbsp;
                                 <span className="font-semibold text-green-400">{readyCount} ready</span>
                             </p>
                             <button
                                 type="button"
                                 onClick={addQuestion}
-                                className="flex items-center gap-2 rounded-lg bg-orange-600/20 px-3 py-1.5 text-sm font-medium text-orange-400 transition hover:bg-orange-600/30"
+                                className="flex items-center gap-2 rounded-lg bg-orange-600/20 px-3 py-1.5 text-sm font-medium text-primary transition hover:bg-orange-600/30"
                             >
                                 <FaPlus size={12} /> Add Question
                             </button>
@@ -299,16 +299,16 @@ export default function BulkQuestionForm({ loading, onSubmit }) {
                         <button
                             type="button"
                             onClick={addQuestion}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-700 py-4 text-sm text-slate-500 transition hover:border-orange-500/50 hover:text-orange-400"
+                            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-transparent py-4 text-sm text-muted-foreground transition hover:border-primary/50 hover:text-primary"
                         >
                             <FaPlus size={12} /> Add Another Question
                         </button>
                     </>
                 ) : (
                     <div className="space-y-3">
-                        <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-4 text-sm text-slate-300">
-                            <p className="font-semibold text-orange-400">JSON Format Guide</p>
-                            <p className="mt-1 text-slate-400">
+                        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-foreground">
+                            <p className="font-semibold text-primary">JSON Format Guide</p>
+                            <p className="mt-1 text-muted-foreground">
                                 Paste a JSON array of question objects. Each object should have:{" "}
                                 <code className="text-orange-300">question</code>,{" "}
                                 <code className="text-orange-300">options</code> (array),{" "}
@@ -324,7 +324,7 @@ export default function BulkQuestionForm({ loading, onSubmit }) {
                             onChange={(e) => { setJsonText(e.target.value); setJsonError(null); }}
                             placeholder={`[\n  {\n    "question": "What is 2+2?",\n    "options": ["1","2","3","4"],\n    "correctAnswer": "4",\n    "marks": 1,\n    "difficulty": "EASY"\n  }\n]`}
                             rows={16}
-                            className="w-full resize-y rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 font-mono text-sm text-white outline-none transition focus:border-orange-500"
+                            className="w-full resize-y rounded-xl border border-transparent bg-background px-4 py-3 font-mono text-sm text-foreground outline-none transition focus:border-primary"
                         />
 
                         {jsonError && (
@@ -337,7 +337,7 @@ export default function BulkQuestionForm({ loading, onSubmit }) {
 
                 {/* Submit */}
                 <div className="flex items-center justify-between pt-2">
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-muted-foreground">
                         {mode === "form"
                             ? `${readyCount} of ${questions.length} question${questions.length !== 1 ? "s" : ""} ready to save`
                             : "Questions will be validated on submission"}

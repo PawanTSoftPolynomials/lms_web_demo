@@ -146,7 +146,7 @@ function MessagesPageContent() {
 
       {/* Layout Header Override */}
       <style jsx global>{`
-        header.bg-slate-900 {
+        header.bg-background {
           display: none !important;
         }
       `}</style>
@@ -157,7 +157,7 @@ function MessagesPageContent() {
         <div className="p-4 border-b border-slate-100">
           <div className="flex justify-between items-center mb-3">
             <h2 className="text-sm font-black text-slate-800 uppercase tracking-wider">Messages</h2>
-            <button className="p-1.5 border border-slate-200 rounded-xl hover:bg-slate-50 transition text-slate-500">
+            <button className="p-1.5 border border-slate-200 rounded-xl hover:bg-slate-50 transition text-muted-foreground">
               <Plus size={16} />
             </button>
           </div>
@@ -183,7 +183,7 @@ function MessagesPageContent() {
               className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border transition cursor-pointer shrink-0 ${
                 activeCategory === "all"
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 shadow-sm"
-                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                  : "bg-white border-slate-200 text-muted-foreground hover:bg-slate-50 hover:text-slate-700"
               }`}
             >
               All
@@ -195,13 +195,13 @@ function MessagesPageContent() {
               className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border transition cursor-pointer shrink-0 flex items-center gap-1 ${
                 activeCategory === "unread"
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 shadow-sm"
-                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                  : "bg-white border-slate-200 text-muted-foreground hover:bg-slate-50 hover:text-slate-700"
               }`}
             >
               <span>Unread</span>
               {unreadCountTotal > 0 && (
                 <span className={`px-1 rounded-md text-[8.5px] font-black ${
-                  activeCategory === "unread" ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-600"
+                  activeCategory === "unread" ? "bg-emerald-500 text-foreground" : "bg-slate-100 text-slate-600"
                 }`}>
                   {unreadCountTotal}
                 </span>
@@ -214,7 +214,7 @@ function MessagesPageContent() {
               className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border transition cursor-pointer shrink-0 ${
                 activeCategory === "favourites"
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 shadow-sm"
-                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                  : "bg-white border-slate-200 text-muted-foreground hover:bg-slate-50 hover:text-slate-700"
               }`}
             >
               Favourites
@@ -226,13 +226,13 @@ function MessagesPageContent() {
               className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border transition cursor-pointer shrink-0 flex items-center gap-1 ${
                 activeCategory === "groups"
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 shadow-sm"
-                  : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                  : "bg-white border-slate-200 text-muted-foreground hover:bg-slate-50 hover:text-slate-700"
               }`}
             >
               <span>Groups</span>
               {groupsCountTotal > 0 && (
                 <span className={`px-1 rounded-md text-[8.5px] font-black ${
-                  activeCategory === "groups" ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-600"
+                  activeCategory === "groups" ? "bg-emerald-500 text-foreground" : "bg-slate-100 text-slate-600"
                 }`}>
                   {groupsCountTotal}
                 </span>
@@ -247,7 +247,7 @@ function MessagesPageContent() {
               className={`h-7 w-7 rounded-full flex items-center justify-center border text-xs font-black transition cursor-pointer ${
                 activeCategory === "direct" || activeCategory === "archived"
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600"
-                  : "bg-white border-slate-200 text-slate-400 hover:text-slate-655 hover:bg-slate-50"
+                  : "bg-white border-slate-200 text-muted-foreground hover:text-slate-655 hover:bg-slate-50"
               }`}
               title="More Categories"
             >
@@ -266,7 +266,7 @@ function MessagesPageContent() {
                     className={`w-full text-left px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider rounded-lg transition cursor-pointer ${
                       activeCategory === "direct"
                         ? "bg-emerald-500/10 text-emerald-600"
-                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                        : "text-muted-foreground hover:bg-slate-50 hover:text-slate-700"
                     }`}
                   >
                     Direct
@@ -279,7 +279,7 @@ function MessagesPageContent() {
                     className={`w-full text-left px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider rounded-lg transition cursor-pointer ${
                       activeCategory === "archived"
                         ? "bg-emerald-500/10 text-emerald-600"
-                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                        : "text-muted-foreground hover:bg-slate-50 hover:text-slate-700"
                     }`}
                   >
                     Archived
@@ -293,7 +293,7 @@ function MessagesPageContent() {
         {/* Conversations List */}
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {chatLoading ? (
-            <div className="flex justify-center items-center py-10 text-xs text-slate-400">Loading...</div>
+            <div className="flex justify-center items-center py-10 text-xs text-muted-foreground">Loading...</div>
           ) : filteredConversations.length > 0 ? (
             filteredConversations.map((conv) => {
               const isActive = activeConversation?.id === conv.id;
@@ -315,7 +315,7 @@ function MessagesPageContent() {
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
                       <h4 className="text-xs font-black text-slate-800 truncate">{displayName}</h4>
-                      <span className="text-[8px] text-slate-400 flex-shrink-0 ml-1">{conv.time || "10:30 AM"}</span>
+                      <span className="text-[8px] text-muted-foreground flex-shrink-0 ml-1">{conv.time || "10:30 AM"}</span>
                     </div>
                     <p className="text-[10px] text-slate-505 truncate mt-0.5">{conv.lastMessage || "No messages yet."}</p>
                   </div>
@@ -323,7 +323,7 @@ function MessagesPageContent() {
               );
             })
           ) : (
-            <div className="text-center py-10 text-xs text-slate-400">
+            <div className="text-center py-10 text-xs text-muted-foreground">
               No conversations found.
             </div>
           )}
@@ -340,7 +340,7 @@ function MessagesPageContent() {
                 {/* Back button visible only on mobile */}
                 <button
                   onClick={() => setActiveConversation(null)}
-                  className="md:hidden p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-500 transition cursor-pointer flex items-center justify-center"
+                  className="md:hidden p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-muted-foreground transition cursor-pointer flex items-center justify-center"
                 >
                   <ArrowLeft size={14} />
                 </button>
@@ -353,7 +353,7 @@ function MessagesPageContent() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 text-slate-400">
+              <div className="flex items-center gap-4 text-muted-foreground">
                 <button className="hover:text-slate-700 transition"><Phone size={18} /></button>
                 <button className="hover:text-slate-700 transition"><VideoIcon size={18} /></button>
                 <button
@@ -382,7 +382,7 @@ function MessagesPageContent() {
                   <div key={idx} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                     <div className={`max-w-[70%] rounded-2xl p-3 text-xs leading-relaxed ${
                       isMe
-                        ? "bg-indigo-600 text-white rounded-tr-none shadow-sm"
+                        ? "bg-indigo-600 text-foreground rounded-tr-none shadow-sm"
                         : "bg-white border border-slate-100 text-slate-850 rounded-tl-none shadow-sm"
                     }`}>
                       {!isMe && (
@@ -393,7 +393,7 @@ function MessagesPageContent() {
 
                       <p>{msg.content || msg.text}</p>
 
-                      <span className={`text-[8px] text-right block mt-1.5 font-bold ${isMe ? "text-indigo-200" : "text-slate-400"}`}>
+                      <span className={`text-[8px] text-right block mt-1.5 font-bold ${isMe ? "text-indigo-200" : "text-muted-foreground"}`}>
                         {msg.time || "10:30 AM"}
                       </span>
                     </div>
@@ -405,8 +405,8 @@ function MessagesPageContent() {
 
             {/* Input Form */}
             <form onSubmit={handleSend} className="p-4 border-t border-slate-100 flex gap-3 items-center flex-shrink-0">
-              <button type="button" className="text-slate-400 hover:text-slate-600 transition flex-shrink-0"><Paperclip size={18} /></button>
-              <button type="button" className="text-slate-400 hover:text-slate-600 transition flex-shrink-0"><ImageIcon size={18} /></button>
+              <button type="button" className="text-muted-foreground hover:text-slate-600 transition flex-shrink-0"><Paperclip size={18} /></button>
+              <button type="button" className="text-muted-foreground hover:text-slate-600 transition flex-shrink-0"><ImageIcon size={18} /></button>
 
               <input
                 type="text"
@@ -419,14 +419,14 @@ function MessagesPageContent() {
               <button
                 type="submit"
                 disabled={sending}
-                className="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition disabled:opacity-50 flex-shrink-0"
+                className="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-foreground rounded-xl transition disabled:opacity-50 flex-shrink-0"
               >
                 <Send size={15} />
               </button>
             </form>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-400">
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-muted-foreground">
             <div className="p-4 bg-slate-50 rounded-full text-indigo-600 mb-3">
               <Send size={32} />
             </div>
@@ -444,12 +444,12 @@ function MessagesPageContent() {
               {activeConversationName.charAt(0).toUpperCase()}
             </div>
             <h4 className="text-xs font-black text-slate-805 leading-none">{activeConversationName}</h4>
-            <span className="text-[9px] text-slate-400 mt-2 block">Instructor • Computer Science</span>
+            <span className="text-[9px] text-muted-foreground mt-2 block">Instructor • Computer Science</span>
           </div>
 
           {/* Quick options */}
           <div className="grid grid-cols-4 gap-2 text-center py-4 border-b border-slate-100">
-            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-500 hover:bg-slate-105 transition"><Phone size={14} /></span><span className="text-[8px] font-bold text-slate-500">Call</span></button>
+            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-muted-foreground hover:bg-slate-105 transition"><Phone size={14} /></span><span className="text-[8px] font-bold text-muted-foreground">Call</span></button>
             <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-505 hover:bg-slate-105 transition"><VideoIcon size={14} /></span><span className="text-[8px] font-bold text-slate-505">Video</span></button>
             <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-505 hover:bg-slate-105 transition"><User size={14} /></span><span className="text-[8px] font-bold text-slate-505">Profile</span></button>
             <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-505 hover:bg-slate-105 transition"><Bookmark size={14} /></span><span className="text-[8px] font-bold text-slate-505">Mute</span></button>
@@ -465,10 +465,10 @@ function MessagesPageContent() {
                     <div className="p-1.5 bg-red-50 text-red-500 rounded"><FileText size={14} /></div>
                     <div className="min-w-0">
                       <span className="text-[10px] font-bold text-slate-700 block truncate">Assignment_Guidelines.pdf</span>
-                      <span className="text-[8px] text-slate-400 font-semibold">1.2 MB • PDF</span>
+                      <span className="text-[8px] text-muted-foreground font-semibold">1.2 MB • PDF</span>
                     </div>
                   </div>
-                  <Download size={12} className="text-slate-400 flex-shrink-0" />
+                  <Download size={12} className="text-muted-foreground flex-shrink-0" />
                 </div>
 
                 <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition cursor-pointer">
@@ -476,10 +476,10 @@ function MessagesPageContent() {
                     <div className="p-1.5 bg-blue-50 text-blue-500 rounded"><FileText size={14} /></div>
                     <div className="min-w-0">
                       <span className="text-[10px] font-bold text-slate-700 block truncate">LinkedList_Implementation.cpp</span>
-                      <span className="text-[8px] text-slate-400 font-semibold">3.4 KB • Source</span>
+                      <span className="text-[8px] text-muted-foreground font-semibold">3.4 KB • Source</span>
                     </div>
                   </div>
-                  <Download size={12} className="text-slate-400 flex-shrink-0" />
+                  <Download size={12} className="text-muted-foreground flex-shrink-0" />
                 </div>
               </div>
             </div>
@@ -489,8 +489,8 @@ function MessagesPageContent() {
               <h5 className="text-[10px] font-black text-slate-805 uppercase tracking-wider mb-2">About</h5>
               <div className="space-y-2 text-[10px] text-slate-505 font-medium">
                 <p>This is the start of your message thread. Feel free to collaborate, coordinate, and ask any questions.</p>
-                <div className="flex justify-between font-semibold"><span className="text-slate-400">Member since</span><span className="text-slate-707">March 12, 2025</span></div>
-                <div className="flex justify-between font-semibold"><span className="text-slate-400">Associated course</span><span className="text-slate-707 truncate max-w-[110px]">Data Structures</span></div>
+                <div className="flex justify-between font-semibold"><span className="text-muted-foreground">Member since</span><span className="text-slate-707">March 12, 2025</span></div>
+                <div className="flex justify-between font-semibold"><span className="text-muted-foreground">Associated course</span><span className="text-slate-707 truncate max-w-[110px]">Data Structures</span></div>
               </div>
             </div>
           </div>
@@ -503,7 +503,7 @@ function MessagesPageContent() {
 
 export default function MessagesPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center items-center py-20 text-xs text-slate-400">Loading conversation...</div>}>
+    <Suspense fallback={<div className="flex justify-center items-center py-20 text-xs text-muted-foreground">Loading conversation...</div>}>
       <MessagesPageContent />
     </Suspense>
   );

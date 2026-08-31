@@ -1771,14 +1771,14 @@ export default function CourseDetailsPage() {
 
   if (effectiveError || !effectiveCourse) {
     return (
-      <div className="max-w-md mx-auto my-20 p-8 text-center bg-[#0D1021] border border-[#1A1F35] rounded-2xl space-y-4">
-        <h2 className="text-xl font-bold text-white">Course Not Found</h2>
-        <p className="text-xs text-slate-400">
+      <div className="max-w-md mx-auto my-20 p-8 text-center bg-card border border-border rounded-2xl space-y-4">
+        <h2 className="text-xl font-bold text-foreground">Course Not Found</h2>
+        <p className="text-xs text-muted-foreground">
           The requested course could not be loaded.
         </p>
         <Link
           href="/instructor/courses"
-          className="inline-block px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 text-xs font-black transition"
+          className="inline-block px-5 py-2.5 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 text-xs font-black transition"
         >
           Back to Courses
         </Link>
@@ -1790,7 +1790,7 @@ export default function CourseDetailsPage() {
 
   const courseMapEffectivelyOpen = mobileSidebarOpen || isCourseMapOpen;
   const sidebarWrapperClassName = mobileSidebarOpen
-    ? "fixed inset-y-0 left-0 z-50 w-80 bg-slate-950 p-4 shadow-2xl block shrink-0 overflow-y-auto"
+    ? "fixed inset-y-0 left-0 z-50 w-80 bg-background p-4 shadow-2xl block shrink-0 overflow-y-auto"
     : `hidden lg:block shrink-0 lg:sticky lg:top-24 transition-[width] duration-300 ease-in-out ${
         isCourseMapOpen ? "w-full lg:w-[320px]" : "w-full lg:w-0"
       }`;
@@ -1830,7 +1830,10 @@ export default function CourseDetailsPage() {
             composeQuizId={composeQuizId}
             selectedCellId={selectedCellId}
             isOpen={courseMapEffectivelyOpen}
-            onToggleOpen={() => setIsCourseMapOpen((v) => !v)}
+            onToggleOpen={() => {
+              setMobileSidebarOpen(false);
+              setIsCourseMapOpen((v) => !v);
+            }}
             onSelectCourseOverview={handleSelectCourseOverview}
             onSelectQuiz={handleSelectQuiz}
             onDuplicateQuiz={handleDuplicateQuiz}
@@ -1865,13 +1868,13 @@ export default function CourseDetailsPage() {
         {/* Center Main Workspace Notebook Area */}
         <main className="flex-1 min-w-0 w-full space-y-4">
           {/* Workspace Header & Breadcrumbs */}
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
+          <div className="flex items-center justify-between pb-3 border-b border-transparent/80">
             <div className="flex items-center gap-3">
               {!isCourseMapOpen && !mobileSidebarOpen && (
                 <button
                   type="button"
                   onClick={() => setIsCourseMapOpen(true)}
-                  className="hidden lg:flex shrink-0 h-9 w-9 items-center justify-center rounded-full border border-orange-500/50 bg-slate-900 text-orange-400 shadow-md transition hover:bg-orange-500/10 hover:border-orange-500 hover:text-orange-300 cursor-pointer"
+                  className="hidden lg:flex shrink-0 h-9 w-9 items-center justify-center rounded-full border border-primary/50 bg-background text-primary shadow-md transition hover:bg-primary/10 hover:border-primary hover:text-orange-300 cursor-pointer"
                   aria-label="Show course map"
                   title="Show course map"
                 >
@@ -1879,14 +1882,14 @@ export default function CourseDetailsPage() {
                 </button>
               )}
               <div>
-                <div className="text-xs font-semibold text-orange-400 mb-0.5">
+                <div className="text-xs font-semibold text-primary mb-0.5">
                   {composerMode === "course" && `Course Overview`}
                   {composerMode === "quiz" && (quizMode === "create" ? (composeTopicId ? "New Topic Quiz Creation" : composeLessonId ? "New Lesson Quiz Creation" : "New Module Quiz Creation") : `Quiz Overview`)}
                   {composerMode === "lesson" && `Lesson: ${composingLesson?.title || "Lesson Overview"}`}
                   {composerMode === "module" && `Module: ${activeModuleObj?.title || "Module Cells"}`}
                   {composerMode === "topic" && `Topic: ${composingTopic?.title || "Topic Composer"}`}
                 </div>
-                <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                <h2 className="text-lg sm:text-xl font-black text-foreground tracking-tight">
                   {composerMode === "course" && (effectiveCourse?.title || "Course Overview Header")}
                   {composerMode === "quiz" && (quizMode === "create" ? `Create Quiz for ${composeTopicId ? (composingTopic?.title || "Topic") : composeLessonId ? (composingLesson?.title || "Lesson") : (activeModuleObj?.title || "Module")}` : (activeQuizObj?.title || "Quiz Details"))}
                   {composerMode === "lesson" && (composingLesson?.title || "Lesson Overview Header")}
@@ -1898,7 +1901,7 @@ export default function CourseDetailsPage() {
           </div>
 
           {/* Notebook Workspace Dynamic View */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6 shadow-xl">
+          <div className="rounded-2xl border border-transparent bg-background/60 p-4 sm:p-6 shadow-xl">
             {composerMode === "course" && (
               <CourseOverviewView
                 course={effectiveCourse}

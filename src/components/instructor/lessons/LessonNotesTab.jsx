@@ -64,34 +64,34 @@ export default function LessonNotesTab({ lessonId, videoCurrentTime, onSeekVideo
     <div className="flex flex-col h-full space-y-4 p-4">
       {/* Search Input */}
       <div className="relative">
-        <Search size={14} className="absolute left-3 top-2.5 text-slate-500" />
+        <Search size={14} className="absolute left-3 top-2.5 text-muted-foreground" />
         <input
           type="text"
           placeholder="Search lesson notes..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-[#05070E] border border-[#1A1F35] text-xs text-slate-200 placeholder-slate-500 rounded-xl pl-9 pr-3 py-2 outline-none focus:border-orange-500/50 transition"
+          className="w-full bg-[#05070E] border border-border text-xs text-foreground placeholder-slate-500 rounded-xl pl-9 pr-3 py-2 outline-none focus:border-primary/50 transition"
         />
       </div>
 
       {/* Add New Note Box */}
-      <form onSubmit={handleAddNote} className="space-y-2 bg-white/[0.01] border border-[#1A1F35] rounded-xl p-3">
-        <div className="flex justify-between items-center text-[10px] text-slate-400 font-mono font-black">
+      <form onSubmit={handleAddNote} className="space-y-2 bg-white/[0.01] border border-border rounded-xl p-3">
+        <div className="flex justify-between items-center text-[10px] text-muted-foreground font-mono font-black">
           <span>Add Timestamped Note</span>
-          <span className="text-orange-400 font-mono">@ {formatTime(videoCurrentTime || 0)}</span>
+          <span className="text-primary font-mono">@ {formatTime(videoCurrentTime || 0)}</span>
         </div>
         <textarea
           rows={2}
           placeholder="Write a private note or reminder for this lesson..."
           value={newNoteText}
           onChange={(e) => setNewNoteText(e.target.value)}
-          className="w-full bg-[#05070E] border border-[#1A1F35] text-xs text-slate-200 placeholder-slate-500 rounded-lg p-2 outline-none focus:border-orange-500/50 transition resize-none"
+          className="w-full bg-[#05070E] border border-border text-xs text-foreground placeholder-slate-500 rounded-lg p-2 outline-none focus:border-primary/50 transition resize-none"
         />
         <div className="flex justify-end">
           <button
             type="submit"
             disabled={!newNoteText.trim() || createNote.isPending}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-slate-950 font-black text-[11px] transition shadow-md cursor-pointer"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary hover:bg-orange-600 disabled:opacity-40 text-slate-950 font-black text-[11px] transition shadow-md cursor-pointer"
           >
             {createNote.isPending ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
             <span>Save Note</span>
@@ -102,28 +102,28 @@ export default function LessonNotesTab({ lessonId, videoCurrentTime, onSeekVideo
       {/* Notes List */}
       <div className="flex-1 overflow-y-auto space-y-3 pr-1">
         {isLoading ? (
-          <div className="py-12 text-center text-slate-500">
+          <div className="py-12 text-center text-muted-foreground">
             <Loader2 size={20} className="mx-auto animate-spin" />
           </div>
         ) : filteredNotes.length === 0 ? (
-          <div className="py-12 text-center text-slate-500 space-y-2">
+          <div className="py-12 text-center text-muted-foreground space-y-2">
             <FileText size={24} className="mx-auto text-slate-600" />
             <p className="text-xs font-bold">No notes found.</p>
           </div>
         ) : (
           filteredNotes.map((note) => (
-            <div key={note.id} className="p-3 rounded-xl bg-[#05070E] border border-[#1A1F35] space-y-2 group transition hover:border-slate-700">
+            <div key={note.id} className="p-3 rounded-xl bg-[#05070E] border border-border space-y-2 group transition hover:border-transparent">
               <div className="flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => onSeekVideo?.(note.timestampSeconds)}
-                  className="flex items-center gap-1.5 text-[10px] font-mono font-black text-orange-400 bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-md hover:bg-orange-500/20 transition cursor-pointer"
+                  className="flex items-center gap-1.5 text-[10px] font-mono font-black text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md hover:bg-primary/20 transition cursor-pointer"
                   title="Jump video to timestamp"
                 >
                   <Clock size={11} />
                   <span>{formatTime(note.timestampSeconds)}</span>
                 </button>
-                <span className="text-[9px] text-slate-500 font-mono">{formatDate(note.createdAt)}</span>
+                <span className="text-[9px] text-muted-foreground font-mono">{formatDate(note.createdAt)}</span>
               </div>
 
               {editingId === note.id ? (
@@ -132,12 +132,12 @@ export default function LessonNotesTab({ lessonId, videoCurrentTime, onSeekVideo
                     rows={2}
                     value={editText}
                     onChange={(e) => setEditText(e.target.value)}
-                    className="w-full bg-[#0D1021] border border-orange-500/40 text-xs text-white p-2 rounded-lg outline-none"
+                    className="w-full bg-card border border-primary/40 text-xs text-foreground p-2 rounded-lg outline-none"
                   />
                   <div className="flex justify-end gap-1.5">
                     <button
                       onClick={() => setEditingId(null)}
-                      className="px-2 py-1 text-[10px] text-slate-400 hover:text-white"
+                      className="px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground"
                     >
                       Cancel
                     </button>
@@ -150,16 +150,16 @@ export default function LessonNotesTab({ lessonId, videoCurrentTime, onSeekVideo
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-slate-300 leading-relaxed font-normal">{note.content}</p>
+                <p className="text-xs text-foreground leading-relaxed font-normal">{note.content}</p>
               )}
 
-              <div className="flex justify-end gap-2 pt-1 border-t border-[#1A1F35]/40 opacity-70 group-hover:opacity-100 transition">
+              <div className="flex justify-end gap-2 pt-1 border-t border-border/40 opacity-70 group-hover:opacity-100 transition">
                 <button
                   onClick={() => {
                     setEditingId(note.id);
                     setEditText(note.content);
                   }}
-                  className="text-slate-400 hover:text-white text-[10px] flex items-center gap-0.5"
+                  className="text-muted-foreground hover:text-foreground text-[10px] flex items-center gap-0.5"
                 >
                   <Edit3 size={11} /> Edit
                 </button>

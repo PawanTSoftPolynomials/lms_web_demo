@@ -1,6 +1,6 @@
 "use client";
 
-import "highlight.js/styles/atom-one-dark.css";
+import "highlight.js/styles/vs2015.css";
 
 import { renderMarkdownToSafeHtml } from "@/lib/markdown";
 
@@ -128,8 +128,8 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
           margin-bottom: 1rem;
           padding: 1rem 1.125rem;
           border-radius: 0.75rem;
-          border: 1px solid #334155;
-          background-color: #0d1117 !important;
+          border: 1px solid var(--border);
+          background-color: #1E1E1E !important;
           overflow-x: auto;
         }
         .md-prose pre code {

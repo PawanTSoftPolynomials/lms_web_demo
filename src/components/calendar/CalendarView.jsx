@@ -189,9 +189,9 @@ export default function CalendarView({ role }) {
       case "quiz":
         return "bg-violet-500/20 text-violet-300 border-l-2 border-violet-500";
       case "assignment":
-        return "bg-orange-500/20 text-orange-300 border-l-2 border-orange-500";
+        return "bg-primary/20 text-orange-300 border-l-2 border-primary";
       default:
-        return "bg-slate-800 text-slate-300 border-l-2 border-slate-500";
+        return "bg-muted text-foreground border-l-2 border-slate-500";
     }
   };
 
@@ -221,16 +221,16 @@ export default function CalendarView({ role }) {
   return (
     <div className="space-y-6">
       {/* Calendar Header Controls */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/60 p-6 rounded-2xl border border-slate-800 backdrop-blur-sm select-none">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-background/60 p-6 rounded-2xl border border-border backdrop-blur-sm select-none">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-gradient-to-tr from-orange-500/10 to-pink-500/10 rounded-xl border border-orange-500/20">
-            <FaCalendarAlt className="text-2xl text-orange-500" />
+          <div className="p-3 bg-gradient-to-tr from-orange-500/10 to-pink-500/10 rounded-xl border border-primary/20">
+            <FaCalendarAlt className="text-2xl text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">
               {MONTHS[month]} {year}
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground">
               {role === "ADMIN" && "Admin Control • Scheduled online lectures"}
               {role === "INSTRUCTOR" && "Instructor Schedule • Lectures, assignments & quizzes"}
               {role === "STUDENT" && "Student Activities • Stay up to date"}
@@ -239,36 +239,36 @@ export default function CalendarView({ role }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center bg-slate-950 p-1.5 rounded-xl border border-slate-800/80">
+          <div className="flex items-center bg-background p-1.5 rounded-xl border border-border/80">
             <button
               onClick={handlePrevMonth}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition"
               title="Previous Month"
             >
               <FaChevronLeft className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={handleToday}
-              className="px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition mx-1"
+              className="px-3 py-1.5 text-xs font-semibold text-foreground hover:text-foreground hover:bg-muted rounded-lg transition mx-1"
             >
               Today
             </button>
             <button
               onClick={handleNextMonth}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition"
               title="Next Month"
             >
               <FaChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <div className="flex items-center bg-slate-950 p-1.5 rounded-xl border border-slate-800/80">
+          <div className="flex items-center bg-background p-1.5 rounded-xl border border-border/80">
             <button
               onClick={() => setViewMode("month")}
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-2 transition ${
                 viewMode === "month"
-                  ? "bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-gradient-to-r from-orange-500 to-pink-500 text-foreground shadow"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <FaCalendarAlt className="w-3 h-3" />
@@ -278,8 +278,8 @@ export default function CalendarView({ role }) {
               onClick={() => setViewMode("list")}
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-2 transition ${
                 viewMode === "list"
-                  ? "bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-gradient-to-r from-orange-500 to-pink-500 text-foreground shadow"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <FaList className="w-3 h-3" />
@@ -290,7 +290,7 @@ export default function CalendarView({ role }) {
           {role !== "STUDENT" && (
             <Button
               onClick={() => openAddEventModal(toLocalDateString(new Date()))}
-              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-semibold flex items-center gap-2"
+              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-foreground font-semibold flex items-center gap-2"
             >
               <FaPlus className="w-3 h-3" />
               Add Event
@@ -300,9 +300,9 @@ export default function CalendarView({ role }) {
       </div>
 
       {/* Filter Options & Indicators */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-900/40 p-4 rounded-xl border border-slate-800/60">
-        <div className="flex items-center gap-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
-          <FaFilter className="text-orange-500" />
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-background/40 p-4 rounded-xl border border-border/60">
+        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          <FaFilter className="text-primary" />
           <span>Filters:</span>
         </div>
 
@@ -311,8 +311,8 @@ export default function CalendarView({ role }) {
             onClick={() => setFilterType("all")}
             className={`px-3 py-1 rounded-full text-xs font-semibold transition border ${
               filterType === "all"
-                ? "bg-slate-700 text-white border-slate-600"
-                : "bg-slate-900/40 text-slate-400 border-slate-800/60 hover:text-white hover:bg-slate-800"
+                ? "bg-slate-700 text-foreground border-transparent"
+                : "bg-background/40 text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted"
             }`}
           >
             All Activities
@@ -322,7 +322,7 @@ export default function CalendarView({ role }) {
             className={`px-3 py-1 rounded-full text-xs font-semibold transition border flex items-center gap-1.5 ${
               filterType === "class"
                 ? "bg-emerald-950/40 text-emerald-400 border-emerald-500/30"
-                : "bg-slate-900/40 text-slate-400 border-slate-800/60 hover:text-emerald-400 hover:bg-emerald-950/20"
+                : "bg-background/40 text-muted-foreground border-border/60 hover:text-emerald-400 hover:bg-emerald-950/20"
             }`}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -333,7 +333,7 @@ export default function CalendarView({ role }) {
             className={`px-3 py-1 rounded-full text-xs font-semibold transition border flex items-center gap-1.5 ${
               filterType === "quiz"
                 ? "bg-violet-950/40 text-violet-400 border-violet-500/30"
-                : "bg-slate-900/40 text-slate-400 border-slate-800/60 hover:text-violet-400 hover:bg-violet-950/20"
+                : "bg-background/40 text-muted-foreground border-border/60 hover:text-violet-400 hover:bg-violet-950/20"
             }`}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
@@ -343,11 +343,11 @@ export default function CalendarView({ role }) {
             onClick={() => setFilterType("assignment")}
             className={`px-3 py-1 rounded-full text-xs font-semibold transition border flex items-center gap-1.5 ${
               filterType === "assignment"
-                ? "bg-orange-950/40 text-orange-400 border-orange-500/30"
-                : "bg-slate-900/40 text-slate-400 border-slate-800/60 hover:text-orange-400 hover:bg-orange-950/20"
+                ? "bg-orange-950/40 text-primary border-primary/30"
+                : "bg-background/40 text-muted-foreground border-border/60 hover:text-primary hover:bg-orange-950/20"
             }`}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
             Assignments
           </button>
         </div>
@@ -355,13 +355,13 @@ export default function CalendarView({ role }) {
 
       {viewMode === "month" ? (
         /* Calendar Month Grid View */
-        <Card padding="p-0" className="overflow-hidden bg-slate-900/20 backdrop-blur-md">
+        <Card padding="p-0" className="overflow-hidden bg-background/20 backdrop-blur-md">
           {/* Weekday Labels Header */}
-          <div className="grid grid-cols-7 border-b border-slate-800 bg-slate-900/80 select-none">
+          <div className="grid grid-cols-7 border-b border-border bg-background/80 select-none">
             {WEEKDAYS.map((day) => (
               <div
                 key={day}
-                className="py-3.5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider border-r last:border-r-0 border-slate-800/60"
+                className="py-3.5 text-center text-xs font-bold text-muted-foreground uppercase tracking-wider border-r last:border-r-0 border-border/60"
               >
                 {day}
               </div>
@@ -385,20 +385,20 @@ export default function CalendarView({ role }) {
                     }
                   }}
                   onDoubleClick={() => openAddEventModal(dateString)}
-                  className={`min-h-[110px] p-2 border-r border-b border-slate-800/65 flex flex-col justify-between transition group relative cursor-pointer hover:bg-slate-800/15 ${
-                    isCurrentMonth ? "text-slate-100" : "text-slate-600 hover:text-slate-400"
+                  className={`min-h-[110px] p-2 border-r border-b border-border/65 flex flex-col justify-between transition group relative cursor-pointer hover:bg-muted/15 ${
+                    isCurrentMonth ? "text-foreground" : "text-slate-600 hover:text-muted-foreground"
                   } ${
-                    isToday ? "bg-slate-900/30 ring-1 ring-inset ring-orange-500/30" : ""
+                    isToday ? "bg-background/30 ring-1 ring-inset ring-orange-500/30" : ""
                   } ${
-                    isSelected ? "bg-orange-500/5" : ""
+                    isSelected ? "bg-primary/5" : ""
                   }`}
                 >
                   <div className="flex justify-between items-center mb-1">
                     <span
                       className={`text-sm font-semibold rounded-md flex items-center justify-center w-6.5 h-6.5 ${
                         isToday
-                          ? "bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold shadow"
-                          : "text-slate-300"
+                          ? "bg-gradient-to-r from-orange-500 to-pink-500 text-foreground font-bold shadow"
+                          : "text-foreground"
                       } ${!isCurrentMonth ? "!text-slate-600" : ""}`}
                     >
                       {day}
@@ -411,7 +411,7 @@ export default function CalendarView({ role }) {
                           e.stopPropagation();
                           openAddEventModal(dateString);
                         }}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-orange-400 bg-slate-800/60 hover:bg-slate-800 rounded transition"
+                        className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-primary bg-muted/60 hover:bg-muted rounded transition"
                         title="Schedule on this day"
                       >
                         <FaPlus className="w-2.5 h-2.5" />
@@ -434,7 +434,7 @@ export default function CalendarView({ role }) {
                       </div>
                     ))}
                     {dayEvents.length > 3 && (
-                      <div className="text-[10px] text-slate-400 font-bold px-1.5">
+                      <div className="text-[10px] text-muted-foreground font-bold px-1.5">
                         + {dayEvents.length - 3} more activities
                       </div>
                     )}
@@ -450,8 +450,8 @@ export default function CalendarView({ role }) {
           {filteredEvents.length === 0 ? (
             <Card padding="p-12" className="text-center">
               <FaCalendarAlt className="mx-auto text-4xl text-slate-600 mb-4" />
-              <h3 className="text-lg font-bold text-white">No scheduled activities found</h3>
-              <p className="text-slate-400 text-sm mt-1">
+              <h3 className="text-lg font-bold text-foreground">No scheduled activities found</h3>
+              <p className="text-muted-foreground text-sm mt-1">
                 There are no scheduled activities matching the selected filter.
               </p>
             </Card>
@@ -464,7 +464,7 @@ export default function CalendarView({ role }) {
                     key={event.id || event._id}
                     onClick={(e) => openViewEventModal(event, e)}
                     padding="p-5"
-                    className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-orange-500/40 cursor-pointer transition bg-slate-900/30 backdrop-blur-sm"
+                    className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-primary/40 cursor-pointer transition bg-background/30 backdrop-blur-sm"
                   >
                     <div className="flex items-start gap-4">
                       <div className={`p-3.5 rounded-xl border ${getEventBadgeClass(event.type)}`}>
@@ -472,25 +472,25 @@ export default function CalendarView({ role }) {
                       </div>
                       <div>
                         <div className="flex items-center gap-2.5">
-                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                             {event.courseName}
                           </span>
                           <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
-                          <span className="text-xs text-slate-400 flex items-center gap-1">
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
                             <FaClock /> {event.startTime} - {event.endTime}
                           </span>
                         </div>
-                        <h3 className="text-lg font-bold text-white mt-1.5">{event.title}</h3>
+                        <h3 className="text-lg font-bold text-foreground mt-1.5">{event.title}</h3>
                         {event.instructorName && (
-                          <p className="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
+                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
                             <FaUsers className="text-pink-500/80" /> Instructor: {event.instructorName}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 w-full md:w-auto justify-end border-t md:border-t-0 border-slate-800/80 pt-3.5 md:pt-0">
-                      <span className="text-xs text-slate-400 px-3 py-1.5 bg-slate-950 rounded-lg border border-slate-800">
+                    <div className="flex items-center gap-3 w-full md:w-auto justify-end border-t md:border-t-0 border-border/80 pt-3.5 md:pt-0">
+                      <span className="text-xs text-muted-foreground px-3 py-1.5 bg-background rounded-lg border border-border">
                         {event.date}
                       </span>
                       {event.type === "class" && event.link && (

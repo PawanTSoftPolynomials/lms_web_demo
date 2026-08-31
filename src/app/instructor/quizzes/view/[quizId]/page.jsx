@@ -77,7 +77,7 @@ export default function QuizDetailsPage() {
             <Card>
                 <div className="py-16 text-center">
                     <h2 className="text-2xl font-semibold">Quiz Not Found</h2>
-                    <p className="mt-2 text-slate-400">Unable to load this quiz.</p>
+                    <p className="mt-2 text-muted-foreground">Unable to load this quiz.</p>
                 </div>
             </Card>
         );
@@ -93,21 +93,21 @@ export default function QuizDetailsPage() {
                             onClick={() =>
                                 router.push(`/instructor/quizzes/${quiz.courseId}`)
                             }
-                            className="mb-6 flex items-center gap-2 text-sm text-slate-400 transition hover:text-orange-400"
+                            className="mb-6 flex items-center gap-2 text-sm text-muted-foreground transition hover:text-primary"
                         >
                             ← Back
                         </button>
 
-                        <span className="inline-flex rounded-full bg-orange-500/15 px-3 py-1 text-sm font-medium text-orange-400">
+                        <span className="inline-flex rounded-full bg-primary/15 px-3 py-1 text-sm font-medium text-primary">
                             Quiz
                         </span>
 
-                        <h1 className="mt-4 text-3xl font-bold text-white">
+                        <h1 className="mt-4 text-3xl font-bold text-foreground">
                             {quiz.title}
                         </h1>
 
                         {quiz.description && (
-                            <p className="mt-3 max-w-3xl text-slate-400">
+                            <p className="mt-3 max-w-3xl text-muted-foreground">
                                 {quiz.description}
                             </p>
                         )}
@@ -146,29 +146,29 @@ export default function QuizDetailsPage() {
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <Card className="text-center">
-                    <p className="text-sm text-slate-400">Passing</p>
-                    <h3 className="mt-3 text-3xl font-bold text-orange-400">
+                    <p className="text-sm text-muted-foreground">Passing</p>
+                    <h3 className="mt-3 text-3xl font-bold text-primary">
                         {quiz.passingScore}%
                     </h3>
                 </Card>
 
                 <Card className="text-center">
-                    <p className="text-sm text-slate-400">Time Limit</p>
-                    <h3 className="mt-3 text-3xl font-bold text-orange-400">
+                    <p className="text-sm text-muted-foreground">Time Limit</p>
+                    <h3 className="mt-3 text-3xl font-bold text-primary">
                         {quiz.timeLimit || 0} mins
                     </h3>
                 </Card>
 
                 <Card className="text-center">
-                    <p className="text-sm text-slate-400">Questions</p>
-                    <h3 className="mt-3 text-3xl font-bold text-orange-400">
+                    <p className="text-sm text-muted-foreground">Questions</p>
+                    <h3 className="mt-3 text-3xl font-bold text-primary">
                         {quiz.questions?.length || 0}
                     </h3>
                 </Card>
 
                 <Card className="text-center">
-                    <p className="text-sm text-slate-400">Total Marks</p>
-                    <h3 className="mt-3 text-3xl font-bold text-orange-400">
+                    <p className="text-sm text-muted-foreground">Total Marks</p>
+                    <h3 className="mt-3 text-3xl font-bold text-primary">
                         {totalMarks}
                     </h3>
                 </Card>
@@ -188,21 +188,21 @@ export default function QuizDetailsPage() {
                 return (
                     <Card
                         key={question.id}
-                        className="border border-slate-800 transition hover:border-orange-500"
+                        className="border border-transparent transition hover:border-primary"
                     >
                         {/* Top */}
                         <div className="flex items-start justify-between gap-6">
                             <div>
-                                <h3 className="text-lg font-bold text-white">
+                                <h3 className="text-lg font-bold text-foreground">
                                     Question {index + 1}
                                 </h3>
-                                <p className="mt-4 text-lg text-slate-100">
+                                <p className="mt-4 text-lg text-foreground">
                                     {question.question || question.title}
                                 </p>
                             </div>
 
                             <div className="flex items-center gap-4">
-                                <div className="rounded-full bg-orange-500/15 px-4 py-2 text-sm font-semibold text-orange-400">
+                                <div className="rounded-full bg-primary/15 px-4 py-2 text-sm font-semibold text-primary">
                                     ⭐ {question.marks || 1}{" "}
                                     {question.marks === 1 ? "Mark" : "Marks"}
                                 </div>
@@ -235,11 +235,11 @@ export default function QuizDetailsPage() {
                                     return (
                                         <div
                                             key={i}
-                                            className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900 px-5 py-4"
+                                            className="flex items-center justify-between rounded-lg border border-transparent bg-background px-5 py-4"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <span className="text-slate-500">○</span>
-                                                <span className="text-slate-200">
+                                                <span className="text-muted-foreground">○</span>
+                                                <span className="text-foreground">
                                                     <span className="mr-1 font-semibold">
                                                         {labels[i]}.
                                                     </span>
@@ -259,8 +259,8 @@ export default function QuizDetailsPage() {
                         )}
 
                         {/* Bottom */}
-                        <div className="mt-8 flex items-center justify-between border-t border-slate-800 pt-5">
-                            <p className="text-sm text-slate-500">
+                        <div className="mt-8 flex items-center justify-between border-t border-transparent pt-5">
+                            <p className="text-sm text-muted-foreground">
                                 Created:{" "}
                                 {question.createdAt
                                     ? new Date(question.createdAt).toLocaleDateString(
@@ -281,7 +281,7 @@ export default function QuizDetailsPage() {
                                             `/instructor/questions/edit/${question.id}`
                                         )
                                     }
-                                    className="font-medium text-orange-400 transition hover:text-orange-300"
+                                    className="font-medium text-primary transition hover:text-orange-300"
                                 >
                                     Edit
                                 </button>

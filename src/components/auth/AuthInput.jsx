@@ -30,14 +30,14 @@ export default function AuthInput({
           w-full
           rounded-lg
           border
-          border-slate-700
-          bg-slate-800
+          border-transparent
+          bg-muted
           pl-4
           pr-11
           py-3
-          text-white
+          text-foreground
           outline-none
-          focus:border-orange-500
+          focus:border-primary
           transition-colors
         "
         {...props}
@@ -46,7 +46,7 @@ export default function AuthInput({
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-white peer-autofill:text-slate-900 transition cursor-pointer"
+          className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground peer-autofill:text-slate-900 transition cursor-pointer"
         >
           {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>

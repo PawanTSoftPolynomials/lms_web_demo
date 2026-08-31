@@ -13,7 +13,7 @@ export default function CourseTable({
     if (!courses.length) {
         return (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-lg font-semibold text-foreground">
                     No Courses Found
                 </h3>
 
@@ -90,7 +90,7 @@ export default function CourseTable({
                                 </div>
 
                                 <div>
-                                    <h3 className="line-clamp-2 font-semibold text-white">
+                                    <h3 className="line-clamp-2 font-semibold text-foreground">
                                         {course.title}
                                     </h3>
 
@@ -137,7 +137,7 @@ export default function CourseTable({
                                     Category
                                 </p>
 
-                                <span className="font-medium text-white">
+                                <span className="font-medium text-foreground">
                   {course.category}
                 </span>
                             </div>
@@ -147,7 +147,7 @@ export default function CourseTable({
                                     Level
                                 </p>
 
-                                <span className="font-medium text-white">
+                                <span className="font-medium text-foreground">
                   {course.level}
                 </span>
                             </div>
@@ -174,7 +174,7 @@ export default function CourseTable({
                                     Created
                                 </p>
 
-                                <span className="text-white">
+                                <span className="text-foreground">
                   {new Date(
                       course.createdAt
                   ).toLocaleDateString()}
@@ -186,7 +186,7 @@ export default function CourseTable({
                                     Description
                                 </p>
 
-                                <p className="mt-1 line-clamp-3 text-white">
+                                <p className="mt-1 line-clamp-3 text-foreground">
                                     {
                                         course.description
                                     }

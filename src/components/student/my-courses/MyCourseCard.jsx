@@ -11,8 +11,8 @@ import { getDisplayUrl } from "@/lib/blob";
  *  same reasoning as the app's own --success token) and Not Started stays
  *  neutral; every "active" state (Enrolled/In Progress) shares the card's
  *  one highlight color rather than a different hue per course. */
-const NEUTRAL_STYLE = { badge: "bg-white/15 text-white/80 border-white/10", dot: "bg-white/70" };
-const COMPLETE_STYLE = { badge: "bg-emerald-500 text-white border-transparent", dot: "bg-white" };
+const NEUTRAL_STYLE = { badge: "bg-white/15 text-foreground/80 border-white/10", dot: "bg-white/70" };
+const COMPLETE_STYLE = { badge: "bg-emerald-500 text-foreground border-transparent", dot: "bg-white" };
 
 function getStatusStyle(status) {
   if (status === "Not Started") return NEUTRAL_STYLE;
@@ -63,7 +63,7 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-black/20">
-            <BookOpen size={40} className="text-white/25" />
+            <BookOpen size={40} className="text-foreground/25" />
           </div>
         )}
 
@@ -82,7 +82,7 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
           </Badge>
         </div>
 
-        <span className="absolute top-3 right-3 md:top-4 md:right-4 text-sm font-extrabold text-white [text-shadow:0_1px_4px_rgba(0,0,0,0.75)]">
+        <span className="absolute top-3 right-3 md:top-4 md:right-4 text-sm font-extrabold text-foreground [text-shadow:0_1px_4px_rgba(0,0,0,0.75)]">
           {progress}%
         </span>
       </div>
@@ -108,7 +108,7 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
           </div>
 
           <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-3 text-xs md:text-sm text-white/50">
+            <div className="flex min-w-0 items-center gap-3 text-xs md:text-sm text-foreground/50">
               <span className="flex items-center gap-1.5">
                 <BookOpen size={14} />
                 {lessonsTotal} Lessons

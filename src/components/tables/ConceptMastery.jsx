@@ -18,13 +18,13 @@ export default function ConceptMastery({ role, data }) {
         }
       >
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800/80 text-slate-400 border border-slate-700/60 mb-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/80 text-muted-foreground border border-transparent/60 mb-3">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <h4 className="font-bold text-white text-sm">No Concept Data</h4>
-          <p className="mt-1.5 text-xs text-slate-400 max-w-[240px] leading-relaxed">
+          <h4 className="font-bold text-foreground text-sm">No Concept Data</h4>
+          <p className="mt-1.5 text-xs text-muted-foreground max-w-[240px] leading-relaxed">
             There are no lessons or progress statistics available to assess concept mastery.
           </p>
         </div>
@@ -47,20 +47,20 @@ export default function ConceptMastery({ role, data }) {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-slate-800">
-              <th className="pb-4 text-left text-sm font-medium text-slate-400">
+            <tr className="border-b border-border">
+              <th className="pb-4 text-left text-sm font-medium text-muted-foreground">
                 {isAuthor ? 'Course' : 'Concept'}
               </th>
-              <th className="pb-4 text-center text-sm font-medium text-slate-400">
+              <th className="pb-4 text-center text-sm font-medium text-muted-foreground">
                 {isAuthor ? 'Learners' : 'Students'}
               </th>
-              <th className="pb-4 text-center text-sm font-medium text-slate-400">
+              <th className="pb-4 text-center text-sm font-medium text-muted-foreground">
                 {isAuthor ? 'Completion' : 'Mastery'}
               </th>
-              <th className="pb-4 text-center text-sm font-medium text-slate-400">
+              <th className="pb-4 text-center text-sm font-medium text-muted-foreground">
                 Status
               </th>
-              <th className="pb-4 text-center text-sm font-medium text-slate-400">
+              <th className="pb-4 text-center text-sm font-medium text-muted-foreground">
                 Trend
               </th>
             </tr>
@@ -69,13 +69,13 @@ export default function ConceptMastery({ role, data }) {
             {data.map((item) => (
               <tr
                 key={item.id}
-                className="border-b border-slate-800 transition hover:bg-slate-800/40"
+                className="border-b border-border transition hover:bg-muted/40"
               >
                 <td className="py-5">
-                  <button className="group flex flex-col items-start gap-1 text-left font-medium text-white transition hover:text-orange-400">
+                  <button className="group flex flex-col items-start gap-1 text-left font-medium text-foreground transition hover:text-primary">
                     <span>{item[labelKey]}</span>
                     {item.context && (
-                      <span className="text-sm font-normal text-slate-400">
+                      <span className="text-sm font-normal text-muted-foreground">
                         {item.context}
                       </span>
                     )}

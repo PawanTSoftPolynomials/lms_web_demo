@@ -98,14 +98,14 @@ export default function NotesPage() {
   };
 
   return (
-    <div className="space-y-6 text-white">
+    <div className="space-y-6 text-foreground">
       <PageHeader
         title="My Notes"
         subtitle={`${notes.length} notes saved`}
       >
         <button
           onClick={openAddModal}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-xl transition shadow-md cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-orange-600 text-foreground text-xs font-bold rounded-xl transition shadow-md cursor-pointer"
         >
           <Plus size={15} /> New Note
         </button>
@@ -114,22 +114,22 @@ export default function NotesPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-4 items-center">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search notes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900/50 border border-slate-800/80 rounded-xl pl-9 pr-4 py-2 text-xs text-white outline-none focus:border-orange-500 transition"
+            className="w-full bg-background/50 border border-transparent/80 rounded-xl pl-9 pr-4 py-2 text-xs text-foreground outline-none focus:border-primary transition"
           />
         </div>
 
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="bg-slate-900/50 border border-slate-800/80 rounded-xl px-3 py-2 text-xs text-slate-300 outline-none focus:border-orange-500 transition cursor-pointer"
+          className="bg-background/50 border border-transparent/80 rounded-xl px-3 py-2 text-xs text-foreground outline-none focus:border-primary transition cursor-pointer"
         >
-          {categories.map((c) => <option key={c} className="bg-slate-950">{c}</option>)}
+          {categories.map((c) => <option key={c} className="bg-background">{c}</option>)}
         </select>
 
         <button
@@ -137,7 +137,7 @@ export default function NotesPage() {
           className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition cursor-pointer ${
             showStarred 
               ? "bg-amber-500/10 border-amber-500/30 text-amber-500" 
-              : "bg-slate-900/50 border-slate-800/80 text-slate-400 hover:border-amber-500/50"
+              : "bg-background/50 border-transparent/80 text-muted-foreground hover:border-amber-500/50"
           }`}
         >
           <Star size={14} className={showStarred ? "fill-amber-500 text-amber-500" : ""} />
@@ -147,7 +147,7 @@ export default function NotesPage() {
 
       {/* Content */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20 text-slate-400">
+        <div className="flex items-center justify-center py-20 text-muted-foreground">
           <Loader2 className="animate-spin mr-2" size={20} /> Loading notes…
         </div>
       ) : isError ? (
@@ -155,13 +155,13 @@ export default function NotesPage() {
           <AlertCircle size={18} /> Failed to load notes. Please refresh.
         </div>
       ) : filteredNotes.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6">
-          <FileText size={40} className="mx-auto mb-3 opacity-40 text-slate-400" />
-          <p className="text-sm font-semibold text-white">No notes found</p>
-          <p className="text-xs mt-1 text-slate-400">Create your first note to get started.</p>
+        <div className="text-center py-20 text-muted-foreground bg-background/50 border border-transparent/80 rounded-2xl p-6">
+          <FileText size={40} className="mx-auto mb-3 opacity-40 text-muted-foreground" />
+          <p className="text-sm font-semibold text-foreground">No notes found</p>
+          <p className="text-xs mt-1 text-muted-foreground">Create your first note to get started.</p>
           <button
             onClick={openAddModal}
-            className="mt-4 px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl hover:bg-orange-650 transition cursor-pointer"
+            className="mt-4 px-4 py-2 bg-primary text-foreground text-xs font-bold rounded-xl hover:bg-orange-650 transition cursor-pointer"
           >
             Add Note
           </button>

@@ -81,18 +81,18 @@ const TextBlockEdit = forwardRef(function TextBlockEdit(
       />
 
       {isNew ? (
-        <p className="text-xs text-slate-500">Save this block once before adding nested content.</p>
+        <p className="text-xs text-muted-foreground">Save this block once before adding nested content.</p>
       ) : (
         <div className="space-y-2">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             Nested blocks — click + to insert a video/image/etc. at that point in the text
           </p>
-          <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+          <div className="rounded-lg border border-border bg-background/40 p-3">
             {tokens.length === 0 && children.length === 0 ? (
               <button
                 type="button"
                 onClick={() => setPickerAnchor(0)}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-400 hover:text-orange-300"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:text-orange-300"
               >
                 <Plus size={11} /> Insert block here
               </button>
@@ -123,7 +123,7 @@ const TextBlockEdit = forwardRef(function TextBlockEdit(
                   <button
                     type="button"
                     onClick={() => setPickerAnchor(i)}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-400 hover:text-orange-300"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:text-orange-300"
                   >
                     <Plus size={11} /> Insert block here
                   </button>

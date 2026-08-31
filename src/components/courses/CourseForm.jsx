@@ -118,7 +118,7 @@ export default function CourseForm({
                         : "Edit Course"}
                 </h1>
 
-                <p className="text-slate-400 mt-2">
+                <p className="text-muted-foreground mt-2">
                     {mode === "create"
                         ? "Create a new course for your student."
                         : "Update your course information."}
@@ -160,13 +160,13 @@ export default function CourseForm({
                         className="
               w-full
               rounded-lg
-              bg-slate-900
+              bg-background
               border
-              border-slate-700
+              border-transparent
               px-4
               py-3
               outline-none
-              focus:border-orange-500
+              focus:border-primary
               resize-none
             "
                         placeholder="Enter course description..."
@@ -200,13 +200,13 @@ export default function CourseForm({
                         className="
               w-full
               rounded-lg
-              bg-slate-900
+              bg-background
               border
-              border-slate-700
+              border-transparent
               px-4
               py-3
               outline-none
-              focus:border-orange-500
+              focus:border-primary
             "
                     >
                         {LEVELS.map((level) => (
@@ -232,11 +232,11 @@ export default function CourseForm({
 
                 {formData.thumbnailUrl && (
                     <div className="mt-3">
-                        <label className="block mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        <label className="block mb-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
                             Thumbnail Preview
                         </label>
 
-                        <div className="aspect-video h-48 w-auto max-w-md bg-slate-950 rounded-xl overflow-hidden border border-slate-700/60 shadow-luxury-md">
+                        <div className="aspect-video h-48 w-auto max-w-md bg-background rounded-xl overflow-hidden border border-transparent/60 shadow-luxury-md">
                             <img
                                 src={getDisplayUrl(formData.thumbnailUrl)}
                                 alt="Thumbnail Preview"
@@ -253,7 +253,7 @@ export default function CourseForm({
                             name="visibility"
                             value={formData.visibility}
                             onChange={handleChange}
-                            className="w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 outline-none focus:border-orange-500"
+                            className="w-full rounded-lg bg-background border border-transparent px-4 py-3 outline-none focus:border-primary"
                         >
                             <option value="PUBLIC">Public</option>
                             <option value="PRIVATE">Private</option>
@@ -288,8 +288,8 @@ export default function CourseForm({
                     />
                 </div>
 
-                <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/30 p-5 mt-4">
-                    <h3 className="text-sm font-bold text-slate-300">Course Features</h3>
+                <div className="space-y-4 rounded-xl border border-border bg-background/30 p-5 mt-4">
+                    <h3 className="text-sm font-bold text-foreground">Course Features</h3>
                     
                     <label className="flex items-center gap-3 cursor-pointer">
                         <input
@@ -297,9 +297,9 @@ export default function CourseForm({
                             name="certificatesEnabled"
                             checked={formData.certificatesEnabled}
                             onChange={handleChange}
-                            className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-orange-500 focus:ring-orange-500/20"
+                            className="w-4 h-4 rounded border-transparent bg-background text-primary focus:ring-orange-500/20"
                         />
-                        <span className="text-sm text-slate-300">Enable Certificates</span>
+                        <span className="text-sm text-foreground">Enable Certificates</span>
                     </label>
 
                     <label className="flex items-center gap-3 cursor-pointer">
@@ -308,9 +308,9 @@ export default function CourseForm({
                             name="discussionEnabled"
                             checked={formData.discussionEnabled}
                             onChange={handleChange}
-                            className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-orange-500 focus:ring-orange-500/20"
+                            className="w-4 h-4 rounded border-transparent bg-background text-primary focus:ring-orange-500/20"
                         />
-                        <span className="text-sm text-slate-300">Enable Course Discussions</span>
+                        <span className="text-sm text-foreground">Enable Course Discussions</span>
                     </label>
 
                     <label className="flex items-center gap-3 cursor-pointer">
@@ -319,9 +319,9 @@ export default function CourseForm({
                             name="dripContentEnabled"
                             checked={formData.dripContentEnabled}
                             onChange={handleChange}
-                            className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-orange-500 focus:ring-orange-500/20"
+                            className="w-4 h-4 rounded border-transparent bg-background text-primary focus:ring-orange-500/20"
                         />
-                        <span className="text-sm text-slate-300">Enable Drip Content (Scheduled delivery)</span>
+                        <span className="text-sm text-foreground">Enable Drip Content (Scheduled delivery)</span>
                     </label>
                 </div>
 

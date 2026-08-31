@@ -27,7 +27,7 @@ export default function StudentDetails({
                 />
 
                 <div>
-                    <h2 className="text-2xl font-bold text-white">
+                    <h2 className="text-2xl font-bold text-foreground">
                         {student.user.name}
                     </h2>
 
@@ -50,7 +50,7 @@ export default function StudentDetails({
               {student.user.status}
             </span>
 
-                        <span className="rounded-full bg-orange-500/20 px-3 py-1 text-xs font-medium text-orange-400">
+                        <span className="rounded-full bg-primary/20 px-3 py-1 text-xs font-medium text-primary">
               {student.user.role}
             </span>
                     </div>

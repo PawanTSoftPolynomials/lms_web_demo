@@ -30,11 +30,11 @@ function FeedbackPageContent() {
   if (isError || !course) {
     return (
       <div className="p-8 max-w-xl mx-auto text-center space-y-4">
-        <Card className="border-slate-800 bg-slate-900/60 p-8">
-          <h2 className="text-xl font-bold text-white">Course not found</h2>
-          <p className="text-xs text-slate-400 mt-2">The feedback link is missing a valid course context.</p>
+        <Card className="border-transparent bg-background/60 p-8">
+          <h2 className="text-xl font-bold text-foreground">Course not found</h2>
+          <p className="text-xs text-muted-foreground mt-2">The feedback link is missing a valid course context.</p>
           <Link href="/student/my-courses">
-            <button className="mt-6 px-5 py-2.5 bg-orange-500 text-slate-950 font-black uppercase text-xs tracking-wider rounded-xl hover:bg-orange-655 transition">
+            <button className="mt-6 px-5 py-2.5 bg-primary text-slate-950 font-black uppercase text-xs tracking-wider rounded-xl hover:bg-orange-655 transition">
               Back to My Courses
             </button>
           </Link>
@@ -59,7 +59,7 @@ function FeedbackPageContent() {
       <div>
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-orange-500 font-bold uppercase tracking-wider bg-transparent border-0 outline-none cursor-pointer transition"
+          className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-primary font-bold uppercase tracking-wider bg-transparent border-0 outline-none cursor-pointer transition"
         >
           <ArrowLeft size={14} />
           Back to Course Player
@@ -76,24 +76,24 @@ function FeedbackPageContent() {
           <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-505/20 text-emerald-450 flex items-center justify-center mx-auto">
             <Sparkles size={22} className="animate-pulse" />
           </div>
-          <h2 className="text-lg font-black text-white tracking-tight">Feedback Submitted!</h2>
-          <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+          <h2 className="text-lg font-black text-foreground tracking-tight">Feedback Submitted!</h2>
+          <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
             Thank you for taking the time to share your feedback. Your input helps us and our instructors build better learning experiences.
           </p>
           <button
             onClick={() => router.back()}
-            className="mt-6 px-5 py-2.5 bg-orange-500 hover:bg-orange-655 text-slate-950 font-black uppercase text-xs tracking-widest rounded-xl transition cursor-pointer"
+            className="mt-6 px-5 py-2.5 bg-primary hover:bg-orange-655 text-slate-950 font-black uppercase text-xs tracking-widest rounded-xl transition cursor-pointer"
           >
             Return to Learning
           </button>
         </Card>
       ) : (
-        <Card className="p-6 sm:p-8 border border-slate-800 bg-slate-900/60 rounded-3xl space-y-6">
+        <Card className="p-6 sm:p-8 border border-transparent bg-background/60 rounded-3xl space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             
             {/* Satisfaction Level */}
             <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Overall Satisfaction</label>
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Overall Satisfaction</label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
                   { id: "dissatisfied", label: "Needs Improvement", icon: Frown, color: "text-rose-500", border: "border-rose-500/20", bg: "bg-rose-500/5" },
@@ -109,11 +109,11 @@ function FeedbackPageContent() {
                       onClick={() => setSatisfaction(item.id)}
                       className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition cursor-pointer ${
                         isSelected
-                          ? `bg-slate-950/80 border-orange-500 text-white`
-                          : "border-slate-800 bg-slate-950/10 text-slate-400 hover:bg-slate-950/40"
+                          ? `bg-background/80 border-primary text-foreground`
+                          : "border-transparent bg-background/10 text-muted-foreground hover:bg-background/40"
                       }`}
                     >
-                      <Icon size={20} className={`${isSelected ? "text-orange-500" : "text-slate-500"} mb-2 transition`} />
+                      <Icon size={20} className={`${isSelected ? "text-primary" : "text-muted-foreground"} mb-2 transition`} />
                       <span className="text-[10px] font-extrabold uppercase tracking-wide leading-tight">{item.label}</span>
                     </button>
                   );
@@ -123,8 +123,8 @@ function FeedbackPageContent() {
 
             {/* Course Rating */}
             <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Quality Rating (1 to 5)</label>
-              <div className="flex items-center gap-2 bg-slate-950/30 p-4 rounded-2xl border border-slate-800">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Quality Rating (1 to 5)</label>
+              <div className="flex items-center gap-2 bg-background/30 p-4 rounded-2xl border border-transparent">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
@@ -138,13 +138,13 @@ function FeedbackPageContent() {
                     />
                   </button>
                 ))}
-                <span className="text-xs font-black text-slate-400 ml-4">{rating} out of 5 Stars</span>
+                <span className="text-xs font-black text-muted-foreground ml-4">{rating} out of 5 Stars</span>
               </div>
             </div>
 
             {/* Structured Questions */}
-            <div className="space-y-4 border-t border-slate-800 pt-5">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Structured Evaluations</label>
+            <div className="space-y-4 border-t border-transparent pt-5">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Structured Evaluations</label>
               
               <div className="space-y-4">
                 {[
@@ -152,14 +152,14 @@ function FeedbackPageContent() {
                   "The concepts and quizzes accurately reflected real-world applications.",
                   "The learning resources provided were comprehensive and supportive."
                 ].map((question, idx) => (
-                  <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-slate-950/20 rounded-xl border border-slate-850/60">
-                    <span className="text-xs font-semibold text-slate-300">{question}</span>
+                  <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-background/20 rounded-xl border border-slate-850/60">
+                    <span className="text-xs font-semibold text-foreground">{question}</span>
                     <div className="flex gap-2.5">
                       {["Disagree", "Neutral", "Agree"].map((opt) => (
                         <button
                           key={opt}
                           type="button"
-                          className="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg border border-slate-800 bg-slate-900 hover:border-slate-700 text-slate-400 hover:text-white cursor-pointer transition"
+                          className="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg border border-transparent bg-background hover:border-transparent text-muted-foreground hover:text-foreground cursor-pointer transition"
                         >
                           {opt}
                         </button>
@@ -171,15 +171,15 @@ function FeedbackPageContent() {
             </div>
 
             {/* Comment Area */}
-            <div className="space-y-2 border-t border-slate-800 pt-5">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Detailed Review & Comments</label>
+            <div className="space-y-2 border-t border-transparent pt-5">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Detailed Review & Comments</label>
               <textarea
                 rows={5}
                 required
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="What did you like about this course? How can we make it better?"
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950/30 p-4 text-xs font-semibold text-white outline-none focus:border-orange-500 transition leading-relaxed"
+                className="w-full rounded-2xl border border-transparent bg-background/30 p-4 text-xs font-semibold text-foreground outline-none focus:border-primary transition leading-relaxed"
               />
             </div>
 
@@ -188,7 +188,7 @@ function FeedbackPageContent() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-orange-500 hover:bg-orange-655 text-slate-950 font-black uppercase text-xs tracking-widest shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0"
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-primary hover:bg-orange-655 text-slate-950 font-black uppercase text-xs tracking-widest shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0"
               >
                 {submitting ? (
                   <>

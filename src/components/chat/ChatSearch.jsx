@@ -4,7 +4,7 @@ import { Search } from "lucide-react";
 
 export default function ChatSearch({ value, onChange }) {
   return (
-    <div className="border-b border-slate-800/50 p-4 bg-slate-900/20">
+    <div className="border-b border-border/50 p-4 bg-background/20">
       <div className="relative">
         <Search
           size={16}
@@ -16,9 +16,9 @@ export default function ChatSearch({ value, onChange }) {
 
           -translate-y-1/2
 
-          text-slate-400
+          text-muted-foreground
           transition-colors
-          group-focus-within:text-orange-500
+          group-focus-within:text-primary
           "
         />
 
@@ -33,26 +33,26 @@ export default function ChatSearch({ value, onChange }) {
           rounded-xl
 
           border
-          border-slate-800/80
+          border-border/80
 
-          bg-slate-950/50
+          bg-background/50
           backdrop-blur-sm
 
           pl-10
           pr-4
 
           text-xs
-          text-white
+          text-foreground
 
           outline-none
 
-          placeholder:text-slate-500
+          placeholder:text-muted-foreground
 
           transition-all
           duration-300
 
-          focus:border-orange-500/60
-          focus:bg-slate-950
+          focus:border-primary/60
+          focus:bg-background
           focus:ring-1
           focus:ring-orange-500/30
           focus:shadow-[0_0_15px_rgba(249,115,22,0.1)]

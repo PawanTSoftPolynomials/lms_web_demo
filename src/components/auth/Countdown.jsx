@@ -8,11 +8,11 @@ export default function Countdown({
   if (seconds > 0) {
     return (
       <div className="text-center">
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-muted-foreground">
           Didn't receive the code?
         </p>
 
-        <p className="mt-1 font-medium text-orange-500">
+        <p className="mt-1 font-medium text-primary">
           Resend in {seconds}s
         </p>
       </div>
@@ -25,7 +25,7 @@ export default function Countdown({
         type="button"
         onClick={onResend}
         disabled={loading}
-        className="font-medium text-orange-500 transition hover:text-orange-400 disabled:opacity-50"
+        className="font-medium text-primary transition hover:text-primary disabled:opacity-50"
       >
         {loading ? "Sending..." : "Resend OTP"}
       </button>

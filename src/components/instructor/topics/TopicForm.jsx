@@ -72,7 +72,7 @@ export default function TopicForm({
                 />
 
                 <div>
-                    <label className="mb-2 block text-sm font-medium text-white">
+                    <label className="mb-2 block text-sm font-medium text-foreground">
                         Description
                     </label>
 
@@ -83,7 +83,7 @@ export default function TopicForm({
                     />
                 </div>
 
-                <div className="flex flex-col gap-2 bg-slate-950/40 p-4 rounded-xl border border-slate-800">
+                <div className="flex flex-col gap-2 bg-background/40 p-4 rounded-xl border border-border">
                     <div className="flex items-center gap-3">
                         <input
                             type="checkbox"
@@ -92,11 +92,11 @@ export default function TopicForm({
                             checked={formData.isPublished}
                             onChange={handleChange}
                             disabled={!canPublish}
-                            className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-orange-500 focus:ring-orange-500 focus:ring-offset-slate-900 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                            className="h-4 w-4 rounded border-transparent bg-background text-primary focus:ring-orange-500 focus:ring-offset-slate-900 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                         />
                         <label
                             htmlFor="isPublished"
-                            className={`text-sm font-semibold cursor-pointer ${canPublish ? "text-slate-200" : "text-slate-500 cursor-not-allowed"}`}
+                            className={`text-sm font-semibold cursor-pointer ${canPublish ? "text-foreground" : "text-muted-foreground cursor-not-allowed"}`}
                         >
                             Publish Topic (Make this topic visible to students instantly)
                         </label>
@@ -132,13 +132,13 @@ export default function TopicForm({
     return (
         <Card className="mx-auto max-w-4xl">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-white">
+                <h1 className="text-3xl font-bold text-foreground">
                     {mode === "create"
                         ? "Create Topic"
                         : "Edit Topic"}
                 </h1>
 
-                <p className="mt-2 text-slate-400">
+                <p className="mt-2 text-muted-foreground">
                     {mode === "create"
                         ? "Add a new topic to this lesson."
                         : "Update topic details."}

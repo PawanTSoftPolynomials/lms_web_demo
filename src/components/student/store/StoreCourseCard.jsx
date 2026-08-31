@@ -41,10 +41,10 @@ export default function StoreCourseCard({ course }) {
   return (
     <div
       onClick={goToDetails}
-      className="group relative flex w-full flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/70 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-orange-500/40 hover:shadow-2xl cursor-pointer"
+      className="group relative flex w-full flex-col overflow-hidden rounded-2xl border border-border bg-background/70 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-2xl cursor-pointer"
     >
       {/* Thumbnail */}
-      <div className="relative h-36 shrink-0 overflow-hidden bg-slate-800">
+      <div className="relative h-36 shrink-0 overflow-hidden bg-muted">
         {course.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -59,14 +59,14 @@ export default function StoreCourseCard({ course }) {
           </div>
         )}
 
-        <span className="absolute top-2.5 left-2.5 rounded-md border border-white/20 bg-black/50 backdrop-blur px-2 py-0.5 text-[10px] font-bold text-white">
+        <span className="absolute top-2.5 left-2.5 rounded-md border border-white/20 bg-black/50 backdrop-blur px-2 py-0.5 text-[10px] font-bold text-foreground">
           {course.category || "General"}
         </span>
 
         {/* Price tag */}
         <span
           className={`absolute top-2.5 right-2.5 rounded-md px-2.5 py-1 text-[11px] font-black shadow-lg ${
-            isFree ? "bg-emerald-500 text-slate-950" : "bg-orange-500 text-slate-950"
+            isFree ? "bg-emerald-500 text-slate-950" : "bg-primary text-slate-950"
           }`}
         >
           {isFree ? "FREE" : formatPrice(effectivePrice, currency)}
@@ -75,43 +75,43 @@ export default function StoreCourseCard({ course }) {
 
       <div className="flex flex-1 flex-col gap-2.5 p-4">
         <div>
-          <h3 className="text-base font-black text-white leading-snug line-clamp-1">{course.title}</h3>
+          <h3 className="text-base font-black text-foreground leading-snug line-clamp-1">{course.title}</h3>
           {course.description && (
-            <p className="mt-1 text-xs leading-relaxed text-slate-400 line-clamp-2">{course.description}</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-2">{course.description}</p>
           )}
         </div>
 
-        <div className="flex items-center gap-3 text-[11px] text-slate-400">
+        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
           <span className="inline-flex items-center gap-1">
-            <UserRound size={12} className="text-slate-500" />
+            <UserRound size={12} className="text-muted-foreground" />
             <span className="truncate max-w-[110px]">{instructorName}</span>
           </span>
           <span className="inline-flex items-center gap-1">
-            <Layers size={12} className="text-slate-500" />
+            <Layers size={12} className="text-muted-foreground" />
             {modulesTotal} modules
           </span>
           <span className="inline-flex items-center gap-1">
-            <BookOpen size={12} className="text-slate-500" />
+            <BookOpen size={12} className="text-muted-foreground" />
             {lessonsTotal} lessons
           </span>
         </div>
 
         <div className="flex items-center justify-between text-xs pt-1">
           {avgRating > 0 ? (
-            <span className="inline-flex items-center gap-1 text-slate-300">
-              <Star size={13} className="fill-orange-400 text-orange-400" />
+            <span className="inline-flex items-center gap-1 text-foreground">
+              <Star size={13} className="fill-orange-400 text-primary" />
               {avgRating.toFixed(1)}
-              <span className="text-slate-500">({reviewCount})</span>
+              <span className="text-muted-foreground">({reviewCount})</span>
             </span>
           ) : (
-            <span className="text-slate-500">New course</span>
+            <span className="text-muted-foreground">New course</span>
           )}
-          <span className="font-bold text-orange-400">{course.level || "All Levels"}</span>
+          <span className="font-bold text-primary">{course.level || "All Levels"}</span>
         </div>
 
         <div className="mt-auto flex items-center justify-between gap-2 pt-2">
           {!isFree && listPrice && (
-            <span className="text-xs text-slate-500 line-through">{formatPrice(listPrice, currency)}</span>
+            <span className="text-xs text-muted-foreground line-through">{formatPrice(listPrice, currency)}</span>
           )}
           <button
             onClick={
@@ -123,7 +123,7 @@ export default function StoreCourseCard({ course }) {
                   }
             }
             disabled={isFree && enrollMutation.isPending}
-            className="ml-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-60 px-4 py-2 text-xs font-extrabold text-slate-950 transition active:scale-95 cursor-pointer"
+            className="ml-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary hover:bg-orange-600 disabled:opacity-60 px-4 py-2 text-xs font-extrabold text-slate-950 transition active:scale-95 cursor-pointer"
           >
             {isFree && enrollMutation.isPending ? (
               <>

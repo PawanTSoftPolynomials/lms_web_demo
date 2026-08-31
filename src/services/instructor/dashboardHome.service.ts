@@ -193,6 +193,33 @@ function getTodaysEvents(events: RawCalendarEvent[]): RawCalendarEvent[] {
   return sortByStartTime(events.filter((e) => e.date === todayStr));
 }
 
+function sortByDateThenTime<T extends { date?: string; startTime?: string }>(events: T[]): T[] {
+  return [...events].sort((a, b) =>
+    `${a.date ?? ""}${a.startTime ?? ""}`.localeCompare(`${b.date ?? ""}${b.startTime ?? ""}`)
+  );
+}
+
+/** Events the instructor scheduled for a day after today — the part of the
+ * calendar "Upcoming Events" was missing (it only ever showed today's
+ * events, see getTodaysEvents). Capped since a calendar can hold hundreds
+ * of events and the panel only ever renders its first few. */
+function getFutureEvents(events: RawCalendarEvent[]): RawCalendarEvent[] {
+  const todayStr = new Date().toISOString().split("T")[0];
+  return sortByDateThenTime(events.filter((e) => typeof e.date === "string" && e.date > todayStr)).slice(0, 20);
+}
+
+/** "14:30" for today's events; "Tomorrow · 14:30" / "Sep 2 · 14:30" for
+ * later dates, so a future event doesn't read as if it were today's. */
+function formatEventWhen(dateStr: string, startTime: string | undefined, todayStr: string): string {
+  if (dateStr === todayStr) return startTime ?? "All day";
+  const eventDate = new Date(`${dateStr}T00:00:00`);
+  const tomorrow = new Date(`${todayStr}T00:00:00`);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const isTomorrow = dateStr === tomorrow.toISOString().split("T")[0];
+  const dayLabel = isTomorrow ? "Tomorrow" : eventDate.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return startTime ? `${dayLabel} · ${startTime}` : dayLabel;
+}
+
 /** Best-effort parse of a free-text event time ("14:30" or "2:30 PM") into today's Date. Null if unparseable. */
 function parseTimeToday(timeStr: string | undefined): Date | null {
   if (!timeStr) return null;
@@ -430,18 +457,22 @@ export function deriveNeedsAttention(raw: {
 
 export function deriveUpcomingClasses(events: RawCalendarEvent[]): {
   today: ScheduleEvent[];
+  upcoming: ScheduleEvent[];
 } {
-  const todayEvents = getTodaysEvents(events);
+  const todayStr = new Date().toISOString().split("T")[0];
 
-  const today: ScheduleEvent[] = todayEvents.map((e, idx) => {
-    const startsAt = parseTimeToday(e.startTime);
+  const toScheduleEvent = (e: RawCalendarEvent, idx: number, idPrefix: string): ScheduleEvent => {
+    const isToday = e.date === todayStr;
+    // "ended"/live-right-now only make sense relative to today's clock —
+    // a future date is always still "upcoming" regardless of its time-of-day.
+    const startsAt = isToday ? parseTimeToday(e.startTime) : null;
     const status: ScheduleEvent["status"] =
-      e.type === "live" ? "live" : startsAt && startsAt.getTime() < Date.now() ? "ended" : "upcoming";
+      isToday && e.type === "live" ? "live" : isToday && startsAt && startsAt.getTime() < Date.now() ? "ended" : "upcoming";
 
     return {
-      id: e.id ?? `today-${idx}`,
+      id: e.id ?? `${idPrefix}-${idx}`,
       title: e.title ?? "Scheduled session",
-      time: e.startTime ?? "All day",
+      time: formatEventWhen(e.date ?? todayStr, e.startTime, todayStr),
       endTime: e.endTime,
       courseName: e.courseName ?? "General",
       batch: e.batch,
@@ -450,9 +481,14 @@ export function deriveUpcomingClasses(events: RawCalendarEvent[]): {
       joinLink: e.link,
       status,
     };
-  });
+  };
 
-  return { today };
+  const today = getTodaysEvents(events).map((e, idx) => toScheduleEvent(e, idx, "today"));
+  const laterEvents = getFutureEvents(events).map((e, idx) => toScheduleEvent(e, idx, "upcoming"));
+
+  // "Upcoming Events" (desktop) spans today + future dates; the mobile
+  // "Today's Schedule" section keeps consuming `today` alone, unchanged.
+  return { today, upcoming: [...today, ...laterEvents] };
 }
 
 export function deriveCalendarHighlights(events: RawCalendarEvent[]): CalendarHighlight[] {

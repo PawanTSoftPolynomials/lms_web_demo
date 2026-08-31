@@ -110,7 +110,7 @@ export default function LoginPage() {
     <AuthLayout>
       <AuthCard>
         <AuthHeader
-          icon={<HiOutlineLockClosed className="text-4xl text-orange-500" />}
+          icon={<HiOutlineLockClosed className="text-4xl text-primary" />}
           title="Welcome Back"
           description="Sign in to continue your learning journey."
         />
@@ -155,7 +155,7 @@ export default function LoginPage() {
           <div className="flex justify-end">
             <Link
               href="/forgot-password"
-              className="text-sm font-medium text-orange-500 hover:text-orange-400"
+              className="text-sm font-medium text-primary hover:text-primary"
             >
               Forgot Password?
             </Link>

@@ -177,9 +177,9 @@ export default function EventModal({
       case "quiz":
         return "bg-violet-500/10 text-violet-400 border border-violet-500/20";
       case "assignment":
-        return "bg-orange-500/10 text-orange-400 border border-orange-500/20";
+        return "bg-primary/10 text-primary border border-primary/20";
       default:
-        return "bg-slate-500/10 text-slate-400 border border-slate-500/20";
+        return "bg-slate-500/10 text-muted-foreground border border-slate-500/20";
     }
   };
 
@@ -205,32 +205,32 @@ export default function EventModal({
 
       {event ? (
         /* Event Details View Mode */
-        <div className="space-y-6 text-slate-300">
+        <div className="space-y-6 text-foreground">
           <div>
             <div className="flex items-center gap-3">
               <span className={`px-2.5 py-1 text-xs font-semibold rounded-full uppercase tracking-wider ${getBadgeColor(event.type)}`}>
                 {formatType(event.type)}
               </span>
               {event.maxMarks && (
-                <span className="bg-slate-800 text-slate-300 px-2 py-0.5 text-xs rounded border border-slate-700">
+                <span className="bg-muted text-foreground px-2 py-0.5 text-xs rounded border border-transparent">
                   {event.maxMarks} Marks
                 </span>
               )}
             </div>
-            <h3 className="text-2xl font-bold text-white mt-3 leading-snug">{event.title}</h3>
-            <p className="text-sm text-slate-400 mt-1">{event.courseName}</p>
+            <h3 className="text-2xl font-bold text-foreground mt-3 leading-snug">{event.title}</h3>
+            <p className="text-sm text-muted-foreground mt-1">{event.courseName}</p>
           </div>
 
-          <div className="space-y-3 bg-slate-950/40 p-4 rounded-xl border border-slate-800/80">
-            <div className="flex items-center gap-3 text-sm text-slate-300">
-              <FaClock className="text-orange-500 w-4 h-4 flex-shrink-0" />
+          <div className="space-y-3 bg-background/40 p-4 rounded-xl border border-border/80">
+            <div className="flex items-center gap-3 text-sm text-foreground">
+              <FaClock className="text-primary w-4 h-4 flex-shrink-0" />
               <span>
                 <strong>Date & Time:</strong> {event.date} | {event.startTime} - {event.endTime}
               </span>
             </div>
 
             {event.instructorName && (
-              <div className="flex items-center gap-3 text-sm text-slate-300">
+              <div className="flex items-center gap-3 text-sm text-foreground">
                 <FaUsers className="text-pink-500 w-4 h-4 flex-shrink-0" />
                 <span>
                   <strong>Instructor:</strong> {event.instructorName}
@@ -239,7 +239,7 @@ export default function EventModal({
             )}
 
             {event.link && event.type === "class" && (
-              <div className="flex items-center gap-3 text-sm text-slate-300">
+              <div className="flex items-center gap-3 text-sm text-foreground">
                 <FaVideo className="text-emerald-500 w-4 h-4 flex-shrink-0" />
                 <a
                   href={event.link}
@@ -255,14 +255,14 @@ export default function EventModal({
 
           {event.description && (
             <div>
-              <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Description</h4>
-              <p className="text-slate-300 text-sm bg-slate-900/60 p-4 rounded-xl border border-slate-800/60 whitespace-pre-line leading-relaxed">
+              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Description</h4>
+              <p className="text-foreground text-sm bg-background/60 p-4 rounded-xl border border-border/60 whitespace-pre-line leading-relaxed">
                 {event.description}
               </p>
             </div>
           )}
 
-          <div className="flex items-center justify-between border-t border-slate-800/80 pt-5 mt-8 gap-4">
+          <div className="flex items-center justify-between border-t border-border/80 pt-5 mt-8 gap-4">
             <div>
               {(role === "ADMIN" || role === "INSTRUCTOR") && (
                 <Button
@@ -277,13 +277,13 @@ export default function EventModal({
             </div>
 
             <div className="flex items-center gap-3">
-              <Button onClick={onClose} className="!bg-slate-800 hover:!bg-slate-700 !text-slate-300">
+              <Button onClick={onClose} className="!bg-muted hover:!bg-slate-700 !text-foreground">
                 Close
               </Button>
 
               {event.type === "class" && event.link && (
                 <a href={event.link} target="_blank" rel="noreferrer">
-                  <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white flex items-center gap-2">
+                  <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-foreground flex items-center gap-2">
                     <FaVideo className="w-3.5 h-3.5" />
                     Join Lecture
                   </Button>
@@ -292,7 +292,7 @@ export default function EventModal({
 
               {event.type === "quiz" && (
                 <a href="/student/quizzes">
-                  <Button className="bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white flex items-center gap-2">
+                  <Button className="bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-foreground flex items-center gap-2">
                     <FaClipboardList className="w-3.5 h-3.5" />
                     Go to Quizzes
                   </Button>
@@ -301,7 +301,7 @@ export default function EventModal({
 
               {event.type === "assignment" && (
                 <a href="/student/my-courses">
-                  <Button className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white flex items-center gap-2">
+                  <Button className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-foreground flex items-center gap-2">
                     <FaBookOpen className="w-3.5 h-3.5" />
                     Go to Courses
                   </Button>
@@ -319,16 +319,16 @@ export default function EventModal({
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             required
-            className="w-full text-white"
+            className="w-full text-foreground"
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-2">Activity Type *</label>
+              <label className="block text-sm font-semibold text-foreground mb-2">Activity Type *</label>
               <select
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                className="w-full rounded-xl border border-slate-800 bg-slate-800 p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full rounded-xl border border-border bg-muted p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
                 <option value="class">Online Class (Live Lecture)</option>
                 <option value="quiz">Quiz Session</option>
@@ -337,11 +337,11 @@ export default function EventModal({
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-2">Select Course *</label>
+              <label className="block text-sm font-semibold text-foreground mb-2">Select Course *</label>
               <select
                 value={formData.courseId}
                 onChange={(e) => setFormData({ ...formData, courseId: e.target.value })}
-                className="w-full rounded-xl border border-slate-800 bg-slate-800 p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full rounded-xl border border-border bg-muted p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
                 required
               >
                 <option value="">-- Choose Course --</option>
@@ -361,7 +361,7 @@ export default function EventModal({
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               required
-              className="w-full text-white"
+              className="w-full text-foreground"
             />
             <Input
               label="Start Time *"
@@ -369,7 +369,7 @@ export default function EventModal({
               value={formData.startTime}
               onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
               required
-              className="w-full text-white"
+              className="w-full text-foreground"
             />
             <Input
               label="End Time *"
@@ -377,17 +377,17 @@ export default function EventModal({
               value={formData.endTime}
               onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
               required
-              className="w-full text-white"
+              className="w-full text-foreground"
             />
           </div>
 
           {role === "ADMIN" && (
             <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-2">Assign Instructor</label>
+              <label className="block text-sm font-semibold text-foreground mb-2">Assign Instructor</label>
               <select
                 value={formData.instructorId}
                 onChange={(e) => setFormData({ ...formData, instructorId: e.target.value })}
-                className="w-full rounded-xl border border-slate-800 bg-slate-800 p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full rounded-xl border border-border bg-muted p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
                 <option value="">-- Select Instructor --</option>
                 {instructors.map((t) => (
@@ -407,7 +407,7 @@ export default function EventModal({
               value={formData.link}
               onChange={(e) => setFormData({ ...formData, link: e.target.value })}
               required
-              className="w-full text-white"
+              className="w-full text-foreground"
             />
           )}
 
@@ -418,28 +418,28 @@ export default function EventModal({
               placeholder="e.g. 100"
               value={formData.maxMarks}
               onChange={(e) => setFormData({ ...formData, maxMarks: e.target.value })}
-              className="w-full text-white"
+              className="w-full text-foreground"
             />
           )}
 
           <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-2">Description</label>
+            <label className="block text-sm font-semibold text-foreground mb-2">Description</label>
             <textarea
               rows={3}
               placeholder="Enter activity description, syllabus details, or special instructions..."
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full rounded-xl border border-slate-800 bg-slate-800 p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full rounded-xl border border-border bg-muted p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800/80">
-            <Button onClick={onClose} className="!bg-slate-800 hover:!bg-slate-700 !text-slate-300">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border/80">
+            <Button onClick={onClose} className="!bg-muted hover:!bg-slate-700 !text-foreground">
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-semibold"
+              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-foreground font-semibold"
               disabled={loading}
             >
               {loading ? "Scheduling..." : "Schedule Event"}

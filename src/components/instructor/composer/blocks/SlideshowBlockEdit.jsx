@@ -24,26 +24,26 @@ const SlideshowBlockEdit = forwardRef(function SlideshowBlockEdit({ block, onCha
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <label className="text-sm text-slate-300">
+        <label className="text-sm text-foreground">
           Slide markdown — separate slides with a line containing only{" "}
-          <code className="text-orange-400">---</code>
+          <code className="text-primary">---</code>
         </label>
         <textarea
           value={block.markdown || ""}
           onChange={(e) => onChange({ markdown: e.target.value })}
           rows={10}
           placeholder={"# Slide 1\n\nContent here\n\n---\n\n# Slide 2\n\nMore content"}
-          className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm font-mono outline-none focus:border-orange-500 resize-y"
+          className="w-full rounded-lg border border-transparent bg-muted px-3 py-2 text-sm font-mono outline-none focus:border-primary resize-y"
         />
       </div>
 
       {slides.length > 0 && (
         <div>
-          <p className="text-xs text-slate-500 mb-2">
+          <p className="text-xs text-muted-foreground mb-2">
             Live preview — drag nested blocks onto this slide
           </p>
           {css && <style>{css}</style>}
-          <div className="relative rounded-lg border border-slate-800 bg-slate-950/40 p-4 min-h-[220px] overflow-auto">
+          <div className="relative rounded-lg border border-border bg-background/40 p-4 min-h-[220px] overflow-auto">
             <div
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(slides[current], { ADD_TAGS: ["section"] }),
@@ -59,7 +59,7 @@ const SlideshowBlockEdit = forwardRef(function SlideshowBlockEdit({ block, onCha
             />
           </div>
           <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-muted-foreground">
               Slide {current + 1} of {slides.length} — nested blocks attach to whichever slide is shown here
             </span>
             <div className="flex gap-2">
@@ -67,7 +67,7 @@ const SlideshowBlockEdit = forwardRef(function SlideshowBlockEdit({ block, onCha
                 type="button"
                 disabled={current === 0}
                 onClick={() => setIndex((i) => Math.max(i - 1, 0))}
-                className="p-1.5 rounded-lg border border-slate-700 text-slate-300 disabled:opacity-30 hover:bg-slate-800"
+                className="p-1.5 rounded-lg border border-transparent text-foreground disabled:opacity-30 hover:bg-muted"
               >
                 <ChevronLeft size={14} />
               </button>
@@ -75,7 +75,7 @@ const SlideshowBlockEdit = forwardRef(function SlideshowBlockEdit({ block, onCha
                 type="button"
                 disabled={current === slides.length - 1}
                 onClick={() => setIndex((i) => Math.min(i + 1, slides.length - 1))}
-                className="p-1.5 rounded-lg border border-slate-700 text-slate-300 disabled:opacity-30 hover:bg-slate-800"
+                className="p-1.5 rounded-lg border border-transparent text-foreground disabled:opacity-30 hover:bg-muted"
               >
                 <ChevronRight size={14} />
               </button>

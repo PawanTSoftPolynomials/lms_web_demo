@@ -12,7 +12,7 @@ export default function EnrollmentRow({
             {/* Student */}
             <td className="px-6 py-4">
                 <div>
-                    <p className="font-semibold text-white">
+                    <p className="font-semibold text-foreground">
                         {
                             enrollment.student?.user
                                 ?.name
@@ -31,7 +31,7 @@ export default function EnrollmentRow({
             {/* Course */}
             <td className="px-6 py-4">
                 <div>
-                    <p className="font-medium text-white">
+                    <p className="font-medium text-foreground">
                         {
                             enrollment.course
                                 ?.title

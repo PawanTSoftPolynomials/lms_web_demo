@@ -63,7 +63,7 @@ export default function QuestionDetailsPage() {
                         Question Not Found
                     </h2>
 
-                    <p className="mt-2 text-slate-400">
+                    <p className="mt-2 text-muted-foreground">
                         Unable to load this question.
                     </p>
                 </div>
@@ -81,18 +81,18 @@ export default function QuestionDetailsPage() {
                             <span
                                 className="
                                     rounded-full
-                                    bg-orange-500/15
+                                    bg-primary/15
                                     px-3
                                     py-1
                                     text-sm
                                     font-medium
-                                    text-orange-400
+                                    text-primary
                                 "
                             >
                                 Question
                             </span>
 
-                            <span className="text-sm text-slate-500">
+                            <span className="text-sm text-muted-foreground">
                                 {question.marks} Mark
                                 {question.marks > 1
                                     ? "s"
@@ -100,7 +100,7 @@ export default function QuestionDetailsPage() {
                             </span>
                         </div>
 
-                        <h1 className="text-4xl font-bold text-white">
+                        <h1 className="text-4xl font-bold text-foreground">
                             Question Details
                         </h1>
                     </div>
@@ -142,12 +142,12 @@ export default function QuestionDetailsPage() {
                     className="
                         rounded-xl
                         border
-                        border-slate-700
+                        border-transparent
                         px-5
                         py-3
-                        text-white
+                        text-foreground
                         transition
-                        hover:border-orange-500
+                        hover:border-primary
                     "
                 >
                     Back to Questions
@@ -160,7 +160,7 @@ export default function QuestionDetailsPage() {
                         bg-orange-600
                         px-5
                         py-3
-                        text-white
+                        text-foreground
                         transition
                         hover:bg-orange-700
                     "

@@ -17,13 +17,13 @@ export default function UnknownBlockView({ block }) {
         Unmapped content — review needed
       </div>
       {original.sourcePath && (
-        <p className="text-xs text-slate-400">Source: {original.sourcePath}</p>
+        <p className="text-xs text-muted-foreground">Source: {original.sourcePath}</p>
       )}
       {original.reason && (
-        <p className="text-xs text-slate-400">Reason: {original.reason}</p>
+        <p className="text-xs text-muted-foreground">Reason: {original.reason}</p>
       )}
       {original.content && (
-        <pre className="max-h-40 overflow-auto rounded border border-slate-800 bg-slate-950/60 px-3 py-2 text-xs text-slate-400 whitespace-pre-wrap">
+        <pre className="max-h-40 overflow-auto rounded border border-border bg-background/60 px-3 py-2 text-xs text-muted-foreground whitespace-pre-wrap">
           {String(original.content).slice(0, 1000)}
         </pre>
       )}

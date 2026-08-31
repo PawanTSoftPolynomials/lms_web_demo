@@ -48,7 +48,7 @@ export default function LessonNavItem({
     <div
       onClick={onSelect}
       className={`group flex items-center gap-1.5 px-2 py-1.5 rounded-lg cursor-pointer text-sm transition ${
-        isActive ? "bg-orange-500/10 text-orange-400" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+        isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
       }`}
     >
       {lesson.isPublished ? (
@@ -65,7 +65,7 @@ export default function LessonNavItem({
           onChange={(e) => setTitle(e.target.value)}
           onBlur={saveRename}
           onKeyDown={(e) => e.key === "Enter" && saveRename()}
-          className="flex-1 min-w-0 bg-slate-800 rounded px-1.5 py-0.5 text-xs outline-none border border-orange-500"
+          className="flex-1 min-w-0 bg-muted rounded px-1.5 py-0.5 text-xs outline-none border border-primary"
         />
       ) : (
         <span className="flex-1 min-w-0 truncate">{lesson.title}</span>
@@ -79,7 +79,7 @@ export default function LessonNavItem({
             e.stopPropagation();
             onMoveUp();
           }}
-          className="p-1 rounded text-slate-500 hover:text-white disabled:opacity-20"
+          className="p-1 rounded text-muted-foreground hover:text-foreground disabled:opacity-20"
         >
           <ArrowUp size={11} />
         </button>
@@ -90,7 +90,7 @@ export default function LessonNavItem({
             e.stopPropagation();
             onMoveDown();
           }}
-          className="p-1 rounded text-slate-500 hover:text-white disabled:opacity-20"
+          className="p-1 rounded text-muted-foreground hover:text-foreground disabled:opacity-20"
         >
           <ArrowDown size={11} />
         </button>
@@ -100,14 +100,14 @@ export default function LessonNavItem({
             e.stopPropagation();
             setIsRenaming(true);
           }}
-          className="p-1 rounded text-slate-500 hover:text-white"
+          className="p-1 rounded text-muted-foreground hover:text-foreground"
         >
           <Pencil size={11} />
         </button>
         <button
           type="button"
           onClick={handleDelete}
-          className="p-1 rounded text-slate-500 hover:text-red-400"
+          className="p-1 rounded text-muted-foreground hover:text-red-400"
         >
           <Trash2 size={11} />
         </button>

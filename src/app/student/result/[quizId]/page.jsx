@@ -93,8 +93,8 @@ function QuizResultPageContent() {
         <Card className="p-10 text-center border-red-500/25 bg-red-500/5">
           <div className="mx-auto max-w-md">
             <XCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-            <h2 className="text-xl font-bold text-white">Result Not Found</h2>
-            <p className="mt-2 text-slate-400">
+            <h2 className="text-xl font-bold text-foreground">Result Not Found</h2>
+            <p className="mt-2 text-muted-foreground">
               Either you have not attempted this quiz yet, or there was an error retrieving your submission.
             </p>
             <div className="mt-6 flex justify-center gap-4">
@@ -105,7 +105,7 @@ function QuizResultPageContent() {
                 </Button>
               </Link>
               <Link href={`/student/attempt/${quizId}`}>
-                <Button className="bg-orange-500 hover:bg-orange-600">
+                <Button className="bg-primary hover:bg-orange-600">
                   Attempt Quiz Now
                 </Button>
               </Link>
@@ -136,7 +136,7 @@ function QuizResultPageContent() {
           subtitle={`Detailed review for ${quiz?.title || "Quiz"}`}
         />
         <Link href={backHref}>
-          <Button className="flex items-center gap-2 border border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300">
+          <Button className="flex items-center gap-2 border border-transparent bg-background/50 hover:bg-muted text-foreground">
             <ArrowLeft className="h-4 w-4" />
             {backLabel}
           </Button>
@@ -166,17 +166,17 @@ function QuizResultPageContent() {
             }`}>
               {passed ? "PASSED" : "FAILED"}
             </div>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-white">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-foreground">
               {passed ? "Congratulations! You Cleared It." : "Keep Practicing, You'll Get It Next Time!"}
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground">
               Attempt submitted on {new Date(submittedAt).toLocaleDateString([], { dateStyle: "long" })} at {new Date(submittedAt).toLocaleTimeString([], { timeStyle: "short" })}
             </p>
           </div>
 
           <div className="flex-shrink-0">
             <Link href={`/student/attempt/${quizId}`}>
-              <Button className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md hover:scale-105 active:scale-95 transition-all">
+              <Button className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-pink-500 text-foreground shadow-md hover:scale-105 active:scale-95 transition-all">
                 <RefreshCw className="h-4 w-4" />
                 Retake Quiz
               </Button>
@@ -191,9 +191,9 @@ function QuizResultPageContent() {
       {incorrectQuestions.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white">Adaptive Learning</h3>
+            <h3 className="text-sm font-bold text-foreground">Adaptive Learning</h3>
             {activeRemediationIndex < incorrectQuestions.length && (
-              <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
                 Remediation {activeRemediationIndex + 1} of {incorrectQuestions.length}
               </span>
             )}
@@ -218,31 +218,31 @@ function QuizResultPageContent() {
 
       {/* KPI Performance Grid */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-5">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-md">
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Your Score</p>
-          <p className="mt-2 text-2xl font-extrabold text-white">
-            {score} <span className="text-xs text-slate-500 font-normal">/ {totalMarks} Marks</span>
+        <div className="rounded-2xl border border-transparent bg-background/40 p-5 backdrop-blur-md">
+          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Your Score</p>
+          <p className="mt-2 text-2xl font-extrabold text-foreground">
+            {score} <span className="text-xs text-muted-foreground font-normal">/ {totalMarks} Marks</span>
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-md">
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Percentage</p>
-          <p className="mt-2 text-2xl font-extrabold text-white">
+        <div className="rounded-2xl border border-transparent bg-background/40 p-5 backdrop-blur-md">
+          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Percentage</p>
+          <p className="mt-2 text-2xl font-extrabold text-foreground">
             {percentage}%
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-md">
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Passing Criteria</p>
-          <p className="mt-2 text-2xl font-extrabold text-white">
-            {passingScore}% <span className="text-xs text-slate-500 font-normal">or above</span>
+        <div className="rounded-2xl border border-transparent bg-background/40 p-5 backdrop-blur-md">
+          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Passing Criteria</p>
+          <p className="mt-2 text-2xl font-extrabold text-foreground">
+            {passingScore}% <span className="text-xs text-muted-foreground font-normal">or above</span>
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-md">
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Questions Answered</p>
-          <p className="mt-2 text-2xl font-extrabold text-white">
-            {parsedAnswers.length} <span className="text-xs text-slate-500 font-normal">/ {quiz?.questions?.length || 0}</span>
+        <div className="rounded-2xl border border-transparent bg-background/40 p-5 backdrop-blur-md">
+          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Questions Answered</p>
+          <p className="mt-2 text-2xl font-extrabold text-foreground">
+            {parsedAnswers.length} <span className="text-xs text-muted-foreground font-normal">/ {quiz?.questions?.length || 0}</span>
           </p>
         </div>
       </section>
@@ -251,11 +251,11 @@ function QuizResultPageContent() {
       {conceptScores && Object.keys(conceptScores).length > 0 && (
         <section className="space-y-4">
           <div>
-            <h3 className="text-xl font-bold text-white flex items-center gap-2">
-              <BookOpen size={20} className="text-orange-500" />
+            <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <BookOpen size={20} className="text-primary" />
               Concept-wise Performance Analysis
             </h3>
-            <p className="text-xs text-slate-400 mt-1">Review which concepts are well understood and which need practice.</p>
+            <p className="text-xs text-muted-foreground mt-1">Review which concepts are well understood and which need practice.</p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -278,25 +278,25 @@ function QuizResultPageContent() {
               }
 
               return (
-                <Card key={conceptName} className={`p-5 border-slate-800 bg-slate-900/30 flex flex-col justify-between gap-4 border-l-[4px] ${
+                <Card key={conceptName} className={`p-5 border-transparent bg-background/30 flex flex-col justify-between gap-4 border-l-[4px] ${
                   isPassed ? "border-l-emerald-500" : "border-l-orange-550"
                 }`}>
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="text-sm font-semibold text-white">{conceptName}</h4>
-                      <p className="text-[10px] text-slate-500 mt-0.5">
+                      <h4 className="text-sm font-semibold text-foreground">{conceptName}</h4>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
                         {cData.score} / {cData.total} Marks
                       </p>
                     </div>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded ${
-                      isPassed ? "bg-emerald-500/10 text-emerald-400" : "bg-orange-500/10 text-orange-400"
+                      isPassed ? "bg-emerald-500/10 text-emerald-400" : "bg-primary/10 text-primary"
                     }`}>
                       {perc}%
                     </span>
                   </div>
 
                   <div className="w-full space-y-1">
-                    <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                       <div 
                         className={`h-full rounded-full transition-all duration-500 ${barColor}`}
                         style={{ width: `${perc}%` }}
@@ -316,11 +316,11 @@ function QuizResultPageContent() {
       {/* Detailed Question Review List */}
       <section className="space-y-6">
         <div>
-          <h3 className="text-xl font-bold text-white flex items-center gap-2">
-            <HelpCircle size={20} className="text-orange-500" />
+          <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+            <HelpCircle size={20} className="text-primary" />
             Detailed Question Review
           </h3>
-          <p className="text-xs text-slate-400 mt-1">Review your selections alongside correct options.</p>
+          <p className="text-xs text-muted-foreground mt-1">Review your selections alongside correct options.</p>
         </div>
 
         <div className="space-y-5">

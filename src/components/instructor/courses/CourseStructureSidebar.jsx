@@ -50,27 +50,27 @@ export function CourseStructureSidebar({
   });
 
   return (
-    <aside className="rounded-2xl border border-slate-800 bg-slate-900/80 p-3.5 shadow-xl flex flex-col h-full max-h-[calc(100vh-6rem)] overflow-hidden">
+    <aside className="rounded-2xl border border-border bg-background/80 p-3.5 shadow-xl flex flex-col h-full max-h-[calc(100vh-6rem)] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-1 pb-3 mb-2 border-b border-slate-800/80 shrink-0">
-        <h2 className="text-xs font-black uppercase tracking-widest text-slate-300 flex items-center gap-2">
-          <Folder size={14} className="text-orange-400" />
+      <div className="flex items-center justify-between px-1 pb-3 mb-2 border-b border-border/80 shrink-0">
+        <h2 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-2">
+          <Folder size={14} className="text-primary" />
           <span>Course Structure</span>
         </h2>
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
           {modules.length} Modules
         </span>
       </div>
 
       {/* Search Input */}
       <div className="relative mb-3 shrink-0">
-        <Search size={13} className="absolute left-3 top-2.5 text-slate-500" />
+        <Search size={13} className="absolute left-3 top-2.5 text-muted-foreground" />
         <input
           type="text"
           placeholder="Filter structure..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-orange-500 transition"
+          className="w-full bg-background border border-border rounded-xl pl-8 pr-3 py-1.5 text-xs text-foreground placeholder-slate-500 outline-none focus:border-primary transition"
         />
       </div>
 
@@ -81,27 +81,27 @@ export function CourseStructureSidebar({
           onClick={onSelectCourseOverview}
           className={`group flex items-center justify-between px-3 py-2 rounded-xl transition cursor-pointer ${
             composerMode === "course"
-              ? "bg-orange-500/10 border-l-3 border-orange-500 text-orange-400 font-bold"
-              : "text-slate-300 hover:bg-slate-950/70 hover:text-slate-50"
+              ? "bg-primary/10 border-l-3 border-primary text-primary font-bold"
+              : "text-foreground hover:bg-background/70 hover:text-slate-50"
           }`}
         >
           <div className="flex items-center gap-2 min-w-0">
             <BookOpen
               size={14}
-              className={composerMode === "course" ? "text-orange-400" : "text-slate-400"}
+              className={composerMode === "course" ? "text-primary" : "text-muted-foreground"}
             />
             <span className="truncate font-semibold text-xs">Course Overview</span>
           </div>
-          <span className="text-[9px] font-black uppercase text-slate-500 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
+          <span className="text-[9px] font-black uppercase text-muted-foreground bg-background px-1.5 py-0.5 rounded border border-border">
             Root
           </span>
         </div>
 
-        <div className="h-px bg-slate-800/60 my-2" />
+        <div className="h-px bg-muted/60 my-2" />
 
         {/* Modules List */}
         {filteredModules.length === 0 ? (
-          <div className="py-8 text-center text-slate-500 text-xs italic">
+          <div className="py-8 text-center text-muted-foreground text-xs italic">
             No modules found.
           </div>
         ) : (
@@ -117,8 +117,8 @@ export function CourseStructureSidebar({
                   onClick={() => onSelectModule(mod)}
                   className={`group flex items-center justify-between px-2.5 py-2 rounded-xl transition cursor-pointer ${
                     isModuleSelected
-                      ? "bg-orange-500/10 border-l-3 border-orange-500 text-orange-400 font-bold"
-                      : "text-slate-200 hover:bg-slate-950/60"
+                      ? "bg-primary/10 border-l-3 border-primary text-primary font-bold"
+                      : "text-foreground hover:bg-background/60"
                   }`}
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -128,10 +128,10 @@ export function CourseStructureSidebar({
                         e.stopPropagation();
                         onToggleModuleExpand(mod.id);
                       }}
-                      className="p-0.5 text-slate-400 hover:text-slate-50 transition cursor-pointer"
+                      className="p-0.5 text-muted-foreground hover:text-slate-50 transition cursor-pointer"
                     >
                       {isModuleExpanded ? (
-                        <ChevronDown size={13} className="text-orange-500" />
+                        <ChevronDown size={13} className="text-primary" />
                       ) : (
                         <ChevronRight size={13} />
                       )}
@@ -143,7 +143,7 @@ export function CourseStructureSidebar({
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[9.5px] font-bold text-slate-500 bg-slate-950 border border-slate-800 px-1.5 py-0.5 rounded-md">
+                    <span className="text-[9.5px] font-bold text-muted-foreground bg-background border border-border px-1.5 py-0.5 rounded-md">
                       {modLessons.length}
                     </span>
 
@@ -153,29 +153,29 @@ export function CourseStructureSidebar({
                         <button
                           type="button"
                           onClick={(e) => e.stopPropagation()}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-slate-50 rounded transition cursor-pointer"
+                          className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-slate-50 rounded transition cursor-pointer"
                         >
                           <MoreVertical size={13} />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-slate-950 border-slate-800 text-slate-200 text-xs">
+                      <DropdownMenuContent align="end" className="bg-background border-border text-foreground text-xs">
                         <DropdownMenuItem
                           onSelect={() => onSelectModule(mod)}
-                          className="cursor-pointer hover:bg-slate-900"
+                          className="cursor-pointer hover:bg-background"
                         >
-                          <Pencil className="mr-2 size-3 text-slate-400" />
+                          <Pencil className="mr-2 size-3 text-muted-foreground" />
                           Edit Module Details
                         </DropdownMenuItem>
 
                         <DropdownMenuItem
                           onSelect={() => onAddLesson(mod.id)}
-                          className="cursor-pointer hover:bg-slate-900"
+                          className="cursor-pointer hover:bg-background"
                         >
-                          <Plus className="mr-2 size-3 text-orange-400" />
+                          <Plus className="mr-2 size-3 text-primary" />
                           Add Lesson
                         </DropdownMenuItem>
 
-                        <DropdownMenuSeparator className="bg-slate-800" />
+                        <DropdownMenuSeparator className="bg-muted" />
 
                         <DropdownMenuItem
                           variant="destructive"
@@ -192,9 +192,9 @@ export function CourseStructureSidebar({
 
                 {/* Indented Lessons Sub-rows */}
                 {isModuleExpanded && (
-                  <div className="pl-5 space-y-0.5 border-l border-slate-800/80 ml-3.5 py-0.5">
+                  <div className="pl-5 space-y-0.5 border-l border-border/80 ml-3.5 py-0.5">
                     {modLessons.length === 0 ? (
-                      <p className="text-[10px] text-slate-500 py-1 pl-2 italic">
+                      <p className="text-[10px] text-muted-foreground py-1 pl-2 italic">
                         No lessons yet
                       </p>
                     ) : (
@@ -212,15 +212,15 @@ export function CourseStructureSidebar({
                             onClick={() => onSelectLesson(lesson.id, mod.id)}
                             className={`group flex items-center justify-between px-2.5 py-1.5 rounded-lg transition cursor-pointer text-xs ${
                               isLessonSelected
-                                ? "bg-orange-500/15 text-orange-400 font-bold border-l-2 border-orange-500"
-                                : "text-slate-400 hover:text-slate-50 hover:bg-slate-950/40"
+                                ? "bg-primary/15 text-primary font-bold border-l-2 border-primary"
+                                : "text-muted-foreground hover:text-slate-50 hover:bg-background/40"
                             }`}
                           >
                             <div className="flex items-center gap-2 min-w-0">
                               <FileText
                                 size={12}
                                 className={
-                                  isLessonSelected ? "text-orange-400 shrink-0" : "text-slate-500 shrink-0"
+                                  isLessonSelected ? "text-primary shrink-0" : "text-muted-foreground shrink-0"
                                 }
                               />
                               <span className="truncate text-[11px] leading-snug">
@@ -229,7 +229,7 @@ export function CourseStructureSidebar({
                             </div>
 
                             <div className="flex items-center gap-1 shrink-0">
-                              <span className="text-[9px] font-semibold text-slate-500">
+                              <span className="text-[9px] font-semibold text-muted-foreground">
                                 {blockCount} blks
                               </span>
 
@@ -238,17 +238,17 @@ export function CourseStructureSidebar({
                                   <button
                                     type="button"
                                     onClick={(e) => e.stopPropagation()}
-                                    className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-slate-50 rounded transition cursor-pointer"
+                                    className="opacity-0 group-hover:opacity-100 p-0.5 text-muted-foreground hover:text-slate-50 rounded transition cursor-pointer"
                                   >
                                     <MoreVertical size={12} />
                                   </button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="bg-slate-950 border-slate-800 text-slate-200 text-xs">
+                                <DropdownMenuContent align="end" className="bg-background border-border text-foreground text-xs">
                                   <DropdownMenuItem
                                     onSelect={() => onSelectLesson(lesson.id, mod.id)}
-                                    className="cursor-pointer hover:bg-slate-900"
+                                    className="cursor-pointer hover:bg-background"
                                   >
-                                    <Pencil className="mr-2 size-3 text-slate-400" />
+                                    <Pencil className="mr-2 size-3 text-muted-foreground" />
                                     Edit Blocks
                                   </DropdownMenuItem>
 
@@ -272,9 +272,9 @@ export function CourseStructureSidebar({
                     <button
                       type="button"
                       onClick={() => onAddLesson(mod.id)}
-                      className="w-full text-left py-1 px-2.5 mt-0.5 flex items-center gap-1.5 text-[10px] font-bold text-slate-500 hover:text-orange-400 transition cursor-pointer"
+                      className="w-full text-left py-1 px-2.5 mt-0.5 flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground hover:text-primary transition cursor-pointer"
                     >
-                      <Plus size={11} className="text-orange-500" />
+                      <Plus size={11} className="text-primary" />
                       <span>Add Lesson</span>
                     </button>
                   </div>
@@ -286,13 +286,13 @@ export function CourseStructureSidebar({
       </div>
 
       {/* Bottom Action: + Add Module */}
-      <div className="pt-3 border-t border-slate-800/80 shrink-0">
+      <div className="pt-3 border-t border-border/80 shrink-0">
         <button
           type="button"
           onClick={onAddModule}
-          className="w-full py-2 flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-slate-800 hover:border-orange-500/70 bg-slate-950 hover:bg-slate-900 text-slate-300 hover:text-slate-50 text-xs font-bold transition cursor-pointer"
+          className="w-full py-2 flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-border hover:border-primary/70 bg-background hover:bg-background text-foreground hover:text-slate-50 text-xs font-bold transition cursor-pointer"
         >
-          <Plus size={13} className="text-orange-500" />
+          <Plus size={13} className="text-primary" />
           <span>Add Module</span>
         </button>
       </div>
