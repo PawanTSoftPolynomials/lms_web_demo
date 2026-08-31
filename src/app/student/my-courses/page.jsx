@@ -96,13 +96,13 @@ export default function MyCoursesPage() {
       >
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
           <div className="relative w-full min-w-0 md:w-64">
-            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <input
               type="text"
               placeholder="Search your courses..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-border bg-card pl-9 pr-4 py-2 md:py-2.5 text-sm text-foreground placeholder-slate-500 outline-none transition focus:border-primary/60"
+              className="w-full rounded-full border border-border bg-card pl-9 pr-4 py-2 md:py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 outline-none shadow-xs transition-all duration-200 focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
             />
           </div>
 

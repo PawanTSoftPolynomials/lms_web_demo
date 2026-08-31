@@ -95,10 +95,10 @@ export default function CourseGridCard({ course }) {
   return (
     <div
       onClick={() => router.push(`/instructor/courses/${course.id}`)}
-      className="group relative flex w-[85%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-full md:shrink-0 flex-col overflow-hidden rounded-2xl bg-white border border-[#E5E5E5] dark:bg-[#0F172A] dark:border-[#1E293B] p-3 md:p-3.5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.25)] transition-all duration-200 hover:shadow-md dark:hover:border-slate-700 hover:-translate-y-1 cursor-pointer h-full"
+      className="group relative flex w-[85%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-full md:shrink-0 flex-col overflow-hidden rounded-2xl bg-card border border-border p-3 md:p-3.5 shadow-xs transition-all duration-200 hover:shadow-md hover:-translate-y-1 cursor-pointer h-full"
     >
       {/* Course Thumbnail (16:9 Aspect Ratio) */}
-      <div className="relative aspect-video w-full shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900 mb-2.5">
+      <div className="relative aspect-video w-full shrink-0 overflow-hidden rounded-xl bg-muted mb-2.5">
         {course.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -108,14 +108,14 @@ export default function CourseGridCard({ course }) {
             className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="relative flex h-full w-full items-center justify-center bg-slate-100 dark:bg-slate-900">
-            <BookOpen size={32} className="text-slate-400 dark:text-slate-700" />
+          <div className="relative flex h-full w-full items-center justify-center bg-muted">
+            <BookOpen size={32} className="text-muted-foreground/60" />
           </div>
         )}
 
         {/* Status Badge (Top-Left, High Contrast, Compact Rounded Square) */}
         <div className="absolute top-2 left-2 flex items-center gap-2">
-          <span className="flex items-center gap-1.5 rounded-md bg-white border border-[#D9D9D9] dark:bg-[#1E293B] dark:border-slate-700 px-2 py-0.5 text-[11px] font-bold text-[#111827] dark:text-slate-100 shadow-sm">
+          <span className="flex items-center gap-1.5 rounded-md bg-surface/90 border border-border px-2 py-0.5 text-caption font-semibold text-foreground shadow-xs backdrop-blur-md">
             <span className={`h-2 w-2 rounded-full ${statusStyle.dot}`} />
             {statusStyle.label}
           </span>
@@ -123,7 +123,7 @@ export default function CourseGridCard({ course }) {
 
         {/* Three-Dot Menu (Top-Right, Compact Rounded Square, High Contrast Button) */}
         <div className="absolute top-2 right-2" onClick={(e) => e.stopPropagation()}>
-          <div className="bg-white border border-[#D9D9D9] dark:bg-[#1E293B] dark:border-slate-700 rounded-md shadow-sm text-[#111827] dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center justify-center p-0.5">
+          <div className="bg-surface/90 border border-border rounded-md shadow-xs text-foreground hover:bg-muted backdrop-blur-md transition flex items-center justify-center p-0.5">
             <ActionMenu items={menuItems} />
           </div>
         </div>
@@ -132,26 +132,26 @@ export default function CourseGridCard({ course }) {
       {/* Course Info Body */}
       <div className="flex flex-1 flex-col">
         {/* Title (1-2 lines) */}
-        <h3 className="text-[#111827] dark:text-[#F8FAFC] text-sm font-bold leading-snug line-clamp-2 mb-1 group-hover:text-primary dark:group-hover:text-white transition-colors">
+        <h3 className="text-card-title text-foreground leading-snug line-clamp-2 mb-1 group-hover:text-primary transition-colors">
           {course.title}
         </h3>
 
         {/* Description (1-2 lines) */}
         {course.description ? (
-          <p className="text-xs text-[#4B5563] dark:text-[#94A3B8] leading-relaxed line-clamp-2 mb-2 font-normal">
+          <p className="text-body-small text-muted-foreground leading-relaxed line-clamp-2 mb-2">
             {course.description}
           </p>
         ) : null}
 
         {/* Metadata Row */}
-        <div className="flex items-center gap-3 text-[11px] text-[#4B5563] dark:text-[#94A3B8] font-medium mb-2.5">
+        <div className="flex items-center gap-3 text-caption text-muted-foreground font-medium mb-2.5">
           <span className="flex items-center gap-1">
-            <Users size={12} className="text-[#6B7280] dark:text-slate-500 shrink-0" />
+            <Users size={12} className="text-muted-foreground/80 shrink-0" />
             <span>{studentsCount} {studentsCount === 1 ? "Student" : "Students"}</span>
           </span>
           {updatedTime && (
             <span className="flex items-center gap-1 truncate">
-              <Clock size={12} className="text-[#6B7280] dark:text-slate-500 shrink-0" />
+              <Clock size={12} className="text-muted-foreground/80 shrink-0" />
               <span className="truncate">Updated {updatedTime}</span>
             </span>
           )}
@@ -160,17 +160,17 @@ export default function CourseGridCard({ course }) {
         {/* Tag Badges */}
         <div className="flex flex-wrap items-center gap-1.5 mb-3">
           {course.category && (
-            <span className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">
+            <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-caption font-semibold text-amber-700 dark:text-amber-400">
               {course.category}
             </span>
           )}
           {course.level && (
-            <span className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">
+            <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-caption font-semibold text-emerald-700 dark:text-emerald-400 uppercase">
               {course.level}
             </span>
           )}
           {!course.category && !course.level && (
-            <span className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">
+            <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-caption font-semibold text-amber-700 dark:text-amber-400">
               General
             </span>
           )}
@@ -180,14 +180,14 @@ export default function CourseGridCard({ course }) {
         <div className="mt-auto flex items-center gap-2 pt-1">
           <button
             onClick={goTo(`/instructor/courses/edit/${course.id}`)}
-            className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg bg-white hover:bg-slate-50 border border-[#D9D9D9] text-[#111827] font-bold dark:bg-[#1E293B] dark:hover:bg-slate-700 dark:border-slate-700 dark:text-[#F8FAFC] px-2 py-1.5 text-xs transition cursor-pointer active:scale-[0.98] whitespace-nowrap"
+            className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg bg-surface hover:bg-muted border border-border text-foreground font-semibold px-2 py-1.5 text-xs transition cursor-pointer active:scale-[0.98] whitespace-nowrap"
           >
-            <Pencil size={12} className="text-[#111827] dark:text-[#F8FAFC] shrink-0" />
+            <Pencil size={12} className="text-foreground shrink-0" />
             Edit
           </button>
           <button
             onClick={goTo(`/instructor/courses/${course.id}`)}
-            className="flex-[1.15] inline-flex items-center justify-center gap-1 rounded-lg bg-[#F59E0B] hover:bg-[#D97706] px-2 py-1.5 text-xs font-bold text-[#111827] transition shadow-sm cursor-pointer active:scale-[0.98] whitespace-nowrap flex-nowrap shrink-0"
+            className="flex-[1.15] inline-flex items-center justify-center gap-1 rounded-lg bg-[#F59E0B] hover:bg-[#D97706] px-2 py-1.5 text-xs font-bold text-[#111827] transition shadow-xs cursor-pointer active:scale-[0.98] whitespace-nowrap flex-nowrap shrink-0"
           >
             <span className="whitespace-nowrap">View Course</span>
             <ArrowUpRight size={13} className="stroke-[2.5] text-[#111827] shrink-0" />

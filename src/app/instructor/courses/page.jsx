@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BookOpen, Search } from "lucide-react";
@@ -15,11 +15,22 @@ const INITIAL_FILTERS = { search: "", status: "", category: "", level: "", sortB
 export default function InstructorCoursesPage() {
   const router = useRouter();
   const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data, isLoading, isError, refetch } = useInstructorCoursesTable(filters);
 
-  const courses = data?.courses || [];
+  const rawCourses = data?.courses || [];
   const pagination = data?.pagination || { page: 1, limit: 12, total: 0, totalPages: 1 };
+
+  const courses = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return rawCourses;
+    return rawCourses.filter((course) => {
+      const titleMatch = course.title?.toLowerCase().includes(q);
+      const descMatch = course.description?.toLowerCase().includes(q);
+      return titleMatch || descMatch;
+    });
+  }, [rawCourses, searchQuery]);
 
   const set = (key) => (value) => setFilters((f) => ({ ...f, [key]: value, page: key === "page" ? value : 1 }));
 
@@ -79,7 +90,7 @@ export default function InstructorCoursesPage() {
           <div className="mx-auto w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           <p className="text-xs font-bold text-muted-foreground">Loading courses...</p>
         </div>
-      ) : courses.length === 0 && pagination.total === 0 && !filters.search && !filters.status && !filters.category && !filters.level ? (
+      ) : courses.length === 0 && pagination.total === 0 && !searchQuery && !filters.status && !filters.category && !filters.level ? (
         <EmptyState
           icon={BookOpen}
           title="No Courses Yet"
@@ -91,14 +102,14 @@ export default function InstructorCoursesPage() {
         <div className="flex flex-col min-h-[calc(100vh-3.5rem)] rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4 mb-4 md:mb-6">
             <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center md:flex-wrap">
-              <div className="relative w-full min-w-0 md:max-w-xs">
-                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <div className="relative w-full min-w-0 md:w-[320px]">
+                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none z-10" />
                 <input
                   type="text"
                   placeholder="Search courses..."
-                  value={filters.search}
-                  onChange={(e) => set("search")(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-card pl-9 pr-4 py-2 md:py-2.5 text-sm text-foreground placeholder-slate-500 outline-none transition focus:border-primary/60"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="search-pill-input w-full h-[46px] rounded-full text-sm text-foreground placeholder:text-muted-foreground/60 transition-all duration-200"
                 />
               </div>
             </div>
@@ -134,7 +145,7 @@ export default function InstructorCoursesPage() {
             >
               {courses.length === 0 ? (
                 <div className="w-full col-span-full">
-                  <EmptyState title="No courses match the current filters." />
+                  <EmptyState title={searchQuery ? `No courses match "${searchQuery.trim()}".` : "No courses match the current filters."} />
                 </div>
               ) : (
                 courses.map((course, index) => <CourseGridCard key={course.id} course={course} index={index} />)
