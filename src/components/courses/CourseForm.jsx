@@ -1,6 +1,7 @@
 "use client";
 
 import {useEffect, useState} from "react";
+import { Image as ImageIcon } from "lucide-react";
 
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
@@ -40,6 +41,12 @@ export default function CourseForm({
 
     const [validationErrors, setValidationErrors] =
         useState({});
+
+    const [imageError, setImageError] = useState(false);
+
+    useEffect(() => {
+        setImageError(false);
+    }, [formData.thumbnailUrl]);
 
     useEffect(() => {
         if (initialValues) {
@@ -236,12 +243,22 @@ export default function CourseForm({
                             Thumbnail Preview
                         </label>
 
-                        <div className="aspect-video h-48 w-auto max-w-md bg-background rounded-xl overflow-hidden border border-transparent/60 shadow-luxury-md">
-                            <img
-                                src={getDisplayUrl(formData.thumbnailUrl)}
-                                alt="Thumbnail Preview"
-                                className="h-full w-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
-                            />
+                        <div className="w-full max-w-sm aspect-video bg-background rounded-xl overflow-hidden border border-border shadow-md flex items-center justify-center">
+                            {imageError ? (
+                                <div className="p-4 flex flex-col items-center justify-center text-center space-y-1">
+                                    <ImageIcon className="w-6 h-6 text-muted-foreground/60 mb-1" />
+                                    <span className="text-xs text-muted-foreground font-medium">
+                                        Unable to preview image. Please verify the image link.
+                                    </span>
+                                </div>
+                            ) : (
+                                <img
+                                    src={getDisplayUrl(formData.thumbnailUrl)}
+                                    alt="Thumbnail Preview"
+                                    onError={() => setImageError(true)}
+                                    className="h-full w-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
+                                />
+                            )}
                         </div>
                     </div>
                 )}
