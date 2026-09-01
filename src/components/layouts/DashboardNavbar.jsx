@@ -407,7 +407,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     const openRoleNavDrawer = role === 'ADMIN' ? openAdminNavDrawer : openInstructorNavDrawer;
     return (
       <>
-      <header className="bg-background border-b border-border text-foreground">
+      <header className="sticky top-0 z-40 bg-background border-b border-border text-foreground">
         <div className="px-3 sm:px-6 py-3 flex items-center gap-2 sm:gap-4">
           <div className="flex items-center gap-6 shrink-0">
             {/* Mobile menu toggle — opens the role's nav drawer (see
