@@ -141,7 +141,7 @@ export default function InstructorCoursesPage() {
             <div
               ref={sliderRef}
               onScroll={courses.length > 0 ? handleSliderScroll : undefined}
-              className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-4 md:pb-0 md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 md:overflow-visible md:snap-none"
+              className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-4 md:pb-0 md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:overflow-visible md:snap-none"
             >
               {courses.length === 0 ? (
                 <div className="w-full col-span-full">

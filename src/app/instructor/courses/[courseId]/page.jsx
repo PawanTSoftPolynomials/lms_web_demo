@@ -1974,7 +1974,7 @@ export default function CourseDetailsPage() {
                 onSelectTopic={handleSelectTopic}
                 onAddTopic={() => openEntityModal({ entity: "topic", mode: "create", parentId: composeLessonId, moduleId: composeModuleId })}
                 onAddContent={handleAddContentFromSidebar}
-                onEditTopic={(topic) => openEntityModal({ entity: "topic", mode: "edit", entityId: topic.id, initialData: topic, parentId: composeLessonId, moduleId: composeModuleId })}
+                onEditTopic={(topic) => openEntityModal({ entity: "topic", mode: "edit", entityData: topic, parentId: composeLessonId, moduleId: composeModuleId })}
                 onDeleteTopic={(e, topic, lId) => handleDeleteTopic(e, topic, lId || composeLessonId)}
                 parentModule={activeModuleObj}
                 onSelectLesson={handleSelectLesson}
@@ -1986,8 +1986,8 @@ export default function CourseDetailsPage() {
                 module={activeModuleObj}
                 onSelectLesson={handleSelectLesson}
                 onAddLesson={(modId) => openEntityModal({ entity: "lesson", mode: "create", parentId: modId })}
-                onEditModule={(mod) => openEntityModal({ entity: "module", mode: "edit", entityId: mod.id, initialData: mod, courseId })}
-                onEditLesson={(les) => openEntityModal({ entity: "lesson", mode: "edit", entityId: les.id, initialData: les, parentId: activeModuleObj.id })}
+                onEditModule={(mod) => openEntityModal({ entity: "module", mode: "edit", entityData: mod, courseId })}
+                onEditLesson={(les) => openEntityModal({ entity: "lesson", mode: "edit", entityData: les, parentId: activeModuleObj.id })}
                 onAddTopic={(lesId) => openEntityModal({ entity: "topic", mode: "create", parentId: lesId, moduleId: activeModuleObj.id })}
                 onDeleteLesson={handleDeleteLesson}
                 allModules={effectiveModules}

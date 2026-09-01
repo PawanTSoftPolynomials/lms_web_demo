@@ -2,9 +2,7 @@ import LandingNavbar from "@/components/layouts/LandingNavbar";
 import Hero from "@/components/home/Hero";
 import PlatformStats from "@/components/home/PlatformStats";
 import FeaturedCourses from "@/components/home/FeaturedCourses";
-import WhyOrangeTree from "@/components/home/WhyOrangeTree";
-import HowItWorks from "@/components/home/HowItWorks";
-import ProductShowcase from "@/components/home/ProductShowcase";
+import LearningJourney from "@/components/home/LearningJourney";
 import FinalCta from "@/components/home/FinalCta";
 import Footer from "@/components/layouts/Footer";
 
@@ -20,11 +18,7 @@ export default function Home() {
 
         <FeaturedCourses />
 
-        <WhyOrangeTree />
-
-        <HowItWorks />
-
-        <ProductShowcase />
+        <LearningJourney />
 
         <FinalCta />
       </div>

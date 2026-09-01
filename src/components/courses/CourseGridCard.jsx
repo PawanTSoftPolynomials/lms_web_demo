@@ -95,7 +95,7 @@ export default function CourseGridCard({ course }) {
   return (
     <div
       onClick={() => router.push(`/instructor/courses/${course.id}`)}
-      className="group relative flex w-[85%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-full md:shrink-0 flex-col overflow-hidden rounded-2xl bg-card border border-border p-3 md:p-3.5 shadow-xs transition-all duration-200 hover:shadow-md hover:-translate-y-1 cursor-pointer h-full"
+      className="group relative flex w-[85%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-full md:shrink-0 flex-col overflow-hidden rounded-2xl bg-card border border-border p-3.5 md:p-4 shadow-xs transition-all duration-200 hover:shadow-md hover:-translate-y-1 cursor-pointer h-full"
     >
       {/* Course Thumbnail (16:9 Aspect Ratio) */}
       <div className="relative aspect-video w-full shrink-0 overflow-hidden rounded-xl bg-muted mb-2.5">
