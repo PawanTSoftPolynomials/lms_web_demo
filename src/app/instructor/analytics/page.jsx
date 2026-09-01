@@ -45,8 +45,8 @@ function InstructorAnalyticsContent() {
     <div className="space-y-6 pb-12">
       <div className="rounded-2xl border border-transparent bg-background/60 p-5 shadow-sm flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight leading-none">Analytics</h1>
-          <p className="text-xs text-muted-foreground mt-1.5">Student engagement and concept mastery for {activeCourse?.title || "your course"}.</p>
+          <h1 className="sr-only">Analytics</h1>
+          <p className="sr-only">Student engagement and concept mastery for {activeCourse?.title || "your course"}.</p>
         </div>
         {courses.length > 0 && (
           <select

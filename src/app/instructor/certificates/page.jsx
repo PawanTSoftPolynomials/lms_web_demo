@@ -75,11 +75,10 @@ export default function CertificatesDashboardPage() {
         </Link>
         <div className="flex items-start justify-between flex-wrap gap-4 mt-2">
           <div>
-            <h1 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2.5">
-              <Award className="text-primary" size={26} />
+            <h1 className="sr-only">
               Issued Credentials
             </h1>
-            <p className="text-xs text-muted-foreground mt-1">Manage and audit certificates granted to students.</p>
+            <p className="sr-only">Manage and audit certificates granted to students.</p>
           </div>
           <Link href="/instructor/certificates/create">
             <Button className="flex items-center gap-1.5 bg-primary hover:bg-orange-400 text-foreground font-bold text-xs">

@@ -138,8 +138,8 @@ export default function InstructorAssignmentsPage() {
               <ArrowLeft size={16} />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-foreground tracking-tight leading-none">Manage Assignments</h1>
-              <p className="text-xs text-muted-foreground mt-1.5 font-medium">Create, edit, and review learning assignments for student courses</p>
+              <h1 className="sr-only">Manage Assignments</h1>
+              <p className="sr-only">Create, edit, and review learning assignments for student courses</p>
             </div>
           </div>
 

@@ -72,8 +72,8 @@ export default function InstructorCoursesPage() {
   };
 
   return (
-    <div className="-m-3 sm:-m-6 -mt-8 sm:-mt-12 md:-mt-16 -mx-8 sm:-mx-12 md:-mx-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6">
-      <h1 className="text-h1 text-foreground">My Courses</h1>
+    <div className="-m-3 sm:-m-6 mt-0 sm:mt-0 -mx-8 sm:-mx-12 md:-mx-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6">
+      <h1 className="sr-only">My Courses</h1>
 
       {isError ? (
         <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">

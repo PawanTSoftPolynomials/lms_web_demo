@@ -75,8 +75,8 @@ export default function ResultsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-xl font-black text-foreground tracking-tight">Results</h1>
-          <p className="text-xs text-muted-foreground mt-1">Student performance across quizzes and assessments.</p>
+          <h1 className="sr-only">Results</h1>
+          <p className="sr-only">Student performance across quizzes and assessments.</p>
         </div>
         <div className="flex gap-2">
           <button

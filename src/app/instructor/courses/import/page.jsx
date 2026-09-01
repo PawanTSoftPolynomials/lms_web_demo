@@ -603,11 +603,11 @@ export default function CourseImportPage() {
           </Link>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 bg-clip-text text-transparent">
+              <h1 className="sr-only">
                 Create & Import Course
               </h1>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="sr-only">
               Build a new course with AI, import a local ZIP package, or load an Orange Tree LMS JSON course structure.
             </p>
           </div>

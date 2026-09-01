@@ -63,10 +63,10 @@ export default function InstructorDashboardHomePage() {
   return (
     <TooltipProvider>
       {/* ============================= UNIFIED RESPONSIVE LAYOUT ============================= */}
-      <div className="-m-3 sm:-m-6 sm:-mt-12 md:-mt-16 -mx-4 sm:-mx-12 md:-mx-16 min-h-[calc(100vh-3.5rem)] bg-background p-3 sm:p-6 pt-0 sm:pt-0">
+      <div className="-m-3 sm:-m-6 mt-0 sm:mt-0 -mx-4 sm:-mx-12 md:-mx-16 min-h-[calc(100vh-3.5rem)] bg-background p-3 sm:p-6 pt-0 sm:pt-0">
         <div className="flex flex-col max-w-[1600px] mx-auto">
 
-          <h1 className="text-h1 text-foreground">Dashboard</h1>
+          <h1 className="sr-only">Dashboard</h1>
 
           <div className="mt-4 sm:mt-[3.2px] mb-[1.6px]">
             <InstructorKPIs

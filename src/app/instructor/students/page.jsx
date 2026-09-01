@@ -120,10 +120,10 @@ function StudentsDirectoryContent() {
             </button>
           )}
           <div>
-            <h1 className="text-sm font-black text-muted-foreground uppercase tracking-widest font-mono">
+            <h1 className="sr-only">
               {selectedStudentId ? 'Student Profile' : 'Student Directory'}
             </h1>
-            <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">
+            <p className="sr-only">
               {selectedStudentId ? `Viewing ${selectedStudent?.name}` : `${filteredStudents.length} Students Active`}
             </p>
           </div>

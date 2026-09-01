@@ -268,11 +268,10 @@ export default function CertificateTemplateBuilderPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight flex items-center gap-3">
-            <Award className="text-primary" size={30} />
+          <h1 className="sr-only">
             Certificate Template Builder
           </h1>
-          <p className="text-muted-foreground mt-2 text-sm max-w-2xl">
+          <p className="sr-only">
             Design the certificate students receive automatically. Certificates are issued by the system the
             moment a student completes 100% of the course — no manual issuing required.
           </p>

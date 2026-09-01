@@ -60,11 +60,11 @@ export default function ModulesPage() {
         <div className="space-y-8">
             {/* Header */}
             <div>
-                <h1 className="text-4xl font-bold text-foreground">
+                <h1 className="sr-only">
                     Modules
                 </h1>
 
-                <p className="mt-2 text-muted-foreground">
+                <p className="sr-only">
                     Manage all course modules.
                 </p>
             </div>

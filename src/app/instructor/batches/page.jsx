@@ -324,8 +324,8 @@ function BatchesContent() {
     <div className="space-y-7">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight">Batches</h1>
-          <p className="text-sm text-muted-foreground mt-1.5">Manage and monitor your student cohorts across courses.</p>
+          <h1 className="sr-only">Batches</h1>
+          <p className="sr-only">Manage and monitor your student cohorts across courses.</p>
         </div>
         <button
           onClick={() => setShowForm((v) => !v)}

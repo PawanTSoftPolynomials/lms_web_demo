@@ -112,8 +112,8 @@ export default function WorkUploadDocumentsPage() {
   return (
     <Card className="mx-auto max-w-4xl bg-card border border-border p-6 sm:p-8 rounded-2xl shadow-2xl space-y-6">
       <div>
-        <h1 className="text-3xl font-black text-foreground tracking-tight">Upload Documents</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Attach PDFs, presentations, documents, archives, or videos to a topic.</p>
+        <h1 className="sr-only">Upload Documents</h1>
+        <p className="sr-only">Attach PDFs, presentations, documents, archives, or videos to a topic.</p>
       </div>
 
       <CourseModuleLessonSelect

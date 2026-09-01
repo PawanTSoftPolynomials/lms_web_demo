@@ -90,11 +90,10 @@ export default function UpdateCertificatePage() {
       </Link>
 
       <div>
-        <h1 className="text-3xl font-black text-foreground tracking-tight flex items-center gap-3">
-          <Edit3 className="text-blue-500" size={32} />
+        <h1 className="sr-only">
           Update Certificate
         </h1>
-        <p className="text-muted-foreground mt-2">Modify the details of an existing credential.</p>
+        <p className="sr-only">Modify the details of an existing credential.</p>
       </div>
 
       <Card className="p-6 md:p-8 border-border bg-card">

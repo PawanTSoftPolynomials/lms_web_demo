@@ -39,8 +39,8 @@ export default function FeedbackPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-black text-foreground tracking-tight">Feedback</h1>
-        <p className="text-xs text-muted-foreground mt-1">Student ratings and reviews across your courses.</p>
+        <h1 className="sr-only">Feedback</h1>
+        <p className="sr-only">Student ratings and reviews across your courses.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

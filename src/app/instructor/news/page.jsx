@@ -138,8 +138,8 @@ export default function InstructorNewsPage() {
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-black text-foreground tracking-tight">News</h1>
-          <p className="text-xs text-muted-foreground mt-1">Platform and course-related news for instructors.</p>
+          <h1 className="sr-only">News</h1>
+          <p className="sr-only">Platform and course-related news for instructors.</p>
         </div>
       </div>
 
