@@ -1,111 +1,115 @@
-import { Search, BookOpen, ClipboardCheck, TrendingUp, Award, Check } from "lucide-react";
+"use client";
 
+import { Search, BookOpen, ClipboardCheck, TrendingUp, Award, ArrowRight } from "lucide-react";
 import Eyebrow from "@/components/ui/Eyebrow";
 
-// Every point below maps to a real, existing capability — not invented copy:
-// - Discover: /public/landing-data returns category + level + instructor +
-//   lessonsCount per course; FeaturedCourses filters by that real category field.
-// - Learn: the Course -> Module -> Lesson -> Topic -> Content hierarchy, and
-//   course.creator (real instructor), both served by the courses API.
-// - Practice: the quizzes and assignments modules (course.quizzes / course.assignments).
-// - Track: the progress module + per-lesson completion/lock state computed
-//   for enrolled students, and the enrollments relation.
-// - Achieve: the certificates module — the same real count shown in PlatformStats.
-const JOURNEY = [
+const STAGES = [
   {
+    step: "01",
     title: "Discover",
     icon: Search,
-    description: "Browse published courses and find the one that matches what you want to learn.",
-    points: [
-      "Browse courses by category",
-      "See level, lesson count, and instructor before you start",
-    ],
+    subtitle: "Explore Subjects",
+    description: "Browse verified course tracks by domain, category, and skill level.",
   },
   {
+    step: "02",
     title: "Learn",
     icon: BookOpen,
-    description: "Work through structured modules and lessons built by real instructors.",
-    points: [
-      "Every course is organized into modules and lessons",
-      "Taught by real instructors, not generic content",
-    ],
+    subtitle: "Structured Modules",
+    description: "Work through lessons, rich content cells, and instructor guides.",
   },
   {
+    step: "03",
     title: "Practice",
     icon: ClipboardCheck,
-    description: "Reinforce what you've learned with quizzes and assignments.",
-    points: [
-      "Quizzes after lessons check your understanding",
-      "Assignments let you apply what you've learned",
-    ],
+    subtitle: "Interactive Quizzes",
+    description: "Reinforce comprehension with topic-level assessments and exercises.",
   },
   {
+    step: "04",
     title: "Track",
     icon: TrendingUp,
-    description: "Progress and completion are tracked at every step, automatically.",
-    points: [
-      "Lesson-by-lesson completion tracking",
-      "Enrollment and progress kept for every course",
-    ],
+    subtitle: "Real-time Metrics",
+    description: "Monitor lesson completion rates and mastery progress automatically.",
   },
   {
+    step: "05",
     title: "Achieve",
     icon: Award,
-    description: "Finish a course and walk away with proof of it.",
-    points: [
-      "A certificate is issued automatically on completion",
-      "A real, countable record of what you've finished",
-    ],
+    subtitle: "Verify Credentials",
+    description: "Receive automated course certificates upon completing all requirements.",
   },
 ];
 
 export default function LearningJourney() {
   return (
-    <section id="how-it-works" className="scroll-mt-20 py-16 sm:py-20">
-      <div className="mb-14 max-w-2xl">
-        <Eyebrow>The Learning Journey</Eyebrow>
-        <h2 className="mt-4 text-3xl font-bold text-foreground sm:text-4xl">
-          From discovering a course to earning your certificate
+    <section id="how-it-works" className="scroll-mt-20 py-12 lg:py-16">
+      <div className="mb-12 text-center max-w-2xl mx-auto">
+        <Eyebrow>The Learning Flow</Eyebrow>
+        <h2 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
+          How Learning Works on Orange Tree
         </h2>
-        <p className="mt-4 text-muted-foreground">
-          Every course on Orange Tree follows the same five-stage path — so
-          you always know what's next, and finishing always means something.
+        <p className="mt-3 text-sm sm:text-base text-muted-foreground">
+          A structured 5-stage progression designed to take you from initial curiosity to verified mastery.
         </p>
       </div>
 
-      <div className="relative">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute top-2 bottom-2 left-6 w-px bg-border"
-        />
+      {/* Desktop Horizontal Progression */}
+      <div className="hidden lg:grid grid-cols-5 gap-4 relative">
+        {STAGES.map((stage, idx) => {
+          const Icon = stage.icon;
+          return (
+            <div
+              key={stage.step}
+              className="relative flex flex-col justify-between rounded-2xl border border-border bg-card p-5 shadow-xs transition-all hover:border-primary/40 hover:-translate-y-1"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-2xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                    STAGE {stage.step}
+                  </span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                    <Icon size={18} />
+                  </span>
+                </div>
 
-        <ol className="space-y-10">
-          {JOURNEY.map((stage, index) => (
-            <li key={stage.title} className="relative pl-16">
-              <span
-                aria-hidden="true"
-                className="absolute top-0 left-0 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground"
-              >
-                <stage.icon size={20} />
+                <h3 className="text-base font-bold text-foreground mb-1">{stage.title}</h3>
+                <p className="text-[11px] font-semibold text-primary mb-2">{stage.subtitle}</p>
+                <p className="text-xs leading-relaxed text-muted-foreground">{stage.description}</p>
+              </div>
+
+              {idx < STAGES.length - 1 && (
+                <div className="absolute -right-3.5 top-1/2 -translate-y-1/2 z-10 hidden lg:flex h-7 w-7 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground shadow-xs">
+                  <ArrowRight size={12} />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Mobile & Tablet Vertical Timeline */}
+      <div className="lg:hidden relative space-y-6 before:absolute before:left-6 before:top-3 before:bottom-3 before:w-0.5 before:bg-border">
+        {STAGES.map((stage) => {
+          const Icon = stage.icon;
+          return (
+            <div key={stage.step} className="relative pl-14">
+              <span className="absolute left-0 top-0 flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-card text-primary shadow-xs">
+                <Icon size={20} />
               </span>
 
-              <p className="text-xs font-black uppercase tracking-widest text-primary">
-                Stage {index + 1}
-              </p>
-              <h3 className="mt-1 text-xl font-bold text-foreground">{stage.title}</h3>
-              <p className="mt-1.5 max-w-xl text-sm text-muted-foreground">{stage.description}</p>
-
-              <ul className="mt-3 space-y-1.5">
-                {stage.points.map((point) => (
-                  <li key={point} className="flex items-start gap-2 text-sm text-foreground">
-                    <Check size={14} className="mt-0.5 shrink-0 text-primary" />
-                    <span>{point}</span>
-                  </li>
-                ))}
-              </ul>
-            </li>
-          ))}
-        </ol>
+              <div className="rounded-2xl border border-border bg-card p-5 shadow-xs">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-2xs font-mono font-bold text-primary uppercase">Stage {stage.step}</span>
+                  <span className="text-muted-foreground text-xs">•</span>
+                  <span className="text-xs font-semibold text-primary">{stage.subtitle}</span>
+                </div>
+                <h3 className="text-base font-bold text-foreground mb-1.5">{stage.title}</h3>
+                <p className="text-xs leading-relaxed text-muted-foreground">{stage.description}</p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );

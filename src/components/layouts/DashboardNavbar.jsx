@@ -165,17 +165,18 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
   const parsedIds = getIdsFromPathname();
   
-  // Queries with React Query dynamic enabling
-  const { data: moduleData } = useModule(parsedIds.moduleId, { enabled: !!parsedIds.moduleId });
-  const { data: lessonData } = useLesson(parsedIds.lessonId, { enabled: !!parsedIds.lessonId });
-  const { data: contentData } = useContent(parsedIds.contentId, { enabled: !!parsedIds.contentId });
-  const { data: questionData } = useQuestion(parsedIds.questionId, { enabled: !!parsedIds.questionId });
+  // Queries with React Query dynamic enabling (Instructor role only)
+  const isInstructorRole = role === "INSTRUCTOR";
+  const { data: moduleData } = useModule(parsedIds.moduleId, { enabled: !!parsedIds.moduleId && isInstructorRole });
+  const { data: lessonData } = useLesson(parsedIds.lessonId, { enabled: !!parsedIds.lessonId && isInstructorRole });
+  const { data: contentData } = useContent(parsedIds.contentId, { enabled: !!parsedIds.contentId && isInstructorRole });
+  const { data: questionData } = useQuestion(parsedIds.questionId, { enabled: !!parsedIds.questionId && isInstructorRole });
   
   const quizId = parsedIds.quizId || questionData?.quizId;
-  const { data: quizData } = useQuiz(quizId, { enabled: !!quizId });
+  const { data: quizData } = useQuiz(quizId, { enabled: !!quizId && isInstructorRole });
   
   const courseId = parsedIds.courseId || moduleData?.courseId || lessonData?.module?.courseId || quizData?.courseId;
-  const { data: course } = useInstructorCourse(courseId, { enabled: !!courseId });
+  const { data: course } = useInstructorCourse(courseId, { enabled: !!courseId && isInstructorRole });
 
   // Generate breadcrumb objects dynamically
   const getBreadcrumbs = () => {

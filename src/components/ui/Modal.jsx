@@ -10,15 +10,13 @@ export default function Modal({
   children,
   size = "md",
 }) {
-  const [mounted, setMounted] =
-    useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted || !open)
-    return null;
+  if (!mounted || !open) return null;
 
   const width = {
     sm: "max-w-md",
@@ -29,81 +27,29 @@ export default function Modal({
 
   return createPortal(
     <div
-     className="
-  fixed
-  inset-0
-  z-9999
-  flex
-  items-center
-  justify-center
-  bg-background/80
-  backdrop-blur-sm
-  animate-in
-  fade-in
-  duration-200
-  p-6
-"
+      className="fixed inset-0 z-9999 flex items-center justify-center bg-background/80 backdrop-blur-md animate-in fade-in duration-200 p-3 sm:p-6"
       onClick={onClose}
     >
       <div
-        onClick={(e) =>
-          e.stopPropagation()
-        }
-        className={`
-  w-full
-  ${width[size]}
-  max-h-[85vh]
-  flex
-  flex-col
-  overflow-hidden
-  rounded-2xl
-  border
-  border-border
-  bg-background
-  shadow-[0_20px_80px_rgba(0,0,0,0.55)]
-  animate-in
-  zoom-in-95
-  duration-200
-`}
+        onClick={(e) => e.stopPropagation()}
+        className={`w-full ${width[size]} max-h-[85vh] flex flex-col overflow-hidden rounded-2xl border border-border-strong bg-card shadow-lg animate-in zoom-in-95 duration-200`}
       >
-        <div
-          className="
-    flex
-    shrink-0
-    items-center
-    justify-between
-    border-b
-    border-border
-    bg-background/80
-    px-6
-    py-4
-  "
-        >
-          <h2 className="text-xl font-bold text-foreground">
+        <div className="flex shrink-0 items-center justify-between border-b border-border bg-card px-4 sm:px-6 py-3 sm:py-4">
+          <h2 className="text-base sm:text-lg font-bold text-foreground truncate">
             {title}
           </h2>
 
           <button
+            type="button"
             onClick={onClose}
-            className="
-    flex
-    h-9
-    w-9
-    items-center
-    justify-center
-    rounded-xl
-    text-muted-foreground
-    transition-all
-    hover:bg-muted
-    hover:text-foreground
-    cursor-pointer
-  "
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground transition-all hover:bg-muted hover:text-foreground cursor-pointer shrink-0"
+            aria-label="Close modal"
           >
             ✕
           </button>
         </div>
 
-        <div className="p-6 flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="p-4 sm:p-6 flex-1 min-h-0 flex flex-col overflow-y-auto scrollbar-thin">
           {children}
         </div>
       </div>

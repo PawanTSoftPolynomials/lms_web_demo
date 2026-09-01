@@ -1,160 +1,226 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { BookOpen, ClipboardCheck, TrendingUp, Award, CheckCircle2, Users, Star } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { ClipboardCheck, TrendingUp, Award, ArrowRight, Layers, PlayCircle, Check, Users, Sparkles, ShieldCheck } from "lucide-react";
 
 import Button from "@/components/ui/Button";
 import Eyebrow from "@/components/ui/Eyebrow";
 import { useLandingData } from "@/hooks/queries/useLandingData";
 import { getDisplayUrl } from "@/lib/blob";
 
-const PATH_STEPS = [
-  { icon: BookOpen, label: "Structured course modules" },
-  { icon: ClipboardCheck, label: "Practice with quizzes" },
-  { icon: TrendingUp, label: "Progress tracked in real time" },
+const HERO_STATES = [
+  {
+    id: "lesson",
+    step: "01",
+    title: "Study Lessons & Modules",
+    subtitle: "Module 1: Foundations",
+    icon: Layers,
+    color: "text-primary bg-primary/10 border-primary/20",
+  },
+  {
+    id: "quiz",
+    step: "02",
+    title: "Practice & Topic Quizzes",
+    subtitle: "Topic Assessment",
+    icon: ClipboardCheck,
+    color: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20",
+  },
+  {
+    id: "progress",
+    step: "03",
+    title: "Real-time Progress Tracking",
+    subtitle: "75% Mastery Recorded",
+    icon: TrendingUp,
+    color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+  },
+  {
+    id: "achievement",
+    step: "04",
+    title: "Earn Verifiable Certificate",
+    subtitle: "Course Completion Award",
+    icon: Award,
+    color: "text-purple-600 dark:text-purple-400 bg-purple-500/10 border-purple-500/20",
+  },
 ];
 
-function DecorativeGlow() {
-  return (
-    <>
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-6 -right-4 h-24 w-24 rounded-full bg-accent/60 blur-2xl sm:h-32 sm:w-32"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -bottom-8 -left-6 h-28 w-28 rounded-full bg-primary/10 blur-3xl"
-      />
-    </>
-  );
-}
+function SequentialProductVisual({ course, studentsCount }) {
+  const shouldReduceMotion = useReducedMotion();
+  const [activeStateIndex, setActiveStateIndex] = useState(0);
 
-// Real-data spotlight: the most recently published course, presented as a
-// featured-course preview card rather than an abstract mockup. Links to the
-// same public course-detail route the Featured Courses grid uses below.
-function FeaturedCourseSpotlight({ course, studentsCount }) {
-  const isLogo = course.thumbnailUrl && (
-    course.thumbnailUrl.includes("gstatic.com") ||
-    course.thumbnailUrl.includes("miro.medium.com") ||
-    course.thumbnailUrl.includes("logo") ||
-    course.thumbnailUrl.includes("brand")
-  );
+  useEffect(() => {
+    if (shouldReduceMotion) return;
+    const timer = setInterval(() => {
+      setActiveStateIndex((prev) => (prev + 1) % HERO_STATES.length);
+    }, 3400);
+    return () => clearInterval(timer);
+  }, [shouldReduceMotion]);
+
+  const currentState = HERO_STATES[shouldReduceMotion ? 3 : activeStateIndex];
 
   return (
-    <div className="relative mx-auto w-full max-w-md lg:mx-0">
-      <DecorativeGlow />
+    <div className="relative mx-auto w-full max-w-md lg:max-w-lg lg:mx-0">
+      {/* Layered Background Glow Effects */}
+      <div aria-hidden="true" className="pointer-events-none absolute -top-8 -right-8 h-48 w-48 rounded-full bg-primary/15 blur-3xl" />
+      <div aria-hidden="true" className="pointer-events-none absolute -bottom-8 -left-8 h-48 w-48 rounded-full bg-accent/20 blur-3xl" />
 
-      {Number.isFinite(studentsCount) && studentsCount > 0 && (
-        <div
-          aria-hidden="true"
-          className="absolute -top-4 -left-4 z-10 hidden items-center gap-2 rounded-2xl border border-card-border bg-card px-3.5 py-2.5 shadow-luxury-sm sm:flex"
-        >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Users size={15} />
-          </span>
-          <div>
-            <p className="text-sm font-black leading-none text-foreground">{studentsCount}+</p>
-            <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Learners</p>
-          </div>
-        </div>
-      )}
-
-      <Link
-        href={`/courses/${course.id}`}
-        className="group relative block overflow-hidden rounded-3xl border border-card-border bg-card shadow-luxury-md motion-safe:transition-transform motion-safe:duration-300 motion-safe:hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-      >
-        <div className="relative aspect-video w-full overflow-hidden bg-muted">
-          {course.thumbnailUrl ? (
-            <Image
-              src={getDisplayUrl(course.thumbnailUrl)}
-              alt={`${course.title} thumbnail`}
-              fill
-              unoptimized
-              className={`motion-safe:transition-transform motion-safe:duration-500 motion-safe:group-hover:scale-105 ${isLogo ? "object-contain p-8" : "object-cover"}`}
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/15 to-accent/20">
-              <span className="text-5xl" aria-hidden="true">📚</span>
-            </div>
-          )}
-          <span className="absolute left-3 top-3 rounded-full bg-background/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary shadow-sm backdrop-blur-sm">
-            Featured Course
-          </span>
-        </div>
-
-        <div className="p-5">
-          <h3 className="text-base font-bold leading-snug text-foreground line-clamp-1">
-            {course.title}
-          </h3>
-
-          <div className="mt-2 flex items-center gap-3 text-xs font-semibold text-muted-foreground">
-            {course.category && <span>{course.category}</span>}
-            {course.rating && (
-              <span className="flex items-center gap-1">
-                <Star size={12} className="fill-amber-400 text-amber-400" />
-                {Number(course.rating).toFixed(1)}
-              </span>
-            )}
-          </div>
-
-          <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-primary">
-            View Course
-            <span aria-hidden="true" className="motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:translate-x-0.5">→</span>
-          </span>
-        </div>
-      </Link>
-    </div>
-  );
-}
-
-// Fallback when there's no real course data yet (still loading failed, or
-// none published) — a purely conceptual learning-path panel, no invented
-// numbers or claims, just the real capabilities the platform offers.
-function LearningPathFallback() {
-  return (
-    <div className="relative mx-auto w-full max-w-md lg:mx-0">
-      <DecorativeGlow />
-
-      <div className="relative rounded-3xl border border-card-border bg-card p-6 shadow-luxury-md sm:p-7">
-        <div className="flex items-center justify-between">
-          <span className="text-label uppercase tracking-wider text-muted-foreground">Your Learning Path</span>
-          <Award size={18} className="text-primary" />
-        </div>
-
-        <ol className="mt-5 space-y-4">
-          {PATH_STEPS.map((step) => (
-            <li key={step.label} className="flex items-center gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <step.icon size={16} />
-              </span>
-              <span className="text-sm font-semibold text-foreground">{step.label}</span>
-            </li>
-          ))}
-        </ol>
-
-        <div className="mt-5 flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <CheckCircle2 size={18} />
-          </span>
-          <div>
-            <p className="text-sm font-bold text-foreground">Certificate on completion</p>
-            <p className="text-xs text-muted-foreground">Awarded once every module is finished</p>
-          </div>
-        </div>
+      {/* Floating Badges */}
+      <div className="hidden sm:flex items-center gap-1.5 absolute -top-3 -left-3 z-20 px-3 py-1 rounded-full bg-card/90 border border-border shadow-xs backdrop-blur-md text-2xs font-extrabold text-primary">
+        <Sparkles size={12} />
+        <span>Interactive Learning Studio</span>
       </div>
-    </div>
-  );
-}
 
-function HeroVisualSkeleton() {
-  return (
-    <div className="mx-auto w-full max-w-md overflow-hidden rounded-3xl border border-card-border bg-card shadow-luxury-md lg:mx-0">
-      <div className="aspect-video w-full animate-pulse bg-muted" />
-      <div className="space-y-3 p-5">
-        <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
-        <div className="h-3 w-1/3 animate-pulse rounded bg-muted" />
-        <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+      <div className="hidden sm:flex items-center gap-1.5 absolute -bottom-3 -right-3 z-20 px-3 py-1 rounded-full bg-card/90 border border-border shadow-xs backdrop-blur-md text-2xs font-extrabold text-emerald-600 dark:text-emerald-400">
+        <ShieldCheck size={12} />
+        <span>Verifiable Certificates</span>
+      </div>
+
+      {/* Main Elevated Preview Card Enclosure */}
+      <div className="relative rounded-2xl sm:rounded-3xl border border-border/80 bg-card/95 p-4 sm:p-5 shadow-sm space-y-4">
+        {/* Header Strip */}
+        <div className="flex items-center justify-between pb-3 border-b border-border/60">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-2xs font-extrabold uppercase tracking-wider text-muted-foreground">Product Preview</span>
+          </div>
+          {Number.isFinite(studentsCount) && studentsCount > 0 && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-2xs font-bold border border-primary/20">
+              <Users size={11} />
+              <span>{studentsCount}+ Learners Enrolled</span>
+            </span>
+          )}
+        </div>
+
+        {/* Course Banner */}
+        {course ? (
+          <Link href={`/courses/${course.id}`} className="block group">
+            <div className="flex items-center gap-3 p-2.5 rounded-xl sm:rounded-2xl border border-border/80 bg-surface/60 hover:border-primary/40 hover:bg-surface transition-all">
+              <div className="relative aspect-video w-16 sm:w-20 shrink-0 overflow-hidden rounded-lg sm:rounded-xl bg-muted">
+                {course.thumbnailUrl ? (
+                  <Image
+                    src={getDisplayUrl(course.thumbnailUrl)}
+                    alt={course.title || "Course thumbnail"}
+                    fill
+                    unoptimized
+                    className="object-cover group-hover:scale-105 transition duration-300"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center bg-primary/10 text-primary font-bold text-2xs">
+                    LMS
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-2xs font-bold uppercase tracking-wider text-primary truncate block">{course.category || "Featured Track"}</span>
+                <h3 className="text-xs sm:text-sm font-bold text-foreground truncate group-hover:text-primary transition">{course.title}</h3>
+                <p className="text-2xs text-muted-foreground mt-0.5 hidden sm:block">Click to explore curriculum →</p>
+              </div>
+            </div>
+          </Link>
+        ) : (
+          <div className="p-2.5 rounded-xl border border-border bg-muted/30 text-xs font-bold text-foreground">
+            Structured Course Architecture
+          </div>
+        )}
+
+        {/* State Indicator Buttons */}
+        <div className="grid grid-cols-4 gap-1">
+          {HERO_STATES.map((s, idx) => {
+            const isActive = (shouldReduceMotion ? 3 : activeStateIndex) === idx;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setActiveStateIndex(idx)}
+                className={`py-1 px-1 rounded-lg text-[10px] font-bold transition text-center border cursor-pointer ${
+                  isActive
+                    ? "border-primary bg-primary text-primary-foreground shadow-xs"
+                    : "border-border/60 bg-surface/70 text-muted-foreground hover:text-foreground hover:bg-surface"
+                }`}
+              >
+                {s.step}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Dynamic Animated State Surface */}
+        <div className="min-h-[110px] flex items-center">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentState.id}
+              initial={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: shouldReduceMotion ? 1 : 0, y: shouldReduceMotion ? 0 : -6 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.25 }}
+              className="w-full p-3.5 rounded-xl sm:rounded-2xl border border-border bg-background shadow-2xs space-y-2.5"
+            >
+              <div className="flex items-center justify-between">
+                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg border text-2xs font-bold ${currentState.color}`}>
+                  <currentState.icon size={13} />
+                  <span>{currentState.title}</span>
+                </span>
+                <span className="text-2xs font-mono font-bold text-muted-foreground">{currentState.subtitle}</span>
+              </div>
+
+              {/* State 0: Lessons */}
+              {currentState.id === "lesson" && (
+                <div className="space-y-1 text-xs">
+                  <div className="flex items-center justify-between p-1.5 rounded-lg bg-card border border-border text-foreground text-2xs">
+                    <span className="flex items-center gap-1 truncate">
+                      <Check size={11} className="text-emerald-500 shrink-0" />
+                      <span className="truncate">Lesson 1: Introduction</span>
+                    </span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">Passed</span>
+                  </div>
+                  <div className="flex items-center justify-between p-1.5 rounded-lg bg-primary/10 border border-primary/20 text-foreground text-2xs font-semibold">
+                    <span className="flex items-center gap-1 truncate">
+                      <PlayCircle size={11} className="text-primary shrink-0" />
+                      <span className="truncate">Lesson 2: Core Concepts</span>
+                    </span>
+                    <span className="text-primary font-bold">Active</span>
+                  </div>
+                </div>
+              )}
+
+              {/* State 1: Quiz */}
+              {currentState.id === "quiz" && (
+                <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-foreground space-y-0.5">
+                  <p className="font-bold text-xs text-amber-700 dark:text-amber-300">Topic Practice Quiz</p>
+                  <p className="text-2xs text-muted-foreground">3 Multiple choice questions • Immediate score evaluation</p>
+                </div>
+              )}
+
+              {/* State 2: Progress */}
+              {currentState.id === "progress" && (
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-2xs font-bold text-foreground">
+                    <span>Overall Course Progress</span>
+                    <span className="text-emerald-600 dark:text-emerald-400">75% Complete</span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                    <div className="h-full rounded-full bg-emerald-500 w-[75%]" />
+                  </div>
+                </div>
+              )}
+
+              {/* State 3: Achievement */}
+              {currentState.id === "achievement" && (
+                <div className="flex items-center gap-2.5 p-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-purple-600 text-white shadow-xs">
+                    <Award size={15} />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-foreground">Course Completion Certificate</p>
+                    <p className="text-2xs text-muted-foreground truncate">Issued automatically upon completion</p>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
@@ -166,13 +232,13 @@ export default function Hero() {
   const studentsCount = data?.stats?.students;
 
   return (
-    <section className="flex min-h-[70vh] items-center py-16 sm:py-20">
-      <div className="grid w-full items-center gap-12 lg:grid-cols-2 lg:gap-16">
-        {/* Left Content */}
-        <div>
+    <section className="py-6 sm:py-10 lg:py-14">
+      <div className="grid w-full items-center gap-8 lg:grid-cols-12 lg:gap-12">
+        {/* Left Content Column */}
+        <div className="lg:col-span-7 space-y-4 sm:space-y-5">
           <Eyebrow>Modern Learning Platform</Eyebrow>
 
-          <h1 className="mt-6 font-display text-4xl leading-[1.05] tracking-tight text-foreground sm:text-5xl md:text-6xl">
+          <h1 className="font-display text-2xl sm:text-4xl lg:text-5xl font-black leading-[1.1] tracking-tight text-foreground">
             Learn Faster.
             <br />
             Build Skills.
@@ -180,30 +246,41 @@ export default function Hero() {
             <span className="text-primary">Grow Your Career.</span>
           </h1>
 
-          <p className="mt-6 max-w-xl text-lg text-muted-foreground sm:text-xl">
-            Courses, quizzes, and progress tracking on one connected path —
-            from your first lesson to a certificate you can show for it.
+          <p className="max-w-xl text-xs sm:text-base text-muted-foreground leading-relaxed">
+            Courses, quizzes, and progress tracking on one connected path — from your first lesson to a certificate you can show for it.
           </p>
 
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-            <Button asChild size="lg" className="w-full sm:w-auto">
-              <Link href="/register">Get Started</Link>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
+            <Button asChild size="lg" className="w-full sm:w-auto font-bold shadow-xs hover:shadow-sm active:scale-[0.99] transition-all">
+              <Link href="#courses">
+                <span>Explore Courses</span>
+                <ArrowRight size={15} className="ml-1" />
+              </Link>
             </Button>
 
-            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-              <Link href="#courses">Explore Courses</Link>
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto font-bold bg-card hover:bg-surface border border-border/90 hover:border-primary/50 text-foreground shadow-2xs hover:shadow-xs active:scale-[0.99] transition-all"
+            >
+              <Link href="/register">Start Learning</Link>
             </Button>
           </div>
         </div>
 
-        {/* Right Visual */}
-        {isLoading ? (
-          <HeroVisualSkeleton />
-        ) : spotlightCourse ? (
-          <FeaturedCourseSpotlight course={spotlightCourse} studentsCount={studentsCount} />
-        ) : (
-          <LearningPathFallback />
-        )}
+        {/* Right Visual Column */}
+        <div className="lg:col-span-5">
+          {isLoading ? (
+            <div className="w-full max-w-md mx-auto aspect-square rounded-2xl border border-border bg-card p-5 animate-pulse space-y-3">
+              <div className="h-5 w-1/2 bg-muted rounded" />
+              <div className="h-20 bg-muted rounded-xl" />
+              <div className="h-20 bg-muted rounded-xl" />
+            </div>
+          ) : (
+            <SequentialProductVisual course={spotlightCourse} studentsCount={studentsCount} />
+          )}
+        </div>
       </div>
     </section>
   );

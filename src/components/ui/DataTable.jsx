@@ -26,20 +26,20 @@ export default function DataTable({
 
   if (isLoading && skeletonRows > 0) {
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse text-xs">
+      <div className="w-full overflow-x-auto scrollbar-thin">
+        <table className="w-full text-left border-collapse text-xs min-w-[600px]">
           <thead>
             <tr className={headerClass}>
               {columns.map((col) => (
-                <th key={col.key} className="pb-3 pt-1 px-2 first:pl-0 last:pr-0">{col.header}</th>
+                <th key={col.key} className="pb-3 pt-1 px-3 first:pl-0 last:pr-0 font-bold">{col.header}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#1A1F35]/50">
+          <tbody className="divide-y divide-border/60">
             {Array.from({ length: skeletonRows }).map((_, i) => (
               <tr key={i}>
                 {columns.map((col) => (
-                  <td key={col.key} className="py-3.5 px-2 first:pl-0 last:pr-0">
+                  <td key={col.key} className="py-3.5 px-3 first:pl-0 last:pr-0">
                     <div className="h-3.5 rounded bg-muted animate-pulse" style={{ width: `${60 + (i * 7) % 30}%` }} />
                   </td>
                 ))}
@@ -54,52 +54,63 @@ export default function DataTable({
   if (isLoading) {
     return (
       <div className="py-16 flex items-center justify-center">
-        <div className="h-5 w-5 rounded-full border-2 border-orange-450 border-t-transparent animate-spin" />
+        <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
       </div>
     );
   }
 
-  if (rows.length === 0) {
+  if (!rows || rows.length === 0) {
     return (
-      <div className="py-16 flex flex-col items-center justify-center gap-2 text-center">
-        <Inbox size={22} className="text-slate-600" />
-        <p className="text-xs font-bold text-muted-foreground">{emptyLabel}</p>
+      <div className="py-16 text-center flex flex-col items-center justify-center gap-2">
+        <div className="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center">
+          <Inbox size={20} />
+        </div>
+        <p className="text-xs text-muted-foreground font-medium">{emptyLabel}</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse text-xs">
+    <div className="w-full overflow-x-auto scrollbar-thin">
+      <table className="w-full text-left border-collapse text-xs min-w-[600px]">
         <thead>
           <tr className={headerClass}>
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={`pb-3 pt-1 px-2 first:pl-0 last:pr-0 ${col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left"}`}
+                className={`pb-3 pt-1 px-3 first:pl-0 last:pr-0 font-bold ${
+                  col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left"
+                }`}
               >
                 {col.header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#1A1F35]/50">
-          {rows.map((row) => (
-            <tr
-              key={row[rowKey]}
-              onClick={onRowClick ? () => onRowClick(row) : undefined}
-              className={`hover:bg-white/[0.015] transition ${onRowClick ? "cursor-pointer" : ""}`}
-            >
-              {columns.map((col) => (
-                <td
-                  key={col.key}
-                  className={`py-3.5 px-2 first:pl-0 last:pr-0 text-foreground ${col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left"}`}
-                >
-                  {col.render ? col.render(row) : (row[col.key] ?? "—")}
-                </td>
-              ))}
-            </tr>
-          ))}
+        <tbody className="divide-y divide-border/60">
+          {rows.map((row, idx) => {
+            const keyVal = typeof rowKey === "function" ? rowKey(row, idx) : row[rowKey] ?? idx;
+            return (
+              <tr
+                key={keyVal}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                className={`transition-colors duration-150 ${
+                  onRowClick ? "cursor-pointer hover:bg-surface/80" : "hover:bg-surface/50"
+                }`}
+              >
+                {columns.map((col) => (
+                  <td
+                    key={col.key}
+                    className={`py-3.5 px-3 first:pl-0 last:pr-0 ${
+                      col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left"
+                    }`}
+                  >
+                    {col.render ? col.render(row, idx) : row[col.key]}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

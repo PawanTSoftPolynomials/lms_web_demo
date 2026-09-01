@@ -25,20 +25,20 @@ export default function FeaturedCourseCard({ course }) {
   return (
     <Link
       href={`/courses/${course.id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-card-border bg-card shadow-luxury-sm transition-all duration-300 hover:shadow-luxury-md hover:-translate-y-1.5 motion-reduce:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xs transition-all duration-300 hover:shadow-md hover:border-primary/40 hover:-translate-y-1 motion-reduce:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       {/* Banner Image (Fixed 16:9 Aspect Ratio) */}
       <div className="relative w-full aspect-video shrink-0 overflow-hidden bg-muted">
         {course.thumbnailUrl ? (
           isLogo ? (
-            <div className="flex h-full w-full items-center justify-center bg-muted p-10">
-              <div className="relative h-20 w-20">
+            <div className="flex h-full w-full items-center justify-center bg-muted p-6">
+              <div className="relative h-16 w-16">
                 <Image
                   src={getDisplayUrl(course.thumbnailUrl)}
                   alt={`${course.title} thumbnail`}
                   fill
                   unoptimized
-                  className="object-contain drop-shadow-lg transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100"
+                  className="object-contain drop-shadow-sm transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100"
                 />
               </div>
             </div>
@@ -53,67 +53,67 @@ export default function FeaturedCourseCard({ course }) {
           )
         ) : (
           <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/15 to-accent/20">
-            <span className="text-5xl" aria-hidden="true">📚</span>
+            <span className="text-4xl" aria-hidden="true">📚</span>
           </div>
         )}
 
         {course.category && (
-          <span className="absolute left-3 top-3 rounded-full bg-background/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary shadow-sm backdrop-blur-sm">
+          <span className="absolute left-2.5 top-2.5 rounded-full bg-background/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary shadow-2xs backdrop-blur-sm">
             {course.category}
           </span>
         )}
 
         {course.level && (
-          <span className="absolute right-3 top-3 rounded-full bg-background/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground shadow-sm backdrop-blur-sm">
+          <span className="absolute right-2.5 top-2.5 rounded-full bg-background/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground shadow-2xs backdrop-blur-sm">
             {course.level}
           </span>
         )}
       </div>
 
       {/* Content Body */}
-      <div className="flex flex-1 flex-col p-6">
-        <h3 className="text-lg font-bold leading-snug text-foreground line-clamp-2">
+      <div className="flex flex-1 flex-col p-4 sm:p-4.5">
+        <h3 className="text-sm font-bold leading-snug text-foreground line-clamp-2 group-hover:text-primary transition">
           {course.title}
         </h3>
 
         {course.description && (
-          <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+          <p className="mt-1.5 text-xs text-muted-foreground line-clamp-2">
             {course.description}
           </p>
         )}
 
-        <div className="mt-4 flex items-center gap-4 text-xs font-semibold text-muted-foreground">
+        <div className="mt-3 flex items-center gap-3 text-2xs font-semibold text-muted-foreground">
           {rating !== null && (
             <span className="flex items-center gap-1">
-              <Star size={13} className="fill-amber-400 text-amber-400" />
+              <Star size={12} className="fill-amber-400 text-amber-400" />
               {rating.toFixed(1)}
               {course.reviewsCount ? ` (${course.reviewsCount})` : ""}
             </span>
           )}
           {sessionsCount > 0 && (
             <span className="flex items-center gap-1">
-              <Layers size={13} />
+              <Layers size={12} />
               {sessionsCount} lessons
             </span>
           )}
         </div>
 
         {course.instructorName && (
-          <div className="mt-4 flex items-center gap-2">
-            <Avatar className="size-6 shrink-0">
-              <AvatarFallback className="text-[10px]">
+          <div className="mt-3 flex items-center gap-2">
+            <Avatar className="size-5 shrink-0">
+              <AvatarFallback className="text-[9px] font-bold">
                 {course.instructorName.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <span className="truncate text-xs font-medium text-muted-foreground">
+            <span className="truncate text-2xs font-medium text-muted-foreground">
               {course.instructorName}
             </span>
           </div>
         )}
 
-        <div className="mt-5 flex items-center justify-between gap-3 border-t border-border pt-4">
-          <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold text-foreground">
+        <div className="mt-4 flex items-center justify-between gap-2 border-t border-border/60 pt-3">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-base font-bold text-foreground">
               {isFree ? "Free" : formatPrice(effectivePrice, currency)}
             </span>
             {listPrice && (
@@ -123,9 +123,9 @@ export default function FeaturedCourseCard({ course }) {
             )}
           </div>
 
-          <span className="flex items-center gap-1 rounded-full bg-primary px-4 py-2 text-xs font-bold uppercase tracking-wider text-primary-foreground transition group-hover:brightness-110">
+          <span className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-2xs font-bold uppercase tracking-wider text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
             View Course
-            <ArrowRight size={13} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+            <ArrowRight size={12} className="transition-transform duration-300 group-hover:translate-x-0.5" />
           </span>
         </div>
       </div>
