@@ -538,16 +538,16 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                   <select
                     value={selectedModuleId}
                     onChange={(e) => handleModuleChange(e.target.value)}
-                    className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                    className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                   >
                     {modules.length > 0 ? (
                       modules.map((m) => (
-                        <option key={m.id || m._id} value={m.id || m._id}>
+                        <option key={m.id || m._id} value={m.id || m._id} className="bg-card text-foreground">
                           Module: {m.title || "Untitled Module"}
                         </option>
                       ))
                     ) : (
-                      <option value="">No modules exist yet</option>
+                      <option value="" className="bg-card text-foreground">No modules exist yet</option>
                     )}
                   </select>
                 </div>
@@ -564,16 +564,16 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                       <select
                         value={selectedModuleId}
                         onChange={(e) => handleModuleChange(e.target.value)}
-                        className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {modules.length > 0 ? (
                           modules.map((m) => (
-                            <option key={m.id || m._id} value={m.id || m._id}>
+                            <option key={m.id || m._id} value={m.id || m._id} className="bg-card text-foreground">
                               Module: {m.title || "Untitled Module"}
                             </option>
                           ))
                         ) : (
-                          <option value="">No modules exist yet</option>
+                          <option value="" className="bg-card text-foreground">No modules exist yet</option>
                         )}
                       </select>
                     </div>
@@ -582,16 +582,16 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                       <select
                         value={selectedLessonId}
                         onChange={(e) => handleLessonChange(e.target.value)}
-                        className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {(activeModuleObj?.lessons || []).length > 0 ? (
                           (activeModuleObj?.lessons || []).map((l) => (
-                            <option key={l.id || l._id} value={l.id || l._id}>
+                            <option key={l.id || l._id} value={l.id || l._id} className="bg-card text-foreground">
                               Lesson: {l.title || "Untitled Lesson"}
                             </option>
                           ))
                         ) : (
-                          <option value="">No lessons in this module</option>
+                          <option value="" className="bg-card text-foreground">No lessons in this module</option>
                         )}
                       </select>
                     </div>
@@ -610,16 +610,16 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                       <select
                         value={selectedModuleId}
                         onChange={(e) => handleModuleChange(e.target.value)}
-                        className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {modules.length > 0 ? (
                           modules.map((m) => (
-                            <option key={m.id || m._id} value={m.id || m._id}>
+                            <option key={m.id || m._id} value={m.id || m._id} className="bg-card text-foreground">
                               Module: {m.title || "Untitled Module"}
                             </option>
                           ))
                         ) : (
-                          <option value="">No modules exist yet</option>
+                          <option value="" className="bg-card text-foreground">No modules exist yet</option>
                         )}
                       </select>
                     </div>
@@ -628,16 +628,16 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                       <select
                         value={selectedLessonId}
                         onChange={(e) => handleLessonChange(e.target.value)}
-                        className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {(activeModuleObj?.lessons || []).length > 0 ? (
                           (activeModuleObj?.lessons || []).map((l) => (
-                            <option key={l.id || l._id} value={l.id || l._id}>
+                            <option key={l.id || l._id} value={l.id || l._id} className="bg-card text-foreground">
                               Lesson: {l.title || "Untitled Lesson"}
                             </option>
                           ))
                         ) : (
-                          <option value="">No lessons in this module</option>
+                          <option value="" className="bg-card text-foreground">No lessons in this module</option>
                         )}
                       </select>
                     </div>
@@ -647,16 +647,16 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                     <select
                       value={selectedTopicId}
                       onChange={(e) => handleTopicChange(e.target.value)}
-                      className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-emerald-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                      className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-emerald-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                     >
                       {(activeLessonObj?.topics || []).length > 0 ? (
                         (activeLessonObj?.topics || []).map((t) => (
-                          <option key={t.id || t._id} value={t.id || t._id}>
+                          <option key={t.id || t._id} value={t.id || t._id} className="bg-card text-foreground">
                             Topic: {t.title || "Untitled Topic"}
                           </option>
                         ))
                       ) : (
-                        <option value="">No topics in this lesson</option>
+                        <option value="" className="bg-card text-foreground">No topics in this lesson</option>
                       )}
                     </select>
                   </div>
@@ -672,16 +672,16 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                   <select
                     value={selectedModuleId}
                     onChange={(e) => handleModuleChange(e.target.value)}
-                    className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                    className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                   >
                     {modules.length > 0 ? (
                       modules.map((m) => (
-                        <option key={m.id || m._id} value={m.id || m._id}>
+                        <option key={m.id || m._id} value={m.id || m._id} className="bg-card text-foreground">
                           Module: {m.title || "Untitled Module"}
                         </option>
                       ))
                     ) : (
-                      <option value="">No modules exist yet</option>
+                      <option value="" className="bg-card text-foreground">No modules exist yet</option>
                     )}
                   </select>
                 </div>
@@ -698,11 +698,11 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                   <select
                     value={selectedOrderValue}
                     onChange={(e) => setSelectedOrderValue(e.target.value)}
-                    className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                    className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                   >
-                    <option value="AUTO_END">Auto / End</option>
+                    <option value="AUTO_END" className="bg-card text-foreground">Auto / End</option>
                     {siblingItems.map((item, i) => (
-                      <option key={item.id || item._id} value={`AFTER_${item.id || item._id}`}>
+                      <option key={item.id || item._id} value={`AFTER_${item.id || item._id}`} className="bg-card text-foreground">
                         After {i + 1} — {item.title || `Item ${i + 1}`}
                       </option>
                     ))}

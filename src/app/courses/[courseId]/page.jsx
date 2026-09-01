@@ -1,5 +1,6 @@
 import { getCourseById } from "@/services/course.service";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import CourseBuyButton from "@/components/student/course-details/CourseBuyButton";
 import { getDisplayUrl } from "@/lib/blob";
 import {
@@ -19,7 +20,18 @@ import {
 export default async function CoursePage({ params }) {
   const { courseId } = await params;
 
-  const course = await getCourseById(courseId);
+  let course;
+  try {
+    course = await getCourseById(courseId);
+  } catch (error) {
+    // A course that doesn't exist (or isn't published/visible to a public
+    // viewer — the backend returns the same 404 for both) should show a
+    // real 404, not crash into Next's generic error page.
+    if (error?.response?.status === 404) {
+      notFound();
+    }
+    throw error;
+  }
 
   // Dynamic calculations
   const lessonsCount = course.modules?.reduce((acc, m) => acc + (m.lessons?.length ?? 0), 0) ?? 0;

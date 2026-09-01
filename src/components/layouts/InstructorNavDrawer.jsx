@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { ChevronDown, Settings, LifeBuoy, LogOut, X } from "lucide-react";
 
 import { useInstructorNavDrawer } from "@/context/InstructorNavDrawerContext";
@@ -96,7 +96,6 @@ function DrawerNavItem({ item, pathname, depth = 0, onNavigate }) {
 // from the header's own icons, which are always visible on mobile.
 export default function InstructorNavDrawer() {
   const pathname = usePathname();
-  const router = useRouter();
   const { logout } = useAuth();
   const { isOpen, close } = useInstructorNavDrawer();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -120,8 +119,10 @@ export default function InstructorNavDrawer() {
   const handleLogout = () => {
     setShowLogoutModal(false);
     close();
+    // logout() itself clears auth state and redirects to the Landing Page —
+    // navigating here too would race it while cookies/user state are still
+    // present, which is what let the old redirect bounce back into the app.
     logout();
-    router.push("/login");
   };
 
   if (!isOpen) return null;

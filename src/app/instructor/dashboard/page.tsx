@@ -26,19 +26,6 @@ import {
   useAnnouncementsFeed,
 } from "@/hooks/queries/instructor/useDashboardHome";
 import { useMyLessonQueries } from "@/hooks/queries/instructor/useLessonQueries";
-import {
-  ChevronRight,
-  Radio,
-  Plus,
-  FolderPlus,
-  Video,
-  Megaphone,
-  BookOpen,
-  Users,
-  CalendarClock,
-  ClipboardCheck,
-  GraduationCap,
-} from "lucide-react";
 
 // Dynamically imported so recharts is bundled once via this shared
 // dynamic() boundary instead of duplicated into this route's own chunk.

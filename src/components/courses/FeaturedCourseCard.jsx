@@ -2,16 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Star, Layers, ArrowRight } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/shadcn/avatar";
 import { getDisplayUrl } from "@/lib/blob";
 import { getPriceInfo, formatPrice } from "@/lib/pricing";
 
-export default function FeaturedCourseCard({ course, highlighted = false }) {
+export default function FeaturedCourseCard({ course }) {
   if (!course) return null;
 
   const sessionsCount = course.lessonsCount ?? course.modules?.length ?? course.modulesCount ?? 0;
   const { isFree, effectivePrice, listPrice, currency } = getPriceInfo(course.store);
+  const rating = course.rating ? Number(course.rating) : null;
 
   const isLogo = course.thumbnailUrl && (
     course.thumbnailUrl.includes("gstatic.com") ||
@@ -21,121 +23,112 @@ export default function FeaturedCourseCard({ course, highlighted = false }) {
   );
 
   return (
-    <div
-      className={`group rounded-2xl overflow-hidden flex flex-col hover:-translate-y-1.5 transition-all duration-400 ${
-        highlighted
-          ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20"
-          : "bg-card border border-card-border shadow-luxury-sm hover:shadow-luxury-md"
-      }`}
+    <Link
+      href={`/courses/${course.id}`}
+      className="group flex flex-col overflow-hidden rounded-2xl border border-card-border bg-card shadow-luxury-sm transition-all duration-300 hover:shadow-luxury-md hover:-translate-y-1.5 motion-reduce:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       {/* Banner Image (Fixed 16:9 Aspect Ratio) */}
-      <div className="relative w-full aspect-video overflow-hidden bg-black/20 shrink-0">
+      <div className="relative w-full aspect-video shrink-0 overflow-hidden bg-muted">
         {course.thumbnailUrl ? (
           isLogo ? (
-            <div className="flex h-full w-full items-center justify-center bg-black/10 p-10">
+            <div className="flex h-full w-full items-center justify-center bg-muted p-10">
               <div className="relative h-20 w-20">
                 <Image
                   src={getDisplayUrl(course.thumbnailUrl)}
-                  alt={course.title}
+                  alt={`${course.title} thumbnail`}
                   fill
                   unoptimized
-                  className="object-contain filter drop-shadow-lg group-hover:scale-105 transition-transform duration-500"
+                  className="object-contain drop-shadow-lg transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100"
                 />
               </div>
             </div>
           ) : (
             <Image
               src={getDisplayUrl(course.thumbnailUrl)}
-              alt={course.title}
+              alt={`${course.title} thumbnail`}
               fill
               unoptimized
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:group-hover:scale-100"
             />
           )
         ) : (
-          <div className="flex h-full items-center justify-center bg-black/10">
-            <span className="text-5xl">📚</span>
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/15 to-accent/20">
+            <span className="text-5xl" aria-hidden="true">📚</span>
           </div>
         )}
-      </div>
 
-      {/* Content Body */}
-      <div className="p-6 flex-1 flex flex-col">
         {course.category && (
-          <span
-            className={`text-[11px] font-bold tracking-wider uppercase mb-2 ${
-              highlighted ? "text-primary-foreground/70" : "text-primary"
-            }`}
-          >
+          <span className="absolute left-3 top-3 rounded-full bg-background/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary shadow-sm backdrop-blur-sm">
             {course.category}
           </span>
         )}
 
-        <h3 className="text-h4 line-clamp-2 mb-3">
+        {course.level && (
+          <span className="absolute right-3 top-3 rounded-full bg-background/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground shadow-sm backdrop-blur-sm">
+            {course.level}
+          </span>
+        )}
+      </div>
+
+      {/* Content Body */}
+      <div className="flex flex-1 flex-col p-6">
+        <h3 className="text-lg font-bold leading-snug text-foreground line-clamp-2">
           {course.title}
         </h3>
 
-        <div className="flex items-center justify-between gap-2">
-          {course.instructorName && (
-            <div className="flex items-center gap-2 min-w-0">
-              <Avatar className="size-6 shrink-0">
-                <AvatarFallback className="text-[10px]">
-                  {course.instructorName.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <span
-                className={`text-xs font-medium truncate ${
-                  highlighted ? "text-primary-foreground/80" : "text-muted-foreground"
-                }`}
-              >
-                {course.instructorName}
-              </span>
-            </div>
-          )}
+        {course.description && (
+          <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+            {course.description}
+          </p>
+        )}
 
+        <div className="mt-4 flex items-center gap-4 text-xs font-semibold text-muted-foreground">
+          {rating !== null && (
+            <span className="flex items-center gap-1">
+              <Star size={13} className="fill-amber-400 text-amber-400" />
+              {rating.toFixed(1)}
+              {course.reviewsCount ? ` (${course.reviewsCount})` : ""}
+            </span>
+          )}
           {sessionsCount > 0 && (
-            <span
-              className={`text-xs font-medium shrink-0 ${
-                highlighted ? "text-primary-foreground/70" : "text-muted-foreground"
-              }`}
-            >
-              {sessionsCount} Sessions
+            <span className="flex items-center gap-1">
+              <Layers size={13} />
+              {sessionsCount} lessons
             </span>
           )}
         </div>
 
-        <div
-          className={`mt-5 pt-4 flex items-center justify-between gap-3 border-t ${
-            highlighted ? "border-primary-foreground/20" : "border-card-border"
-          }`}
-        >
+        {course.instructorName && (
+          <div className="mt-4 flex items-center gap-2">
+            <Avatar className="size-6 shrink-0">
+              <AvatarFallback className="text-[10px]">
+                {course.instructorName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <span className="truncate text-xs font-medium text-muted-foreground">
+              {course.instructorName}
+            </span>
+          </div>
+        )}
+
+        <div className="mt-5 flex items-center justify-between gap-3 border-t border-border pt-4">
           <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold">
+            <span className="text-lg font-bold text-foreground">
               {isFree ? "Free" : formatPrice(effectivePrice, currency)}
             </span>
             {listPrice && (
-              <span
-                className={`text-xs line-through ${
-                  highlighted ? "text-primary-foreground/60" : "text-muted-foreground"
-                }`}
-              >
+              <span className="text-xs text-muted-foreground line-through">
                 {formatPrice(listPrice, currency)}
               </span>
             )}
           </div>
 
-          <Link
-            href={`/courses/${course.id}`}
-            className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider transition active:scale-[0.98] ${
-              highlighted
-                ? "bg-primary-foreground text-primary hover:brightness-95"
-                : "bg-primary text-primary-foreground hover:brightness-110"
-            }`}
-          >
+          <span className="flex items-center gap-1 rounded-full bg-primary px-4 py-2 text-xs font-bold uppercase tracking-wider text-primary-foreground transition group-hover:brightness-110">
             View Course
-          </Link>
+            <ArrowRight size={13} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+          </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

@@ -14,9 +14,9 @@ export function middleware(request) {
   const guard = roleGuards.find((g) => path.startsWith(g.prefix));
 
   if (guard && (!token || role !== guard.role)) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", path);
-    return NextResponse.redirect(loginUrl);
+    // Unauthenticated/wrong-role hits on a protected route go to the public
+    // Landing Page, not straight to Login — Login is reached from there.
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();

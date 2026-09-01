@@ -1,7 +1,11 @@
 import LandingNavbar from "@/components/layouts/LandingNavbar";
 import Hero from "@/components/home/Hero";
-import Features from "@/components/home/Features";
+import PlatformStats from "@/components/home/PlatformStats";
 import FeaturedCourses from "@/components/home/FeaturedCourses";
+import WhyOrangeTree from "@/components/home/WhyOrangeTree";
+import HowItWorks from "@/components/home/HowItWorks";
+import ProductShowcase from "@/components/home/ProductShowcase";
+import FinalCta from "@/components/home/FinalCta";
 import Footer from "@/components/layouts/Footer";
 
 export default function Home() {
@@ -12,9 +16,17 @@ export default function Home() {
 
         <Hero />
 
+        <PlatformStats />
+
         <FeaturedCourses />
 
-        <Features />
+        <WhyOrangeTree />
+
+        <HowItWorks />
+
+        <ProductShowcase />
+
+        <FinalCta />
       </div>
 
       <Footer />

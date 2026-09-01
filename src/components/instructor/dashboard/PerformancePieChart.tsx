@@ -5,7 +5,32 @@ import type { GradeDistribution } from "@/services/instructor/dashboardHome.serv
 
 export function PerformancePieChart({ data, isLoading }: { data: GradeDistribution[], isLoading?: boolean }) {
   if (isLoading) {
-    return <div className="h-48 animate-pulse bg-muted/50 rounded-2xl"></div>;
+    return (
+      <div className="rounded-2xl bg-card border border-border p-5 h-full flex flex-col">
+        <div className="flex items-center justify-between mb-2">
+          <div className="h-3.5 w-36 rounded bg-muted/50 animate-pulse" />
+          <div className="h-2.5 w-16 rounded bg-muted/50 animate-pulse" />
+        </div>
+
+        <div className="h-2.5 w-48 rounded bg-muted/50 animate-pulse mb-4" />
+
+        <div className="h-[170px] shrink-0 flex items-center justify-center">
+          <div className="h-[140px] w-[140px] rounded-full bg-muted/50 animate-pulse" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 mt-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-muted/50 animate-pulse shrink-0" />
+              <div className="space-y-1">
+                <div className="h-2 w-14 rounded bg-muted/50 animate-pulse" />
+                <div className="h-2.5 w-6 rounded bg-muted/50 animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (

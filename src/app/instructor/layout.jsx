@@ -15,7 +15,7 @@ export default function Layout({ children }) {
   useEffect(() => {
     if (!loading) {
       if (!user || user.role !== "INSTRUCTOR") {
-        router.push("/login");
+        router.replace("/");
       }
     }
   }, [user, loading, router]);

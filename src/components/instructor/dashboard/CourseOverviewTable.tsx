@@ -6,7 +6,57 @@ import type { CourseProgressOverview } from "@/services/instructor/dashboardHome
 
 export function CourseOverviewTable({ courses, isLoading }: { courses: CourseProgressOverview[], isLoading?: boolean }) {
   if (isLoading) {
-    return <div className="h-48 animate-pulse bg-muted rounded-2xl"></div>;
+    return (
+      <div className="rounded-2xl bg-card border border-border p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="h-3.5 w-32 rounded bg-muted animate-pulse" />
+          <div className="h-2.5 w-24 rounded bg-muted animate-pulse" />
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-[560px] w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="pb-3 pr-2"><div className="h-2.5 w-14 rounded bg-muted animate-pulse" /></th>
+                <th className="pb-3 px-2"><div className="h-2.5 w-14 rounded bg-muted animate-pulse mx-auto" /></th>
+                <th className="pb-3 px-2"><div className="h-2.5 w-14 rounded bg-muted animate-pulse" /></th>
+                <th className="pb-3 pl-2"><div className="h-2.5 w-14 rounded bg-muted animate-pulse ml-auto" /></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <tr key={i}>
+                  <td className="py-4 pr-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-muted animate-pulse shrink-0" />
+                      <div className="space-y-1.5">
+                        <div className="h-3 w-28 rounded bg-muted animate-pulse" />
+                        <div className="h-2.5 w-20 rounded bg-muted animate-pulse" />
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-2 text-center">
+                    <div className="h-3 w-6 rounded bg-muted animate-pulse mx-auto" />
+                  </td>
+                  <td className="py-4 px-2 w-1/3">
+                    <div className="flex items-center gap-3">
+                      <div className="h-3 w-8 rounded bg-muted animate-pulse shrink-0" />
+                      <div className="h-1.5 w-full rounded-full bg-muted animate-pulse" />
+                    </div>
+                  </td>
+                  <td className="py-4 pl-4">
+                    <div className="flex items-center justify-end gap-2">
+                      <div className="h-6 w-14 rounded-lg bg-muted animate-pulse" />
+                      <div className="h-4 w-4 rounded bg-muted animate-pulse" />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
   }
 
   return (

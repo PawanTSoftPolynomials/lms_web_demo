@@ -13,8 +13,15 @@ import {
 } from "@/services/auth.service";
 import { defaultQueryOptions } from "@/lib/queryOptions";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { PALETTE_STORAGE_KEY } from "@/lib/palettes";
 
 const AuthContext = createContext();
+
+// next-themes (see src/providers/ThemeProvider.tsx) is mounted with no
+// custom `storageKey`, so it persists under its library default, "theme".
+// Theme/palette are device UI preferences, not session state — logging out
+// must not reset them.
+const PRESERVED_ON_LOGOUT_KEYS = ["theme", PALETTE_STORAGE_KEY];
 
 // Shared with any future consumer that wants the current identity without
 // re-fetching it (React Query dedupes/caches on this key).
@@ -44,10 +51,15 @@ export const AuthProvider = ({ children }) => {
     Cookies.remove("refreshToken");
     Cookies.remove("role");
 
-    // 2. Clear all local and session storage
+    // 2. Clear all local and session storage — except device UI preferences
+    // (theme/palette), which are independent of the authenticated session
+    // and must survive logout.
     if (typeof window !== "undefined") {
-      localStorage.removeItem("user");
+      const preserved = PRESERVED_ON_LOGOUT_KEYS.map((key) => [key, localStorage.getItem(key)]);
       localStorage.clear();
+      preserved.forEach(([key, value]) => {
+        if (value !== null) localStorage.setItem(key, value);
+      });
       sessionStorage.clear();
     }
 
@@ -221,7 +233,11 @@ export const AuthProvider = ({ children }) => {
     } finally {
       logoutLocal();
       if (typeof window !== "undefined") {
-        window.location.href = "/login";
+        // Hard navigation (not router.replace) so every provider in the tree
+        // (sockets, notifications, chat, etc.) resets cleanly — and
+        // .replace() so the protected page we're leaving isn't left in
+        // history as the back-button target.
+        window.location.replace("/");
       }
     }
   };

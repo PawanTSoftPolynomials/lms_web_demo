@@ -58,10 +58,8 @@ export default function LessonForm({
     };
 
     const formBody = (
-            <form
-                onSubmit={handleSubmit}
-                className="space-y-6"
-            >
+        <form onSubmit={handleSubmit} className="flex-1 min-h-0 flex flex-col justify-between">
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-5 pr-1 pb-2">
                 <Input
                     label="Lesson Title"
                     name="title"
@@ -107,22 +105,23 @@ export default function LessonForm({
                         </p>
                     )}
                 </div>
+            </div>
 
-                <div className="flex justify-end">
-                    <Button
-                        type="submit"
-                        disabled={loading}
-                    >
-                        {loading
-                            ? mode === "create"
-                                ? "Creating..."
-                                : "Updating..."
-                            : mode === "create"
-                                ? "Create Lesson"
-                                : "Update Lesson"}
-                    </Button>
-                </div>
-            </form>
+            <div className="pt-4 shrink-0 border-t border-border flex justify-end">
+                <Button
+                    type="submit"
+                    disabled={loading}
+                >
+                    {loading
+                        ? mode === "create"
+                            ? "Creating..."
+                            : "Updating..."
+                        : mode === "create"
+                            ? "Create Lesson"
+                            : "Update Lesson"}
+                </Button>
+            </div>
+        </form>
     );
 
     if (compact) {

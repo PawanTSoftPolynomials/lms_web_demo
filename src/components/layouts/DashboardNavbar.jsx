@@ -348,8 +348,10 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleLogout = () => {
+    // logout() itself clears auth state and redirects to the Landing Page —
+    // navigating here too would race it while cookies/user state are still
+    // present, which is what let the old redirect bounce back into the app.
     logout();
-    router.push("/login");
   };
 
   const handleMarkAllRead = () => {

@@ -1,6 +1,10 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
+// Same prefixes middleware.js guards. Used below to decide whether a failed
+// background session check is allowed to navigate the browser at all.
+const PROTECTED_PREFIXES = ["/admin", "/instructor", "/student"];
+
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   timeout: 15000,
@@ -79,8 +83,23 @@ api.interceptors.response.use(
 
         localStorage.removeItem("user");
 
+        // Only force-navigate when the page the browser is actually showing
+        // requires auth. A failed *background* session check (e.g. the
+        // silent verifySession() call every page fires on load) must not
+        // hijack navigation away from a public page like a course detail
+        // page — that page never needed a session in the first place, and
+        // a stale/expired token here shouldn't be able to yank the browser
+        // back to "/" mid-navigation. Protected pages still redirect: their
+        // own layout guard (and middleware, on a full load) send an
+        // unauthenticated visitor to "/" regardless, so this is belt-and-
+        // suspenders there, not the only thing keeping them out.
         if (typeof window !== "undefined") {
-          window.location.href = "/login";
+          const isOnProtectedPath = PROTECTED_PREFIXES.some((prefix) =>
+            window.location.pathname.startsWith(prefix)
+          );
+          if (isOnProtectedPath) {
+            window.location.replace("/");
+          }
         }
 
         return Promise.reject(refreshError);
