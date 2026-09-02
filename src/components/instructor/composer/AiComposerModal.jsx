@@ -103,11 +103,28 @@ export default function AiComposerModal({
   const [step, setStep] = useState("INPUT");
   const generateAiMutation = useGenerateAiContent();
   const [loading, setLoading] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
   const [validationErrors, setValidationErrors] = useState([]);
   const [generatedDraft, setGeneratedDraft] = useState(null);
 
   const prevIsOpenRef = useRef(false);
+
+  // Real elapsed-time ticker for the generation status panel — the backend
+  // call is a single atomic request/response (no SSE/streaming progress
+  // events exist to report), so this shows genuine elapsed time rather than
+  // a fabricated progress percentage.
+  useEffect(() => {
+    if (!loading) {
+      setElapsedSeconds(0);
+      return;
+    }
+    const startedAt = Date.now();
+    const intervalId = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [loading]);
 
   // Sync initial scope, cascading parent, and order ONCE when modal opens
   useEffect(() => {
@@ -234,6 +251,18 @@ export default function AiComposerModal({
     if (selectedScope === "CONTENT") return "Describe the content block you want OTree AI to create...";
     if (selectedScope === "QUIZ") return "Describe what you want this quiz to assess...";
     return "Describe what you want OTree AI to generate...";
+  };
+
+  // Honest, scope-aware description of what the single in-flight AI request
+  // is actually producing — not a fabricated multi-step progress sequence,
+  // since the backend call is one atomic request with no intermediate events.
+  const getGenerationStageLabel = () => {
+    if (selectedScope === "MODULE") return "Drafting module structure, lessons, and topics...";
+    if (selectedScope === "LESSON") return "Drafting lesson structure and topics...";
+    if (selectedScope === "TOPIC") return "Drafting topic content...";
+    if (selectedScope === "CONTENT") return "Drafting content block...";
+    if (selectedScope === "QUIZ") return "Drafting quiz questions and answers...";
+    return "Generating with OTree AI...";
   };
 
   const prepareDraftAndNavigate = (canonical) => {
@@ -724,6 +753,22 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                   className="w-full bg-background border border-border rounded-xl p-3 text-xs text-foreground placeholder-slate-500 focus:outline-none focus:border-primary/50 font-sans resize-none min-h-[85px]"
                 />
               </div>
+
+              {loading && (
+                <div className="flex items-center justify-between gap-3 p-3 bg-background border border-border rounded-xl">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <RefreshCw className="w-4 h-4 text-primary animate-spin shrink-0" />
+                    <span className="text-xs font-semibold text-foreground truncate">
+                      {elapsedSeconds >= 10
+                        ? "Still working — larger requests can take a bit longer..."
+                        : getGenerationStageLabel()}
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-mono text-muted-foreground shrink-0">
+                    {elapsedSeconds}s
+                  </span>
+                </div>
+              )}
             </>
           ) : (
             /* PREVIEW STEP (Requirement 24: Shows Destination & Re-order Result) */

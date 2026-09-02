@@ -48,10 +48,11 @@ export function CourseOverviewView({
             )}
             {role === "INSTRUCTOR" && (
               <button
-                className={`btn ${isEditing ? "btn-primary bg-primary text-slate-950" : "btn-outline-primary border border-border text-foreground hover:text-foreground"} rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer`}
-                onClick={() => setIsEditing(!isEditing)}
+                className={`btn ${isEditing ? "btn-primary bg-primary text-slate-950" : "btn-outline-primary border border-border text-foreground hover:text-foreground"} rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed`}
+                onClick={() => (isEditing ? onSaveCourseMeta?.() : setIsEditing(true))}
+                disabled={isEditing && isSaving}
               >
-                {isEditing ? "Done" : "Edit"}
+                {isEditing ? (isSaving ? "Saving..." : "Done") : "Edit"}
               </button>
             )}
           </div>

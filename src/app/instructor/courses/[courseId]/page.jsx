@@ -71,6 +71,33 @@ function findHierarchyByTopicId(modules, topicId) {
   return { module: null, lesson: null, topic: null };
 }
 
+/** Immutably replaces the module in `modules` matching moduleId, via `updateModule`. */
+function withModule(modules, moduleId, updateModule) {
+  return modules.map((mod) =>
+    String(mod.id || mod._id) === String(moduleId) ? updateModule(mod) : mod
+  );
+}
+
+/** Immutably replaces the lesson within `mod.lessons` matching lessonId, via `updateLesson`. */
+function withLessonIn(mod, lessonId, updateLesson) {
+  return {
+    ...mod,
+    lessons: (mod.lessons || []).map((les) =>
+      String(les.id || les._id) === String(lessonId) ? updateLesson(les) : les
+    ),
+  };
+}
+
+/** Immutably replaces the topic within `les.topics` matching topicId, via `updateTopic`. */
+function withTopicIn(les, topicId, updateTopic) {
+  return {
+    ...les,
+    topics: (les.topics || []).map((top) =>
+      String(top.id || top._id) === String(topicId) ? updateTopic(top) : top
+    ),
+  };
+}
+
 export default function CourseDetailsPage() {
   const params = useParams();
   const router = useRouter();
@@ -247,26 +274,108 @@ export default function CourseDetailsPage() {
 
       if (!isDraftMode) {
         // Transactional Backend Application (Requirement: Atomicity & Single Operation)
-        await api.post("/api/ai/apply", {
+        const targetModuleId = contextData.moduleId || composeModuleId;
+        const targetLessonId = contextData.lessonId || composeLessonId;
+        const targetTopicId = contextData.topicId || composeTopicId;
+        const quizLevel = contextData.quizLevel || "COURSE";
+
+        const { data: applyResponse } = await api.post("/api/ai/apply", {
           scope,
           generatedData,
           context: {
             courseId,
-            moduleId: contextData.moduleId || composeModuleId,
-            lessonId: contextData.lessonId || composeLessonId,
-            topicId: contextData.topicId || composeTopicId,
+            moduleId: targetModuleId,
+            lessonId: targetLessonId,
+            topicId: targetTopicId,
             position: pos,
-            quizLevel: contextData.quizLevel || "COURSE",
+            quizLevel,
           },
         });
 
-        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
-        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MODULES] });
-        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
-        if (contextData.topicId || composeTopicId) {
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CONTENTS, contextData.topicId || composeTopicId] });
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TOPIC, contextData.topicId || composeTopicId] });
+        // The apply response IS the created entity (Module/Lesson/Topic/
+        // Content[]/Quiz row) — enough to splice straight into the Course
+        // Map cache immediately instead of waiting on the invalidation below
+        // to round-trip. Its own nested children (a fresh module's lessons,
+        // a fresh quiz's questions, ...) arrive shortly after via that same
+        // (now-parallelized) refetch, since the apply response doesn't
+        // include them (see courseImporter.service.js — each nested row is
+        // its own separate tx.create()).
+        const createdEntity = applyResponse?.data;
+        const patchModules = (updater) =>
+          queryClient.setQueryData([QUERY_KEYS.MODULES, courseId], (old) =>
+            Array.isArray(old) ? updater(old) : old
+          );
+
+        if (scope === "MODULE" && createdEntity?.id) {
+          patchModules((mods) => [...mods, { ...createdEntity, lessons: [], quizzes: [] }]);
+        } else if (scope === "LESSON" && createdEntity?.id && targetModuleId) {
+          patchModules((mods) =>
+            withModule(mods, targetModuleId, (mod) =>
+              ({ ...mod, lessons: [...(mod.lessons || []), { ...createdEntity, topics: [], quizzes: [] }] })
+            )
+          );
+        } else if (scope === "TOPIC" && createdEntity?.id && targetModuleId && targetLessonId) {
+          patchModules((mods) =>
+            withModule(mods, targetModuleId, (mod) =>
+              withLessonIn(mod, targetLessonId, (les) =>
+                ({ ...les, topics: [...(les.topics || []), { ...createdEntity, contents: [] }] })
+              )
+            )
+          );
+        } else if (scope === "CONTENT" && targetTopicId) {
+          const createdContents = Array.isArray(createdEntity) ? createdEntity : createdEntity ? [createdEntity] : [];
+          if (createdContents.length > 0 && targetModuleId && targetLessonId) {
+            patchModules((mods) =>
+              withModule(mods, targetModuleId, (mod) =>
+                withLessonIn(mod, targetLessonId, (les) =>
+                  withTopicIn(les, targetTopicId, (top) =>
+                    ({ ...top, contents: [...(top.contents || []), ...createdContents] })
+                  )
+                )
+              )
+            );
+            queryClient.setQueryData([QUERY_KEYS.CONTENTS, targetTopicId], (old) =>
+              Array.isArray(old) ? [...old, ...createdContents] : old
+            );
+          }
+        } else if (scope === "QUIZ" && createdEntity?.id) {
+          const newQuiz = { ...createdEntity, questions: [] };
+          if (quizLevel === "COURSE") {
+            queryClient.setQueryData([QUERY_KEYS.COURSE, courseId], (old) =>
+              old ? { ...old, quizzes: [...(old.quizzes || []), newQuiz] } : old
+            );
+          } else if (quizLevel === "MODULE" && targetModuleId) {
+            patchModules((mods) =>
+              withModule(mods, targetModuleId, (mod) => ({ ...mod, quizzes: [...(mod.quizzes || []), newQuiz] }))
+            );
+          } else if (quizLevel === "LESSON" && targetModuleId && targetLessonId) {
+            patchModules((mods) =>
+              withModule(mods, targetModuleId, (mod) =>
+                withLessonIn(mod, targetLessonId, (les) => ({ ...les, quizzes: [...(les.quizzes || []), newQuiz] }))
+              )
+            );
+          } else if (quizLevel === "TOPIC" && targetModuleId && targetLessonId && targetTopicId) {
+            patchModules((mods) =>
+              withModule(mods, targetModuleId, (mod) =>
+                withLessonIn(mod, targetLessonId, (les) =>
+                  withTopicIn(les, targetTopicId, (top) => ({ ...top, quizzes: [...(top.quizzes || []), newQuiz] }))
+                )
+              )
+            );
+          }
         }
+
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] }),
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MODULES, courseId] }),
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] }),
+          ...(contextData.topicId || composeTopicId
+            ? [
+                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CONTENTS, contextData.topicId || composeTopicId] }),
+                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TOPIC, contextData.topicId || composeTopicId] }),
+              ]
+            : []),
+        ]);
         showToast(`${scope} created from AI!`, "success");
         return;
       }
@@ -1654,6 +1763,34 @@ export default function CourseDetailsPage() {
   const handleOpenPublishModal = async () => {
     setPublishModalOpen(true);
     setIsValidatingPublish(true);
+
+    if (isDraftMode || courseId === "draft" || courseId === "new") {
+      const errors = [];
+      const title = courseForm.title || draftData?.metadata?.title;
+      const desc = courseForm.description || draftData?.metadata?.description;
+      const mods = draftModules || [];
+
+      if (!title || !title.trim()) {
+        errors.push({ code: "MISSING_TITLE", message: "Course title is required." });
+      }
+      if (!desc || !desc.trim()) {
+        errors.push({ code: "MISSING_DESCRIPTION", message: "Course description is required." });
+      }
+      if (mods.length === 0) {
+        errors.push({ code: "NO_MODULES", message: "At least one module is required." });
+      } else {
+        const hasLessons = mods.some((m) => m.lessons && m.lessons.length > 0);
+        if (!hasLessons) {
+          errors.push({ code: "EMPTY_MODULE", message: "At least one module must contain lessons." });
+        }
+      }
+
+      const canPublish = !errors.some((e) => e.code === "MISSING_TITLE" || e.code === "NO_MODULES" || e.code === "EMPTY_MODULE");
+      setPublishValidation({ canPublish, errors });
+      setIsValidatingPublish(false);
+      return;
+    }
+
     try {
       const valData = await validateCoursePublish(courseId);
       setPublishValidation(valData);
@@ -1666,12 +1803,58 @@ export default function CourseDetailsPage() {
 
   const handleConfirmPublish = async () => {
     try {
+      if (isDraftMode || courseId === "draft" || courseId === "new") {
+        if (!draftData || !draftData.jobId) {
+          showToast("No active course draft found to publish.", "error");
+          return;
+        }
+        setIsSavingDraft(true);
+
+        const updatedCanonicalJson = {
+          ...(draftData.canonicalJson || {}),
+          metadata: {
+            ...(draftData.canonicalJson?.metadata || {}),
+            title: courseForm.title || draftData.metadata?.title || "Imported Course",
+            description: courseForm.description || draftData.metadata?.description || "",
+            category: courseForm.category || draftData.metadata?.category || "General",
+            level: courseForm.level || draftData.metadata?.level || "BEGINNER",
+            thumbnailUrl: courseForm.thumbnailUrl || draftData.metadata?.thumbnailUrl || null,
+          },
+          settings: draftData.settings || {},
+          quizzes: draftQuizzes.length > 0 ? draftQuizzes : (draftData.quizzes || draftData.canonicalJson?.quizzes || []),
+          modules: draftModules,
+          assetMap: draftData.assetMap || {}
+        };
+
+        const response = await api.post(`/course-import/jobs/${draftData.jobId}/import`, {
+          canonicalJson: updatedCanonicalJson
+        });
+
+        const createdCourse = response.data?.data;
+        const persistedCourseId = createdCourse?.courseId || createdCourse?.id;
+
+        if (!persistedCourseId) {
+          throw new Error("Failed to save course before publishing.");
+        }
+
+        sessionStorage.removeItem("imported_course_draft");
+
+        await publishCourseMutation.mutateAsync(persistedCourseId);
+
+        setPublishModalOpen(false);
+        showToast("Course saved & published successfully!", "success", "Published");
+        router.push(`/instructor/courses/${persistedCourseId}`);
+        return;
+      }
+
       await publishCourseMutation.mutateAsync(courseId);
       setPublishModalOpen(false);
       showToast("Course published successfully!", "success", "Published");
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || "Failed to publish course";
       showToast(msg, "error");
+    } finally {
+      setIsSavingDraft(false);
     }
   };
 
