@@ -10,14 +10,6 @@ export function useContents(topicId) {
         queryFn: () => getContents(topicId),
         enabled: !!topicId,
         ...defaultQueryOptions,
-        // TopicContentRows only mounts this query when its topic is
-        // expanded, so if a topic was ever expanded before it had content
-        // (e.g. right after Module creation, or in an earlier visit) and
-        // content was added since, refetchOnMount is what lets re-expanding
-        // it later show the real persisted content instead of the cached
-        // "No content yet" result forever — see useInstructorCourse.js for
-        // why this is scoped per-hook rather than app-wide.
-        refetchOnMount: true,
     });
 }
 

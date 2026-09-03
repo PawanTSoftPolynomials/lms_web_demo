@@ -317,16 +317,6 @@ Position: ${pos}
 ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
 
     try {
-      const scopeSizeMap = {
-        CONTENT: "SMALL",
-        QUIZ: "SMALL",
-        TOPIC: "SMALL",
-        LESSON: "SMALL",
-        MODULE: "MEDIUM",
-        COURSE: "LARGE",
-      };
-      const calculatedSize = scopeSizeMap[selectedScope] || "MEDIUM";
-
       const result = await generateAiMutation.mutateAsync({
         scope: selectedScope,
         action: selectedAction,
@@ -336,7 +326,6 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
           action: selectedAction,
           level: quizLevel,
           position: pos,
-          size: calculatedSize,
           courseId: contextData?.courseId,
           courseTitle,
           moduleId: activeModuleObj?.id || activeModuleObj?._id || initialModuleId,
