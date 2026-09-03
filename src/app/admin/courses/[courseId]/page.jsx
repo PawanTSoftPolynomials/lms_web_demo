@@ -216,7 +216,7 @@ export default function AdminCoursePage() {
                                     onEdit={handleEditModule}
                                     onDelete={handleDeleteModule}
                                 />))}
-                        </div>) : (<Card>
+                        </div>) : (<Card tone="flat">
                             <div className="py-12 text-center">
                                 <h2 className="text-2xl font-bold">No Modules Yet</h2>
 
@@ -237,7 +237,7 @@ export default function AdminCoursePage() {
                         </Card>)}
                 </div>
 
-                <Card>
+                <Card tone="flat">
                     <h2 className="mb-6 text-2xl font-bold">Course Settings</h2>
 
                     <div className="space-y-5">

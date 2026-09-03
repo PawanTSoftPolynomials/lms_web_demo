@@ -16,7 +16,7 @@ export default function ProfileCard({
     if (!profile) return null;
 
     return (
-        <Card>
+        <Card tone="flat">
             <div className="flex flex-col items-center text-center">
                 {/* Avatar */}
                 <div

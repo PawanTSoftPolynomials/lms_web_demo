@@ -44,7 +44,7 @@ export default function ProfileForm({
     };
 
     return (
-        <Card>
+        <Card tone="flat">
             <h2 className="mb-6 text-2xl font-semibold text-foreground">
                 Edit Profile
             </h2>

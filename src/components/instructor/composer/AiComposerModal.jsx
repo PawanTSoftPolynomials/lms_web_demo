@@ -358,9 +358,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
       console.error("AI Generation Error:", err);
       const status = err?.response?.status;
       let msg = err?.response?.data?.message || err?.message || "AI generation failed. Please try again.";
-      if (status === 401) {
-        msg = "AI Authorization Failed. Check server GEMINI_API_KEY.";
-      } else if (status === 429) {
+      if (status === 429) {
         msg = "AI Usage limit reached. Please try again later.";
       }
       const errors = err?.response?.data?.errors || [msg];

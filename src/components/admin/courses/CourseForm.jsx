@@ -46,7 +46,7 @@ export default function CourseForm({
     };
 
     return (
-        <Card>
+        <Card tone="flat">
             <form
                 onSubmit={handleSubmit}
                 className="space-y-6"

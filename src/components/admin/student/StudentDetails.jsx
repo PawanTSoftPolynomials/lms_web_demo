@@ -19,7 +19,7 @@ export default function StudentDetails({
 
 
     return (
-        <Card className="space-y-8">
+        <Card tone="flat" className="space-y-8">
             <div className="flex flex-col items-center gap-4 border-b border-white/10 pb-8 md:flex-row">
                 <UserAvatar
                     name={student.user.name}
