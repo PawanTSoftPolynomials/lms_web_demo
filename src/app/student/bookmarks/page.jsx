@@ -141,7 +141,7 @@ export default function BookmarksPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground bg-background/50 border border-transparent/80 rounded-2xl p-6">
-          <FolderOpen size={40} className="mx-auto mb-3 opacity-40 text-slate-450" />
+          <FolderOpen size={40} className="mx-auto mb-3 opacity-40 text-muted-foreground" />
           <p className="text-sm font-semibold text-foreground">No bookmarks found</p>
           <p className="text-xs mt-1 text-muted-foreground">Bookmark lessons, videos, and docs while studying to find them here.</p>
         </div>

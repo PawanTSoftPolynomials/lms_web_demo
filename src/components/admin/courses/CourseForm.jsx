@@ -158,8 +158,8 @@ export default function CourseForm({
                 {formData.thumbnailUrl && (
                     <div className="overflow-hidden rounded-xl border border-white/10">
                         <Image
-                            src={getDisplayUrl(course.thumbnailUrl)}
-                            alt={course.title}
+                            src={getDisplayUrl(formData.thumbnailUrl)}
+                            alt={formData.title}
                             fill
                             className="object-cover"
                         />

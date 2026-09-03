@@ -504,7 +504,7 @@ export default function SettingsPage() {
         <div className="space-y-6">
           
           {/* Account Summary Banner card */}
-          <div className="bg-gradient-to-br from-orange-600 to-pink-650 text-foreground rounded-2xl p-5 shadow-luxury-md relative overflow-hidden">
+          <div className="bg-gradient-to-br from-orange-600 to-pink-600 text-foreground rounded-2xl p-5 shadow-luxury-md relative overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none" />
             
             <div className="text-center">

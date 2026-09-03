@@ -1,11 +1,20 @@
 import Card from "@/components/ui/Card";
 import TrendBadge from "@/components/dashboard/components/TrendBadge";
 
+const COLOR_ICON_BG = {
+  orange: "bg-orange-500/15",
+  blue: "bg-blue-500/15",
+  purple: "bg-purple-500/15",
+  green: "bg-green-500/15",
+  red: "bg-red-500/15",
+};
+
 export default function DashboardStatCard({
   title,
   value,
   icon,
-  iconBgClass = "bg-primary/15",
+  color,
+  iconBgClass = color ? COLOR_ICON_BG[color] || "bg-primary/15" : "bg-primary/15",
   trend,
   trendLabel,
   onClick,

@@ -89,7 +89,7 @@ export default function AchievementsPage() {
         </div>
       ) : achievements.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground bg-background/50 border border-transparent/80 rounded-2xl p-6">
-          <Trophy size={40} className="mx-auto mb-3 opacity-40 text-slate-450" />
+          <Trophy size={40} className="mx-auto mb-3 opacity-40 text-muted-foreground" />
           <p className="text-sm font-semibold text-foreground">No achievements yet</p>
           <p className="text-xs mt-1 text-muted-foreground">Complete courses, quizzes, and take notes to earn badges.</p>
         </div>
