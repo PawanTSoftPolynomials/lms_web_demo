@@ -3,36 +3,84 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import {
-  GraduationCap,
-  BarChart3,
-  Calendar,
-  Settings,
-  LifeBuoy,
-  LogOut,
-  X,
-} from "lucide-react";
+import { ChevronDown, Settings, LifeBuoy, LogOut, X } from "lucide-react";
 
 import { useAdminNavDrawer } from "@/context/AdminNavDrawerContext";
+import { PRIMARY_NAV_ITEMS } from "@/components/admin/NavigationStrip/navigationItems";
 import useAuth from "@/hooks/useAuth";
 import Modal from "@/components/ui/Modal";
 import { ThemeModeRow } from "@/components/ui/shadcn/theme-switcher";
 
-// Secondary navigation only. Home, Students, Instructors, Courses and Profile
-// already live in the Bottom Navigation — repeating them here would just
-// duplicate taps the user already has. This drawer complements that bar
-// instead of mirroring it. Mirrors InstructorNavDrawer's structure.
-const NAV_ITEMS = [
-  { id: "enrollments", label: "Enrollments", icon: GraduationCap, href: "/admin/enrollments" },
-  { id: "analytics", label: "Analytics", icon: BarChart3, href: "/admin/analytics" },
-  { id: "calendar", label: "Calendar", icon: Calendar, href: "/admin/calendar" },
+const SECONDARY_ITEMS = [
   { id: "settings", label: "Settings", icon: Settings, href: "/admin/profile" },
   { id: "help", label: "Help & Support", icon: LifeBuoy, href: "/admin/profile" },
 ];
 
-// The Admin mobile navigation drawer — opened from the header's hamburger
-// button (see DashboardNavbar) via shared context, instead of its own
-// per-page trigger.
+function isHrefActive(pathname, href) {
+  if (!href) return false;
+  if (href.endsWith("/dashboard")) return pathname === href;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function isSubtreeActive(pathname, item) {
+  if (item.children) return item.children.some((child) => isSubtreeActive(pathname, child));
+  return isHrefActive(pathname, item.href);
+}
+
+function DrawerNavItem({ item, pathname, depth = 0, onNavigate }) {
+  const active = isSubtreeActive(pathname, item);
+  const [open, setOpen] = useState(active);
+  const Icon = item.icon;
+  const indent = { paddingLeft: `${1 + depth}rem` };
+
+  if (!item.children) {
+    const leafActive = isHrefActive(pathname, item.href);
+    return (
+      <Link
+        href={item.href}
+        onClick={onNavigate}
+        style={indent}
+        className={`flex items-center gap-4 pr-4 py-3 rounded-xl transition-all duration-200 ${
+          leafActive
+            ? "bg-primary text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]"
+            : "text-foreground hover:text-foreground hover:bg-muted/50 font-semibold"
+        }`}
+      >
+        <Icon size={18} className={leafActive ? "text-slate-950" : "text-muted-foreground"} />
+        <span className="text-sm">{item.label}</span>
+      </Link>
+    );
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        style={indent}
+        aria-expanded={open}
+        className={`w-full flex items-center gap-4 pr-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
+          active ? "text-primary font-bold" : "text-foreground hover:text-foreground hover:bg-muted/50 font-semibold"
+        }`}
+      >
+        <Icon size={18} className={active ? "text-primary" : "text-muted-foreground"} />
+        <span className="text-sm flex-1 text-left">{item.label}</span>
+        <ChevronDown
+          size={16}
+          className={`text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && (
+        <div className="space-y-1">
+          {item.children.map((child) => (
+            <DrawerNavItem key={child.label} item={child} pathname={pathname} depth={depth + 1} onNavigate={onNavigate} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminNavDrawer() {
   const pathname = usePathname();
   const router = useRouter();
@@ -81,7 +129,13 @@ export default function AdminNavDrawer() {
         </div>
 
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-          {NAV_ITEMS.map((item) => {
+          {PRIMARY_NAV_ITEMS.map((item) => (
+            <DrawerNavItem key={item.label} item={item} pathname={pathname} onNavigate={close} />
+          ))}
+
+          <div className="my-2 border-t border-border/60" />
+
+          {SECONDARY_ITEMS.map((item) => {
             const Icon = item.icon;
             const active = isItemActive(item);
             return (

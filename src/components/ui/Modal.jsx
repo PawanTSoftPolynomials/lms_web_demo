@@ -41,7 +41,8 @@ export default function Modal({
   animate-in
   fade-in
   duration-200
-  p-6
+  p-3
+  sm:p-6
 "
       onClick={onClose}
     >
@@ -75,8 +76,10 @@ export default function Modal({
     border-b
     border-border
     bg-background/80
-    px-6
-    py-4
+    px-4
+    py-3
+    sm:px-6
+    sm:py-4
   "
         >
           <h2 className="text-xl font-bold text-foreground">
@@ -103,7 +106,7 @@ export default function Modal({
           </button>
         </div>
 
-        <div className="p-6 flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="p-4 sm:p-6 flex-1 min-h-0 flex flex-col overflow-hidden">
           {children}
         </div>
       </div>

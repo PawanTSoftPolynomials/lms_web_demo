@@ -99,7 +99,7 @@ export default function ComposerSidebar({
             className="w-full bg-muted rounded-lg px-2.5 py-2 text-sm outline-none border border-primary"
           />
         ) : (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setAddingModule(true)}

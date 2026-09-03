@@ -8,7 +8,7 @@ export default function EnrollmentRow({
                                           onDelete,
                                       }) {
     return (
-        <tr className="border-b border-white/5 transition hover:bg-white/5">
+        <tr className="hover:bg-foreground/5 transition">
             {/* Student */}
             <td className="px-6 py-4">
                 <div>

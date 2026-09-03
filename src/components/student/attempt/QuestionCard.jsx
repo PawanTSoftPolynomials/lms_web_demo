@@ -62,13 +62,13 @@ export default function QuestionCard({
   return (
     <div className="rounded-2xl border border-border bg-background p-3 sm:p-4 shadow-xl">
       {/* Question Progress Header */}
-      <div className="mb-3 flex items-center justify-between">
-        <div>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
           <p className="text-sm text-muted-foreground">
             Question {currentQuestion} of {totalQuestions}
           </p>
 
-          <div className="mt-1.5 h-1.5 w-56 overflow-hidden rounded-full bg-muted">
+          <div className="mt-1.5 h-1.5 w-full max-w-56 overflow-hidden rounded-full bg-muted">
             <div
               className="h-full rounded-full bg-primary transition-all duration-300"
               style={{

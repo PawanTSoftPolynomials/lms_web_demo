@@ -30,7 +30,7 @@ export function TodaySnapshot({ snapshot, isLoading }) {
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {items.map((item) => (
           <div key={item.label} className={`rounded-xl border ${item.border} ${item.bg} p-3`}>
             <item.icon size={14} className={item.color} />

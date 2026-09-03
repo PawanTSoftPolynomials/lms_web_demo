@@ -61,7 +61,7 @@ export default function InstructorCoursesPage() {
   };
 
   return (
-    <div className="-m-3 sm:-m-6 -mt-8 sm:-mt-12 md:-mt-16 -mx-8 sm:-mx-12 md:-mx-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6">
+    <div className="-m-3 sm:-m-6 -mt-8 sm:-mt-12 md:-mt-16 -mx-8 sm:-mx-12 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
       {isError ? (
         <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
           <p className="text-sm font-bold text-foreground">Unable to load courses.</p>
@@ -86,8 +86,8 @@ export default function InstructorCoursesPage() {
           onAction={() => router.push("/instructor/courses/create")}
         />
       ) : (
-        <div className="flex flex-col min-h-[calc(100vh-3.5rem)] rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4 mb-4 md:mb-6">
+        <div className="flex flex-col flex-1 min-h-0 rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4 mb-4 md:mb-6 shrink-0">
             <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center md:flex-wrap">
               <div className="relative w-full min-w-0 md:max-w-xs">
                 <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -119,7 +119,7 @@ export default function InstructorCoursesPage() {
             </div>
           </div>
 
-          <div className="flex-1 md:max-h-[68vh] md:overflow-y-auto md:pr-1 md:-mr-1">
+          <div className="flex-1 overflow-y-auto md:pr-1 md:-mr-1">
             {/* Mobile: centered peek carousel — the active card snaps to the middle
                 of the viewport with a small sliver of its neighbors visible on
                 each side (App Store / Apple Music style), one card in focus at a
@@ -128,7 +128,7 @@ export default function InstructorCoursesPage() {
             <div
               ref={sliderRef}
               onScroll={courses.length > 0 ? handleSliderScroll : undefined}
-              className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-4 md:gap-10 md:pb-0 md:grid md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:overflow-visible md:snap-none"
+              className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-4 md:pb-0 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 md:gap-4 md:overflow-visible md:snap-none"
             >
               {courses.length === 0 ? (
                 <div className="w-full col-span-full">
@@ -158,14 +158,16 @@ export default function InstructorCoursesPage() {
           </div>
 
           {!isLoading && courses.length > 0 && (
-            <Pagination
-              page={pagination.page}
-              totalPages={pagination.totalPages}
-              total={pagination.total}
-              limit={filters.limit}
-              onPageChange={set("page")}
-              onLimitChange={(limit) => setFilters((f) => ({ ...f, limit, page: 1 }))}
-            />
+            <div className="shrink-0 mt-auto">
+              <Pagination
+                page={pagination.page}
+                totalPages={pagination.totalPages}
+                total={pagination.total}
+                limit={filters.limit}
+                onPageChange={set("page")}
+                onLimitChange={(limit) => setFilters((f) => ({ ...f, limit, page: 1 }))}
+              />
+            </div>
           )}
         </div>
       )}

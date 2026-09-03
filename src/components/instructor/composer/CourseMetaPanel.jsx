@@ -64,12 +64,12 @@ export default function CourseMetaPanel({ course, courseId }) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid md:grid-cols-2 gap-3">
         <Input label="Category" value={form.category} onChange={set("category")} />
         <Input label="Level" value={form.level} onChange={set("level")} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid md:grid-cols-2 gap-3">
         <Input label="Language" value={form.language} onChange={set("language")} />
         <Input
           label="Estimated Hours"

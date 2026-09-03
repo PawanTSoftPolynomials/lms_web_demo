@@ -368,6 +368,7 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
               <p className="text-xs text-muted-foreground">Try adjusting your search filters or upload new questions.</p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <div className="divide-y divide-slate-800/80">
               {/* Header row */}
               <div className="px-6 py-3.5 bg-background/90 text-[11px] font-mono uppercase tracking-wider text-muted-foreground flex items-center justify-between">
@@ -490,6 +491,7 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
                   </div>
                 </div>
               ))}
+            </div>
             </div>
           )}
 

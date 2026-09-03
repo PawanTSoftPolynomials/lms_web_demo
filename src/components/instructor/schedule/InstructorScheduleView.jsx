@@ -722,7 +722,7 @@ export default function InstructorScheduleView() {
                   )}
 
                   {/* Quick Action Bar: Edit, Delete, Duplicate */}
-                  <div className="grid grid-cols-3 gap-2 border-t border-border pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 border-t border-border pt-4">
                     <button
                       onClick={() => handleDuplicateEvent(selectedEvent)}
                       className="py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-bold text-foreground flex items-center justify-center gap-1.5 transition cursor-pointer"
@@ -837,7 +837,7 @@ export default function InstructorScheduleView() {
                   <input required type="date" value={createModalData.date} onChange={e => setCreateModalData({...createModalData, date: e.target.value})} className="w-full bg-[#05070E] border border-border rounded-xl px-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary transition cursor-pointer" />
                 </div>
                 
-                <div className="col-span-1 sm:col-span-1 grid grid-cols-2 gap-2">
+                <div className="col-span-1 sm:col-span-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Start</label>
                     <input required type="time" value={createModalData.startTime} onChange={e => setCreateModalData({...createModalData, startTime: e.target.value})} className="w-full bg-[#05070E] border border-border rounded-xl px-2 sm:px-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary transition cursor-pointer" />

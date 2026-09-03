@@ -7,7 +7,7 @@ const ROWS_PER_PAGE_OPTIONS = [10, 25, 50];
 /** Reusable page controls + rows-per-page selector for any server-paginated list. */
 export default function Pagination({ page, totalPages, total, limit, onPageChange, onLimitChange }) {
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-1 pt-4 border-t border-border">
+    <div className="mt-auto flex flex-col sm:flex-row items-center justify-between gap-3 px-1 pt-4 border-t border-border">
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span>Rows per page</span>
         <select

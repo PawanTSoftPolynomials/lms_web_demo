@@ -22,7 +22,7 @@ export default function DataTable({
   stickyHeader = false,
   skeletonRows = 0,
 }) {
-  const headerClass = `border-b border-border text-[9.5px] font-black text-muted-foreground uppercase tracking-widest ${stickyHeader ? "sticky top-0 z-10 bg-card" : ""}`;
+  const headerClass = `border-b border-border text-[9px] font-black text-muted-foreground uppercase tracking-widest ${stickyHeader ? "sticky top-0 z-10 bg-card" : ""}`;
 
   if (isLoading && skeletonRows > 0) {
     return (
@@ -35,7 +35,7 @@ export default function DataTable({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#1A1F35]/50">
+          <tbody className="divide-y divide-border">
             {Array.from({ length: skeletonRows }).map((_, i) => (
               <tr key={i}>
                 {columns.map((col) => (
@@ -83,12 +83,12 @@ export default function DataTable({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#1A1F35]/50">
+        <tbody className="divide-y divide-border">
           {rows.map((row) => (
             <tr
               key={row[rowKey]}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
-              className={`hover:bg-white/[0.015] transition ${onRowClick ? "cursor-pointer" : ""}`}
+              className={`hover:bg-foreground/5 transition ${onRowClick ? "cursor-pointer" : ""}`}
             >
               {columns.map((col) => (
                 <td

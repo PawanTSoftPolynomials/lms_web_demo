@@ -57,7 +57,7 @@ export function PerformancePieChart({ data, isLoading }: { data: GradeDistributi
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
         {data.map((item, i) => (
           <div key={i} className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />

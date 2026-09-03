@@ -323,7 +323,7 @@ export default function ImportQuestionsToQuizPage({ params }) {
             </div>
 
             {/* Live Metrics */}
-            <div className="grid grid-cols-2 gap-3 text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-center">
               <div className="p-3.5 rounded-2xl bg-background/80 border border-transparent flex flex-col items-center">
                 <Award className="w-5 h-5 text-amber-400 mb-1" />
                 <span className="text-lg font-bold text-foreground">{totalSelectedMarks}</span>

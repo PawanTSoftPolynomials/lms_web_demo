@@ -9,7 +9,7 @@ import ChatSidebar from "./ChatSidebar";
 import ChatConversation from "./ChatConversation";
 
 export default function ChatWindow() {
-  const { isOpen, confirmDialog, setConfirmDialog } = useChat();
+  const { isOpen, confirmDialog, setConfirmDialog, activeConversation } = useChat();
 
   return (
     <AnimatePresence>
@@ -59,18 +59,20 @@ export default function ChatWindow() {
           <div className="flex flex-1 overflow-hidden">
 
             <div
-              className="
-              w-[280px]
+              className={`
+              w-full
+              md:w-[280px]
               border-r
               border-border/80
 
               bg-background/40
-              "
+              ${activeConversation ? "hidden md:block" : "block"}
+              `}
             >
               <ChatSidebar />
             </div>
 
-            <div className="flex-1 bg-background/40">
+            <div className={`flex-1 bg-background/40 ${activeConversation ? "block" : "hidden md:block"}`}>
               <ChatConversation />
             </div>
 

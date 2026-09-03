@@ -90,7 +90,7 @@ function CreateBatchForm({ courses, onClose }) {
           required
           className="w-full bg-background border border-transparent text-xs px-3 py-2.5 rounded-xl text-foreground placeholder-slate-500 outline-none focus:border-primary"
         />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <input
             type="date"
             value={startDate}

@@ -49,7 +49,7 @@ export default function StudentCoursesPage() {
 
     if (isError) {
         return (
-            <Card className="p-8 text-center">
+            <Card tone="flat" className="p-8 text-center">
                 <h2 className="text-xl font-semibold text-foreground">
                     Unable to load courses
                 </h2>
@@ -62,7 +62,7 @@ export default function StudentCoursesPage() {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-4 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-8 flex flex-col flex-1 min-h-0">
             <PageHeader
                 title="Browse Courses"
                 subtitle="Discover courses and start learning."
@@ -87,7 +87,9 @@ export default function StudentCoursesPage() {
                 levels={levels}
             />
 
-            <CourseGrid courses={filteredCourses} enrollments={myEnrollments}/>
+            <div className="flex flex-col flex-1 min-h-0 rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6">
+                <CourseGrid courses={filteredCourses} enrollments={myEnrollments}/>
+            </div>
         </div>
     );
 }

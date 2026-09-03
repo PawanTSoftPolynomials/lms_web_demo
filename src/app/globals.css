@@ -25,110 +25,123 @@
   --color-slate-900: #131321;
   --color-slate-950: #0a0a0f;
 
-  --color-orange-400: #ffa14a;
-  --color-orange-500: #ff7a00;
-  --color-orange-600: #e06000;
-  --color-orange-700: #b34a00;
+  --color-orange-300: color-mix(in oklab, var(--primary) 60%, white);
+  --color-orange-400: color-mix(in oklab, var(--primary) 80%, white);
+  --color-orange-450: var(--primary);
+  --color-orange-500: var(--primary);
+  --color-orange-600: color-mix(in oklab, var(--primary) 80%, black);
+  --color-orange-650: color-mix(in oklab, var(--primary) 70%, black);
+  --color-orange-700: color-mix(in oklab, var(--primary) 60%, black);
 
-  --color-pink-400: #ff6bb5;
-  --color-pink-500: #ff2e93;
-  --color-pink-600: #d61c72;
-  --color-pink-700: #a80e55;
+  --color-amber-300: color-mix(in oklab, var(--secondary) 60%, white);
+  --color-amber-400: color-mix(in oklab, var(--secondary) 80%, white);
+  --color-amber-500: var(--secondary);
+  --color-amber-600: color-mix(in oklab, var(--secondary) 80%, black);
+
+  --color-pink-400: color-mix(in oklab, var(--secondary) 80%, white);
+  --color-pink-500: var(--secondary);
+  --color-pink-600: color-mix(in oklab, var(--secondary) 80%, black);
+  --color-pink-700: color-mix(in oklab, var(--secondary) 60%, black);
 
   --radius-xl: 0.875rem;
   --radius-2xl: 1.125rem;
 }
 
 /* ==========================================================================
-   LIGHT MODE — "Orange Tree" cream & sage theme (default, no .dark class)
+   LIGHT MODE — matched from the user's reference video (instructor
+   dashboard mockup): soft cream page, near-white shadow-based cards
+   (no hard borders), dark-navy headings, a gold/olive accent for
+   progress bars and links. Colors sampled directly from video frames.
+   (default, no .dark class)
    ========================================================================== */
 :root {
-  --background: #f2eee8;
-  --foreground: #2b2822;
+  --background: #F3EDE3;
+  --foreground: #23283D;
 
-  --surface: #ffffff;
-  --surface-foreground: #2b2822;
-  --surface-muted: #eae5dc;
+  --surface: #FEFCF8;
+  --surface-foreground: #23283D;
+  --surface-muted: #ECE4D5;
 
-  --card: #ffffff;
-  --card-foreground: #2b2822;
-  --card-border: #e8e2d6;
+  --card: #FEFCF8;
+  --card-foreground: #23283D;
+  --card-border: #E7DFD1;
 
-  --popover: #ffffff;
-  --popover-foreground: #2b2822;
+  --popover: #FEFCF8;
+  --popover-foreground: #23283D;
 
-  --muted: #ede8df;
-  --muted-foreground: #8a8375;
+  --muted: #ECE4D5;
+  --muted-foreground: #6E7488;
 
-  --border: #e5dfd3;
-  --input: #ffffff;
-  --ring: #8fae95;
+  --border: #E7DFD1;
+  --input: #FEFCF8;
+  --ring: #B8934A;
 
-  --primary: #a8c6ae;
-  --primary-foreground: #1f2e22;
+  --primary: #B8934A;
+  --primary-foreground: #23283D;
 
-  --secondary: #f4f0ea;
-  --secondary-foreground: #2b2822;
+  --secondary: #23283D;
+  --secondary-foreground: #FFFFFF;
 
-  --accent: #f3e3cd;
-  --accent-foreground: #7a4a12;
+  --accent: #B8934A;
+  --accent-foreground: #23283D;
 
-  --success: #4ade80;
-  --success-foreground: #14251a;
-  --warning: #facc15;
-  --warning-foreground: #2b2205;
-  --destructive: #f87171;
-  --destructive-foreground: #2b0a0a;
+  --success: #20CD83;
+  --success-foreground: #FFFFFF;
+  --warning: #EB9D11;
+  --warning-foreground: #23283D;
+  --destructive: #E8604F;
+  --destructive-foreground: #FFFFFF;
 
-  --heading-color: #201d18;
+  --heading-color: #212945;
 
-  --shadow-color: 30 15% 40%;
+  --shadow-color: 220 20% 20%;
 }
 
 /* ==========================================================================
-   DARK MODE — Cyber Gold theme (unchanged from the current app)
+   DARK MODE — "GitHub Dark" pairing: real GitHub dark-theme values —
+   near-black canvas, blue links, green primary actions.
    ========================================================================== */
 .dark {
-  --background: #090B0F;
-  --foreground: #D1D6E0;
+  --background: #0D1117;
+  --foreground: #C9D1D9;
 
-  --surface: #10141C;
-  --surface-foreground: #D1D6E0;
-  --surface-muted: #181D29;
+  --surface: #161B22;
+  --surface-foreground: #C9D1D9;
+  --surface-muted: #1C2129;
 
-  --card: #10141C;
-  --card-foreground: #D1D6E0;
-  --card-border: #1E2433;
+  --card: #161B22;
+  --card-foreground: #C9D1D9;
+  --card-border: #30363D;
 
-  --popover: #10141C;
-  --popover-foreground: #D1D6E0;
+  --popover: #161B22;
+  --popover-foreground: #C9D1D9;
 
-  --muted: #181D29;
-  --muted-foreground: #7E8A9F;
+  --muted: #1C2129;
+  --muted-foreground: #8B949E;
 
-  --border: #1E2433;
-  --input: #10141C;
-  --ring: #D4A352;
+  --border: #30363D;
+  --input: #0D1117;
+  --ring: #58A6FF;
 
-  --primary: #D4A352;
-  --primary-foreground: #090B0F;
+  --primary: #238636;
+  --primary-foreground: #FFFFFF;
 
-  --secondary: #181D29;
-  --secondary-foreground: #D4A352;
+  --secondary: #30363D;
+  --secondary-foreground: #C9D1D9;
 
-  --accent: #D4A352;
-  --accent-foreground: #090B0F;
+  --accent: #58A6FF;
+  --accent-foreground: #0D1117;
 
-  --success: #4ade80;
-  --success-foreground: #090B0F;
-  --warning: #facc15;
-  --warning-foreground: #090B0F;
-  --destructive: #f87171;
-  --destructive-foreground: #090B0F;
+  --success: #3FB950;
+  --success-foreground: #0D1117;
+  --warning: #D29922;
+  --warning-foreground: #0D1117;
+  --destructive: #F85149;
+  --destructive-foreground: #FFFFFF;
 
-  --heading-color: #E8C17A;
+  --heading-color: #E6EDF3;
 
-  --shadow-color: 0 0% 0%;
+  --shadow-color: 220 20% 3%;
 }
 
 /* Light mode: mirror-invert the neutral slate scale (50<->950, 100<->900, ...) so the thousands
@@ -316,12 +329,12 @@ body {
    a fixed, self-contained dark card face regardless of the page's own theme.
    ========================================================================== */
 .card-photo-jellyfish {
-  --card-photo-bg-from: #0a0c1e;
-  --card-photo-bg-to: #181b3a;
-  --card-photo-border: #2a2d52;
-  --card-photo-h1: #f472b6;
-  --card-photo-subtitle: #5fd1c4;
-  --card-photo-highlight: #e8ae68;
+  --card-photo-bg-from: #161A1D;
+  --card-photo-bg-to: #212529;
+  --card-photo-border: #383E44;
+  --card-photo-h1: #F2CC8F;
+  --card-photo-subtitle: #D3D8DD;
+  --card-photo-highlight: #E07A5F;
 }
 
 .card-photo-title {
@@ -329,22 +342,22 @@ body {
 }
 
 /* ==========================================================================
-   Shared surface/control styling — same shape language in both themes
-   (rounded "squircle" cards, fully pill-shaped buttons/inputs), colored via
-   the semantic tokens above so it repaints automatically per mode.
+   Shared surface/control styling — flat, modestly-rounded shapes (GitHub-
+   style: 6-8px corners, no pill buttons), colored via the semantic tokens
+   above so it repaints automatically per mode.
    ========================================================================== */
 
 .bg-card, .bg-surface, .bg-popover, .card-photo-jellyfish {
   background-color: var(--card) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 20px !important;
-  transition: all 0.3s ease;
+  border-radius: 8px !important;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 input, select {
   background-color: var(--surface-muted) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 8px !important;
+  border-radius: 6px !important;
   color: var(--foreground) !important;
   padding: 0.75rem 1rem !important;
 }
@@ -354,16 +367,26 @@ input:focus, select:focus {
   outline: none;
 }
 
-button, a[class*="bg-"], .btn-rainbow {
-  border-radius: 9999px !important;
+button, a.bg-primary, a.bg-secondary, a.bg-accent, a.bg-success, a.bg-warning, a.bg-destructive, .btn-rainbow {
+  border-radius: 6px !important;
   box-shadow: none !important;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
   border: 1px solid transparent;
 }
 
-.bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {
+button.bg-primary, a.bg-primary, .btn-rainbow {
   background-color: var(--primary) !important;
+  background-image: none !important;
+  color: var(--primary-foreground) !important;
+}
+button.bg-primary:hover, a.bg-primary:hover, .btn-rainbow:hover {
+  background-color: color-mix(in srgb, var(--primary) 88%, white) !important;
+}
+
+.bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {
+  background-image: linear-gradient(90deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, black) 100%) !important;
+  background-color: transparent !important;
   border-radius: 9999px !important;
 }
 
@@ -384,71 +407,40 @@ button, a[class*="bg-"], .btn-rainbow {
 }
 
 /* ==========================================================================
-   CYBER GOLD THEME — dark-mode-only decorative skin (glows, uppercase gold
-   headings, terminal-style inset shadows). Light mode uses the plain
-   surface/control styling above with no extra treatment, matching the
-   reference design (flat cards, solid-fill buttons, plain headings).
+   GITHUB-STYLE DARK — dark-mode-only overrides: flat surfaces, a hairline
+   border color-shift on hover instead of glow/lift, no gradients. Light
+   mode uses the plain surface/control styling above with no extra treatment.
    ========================================================================== */
 
 .dark .bg-card, .dark .bg-surface, .dark .bg-popover, .dark .card-photo-jellyfish {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
+  background-color: var(--card) !important;
+  border-color: var(--border) !important;
+  box-shadow: none !important;
 }
 
 .dark .bg-card:hover, .dark .card-photo-jellyfish:hover {
-  border-color: rgba(212, 163, 82, 0.3) !important;
-  box-shadow: 0 0 25px rgba(212, 163, 82, 0.1) !important;
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--border)) !important;
 }
 
-.dark input, .dark select {
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
-}
-
-.dark input:focus, .dark select:focus {
-  box-shadow: 0 0 10px rgba(212, 163, 82, 0.2) !important;
-}
-
-/* Glowing Primary Buttons */
-.dark button.bg-primary, .dark a.bg-primary, .dark .btn-rainbow {
-  background-color: transparent !important;
-  color: var(--primary) !important;
-  border: 1px solid var(--primary) !important;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  box-shadow: inset 0 0 10px rgba(212, 163, 82, 0.1) !important;
-}
-
-.dark button.bg-primary:hover, .dark a.bg-primary:hover, .dark .btn-rainbow:hover {
-  background-color: var(--primary) !important;
-  color: var(--primary-foreground) !important;
-  box-shadow: 0 0 20px rgba(212, 163, 82, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
-  transform: translateY(-1px);
-}
-
-/* Typography fixes */
-.dark h1, .dark h2, .dark h3, .dark h4, .dark .text-xl, .dark .text-2xl, .dark .text-3xl, .dark .text-4xl, .dark .text-5xl,
-.dark [class*="text-lg"][class*="font-semibold"],
-.dark [class*="text-lg"][class*="font-bold"] {
-  font-family: "Inter", sans-serif !important;
-  font-weight: 600 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-/* Gold heading color, but never override an explicitly chosen status/semantic color
+/* Heading color, but never override an explicitly chosen status/semantic color
    (e.g. green/red success-failure counts, amber warnings, "Danger Zone" red). */
-.dark :is(h1, h2, h3, h4, .text-xl, .text-2xl, .text-3xl, .text-4xl, .text-5xl,
+:is(h1, h2, h3, h4, .text-xl, .text-2xl, .text-3xl, .text-4xl, .text-5xl,
   [class*="text-lg"][class*="font-semibold"],
   [class*="text-lg"][class*="font-bold"]):not([class*="text-red-"]):not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-rose-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-yellow-"]):not([class*="text-orange-"]):not([class*="text-destructive"]):not([class*="text-success"]):not([class*="text-warning"]) {
   color: var(--heading-color) !important;
 }
 
-/* Special text glow on very prominent titles */
-.dark h1 {
-  text-shadow: 0 0 15px rgba(232, 193, 122, 0.3);
+.dark .bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--primary) 75%, transparent), var(--primary)) !important;
+  background-color: transparent !important;
+  box-shadow: 0 0 12px color-mix(in oklab, var(--primary) 40%, transparent) !important;
 }
 
-.dark .bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {
-  box-shadow: 0 0 10px rgba(212, 163, 82, 0.5) !important;
+/* Fix secondary text contrast for hardcoded classes in dark mode to meet WCAG AAA */
+.dark .text-slate-500,
+.dark .text-slate-600,
+.dark .text-gray-500,
+.dark .text-gray-600 {
+  color: var(--muted-foreground) !important;
 }
+

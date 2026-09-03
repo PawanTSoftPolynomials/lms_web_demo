@@ -30,29 +30,29 @@ export default function QuizTable({ quizzes = [] }) {
       <div className="hidden md:block overflow-hidden rounded-2xl border border-border bg-background shadow-md">
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-muted/60">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-foreground">
+            <thead>
+              <tr className="border-b border-border text-[9px] uppercase tracking-widest text-muted-foreground font-black text-left">
+                <th className="px-6 py-4 font-medium">
                   Quiz
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-foreground">
+                <th className="px-6 py-4 font-medium">
                   Questions
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-foreground">
+                <th className="px-6 py-4 font-medium">
                   Passing Score
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-foreground">
+                <th className="px-6 py-4 font-medium">
                   Time Limit
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider text-foreground">
+                <th className="px-6 py-4 font-medium">
                   Status
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-black uppercase tracking-wider text-foreground">
+                <th className="px-6 py-4 text-right font-medium">
                   Action
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-border">
               {quizzes.map((quiz) => (
                 <QuizRow key={quiz.id} quiz={quiz} />
               ))}

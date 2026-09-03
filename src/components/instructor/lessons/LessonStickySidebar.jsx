@@ -20,7 +20,7 @@ export default function LessonStickySidebar({ lessonId, courseId, videoCurrentTi
   return (
     <aside className="sticky top-20 flex flex-col h-[calc(100vh-100px)] rounded-2xl bg-card border border-border overflow-hidden shadow-2xl transition-all">
       {/* 4 Tabs Header Selector */}
-      <div className="grid grid-cols-4 border-b border-border bg-[#05070E] p-1 gap-1">
+      <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-border bg-[#05070E] p-1 gap-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;

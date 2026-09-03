@@ -103,7 +103,7 @@ export default function AdminInstructorsPage() {
                 instructors={instructors}
             />
 
-            <Card>
+            <Card tone="flat">
                 <InstructorToolbar
                     search={search}
                     onSearchChange={

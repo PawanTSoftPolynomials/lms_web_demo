@@ -38,7 +38,7 @@ export function TopInstructor({ instructor, isLoading }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4">
             <div className="rounded-lg bg-muted/40 p-2 text-center">
               <BookOpen size={12} className="text-purple-400 mx-auto" />
               <p className="text-sm font-black text-foreground mt-1">{instructor.coursesCount}</p>

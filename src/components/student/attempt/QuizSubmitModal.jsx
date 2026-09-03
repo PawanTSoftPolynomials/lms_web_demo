@@ -33,7 +33,7 @@ export default function QuizSubmitModal({
 
                 {/* Body */}
                 <div className="space-y-5 px-6 py-6">
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="rounded-xl bg-muted p-4 text-center">
                             <p className="text-sm text-muted-foreground">
                                 Questions

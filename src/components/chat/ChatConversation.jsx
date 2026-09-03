@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Phone, Video, MoreVertical, Trash2, Eraser } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Trash2, Eraser } from "lucide-react";
 
 import useChat from "@/hooks/useChat";
 import useMessages from "@/features/chat/hooks/useMessages";
@@ -104,7 +104,17 @@ export default function ChatConversation() {
 
       <div className="flex h-16 items-center justify-between border-b border-border bg-background px-5">
 
-        <div>
+        <div className="flex items-center gap-2 min-w-0">
+
+          <button
+            onClick={() => setActiveConversation(null)}
+            className="md:hidden shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            aria-label="Back to conversations"
+          >
+            <ArrowLeft size={16} />
+          </button>
+
+          <div className="min-w-0">
 
           <h2 className="font-semibold text-foreground flex items-center gap-2">
             <span>{displayName}</span>
@@ -125,6 +135,8 @@ export default function ChatConversation() {
               ? "Online"
               : activeConversation.lastSeen}
           </p>
+
+          </div>
 
         </div>
 
