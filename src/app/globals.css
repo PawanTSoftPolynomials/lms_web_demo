@@ -4,8 +4,6 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 /* `prose` documents (imported lesson content, instructor notes, etc.) can
    contain tables wider than the viewport — let the table itself scroll
    horizontally instead of overflowing the page. */
@@ -32,15 +30,15 @@
      and the ~2000 hardcoded orange utility classes (bg-orange, text-orange,
      border-orange) across the app that were always meant to read as
      literal orange, not a swappable retheme. */
-  --color-orange-400: #fb923c;
-  --color-orange-500: #f97316;
-  --color-orange-600: #ea580c;
-  --color-orange-700: #c2410c;
+  --color-orange-400: #C9A23E;
+  --color-orange-500: #B08A2E;
+  --color-orange-600: #8F6F24;
+  --color-orange-700: #6E561A;
 
-  --color-pink-400: #67e8f9;
-  --color-pink-500: #22d3ee;
-  --color-pink-600: #06b6d4;
-  --color-pink-700: #0891b2;
+  --color-pink-400: #f472b6;
+  --color-pink-500: #ec4899;
+  --color-pink-600: #db2777;
+  --color-pink-700: #be185d;
 
   /* --radius-xl/2xl left at their pre-existing app values, deliberately —
      229 files use bare `rounded-xl` for buttons/badges/small controls, not
@@ -70,9 +68,9 @@
    the floating/overlay level — highest opacity, most legible over content).
    ========================================================================== */
 :root {
-  --background: #080B11;
+  --background: #A3B2A0;
   --foreground: #f5f5f5;
-  --heading: #ffffff;
+  --heading: #6C7A6D;
 
   --glass-blur-sm: 8px;
   --glass-blur-md: 16px;
@@ -80,9 +78,6 @@
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
   --glass-shadow-floating: 0 24px 70px rgba(0, 0, 0, 0.5), 0 4px 20px rgba(0, 0, 0, 0.3);
   --glass-border-floating: rgba(255, 255, 255, 0.12);
-  --glow-blue: #93c5fd;
-  --glow-violet: #c4b5fd;
-  --glow-cyan: #67e8f9;
 
   /* Original app surfaces — solid navy, not translucent, to match the
      app's actual pre-Glass-Campus look (opaque bg-[#0D1021] cards on a
@@ -91,32 +86,32 @@
      Glass Campus component work stays intact and reversible — an opaque
      surface simply has nothing for backdrop-filter to blur, so the glass
      utilities render flat by construction. */
-  --surface: #0D1021;
-  --surface-foreground: #f5f5f5;
-  --surface-muted: #141930;
+  --surface: #C1D3C6;
+  --surface-foreground: #141a11;
+  --surface-muted: #C1D3C6;
 
-  --card: #0D1021;
-  --card-foreground: #f5f5f5;
-  --card-border: #1A1F35;
+  --card: #A3B18D;
+  --card-foreground: #141a11;
+  --card-border: #F4F7F5;
 
-  --popover: rgba(13, 13, 24, 0.95);
-  --popover-foreground: #f5f5f5;
+  --popover: #C1D3C6;
+  --popover-foreground: #141a11;
 
-  --muted: #141930;
-  --muted-foreground: #94a3b8;
+  --muted: #C1D3C6;
+  --muted-foreground: #3f4a3f;
 
-  --border: #1A1F35;
+  --border: #F4F7F5;
   --input: #0D1021;
-  --ring: #f97316;
+  --ring: #B08A2E;
 
-  --primary: #f97316;
+  --primary: #B08A2E;
   --primary-foreground: #020617;
 
-  --secondary: #0D1021;
-  --secondary-foreground: #f5f5f5;
+  --secondary: #C1D3C6;
+  --secondary-foreground: #141a11;
 
-  --accent: rgba(249, 115, 22, 0.1);
-  --accent-foreground: #fb923c;
+  --accent: rgba(176, 138, 46, 0.1);
+  --accent-foreground: #C9A23E;
 
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
@@ -130,9 +125,9 @@
 }
 
 .dark {
-  --background: #080B11;
+  --background: #A3B2A0;
   --foreground: #f5f5f5;
-  --heading: #ffffff;
+  --heading: #6C7A6D;
 
   --glass-blur-sm: 8px;
   --glass-blur-md: 16px;
@@ -140,36 +135,33 @@
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
   --glass-shadow-floating: 0 24px 70px rgba(0, 0, 0, 0.5), 0 4px 20px rgba(0, 0, 0, 0.3);
   --glass-border-floating: rgba(255, 255, 255, 0.12);
-  --glow-blue: #3b82f6;
-  --glow-violet: #8b5cf6;
-  --glow-cyan: #22d3ee;
 
-  --surface: #0D1021;
-  --surface-foreground: #f5f5f5;
-  --surface-muted: #141930;
+  --surface: #C1D3C6;
+  --surface-foreground: #141a11;
+  --surface-muted: #C1D3C6;
 
-  --card: #0D1021;
-  --card-foreground: #f5f5f5;
-  --card-border: #1A1F35;
+  --card: #A3B18D;
+  --card-foreground: #141a11;
+  --card-border: #F4F7F5;
 
-  --popover: rgba(13, 13, 24, 0.95);
-  --popover-foreground: #f5f5f5;
+  --popover: #C1D3C6;
+  --popover-foreground: #141a11;
 
-  --muted: #141930;
-  --muted-foreground: #94a3b8;
+  --muted: #C1D3C6;
+  --muted-foreground: #3f4a3f;
 
-  --border: #1A1F35;
+  --border: #F4F7F5;
   --input: #0D1021;
-  --ring: #f97316;
+  --ring: #B08A2E;
 
-  --primary: #f97316;
+  --primary: #B08A2E;
   --primary-foreground: #020617;
 
-  --secondary: #0D1021;
-  --secondary-foreground: #f5f5f5;
+  --secondary: #C1D3C6;
+  --secondary-foreground: #141a11;
 
-  --accent: rgba(249, 115, 22, 0.14);
-  --accent-foreground: #fb923c;
+  --accent: rgba(176, 138, 46, 0.14);
+  --accent-foreground: #C9A23E;
 
   --destructive: #f87171;
   --destructive-foreground: #1a0505;
@@ -180,164 +172,6 @@
   --warning-foreground: #1a1200;
 
   --shadow-color: 230 40% 3%;
-}
-
-/* Palette overrides — pair with :root/.dark for 5 palettes x 2 modes = 10 theme combinations.
-   Only the brand-accent tokens are swapped; base surface/text tokens stay as set above. */
-:root[data-palette="ocean"] {
-  --primary: #0284c7;
-  --primary-foreground: #ffffff;
-  --ring: #0284c7;
-  --accent: #f0f9ff;
-  --accent-foreground: #075985;
-}
-.dark[data-palette="ocean"] {
-  --primary: #38bdf8;
-  --primary-foreground: #0a0a0f;
-  --ring: #38bdf8;
-  --accent: #082f49;
-  --accent-foreground: #7dd3fc;
-}
-
-:root[data-palette="forest"] {
-  --primary: #059669;
-  --primary-foreground: #ffffff;
-  --ring: #059669;
-  --accent: #ecfdf5;
-  --accent-foreground: #065f46;
-}
-.dark[data-palette="forest"] {
-  --primary: #34d399;
-  --primary-foreground: #0a0a0f;
-  --ring: #34d399;
-  --accent: #022c22;
-  --accent-foreground: #6ee7b7;
-}
-
-:root[data-palette="violet"] {
-  --primary: #7c3aed;
-  --primary-foreground: #ffffff;
-  --ring: #7c3aed;
-  --accent: #f5f3ff;
-  --accent-foreground: #5b21b6;
-}
-.dark[data-palette="violet"] {
-  --primary: #a78bfa;
-  --primary-foreground: #0a0a0f;
-  --ring: #a78bfa;
-  --accent: #2e1065;
-  --accent-foreground: #c4b5fd;
-}
-
-:root[data-palette="rose"] {
-  --primary: #e11d48;
-  --primary-foreground: #ffffff;
-  --ring: #e11d48;
-  --accent: #fff1f2;
-  --accent-foreground: #9f1239;
-}
-.dark[data-palette="rose"] {
-  --primary: #fb7185;
-  --primary-foreground: #0a0a0f;
-  --ring: #fb7185;
-  --accent: #4c0519;
-  --accent-foreground: #fda4af;
-}
-
-/* Teal — https://colorhunt.co/palette/224248325e6a44a1a4ff9a00 */
-:root[data-palette="teal"] {
-  --primary: #44a1a4;
-  --primary-foreground: #ffffff;
-  --ring: #44a1a4;
-  --accent: #ecf6f6;
-  --accent-foreground: #224248;
-}
-.dark[data-palette="teal"] {
-  --primary: #60afb2;
-  --primary-foreground: #0a0a0f;
-  --ring: #60afb2;
-  --accent: #224248;
-  --accent-foreground: #7cbdbf;
-}
-
-/* Re-skin the raw orange/pink color SCALE per palette (not just the semantic --primary/--accent
-   tokens above). Tailwind v4 compiles bg-orange-500, text-orange-400, border-orange-500/20, etc.
-   to background-color: var(--color-orange-500), so overriding the scale here repaints every one
-   of the ~2000+ hardcoded orange-* / pink-* utility classes across the whole app, not just the
-   handful of components that already use semantic tokens. Same specificity trick as above: these
-   are unlayered rules, Tailwind's utilities live in @layer utilities, so unlayered always wins. */
-:root[data-palette="ocean"] {
-  --color-orange-400: #38bdf8;
-  --color-orange-500: #0ea5e9;
-  --color-orange-600: #0284c7;
-  --color-orange-700: #0369a1;
-  --color-pink-400: #818cf8;
-  --color-pink-500: #6366f1;
-  --color-pink-600: #4f46e5;
-  --color-pink-700: #4338ca;
-}
-:root[data-palette="forest"] {
-  --color-orange-400: #34d399;
-  --color-orange-500: #10b981;
-  --color-orange-600: #059669;
-  --color-orange-700: #047857;
-  --color-pink-400: #2dd4bf;
-  --color-pink-500: #14b8a6;
-  --color-pink-600: #0d9488;
-  --color-pink-700: #0f766e;
-}
-:root[data-palette="violet"] {
-  --color-orange-400: #a78bfa;
-  --color-orange-500: #8b5cf6;
-  --color-orange-600: #7c3aed;
-  --color-orange-700: #6d28d9;
-  --color-pink-400: #e879f9;
-  --color-pink-500: #d946ef;
-  --color-pink-600: #c026d3;
-  --color-pink-700: #a21caf;
-}
-:root[data-palette="rose"] {
-  --color-orange-400: #fb7185;
-  --color-orange-500: #f43f5e;
-  --color-orange-600: #e11d48;
-  --color-orange-700: #be123c;
-  --color-pink-400: #fbbf24;
-  --color-pink-500: #f59e0b;
-  --color-pink-600: #d97706;
-  --color-pink-700: #b45309;
-}
-:root[data-palette="teal"] {
-  --color-orange-400: #69b4b6;
-  --color-orange-500: #44a1a4;
-  --color-orange-600: #325e6a;
-  --color-orange-700: #224248;
-  --color-pink-400: #ffae33;
-  --color-pink-500: #ff9a00;
-  --color-pink-600: #cc7b00;
-  --color-pink-700: #995c00;
-}
-
-/* Mirror-invert the neutral slate scale (50<->950, 100<->900, ...) so the thousands of
-   hardcoded bg-slate-900/border-slate-800/text-slate-400 utility classes across the app
-   (built dark-first, never previously mode-aware) repaint sensibly on a light background
-   instead of staying stuck near-black. Back to light-mode-only (:root:not(.dark)) now that
-   the Glass Campus redesign restored a real light/dark distinction — dark mode keeps the
-   original near-black @theme values, which now correctly match the dark charcoal base
-   instead of clashing with it. Some one-off components that intentionally used a light
-   slate shade on a dark page may look slightly off in light mode as a result — a
-   best-effort trade-off, not a full per-component retheme. */
-:root:not(.dark) {
-  --color-slate-50: #0a0a0f;
-  --color-slate-100: #131321;
-  --color-slate-200: #1e1e2f;
-  --color-slate-300: #3a3a5c;
-  --color-slate-400: #52527a;
-  --color-slate-500: #737399;
-  --color-slate-600: #a3a3c2;
-  --color-slate-700: #d1d1df;
-  --color-slate-800: #e2e2ec;
-  --color-slate-900: #f1f1f5;
-  --color-slate-950: #fdfdfd;
 }
 
 @theme inline {
@@ -380,11 +214,6 @@
   --color-warning-foreground: var(--warning-foreground);
 }
 
-/* Atmospheric background — large, very low-opacity blurred gradient blobs
-   fixed behind all content, per the Glass Campus spec's "calm, never
-   competes with content" direction. Layered as background-image radial
-   gradients rather than pseudo-elements so it needs no extra DOM node and
-   automatically re-tints with the theme via --glow-blue/violet/cyan. */
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -431,7 +260,6 @@ img.cursor-pointer:hover {
 [class~="bg-[#0D0D18]/95"] { background-color: color-mix(in oklab, var(--popover) 95%, transparent); }
 [class~="bg-[#0D1021]"] { background-color: var(--surface); }
 [class~="bg-[#0D1021]/80"] { background-color: color-mix(in oklab, var(--surface) 80%, transparent); }
-[class~="bg-[#090D16]"] { background-color: var(--background); }
 [class~="bg-[#111827]"] { background-color: var(--popover); }
 [class~="bg-[#0d0e16]"] { background-color: var(--background); }
 [class~="bg-[#0d0e16]/50"] { background-color: color-mix(in oklab, var(--background) 50%, transparent); }
@@ -449,6 +277,29 @@ img.cursor-pointer:hover {
 :where([class~="divide-[#1A1F35]"] > :not(:last-child)) { border-color: var(--border); }
 :where([class~="divide-[#1A1F35]/50"] > :not(:last-child)) { border-color: color-mix(in oklab, var(--border) 50%, transparent); }
 :where([class~="divide-[#1A1F35]/60"] > :not(:last-child)) { border-color: color-mix(in oklab, var(--border) 60%, transparent); }
+
+/* Same idea, for the literal Tailwind `border-slate-800`/`border-slate-700` utilities —
+   938 and 282 usages respectively (dominant pattern for card/panel/divider borders
+   across the app), vastly outnumbering the semantic border-border/border-card-border
+   classes (16/24 usages). Without this, a --border/--card-border token edit alone would
+   be invisible on nearly every bordered panel. */
+[class~="border-slate-800"] { border-color: var(--border); }
+[class~="border-slate-800/40"] { border-color: color-mix(in oklab, var(--border) 40%, transparent); }
+[class~="border-slate-800/50"] { border-color: color-mix(in oklab, var(--border) 50%, transparent); }
+[class~="border-slate-800/60"] { border-color: color-mix(in oklab, var(--border) 60%, transparent); }
+[class~="border-slate-800/65"] { border-color: color-mix(in oklab, var(--border) 65%, transparent); }
+[class~="border-slate-800/70"] { border-color: color-mix(in oklab, var(--border) 70%, transparent); }
+[class~="border-slate-800/80"] { border-color: color-mix(in oklab, var(--border) 80%, transparent); }
+[class~="border-slate-800/90"] { border-color: color-mix(in oklab, var(--border) 90%, transparent); }
+[class~="border-slate-700"] { border-color: var(--border); }
+[class~="border-slate-700/40"] { border-color: color-mix(in oklab, var(--border) 40%, transparent); }
+[class~="border-slate-700/50"] { border-color: color-mix(in oklab, var(--border) 50%, transparent); }
+[class~="border-slate-700/60"] { border-color: color-mix(in oklab, var(--border) 60%, transparent); }
+[class~="border-slate-700/80"] { border-color: color-mix(in oklab, var(--border) 80%, transparent); }
+:where([class~="divide-slate-800"] > :not(:last-child)) { border-color: var(--border); }
+:where([class~="divide-slate-800/40"] > :not(:last-child)) { border-color: color-mix(in oklab, var(--border) 40%, transparent); }
+:where([class~="divide-slate-800/60"] > :not(:last-child)) { border-color: color-mix(in oklab, var(--border) 60%, transparent); }
+:where([class~="divide-slate-800/80"] > :not(:last-child)) { border-color: color-mix(in oklab, var(--border) 80%, transparent); }
 [class~="from-[#0B0F1A]"] { --tw-gradient-from: var(--background); }
 [class~="from-[#0D1021]"] { --tw-gradient-from: var(--surface); }
 [class~="from-[#12141c]"] { --tw-gradient-from: var(--surface); }
@@ -462,6 +313,26 @@ img.cursor-pointer:hover {
    bypassing --card/--surface entirely. Scoped to backgrounds only (not text-white,
    border-white, ring-white, etc.), so this doesn't touch anything but container fills. */
 [class~="bg-white"] { background-color: var(--card); }
+
+/* Companion text-color remap for the container-fill change above. Nearly all
+   on-card text in this app is hardcoded light Tailwind text classes
+   (text-white, text-slate-100..500) written for a dark card, not the
+   semantic --card-foreground/--muted-foreground tokens — without this,
+   filling containers with a light color would leave ~3500 existing text
+   usages illegible against it. text-white/100/200/300 (high-emphasis) map to
+   the strong foreground; text-slate-400/500 (de-emphasized/meta text) map to
+   the softer muted foreground, preserving the original two-tier hierarchy.
+   Known tradeoff: this also darkens text-white sitting on saturated colored
+   fills (status badges, bg-emerald-500 etc.) — case-by-case, not always
+   worse (white-on-mid-saturation-color often had marginal contrast to begin
+   with), but not individually verified either; flag any specific badge/pill
+   that reads poorly and it can be carved out. */
+[class~="text-white"] { color: var(--card-foreground); }
+[class~="text-slate-100"] { color: var(--card-foreground); }
+[class~="text-slate-200"] { color: var(--card-foreground); }
+[class~="text-slate-300"] { color: var(--card-foreground); }
+[class~="text-slate-400"] { color: var(--muted-foreground); }
+[class~="text-slate-500"] { color: var(--muted-foreground); }
 
 /* Glass activation for every legacy chrome element remapped above — these elements were
    only ever getting a flat background-color; now that --background/--surface/--card/
@@ -482,6 +353,58 @@ img.cursor-pointer:hover {
   backdrop-filter: blur(var(--glass-blur-md));
   -webkit-backdrop-filter: blur(var(--glass-blur-md));
 }
+
+/* Dedicated dark "outline gold" for text-orange-* / border-orange-* / ring-orange-*
+   used as pure accents (no fill) — "View" buttons, active tab borders, focus
+   rings, etc. Two rounds of brightness/contrast requests pushed the
+   --color-orange-* scale to a pale, highly-saturated amber, which reads fine
+   for FILLS (bg-orange-*, paired with dark text on top via the text-white
+   remap above) but goes nearly invisible for text/borders/rings sitting
+   directly on the light --card/--surface/--background with nothing to
+   darken them (~1400 usages: 489 text-orange-400, 141 text-orange-500,
+   ~490 border-orange-500 across its opacity variants, ~34 ring-orange-500).
+   bg-orange-* is deliberately NOT included here — fills stay the bright
+   amber from the brightness/contrast requests. Opacity variants keep their
+   color-mix scaling for border/ring (subtlety is intentional there); text
+   opacity variants collapse to full strength since faint TEXT specifically
+   is the complaint being fixed. */
+[class~="text-orange-400"],
+[class~="text-orange-400/60"],
+[class~="text-orange-400/80"],
+[class~="text-orange-400/90"],
+[class~="text-orange-500"],
+[class~="text-orange-500/30"],
+[class~="text-orange-500/40"],
+[class~="text-orange-500/50"],
+[class~="text-orange-500/80"],
+[class~="text-orange-600"],
+[class~="text-primary"] {
+  color: #5C4415;
+}
+[class~="border-primary"] { border-color: #5C4415; }
+[class~="border-primary/20"] { border-color: color-mix(in oklab, #5C4415 20%, transparent); }
+[class~="border-primary/30"] { border-color: color-mix(in oklab, #5C4415 30%, transparent); }
+[class~="border-primary/40"] { border-color: color-mix(in oklab, #5C4415 40%, transparent); }
+[class~="border-primary/50"] { border-color: color-mix(in oklab, #5C4415 50%, transparent); }
+[class~="border-orange-400"] { border-color: #5C4415; }
+[class~="border-orange-400/30"] { border-color: color-mix(in oklab, #5C4415 30%, transparent); }
+[class~="border-orange-500"] { border-color: #5C4415; }
+[class~="border-orange-500/10"] { border-color: color-mix(in oklab, #5C4415 10%, transparent); }
+[class~="border-orange-500/20"] { border-color: color-mix(in oklab, #5C4415 20%, transparent); }
+[class~="border-orange-500/25"] { border-color: color-mix(in oklab, #5C4415 25%, transparent); }
+[class~="border-orange-500/30"] { border-color: color-mix(in oklab, #5C4415 30%, transparent); }
+[class~="border-orange-500/40"] { border-color: color-mix(in oklab, #5C4415 40%, transparent); }
+[class~="border-orange-500/50"] { border-color: color-mix(in oklab, #5C4415 50%, transparent); }
+[class~="border-orange-500/60"] { border-color: color-mix(in oklab, #5C4415 60%, transparent); }
+[class~="border-orange-500/70"] { border-color: color-mix(in oklab, #5C4415 70%, transparent); }
+[class~="border-orange-500/80"] { border-color: color-mix(in oklab, #5C4415 80%, transparent); }
+[class~="ring-orange-500"] { --tw-ring-color: #5C4415; }
+[class~="ring-orange-500/20"] { --tw-ring-color: color-mix(in oklab, #5C4415 20%, transparent); }
+[class~="ring-orange-500/30"] { --tw-ring-color: color-mix(in oklab, #5C4415 30%, transparent); }
+[class~="ring-orange-500/40"] { --tw-ring-color: color-mix(in oklab, #5C4415 40%, transparent); }
+[class~="ring-orange-500/50"] { --tw-ring-color: color-mix(in oklab, #5C4415 50%, transparent); }
+[class~="ring-orange-500/60"] { --tw-ring-color: color-mix(in oklab, #5C4415 60%, transparent); }
+[class~="ring-orange-500/80"] { --tw-ring-color: color-mix(in oklab, #5C4415 80%, transparent); }
 
 /* Sidebar's hardcoded orange active-state glow (a literal rgba() box-shadow, not the
    swappable --color-orange-* scale) — repainted to the current --primary so it follows
@@ -683,15 +606,26 @@ img.cursor-pointer:hover {
    as the mood-board reference art they're drawn from.
    ========================================================================== */
 
-/* Palette 1 — abstract underwater/jellyfish art: deep navy field, glowing
-   magenta-pink centers, soft teal fins, small warm-gold accents. */
+/* Palette 1 — abstract underwater/jellyfish art: originally a fixed deep-navy
+   dark face regardless of page theme (magenta-pink/teal/gold text hierarchy).
+   Brought onto the current light green reskin on request ("cards colour not
+   changed" — this class was the reason course cards, e.g. CourseGridCard.jsx,
+   MyCourseCard.jsx, BrowseCourseCard.jsx, never picked up the --card token
+   edits): bg gradient now the card green family, border matches the
+   app-wide light border, and h1/subtitle move to the same dark
+   card-foreground/muted-foreground values used everywhere else on this card
+   family — the old bright pink/teal would go illegible on a light card,
+   same problem already fixed for text-white/text-orange-* app-wide.
+   --card-photo-highlight stays a strong accent (drives tag pills and the
+   "View Course" button fill, which already pairs it with dark text) — now
+   the current bright gold primary instead of the old amber. */
 .card-photo-jellyfish {
-  --card-photo-bg-from: #0a0c1e;
-  --card-photo-bg-to: #181b3a;
-  --card-photo-border: #2a2d52;
-  --card-photo-h1: #f472b6;
-  --card-photo-subtitle: #5fd1c4;
-  --card-photo-highlight: #e8ae68;
+  --card-photo-bg-from: #A3B18D;
+  --card-photo-bg-to: #A3B18D;
+  --card-photo-border: #D9D9D9;
+  --card-photo-h1: #6C7A6D;
+  --card-photo-subtitle: #000000;
+  --card-photo-highlight: #B08A2E;
 }
 
 /* Title font for every card-photo-* variant — Playfair Display (already

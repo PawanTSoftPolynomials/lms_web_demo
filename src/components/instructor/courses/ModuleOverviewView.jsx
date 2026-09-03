@@ -33,9 +33,9 @@ export function ModuleOverviewView({
   const nextModule = currentModIdx >= 0 && currentModIdx < allModules.length - 1 ? allModules[currentModIdx + 1] : null;
 
   return (
-    <div className="notebook-cell rounded-2xl border border-slate-800 bg-slate-950 p-5 sm:p-6 shadow-md space-y-6">
+    <div className="notebook-cell rounded-2xl border border-[#D9D9D9] bg-[#B7C9C5] p-5 sm:p-6 shadow-md space-y-6">
       {/* Module Header Toolbar */}
-      <div className="cell-header flex items-center justify-between border-b border-slate-800/80 pb-3 flex-wrap gap-2">
+      <div className="cell-header flex items-center justify-between border-b border-[#D9D9D9]/80 pb-3 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <span className="cell-badge rounded bg-orange-500/15 border border-orange-500/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-orange-400 flex items-center gap-1.5">
             <Folder size={12} />
@@ -45,7 +45,7 @@ export function ModuleOverviewView({
         <div className="cell-controls">
           <button
             type="button"
-            className="border border-slate-800 text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+            className="border border-[#D9D9D9] text-slate-300 hover:text-white bg-[#B7C9C5] hover:bg-[#EDEDED] rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
             onClick={() => onEditModule?.(module)}
           >
             <Pencil size={13} />
@@ -56,24 +56,24 @@ export function ModuleOverviewView({
 
       {/* Module Title & Description */}
       <div className="space-y-2">
-        <h2 className="text-xl font-bold text-white">{module.title || "Untitled Module"}</h2>
+        <h2 className="text-xl font-bold text-[#6C7A6D]">{module.title || "Untitled Module"}</h2>
         {module.subtitle && (
           <p className="text-xs font-semibold text-orange-400 italic">{module.subtitle}</p>
         )}
         {(module.summary || module.description) && (
-          <p className="text-xs text-slate-300 leading-relaxed bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+          <p className="text-xs text-slate-300 leading-relaxed bg-[#B7C9C5]/60 p-3 rounded-xl border border-[#D9D9D9]/80">
             {module.summary || module.description}
           </p>
         )}
       </div>
 
       {/* LESSONS SECTION */}
-      <div className="pt-4 border-t border-slate-800 space-y-4">
+      <div className="pt-4 border-t border-[#D9D9D9] space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <BookOpen size={16} className="text-orange-400" />
-            <h3 className="text-sm font-bold text-white">Lessons</h3>
-            <span className="text-xs font-mono font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+            <h3 className="text-sm font-bold text-[#6C7A6D]">Lessons</h3>
+            <span className="text-xs font-mono font-bold text-slate-400 bg-[#B7C9C5] px-2 py-0.5 rounded border border-[#D9D9D9]">
               {lessons.length}
             </span>
           </div>
@@ -92,7 +92,7 @@ export function ModuleOverviewView({
 
         {/* LESSONS GRID OR EMPTY STATE */}
         {lessons.length === 0 ? (
-          <div className="p-8 text-center bg-slate-900/40 rounded-2xl border border-slate-800/80 space-y-3">
+          <div className="p-8 text-center bg-[#B7C9C5]/40 rounded-2xl border border-[#D9D9D9]/80 space-y-3">
             <div className="p-3 rounded-xl bg-orange-500/10 text-orange-400 inline-block">
               <BookOpen size={24} />
             </div>
@@ -166,7 +166,7 @@ export function ModuleOverviewView({
 
       {/* NEXT MODULE NAVIGATION FOOTER */}
       {nextModule && (
-        <div className="pt-6 border-t border-slate-800 flex items-center justify-end">
+        <div className="pt-6 border-t border-[#D9D9D9] flex items-center justify-end">
           <button
             type="button"
             onClick={() => onSelectModule?.(nextModule)}

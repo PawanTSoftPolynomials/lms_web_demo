@@ -221,7 +221,7 @@ export default function EventModal({
             <p className="text-sm text-slate-400 mt-1">{event.courseName}</p>
           </div>
 
-          <div className="space-y-3 bg-slate-950/40 p-4 rounded-xl border border-slate-800/80">
+          <div className="space-y-3 bg-[#B7C9C5]/40 p-4 rounded-xl border border-slate-800/80">
             <div className="flex items-center gap-3 text-sm text-slate-300">
               <FaClock className="text-orange-500 w-4 h-4 flex-shrink-0" />
               <span>
@@ -256,7 +256,7 @@ export default function EventModal({
           {event.description && (
             <div>
               <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Description</h4>
-              <p className="text-slate-300 text-sm bg-slate-900/60 p-4 rounded-xl border border-slate-800/60 whitespace-pre-line leading-relaxed">
+              <p className="text-slate-300 text-sm bg-[#B7C9C5]/50 p-4 rounded-xl border border-slate-800/60 whitespace-pre-line leading-relaxed">
                 {event.description}
               </p>
             </div>

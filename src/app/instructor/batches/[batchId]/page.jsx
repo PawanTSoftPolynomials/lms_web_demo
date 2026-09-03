@@ -111,7 +111,7 @@ function StatusBadge({ status }) {
 
 function Section({ title, icon: Icon, iconBg = "bg-orange-500/10", iconColor = "text-orange-400", action, children, className = "" }) {
   return (
-    <div className={`rounded-2xl border border-[#1A1F35] bg-[#0D1021] p-5 ${className}`}>
+    <div className={`rounded-2xl border border-[#D9D9D9] bg-[#C1D3C6] p-5 ${className}`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
           {Icon && (
@@ -119,7 +119,7 @@ function Section({ title, icon: Icon, iconBg = "bg-orange-500/10", iconColor = "
               <Icon size={13} />
             </div>
           )}
-          <h3 className="text-[10.5px] font-black uppercase tracking-widest text-slate-350">{title}</h3>
+          <h3 className="text-[10.5px] font-black uppercase tracking-widest text-black">{title}</h3>
         </div>
         {action}
       </div>
@@ -497,7 +497,7 @@ function ManageCoursesPanel({ batchId, batchCourses }) {
         {batchCourses.map((course) => (
           <span
             key={course.id}
-            className="inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1.5 rounded-full border border-[#1A1F35] bg-[#141930] text-[11px] font-bold text-slate-200 max-w-full"
+            className="inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1.5 rounded-full border border-[#D9D9D9] bg-[#EDEDED] text-[11px] font-bold text-black max-w-full"
           >
             <span className="truncate">{course.title}</span>
             <button
@@ -514,11 +514,11 @@ function ManageCoursesPanel({ batchId, batchCourses }) {
       </div>
 
       {availableCourses.length > 0 && (
-        <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-[#1A1F35]">
+        <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-[#D9D9D9]">
           <select
             value={selectedCourseId}
             onChange={(e) => setSelectedCourseId(e.target.value)}
-            className="flex-1 bg-[#141930] border border-[#1A1F35] text-xs px-3 py-2.5 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition [&>option]:bg-[#141930] [&>option]:text-slate-200"
+            className="flex-1 bg-[#EDEDED] border border-[#D9D9D9] text-xs px-3 py-2.5 rounded-xl outline-none text-black focus:border-orange-500/60 transition [&>option]:bg-[#EDEDED] [&>option]:text-black"
           >
             <option value="">Add another course...</option>
             {availableCourses.map((c) => (

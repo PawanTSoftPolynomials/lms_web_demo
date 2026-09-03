@@ -94,9 +94,9 @@ export function CellShell({
       className={cn(
         "group relative flex items-start gap-3 transition-all duration-200",
         isTextOrHeading && mode === "view"
-          ? "rounded-xl border border-transparent bg-transparent hover:border-slate-800/80 hover:bg-slate-900/40 p-2.5 sm:p-3.5"
-          : "rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-5 shadow-sm hover:border-slate-700/80 hover:bg-slate-900/90",
-        mode === "edit" && "rounded-2xl border-orange-500/50 bg-slate-900/95 ring-2 ring-orange-500/50 p-4 sm:p-5"
+          ? "rounded-xl border border-transparent bg-transparent hover:border-slate-800/80 hover:bg-[#B7B7B7] p-2.5 sm:p-3.5"
+          : "rounded-2xl border border-slate-800 bg-[#B7B7B7] p-4 sm:p-5 shadow-sm hover:border-slate-700/80 hover:bg-[#ACACAC]",
+        mode === "edit" && "rounded-2xl border-orange-500/50 bg-[#B7B7B7] ring-2 ring-orange-500/50 p-4 sm:p-5"
       )}
     >
       {/* Add Above — top center, fades in over the block's top edge */}

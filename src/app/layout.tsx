@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { AuthProvider } from "@/context/AuthContext";
 import { Geist, Geist_Mono } from "next/font/google";
 import QueryProvider from "@/providers/QueryProvider";
-import { ThemeProvider } from "@/providers/ThemeProvider";
-import { PaletteProvider, PALETTE_ANTI_FLASH_SCRIPT } from "@/providers/PaletteProvider";
 import "@fontsource/poppins/400.css";
 import "@fontsource/poppins/500.css";
 import "@fontsource/poppins/700.css";
@@ -41,30 +39,22 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable}`}
+      className={`dark ${geistSans.variable} ${geistMono.variable}`}
     >
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <script
-          dangerouslySetInnerHTML={{ __html: PALETTE_ANTI_FLASH_SCRIPT }}
-        />
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
-          <PaletteProvider>
-            <QueryProvider>
-              <AuthProvider>
-                <ToastProvider>
-                  <ConfirmProvider>
-                    <NotificationProvider>
-                      <ChatProvider>
-                        {children}
-                      </ChatProvider>
-                    </NotificationProvider>
-                  </ConfirmProvider>
-                </ToastProvider>
-              </AuthProvider>
-            </QueryProvider>
-          </PaletteProvider>
-        </ThemeProvider>
+      <body className="min-h-full flex flex-col">
+        <QueryProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <ConfirmProvider>
+                <NotificationProvider>
+                  <ChatProvider>
+                    {children}
+                  </ChatProvider>
+                </NotificationProvider>
+              </ConfirmProvider>
+            </ToastProvider>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

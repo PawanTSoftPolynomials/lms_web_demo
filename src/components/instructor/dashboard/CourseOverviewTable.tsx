@@ -38,7 +38,7 @@ export function CourseOverviewTable({ courses, isLoading }: { courses: CoursePro
                 <tr key={course.id} className="hover:bg-white/[0.02] transition">
                   <td className="py-4 pr-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-slate-800 rounded-lg">
+                      <div className="p-2 bg-[#9E9E9E] rounded-lg">
                         <Code2 size={16} className="text-sky-400" />
                       </div>
                       <div>
@@ -56,7 +56,7 @@ export function CourseOverviewTable({ courses, isLoading }: { courses: CoursePro
                   <td className="py-4 px-2 w-1/3">
                     <div className="flex items-center gap-3">
                       <span className="text-xs font-bold text-slate-300 w-8">{course.progress}%</span>
-                      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-full bg-[#9E9E9E] rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-orange-500 rounded-full" 
                           style={{ width: `${course.progress}%` }} 

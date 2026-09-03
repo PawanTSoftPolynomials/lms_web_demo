@@ -27,7 +27,7 @@ export function CourseComposerItemCard({
   return (
     <div
       onClick={onClick}
-      className={`group relative flex flex-col justify-between p-4 rounded-xl border border-slate-800/90 bg-slate-900/60 hover:bg-slate-900 ${hoverBorderClass} transition duration-150 shadow-sm cursor-pointer min-h-[125px]`}
+      className={`group relative flex flex-col justify-between p-4 rounded-xl border border-[#D9D9D9]/90 bg-[#B7C9C5]/60 hover:bg-[#B7C9C5] ${hoverBorderClass} transition duration-150 shadow-sm cursor-pointer min-h-[125px]`}
     >
       {/* Top Bar: Order Badge & 3-Dot Kebab Menu */}
       <div className="flex items-center justify-between gap-2">
@@ -42,13 +42,13 @@ export function CourseComposerItemCard({
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                  className="p-1 rounded text-slate-400 hover:text-white hover:bg-[#EDEDED] transition cursor-pointer"
                   aria-label="Item actions"
                 >
                   <MoreVertical size={14} />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-slate-950 border-slate-800 text-slate-200">
+              <DropdownMenuContent align="end" className="bg-[#B7C9C5] border-[#D9D9D9] text-slate-200">
                 {menuItems.map((item, idx) =>
                   item.separator ? (
                     <DropdownMenuSeparator key={`sep-${idx}`} className="bg-slate-800" />
@@ -61,8 +61,8 @@ export function CourseComposerItemCard({
                         item.destructive
                           ? "text-red-400 hover:bg-red-950/40"
                           : item.highlight
-                          ? "text-purple-400 hover:bg-slate-900 font-semibold"
-                          : "hover:bg-slate-900"
+                          ? "text-purple-400 hover:bg-[#B7C9C5] font-semibold"
+                          : "hover:bg-[#B7C9C5]"
                       }`}
                     >
                       {item.icon && <item.icon className="mr-2 size-3.5" />}
@@ -78,7 +78,7 @@ export function CourseComposerItemCard({
 
       {/* Middle: Title & Subtitle */}
       <div className="my-2 space-y-1">
-        <h4 className={`text-sm font-bold text-white line-clamp-2 ${hoverTextClass} transition`}>
+        <h4 className={`text-sm font-bold text-[#6C7A6D] line-clamp-2 ${hoverTextClass} transition`}>
           {title}
         </h4>
         {subtitle && (
@@ -89,7 +89,7 @@ export function CourseComposerItemCard({
       </div>
 
       {/* Bottom Bar: Metadata & Arrow Affordance */}
-      <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800/60 text-slate-400">
+      <div className="flex items-center justify-between text-xs pt-2 border-t border-[#D9D9D9]/60 text-slate-400">
         <span className="text-[11px] font-mono font-medium">
           {metadataText}
         </span>

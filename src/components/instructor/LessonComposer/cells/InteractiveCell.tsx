@@ -119,7 +119,7 @@ export function InteractiveCell({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Simulation / Interactive Widget"
-              className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-purple-500"
+              className="w-full rounded-lg border border-slate-700 bg-[#B7B7B7] px-3 py-2 text-sm text-white outline-none focus:border-purple-500"
             />
           </div>
 
@@ -130,7 +130,7 @@ export function InteractiveCell({
               value={embedUrl}
               onChange={(e) => setEmbedUrl(e.target.value)}
               placeholder="https://example.com/interactive"
-              className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-purple-500"
+              className="w-full rounded-lg border border-slate-700 bg-[#B7B7B7] px-3 py-2 text-sm text-white outline-none focus:border-purple-500"
             />
           </div>
 
@@ -140,14 +140,14 @@ export function InteractiveCell({
               type="number"
               value={height}
               onChange={(e) => setHeight(Number(e.target.value) || 600)}
-              className="w-24 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-purple-500"
+              className="w-24 rounded-lg border border-slate-700 bg-[#B7B7B7] px-3 py-2 text-sm text-white outline-none focus:border-purple-500"
             />
           </div>
 
           {embedUrl && (
             <div className="space-y-1">
               <span className="text-[11px] font-bold text-slate-400">Live Preview:</span>
-              <div className="rounded-xl border border-slate-800 bg-slate-950 p-2 overflow-hidden">
+              <div className="rounded-xl border border-slate-800 bg-[#ACACAC] p-2 overflow-hidden">
                 <iframe
                   src={embedUrl}
                   width="100%"
@@ -171,7 +171,7 @@ export function InteractiveCell({
       ) : (
         <div className="space-y-2">
           {embedUrl ? (
-            <div className="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden">
+            <div className="rounded-xl border border-slate-800 bg-[#ACACAC] overflow-hidden">
               <iframe
                 src={embedUrl}
                 width="100%"
@@ -228,7 +228,7 @@ export function CreateInteractiveForm({ topicId, order, onCreated, onCancel }: C
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. Interactive Simulation"
-          className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-purple-500"
+          className="w-full rounded-lg border border-slate-700 bg-[#B7B7B7] px-3 py-2 text-sm text-white outline-none focus:border-purple-500"
         />
       </div>
 
@@ -239,7 +239,7 @@ export function CreateInteractiveForm({ topicId, order, onCreated, onCancel }: C
           value={embedUrl}
           onChange={(e) => setEmbedUrl(e.target.value)}
           placeholder="https://example.com/interactive"
-          className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-purple-500"
+          className="w-full rounded-lg border border-slate-700 bg-[#B7B7B7] px-3 py-2 text-sm text-white outline-none focus:border-purple-500"
         />
       </div>
 
@@ -249,14 +249,14 @@ export function CreateInteractiveForm({ topicId, order, onCreated, onCancel }: C
           type="number"
           value={height}
           onChange={(e) => setHeight(Number(e.target.value) || 600)}
-          className="w-24 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-purple-500"
+          className="w-24 rounded-lg border border-slate-700 bg-[#B7B7B7] px-3 py-2 text-sm text-white outline-none focus:border-purple-500"
         />
       </div>
 
       {embedUrl && (
         <div className="space-y-1">
           <span className="text-[11px] font-bold text-slate-400">Live Preview:</span>
-          <div className="rounded-xl border border-slate-800 bg-slate-950 p-2 overflow-hidden">
+          <div className="rounded-xl border border-slate-800 bg-[#ACACAC] p-2 overflow-hidden">
             <iframe
               src={embedUrl}
               width="100%"

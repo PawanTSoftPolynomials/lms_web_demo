@@ -254,7 +254,7 @@ export function PresentationUploadPanel({ fileUrl, onFileUrlChange }: Presentati
               onDrop={handleDrop}
               onClick={() => !isUploading && fileInputRef.current?.click()}
               className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-8 text-center transition cursor-pointer ${
-                isDragging ? "border-orange-500 bg-orange-500/5" : "border-slate-800 hover:border-orange-500/50 bg-slate-950/40"
+                isDragging ? "border-orange-500 bg-orange-500/5" : "border-slate-800 hover:border-orange-500/50 bg-[#ACACAC]/40"
               }`}
             >
               <input ref={fileInputRef} type="file" accept=".ppt,.pptx" onChange={handleFileChange} className="hidden" />

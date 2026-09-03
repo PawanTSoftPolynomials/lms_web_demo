@@ -221,7 +221,7 @@ export default function CalendarView({ role }) {
   return (
     <div className="space-y-6">
       {/* Calendar Header Controls */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/60 p-6 rounded-2xl border border-slate-800 backdrop-blur-sm select-none">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#B7C9C5]/60 p-6 rounded-2xl border border-slate-800 backdrop-blur-sm select-none">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-gradient-to-tr from-orange-500/10 to-pink-500/10 rounded-xl border border-orange-500/20">
             <FaCalendarAlt className="text-2xl text-orange-500" />
@@ -239,7 +239,7 @@ export default function CalendarView({ role }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center bg-slate-950 p-1.5 rounded-xl border border-slate-800/80">
+          <div className="flex items-center bg-[#B7C9C5] p-1.5 rounded-xl border border-slate-800/80">
             <button
               onClick={handlePrevMonth}
               className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
@@ -262,7 +262,7 @@ export default function CalendarView({ role }) {
             </button>
           </div>
 
-          <div className="flex items-center bg-slate-950 p-1.5 rounded-xl border border-slate-800/80">
+          <div className="flex items-center bg-[#B7C9C5] p-1.5 rounded-xl border border-slate-800/80">
             <button
               onClick={() => setViewMode("month")}
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-2 transition ${
@@ -300,7 +300,7 @@ export default function CalendarView({ role }) {
       </div>
 
       {/* Filter Options & Indicators */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-900/40 p-4 rounded-xl border border-slate-800/60">
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-[#B7C9C5]/40 p-4 rounded-xl border border-slate-800/60">
         <div className="flex items-center gap-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
           <FaFilter className="text-orange-500" />
           <span>Filters:</span>
@@ -312,7 +312,7 @@ export default function CalendarView({ role }) {
             className={`px-3 py-1 rounded-full text-xs font-semibold transition border ${
               filterType === "all"
                 ? "bg-slate-700 text-white border-slate-600"
-                : "bg-slate-900/40 text-slate-400 border-slate-800/60 hover:text-white hover:bg-slate-800"
+                : "bg-[#B7C9C5]/40 text-slate-400 border-slate-800/60 hover:text-white hover:bg-[#B7C9C5]/70"
             }`}
           >
             All Activities
@@ -355,9 +355,9 @@ export default function CalendarView({ role }) {
 
       {viewMode === "month" ? (
         /* Calendar Month Grid View */
-        <Card padding="p-0" className="overflow-hidden bg-slate-900/20 backdrop-blur-md">
+        <Card padding="p-0" className="overflow-hidden bg-[#B7C9C5]/50 backdrop-blur-md">
           {/* Weekday Labels Header */}
-          <div className="grid grid-cols-7 border-b border-slate-800 bg-slate-900/80 select-none">
+          <div className="grid grid-cols-7 border-b border-slate-800 bg-[#B7C9C5]/80 select-none">
             {WEEKDAYS.map((day) => (
               <div
                 key={day}
@@ -464,7 +464,7 @@ export default function CalendarView({ role }) {
                     key={event.id || event._id}
                     onClick={(e) => openViewEventModal(event, e)}
                     padding="p-5"
-                    className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-orange-500/40 cursor-pointer transition bg-slate-900/30 backdrop-blur-sm"
+                    className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-orange-500/40 cursor-pointer transition bg-[#B7C9C5]/50 backdrop-blur-sm"
                   >
                     <div className="flex items-start gap-4">
                       <div className={`p-3.5 rounded-xl border ${getEventBadgeClass(event.type)}`}>
@@ -490,7 +490,7 @@ export default function CalendarView({ role }) {
                     </div>
 
                     <div className="flex items-center gap-3 w-full md:w-auto justify-end border-t md:border-t-0 border-slate-800/80 pt-3.5 md:pt-0">
-                      <span className="text-xs text-slate-400 px-3 py-1.5 bg-slate-950 rounded-lg border border-slate-800">
+                      <span className="text-xs text-slate-400 px-3 py-1.5 bg-[#B7C9C5] rounded-lg border border-slate-800">
                         {event.date}
                       </span>
                       {event.type === "class" && event.link && (

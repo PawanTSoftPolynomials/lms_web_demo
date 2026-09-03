@@ -1,9 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { BookOpen, Clock, ArrowRight } from "lucide-react";
+import { BookOpen, Clock, ArrowUpRight } from "lucide-react";
 
-import { Badge } from "@/components/ui/shadcn/badge";
 import { getDisplayUrl } from "@/lib/blob";
 
 /** Status color is kept out of the card's 3-color hierarchy on purpose:
@@ -11,18 +10,19 @@ import { getDisplayUrl } from "@/lib/blob";
  *  same reasoning as the app's own --success token) and Not Started stays
  *  neutral; every "active" state (Enrolled/In Progress) shares the card's
  *  one highlight color rather than a different hue per course. */
-const NEUTRAL_STYLE = { badge: "bg-white/15 text-white/80 border-white/10", dot: "bg-white/70" };
-const COMPLETE_STYLE = { badge: "bg-emerald-500 text-white border-transparent", dot: "bg-white" };
+const NEUTRAL_STYLE = { dot: "bg-white/70" };
+const COMPLETE_STYLE = { dot: "bg-emerald-400" };
 
 function getStatusStyle(status) {
   if (status === "Not Started") return NEUTRAL_STYLE;
   if (status === "Completed") return COMPLETE_STYLE;
-  return { badge: "border-transparent", dot: "bg-black/40" };
+  return { dot: "bg-[var(--card-photo-highlight)]" };
 }
 
-/** My Courses grid card for students — banner image with a status pill and
- *  live percentage, title/description, a thin progress bar, and a lessons +
- *  duration footer row ending in a circular CTA button. */
+/** My Courses grid card for students — same compact footprint/density as the
+ *  Instructor My Courses grid (CourseGridCard): small inset banner, a status
+ *  pill + live percentage, one-line title/description, and a thin progress
+ *  bar in place of Instructor's Edit/View action row. */
 export default function MyCourseCard({ enrollment, course: rawCourse }) {
   const router = useRouter();
   const course = enrollment?.course || rawCourse;
@@ -49,88 +49,81 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
   return (
     <div
       onClick={() => router.push(destination)}
-      className="card-photo-jellyfish group relative flex w-full shrink-0 flex-col overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--card-photo-bg-from)] to-[var(--card-photo-bg-to)] border border-[var(--card-photo-border)] shadow-luxury-sm hover:shadow-luxury-md transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+      className="card-photo-jellyfish group relative flex w-full h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--card-photo-bg-from)] to-[var(--card-photo-bg-to)] border border-[var(--card-photo-border)] shadow-luxury-sm hover:shadow-luxury-md transition-all duration-300 hover:-translate-y-1 cursor-pointer"
     >
       {/* Banner */}
-      <div className="relative h-36 md:h-40 shrink-0 overflow-hidden">
-        {course.thumbnailUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={getDisplayUrl(course.thumbnailUrl)}
-            alt=""
-            loading="lazy"
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+      <div className="relative h-28 md:h-32 shrink-0 pt-1.5 px-1.5 md:pt-2 md:px-2">
+        <div className="relative h-full w-full overflow-hidden rounded-xl bg-black/20">
+          {course.thumbnailUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={getDisplayUrl(course.thumbnailUrl)}
+              alt=""
+              loading="lazy"
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="relative flex h-full w-full items-center justify-center">
+              <BookOpen size={36} className="text-white/25" />
+            </div>
+          )}
+
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-10"
+            style={{ background: "linear-gradient(to bottom, transparent, var(--card-photo-bg-to))" }}
           />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-black/20">
-            <BookOpen size={40} className="text-white/25" />
-          </div>
-        )}
 
-        {/* Blends the image's bottom edge into the card body's gradient
-            color instead of a hard cutoff, echoing the soft-edged glow
-            of the reference art. */}
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-14"
-          style={{ background: "linear-gradient(to bottom, transparent, var(--card-photo-bg-to))" }}
-        />
-
-        <div className="absolute top-3 left-3 md:top-4 md:left-4">
-          <Badge className={style.badge} style={status !== "Not Started" && status !== "Completed" ? { backgroundColor: "var(--card-photo-highlight)", color: "#1a1200" } : undefined}>
+          <span className="absolute top-1.5 left-1.5 flex items-center gap-1 rounded-md bg-black/55 backdrop-blur px-1.5 py-0.5 text-[9px] font-bold text-white">
             <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
             {status}
-          </Badge>
-        </div>
+          </span>
 
-        <span className="absolute top-3 right-3 md:top-4 md:right-4 text-sm font-extrabold text-white [text-shadow:0_1px_4px_rgba(0,0,0,0.75)]">
-          {progress}%
-        </span>
+          <span className="absolute top-1.5 right-1.5 rounded-md bg-black/55 backdrop-blur px-1.5 py-0.5 text-[9px] font-bold text-white">
+            {progress}%
+          </span>
+        </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-3.5 p-4 md:p-5">
+      <div className="flex flex-1 flex-col gap-1 md:gap-1.5 p-2 md:p-2.5">
         <div>
-          <h3 className="card-photo-title text-lg md:text-xl font-bold leading-snug line-clamp-1 text-[var(--card-photo-h1)]">
+          <h3 className="card-photo-title text-xs md:text-sm font-bold leading-snug line-clamp-1 text-[var(--card-photo-h1)]">
             {course.title}
           </h3>
           {course.description ? (
-            <p className="mt-1 text-xs md:text-sm leading-relaxed line-clamp-2 text-[var(--card-photo-subtitle)]">
-              {course.description}
-            </p>
+            <p className="mt-0.5 text-[10px] md:text-[11px] leading-relaxed line-clamp-1 text-[var(--card-photo-subtitle)]">{course.description}</p>
           ) : null}
         </div>
 
-        <div className="mt-auto space-y-3">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] md:text-[10px] text-[var(--card-photo-subtitle)]">
+          <span className="flex items-center gap-1">
+            <BookOpen size={11} />
+            {lessonsTotal} Lessons
+          </span>
+          <span className="flex items-center gap-1">
+            <Clock size={11} />
+            {durationLabel}
+          </span>
+        </div>
+
+        <div className="mt-auto space-y-1 pt-0.5">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">
             <div
               className="h-full rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progress}%`, backgroundColor: status === "Completed" ? "#10b981" : "var(--card-photo-highlight)" }}
             />
           </div>
 
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-3 text-xs md:text-sm text-white/50">
-              <span className="flex items-center gap-1.5">
-                <BookOpen size={14} />
-                {lessonsTotal} Lessons
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Clock size={14} />
-                {durationLabel}
-              </span>
-            </div>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(destination);
-              }}
-              aria-label={isEnrolled ? (isComplete ? "Review course" : "Continue learning") : "View course"}
-              className="flex h-9 w-9 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-full transition hover:brightness-110 active:scale-95 cursor-pointer"
-              style={{ backgroundColor: "var(--card-photo-highlight)", color: "#1a1200" }}
-            >
-              <ArrowRight size={16} />
-            </button>
-          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(destination);
+            }}
+            className="w-full inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1 text-[10px] md:text-[11px] font-extrabold transition hover:brightness-110 active:scale-95"
+            style={{ backgroundColor: "var(--card-photo-highlight)", color: "#1a1200" }}
+          >
+            {isEnrolled ? (isComplete ? "Review Course" : "Continue Learning") : "View Course"}
+            <ArrowUpRight size={11} />
+          </button>
         </div>
       </div>
     </div>

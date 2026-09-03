@@ -18,9 +18,9 @@ const STATUS_STYLE = {
 };
 
 const LEVEL_STYLE = {
-  Beginner: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
-  Intermediate: "bg-amber-500/15 text-amber-400 border-amber-500/20",
-  Advanced: "bg-rose-500/15 text-rose-400 border-rose-500/20",
+  Beginner: "bg-emerald-500/15 text-emerald-700 border-emerald-500/20",
+  Intermediate: "bg-amber-500/15 text-amber-700 border-amber-500/20",
+  Advanced: "bg-rose-500/15 text-rose-700 border-rose-500/20",
 };
 
 /** My Courses grid card — banner, meta row, tag pills, edit/view actions, and a
@@ -140,7 +140,7 @@ export default function CourseGridCard({ course }) {
           ) : null}
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] md:text-[10px] text-white/50">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] md:text-[10px] text-[var(--card-photo-subtitle)]">
           <span className="flex items-center gap-1">
             <Users size={11} />
             {studentsCount} Students
@@ -157,7 +157,7 @@ export default function CourseGridCard({ course }) {
         <div className="flex flex-wrap items-center gap-1">
           <span
             className="rounded-md border px-1.5 py-0.5 text-[9px] font-bold"
-            style={{ borderColor: "color-mix(in oklab, var(--card-photo-highlight) 35%, transparent)", backgroundColor: "color-mix(in oklab, var(--card-photo-highlight) 15%, transparent)", color: "var(--card-photo-highlight)" }}
+            style={{ borderColor: "color-mix(in oklab, var(--card-photo-highlight) 35%, transparent)", backgroundColor: "color-mix(in oklab, var(--card-photo-highlight) 15%, transparent)", color: "var(--card-photo-h1)" }}
           >
             {course.category || "Uncategorized"}
           </span>
@@ -179,7 +179,7 @@ export default function CourseGridCard({ course }) {
         <div className="mt-auto flex items-center gap-1.5 pt-0.5">
           <button
             onClick={goTo(`/instructor/courses/edit/${course.id}`)}
-            className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-[10px] md:text-[11px] font-extrabold text-white/80 transition hover:bg-white/10"
+            className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg border border-[var(--card-photo-border)] bg-black/5 px-2 py-1 text-[10px] md:text-[11px] font-extrabold text-[var(--card-photo-h1)] transition hover:bg-black/10"
           >
             <Pencil size={11} />
             Edit

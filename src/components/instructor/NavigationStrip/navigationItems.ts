@@ -4,6 +4,7 @@ import {
   Briefcase,
   CalendarDays,
   ClipboardList,
+  Compass,
   Database,
   FileCheck2,
   FileEdit,
@@ -51,7 +52,14 @@ export const PRIMARY_NAV_ITEMS: NavItem[] = [
     icon: BookOpen,
     primaryOnMobile: true,
     children: [
-      { label: "My Courses", href: "/instructor/courses", icon: BookOpen },
+      {
+        label: "Courses",
+        icon: BookOpen,
+        children: [
+          { label: "New Courses", href: "/instructor/courses/browse", icon: Compass },
+          { label: "My Courses", href: "/instructor/courses", icon: BookOpen },
+        ],
+      },
       {
         label: "Work",
         icon: Briefcase,

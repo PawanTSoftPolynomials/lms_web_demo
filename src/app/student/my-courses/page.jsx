@@ -171,13 +171,13 @@ export default function MyCoursesPage() {
             <div
               ref={sliderRef}
               onScroll={!isLoading && filteredCourses.length > 0 ? handleSliderScroll : undefined}
-              className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-6 md:pb-0 md:grid md:justify-center md:grid-cols-[repeat(auto-fill,320px)] md:overflow-visible md:snap-none"
+              className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-4 md:pb-0 md:grid md:justify-center md:grid-cols-[repeat(auto-fill,224px)] md:overflow-visible md:snap-none"
             >
               {isLoading
                 ? Array.from({ length: 6 }).map((_, i) => (
                     <div
                       key={i}
-                      className="w-[90%] shrink-0 max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-80 md:shrink h-64 md:h-[26rem] rounded-2xl border border-slate-200 bg-white/10 animate-pulse"
+                      className="w-[70%] shrink-0 max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-56 md:shrink h-52 md:h-64 rounded-2xl border border-slate-200 bg-white/10 animate-pulse"
                     />
                   ))
                 : filteredCourses.length === 0
@@ -187,7 +187,12 @@ export default function MyCoursesPage() {
                   </div>
                 )
                 : filteredCourses.map((enrollment) => (
-                    <MyCourseCard key={enrollment.id || enrollment.courseId} enrollment={enrollment} />
+                    <div
+                      key={enrollment.id || enrollment.courseId}
+                      className="w-[70%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-56 md:shrink"
+                    >
+                      <MyCourseCard enrollment={enrollment} />
+                    </div>
                   ))}
             </div>
 

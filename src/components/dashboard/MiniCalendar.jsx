@@ -123,7 +123,7 @@ export default function MiniCalendar({ role }) {
 
   if (loading) {
     return (
-      <Card className="p-4 border border-slate-800 bg-slate-900/30">
+      <Card className="p-4 border border-slate-800 bg-[#B7C9C5]/60">
         <div className="h-56 flex items-center justify-center text-xs text-slate-400">
           Loading calendar...
         </div>
@@ -132,7 +132,7 @@ export default function MiniCalendar({ role }) {
   }
 
   return (
-    <Card className="border border-slate-800 bg-slate-900/40 p-4 relative overflow-hidden flex flex-col justify-between h-full">
+    <Card className="border border-slate-800 bg-[#B7C9C5]/60 p-4 relative overflow-hidden flex flex-col justify-between h-full">
       <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-orange-500/5 blur-xl pointer-events-none" />
 
       {/* Mini Calendar Header */}
@@ -141,7 +141,7 @@ export default function MiniCalendar({ role }) {
           <FaCalendarAlt className="text-orange-500" />
           Schedule Widget
         </h4>
-        <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
+        <div className="flex items-center gap-1 bg-[#B7C9C5] p-1 rounded-lg border border-slate-800">
           <button onClick={handlePrevMonth} className="p-1 hover:bg-slate-800 rounded text-[9px] text-slate-400 hover:text-white transition">
             <FaChevronLeft />
           </button>
@@ -208,9 +208,9 @@ export default function MiniCalendar({ role }) {
             </div>
           ) : (
             selectedDateEvents.map(e => (
-              <div key={e.id || e._id} className="text-[10px] flex items-center justify-between p-1.5 rounded-md bg-slate-950/30 border border-slate-800 hover:bg-slate-950/50 transition gap-2">
+              <div key={e.id || e._id} className="text-[10px] flex items-center justify-between p-1.5 rounded-md bg-[#B7C9C5]/50 border border-slate-800 hover:bg-[#B7C9C5]/70 transition gap-2">
                 <span className="truncate text-slate-200 font-bold max-w-[120px]">{e.title}</span>
-                <span className="text-[8px] px-1 py-0.5 rounded font-bold uppercase bg-slate-900 border border-slate-800 text-slate-400 flex-shrink-0">
+                <span className="text-[8px] px-1 py-0.5 rounded font-bold uppercase bg-[#B7C9C5] border border-slate-800 text-slate-400 flex-shrink-0">
                   {e.startTime}
                 </span>
               </div>

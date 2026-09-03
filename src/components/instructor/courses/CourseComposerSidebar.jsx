@@ -175,7 +175,7 @@ function RowMenu({ groupName, items }) {
             <MoreVertical size={13} />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="bg-slate-950 border-slate-800 text-slate-200" onClick={(e) => e.stopPropagation()}>
+        <DropdownMenuContent align="end" className="bg-[#B7C9C5] border-[#D9D9D9] text-slate-200" onClick={(e) => e.stopPropagation()}>
           {items.map((item, idx) =>
             item.separator ? (
               <DropdownMenuSeparator key={`sep-${idx}`} className="bg-slate-800" />
@@ -188,7 +188,7 @@ function RowMenu({ groupName, items }) {
                 onSelect={(e) => {
                   item.onSelect?.(e);
                 }}
-                className={`cursor-pointer ${item.destructive ? "text-red-400 hover:bg-red-950/40" : "hover:bg-slate-900"}`}
+                className={`cursor-pointer ${item.destructive ? "text-red-400 hover:bg-red-950/40" : "hover:bg-[#B7C9C5]"}`}
               >
                 <item.icon className="mr-2 size-3" />
                 {item.label}
@@ -273,7 +273,7 @@ function TopicContentRows({
               className={`group/content flex items-center justify-between gap-2 pl-2 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
                 isContentActive
                   ? "bg-orange-500/15 text-orange-400 font-semibold"
-                  : "text-slate-400 hover:text-slate-50 hover:bg-slate-900/70"
+                  : "text-slate-400 hover:text-slate-50 hover:bg-[#B7C9C5]/70"
               }`}
             >
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
@@ -408,7 +408,7 @@ export function CourseComposerSidebar({
   }
 
   return (
-    <aside className="sidebar-panel rounded-2xl border border-slate-800 bg-slate-950 p-4 shadow-xl flex flex-col h-full max-h-[calc(100vh-7rem)] overflow-hidden text-slate-200">
+    <aside className="sidebar-panel rounded-2xl border border-[#D9D9D9] bg-[#B7C9C5] p-4 shadow-xl flex flex-col h-full max-h-[calc(100vh-7rem)] overflow-hidden text-slate-200">
       {/* Panel Title */}
       <div className="flex items-center justify-between gap-2 mb-1 shrink-0">
         <div className="font-black text-xs uppercase tracking-widest text-slate-200 flex items-center gap-2">
@@ -420,7 +420,7 @@ export function CourseComposerSidebar({
         <button
           type="button"
           onClick={onToggleOpen}
-          className="p-1 rounded-lg text-slate-400 hover:text-orange-400 hover:bg-slate-900 transition cursor-pointer shrink-0"
+          className="p-1 rounded-lg text-slate-400 hover:text-orange-400 hover:bg-[#B7C9C5] transition cursor-pointer shrink-0"
           aria-label="Hide course map"
           title="Hide course map"
         >
@@ -429,7 +429,7 @@ export function CourseComposerSidebar({
       </div>
 
       {/* Compact subtitle */}
-      <div className="text-[10.5px] text-slate-500 mb-3 pb-3 border-b border-slate-800/80">
+      <div className="text-[10.5px] text-slate-500 mb-3 pb-3 border-b border-[#D9D9D9]/80">
         Course structure
       </div>
 
@@ -451,7 +451,7 @@ export function CourseComposerSidebar({
           className={`flex items-center gap-2 px-3 py-2.5 rounded-xl transition cursor-pointer text-xs flex-1 border-l-[3px] ${
             composerMode === "course"
               ? "bg-orange-500/15 border-orange-500 text-orange-400 font-bold"
-              : "border-transparent text-slate-300 hover:bg-slate-900"
+              : "border-transparent text-slate-300 hover:bg-[#B7C9C5]"
           }`}
           onClick={onSelectCourseOverview}
         >
@@ -480,17 +480,17 @@ export function CourseComposerSidebar({
                 <div
                   className={`flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl transition cursor-pointer text-xs border-l-[3px] ${
                     isQuizActive
-                      ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
-                      : "border-transparent text-slate-300 hover:bg-slate-900"
+                      ? "bg-orange-500/25 border-orange-500 text-black font-bold"
+                      : "border-transparent text-slate-300 hover:bg-[#B7C9C5]"
                   }`}
                   onClick={() => onSelectQuiz?.(quiz, null, null)}
                 >
                   <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                    <HelpCircle size={14} className="text-emerald-400 shrink-0" />
+                    <HelpCircle size={14} className="text-black shrink-0" />
                     <span className="truncate text-[11.5px] font-semibold">{quiz.title || "Course Quiz"}</span>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
+                    <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-orange-500/30 text-black shrink-0">
                       {questions.length} Qs
                     </span>
                     {role === "INSTRUCTOR" && (
@@ -552,8 +552,8 @@ export function CourseComposerSidebar({
                     isModuleActive
                       ? "bg-orange-500/15 border-orange-500 text-orange-400 font-bold"
                       : moduleHasActiveChild
-                      ? "bg-slate-900/40 border-orange-500/40 text-slate-100"
-                      : "border-transparent text-slate-200 hover:bg-slate-900/60"
+                      ? "bg-[#B7C9C5]/40 border-orange-500/40 text-slate-100"
+                      : "border-transparent text-slate-200 hover:bg-[#B7C9C5]/60"
                   }`}
                   onClick={() => onSelectModule(mod)}
                 >
@@ -605,7 +605,7 @@ export function CourseComposerSidebar({
 
                 {/* Module Children: Module Quizzes + Lessons */}
                 <Collapsible open={moduleOpen}>
-                  <div className="ml-3.5 pl-3 py-0.5 space-y-0.5 border-l border-slate-800/70">
+                  <div className="ml-3.5 pl-3 py-0.5 space-y-0.5 border-l border-[#D9D9D9]/70">
                     {/* Module Quizzes (when present) */}
                     {modQuizzes.length > 0 && (
                       <div className="mb-1 space-y-0.5">
@@ -618,17 +618,17 @@ export function CourseComposerSidebar({
                               <div
                                 className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
                                   isQuizActive
-                                    ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
-                                    : "border-transparent text-emerald-300/80 hover:text-emerald-300 hover:bg-slate-900/60"
+                                    ? "bg-orange-500/25 border-orange-500 text-black font-bold"
+                                    : "border-transparent text-black/70 hover:text-black hover:bg-[#B7C9C5]/60"
                                 }`}
                                 onClick={() => onSelectQuiz?.(quiz, mod, null)}
                               >
                                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                  <HelpCircle size={13} className="text-emerald-400 shrink-0" />
+                                  <HelpCircle size={13} className="text-black shrink-0" />
                                   <span className="truncate text-[11px] font-semibold">{quiz.title || "Module Quiz"}</span>
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0">
-                                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
+                                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-orange-500/30 text-black shrink-0">
                                     {questions.length} Qs
                                   </span>
                                   {role === "INSTRUCTOR" && (
@@ -695,8 +695,8 @@ export function CourseComposerSidebar({
                                   : isLessonActive
                                   ? "bg-orange-500/15 border-orange-500 text-orange-400 font-bold"
                                   : lessonHasActiveChild
-                                  ? "bg-slate-900/30 border-orange-500/30 text-slate-100"
-                                  : "border-transparent text-slate-400 hover:text-slate-50 hover:bg-slate-900/50"
+                                  ? "bg-[#B7C9C5]/30 border-orange-500/30 text-slate-100"
+                                  : "border-transparent text-slate-400 hover:text-slate-50 hover:bg-[#B7C9C5]/50"
                               }`}
                               onClick={() => !isLessonLocked && onSelectLesson(lesson.id)}
                               title={isLessonLocked ? "Complete the previous lesson to unlock" : undefined}
@@ -756,7 +756,7 @@ export function CourseComposerSidebar({
 
                             {/* Lesson Quizzes + Topics */}
                             <Collapsible open={lessonOpen}>
-                              <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-slate-800/60">
+                              <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-[#D9D9D9]/60">
                                 {/* Lesson Quizzes (when present) */}
                                 {lessonQuizzes.length > 0 && (
                                   <div className="mb-1 space-y-0.5">
@@ -769,17 +769,17 @@ export function CourseComposerSidebar({
                                           <div
                                             className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
                                               isQuizActive
-                                                ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
-                                                : "border-transparent text-emerald-300/80 hover:text-emerald-300 hover:bg-slate-900/60"
+                                                ? "bg-orange-500/25 border-orange-500 text-black font-bold"
+                                                : "border-transparent text-black/70 hover:text-black hover:bg-[#B7C9C5]/60"
                                             }`}
                                             onClick={() => onSelectQuiz?.(quiz, mod, lesson)}
                                           >
                                             <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                              <HelpCircle size={13} className="text-emerald-400 shrink-0" />
+                                              <HelpCircle size={13} className="text-black shrink-0" />
                                               <span className="truncate text-[11px] font-semibold">{quiz.title || "Lesson Quiz"}</span>
                                             </div>
                                             <div className="flex items-center gap-1 shrink-0">
-                                              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
+                                              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-orange-500/30 text-black shrink-0">
                                                 {questions.length} Qs
                                               </span>
                                               {role === "INSTRUCTOR" && (
@@ -837,7 +837,7 @@ export function CourseComposerSidebar({
                                           className={`group/topic flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
                                             isTopicActive
                                               ? "bg-orange-500/15 text-orange-400 font-semibold"
-                                              : "text-slate-400 hover:text-slate-50 hover:bg-slate-900/40"
+                                              : "text-slate-400 hover:text-slate-50 hover:bg-[#B7C9C5]/40"
                                           }`}
                                           onClick={() => onSelectTopic?.(topic.id, lesson.id, mod.id)}
                                         >
@@ -891,7 +891,7 @@ export function CourseComposerSidebar({
 
                                         {/* Topic Quizzes + Contents */}
                                         <Collapsible open={topicOpen}>
-                                          <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-slate-800/60">
+                                          <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-[#D9D9D9]/60">
                                             {(topic.quizzes || []).length > 0 && (
                                               <div className="mb-1 space-y-0.5">
                                                 {(topic.quizzes || []).map((quiz, qIdx) => {
@@ -903,17 +903,17 @@ export function CourseComposerSidebar({
                                                       <div
                                                         className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
                                                           isQuizActive
-                                                            ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
-                                                            : "border-transparent text-emerald-300/80 hover:text-emerald-300 hover:bg-slate-900/60"
+                                                            ? "bg-orange-500/25 border-orange-500 text-black font-bold"
+                                                            : "border-transparent text-black/70 hover:text-black hover:bg-[#B7C9C5]/60"
                                                         }`}
                                                         onClick={() => onSelectQuiz?.(quiz, mod, lesson, topic)}
                                                       >
                                                         <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                                          <HelpCircle size={13} className="text-emerald-400 shrink-0" />
+                                                          <HelpCircle size={13} className="text-black shrink-0" />
                                                           <span className="truncate text-[11px] font-semibold">{quiz.title || "Topic Quiz"}</span>
                                                         </div>
                                                         <div className="flex items-center gap-1 shrink-0">
-                                                          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
+                                                          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-orange-500/30 text-black shrink-0">
                                                             {questions.length} Qs
                                                           </span>
                                                           {role === "INSTRUCTOR" && (

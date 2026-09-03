@@ -208,7 +208,7 @@ export function SlideColumnsEditor({ columns, backgroundColor, onChange }: Slide
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <label className="text-xs font-semibold text-slate-300">Columns</label>
-        <div className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 p-0.5">
+        <div className="flex items-center gap-1 rounded-lg border border-slate-800 bg-[#B7B7B7] p-0.5">
           <button
             type="button"
             onClick={removeColumn}
@@ -238,13 +238,13 @@ export function SlideColumnsEditor({ columns, backgroundColor, onChange }: Slide
         {columns.map((column, idx) => (
           <div
             key={column.id}
-            className="flex-1 min-w-0 space-y-2 rounded-lg border border-slate-800 bg-slate-950/70 p-3"
+            className="flex-1 min-w-0 space-y-2 rounded-lg border border-slate-800 bg-[#ACACAC]/70 p-3"
           >
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
                 Column {idx + 1}
               </span>
-              <div className="flex items-center gap-0.5 rounded-lg border border-slate-800 bg-slate-900 p-0.5">
+              <div className="flex items-center gap-0.5 rounded-lg border border-slate-800 bg-[#B7B7B7] p-0.5">
                 {COLUMN_TYPES.map((type) => (
                   <button
                     key={type}
@@ -267,7 +267,7 @@ export function SlideColumnsEditor({ columns, backgroundColor, onChange }: Slide
               onChange={(e) => updateColumn(column.id, { content: e.target.value })}
               rows={5}
               placeholder={column.contentType === "markdown" ? "Write markdown…" : "Write HTML…"}
-              className="w-full rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-2 text-xs text-white outline-none focus:border-orange-500 font-mono leading-relaxed resize-y"
+              className="w-full rounded-lg border border-slate-800 bg-[#B7B7B7] px-2.5 py-2 text-xs text-white outline-none focus:border-orange-500 font-mono leading-relaxed resize-y"
             />
 
             <div className="rounded-lg border border-slate-800/60 bg-black/20 p-2.5">

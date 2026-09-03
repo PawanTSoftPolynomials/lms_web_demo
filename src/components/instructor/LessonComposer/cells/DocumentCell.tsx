@@ -162,14 +162,14 @@ function PresentationModeTabs({
   onChange: (mode: "slideshow" | "upload") => void;
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950 p-1.5">
+    <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-[#ACACAC] p-1.5">
       <button
         type="button"
         onClick={() => onChange("slideshow")}
         className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold transition cursor-pointer ${
           presentationMode === "slideshow"
             ? "bg-orange-500 text-slate-950 shadow-md"
-            : "text-slate-400 hover:text-white hover:bg-slate-900"
+            : "text-slate-400 hover:text-white hover:bg-[#B7B7B7]"
         }`}
       >
         <Layers size={14} />
@@ -182,7 +182,7 @@ function PresentationModeTabs({
         className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold transition cursor-pointer ${
           presentationMode === "upload"
             ? "bg-orange-500 text-slate-950 shadow-md"
-            : "text-slate-400 hover:text-white hover:bg-slate-900"
+            : "text-slate-400 hover:text-white hover:bg-[#B7B7B7]"
         }`}
       >
         <Upload size={14} />
@@ -378,7 +378,7 @@ export function DocumentCell({
                 type="button"
                 onClick={() => setActiveSlideIndex(Math.max(0, activeSlideIndex - 1))}
                 disabled={activeSlideIndex === 0}
-                className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 cursor-pointer shrink-0"
+                className="flex items-center gap-1 rounded-lg border border-slate-800 bg-[#B7B7B7] px-2.5 py-1 text-xs font-bold text-slate-300 hover:bg-[#C4C4C4] hover:text-white disabled:opacity-30 cursor-pointer shrink-0"
                 aria-label="Previous slide"
               >
                 <ChevronLeft size={13} />
@@ -407,7 +407,7 @@ export function DocumentCell({
                 type="button"
                 onClick={() => setActiveSlideIndex(Math.min(slides.length - 1, activeSlideIndex + 1))}
                 disabled={activeSlideIndex === slides.length - 1}
-                className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 cursor-pointer shrink-0"
+                className="flex items-center gap-1 rounded-lg border border-slate-800 bg-[#B7B7B7] px-2.5 py-1 text-xs font-bold text-slate-300 hover:bg-[#C4C4C4] hover:text-white disabled:opacity-30 cursor-pointer shrink-0"
                 aria-label="Next slide"
               >
                 <ChevronRight size={13} />

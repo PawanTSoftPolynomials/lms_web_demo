@@ -42,12 +42,12 @@ export function CourseComposerHeader({
   }, []);
 
   return (
-    <header className="app-header flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 shadow-xl text-slate-200">
+    <header className="app-header flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-[#D9D9D9] bg-[#B7C9C5] px-4 py-3 shadow-xl text-slate-200">
       {/* Left: Menu Toggle + Course Title & Status Badge */}
       <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
-          className="menu-toggle-btn lg:hidden inline-flex items-center justify-center p-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-300 hover:text-white cursor-pointer"
+          className="menu-toggle-btn lg:hidden inline-flex items-center justify-center p-2 rounded-xl border border-[#D9D9D9] bg-[#B7C9C5] text-slate-300 hover:text-white cursor-pointer"
           id="toggleSidebarBtn"
           onClick={onToggleSidebar}
           title="Toggle Sidebar"
@@ -61,7 +61,7 @@ export function CourseComposerHeader({
 
         {/* Title and Status Badge */}
         <div className="flex items-center gap-2.5 min-w-0">
-          <h1 className="text-xs sm:text-sm font-extrabold text-white truncate max-w-[200px] sm:max-w-[320px]" title={course?.title}>
+          <h1 className="text-xs sm:text-sm font-extrabold text-[#6C7A6D] truncate max-w-[200px] sm:max-w-[320px]" title={course?.title}>
             {course?.title || "Untitled Course"}
           </h1>
 
@@ -98,7 +98,7 @@ export function CourseComposerHeader({
         {!isArchived && (
           <button
             type="button"
-            className="btn rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold px-3 py-1.5 transition cursor-pointer disabled:opacity-50"
+            className="btn rounded-xl border border-[#D9D9D9] bg-[#B7C9C5] hover:bg-[#EDEDED] text-slate-300 text-xs font-bold px-3 py-1.5 transition cursor-pointer disabled:opacity-50"
             onClick={onSaveCourse}
             disabled={isSaving}
             title="Persist current course changes"
@@ -113,7 +113,7 @@ export function CourseComposerHeader({
           className={`btn rounded-xl border px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
             globalMode === "edit"
               ? "border-purple-500/40 bg-purple-500/15 text-purple-300"
-              : "border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800"
+              : "border-[#D9D9D9] bg-[#B7C9C5] text-slate-300 hover:bg-[#EDEDED]"
           }`}
           onClick={onToggleGlobalMode}
           title="Toggle preview / edit mode"
@@ -157,7 +157,7 @@ export function CourseComposerHeader({
         <div className="relative" ref={menuRef}>
           <button
             type="button"
-            className="rounded-xl border border-slate-800 bg-slate-900 p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+            className="rounded-xl border border-[#D9D9D9] bg-[#B7C9C5] p-1.5 text-slate-400 hover:text-white hover:bg-[#EDEDED] transition cursor-pointer"
             onClick={() => setMoreMenuOpen(!moreMenuOpen)}
             title="More Options"
           >
@@ -165,10 +165,10 @@ export function CourseComposerHeader({
           </button>
 
           {moreMenuOpen && (
-            <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-slate-800 bg-slate-950 p-1.5 shadow-2xl z-50 text-xs text-slate-300 space-y-0.5">
+            <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-[#D9D9D9] bg-[#B7C9C5] p-1.5 shadow-2xl z-50 text-xs text-slate-300 space-y-0.5">
               <button
                 type="button"
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-900 text-left transition cursor-pointer"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-[#B7C9C5] text-left transition cursor-pointer"
                 onClick={() => {
                   setMoreMenuOpen(false);
                   onSaveCourse();
@@ -181,7 +181,7 @@ export function CourseComposerHeader({
               {onDuplicateClick && (
                 <button
                   type="button"
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-900 text-left transition cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-[#B7C9C5] text-left transition cursor-pointer"
                   onClick={() => {
                     setMoreMenuOpen(false);
                     onDuplicateClick();
@@ -196,7 +196,7 @@ export function CourseComposerHeader({
               {onArchiveClick && userRole === "ADMIN" && !isArchived && (
                 <button
                   type="button"
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-900 text-left transition cursor-pointer text-purple-400"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-[#B7C9C5] text-left transition cursor-pointer text-purple-400"
                   onClick={() => {
                     setMoreMenuOpen(false);
                     onArchiveClick();

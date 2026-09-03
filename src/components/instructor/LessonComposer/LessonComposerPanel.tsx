@@ -275,7 +275,7 @@ export function LessonComposerPanel({
 
   if (isError) {
     return (
-      <Card className="border-slate-800 bg-slate-900/60">
+      <Card className="border-[#D9D9D9] bg-[#B7C9C5]/60">
         <CardContent className="py-12 text-center text-sm text-slate-400">
           Failed to load lesson content.
         </CardContent>
@@ -309,7 +309,7 @@ export function LessonComposerPanel({
       ) : contents.length === 0 ? (
         <div
           onClick={() => openAddCell(nextOrder)}
-          className="rounded-2xl border-2 border-dashed border-slate-800 hover:border-orange-500/50 bg-slate-950/40 p-12 text-center transition cursor-pointer group"
+          className="rounded-2xl border-2 border-dashed border-[#D9D9D9] hover:border-orange-500/50 bg-[#B7C9C5]/40 p-12 text-center transition cursor-pointer group"
         >
           <p className="text-sm font-bold text-slate-300 group-hover:text-orange-400 transition">
             No content in this lesson yet.
@@ -319,7 +319,7 @@ export function LessonComposerPanel({
           </p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-slate-800/80 bg-slate-950/60 p-6 sm:p-8 md:p-10 shadow-lg space-y-2">
+        <div className="rounded-2xl border border-[#D9D9D9]/80 bg-[#B7C9C5]/60 p-6 sm:p-8 md:p-10 shadow-lg space-y-2">
           {sortByOrder(contents).map((content: ContentRow) => {
             const badge = getBlockBadge(content);
             const isSelected = effectiveSelectedId === content.id;
@@ -331,7 +331,7 @@ export function LessonComposerPanel({
                 onClick={() => handleSelectCell(content.id)}
                 className={cn(
                   "cursor-pointer transition-all duration-150 rounded-xl",
-                  isHeadingBlock && "pt-4 sm:pt-6 border-t border-slate-800/60 first:pt-0 first:border-t-0 mt-3 first:mt-0",
+                  isHeadingBlock && "pt-4 sm:pt-6 border-t border-[#D9D9D9]/60 first:pt-0 first:border-t-0 mt-3 first:mt-0",
                   isSelected && "ring-2 ring-orange-500/80 ring-offset-2 ring-offset-slate-950"
                 )}
               >

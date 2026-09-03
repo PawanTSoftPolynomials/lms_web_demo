@@ -75,7 +75,7 @@ function SlideBackgroundControl({ value, onChange }: { value: string; onChange: 
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 hover:bg-slate-800 px-2.5 py-1.5 text-[11px] font-bold text-slate-300 hover:text-white transition cursor-pointer"
+          className="flex items-center gap-1.5 rounded-lg border border-slate-800 bg-[#B7B7B7] hover:bg-[#C4C4C4] px-2.5 py-1.5 text-[11px] font-bold text-slate-300 hover:text-white transition cursor-pointer"
         >
           <Palette size={13} />
           Background
@@ -108,7 +108,7 @@ function SlideBackgroundControl({ value, onChange }: { value: string; onChange: 
               type="color"
               value={isValidHexColor(draftHex) ? draftHex : value}
               onChange={(e) => handleHexInput(e.target.value)}
-              className="h-8 w-9 rounded-md border border-slate-800 bg-slate-900 cursor-pointer shrink-0"
+              className="h-8 w-9 rounded-md border border-slate-800 bg-[#B7B7B7] cursor-pointer shrink-0"
               title="Pick a color"
             />
             <input
@@ -116,7 +116,7 @@ function SlideBackgroundControl({ value, onChange }: { value: string; onChange: 
               value={draftHex}
               onChange={(e) => handleHexInput(e.target.value)}
               placeholder="#000000"
-              className={`flex-1 rounded-lg border bg-slate-900 px-2.5 py-1.5 text-xs text-white outline-none font-mono ${
+              className={`flex-1 rounded-lg border bg-[#B7B7B7] px-2.5 py-1.5 text-xs text-white outline-none font-mono ${
                 hexError ? "border-red-500" : "border-slate-800 focus:border-orange-500"
               }`}
             />
@@ -140,7 +140,7 @@ function SlideBackgroundControl({ value, onChange }: { value: string; onChange: 
                 onChange(originalValue);
                 handleOpenChange(false);
               }}
-              className="rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-slate-300 hover:bg-slate-800 transition cursor-pointer"
+              className="rounded-lg border border-slate-800 bg-[#B7B7B7] px-2.5 py-1 text-[11px] font-bold text-slate-300 hover:bg-[#C4C4C4] transition cursor-pointer"
             >
               Cancel
             </button>
@@ -248,7 +248,7 @@ export function PresentationSlidesEditor({ slides, onChange }: PresentationSlide
               className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold transition cursor-pointer ${
                 index === activeIndex
                   ? "border-orange-500 bg-orange-500/15 text-orange-300"
-                  : "border-slate-800 bg-slate-900 text-slate-300 hover:border-slate-700"
+                  : "border-slate-800 bg-[#B7B7B7] text-slate-300 hover:border-slate-700"
               }`}
             >
               <span className="truncate max-w-[9rem]">{slide.title || `Slide ${index + 1}`}</span>
@@ -298,7 +298,7 @@ export function PresentationSlidesEditor({ slides, onChange }: PresentationSlide
           type="text"
           value={activeSlide.title}
           onChange={(e) => updateSlide(activeIndex, { title: e.target.value })}
-          className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white outline-none focus:border-orange-500 font-medium"
+          className="w-full rounded-lg border border-slate-800 bg-[#B7B7B7] px-3 py-2 text-xs text-white outline-none focus:border-orange-500 font-medium"
           placeholder="Slide title"
         />
       </div>
@@ -332,7 +332,7 @@ export function PresentationSlidesEditor({ slides, onChange }: PresentationSlide
               if (e.key === "Enter" && newSlideTitle.trim()) confirmNewSlide();
             }}
             placeholder="Enter slide title..."
-            className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-orange-500 font-medium"
+            className="w-full rounded-lg border border-slate-800 bg-[#B7B7B7] px-3 py-2 text-sm text-white outline-none focus:border-orange-500 font-medium"
           />
         </div>
 
@@ -340,7 +340,7 @@ export function PresentationSlidesEditor({ slides, onChange }: PresentationSlide
           <button
             type="button"
             onClick={closeNewSlideModal}
-            className="rounded-lg border border-slate-800 bg-slate-900 hover:bg-slate-800 px-3.5 py-2 text-xs font-bold text-slate-300 transition cursor-pointer"
+            className="rounded-lg border border-slate-800 bg-[#B7B7B7] hover:bg-[#C4C4C4] px-3.5 py-2 text-xs font-bold text-slate-300 transition cursor-pointer"
           >
             Cancel
           </button>

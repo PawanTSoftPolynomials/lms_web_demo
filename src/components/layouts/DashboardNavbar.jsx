@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FaBars } from "react-icons/fa";
 import { PiOrangeDuotone } from "react-icons/pi";
-import { MessageSquare, ChevronRight, Menu } from "lucide-react";
+import { MessageSquare, Menu } from "lucide-react";
 import Link from "next/link";
 
 import useAuth from "@/hooks/useAuth";
@@ -15,17 +15,11 @@ import { useInstructorNavDrawer } from "@/context/InstructorNavDrawerContext";
 import { useAdminNavDrawer } from "@/context/AdminNavDrawerContext";
 import Modal from "@/components/ui/Modal";
 import MiniCalendar from "@/components/dashboard/MiniCalendar";
-import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
-import { useModule } from "@/hooks/queries/instructor/useModule";
-import { useLesson } from "@/hooks/queries/instructor/useLesson";
-import { useContent } from "@/hooks/queries/instructor/useContent";
-import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
-import { useQuestion } from "@/hooks/queries/instructor/useQuestion";
 
 import GlobalSearch from "@/components/layouts/GlobalSearch";
 import { NotificationsMenu, ProfileMenu } from "@/components/layouts/NavUserMenus";
-import { ThemeSwitcher } from "@/components/ui/shadcn/theme-switcher";
 import { NavigationStrip } from "@/components/instructor/NavigationStrip/NavigationStrip";
+import StudentDashboardNav from "@/components/layouts/StudentDashboardNav";
 
 function ProfileDropdown({ user, onLogoutRequest, role }) {
   const [open, setOpen] = useState(false);
@@ -95,7 +89,7 @@ function ProfileDropdown({ user, onLogoutRequest, role }) {
   );
 }
 
-export default function Navbar({ title = "Dashboard", setOpen, role }) {
+export default function Navbar({ setOpen, role }) {
   const router = useRouter();
   const { logout, user: currentUser } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -104,173 +98,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
   const { open: openAdminNavDrawer } = useAdminNavDrawer();
 
   const pathname = usePathname();
-  
-  // Dynamic IDs scanner
-  const getIdsFromPathname = () => {
-    if (!pathname) return {};
-    const segments = pathname.split("/").filter(Boolean);
-    const hasCoursesInPath = segments.includes("courses");
-    const result = {
-      courseId: null,
-      moduleId: null,
-      lessonId: null,
-      contentId: null,
-      quizId: null,
-      questionId: null,
-    };
-    
-    for (let i = 0; i < segments.length; i++) {
-      const seg = segments[i];
-      if (seg === "courses" && segments[i + 1] && !["create", "edit", "import"].includes(segments[i + 1])) {
-        result.courseId = segments[i + 1];
-      }
-      if (seg === "modules" && segments[i + 1] && !["create", "edit"].includes(segments[i + 1])) {
-        result.moduleId = segments[i + 1];
-      }
-      if (seg === "lessons" && segments[i + 1] && !["create", "edit"].includes(segments[i + 1])) {
-        result.lessonId = segments[i + 1];
-      }
-      if (seg === "contents" && segments[i + 1] && !["create", "edit", "view"].includes(segments[i + 1])) {
-        result.contentId = segments[i + 1];
-      }
-      if (seg === "quizzes") {
-        if (segments[i + 1]) {
-          if (["view", "edit"].includes(segments[i + 1])) {
-            result.quizId = segments[i + 2];
-          } else if (segments[i + 1] === "create") {
-            result.courseId = segments[i + 2];
-          } else {
-            if (hasCoursesInPath) {
-              result.quizId = segments[i + 1];
-            } else {
-              result.courseId = segments[i + 1];
-            }
-          }
-        }
-      }
-      if (seg === "questions") {
-        if (segments[i + 1]) {
-          if (["view", "edit"].includes(segments[i + 1])) {
-            result.questionId = segments[i + 2];
-          } else if (segments[i + 1] === "create") {
-            result.quizId = segments[i + 2];
-          } else {
-            result.quizId = segments[i + 1];
-          }
-        }
-      }
-    }
-    return result;
-  };
-
-  const parsedIds = getIdsFromPathname();
-  
-  // Queries with React Query dynamic enabling
-  const { data: moduleData } = useModule(parsedIds.moduleId, { enabled: !!parsedIds.moduleId });
-  const { data: lessonData } = useLesson(parsedIds.lessonId, { enabled: !!parsedIds.lessonId });
-  const { data: contentData } = useContent(parsedIds.contentId, { enabled: !!parsedIds.contentId });
-  const { data: questionData } = useQuestion(parsedIds.questionId, { enabled: !!parsedIds.questionId });
-  
-  const quizId = parsedIds.quizId || questionData?.quizId;
-  const { data: quizData } = useQuiz(quizId, { enabled: !!quizId });
-  
-  const courseId = parsedIds.courseId || moduleData?.courseId || lessonData?.module?.courseId || quizData?.courseId;
-  const { data: course } = useInstructorCourse(courseId, { enabled: !!courseId });
-
-  // Generate breadcrumb objects dynamically
-  const getBreadcrumbs = () => {
-    if (!pathname) return [];
-    const segments = pathname.split("/").filter(Boolean);
-    if (segments.length <= 1) {
-      return [{ label: "DASHBOARD", href: null }];
-    }
-
-    const role = segments[0]; // "instructor", "student", "admin"
-    const breadcrumbs = [];
-
-    // Root link
-    breadcrumbs.push({ label: "DASHBOARD", href: `/${role}/dashboard` });
-
-    const hasCourses = segments.includes("courses");
-    const hasModules = segments.includes("modules");
-    const hasLessons = segments.includes("lessons");
-    const hasContents = segments.includes("contents");
-    const hasQuizzes = segments.includes("quizzes");
-    const hasQuestions = segments.includes("questions");
-
-    // Add Course parent
-    if (hasCourses || hasModules || hasLessons || hasContents || hasQuizzes || hasQuestions) {
-      breadcrumbs.push({ label: "COURSES", href: `/${role}/courses` });
-      
-      if (course) {
-        breadcrumbs.push({ label: course.title, href: `/${role}/courses/${course.id}` });
-      }
-    }
-
-    // Add Modules parent and Module details
-    if (hasModules || hasLessons || hasContents) {
-      if (moduleData) {
-        breadcrumbs.push({ label: moduleData.title, href: `/${role}/modules/${moduleData.id}` });
-      }
-    }
-
-    // Add Lessons parent and Lesson details
-    if (hasLessons || hasContents) {
-      if (lessonData) {
-        breadcrumbs.push({ label: lessonData.title, href: `/${role}/lessons/${lessonData.id}` });
-      }
-    }
-
-    // Add Content leaf node
-    if (hasContents) {
-      if (contentData) {
-        breadcrumbs.push({ label: contentData.title, href: null });
-      }
-    }
-
-    // Add Quiz parent and Quiz details
-    if (hasQuizzes || hasQuestions) {
-      breadcrumbs.push({ label: "QUIZZES", href: `/${role}/quizzes` });
-      if (quizData) {
-        breadcrumbs.push({ label: quizData.title, href: `/${role}/quizzes/view/${quizData.id}` });
-      }
-    }
-
-    // Add Questions leaf node
-    if (hasQuestions) {
-      if (segments.includes("create")) {
-        breadcrumbs.push({ label: "ADD QUESTION", href: null });
-      } else if (segments.includes("edit")) {
-        breadcrumbs.push({ label: "EDIT QUESTION", href: null });
-      } else {
-        const questionsHref = quizId ? `/${role}/questions/${quizId}` : null;
-        breadcrumbs.push({ label: "QUESTIONS", href: questionsHref });
-      }
-    }
-
-    // Handle Standalone sections
-    const section = segments[1];
-    const standalonePages = [
-      "calendar", "profile", "assignments", "reports",
-      "announcements", "modules", "lessons", "contents",
-    ];
-    if (standalonePages.includes(section)) {
-      breadcrumbs.push({ label: section.toUpperCase(), href: null });
-    }
-
-    // Handle Create/Edit static operations
-    if (segments.includes("create") && !hasQuestions) {
-      breadcrumbs.push({ label: "CREATE", href: null });
-    }
-    if (segments.includes("edit") && !hasQuestions) {
-      breadcrumbs.push({ label: "EDIT", href: null });
-    }
-
-    return breadcrumbs;
-  };
-
-  const breadcrumbs = getBreadcrumbs();
-  const { 
+  const {
     conversations = [], 
     setConversations,
     messages = [], 
@@ -535,8 +363,8 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
         text-white
       "
       >
-        <div className="px-4 py-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div className="px-4 py-4 flex items-center gap-3">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 shrink-0">
             {!isStudentRole && (
               <button
                 onClick={() => setOpen?.(true)}
@@ -570,34 +398,17 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                 </Link>
               </>
             )}
-            {breadcrumbs.length > 0 ? (
-              <div
-                className={`${
-                  isStudentRole ? "hidden sm:flex" : "flex"
-                } items-center gap-2 text-[10px] font-black uppercase tracking-widest pl-1 min-w-0 overflow-hidden`}
-              >
-                {breadcrumbs.map((b, idx) => {
-                  const isLast = idx === breadcrumbs.length - 1;
-                  return (
-                    <div key={idx} className="flex items-center gap-2 min-w-0">
-                      {idx > 0 && <ChevronRight size={12} className="text-slate-500 stroke-[3] shrink-0" />}
-                      {b.href && !isLast ? (
-                        <Link href={b.href} className="text-slate-400 hover:text-white transition truncate">
-                          {b.label}
-                        </Link>
-                      ) : (
-                        <span className={`truncate ${isLast && idx > 0 ? "text-primary tracking-widest" : "text-white"}`}>
-                          {b.label}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <h1 className="text-lg font-bold truncate text-white">{title}</h1>
-            )}
           </div>
+
+          {/* Primary nav — moved in from the strip that used to sit below
+              this bar, same as Instructor (mobile nav is still handled
+              separately by StudentBottomNav / StudentNavDrawer). */}
+          {isStudentRole && (
+            <div className="hidden sm:flex flex-1 min-w-0">
+              <StudentDashboardNav bare />
+            </div>
+          )}
+          {!isStudentRole && <div className="flex-1" />}
 
           <div className="flex gap-2 sm:gap-3 items-center relative shrink-0">
 
@@ -634,9 +445,6 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                 </span>
               )}
             </button>
-
-            {/* Theme Switcher */}
-            <ThemeSwitcher />
 
             {/* Notifications */}
             <NotificationsMenu
