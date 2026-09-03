@@ -54,11 +54,11 @@ export default function RootLayout({
       className={`${bricolageGrotesque.variable} ${instrumentSans.variable} ${sourceSerif4.variable} ${geistMono.variable}`}
     >
       <head>
-      </head>
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <script
           dangerouslySetInnerHTML={{ __html: PALETTE_ANTI_FLASH_SCRIPT }}
         />
+      </head>
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <PaletteProvider>
             <QueryProvider>
