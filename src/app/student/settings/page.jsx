@@ -10,6 +10,7 @@ import {
 import useProfile from "@/hooks/queries/student/useProfile";
 import useUpdateProfile from "@/hooks/queries/student/useUpdateProfile";
 import { SETTINGS_TABS } from "@/features/student/constants/settingsConfig";
+import PageHeader from "@/components/layouts/PageHeader";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("Profile");
@@ -117,12 +118,10 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 text-foreground">
       {/* 1. Header Banner */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Manage your account, preferences and application settings.
-        </p>
-      </div>
+      <PageHeader
+        title="Settings"
+        subtitle="Manage your account, preferences and application settings."
+      />
 
       {/* 2. Page Navigation Tabs */}
       <div className="flex border-b border-transparent mb-8 gap-6 text-sm font-bold overflow-x-auto whitespace-nowrap scrollbar-none">

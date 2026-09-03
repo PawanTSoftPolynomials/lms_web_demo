@@ -15,7 +15,7 @@ export default function QuizPage() {
 
   if (isError) {
     return (
-      <Card className="p-8 text-center text-red-400">
+      <Card tone="flat" className="p-8 text-center text-red-400">
         Failed to load course quizzes. Please try again later.
       </Card>
     );
@@ -29,7 +29,7 @@ export default function QuizPage() {
       />
 
       {quizzes.length === 0 ? (
-        <Card className="p-12 text-center text-muted-foreground">
+        <Card tone="flat" className="p-12 text-center text-muted-foreground">
           No quizzes available for this course yet.
         </Card>
       ) : (

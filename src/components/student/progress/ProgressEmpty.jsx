@@ -4,7 +4,7 @@ import Card from "@/components/ui/Card";
 
 export default function ProgressEmpty() {
     return (
-        <Card className="p-12 text-center">
+        <Card tone="flat" className="p-12 text-center">
             <h3 className="text-xl font-semibold text-foreground">
                 Keep Learning 🚀
             </h3>

@@ -190,7 +190,7 @@ function AssignmentsPageContent() {
 
   if (isError) {
     return (
-      <Card className="p-8 text-center">
+      <Card tone="flat" className="p-8 text-center">
         <h2 className="text-xl font-semibold text-foreground">
           Unable to load assignments
         </h2>
@@ -295,7 +295,7 @@ function AssignmentsPageContent() {
           ) : (
             <>
               {/* Desktop (xl+): empty state */}
-              <Card className="hidden xl:block p-8 text-center">
+              <Card tone="flat" className="hidden xl:block p-8 text-center">
                 <h2 className="text-xl font-semibold text-foreground">
                   No assignments found
                 </h2>

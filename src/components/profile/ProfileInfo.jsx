@@ -39,7 +39,7 @@ export default function ProfileInfo({
     if (!profile) return null;
 
     return (
-        <Card>
+        <Card tone="flat">
             <h2 className="mb-6 text-2xl font-semibold text-foreground">
                 Profile Information
             </h2>

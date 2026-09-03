@@ -41,7 +41,7 @@ export default function AssignmentDetailPage({ params }) {
 
   if (isError || !assignment) {
     return (
-      <Card className="p-8 text-center">
+      <Card tone="flat" className="p-8 text-center">
         <h2 className="text-xl font-semibold text-foreground">
           Assignment not found
         </h2>
@@ -63,7 +63,7 @@ export default function AssignmentDetailPage({ params }) {
 
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-6">
-          <Card>
+          <Card tone="flat">
             <div className="space-y-5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -101,7 +101,7 @@ export default function AssignmentDetailPage({ params }) {
             </div>
           </Card>
 
-          <Card>
+          <Card tone="flat">
             <div className="space-y-5">
               <h3 className="text-lg font-semibold text-foreground">Submit Your Work</h3>
               <p className="text-sm text-muted-foreground">
@@ -129,7 +129,7 @@ export default function AssignmentDetailPage({ params }) {
         </div>
 
         <div className="space-y-6">
-          <Card>
+          <Card tone="flat">
             <h3 className="text-lg font-semibold text-foreground">Assignment Summary</h3>
             <div className="mt-4 space-y-4 text-sm text-muted-foreground">
               <div className="flex items-center justify-between rounded-2xl bg-background p-4">
@@ -149,7 +149,7 @@ export default function AssignmentDetailPage({ params }) {
             </div>
           </Card>
 
-          <Card>
+          <Card tone="flat">
             <h3 className="text-lg font-semibold text-foreground">Need Help?</h3>
             <p className="mt-4 text-sm text-muted-foreground">
               Contact your instructor if you have questions about the assignment requirements or submission format.

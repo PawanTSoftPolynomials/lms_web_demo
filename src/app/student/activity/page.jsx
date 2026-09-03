@@ -125,7 +125,7 @@ export default function StudentActivityPage() {
       </div>
 
       {filteredEvents.length === 0 ? (
-        <Card className="p-6 py-20 text-center text-muted-foreground">
+        <Card tone="flat" className="p-6 py-20 text-center text-muted-foreground">
           <ActivityIcon size={40} className="mx-auto mb-3 text-slate-600 opacity-40" />
           <p className="text-sm font-semibold text-foreground">No activity yet</p>
           <p className="mt-1 text-xs text-muted-foreground">
