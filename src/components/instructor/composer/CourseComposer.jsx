@@ -76,7 +76,6 @@ export default function CourseComposer({ courseId }) {
           order: nextOrder,
         });
 
-        // Add lessons if returned in generated module
         if (newMod?.id && Array.isArray(generatedData.lessons)) {
           for (let i = 0; i < generatedData.lessons.length; i++) {
             const l = generatedData.lessons[i];
@@ -117,7 +116,6 @@ export default function CourseComposer({ courseId }) {
         }
       }
 
-      // Refresh instructor course query
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.INSTRUCTOR_COURSE, courseId],
       });
@@ -149,32 +147,35 @@ export default function CourseComposer({ courseId }) {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border border-border bg-background/50 backdrop-blur-md px-5 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2 min-w-0">
-          <LayoutTemplate size={16} className="text-primary shrink-0" />
+      {/* Refined Header Strip */}
+      <div className="rounded-2xl border border-border bg-card p-4 sm:px-6 shadow-luxury-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="p-2.5 bg-primary/10 border border-primary/20 rounded-xl shrink-0">
+            <LayoutTemplate size={18} className="text-primary" />
+          </div>
           <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
               Course Composer
             </p>
-            <h1 className="text-sm font-bold text-foreground truncate">{course.title}</h1>
+            <h1 className="text-base sm:text-lg font-extrabold text-foreground truncate">{course.title}</h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <button
             type="button"
             onClick={() => openAiAssistant("COURSE")}
-            className="px-3 py-1.5 text-xs font-semibold text-slate-950 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 rounded-xl transition flex items-center gap-1.5 shadow-lg shadow-orange-500/10"
+            className="px-3.5 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 rounded-xl transition-all duration-200 flex items-center gap-1.5 shadow-luxury-sm cursor-pointer"
           >
-            <Sparkles size={13} className="fill-current animate-pulse" />
+            <Sparkles size={14} className="fill-current" />
             <span>Ask OTree AI</span>
           </button>
 
           <span
-            className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${
+            className={`text-[10px] font-extrabold px-3 py-1 rounded-full shrink-0 border ${
               isSaving
-                ? "text-amber-400 bg-amber-950/30 border border-amber-800/60"
-                : "text-emerald-400 bg-emerald-950/30 border border-emerald-800/60"
+                ? "text-warning-foreground bg-warning/15 border-warning/30"
+                : "text-success bg-success/15 border-success/30"
             }`}
           >
             {isSaving ? "Saving…" : "Synced"}
@@ -193,7 +194,7 @@ export default function CourseComposer({ courseId }) {
           onOpenAiAssistant={(scope, ctx) => openAiAssistant(scope, ctx)}
         />
 
-        <main className="flex-1 min-w-0 w-full rounded-2xl border border-border bg-background/50 backdrop-blur-md p-6">
+        <main className="flex-1 min-w-0 w-full rounded-2xl border border-border bg-card shadow-luxury-sm p-6">
           {view === "settings" ? (
             <CourseMetaPanel course={course} courseId={courseId} />
           ) : lesson ? (
@@ -205,13 +206,13 @@ export default function CourseComposer({ courseId }) {
             />
           ) : (
             <div className="text-center py-16 text-muted-foreground text-sm space-y-3">
-              <p>Select or add a lesson from the Course Map to start building content.</p>
+              <p className="font-medium">Select or add a lesson from the Course Map to start building content.</p>
               <button
                 type="button"
                 onClick={() => openAiAssistant("MODULE")}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-xl transition"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-xl transition cursor-pointer"
               >
-                <Sparkles size={13} />
+                <Sparkles size={14} />
                 <span>Generate Module with AI</span>
               </button>
             </div>

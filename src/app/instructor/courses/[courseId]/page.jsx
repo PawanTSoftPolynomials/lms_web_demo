@@ -287,10 +287,11 @@ export default function CourseDetailsPage() {
             moduleId: targetModuleId,
             lessonId: targetLessonId,
             topicId: targetTopicId,
+            quizId: composeQuizId || selectedQuizState?.id || contextData?.quizId,
             position: pos,
             quizLevel,
           },
-        });
+        }, { timeout: 240000 });
 
         // The apply response IS the created entity (Module/Lesson/Topic/
         // Content[]/Quiz row) — enough to splice straight into the Course
@@ -307,7 +308,7 @@ export default function CourseDetailsPage() {
           );
 
         if (scope === "MODULE" && createdEntity?.id) {
-          patchModules((mods) => [...mods, { ...createdEntity, lessons: [], quizzes: [] }]);
+          patchModules((mods) => [...mods, { ...createdEntity, lessons: createdEntity.lessons || [], quizzes: [] }]);
         } else if (scope === "LESSON" && createdEntity?.id && targetModuleId) {
           patchModules((mods) =>
             withModule(mods, targetModuleId, (mod) =>

@@ -12,13 +12,13 @@ export function UpcomingEventsPanel({ events, isLoading }: { events: ScheduleEve
   const upcomingEvents = events.filter((e) => e.status === "upcoming" || e.status === "live").slice(0, 4);
 
   return (
-    <div className="rounded-2xl bg-card border border-border p-5">
+    <div className="rounded-2xl bg-card border border-border p-5 shadow-luxury-sm">
       <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
-        <h3 className="text-sm font-black text-foreground flex items-center gap-2">
-          <CalendarIcon size={14} className="text-primary" />
+        <h3 className="text-sm font-extrabold text-foreground flex items-center gap-2">
+          <CalendarIcon size={15} className="text-primary" />
           Upcoming Events
         </h3>
-        <Link href="/instructor/calendar" className="text-[11px] text-primary font-bold hover:text-orange-300">
+        <Link href="/instructor/calendar" className="text-xs text-primary font-bold hover:underline">
           Full Schedule
         </Link>
       </div>
@@ -35,10 +35,10 @@ export function UpcomingEventsPanel({ events, isLoading }: { events: ScheduleEve
           upcomingEvents.map((event) => (
             <div 
               key={event.id} 
-              className={`p-3 rounded-xl border transition ${
+              className={`p-3 rounded-xl border transition-all duration-200 ${
                 event.status === "live" 
-                  ? "bg-rose-500/10 border-rose-500/20" 
-                  : "bg-[#141930] border-border hover:border-transparent"
+                  ? "bg-destructive/10 border-destructive/30" 
+                  : "bg-surface-muted/40 border-border hover:border-primary/30"
               }`}
             >
               <div className="flex items-start justify-between">
@@ -46,19 +46,19 @@ export function UpcomingEventsPanel({ events, isLoading }: { events: ScheduleEve
                   <div className="flex items-center gap-2 mb-1">
                     {event.status === "live" && (
                       <span className="flex h-2 w-2 relative">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
                       </span>
                     )}
                     <h4 className="text-xs font-bold text-foreground">{event.title}</h4>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">{event.courseName}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">{event.courseName}</p>
                 </div>
                 <div className="text-right">
-                  <p className={`text-[10px] font-black ${event.status === "live" ? "text-rose-400" : "text-primary"}`}>
+                  <p className={`text-[10px] font-extrabold ${event.status === "live" ? "text-destructive" : "text-primary"}`}>
                     {event.time}
                   </p>
-                  <p className="text-[9px] text-muted-foreground">{event.type === "live" ? "Live Class" : "Meeting"}</p>
+                  <p className="text-[9px] text-muted-foreground font-medium">{event.type === "live" ? "Live Class" : "Meeting"}</p>
                 </div>
               </div>
               
@@ -68,14 +68,14 @@ export function UpcomingEventsPanel({ events, isLoading }: { events: ScheduleEve
                     href={event.joinLink}
                     target="_blank"
                     rel="noreferrer"
-                    className={`flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg text-[10px] font-bold transition ${
+                    className={`flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg text-xs font-bold transition-all ${
                       event.status === "live"
-                        ? "bg-rose-500 hover:bg-rose-600 text-foreground"
-                        : "bg-sky-500/20 text-primary hover:bg-sky-500/30"
+                        ? "bg-destructive hover:brightness-110 text-destructive-foreground shadow-sm"
+                        : "bg-primary/15 text-primary hover:bg-primary/25 border border-primary/20"
                     }`}
                   >
-                    <Video size={12} />
-                    {event.status === "live" ? "Join Now" : "Link"}
+                    <Video size={13} />
+                    {event.status === "live" ? "Join Live Session" : "Join Link"}
                   </a>
                 </div>
               )}

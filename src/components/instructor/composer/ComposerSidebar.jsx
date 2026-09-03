@@ -48,27 +48,27 @@ export default function ComposerSidebar({
 
   return (
     <aside className="w-full lg:w-80 shrink-0 space-y-3">
-      <div className="rounded-2xl border border-border bg-background/50 backdrop-blur-md p-4 space-y-3">
-        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+      <div className="rounded-2xl border border-border bg-card shadow-luxury-sm p-4 space-y-3">
+        <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground px-1">
           Course Map
         </p>
 
         <button
           type="button"
           onClick={onSelectSettings}
-          className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm font-bold transition ${
+          className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             view === "settings"
-              ? "bg-primary/10 text-primary"
-              : "text-foreground hover:bg-muted/60"
+              ? "bg-primary/15 text-primary border border-primary/25"
+              : "text-foreground hover:bg-surface-muted/60 border border-transparent"
           }`}
         >
           <Settings size={14} /> Course Settings
         </button>
 
-        <div className="space-y-1.5 max-h-[65vh] overflow-y-auto pr-1">
+        <div className="space-y-1.5 max-h-[65vh] overflow-y-auto pr-1 scrollbar-none">
           {modules.length === 0 && (
-            <p className="text-xs text-slate-600 px-2 py-3 flex items-center gap-1.5">
-              <BookOpen size={12} /> No modules yet
+            <p className="text-xs text-muted-foreground px-2 py-3 flex items-center gap-1.5 font-medium">
+              <BookOpen size={13} /> No modules yet
             </p>
           )}
           {modules.map((mod, i) => (
@@ -96,23 +96,23 @@ export default function ComposerSidebar({
             onKeyDown={(e) => e.key === "Enter" && handleAddModule()}
             onBlur={() => !newModuleTitle.trim() && setAddingModule(false)}
             placeholder="Module title…"
-            className="w-full bg-muted rounded-lg px-2.5 py-2 text-sm outline-none border border-primary"
+            className="w-full bg-surface-muted rounded-xl px-3 py-2 text-xs outline-none border border-primary text-foreground"
           />
         ) : (
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setAddingModule(true)}
-              className="inline-flex items-center justify-center gap-1 py-2 text-xs font-bold text-foreground hover:text-foreground bg-muted hover:bg-slate-750 border border-transparent/60 rounded-lg transition"
+              className="inline-flex items-center justify-center gap-1 py-2 text-xs font-bold text-foreground bg-surface-muted hover:bg-muted border border-border rounded-xl transition cursor-pointer"
             >
-              <Plus size={12} /> Module
+              <Plus size={13} /> Module
             </button>
             <button
               type="button"
               onClick={() => onOpenAiAssistant && onOpenAiAssistant("MODULE")}
-              className="inline-flex items-center justify-center gap-1 py-2 text-xs font-bold text-primary hover:text-orange-300 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-lg transition"
+              className="inline-flex items-center justify-center gap-1 py-2 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-xl transition cursor-pointer"
             >
-              <Sparkles size={12} /> AI Module
+              <Sparkles size={13} /> AI Module
             </button>
           </div>
         )}

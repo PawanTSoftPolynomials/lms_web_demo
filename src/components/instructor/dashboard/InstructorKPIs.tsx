@@ -15,17 +15,16 @@ export function InstructorKPIs({
       label: "My Courses",
       value: coursesCount,
       icon: BookOpen,
-      iconBg: "bg-primary/10",
+      iconBg: "bg-primary/10 border-primary/20",
       iconColor: "text-primary",
       bottomText: "View all courses",
       href: "/instructor/courses",
-      showArrow: true,
     },
     {
       label: "Total Students",
       value: studentsCount,
       icon: Users,
-      iconBg: "bg-primary/10",
+      iconBg: "bg-primary/10 border-primary/20",
       iconColor: "text-primary",
       bottomText: "Across all courses",
     },
@@ -33,7 +32,7 @@ export function InstructorKPIs({
       label: "Assignments",
       value: pendingAssignments,
       icon: ClipboardCheck,
-      iconBg: "bg-primary/10",
+      iconBg: "bg-primary/10 border-primary/20",
       iconColor: "text-primary",
       bottomText: "Pending to grade",
     },
@@ -41,15 +40,15 @@ export function InstructorKPIs({
       label: "Quizzes",
       value: activeQuizzes,
       icon: HelpCircle,
-      iconBg: "bg-primary/10",
+      iconBg: "bg-primary/10 border-primary/20",
       iconColor: "text-primary",
       bottomText: "Active quizzes",
     },
     {
-      label: "Average Class Engagement",
+      label: "Average Engagement",
       value: `${engagementPercentage}%`,
       icon: LineChart,
-      iconBg: "bg-primary/10",
+      iconBg: "bg-primary/10 border-primary/20",
       iconColor: "text-primary",
       bottomText: "This month",
       trend: "up",
@@ -57,25 +56,28 @@ export function InstructorKPIs({
   ];
 
   return (
-    <div className="flex flex-wrap md:flex-nowrap items-center gap-[2.4px] w-full">
+    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 w-full">
       {kpis.map((kpi, i) => (
-        <div key={i} className="flex-1 min-w-[140px] flex items-center gap-3 rounded-2xl bg-card border border-border p-3 shadow-sm hover:border-primary/50 transition">
-          <div className={`p-2 rounded-xl ${kpi.iconBg} shrink-0`}>
-            <kpi.icon size={16} className={kpi.iconColor} />
+        <div 
+          key={i} 
+          className="flex items-center gap-3.5 rounded-2xl bg-card border border-border/80 p-4 shadow-luxury-sm hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-200"
+        >
+          <div className={`p-2.5 rounded-xl border ${kpi.iconBg} shrink-0`}>
+            <kpi.icon size={18} className={kpi.iconColor} />
           </div>
           
-          <div className="min-w-0">
-            <p className="text-muted-foreground text-[9px] font-bold uppercase tracking-wider truncate">{kpi.label}</p>
-            <div className="flex items-end gap-1.5 mt-0.5">
-              <p className="text-lg font-black text-foreground leading-none">{kpi.value}</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-muted-foreground text-[10px] font-extrabold uppercase tracking-wider truncate">{kpi.label}</p>
+            <div className="flex items-baseline gap-1.5 mt-0.5">
+              <p className="text-xl font-extrabold text-foreground leading-none">{kpi.value}</p>
               
               {kpi.href ? (
-                <Link href={kpi.href} className="text-[9px] text-primary font-bold hover:opacity-80 truncate hidden xl:block">
+                <Link href={kpi.href} className="text-[10px] text-primary font-bold hover:underline truncate hidden sm:inline">
                   View &rarr;
                 </Link>
               ) : (
-                <p className="text-[9px] text-muted-foreground font-medium hidden xl:flex items-center">
-                  {kpi.trend === "up" && <ArrowUpRight size={10} className="text-primary mr-0.5" />}
+                <p className="text-[10px] text-muted-foreground font-semibold hidden sm:flex items-center">
+                  {kpi.trend === "up" && <ArrowUpRight size={11} className="text-primary mr-0.5" />}
                   {kpi.bottomText}
                 </p>
               )}
