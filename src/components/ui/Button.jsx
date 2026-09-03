@@ -3,6 +3,7 @@ const VARIANT_CLASSES = {
   secondary:
     "bg-transparent border border-border text-muted-foreground hover:text-foreground hover:border-primary/40",
   danger: "btn-rainbow [--btn-rainbow-fill:var(--destructive)] text-destructive-foreground",
+  success: "bg-success text-success-foreground hover:opacity-90",
   ghost: "bg-transparent text-muted-foreground hover:text-foreground hover:bg-primary/10",
   outline:
     "bg-transparent border border-border text-foreground hover:border-primary/40 hover:bg-primary/5",

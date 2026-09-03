@@ -34,7 +34,7 @@ function FeedbackPageContent() {
           <h2 className="text-xl font-bold text-foreground">Course not found</h2>
           <p className="text-xs text-muted-foreground mt-2">The feedback link is missing a valid course context.</p>
           <Link href="/student/my-courses">
-            <button className="mt-6 px-5 py-2.5 bg-primary text-slate-950 font-black uppercase text-xs tracking-wider rounded-xl hover:bg-orange-655 transition">
+            <button className="mt-6 px-5 py-2.5 bg-primary text-slate-950 font-black uppercase text-xs tracking-wider rounded-xl hover:bg-primary transition">
               Back to My Courses
             </button>
           </Link>
@@ -73,7 +73,7 @@ function FeedbackPageContent() {
 
       {submitted ? (
         <Card className="p-8 border border-emerald-500/20 bg-emerald-500/5 text-center space-y-4 rounded-3xl">
-          <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-505/20 text-emerald-450 flex items-center justify-center mx-auto">
+          <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center mx-auto">
             <Sparkles size={22} className="animate-pulse" />
           </div>
           <h2 className="text-lg font-black text-foreground tracking-tight">Feedback Submitted!</h2>
@@ -82,7 +82,7 @@ function FeedbackPageContent() {
           </p>
           <button
             onClick={() => router.back()}
-            className="mt-6 px-5 py-2.5 bg-primary hover:bg-orange-655 text-slate-950 font-black uppercase text-xs tracking-widest rounded-xl transition cursor-pointer"
+            className="mt-6 px-5 py-2.5 bg-primary hover:bg-primary text-slate-950 font-black uppercase text-xs tracking-widest rounded-xl transition cursor-pointer"
           >
             Return to Learning
           </button>
@@ -134,7 +134,7 @@ function FeedbackPageContent() {
                   >
                     <Star
                       size={24}
-                      className={star <= rating ? "fill-orange-500 text-orange-505" : "text-slate-650"}
+                      className={star <= rating ? "fill-orange-500 text-orange-500" : "text-slate-700"}
                     />
                   </button>
                 ))}
@@ -152,7 +152,7 @@ function FeedbackPageContent() {
                   "The concepts and quizzes accurately reflected real-world applications.",
                   "The learning resources provided were comprehensive and supportive."
                 ].map((question, idx) => (
-                  <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-background/20 rounded-xl border border-slate-850/60">
+                  <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-background/20 rounded-xl border border-border/60">
                     <span className="text-xs font-semibold text-foreground">{question}</span>
                     <div className="flex gap-2.5">
                       {["Disagree", "Neutral", "Agree"].map((opt) => (
@@ -188,7 +188,7 @@ function FeedbackPageContent() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-primary hover:bg-orange-655 text-slate-950 font-black uppercase text-xs tracking-widest shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0"
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-primary hover:bg-primary text-slate-950 font-black uppercase text-xs tracking-widest shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0"
               >
                 {submitting ? (
                   <>

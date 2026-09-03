@@ -43,7 +43,7 @@ function ReviewsPageContent() {
           <h2 className="text-xl font-bold text-foreground">Course not found</h2>
           <p className="text-xs text-muted-foreground mt-2">The reviews page is missing a valid course context.</p>
           <Link href="/student/my-courses">
-            <button className="mt-6 px-5 py-2.5 bg-primary text-slate-950 font-black uppercase text-xs tracking-wider rounded-xl hover:bg-orange-655 transition">
+            <button className="mt-6 px-5 py-2.5 bg-primary text-slate-950 font-black uppercase text-xs tracking-wider rounded-xl hover:bg-primary transition">
               Back to My Courses
             </button>
           </Link>
@@ -79,7 +79,7 @@ function ReviewsPageContent() {
       <div>
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-orange-505 font-bold uppercase tracking-wider bg-transparent border-0 outline-none cursor-pointer transition"
+          className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-primary font-bold uppercase tracking-wider bg-transparent border-0 outline-none cursor-pointer transition"
         >
           <ArrowLeft size={14} />
           Back to Course Player
@@ -105,7 +105,7 @@ function ReviewsPageContent() {
                 <Star
                   key={star}
                   size={14}
-                  className={star <= Math.round(ratingSummary.avg) ? "fill-orange-500 text-orange-550" : "text-slate-700"}
+                  className={star <= Math.round(ratingSummary.avg) ? "fill-orange-500 text-orange-500" : "text-slate-700"}
                 />
               ))}
             </div>
@@ -132,7 +132,7 @@ function ReviewsPageContent() {
                     >
                       <Star
                         size={16}
-                        className={star <= rating ? "fill-orange-500 text-orange-505" : "text-slate-700"}
+                        className={star <= rating ? "fill-orange-500 text-orange-500" : "text-slate-700"}
                       />
                     </button>
                   ))}
@@ -140,18 +140,18 @@ function ReviewsPageContent() {
               </div>
 
               <div className="space-y-1.5">
-                <span className="text-[9px] font-black text-slate-505 uppercase tracking-widest block">Review Details</span>
+                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block">Review Details</span>
                 <textarea
                   rows={4}
                   value={reviewText}
                   onChange={(e) => setReviewText(e.target.value)}
                   placeholder="Share your experience learning this course..."
-                  className="w-full rounded-xl border border-transparent bg-background/20 p-3 text-xs font-semibold text-foreground outline-none focus:border-orange-505 transition"
+                  className="w-full rounded-xl border border-transparent bg-background/20 p-3 text-xs font-semibold text-foreground outline-none focus:border-primary transition"
                 />
               </div>
 
               {submitError && (
-                <div className="text-[10px] font-bold text-rose-455 uppercase tracking-wide bg-rose-500/5 p-2 rounded-lg border border-rose-500/15">
+                <div className="text-[10px] font-bold text-rose-500 uppercase tracking-wide bg-rose-500/5 p-2 rounded-lg border border-rose-500/15">
                   {submitError}
                 </div>
               )}
@@ -159,7 +159,7 @@ function ReviewsPageContent() {
               <button
                 type="submit"
                 disabled={createReviewMutation.isPending}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-orange-655 text-slate-950 font-black uppercase text-[10px] tracking-wider shadow-sm transition disabled:opacity-50 cursor-pointer border-0"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary text-slate-950 font-black uppercase text-[10px] tracking-wider shadow-sm transition disabled:opacity-50 cursor-pointer border-0"
               >
                 {createReviewMutation.isPending ? "Posting..." : "Post Review"}
                 <Send size={11} />
@@ -170,7 +170,7 @@ function ReviewsPageContent() {
 
         {/* Right Column: Reviews List */}
         <div className="md:col-span-2 space-y-4">
-          <h3 className="text-xs font-black uppercase tracking-widest text-slate-450 pl-1">Written Reviews</h3>
+          <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-1">Written Reviews</h3>
           
           {reviewsList.length === 0 ? (
             <Card className="p-8 border border-transparent bg-background/30 rounded-3xl text-center">
@@ -206,7 +206,7 @@ function ReviewsPageContent() {
                           <Star
                             key={star}
                             size={11}
-                            className={star <= rev.rating ? "fill-orange-500 text-orange-550" : "text-slate-700"}
+                            className={star <= rev.rating ? "fill-orange-500 text-orange-500" : "text-slate-700"}
                           />
                         ))}
                       </div>

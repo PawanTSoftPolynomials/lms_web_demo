@@ -142,7 +142,7 @@ function MessagesPageContent() {
   const activeConversationName = getConversationDisplayName(activeConversation);
 
   return (
-    <div className="bg-[#f8f9fa] h-[calc(100vh-4rem)] p-6 -m-6 flex gap-4 overflow-hidden font-sans">
+    <div className="bg-background h-[calc(100vh-4rem)] p-6 -m-6 flex gap-4 overflow-hidden font-sans">
 
       {/* Layout Header Override */}
       <style jsx global>{`
@@ -152,30 +152,30 @@ function MessagesPageContent() {
       `}</style>
 
       {/* 1. Left Sidebar Panel */}
-      <div className={`w-full md:w-80 bg-white border border-slate-100 rounded-2xl flex flex-col h-full shadow-[0_2px_8px_rgba(0,0,0,0.015)] overflow-hidden flex-shrink-0 ${activeConversation ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`w-full md:w-80 bg-card border border-border rounded-2xl flex flex-col h-full shadow-luxury-sm overflow-hidden flex-shrink-0 ${activeConversation ? 'hidden md:flex' : 'flex'}`}>
         {/* Search header */}
-        <div className="p-4 border-b border-slate-100">
+        <div className="p-4 border-b border-border">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-sm font-black text-slate-800 uppercase tracking-wider">Messages</h2>
-            <button className="p-1.5 border border-slate-200 rounded-xl hover:bg-slate-50 transition text-muted-foreground">
+            <h2 className="text-sm font-black text-foreground uppercase tracking-wider">Messages</h2>
+            <button className="p-1.5 border border-border rounded-xl hover:bg-muted transition text-muted-foreground">
               <Plus size={16} />
             </button>
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-450" />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#f8f9fa] border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition"
+              className="w-full bg-background border border-border rounded-xl pl-9 pr-4 py-2 text-xs text-foreground outline-none focus:border-indigo-500 focus:bg-card transition"
             />
           </div>
         </div>
 
         {/* Categories Tabs */}
-        <div className="flex items-center gap-1.5 px-3 py-2 border-b border-slate-100/80 bg-slate-50/50 relative overflow-visible flex-shrink-0">
+        <div className="flex items-center gap-1.5 px-3 py-2 border-b border-border/80 bg-muted/50 relative overflow-visible flex-shrink-0">
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none flex-1 min-w-0 pr-1">
             {/* pill 1: All */}
             <button
@@ -183,7 +183,7 @@ function MessagesPageContent() {
               className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border transition cursor-pointer shrink-0 ${
                 activeCategory === "all"
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 shadow-sm"
-                  : "bg-white border-slate-200 text-muted-foreground hover:bg-slate-50 hover:text-slate-700"
+                  : "bg-card border-border text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
               All
@@ -195,13 +195,13 @@ function MessagesPageContent() {
               className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border transition cursor-pointer shrink-0 flex items-center gap-1 ${
                 activeCategory === "unread"
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 shadow-sm"
-                  : "bg-white border-slate-200 text-muted-foreground hover:bg-slate-50 hover:text-slate-700"
+                  : "bg-card border-border text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
               <span>Unread</span>
               {unreadCountTotal > 0 && (
                 <span className={`px-1 rounded-md text-[8.5px] font-black ${
-                  activeCategory === "unread" ? "bg-emerald-500 text-foreground" : "bg-slate-100 text-slate-600"
+                  activeCategory === "unread" ? "bg-emerald-500 text-foreground" : "bg-muted text-muted-foreground"
                 }`}>
                   {unreadCountTotal}
                 </span>
@@ -214,7 +214,7 @@ function MessagesPageContent() {
               className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border transition cursor-pointer shrink-0 ${
                 activeCategory === "favourites"
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 shadow-sm"
-                  : "bg-white border-slate-200 text-muted-foreground hover:bg-slate-50 hover:text-slate-700"
+                  : "bg-card border-border text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
               Favourites
@@ -226,13 +226,13 @@ function MessagesPageContent() {
               className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border transition cursor-pointer shrink-0 flex items-center gap-1 ${
                 activeCategory === "groups"
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 shadow-sm"
-                  : "bg-white border-slate-200 text-muted-foreground hover:bg-slate-50 hover:text-slate-700"
+                  : "bg-card border-border text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
               <span>Groups</span>
               {groupsCountTotal > 0 && (
                 <span className={`px-1 rounded-md text-[8.5px] font-black ${
-                  activeCategory === "groups" ? "bg-emerald-500 text-foreground" : "bg-slate-100 text-slate-600"
+                  activeCategory === "groups" ? "bg-emerald-500 text-foreground" : "bg-muted text-muted-foreground"
                 }`}>
                   {groupsCountTotal}
                 </span>
@@ -247,7 +247,7 @@ function MessagesPageContent() {
               className={`h-7 w-7 rounded-full flex items-center justify-center border text-xs font-black transition cursor-pointer ${
                 activeCategory === "direct" || activeCategory === "archived"
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600"
-                  : "bg-white border-slate-200 text-muted-foreground hover:text-slate-655 hover:bg-slate-50"
+                  : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
               title="More Categories"
             >
@@ -257,7 +257,7 @@ function MessagesPageContent() {
             {moreMenuOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setMoreMenuOpen(false)} />
-                <div className="absolute right-0 mt-1.5 z-50 w-36 rounded-xl border border-slate-200 bg-white p-1 shadow-lg animate-in fade-in slide-in-from-top-1 duration-150">
+                <div className="absolute right-0 mt-1.5 z-50 w-36 rounded-xl border border-border bg-card p-1 shadow-lg animate-in fade-in slide-in-from-top-1 duration-150">
                   <button
                     onClick={() => {
                       setActiveCategory("direct");
@@ -266,7 +266,7 @@ function MessagesPageContent() {
                     className={`w-full text-left px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider rounded-lg transition cursor-pointer ${
                       activeCategory === "direct"
                         ? "bg-emerald-500/10 text-emerald-600"
-                        : "text-muted-foreground hover:bg-slate-50 hover:text-slate-700"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
                   >
                     Direct
@@ -279,7 +279,7 @@ function MessagesPageContent() {
                     className={`w-full text-left px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider rounded-lg transition cursor-pointer ${
                       activeCategory === "archived"
                         ? "bg-emerald-500/10 text-emerald-600"
-                        : "text-muted-foreground hover:bg-slate-50 hover:text-slate-700"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
                   >
                     Archived
@@ -304,8 +304,8 @@ function MessagesPageContent() {
                   onClick={() => setActiveConversation(conv)}
                   className={`flex gap-3 items-center p-3 rounded-xl cursor-pointer transition ${
                     isActive
-                      ? "bg-indigo-50 border border-indigo-100 text-slate-800"
-                      : "hover:bg-slate-50 border border-transparent text-slate-700"
+                      ? "bg-indigo-50 border border-indigo-100 text-foreground"
+                      : "hover:bg-muted border border-transparent text-foreground"
                   }`}
                 >
                   <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700 border border-indigo-200 flex-shrink-0 text-sm">
@@ -314,10 +314,10 @@ function MessagesPageContent() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
-                      <h4 className="text-xs font-black text-slate-800 truncate">{displayName}</h4>
+                      <h4 className="text-xs font-black text-foreground truncate">{displayName}</h4>
                       <span className="text-[8px] text-muted-foreground flex-shrink-0 ml-1">{conv.time || "10:30 AM"}</span>
                     </div>
-                    <p className="text-[10px] text-slate-505 truncate mt-0.5">{conv.lastMessage || "No messages yet."}</p>
+                    <p className="text-[10px] text-muted-foreground truncate mt-0.5">{conv.lastMessage || "No messages yet."}</p>
                   </div>
                 </div>
               );
@@ -331,16 +331,16 @@ function MessagesPageContent() {
       </div>
 
       {/* 2. Main Chat Room View */}
-      <div className={`flex-1 bg-white border border-slate-100 rounded-2xl flex flex-col h-full shadow-[0_2px_8px_rgba(0,0,0,0.015)] overflow-hidden min-w-0 ${activeConversation ? 'flex' : 'hidden md:flex'}`}>
+      <div className={`flex-1 bg-card border border-border rounded-2xl flex flex-col h-full shadow-luxury-sm overflow-hidden min-w-0 ${activeConversation ? 'flex' : 'hidden md:flex'}`}>
         {activeConversation ? (
           <>
             {/* Active Header */}
-            <div className="p-4 border-b border-slate-100 flex justify-between items-center flex-shrink-0">
+            <div className="p-4 border-b border-border flex justify-between items-center flex-shrink-0">
               <div className="flex items-center gap-3">
                 {/* Back button visible only on mobile */}
                 <button
                   onClick={() => setActiveConversation(null)}
-                  className="md:hidden p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-muted-foreground transition cursor-pointer flex items-center justify-center"
+                  className="md:hidden p-1.5 rounded-lg bg-muted hover:bg-border text-muted-foreground transition cursor-pointer flex items-center justify-center"
                 >
                   <ArrowLeft size={14} />
                 </button>
@@ -348,17 +348,17 @@ function MessagesPageContent() {
                   {activeConversationName.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-xs font-black text-slate-805 leading-none">{activeConversationName}</h3>
+                  <h3 className="text-xs font-black text-foreground leading-none">{activeConversationName}</h3>
                   <span className="text-[9px] text-emerald-500 font-bold mt-1 block">● Online</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-4 text-muted-foreground">
-                <button className="hover:text-slate-700 transition"><Phone size={18} /></button>
-                <button className="hover:text-slate-700 transition"><VideoIcon size={18} /></button>
+                <button className="hover:text-foreground transition"><Phone size={18} /></button>
+                <button className="hover:text-foreground transition"><VideoIcon size={18} /></button>
                 <button
                   onClick={() => setShowRightPanel(!showRightPanel)}
-                  className={`hover:text-slate-700 transition ${showRightPanel ? "text-indigo-600" : ""}`}
+                  className={`hover:text-foreground transition ${showRightPanel ? "text-indigo-600" : ""}`}
                 >
                   <Info size={18} />
                 </button>
@@ -366,7 +366,7 @@ function MessagesPageContent() {
             </div>
 
             {/* Message Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/30">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/30">
 
               {/* Pinned Message */}
               <div className="bg-indigo-50 border border-indigo-100 p-3 rounded-xl text-[10px] text-indigo-600 font-bold flex gap-2 items-center">
@@ -383,7 +383,7 @@ function MessagesPageContent() {
                     <div className={`max-w-[70%] rounded-2xl p-3 text-xs leading-relaxed ${
                       isMe
                         ? "bg-indigo-600 text-foreground rounded-tr-none shadow-sm"
-                        : "bg-white border border-slate-100 text-slate-850 rounded-tl-none shadow-sm"
+                        : "bg-muted border border-border text-foreground rounded-tl-none shadow-sm"
                     }`}>
                       {!isMe && (
                         <div className="text-[8px] font-black text-indigo-600 mb-1.5">
@@ -404,16 +404,16 @@ function MessagesPageContent() {
             </div>
 
             {/* Input Form */}
-            <form onSubmit={handleSend} className="p-4 border-t border-slate-100 flex gap-3 items-center flex-shrink-0">
-              <button type="button" className="text-muted-foreground hover:text-slate-600 transition flex-shrink-0"><Paperclip size={18} /></button>
-              <button type="button" className="text-muted-foreground hover:text-slate-600 transition flex-shrink-0"><ImageIcon size={18} /></button>
+            <form onSubmit={handleSend} className="p-4 border-t border-border flex gap-3 items-center flex-shrink-0">
+              <button type="button" className="text-muted-foreground hover:text-foreground transition flex-shrink-0"><Paperclip size={18} /></button>
+              <button type="button" className="text-muted-foreground hover:text-foreground transition flex-shrink-0"><ImageIcon size={18} /></button>
 
               <input
                 type="text"
                 placeholder="Type a message..."
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                className="flex-1 bg-[#f8f9fa] border border-slate-200 rounded-xl px-4 py-2 text-xs outline-none focus:border-indigo-500 focus:bg-white transition min-w-0"
+                className="flex-1 bg-background border border-border rounded-xl px-4 py-2 text-xs outline-none focus:border-indigo-500 focus:bg-card transition min-w-0"
               />
 
               <button
@@ -427,55 +427,55 @@ function MessagesPageContent() {
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-muted-foreground">
-            <div className="p-4 bg-slate-50 rounded-full text-indigo-600 mb-3">
+            <div className="p-4 bg-muted rounded-full text-indigo-600 mb-3">
               <Send size={32} />
             </div>
-            <h3 className="text-sm font-black text-slate-805">Select a conversation</h3>
-            <p className="text-xs text-slate-505 mt-1">Pick a teammate or course group to begin messaging.</p>
+            <h3 className="text-sm font-black text-foreground">Select a conversation</h3>
+            <p className="text-xs text-muted-foreground mt-1">Pick a teammate or course group to begin messaging.</p>
           </div>
         )}
       </div>
 
       {/* 3. Right Conversation Details Panel */}
       {activeConversation && showRightPanel && (
-        <div className="hidden md:flex w-72 bg-white border border-slate-100 rounded-2xl flex flex-col h-full shadow-[0_2px_8px_rgba(0,0,0,0.015)] overflow-hidden p-5 flex-shrink-0">
-          <div className="text-center pb-4 border-b border-slate-100">
+        <div className="hidden md:flex w-72 bg-card border border-border rounded-2xl flex flex-col h-full shadow-luxury-sm overflow-hidden p-5 flex-shrink-0">
+          <div className="text-center pb-4 border-b border-border">
             <div className="h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center font-black text-xl text-indigo-700 border border-indigo-200 mx-auto mb-3">
               {activeConversationName.charAt(0).toUpperCase()}
             </div>
-            <h4 className="text-xs font-black text-slate-805 leading-none">{activeConversationName}</h4>
+            <h4 className="text-xs font-black text-foreground leading-none">{activeConversationName}</h4>
             <span className="text-[9px] text-muted-foreground mt-2 block">Instructor • Computer Science</span>
           </div>
 
           {/* Quick options */}
-          <div className="grid grid-cols-4 gap-2 text-center py-4 border-b border-slate-100">
-            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-muted-foreground hover:bg-slate-105 transition"><Phone size={14} /></span><span className="text-[8px] font-bold text-muted-foreground">Call</span></button>
-            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-505 hover:bg-slate-105 transition"><VideoIcon size={14} /></span><span className="text-[8px] font-bold text-slate-505">Video</span></button>
-            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-505 hover:bg-slate-105 transition"><User size={14} /></span><span className="text-[8px] font-bold text-slate-505">Profile</span></button>
-            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-slate-50 rounded-full text-slate-505 hover:bg-slate-105 transition"><Bookmark size={14} /></span><span className="text-[8px] font-bold text-slate-505">Mute</span></button>
+          <div className="grid grid-cols-4 gap-2 text-center py-4 border-b border-border">
+            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-muted rounded-full text-muted-foreground hover:bg-border transition"><Phone size={14} /></span><span className="text-[8px] font-bold text-muted-foreground">Call</span></button>
+            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-muted rounded-full text-muted-foreground hover:bg-border transition"><VideoIcon size={14} /></span><span className="text-[8px] font-bold text-muted-foreground">Video</span></button>
+            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-muted rounded-full text-muted-foreground hover:bg-border transition"><User size={14} /></span><span className="text-[8px] font-bold text-muted-foreground">Profile</span></button>
+            <button className="flex flex-col items-center gap-1.5"><span className="p-2 bg-muted rounded-full text-muted-foreground hover:bg-border transition"><Bookmark size={14} /></span><span className="text-[8px] font-bold text-muted-foreground">Mute</span></button>
           </div>
 
           {/* Shared files list */}
           <div className="flex-1 overflow-y-auto pt-4 space-y-4">
             <div>
-              <h5 className="text-[10px] font-black text-slate-805 uppercase tracking-wider mb-2">Conversation Files</h5>
+              <h5 className="text-[10px] font-black text-foreground uppercase tracking-wider mb-2">Conversation Files</h5>
               <div className="space-y-2">
-                <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition cursor-pointer">
+                <div className="flex items-center justify-between p-2 hover:bg-muted rounded-xl transition cursor-pointer">
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 bg-red-50 text-red-500 rounded"><FileText size={14} /></div>
                     <div className="min-w-0">
-                      <span className="text-[10px] font-bold text-slate-700 block truncate">Assignment_Guidelines.pdf</span>
+                      <span className="text-[10px] font-bold text-foreground block truncate">Assignment_Guidelines.pdf</span>
                       <span className="text-[8px] text-muted-foreground font-semibold">1.2 MB • PDF</span>
                     </div>
                   </div>
                   <Download size={12} className="text-muted-foreground flex-shrink-0" />
                 </div>
 
-                <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition cursor-pointer">
+                <div className="flex items-center justify-between p-2 hover:bg-muted rounded-xl transition cursor-pointer">
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 bg-blue-50 text-blue-500 rounded"><FileText size={14} /></div>
                     <div className="min-w-0">
-                      <span className="text-[10px] font-bold text-slate-700 block truncate">LinkedList_Implementation.cpp</span>
+                      <span className="text-[10px] font-bold text-foreground block truncate">LinkedList_Implementation.cpp</span>
                       <span className="text-[8px] text-muted-foreground font-semibold">3.4 KB • Source</span>
                     </div>
                   </div>
@@ -485,12 +485,12 @@ function MessagesPageContent() {
             </div>
 
             {/* About metadata */}
-            <div className="border-t border-slate-100 pt-4">
-              <h5 className="text-[10px] font-black text-slate-805 uppercase tracking-wider mb-2">About</h5>
-              <div className="space-y-2 text-[10px] text-slate-505 font-medium">
+            <div className="border-t border-border pt-4">
+              <h5 className="text-[10px] font-black text-foreground uppercase tracking-wider mb-2">About</h5>
+              <div className="space-y-2 text-[10px] text-muted-foreground font-medium">
                 <p>This is the start of your message thread. Feel free to collaborate, coordinate, and ask any questions.</p>
-                <div className="flex justify-between font-semibold"><span className="text-muted-foreground">Member since</span><span className="text-slate-707">March 12, 2025</span></div>
-                <div className="flex justify-between font-semibold"><span className="text-muted-foreground">Associated course</span><span className="text-slate-707 truncate max-w-[110px]">Data Structures</span></div>
+                <div className="flex justify-between font-semibold"><span className="text-muted-foreground">Member since</span><span className="text-foreground">March 12, 2025</span></div>
+                <div className="flex justify-between font-semibold"><span className="text-muted-foreground">Associated course</span><span className="text-foreground truncate max-w-[110px]">Data Structures</span></div>
               </div>
             </div>
           </div>
