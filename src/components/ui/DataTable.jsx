@@ -22,7 +22,7 @@ export default function DataTable({
   stickyHeader = false,
   skeletonRows = 0,
 }) {
-  const headerClass = `border-b border-border text-caption text-muted-foreground uppercase ${stickyHeader ? "sticky top-0 z-10 bg-card" : ""}`;
+  const headerClass = `border-b border-border text-[9px] font-black text-muted-foreground uppercase tracking-widest ${stickyHeader ? "sticky top-0 z-10 bg-card" : ""}`;
 
   if (isLoading && skeletonRows > 0) {
     return (
@@ -35,7 +35,7 @@ export default function DataTable({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-border/60">
+          <tbody className="divide-y divide-border">
             {Array.from({ length: skeletonRows }).map((_, i) => (
               <tr key={i}>
                 {columns.map((col) => (
@@ -87,25 +87,23 @@ export default function DataTable({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-border/60">
+        <tbody className="divide-y divide-border">
           {rows.map((row, idx) => {
             const keyVal = typeof rowKey === "function" ? rowKey(row, idx) : row[rowKey] ?? idx;
             return (
               <tr
                 key={keyVal}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                className={`transition-colors duration-150 ${
-                  onRowClick ? "cursor-pointer hover:bg-surface/80" : "hover:bg-surface/50"
-                }`}
+                className={`hover:bg-foreground/5 transition ${onRowClick ? "cursor-pointer" : ""}`}
               >
                 {columns.map((col) => (
                   <td
                     key={col.key}
-                    className={`py-3.5 px-3 first:pl-0 last:pr-0 ${
+                    className={`py-3.5 px-2 first:pl-0 last:pr-0 text-foreground ${
                       col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left"
                     }`}
                   >
-                    {col.render ? col.render(row, idx) : row[col.key]}
+                    {col.render ? col.render(row, idx) : (row[col.key] ?? "—")}
                   </td>
                 ))}
               </tr>

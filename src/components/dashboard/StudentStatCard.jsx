@@ -22,7 +22,7 @@ export default function StudentStatCard({ stat, isLoading, variant = "desktop" }
   }
 
   return (
-    <div className="flex-1 min-w-[140px] flex items-center gap-3 rounded-2xl bg-card border border-border p-3 shadow-sm hover:border-transparent transition">
+    <div className="flex-1 min-w-[140px] flex items-center gap-3 rounded-2xl bg-card border border-border p-3 shadow-sm hover:border-primary/50 transition">
       <div className={`p-2 rounded-xl ${stat.bg} shrink-0`}>
         <Icon size={16} className={stat.color} />
       </div>

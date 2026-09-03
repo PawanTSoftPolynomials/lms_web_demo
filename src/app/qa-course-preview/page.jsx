@@ -2,7 +2,6 @@
 
 import DashboardNavbar from "@/components/layouts/DashboardNavbar";
 import StudentNavDrawer from "@/components/layouts/StudentNavDrawer";
-import StudentBottomNav from "@/components/layouts/StudentBottomNav";
 import { StudentNavDrawerProvider } from "@/context/StudentNavDrawerContext";
 
 import Loader from "@/components/common/Loader";
@@ -71,7 +70,6 @@ export default function QaCoursePreview() {
           </div>
         </main>
       </div>
-      <StudentBottomNav />
       <StudentNavDrawer />
     </StudentNavDrawerProvider>
   );

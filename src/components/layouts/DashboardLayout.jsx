@@ -42,7 +42,7 @@ export default function DashboardLayout({ children, role, title }) {
           setCollapsed={setCollapsed}
         />
 
-        <main className="p-8 sm:p-12 md:p-16 flex-1 w-full max-w-[1800px] mx-auto pb-32">
+        <main className="p-4 sm:p-6 md:p-16 flex-1 w-full max-w-[1800px] mx-auto pb-32">
           {children}
         </main>
       </div>

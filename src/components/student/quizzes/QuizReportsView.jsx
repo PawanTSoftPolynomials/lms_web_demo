@@ -8,7 +8,7 @@ export default function QuizReportsView({ reportStats, filteredByCourse }) {
   return (
     <div className="space-y-5">
       {/* Report Metrics */}
-      <div className="grid gap-3 grid-cols-3">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
         <div className="rounded-xl border border-border bg-background/60 p-3.5 text-center">
           <p className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">Passed</p>
           <h4 className="text-base sm:text-lg font-black text-emerald-400 mt-1">{reportStats.passedCount}</h4>

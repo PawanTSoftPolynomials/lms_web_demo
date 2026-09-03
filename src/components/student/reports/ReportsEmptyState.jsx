@@ -20,7 +20,7 @@ export default function ReportsEmptyState() {
       </h3>
       <p className="mt-1 text-xs text-muted-foreground">Start learning to view:</p>
 
-      <div className="mt-4 grid grid-cols-2 gap-2 max-w-xs mx-auto">
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-xs mx-auto">
         {PREVIEW_ITEMS.map(({ label, icon: Icon }) => (
           <div
             key={label}

@@ -58,7 +58,7 @@ function BatchCard({ batch }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 py-2.5 border-t border-border">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-2.5 border-t border-border">
         <MetricPill label="Avg Quiz" value={batch.avgQuizScore != null ? `${batch.avgQuizScore}%` : "N/A"} />
         <MetricPill label="Assignments" value={batch.assignmentSubmissionRate != null ? `${batch.assignmentSubmissionRate}%` : "N/A"} />
         <MetricPill label="Attendance" value={batch.attendanceRate != null ? `${batch.attendanceRate}%` : "N/A"} />

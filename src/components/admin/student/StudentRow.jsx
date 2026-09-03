@@ -23,7 +23,7 @@ export default function StudentRow({
     return (
         <tr
             onClick={() => onView?.(student)}
-            className="border-b border-white/5 hover:bg-white/5 transition cursor-pointer"
+            className="hover:bg-foreground/5 cursor-pointer transition"
         >
             {/* Student */}
             <td className="px-6 py-4">

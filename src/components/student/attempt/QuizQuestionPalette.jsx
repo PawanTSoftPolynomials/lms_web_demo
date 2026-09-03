@@ -63,13 +63,13 @@ export default function QuizQuestionPalette({
                 </h3>
             </div>
 
-            <div className="grid grid-cols-6 gap-2 sm:grid-cols-8 lg:grid-cols-5">
+            <div className="grid grid-cols-6 gap-2 overflow-x-auto scrollbar-none pb-1 sm:grid-cols-8 lg:grid-cols-5 lg:overflow-x-visible">
                 {questions.map((question, index) => (
                     <button
                         key={question.id ?? index}
                         type="button"
                         onClick={() => onJumpTo?.(index)}
-                        className={`flex h-10 w-10 items-center justify-center rounded-lg border text-sm font-semibold transition cursor-pointer ${
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-sm font-semibold transition cursor-pointer ${
                             STATUS_STYLES[
                                 statusFor(index, question.id)
                             ]

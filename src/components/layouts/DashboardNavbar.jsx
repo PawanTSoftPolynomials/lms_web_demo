@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FaBars } from "react-icons/fa";
-import { PiOrangeDuotone } from "react-icons/pi";
 import { MessageSquare, ChevronRight, Menu } from "lucide-react";
 import Link from "next/link";
 
@@ -26,6 +25,8 @@ import { useQuestion } from "@/hooks/queries/instructor/useQuestion";
 import GlobalSearch from "@/components/layouts/GlobalSearch";
 import { NotificationsMenu, ProfileMenu } from "@/components/layouts/NavUserMenus";
 import { NavigationStrip } from "@/components/instructor/NavigationStrip/NavigationStrip";
+import { NavigationStrip as StudentNavigationStrip } from "@/components/student/NavigationStrip/NavigationStrip";
+import { NavigationStrip as AdminNavigationStrip } from "@/components/admin/NavigationStrip/NavigationStrip";
 
 function ProfileDropdown({ user, onLogoutRequest, role }) {
   const [open, setOpen] = useState(false);
@@ -438,13 +439,12 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
           {/* Primary nav — desktop only. On mobile, InstructorNavDrawer (opened via
               the hamburger button) already lists these same sections, so
               showing them here too would just duplicate that menu. */}
-          {role === 'INSTRUCTOR' && (
+          {(role === 'INSTRUCTOR' || role === 'ADMIN') && (
             <div className="hidden sm:flex flex-1 min-w-0 overflow-x-auto scrollbar-hide">
-              <NavigationStrip bare />
+              {role === 'INSTRUCTOR' ? <NavigationStrip bare /> : <AdminNavigationStrip bare />}
             </div>
           )}
           <div className="flex-1 sm:hidden" />
-          {role !== 'INSTRUCTOR' && <div className="hidden sm:block flex-1" />}
 
           {/* Global search — icon-only on mobile (GlobalSearch already hides its
               own label/kbd-hint below sm), so no need to reserve a fixed width. */}
@@ -543,8 +543,8 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
         z-40
       `}
       >
-        <div className="px-4 py-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div className="px-3 sm:px-6 py-3 flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
             {!isStudentRole && (
               <button
                 onClick={() => setOpen?.(true)}
@@ -568,74 +568,84 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                 >
                   <Menu size={20} aria-hidden="true" />
                 </button>
-                <Link href="/student/dashboard" className="flex items-center gap-2 shrink-0">
-                  <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
-                    <PiOrangeDuotone className="text-lg text-primary" />
+                <Link href="/student/dashboard" className="flex items-center gap-2 shrink-0 font-black text-foreground hover:opacity-90">
+                  <span className="text-2xl text-primary">🍊</span>
+                  <div className="hidden sm:flex flex-col">
+                    <span className="text-sm tracking-wider font-extrabold text-primary leading-none">ORANGE TREE</span>
+                    <span className="text-[9px] text-muted-foreground font-medium">Learn. Grow. Succeed.</span>
                   </div>
-                  <span className="text-sm font-black text-foreground tracking-tight whitespace-nowrap">
-                    Orange Tree <span className="text-primary">LMS</span>
-                  </span>
                 </Link>
               </>
             )}
-            {breadcrumbs.length > 0 ? (
-              <div
-                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest pl-1 min-w-0 overflow-x-auto scrollbar-hide"
-              >
-                {breadcrumbs.map((b, idx) => {
-                  const isLast = idx === breadcrumbs.length - 1;
-                  return (
-                    <div key={idx} className="flex items-center gap-2 min-w-0">
-                      {idx > 0 && <ChevronRight size={12} className="text-muted-foreground stroke-[3] shrink-0" />}
-                      {b.href && !isLast ? (
-                        <Link href={b.href} className="text-muted-foreground hover:text-foreground transition truncate">
-                          {b.label}
-                        </Link>
-                      ) : (
-                        <span className={`truncate ${isLast && idx > 0 ? "text-primary font-black tracking-widest" : "text-foreground"}`}>
-                          {b.label}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <h1 className="text-lg font-semibold truncate">{title}</h1>
-            )}
           </div>
 
-          <div className="flex gap-2 sm:gap-3 items-center relative shrink-0">
+          {/* Primary nav — same in-header placement as Instructor's, desktop
+              only. On mobile, StudentNavDrawer (hamburger) already lists
+              these same sections, so showing them here too would duplicate
+              that menu. */}
+          {isStudentRole && (
+            <div className="hidden sm:flex flex-1 min-w-0 overflow-x-auto scrollbar-hide">
+              <StudentNavigationStrip bare />
+            </div>
+          )}
+          {isStudentRole && <div className="flex-1 sm:hidden" />}
 
-            {/* Global Search: Courses, Assignments, Live Classes, Notes */}
+          {!isStudentRole && (
+            <div className="flex-1 min-w-0">
+              {breadcrumbs.length > 0 ? (
+                <div
+                  className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest pl-1 min-w-0 overflow-x-auto scrollbar-hide"
+                >
+                  {breadcrumbs.map((b, idx) => {
+                    const isLast = idx === breadcrumbs.length - 1;
+                    return (
+                      <div key={idx} className="flex items-center gap-2 min-w-0">
+                        {idx > 0 && <ChevronRight size={12} className="text-slate-700 stroke-[3] shrink-0" />}
+                        {b.href && !isLast ? (
+                          <Link href={b.href} className="text-muted-foreground hover:text-foreground transition truncate">
+                            {b.label}
+                          </Link>
+                        ) : (
+                          <span className={`truncate ${isLast && idx > 0 ? "text-primary font-black tracking-widest" : "text-foreground"}`}>
+                            {b.label}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <h1 className="text-lg font-semibold truncate">{title}</h1>
+              )}
+            </div>
+          )}
+
+          <div className="flex gap-2 sm:gap-4 items-center relative shrink-0">
+
+            {/* Global Search: Courses, Assignments, Live Classes, Notes —
+                icon-only on mobile (GlobalSearch already hides its own
+                label/kbd-hint below sm), so no need to reserve a fixed width. */}
             {isStudentRole && (
-              <div className="flex w-24 sm:w-auto">
+              <div className="flex shrink-0">
                 <GlobalSearch />
               </div>
             )}
 
             {/* Chat Message Icon */}
             <button
+              type="button"
               onClick={toggleChat}
-              className={`
-                p-3
-                rounded-lg
-                transition-all
-                relative
-                flex
-                items-center
-                justify-center
-                ${
-                  isOpen
-                    ? "bg-muted text-primary"
-                    : "bg-muted hover:bg-muted text-foreground hover:text-foreground"
-                }
-              `}
+              className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition cursor-pointer ${
+                isOpen
+                  ? "bg-muted border-transparent text-primary"
+                  : "bg-card border-border text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
               title="Messages"
+              aria-label="Messages"
             >
-              <MessageSquare size={18} />
+              <MessageSquare size={16} />
               {isMounted && chatUnreadCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-foreground shadow-[0_0_10px_rgba(249,115,22,0.45)]">
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-black text-foreground shadow-sm">
                   {chatUnreadCount}
                 </span>
               )}

@@ -6,7 +6,7 @@ import { blockRegistry, BLOCK_TYPE_ORDER } from "@/components/instructor/compose
 export default function AddBlockModal({ open, onClose, onPick }) {
   return (
     <Modal open={open} onClose={onClose} title="Add Content Block" size="md">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {BLOCK_TYPE_ORDER.map((type) => {
           const entry = blockRegistry[type];
           const Icon = entry.icon;

@@ -20,7 +20,7 @@ export default function QuizRow({
     const passed = submission?.passed;
 
     return (
-        <tr className="border-b border-border transition hover:bg-muted/40">
+        <tr className="hover:bg-foreground/5 transition">
             {/* Quiz */}
             <td className="px-6 py-5">
                 <div>

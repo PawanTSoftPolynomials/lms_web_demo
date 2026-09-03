@@ -876,7 +876,7 @@ export default function BatchDetailPage() {
                 <TrendSparkline label="Completion Trend" data={performanceBatch.trend.completion} color="#f2c7c7" />
                 <TrendSparkline label="Quiz Trend" data={performanceBatch.trend.quiz} color="#38bdf8" />
               </div>
-              <div className="grid grid-cols-2 gap-3 mt-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                 <SummaryTile icon={Users} label="Attendance" value="N/A" color="text-muted-foreground" />
                 <SummaryTile icon={CheckCircle2} label="Engagement" value={performanceBatch.engagementStatus} color="text-sky-400" />
               </div>
@@ -893,7 +893,7 @@ export default function BatchDetailPage() {
 
           {dashboard && (
             <Section title="Student Summary" icon={BookOpenCheck} iconBg="bg-emerald-500/10" iconColor="text-emerald-400">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <SummaryTile icon={Users} label="Total" value={dashboard.studentSummary.total} color="text-muted-foreground" />
                 <SummaryTile icon={UserCheck} label="Active" value={dashboard.studentSummary.active} color="text-emerald-400" />
                 <SummaryTile icon={CheckCircle2} label="Completed" value={dashboard.studentSummary.completed} color="text-sky-400" />

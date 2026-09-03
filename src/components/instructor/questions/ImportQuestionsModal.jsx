@@ -188,7 +188,7 @@ export default function ImportQuestionsModal({ quizId, onClose, onSuccess }) {
                                 <h3 className="font-semibold text-foreground">Import Complete</h3>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div className="rounded-lg bg-background p-3 text-center">
                                     <p className="text-2xl font-bold text-foreground">{result.total ?? result.inserted}</p>
                                     <p className="text-xs text-muted-foreground">Total Parsed</p>

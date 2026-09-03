@@ -51,19 +51,27 @@ body {
   --color-slate-900: #131321;
   --color-slate-950: #0a0a0f;
 
-  /* Original brand scale — true orange, matching the app's name/identity
-     and the ~2000 hardcoded orange utility classes (bg-orange, text-orange,
-     border-orange) across the app that were always meant to read as
-     literal orange, not a swappable retheme. */
-  --color-orange-400: #fb923c;
-  --color-orange-500: #f97316;
-  --color-orange-600: #ea580c;
-  --color-orange-700: #c2410c;
+  /* Approved redesign (Ayan, "Make it responsive" — see globals history):
+     the ~2000 hardcoded orange/pink utility classes (bg-orange, text-orange,
+     border-orange) across the app now repaint off the live --primary/--secondary
+     tokens instead of a fixed hex, so they follow the current theme. */
+  --color-orange-300: color-mix(in oklab, var(--primary) 60%, white);
+  --color-orange-400: color-mix(in oklab, var(--primary) 80%, white);
+  --color-orange-450: var(--primary);
+  --color-orange-500: var(--primary);
+  --color-orange-600: color-mix(in oklab, var(--primary) 80%, black);
+  --color-orange-650: color-mix(in oklab, var(--primary) 70%, black);
+  --color-orange-700: color-mix(in oklab, var(--primary) 60%, black);
 
-  --color-pink-400: #67e8f9;
-  --color-pink-500: #22d3ee;
-  --color-pink-600: #06b6d4;
-  --color-pink-700: #0891b2;
+  --color-amber-300: color-mix(in oklab, var(--secondary) 60%, white);
+  --color-amber-400: color-mix(in oklab, var(--secondary) 80%, white);
+  --color-amber-500: var(--secondary);
+  --color-amber-600: color-mix(in oklab, var(--secondary) 80%, black);
+
+  --color-pink-400: color-mix(in oklab, var(--secondary) 80%, white);
+  --color-pink-500: var(--secondary);
+  --color-pink-600: color-mix(in oklab, var(--secondary) 80%, black);
+  --color-pink-700: color-mix(in oklab, var(--secondary) 60%, black);
 
   /* Moderate, soft-rounded control radius (buttons, badges, inputs) — the
      shared design-system radius per the Phase 2 audit. Card/panel/modal
@@ -83,7 +91,10 @@ body {
 }
 
 /* ==========================================================================
-   SEMANTIC TYPOGRAPHY TOKENS (Phase 4B)
+   SEMANTIC TYPOGRAPHY TOKENS (Phase 4B) — Pawan-only addition, predates the
+   Ayan redesign below; still consumed by components outside that redesign's
+   scope (analytics/report tables, Hero, CourseComposerSidebar, etc.), so it
+   stays even though the Ayan branch never had it.
    ========================================================================== */
 @utility text-display {
   font-family: var(--font-display);
@@ -168,131 +179,134 @@ body {
 }
 
 /* ==========================================================================
-   LIGHT MODE — Soft White & Sage design foundation (default, no .dark class)
+   LIGHT MODE — approved redesign (Ayan, "Make it responsive"): matched from
+   the reference video of the instructor dashboard mockup — soft cream page,
+   near-white shadow-based cards (no hard borders), dark-navy headings, a
+   gold/olive accent for progress bars and links. Colors sampled directly
+   from video frames. (default, no .dark class)
    ========================================================================== */
 :root {
+  /* Kept from the pre-redesign font system (Pawan-only, added after this
+     redesign branched) — still relied on by .learning-content/.prose and
+     the Phase 4B typography utilities above. */
   --font-display: var(--font-bricolage-grotesque), "Bricolage Grotesque", system-ui, sans-serif;
   --font-ui: var(--font-instrument-sans), "Instrument Sans", system-ui, -apple-system, sans-serif;
   --font-content: var(--font-source-serif-4), "Source Serif 4", Georgia, serif;
 
-  --background: #fafafa;
-  --foreground: #252522;
+  --background: #F3EDE3;
+  --foreground: #23283D;
 
-  --surface: #ffffff;
-  --surface-foreground: #252522;
-  --surface-muted: #f5f5f4;
+  --surface: #FEFCF8;
+  --surface-foreground: #23283D;
+  --surface-muted: #ECE4D5;
 
-  --card: #ffffff;
-  --card-foreground: #252522;
-  --card-border: #e8e2d6;
+  --card: #FEFCF8;
+  --card-foreground: #23283D;
+  --card-border: #E7DFD1;
 
-  --popover: #ffffff;
-  --popover-foreground: #252522;
+  --popover: #FEFCF8;
+  --popover-foreground: #23283D;
 
-  --muted: #f5f5f4;
-  --muted-foreground: #858982;
+  --muted: #ECE4D5;
+  --muted-foreground: #6E7488;
   --text-secondary: #5f625d;
 
-  --border: #e5e5e5;
+  --border: #E7DFD1;
   --border-strong: #cfc6b4;
-  --input: #ffffff;
-  --ring: #8fae95;
+  --input: #FEFCF8;
+  --ring: #B8934A;
 
-  --primary: #356859;
-  --primary-hover: #2a5748;
-  --primary-subtle: #e7edeb;
-  --primary-foreground: #ffffff;
+  --primary: #B8934A;
+  --primary-hover: color-mix(in oklab, var(--primary) 85%, black);
+  --primary-subtle: color-mix(in oklab, var(--primary) 15%, var(--surface));
+  --primary-foreground: #23283D;
 
-  --secondary: #f4f0ea;
-  --secondary-foreground: #252522;
+  --secondary: #23283D;
+  --secondary-foreground: #FFFFFF;
 
-  --accent: #f3e3cd;
-  --accent-foreground: #7a4a12;
+  --accent: #B8934A;
+  --accent-foreground: #23283D;
 
-  --success: #3f8a5b;
-  --success-foreground: #14251a;
-  --warning: #b7791f;
-  --warning-foreground: #2b2205;
-  --destructive: #c84b4b;
-  --destructive-foreground: #2b0a0a;
-  --error: #c84b4b;
-  --error-foreground: #2b0a0a;
+  --success: #20CD83;
+  --success-foreground: #FFFFFF;
+  --warning: #EB9D11;
+  --warning-foreground: #23283D;
+  --destructive: #E8604F;
+  --destructive-foreground: #FFFFFF;
+  --error: var(--destructive);
+  --error-foreground: var(--destructive-foreground);
   --info: #3978a8;
   --info-foreground: #16233a;
 
   /* Deliberately dark, immersive backdrop for course/lesson/quiz content
      surfaces (Course Composer preview, the learning player) — not the
-     app's default background. */
+     app's default background. Unrelated to this redesign, kept as-is. */
   --learning-surface: #202b25;
   --learning-surface-foreground: #e7ecf6;
 
-  --heading-color: var(--foreground);
+  --heading-color: #212945;
 
-  --shadow-color: 30 15% 40%;
+  --shadow-color: 220 20% 20%;
 }
 
 /* ==========================================================================
-   DARK MODE — same Orange Tree system, dark value set (no separate "Cyber
-   Gold" identity: same brand color, same component language, same
-   typography/spacing/radius/interaction rules as light mode — only the
-   background/surface/text values invert). Warm dark charcoal, not a cool
-   near-black, to echo the light theme's warm cream undertone.
+   DARK MODE — approved redesign (Ayan, "Make it responsive"): "GitHub Dark"
+   pairing — real GitHub dark-theme values, near-black canvas, blue links,
+   green primary actions.
    ========================================================================== */
 .dark {
-  --background: #201e19;
-  --foreground: #ece7dc;
+  --background: #0D1117;
+  --foreground: #C9D1D9;
 
-  --surface: #29271f;
-  --surface-foreground: #ece7dc;
-  --surface-muted: #322f26;
+  --surface: #161B22;
+  --surface-foreground: #C9D1D9;
+  --surface-muted: #1C2129;
 
-  --card: #29271f;
-  --card-foreground: #ece7dc;
-  --card-border: #3c3830;
+  --card: #161B22;
+  --card-foreground: #C9D1D9;
+  --card-border: #30363D;
 
-  --popover: #2d2b23;
-  --popover-foreground: #ece7dc;
+  --popover: #161B22;
+  --popover-foreground: #C9D1D9;
 
-  --muted: #322f26;
-  --muted-foreground: #a39c8c;
+  --muted: #1C2129;
+  --muted-foreground: #8B949E;
   --text-secondary: #c1baa9;
 
-  --border: #3c3830;
+  --border: #30363D;
   --border-strong: #4d4839;
-  --input: #29271f;
-  --ring: #a8c6ae;
+  --input: #0D1117;
+  --ring: #58A6FF;
 
-  /* Same brand hue as light mode — a light, pale-sage primary reads with
-     good contrast against this dark ground, so it carries over unchanged
-     rather than being re-picked per mode. */
-  --primary: #a8c6ae;
-  --primary-hover: #bcd4c1;
-  --primary-subtle: #2a3830;
-  --primary-foreground: #16241a;
+  --primary: #238636;
+  --primary-hover: color-mix(in oklab, var(--primary) 85%, white);
+  --primary-subtle: color-mix(in oklab, var(--primary) 20%, var(--surface));
+  --primary-foreground: #FFFFFF;
 
-  --secondary: #322f26;
-  --secondary-foreground: #ece7dc;
+  --secondary: #30363D;
+  --secondary-foreground: #C9D1D9;
 
-  --accent: #3d3221;
-  --accent-foreground: #e8c17a;
+  --accent: #58A6FF;
+  --accent-foreground: #0D1117;
 
-  --success: #4ade80;
-  --success-foreground: #0d2015;
-  --warning: #facc15;
-  --warning-foreground: #241c04;
-  --destructive: #f87171;
-  --destructive-foreground: #240707;
-  --error: #f87171;
-  --error-foreground: #240707;
+  --success: #3FB950;
+  --success-foreground: #0D1117;
+  --warning: #D29922;
+  --warning-foreground: #0D1117;
+  --destructive: #F85149;
+  --destructive-foreground: #FFFFFF;
+  --error: var(--destructive);
+  --error-foreground: var(--destructive-foreground);
   --info: #82a5d3;
   --info-foreground: #0e1c2f;
 
+  /* Unrelated to this redesign, kept as-is (see light-mode comment above). */
   --learning-surface: #1f2a44;
   --learning-surface-foreground: #e7ecf6;
 
-  --heading-color: var(--foreground);
+  --heading-color: #E6EDF3;
 
-  --shadow-color: 230 25% 3%;
+  --shadow-color: 220 20% 3%;
 }
 
 /* Light mode: mirror-invert the neutral slate scale (50<->950, 100<->900, ...) so the thousands
@@ -613,12 +627,12 @@ body {
    a fixed, self-contained dark card face regardless of the page's own theme.
    ========================================================================== */
 .card-photo-jellyfish {
-  --card-photo-bg-from: #0a0c1e;
-  --card-photo-bg-to: #181b3a;
-  --card-photo-border: #2a2d52;
-  --card-photo-h1: #f472b6;
-  --card-photo-subtitle: #5fd1c4;
-  --card-photo-highlight: #e8ae68;
+  --card-photo-bg-from: #161A1D;
+  --card-photo-bg-to: #212529;
+  --card-photo-border: #383E44;
+  --card-photo-h1: #F2CC8F;
+  --card-photo-subtitle: #D3D8DD;
+  --card-photo-highlight: #E07A5F;
 }
 
 .card-photo-title {
@@ -626,25 +640,22 @@ body {
 }
 
 /* ==========================================================================
-   Shared surface/control shape — same shape language in both themes
-   (rounded "squircle" cards, soft-rounded buttons/inputs — not full pills),
-   colored via the semantic tokens above so it repaints automatically per
-   mode. This is the app-wide baseline; components may still set their own
-   radius/shadow explicitly where they need to.
+   Shared surface/control styling — approved redesign: flat, modestly-rounded
+   shapes (GitHub-style: 6-8px corners, no pill buttons, no glass), colored
+   via the semantic tokens above so it repaints automatically per mode.
    ========================================================================== */
 
 .bg-card, .bg-surface, .bg-popover, .card-photo-jellyfish {
   background-color: var(--card) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 20px !important;
-  box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.06), 0 4px 16px -6px hsl(var(--shadow-color) / 0.18);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 8px !important;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 input, select {
   background-color: var(--surface-muted) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 8px !important;
+  border-radius: 6px !important;
   color: var(--foreground) !important;
   padding: 0.75rem 1rem !important;
 }
@@ -681,17 +692,27 @@ input.rounded-full:focus, .search-pill-input:focus {
   box-shadow: 0 0 0 3px var(--primary-subtle) !important;
 }
 
-button, a[class*="bg-"] {
-  border-radius: var(--radius-xl) !important;
+button, a.bg-primary, a.bg-secondary, a.bg-accent, a.bg-success, a.bg-warning, a.bg-destructive, .btn-rainbow {
+  border-radius: 6px !important;
   box-shadow: none !important;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
   border: 1px solid transparent;
 }
 
-.bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-error"]):not([class*="bg-info"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {
+button.bg-primary, a.bg-primary, .btn-rainbow {
   background-color: var(--primary) !important;
-  border-radius: var(--radius-xl) !important;
+  background-image: none !important;
+  color: var(--primary-foreground) !important;
+}
+button.bg-primary:hover, a.bg-primary:hover, .btn-rainbow:hover {
+  background-color: color-mix(in srgb, var(--primary) 88%, white) !important;
+}
+
+.bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {
+  background-image: linear-gradient(90deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, black) 100%) !important;
+  background-color: transparent !important;
+  border-radius: 9999px !important;
 }
 
 /* Custom scrollbars — colored via tokens, so they already adapt per theme. */
@@ -708,4 +729,42 @@ button, a[class*="bg-"] {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
+}
+
+/* ==========================================================================
+   GITHUB-STYLE DARK — dark-mode-only overrides: flat surfaces, a hairline
+   border color-shift on hover instead of glow/lift, no gradients. Light
+   mode uses the plain surface/control styling above with no extra treatment.
+   ========================================================================== */
+
+.dark .bg-card, .dark .bg-surface, .dark .bg-popover, .dark .card-photo-jellyfish {
+  background-color: var(--card) !important;
+  border-color: var(--border) !important;
+  box-shadow: none !important;
+}
+
+.dark .bg-card:hover, .dark .card-photo-jellyfish:hover {
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--border)) !important;
+}
+
+/* Heading color, but never override an explicitly chosen status/semantic color
+   (e.g. green/red success-failure counts, amber warnings, "Danger Zone" red). */
+:is(h1, h2, h3, h4, .text-xl, .text-2xl, .text-3xl, .text-4xl, .text-5xl,
+  [class*="text-lg"][class*="font-semibold"],
+  [class*="text-lg"][class*="font-bold"]):not([class*="text-red-"]):not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-rose-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-yellow-"]):not([class*="text-orange-"]):not([class*="text-destructive"]):not([class*="text-success"]):not([class*="text-warning"]) {
+  color: var(--heading-color) !important;
+}
+
+.dark .bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--primary) 75%, transparent), var(--primary)) !important;
+  background-color: transparent !important;
+  box-shadow: 0 0 12px color-mix(in oklab, var(--primary) 40%, transparent) !important;
+}
+
+/* Fix secondary text contrast for hardcoded classes in dark mode to meet WCAG AAA */
+.dark .text-slate-500,
+.dark .text-slate-600,
+.dark .text-gray-500,
+.dark .text-gray-600 {
+  color: var(--muted-foreground) !important;
 }

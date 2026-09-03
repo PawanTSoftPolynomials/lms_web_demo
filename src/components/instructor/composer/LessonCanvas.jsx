@@ -148,7 +148,7 @@ export default function LessonCanvas({ lesson, moduleId, courseId, onOpenAiAssis
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <button
           type="button"
           onClick={() => openAddModal(null)}

@@ -70,7 +70,7 @@ export default function BatchCard({ batch }) {
         </span>
       </div>
 
-      <div className="grid grid-cols-3 gap-1.5 rounded-xl border border-border/70 bg-white/[0.015] py-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 rounded-xl border border-border/70 bg-white/[0.015] py-3">
         <StatCell icon={Users} label="Students" value={batch.studentsCount} />
         <StatCell icon={TrendingUp} label="Progress" value={`${batch.completion}%`} />
         <StatCell icon={health.icon} label="Health" value={health.label} valueClassName={health.classes} />

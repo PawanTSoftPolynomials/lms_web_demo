@@ -99,12 +99,12 @@ export default function StudentDashboardPage() {
   return (
     <>
       {/* ============================= UNIFIED RESPONSIVE LAYOUT ============================= */}
-      <div className="-m-3 sm:-m-6 min-h-[calc(100vh-3.5rem)] bg-background p-3 sm:p-6 pt-0 sm:pt-0">
-      <div className="flex flex-col max-w-[1600px] mx-auto">
+      <div className="-m-3 sm:-m-6 sm:-mt-12 md:-mt-16 -mx-4 sm:-mx-12 md:-mx-16 min-h-[calc(100vh-3.5rem)] bg-background p-3 sm:p-6 pt-0 sm:pt-0">
+        <div className="flex flex-col max-w-[1600px] mx-auto">
 
         {/* Stat / KPI Strip */}
-        <div className="mt-4 mb-2">
-          <div className="flex flex-col md:flex-row items-center gap-3 w-full">
+        <div className="mt-4 sm:mt-[3.2px] mb-[1.6px]">
+          <div className="flex flex-wrap md:flex-nowrap items-center gap-[2.4px] w-full">
             {statCards.map((s) => (
               <StudentStatCard key={s.key} stat={s} isLoading={isDashboardLoading} variant="desktop" />
             ))}
@@ -112,9 +112,9 @@ export default function StudentDashboardPage() {
         </div>
 
         {/* Main grid: content (8/12) + sidebar (4/12) */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mt-4">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:gap-[4.8px] mt-4 xl:mt-[3.2px]">
           {/* Left main column */}
-          <div className="xl:col-span-8 flex flex-col gap-6">
+          <div className="xl:col-span-8 flex flex-col gap-4 xl:gap-[4.8px]">
 
             {/* Welcome Hero Card — the one deliberate use of the navy
                 learning-surface token on this page, matching the design
@@ -200,7 +200,7 @@ export default function StudentDashboardPage() {
           </div>
 
           {/* Right sidebar column */}
-          <div className="xl:col-span-4 flex flex-col gap-6">
+          <div className="xl:col-span-4 flex flex-col gap-4 xl:gap-[4.8px]">
 
             {/* Upcoming */}
             <div className="rounded-2xl bg-card border border-border p-5">

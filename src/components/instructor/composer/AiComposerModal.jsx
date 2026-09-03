@@ -455,7 +455,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                 <label className="text-xs font-bold text-foreground block mb-1.5">
                   What are you creating?
                 </label>
-                <div className="grid grid-cols-5 gap-1.5">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
                   <button
                     type="button"
                     onClick={() => handleScopeChange("MODULE")}
@@ -529,7 +529,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                   <label className="text-xs font-bold text-foreground block">
                     What kind of quiz?
                   </label>
-                  <div className="grid grid-cols-4 gap-1.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                     {["COURSE", "MODULE", "LESSON", "TOPIC"].map((lvl) => (
                       <button
                         key={lvl}

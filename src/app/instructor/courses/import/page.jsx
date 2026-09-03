@@ -788,7 +788,7 @@ export default function CourseImportPage() {
                 </div>
 
                 <div className="space-y-3 pt-2 border-t border-transparent">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => jsonInputRef.current?.click()}
@@ -1077,7 +1077,7 @@ export default function CourseImportPage() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="p-4 bg-background border border-transparent rounded-2xl text-center">
                     <span className="text-xs text-muted-foreground uppercase font-bold block">Modules</span>
                     <span className="text-xl font-black text-amber-400 mt-1 block">{totalModulesCount}</span>

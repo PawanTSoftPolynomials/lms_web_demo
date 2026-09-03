@@ -40,7 +40,7 @@ export default function Layout({ children }) {
             for a much bigger navbar-to-content gap than intended up top — so
             this cancels just the inherited top padding (matching its exact
             8/12/16 scale) and replaces it with a small, deliberate one. */}
-        <div className="max-w-[1600px] mx-auto w-full -mt-8 sm:-mt-12 md:-mt-16 pt-4 sm:pt-5 md:pt-6">
+        <div className="max-w-[1600px] mx-auto w-full flex flex-col flex-1 min-h-0 -mt-8 sm:-mt-12 md:-mt-16 pt-4 sm:pt-5 md:pt-6">
           {children}
         </div>
       </DashboardLayout>

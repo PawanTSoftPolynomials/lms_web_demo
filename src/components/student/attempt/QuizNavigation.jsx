@@ -23,7 +23,7 @@ export default function QuizNavigation({
 
     return (
         <div className="rounded-2xl border border-border bg-background p-3">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Button
                     type="button"
                     onClick={onPrevious}

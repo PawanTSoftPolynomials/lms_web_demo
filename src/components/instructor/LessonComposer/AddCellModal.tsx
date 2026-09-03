@@ -162,7 +162,7 @@ export function AddCellModal({ topicId, order, open, onOpenChange, onAddQuiz }: 
         {!selectedCellOption ? (
           <>
             <p className="mb-2.5 text-xs text-muted-foreground">Select Cell Type</p>
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {visibleOptions.map((option) => {
                 const Icon = option.icon;
                 return (
@@ -187,7 +187,7 @@ export function AddCellModal({ topicId, order, open, onOpenChange, onAddQuiz }: 
         ) : awaitingDocChoice ? (
           <>
             <p className="mb-2.5 text-xs text-muted-foreground">Select Document Format</p>
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={() => setDocTypeChoice("pdf")}
@@ -220,7 +220,7 @@ export function AddCellModal({ topicId, order, open, onOpenChange, onAddQuiz }: 
         ) : awaitingPresentationChoice ? (
           <>
             <p className="mb-2.5 text-xs text-muted-foreground">How do you want to create it?</p>
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={() => setPresentationChoice("slideshow")}

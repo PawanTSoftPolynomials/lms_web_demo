@@ -273,7 +273,7 @@ export default function QuestionForm({
     <div className="space-y-8 pb-24">
       {/* Header and Title */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between gap-4 w-full">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
           <div>
             <h1 className="text-4xl font-bold text-foreground tracking-tight">Add New Question</h1>
             <p className="mt-2 text-muted-foreground">

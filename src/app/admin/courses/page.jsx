@@ -95,7 +95,7 @@ export default function AdminCoursesPage() {
                 courses={courses}
             />
 
-            <Card>
+            <Card tone="flat">
                 <CourseToolbar
                     search={search}
                     onSearchChange={setSearch}

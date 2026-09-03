@@ -44,18 +44,18 @@ export function CoursePerformanceTable({ courses = [], isLoading }) {
               <th className="pb-3 font-medium text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#1A1F35]">
+          <tbody className="divide-y divide-border">
             {courses.length === 0 ? (
               <tr>
                 <td colSpan={6} className="py-6 text-center text-xs text-muted-foreground">No courses available</td>
               </tr>
             ) : (
               courses.map((course) => (
-                <tr key={course.id} className="hover:bg-white/[0.02] transition">
+                <tr key={course.id} className="hover:bg-foreground/5 transition">
                   <td className="py-4 pr-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-muted rounded-lg">
-                        <Code2 size={16} className="text-sky-400" />
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Code2 size={16} className="text-primary" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-foreground truncate max-w-[180px]">{course.title}</p>

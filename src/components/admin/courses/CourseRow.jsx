@@ -25,7 +25,7 @@ export default function CourseRow({
     return (
         <tr
             onClick={() => onView?.(course)}
-            className="border-b border-white/5 transition hover:bg-white/5 cursor-pointer"
+            className="hover:bg-foreground/5 cursor-pointer transition"
         >
             {/* Course */}
             <td className="px-6 py-4">

@@ -127,7 +127,7 @@ export default function AdminStudentsPage() {
                 students={students}
             />
 
-            <Card>
+            <Card tone="flat">
                 <StudentToolbar
                     search={search}
                     onSearchChange={

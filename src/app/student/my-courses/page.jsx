@@ -88,7 +88,7 @@ export default function MyCoursesPage() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-4 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
       <PageHeader
         title={`My Courses${!isLoading && myEnrollments.length ? ` (${filteredCourses.length})` : ""}`}
         subtitle="Track your progress and continue learning your enrolled courses."
@@ -166,12 +166,12 @@ export default function MyCoursesPage() {
           onAction={() => router.push("/student/courses")}
         />
       ) : (
-        <div className="rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6">
+        <div className="flex flex-col flex-1 min-h-0 rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6">
           <div className="md:max-h-[68vh] md:overflow-y-auto md:pr-1 md:-mr-1">
             <div
               ref={sliderRef}
               onScroll={!isLoading && filteredCourses.length > 0 ? handleSliderScroll : undefined}
-              className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-6 md:pb-0 md:grid md:justify-center md:grid-cols-[repeat(auto-fill,320px)] md:overflow-visible md:snap-none"
+              className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-6 md:pb-0 md:grid md:justify-center md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 md:overflow-visible md:snap-none"
             >
               {isLoading
                 ? Array.from({ length: 6 }).map((_, i) => (

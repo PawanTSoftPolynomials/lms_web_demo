@@ -124,7 +124,7 @@ export default function AdminEnrollmentsPage() {
             }
         />
 
-        <Card>
+        <Card tone="flat">
           <EnrollmentToolbar
               search={search}
               onSearchChange={

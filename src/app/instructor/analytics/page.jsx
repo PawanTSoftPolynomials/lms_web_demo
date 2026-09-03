@@ -69,7 +69,7 @@ function InstructorAnalyticsContent() {
       ) : (
         <div className="space-y-6">
           {videoKpi && (
-            <Card className="p-6 border border-transparent bg-background/60 shadow-lg flex items-center justify-between">
+            <Card className="p-6 border border-transparent bg-background/60 shadow-lg flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
                   <Video size={24} />

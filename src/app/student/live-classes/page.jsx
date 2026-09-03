@@ -89,7 +89,7 @@ export default function LiveClassesPage() {
       )}
 
       {/* Filter Tabs */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {LIVE_CLASSES_FILTERS.map((tab) => (
           <button
             key={tab.value}
