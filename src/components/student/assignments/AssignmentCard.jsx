@@ -8,7 +8,7 @@ const statusStyles = {
   "Not Submitted": "bg-red-500/10 text-red-200 border border-red-500/20",
   "In Progress": "bg-yellow-500/10 text-yellow-200 border border-yellow-500/20",
   Submitted: "bg-blue-500/10 text-blue-200 border border-blue-500/20",
-  Graded: "bg-green-500/10 text-emerald-200 border border-green-500/20",
+  Graded: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
 };
 
 const actionLabels = {

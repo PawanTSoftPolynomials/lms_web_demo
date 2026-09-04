@@ -104,7 +104,7 @@ export default function MCQMultiOptionList({
                 className={`text-base leading-relaxed transition-colors duration-200 ${
                   isSelected
                     ? "font-semibold text-foreground"
-                    : "text-slate-350"
+                    : "text-slate-400"
                 }`}
               >
                 {optionText}
@@ -130,7 +130,7 @@ export default function MCQMultiOptionList({
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.8, opacity: 0 }}
-                    className="h-6 w-6 rounded-lg border border-slate-750 bg-background/40 hover:border-primary/50 transition-colors"
+                    className="h-6 w-6 rounded-lg border border-slate-700 bg-background/40 hover:border-primary/50 transition-colors"
                   />
                 )}
               </AnimatePresence>

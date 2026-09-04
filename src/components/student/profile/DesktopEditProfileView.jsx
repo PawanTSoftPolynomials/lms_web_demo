@@ -434,7 +434,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                 <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
                   <User size={18} />
                 </div>
-                <h2 className="text-lg font-bold text-foreground">Personal Information</h2>
+                <h2 className="text-lg font-semibold text-foreground">Personal Information</h2>
               </div>
               <button
                 type="button"
@@ -562,7 +562,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                 <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
                   <GraduationCap size={18} />
                 </div>
-                <h2 className="text-lg font-bold text-foreground">Education Details</h2>
+                <h2 className="text-lg font-semibold text-foreground">Education Details</h2>
               </div>
               <button
                 type="button"
@@ -677,7 +677,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                 <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
                   <Shield size={18} />
                 </div>
-                <h2 className="text-lg font-bold text-foreground">Security & Privacy</h2>
+                <h2 className="text-lg font-semibold text-foreground">Security & Privacy</h2>
               </div>
               <button
                 type="button"

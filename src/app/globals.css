@@ -55,6 +55,8 @@
    (default, no .dark class)
    ========================================================================== */
 :root {
+  color-scheme: light;
+
   --background: #F3EDE3;
   --foreground: #23283D;
 
@@ -102,6 +104,8 @@
    near-black canvas, blue links, green primary actions.
    ========================================================================== */
 .dark {
+  color-scheme: dark;
+
   --background: #0D1117;
   --foreground: #C9D1D9;
 
@@ -325,16 +329,24 @@ body {
 
 /* ==========================================================================
    Experimental photo-derived card palette — course cards only, applied via a
-   wrapper class on the card root. Deliberately NOT tied to light/dark mode:
-   a fixed, self-contained dark card face regardless of the page's own theme.
+   wrapper class on the card root. Theme-aware: light-mode uses the app's own
+   surface tokens, dark-mode restores the original bespoke dark card face.
    ========================================================================== */
 .card-photo-jellyfish {
+  --card-photo-bg-from: var(--card);
+  --card-photo-bg-to: var(--muted);
+  --card-photo-border: var(--border);
+  --card-photo-h1: var(--heading-color);
+  --card-photo-subtitle: var(--muted-foreground);
+  --card-photo-highlight: #E07A5F;
+}
+
+.dark .card-photo-jellyfish {
   --card-photo-bg-from: #161A1D;
   --card-photo-bg-to: #212529;
   --card-photo-border: #383E44;
   --card-photo-h1: #F2CC8F;
   --card-photo-subtitle: #D3D8DD;
-  --card-photo-highlight: #E07A5F;
 }
 
 .card-photo-title {
@@ -376,12 +388,12 @@ button, a.bg-primary, a.bg-secondary, a.bg-accent, a.bg-success, a.bg-warning, a
 }
 
 button.bg-primary, a.bg-primary, .btn-rainbow {
-  background-color: var(--primary) !important;
+  background-color: var(--btn-rainbow-fill, var(--primary)) !important;
   background-image: none !important;
-  color: var(--primary-foreground) !important;
+  color: var(--btn-rainbow-foreground, var(--primary-foreground)) !important;
 }
 button.bg-primary:hover, a.bg-primary:hover, .btn-rainbow:hover {
-  background-color: color-mix(in srgb, var(--primary) 88%, white) !important;
+  background-color: color-mix(in srgb, var(--btn-rainbow-fill, var(--primary)) 88%, white) !important;
 }
 
 .bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {

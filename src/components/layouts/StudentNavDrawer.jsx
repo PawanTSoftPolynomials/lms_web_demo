@@ -189,7 +189,7 @@ export default function StudentNavDrawer() {
             </button>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-750 text-foreground transition cursor-pointer"
+              className="px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-foreground transition cursor-pointer"
             >
               Yes, Logout
             </button>

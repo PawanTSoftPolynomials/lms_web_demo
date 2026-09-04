@@ -181,6 +181,7 @@ export default function BookmarksPage() {
                     href={bookmark.url}
                     target="_blank"
                     rel="noreferrer"
+                    aria-label="Open bookmark"
                     className="p-2 hover:bg-primary/10 rounded-xl transition text-muted-foreground hover:text-primary"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -192,6 +193,7 @@ export default function BookmarksPage() {
                     e.stopPropagation();
                     handleDelete(bookmark.id);
                   }}
+                  aria-label="Remove bookmark"
                   className="p-2 hover:bg-red-500/10 rounded-xl transition text-muted-foreground hover:text-red-500"
                 >
                   <Trash2 size={15} />

@@ -2,6 +2,7 @@
 
 
 import ActionMenu from "@/components/menus/ActionMenu";
+import CourseStatusBadge from "@/components/courses/CourseStatusBadge";
 
 export default function CourseRow({
                                       course,
@@ -12,15 +13,6 @@ export default function CourseRow({
     const createdAt = new Date(
         course.createdAt
     ).toLocaleDateString();
-
-    const statusColors = {
-        PUBLISHED:
-            "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20",
-        DRAFT:
-            "bg-yellow-500/15 text-yellow-400 border border-yellow-500/20",
-        ARCHIVED:
-            "bg-red-500/15 text-red-400 border border-red-500/20",
-    };
 
     return (
         <tr
@@ -37,7 +29,7 @@ export default function CourseRow({
                             {course.title}
                         </p>
 
-                        <p className="mt-1 line-clamp-2 text-sm text-gray-400">
+                        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                             {
                                 course.description
                             }
@@ -47,7 +39,7 @@ export default function CourseRow({
             </td>
 
             {/* Category */}
-            <td className="px-6 py-4 text-gray-300">
+            <td className="px-6 py-4 text-muted-foreground">
                 {course.category}
             </td>
 
@@ -60,16 +52,7 @@ export default function CourseRow({
 
             {/* Status */}
             <td className="px-6 py-4">
-        <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                statusColors[
-                    course.status
-                    ] ||
-                "bg-gray-700 text-foreground"
-            }`}
-        >
-          {course.status}
-        </span>
+                <CourseStatusBadge status={course.status} />
             </td>
 
             {/* Creator */}
@@ -82,7 +65,7 @@ export default function CourseRow({
                         }
                     </p>
 
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                         {
                             course.creator
                                 ?.email
@@ -92,7 +75,7 @@ export default function CourseRow({
             </td>
 
             {/* Created */}
-            <td className="px-6 py-4 text-gray-400">
+            <td className="px-6 py-4 text-muted-foreground">
                 {createdAt}
             </td>
 

@@ -17,6 +17,17 @@ export default function Modal({
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose?.();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, onClose]);
+
   if (!mounted || !open)
     return null;
 
@@ -106,7 +117,7 @@ export default function Modal({
           </button>
         </div>
 
-        <div className="p-4 sm:p-6 flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="p-4 sm:p-6 flex-1 min-h-0 flex flex-col overflow-y-auto">
           {children}
         </div>
       </div>

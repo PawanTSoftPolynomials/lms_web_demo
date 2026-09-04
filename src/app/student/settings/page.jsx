@@ -169,7 +169,7 @@ export default function SettingsPage() {
                   {/* Input grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">Full Name</label>
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Full Name</label>
                       <input
                         type="text"
                         value={form.name}
@@ -180,7 +180,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">Email Address</label>
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Email Address</label>
                       <input
                         type="email"
                         value={form.email}
@@ -190,7 +190,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">Phone Number</label>
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Phone Number</label>
                       <input
                         type="text"
                         value={form.phoneNumber}
@@ -200,7 +200,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">Date of Birth</label>
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Date of Birth</label>
                       <input
                         type="date"
                         value={form.dob}
@@ -210,7 +210,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">Education</label>
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Education</label>
                       <input
                         type="text"
                         value={form.education}
@@ -221,7 +221,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">Address</label>
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Address</label>
                       <input
                         type="text"
                         value={form.address}
@@ -232,7 +232,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">Guardian Name</label>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Guardian Name</label>
                     <input
                       type="text"
                       value={form.guardianName}
@@ -253,7 +253,7 @@ export default function SettingsPage() {
                     <select
                       value={form.profileVisibility}
                       onChange={(e) => setForm({ ...form, profileVisibility: e.target.value })}
-                      className="bg-background text-primary border border-transparent rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer"
+                      className="bg-background text-primary border border-transparent rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
                     >
                       <option value="Public">Public</option>
                       <option value="Private">Private</option>
@@ -304,7 +304,7 @@ export default function SettingsPage() {
                   <select
                     value={form.videoQuality}
                     onChange={(e) => setForm({ ...form, videoQuality: e.target.value })}
-                    className="bg-background text-primary border border-transparent rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer"
+                    className="bg-background text-primary border border-transparent rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
                   >
                     <option value="Auto">Auto</option>
                     <option value="1080p">1080p</option>
@@ -317,7 +317,7 @@ export default function SettingsPage() {
                   <select
                     value={form.downloadOverWifi ? "wifi" : "all"}
                     onChange={(e) => setForm({ ...form, downloadOverWifi: e.target.value === "wifi" })}
-                    className="bg-background text-primary border border-transparent rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer"
+                    className="bg-background text-primary border border-transparent rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
                   >
                     <option value="wifi">Wi-Fi Only</option>
                     <option value="all">All Networks</option>
@@ -328,7 +328,7 @@ export default function SettingsPage() {
                   <select
                     value={form.language}
                     onChange={(e) => setForm({ ...form, language: e.target.value })}
-                    className="bg-background text-primary border border-transparent rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer"
+                    className="bg-background text-primary border border-transparent rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
                   >
                     <option value="English">English</option>
                     <option value="Spanish">Spanish</option>
@@ -340,7 +340,7 @@ export default function SettingsPage() {
                   <select
                     value={form.timezone}
                     onChange={(e) => setForm({ ...form, timezone: e.target.value })}
-                    className="bg-background text-primary border border-transparent rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer"
+                    className="bg-background text-primary border border-transparent rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
                   >
                     <option value="GMT+05:30">GMT+05:30</option>
                     <option value="UTC">UTC</option>
@@ -360,7 +360,7 @@ export default function SettingsPage() {
 
               <div className="p-4 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-bold text-primary uppercase tracking-widest block">Current Plan</span>
+                  <span className="text-xs font-semibold text-primary uppercase tracking-widest block">Current Plan</span>
                   <span className="text-base font-black text-foreground mt-1 block">{form.plan}</span>
                 </div>
                 <button type="button" className="px-4 py-2 bg-primary hover:bg-orange-600 rounded-xl text-xs font-bold text-foreground transition cursor-pointer">
@@ -421,7 +421,7 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center text-xs font-semibold p-1 hover:bg-muted/55 rounded-lg transition">
                   <span className="text-foreground">Milestones visibility</span>
-                  <select className="bg-background text-primary border border-transparent rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer">
+                  <select className="bg-background text-primary border border-transparent rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer [&>option]:bg-card [&>option]:text-foreground">
                     <option>Show to Instructors only</option>
                     <option>Publicly Visible</option>
                     <option>Completely Private</option>
@@ -430,7 +430,7 @@ export default function SettingsPage() {
 
                 <div className="flex justify-between items-center text-xs font-semibold p-1 hover:bg-muted/55 rounded-lg transition">
                   <span className="text-foreground">Allow direct messaging</span>
-                  <select className="bg-background text-primary border border-transparent rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer">
+                  <select className="bg-background text-primary border border-transparent rounded px-2 py-0.5 text-[11px] font-bold outline-none cursor-pointer [&>option]:bg-card [&>option]:text-foreground">
                     <option>Everyone</option>
                     <option>Instructors Only</option>
                     <option>None</option>
@@ -449,11 +449,11 @@ export default function SettingsPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">Current Password</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">Current Password</label>
                   <input type="password" placeholder="••••••••" className="w-full bg-background border border-transparent rounded-xl px-3.5 py-2 text-xs text-foreground outline-none focus:border-primary transition" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">New Password</label>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">New Password</label>
                   <input type="password" placeholder="••••••••" className="w-full bg-background border border-transparent rounded-xl px-3.5 py-2 text-xs text-foreground outline-none focus:border-primary transition" />
                 </div>
               </div>
@@ -470,7 +470,7 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-2 hover:bg-muted/50 rounded-xl transition">
                   <span className="text-xs font-bold text-foreground">Google</span>
-                  <button type="button" className="text-xs font-bold text-primary hover:text-primary cursor-pointer">Disconnect</button>
+                  <button type="button" className="text-xs font-bold text-primary hover:text-primary/70 cursor-pointer">Disconnect</button>
                 </div>
                 <div className="flex items-center justify-between p-2 hover:bg-muted/50 rounded-xl transition">
                   <span className="text-xs font-bold text-foreground">Github</span>
@@ -512,14 +512,14 @@ export default function SettingsPage() {
                 {form.name ? form.name.charAt(0).toUpperCase() : "U"}
               </div>
               <h4 className="text-sm font-black leading-none text-foreground">{form.name}</h4>
-              <span className="text-[10px] text-orange-200 mt-2 block">Student Account</span>
+              <span className="text-[10px] text-orange-400 mt-2 block">Student Account</span>
               
-              <div className="flex justify-between border-t border-white/10 pt-3.5 mt-4 text-[10px] text-orange-100 font-semibold">
+              <div className="flex justify-between border-t border-white/10 pt-3.5 mt-4 text-[10px] text-orange-400 font-semibold">
                 <span>Member since: {userProfile?.createdAt ? new Date(userProfile.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "March 12, 2025"}</span>
                 <span>Plan: {form.plan}</span>
               </div>
 
-              <button type="button" className="w-full mt-4 py-2 bg-white text-orange-600 hover:bg-orange-50 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer">
+              <button type="button" className="w-full mt-4 py-2 bg-white text-orange-600 hover:bg-orange-300/20 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer">
                 Upgrade to Premium
               </button>
             </div>
@@ -569,7 +569,7 @@ export default function SettingsPage() {
                   <div className="p-1.5 bg-primary/10 text-primary rounded"><Laptop size={14} /></div>
                   <div>
                     <span className="text-[10px] font-bold text-foreground block">Windows • Chrome</span>
-                    <span className="text-[8px] text-emerald-500 font-bold">Current Session • Pune</span>
+                    <span className="text-xs text-emerald-500 font-bold">Current Session • Pune</span>
                   </div>
                 </div>
               </div>
@@ -579,7 +579,7 @@ export default function SettingsPage() {
                   <div className="p-1.5 bg-muted text-muted-foreground rounded"><Smartphone size={14} /></div>
                   <div>
                     <span className="text-[10px] font-bold text-foreground block">Android • Mobile App</span>
-                    <span className="text-[8px] text-muted-foreground font-semibold">Active 2 hrs ago • Mumbai</span>
+                    <span className="text-xs text-muted-foreground font-semibold">Active 2 hrs ago • Mumbai</span>
                   </div>
                 </div>
                 <button type="button" className="text-[9px] text-red-400 font-bold hover:underline cursor-pointer">Logout</button>
@@ -590,7 +590,7 @@ export default function SettingsPage() {
                   <div className="p-1.5 bg-muted text-muted-foreground rounded"><Laptop size={14} /></div>
                   <div>
                     <span className="text-[10px] font-bold text-foreground block">MacOS • Safari</span>
-                    <span className="text-[8px] text-muted-foreground font-semibold">Active 1 day ago • Bengaluru</span>
+                    <span className="text-xs text-muted-foreground font-semibold">Active 1 day ago • Bengaluru</span>
                   </div>
                 </div>
                 <button type="button" className="text-[9px] text-red-400 font-bold hover:underline cursor-pointer">Logout</button>

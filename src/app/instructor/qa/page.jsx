@@ -15,7 +15,7 @@ import {
 } from "@/hooks/queries/instructor/useLessonQueries";
 
 const STATUS_OPTIONS = [
-  { value: "", label: "All Statuses" },
+  { value: "", label: "All Status" },
   { value: "PENDING", label: "Pending" },
   { value: "ANSWERED", label: "Answered" },
 ];

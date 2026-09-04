@@ -155,7 +155,7 @@ export default function CourseContentAccordion({
                             <p className="truncate text-xs font-medium">
                               {lessonIndex + 1}. {lesson.title}
                             </p>
-                            <p className={`truncate text-[10px] ${isActive ? "text-orange-100" : "text-muted-foreground"}`}>
+                            <p className={`truncate text-[10px] ${isActive ? "text-orange-400" : "text-muted-foreground"}`}>
                               {isLessonLocked
                                 ? "Locked"
                                 : lesson.topics?.length

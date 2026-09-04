@@ -45,7 +45,7 @@ export default function CertificateCard({ cert, onView, onPrint }) {
 
         {/* Title & Description */}
         <div className="space-y-2">
-          <h3 className="text-lg font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
+          <h3 className="text-lg font-semibold text-foreground leading-tight group-hover:text-primary transition-colors">
             {cert.course?.title}
           </h3>
           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">

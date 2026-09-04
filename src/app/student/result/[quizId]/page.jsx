@@ -193,7 +193,7 @@ function QuizResultPageContent() {
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-foreground">Adaptive Learning</h3>
             {activeRemediationIndex < incorrectQuestions.length && (
-              <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
+              <span className="text-xs font-semibold uppercase tracking-wider text-primary">
                 Remediation {activeRemediationIndex + 1} of {incorrectQuestions.length}
               </span>
             )}
@@ -219,28 +219,28 @@ function QuizResultPageContent() {
       {/* KPI Performance Grid */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-5">
         <div className="rounded-2xl border border-transparent bg-background/40 p-5 backdrop-blur-md">
-          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Your Score</p>
+          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Your Score</p>
           <p className="mt-2 text-2xl font-extrabold text-foreground">
             {score} <span className="text-xs text-muted-foreground font-normal">/ {totalMarks} Marks</span>
           </p>
         </div>
 
         <div className="rounded-2xl border border-transparent bg-background/40 p-5 backdrop-blur-md">
-          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Percentage</p>
+          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Percentage</p>
           <p className="mt-2 text-2xl font-extrabold text-foreground">
             {percentage}%
           </p>
         </div>
 
         <div className="rounded-2xl border border-transparent bg-background/40 p-5 backdrop-blur-md">
-          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Passing Criteria</p>
+          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Passing Criteria</p>
           <p className="mt-2 text-2xl font-extrabold text-foreground">
             {passingScore}% <span className="text-xs text-muted-foreground font-normal">or above</span>
           </p>
         </div>
 
         <div className="rounded-2xl border border-transparent bg-background/40 p-5 backdrop-blur-md">
-          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Questions Answered</p>
+          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Questions Answered</p>
           <p className="mt-2 text-2xl font-extrabold text-foreground">
             {parsedAnswers.length} <span className="text-xs text-muted-foreground font-normal">/ {quiz?.questions?.length || 0}</span>
           </p>
@@ -264,7 +264,7 @@ function QuizResultPageContent() {
               const isPassed = perc >= passingScore;
               
               let barColor = "bg-rose-500";
-              let textColor = "text-rose-450";
+              let textColor = "text-rose-400";
               let label = "Needs practice";
               
               if (perc >= 75) {
@@ -279,7 +279,7 @@ function QuizResultPageContent() {
 
               return (
                 <Card key={conceptName} className={`p-5 border-transparent bg-background/30 flex flex-col justify-between gap-4 border-l-[4px] ${
-                  isPassed ? "border-l-emerald-500" : "border-l-orange-550"
+                  isPassed ? "border-l-emerald-500" : "border-l-orange-500"
                 }`}>
                   <div className="flex justify-between items-start">
                     <div>

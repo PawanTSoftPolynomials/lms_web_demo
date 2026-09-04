@@ -98,7 +98,7 @@ function ReviewsPageContent() {
           
           {/* Summary Card */}
           <Card className="p-6 border border-transparent bg-background/60 rounded-3xl text-center space-y-3">
-            <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Average rating</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Average rating</h3>
             <div className="text-4xl font-black text-foreground">{ratingSummary.avg}</div>
             <div className="flex justify-center items-center gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -121,7 +121,7 @@ function ReviewsPageContent() {
 
             <form onSubmit={handleReviewSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block">Select Stars</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest block">Select Stars</span>
                 <div className="flex items-center gap-1 bg-background/20 p-2.5 rounded-xl border border-transparent/80">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -140,7 +140,7 @@ function ReviewsPageContent() {
               </div>
 
               <div className="space-y-1.5">
-                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block">Review Details</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest block">Review Details</span>
                 <textarea
                   rows={4}
                   value={reviewText}
@@ -159,7 +159,7 @@ function ReviewsPageContent() {
               <button
                 type="submit"
                 disabled={createReviewMutation.isPending}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary text-slate-950 font-black uppercase text-[10px] tracking-wider shadow-sm transition disabled:opacity-50 cursor-pointer border-0"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 font-black uppercase text-[10px] tracking-wider shadow-sm transition disabled:opacity-50 cursor-pointer border-0"
               >
                 {createReviewMutation.isPending ? "Posting..." : "Post Review"}
                 <Send size={11} />

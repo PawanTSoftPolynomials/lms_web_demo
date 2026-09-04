@@ -75,7 +75,7 @@ export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkA
         <div
           role="menu"
           aria-label="Notifications"
-          className="absolute right-0 top-[calc(100%+10px)] z-50 w-80 sm:w-96 rounded-2xl border border-border bg-[#0B0F19]/95 p-3.5 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-150"
+          className="absolute right-0 top-[calc(100%+10px)] z-50 w-80 sm:w-96 max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-popover/95 p-3.5 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-150"
         >
           {/* Header */}
           <div className="mb-2.5 flex items-center justify-between border-b border-border/80 pb-2.5">
@@ -221,7 +221,7 @@ export function ProfileMenu({ user, onLogout, profileHref = "/student/profile", 
         <div
           role="menu"
           aria-label="Profile menu"
-          className="absolute right-0 top-[calc(100%+10px)] z-50 w-52 rounded-2xl border border-white/[0.08] bg-[#0D0D18]/95 p-1.5 shadow-2xl backdrop-blur-xl"
+          className="absolute right-0 top-[calc(100%+10px)] z-50 w-52 rounded-2xl border border-border bg-popover/95 p-1.5 shadow-2xl backdrop-blur-xl"
         >
           <div className="mb-1 border-b border-white/[0.06] px-3 py-2">
             <p className="truncate text-xs font-bold text-foreground">{user?.name}</p>

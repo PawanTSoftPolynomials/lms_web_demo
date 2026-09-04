@@ -304,11 +304,11 @@ function MessagesPageContent() {
                   onClick={() => setActiveConversation(conv)}
                   className={`flex gap-3 items-center p-3 rounded-xl cursor-pointer transition ${
                     isActive
-                      ? "bg-indigo-50 border border-indigo-100 text-foreground"
+                      ? "bg-indigo-500/10 border border-indigo-500/20 text-foreground"
                       : "hover:bg-muted border border-transparent text-foreground"
                   }`}
                 >
-                  <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700 border border-indigo-200 flex-shrink-0 text-sm">
+                  <div className="h-10 w-10 rounded-full bg-indigo-500/15 flex items-center justify-center font-bold text-indigo-400 border border-indigo-500/20 flex-shrink-0 text-sm">
                     {displayName.charAt(0).toUpperCase()}
                   </div>
 
@@ -344,7 +344,7 @@ function MessagesPageContent() {
                 >
                   <ArrowLeft size={14} />
                 </button>
-                <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700 border border-indigo-200 text-sm">
+                <div className="h-10 w-10 rounded-full bg-indigo-500/15 flex items-center justify-center font-bold text-indigo-400 border border-indigo-500/20 text-sm">
                   {activeConversationName.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -369,7 +369,7 @@ function MessagesPageContent() {
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/30">
 
               {/* Pinned Message */}
-              <div className="bg-indigo-50 border border-indigo-100 p-3 rounded-xl text-[10px] text-indigo-600 font-bold flex gap-2 items-center">
+              <div className="bg-indigo-500/10 border border-indigo-500/20 p-3 rounded-xl text-[10px] text-indigo-600 font-bold flex gap-2 items-center">
                 <span>📌 Pinned: Please complete your homework assignments before our next lecture class.</span>
               </div>
 
@@ -440,7 +440,7 @@ function MessagesPageContent() {
       {activeConversation && showRightPanel && (
         <div className="hidden md:flex w-72 bg-card border border-border rounded-2xl flex flex-col h-full shadow-luxury-sm overflow-hidden p-5 flex-shrink-0">
           <div className="text-center pb-4 border-b border-border">
-            <div className="h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center font-black text-xl text-indigo-700 border border-indigo-200 mx-auto mb-3">
+            <div className="h-16 w-16 rounded-full bg-indigo-500/15 flex items-center justify-center font-black text-xl text-indigo-400 border border-indigo-500/20 mx-auto mb-3">
               {activeConversationName.charAt(0).toUpperCase()}
             </div>
             <h4 className="text-xs font-black text-foreground leading-none">{activeConversationName}</h4>
@@ -462,7 +462,7 @@ function MessagesPageContent() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between p-2 hover:bg-muted rounded-xl transition cursor-pointer">
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-red-50 text-red-500 rounded"><FileText size={14} /></div>
+                    <div className="p-1.5 bg-red-500/10 text-red-400 rounded"><FileText size={14} /></div>
                     <div className="min-w-0">
                       <span className="text-[10px] font-bold text-foreground block truncate">Assignment_Guidelines.pdf</span>
                       <span className="text-[8px] text-muted-foreground font-semibold">1.2 MB • PDF</span>
@@ -473,7 +473,7 @@ function MessagesPageContent() {
 
                 <div className="flex items-center justify-between p-2 hover:bg-muted rounded-xl transition cursor-pointer">
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-blue-50 text-blue-500 rounded"><FileText size={14} /></div>
+                    <div className="p-1.5 bg-blue-500/10 text-blue-400 rounded"><FileText size={14} /></div>
                     <div className="min-w-0">
                       <span className="text-[10px] font-bold text-foreground block truncate">LinkedList_Implementation.cpp</span>
                       <span className="text-[8px] text-muted-foreground font-semibold">3.4 KB • Source</span>

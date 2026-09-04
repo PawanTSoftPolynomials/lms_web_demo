@@ -15,7 +15,7 @@ export default function Card({
     <div
       onClick={onClick}
       className={`
-        rounded-2xl
+        rounded-lg
         border
         ${TONE_CLASSES[tone] || TONE_CLASSES.elevated}
         ${padding}

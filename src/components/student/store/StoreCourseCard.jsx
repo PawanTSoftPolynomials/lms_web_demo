@@ -41,7 +41,7 @@ export default function StoreCourseCard({ course }) {
   return (
     <div
       onClick={goToDetails}
-      className="group relative flex w-full flex-col overflow-hidden rounded-2xl border border-border bg-background/70 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-2xl cursor-pointer"
+      className="group relative flex w-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-2xl cursor-pointer"
     >
       {/* Thumbnail */}
       <div className="relative h-28 shrink-0 overflow-hidden bg-muted">

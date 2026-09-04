@@ -40,7 +40,7 @@ export default function QuizCard({ quiz }) {
       </div>
 
       {/* Quiz Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-2.5 px-3 rounded-xl bg-slate-955 border border-slate-850 text-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-2.5 px-3 rounded-xl bg-slate-950 border border-slate-800 text-xs">
         <div className="flex flex-col items-center text-center">
           <span className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider flex items-center gap-1">
             <HelpCircle size={11} className="text-primary" /> Questions
@@ -75,7 +75,7 @@ export default function QuizCard({ quiz }) {
           <Link href={`/student/result/${quiz.id}`} className="flex-1">
             <button
               type="button"
-              className="w-full py-2.5 px-3 rounded-xl border border-transparent/80 bg-muted hover:bg-slate-750 text-foreground hover:text-foreground text-xs font-bold transition cursor-pointer min-h-[44px] flex items-center justify-center gap-1.5"
+              className="w-full py-2.5 px-3 rounded-xl border border-transparent/80 bg-muted hover:bg-slate-700 text-foreground hover:text-foreground text-xs font-bold transition cursor-pointer min-h-[44px] flex items-center justify-center gap-1.5"
             >
               View Result
             </button>

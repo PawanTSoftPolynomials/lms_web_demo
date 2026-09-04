@@ -124,7 +124,7 @@ export default function StudentDashboardPage() {
               <div className="relative z-10 w-full md:w-2/3 space-y-2">
                 <div className="space-y-0.5">
                   <p className="text-muted-foreground text-xs font-medium">Welcome back,</p>
-                  <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight flex items-center gap-2">
+                  <h1 className="text-xl sm:text-3xl font-bold text-foreground tracking-tight flex items-center gap-2">
                     {user?.name ? user.name.split(" ")[0] : "Student"}! <span className="animate-wave origin-bottom-right inline-block text-xl">👋</span>
                   </h1>
                   <p className="text-muted-foreground text-xs">Let&apos;s continue your learning journey. You&apos;ve got this!</p>
