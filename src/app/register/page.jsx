@@ -111,7 +111,7 @@ export default function RegisterPage() {
       <AuthCard>
         <AuthHeader
           icon={
-            <HiOutlineUserPlus className="text-4xl text-orange-500" />
+            <HiOutlineUserPlus className="text-4xl text-primary" />
           }
           title="Create Account"
           description="Create your Orange Tree LMS account."

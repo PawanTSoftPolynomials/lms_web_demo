@@ -10,9 +10,9 @@ export default function ChartTooltip({
   }
 
   return (
-    <div className="min-w-[180px] rounded-xl border border-slate-700 bg-slate-900/95 p-4 shadow-xl backdrop-blur-md">
+    <div className="min-w-[180px] rounded-xl border border-transparent bg-background/95 p-4 shadow-xl backdrop-blur-md">
       {label && (
-        <p className="mb-3 border-b border-slate-700 pb-2 text-sm font-semibold text-white">
+        <p className="mb-3 border-b border-transparent pb-2 text-sm font-semibold text-foreground">
           {label}
         </p>
       )}
@@ -31,12 +31,12 @@ export default function ChartTooltip({
                 }}
               />
 
-              <span className="text-sm text-slate-300">
+              <span className="text-sm text-foreground">
                 {entry.name}
               </span>
             </div>
 
-            <span className="text-sm font-semibold text-white">
+            <span className="text-sm font-semibold text-foreground">
               {entry.value}
             </span>
           </div>

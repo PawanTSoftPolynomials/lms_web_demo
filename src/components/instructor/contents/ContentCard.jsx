@@ -49,13 +49,13 @@ export default function ContentCard({
         cursor-pointer
         rounded-2xl
         border
-        border-slate-800
-        bg-slate-900
+        border-border
+        bg-background
         p-6
         transition-all
         duration-300
         hover:-translate-y-1
-        hover:border-orange-500
+        hover:border-primary
       "
         >
             <div className="flex h-full flex-col justify-between">
@@ -76,7 +76,7 @@ export default function ContentCard({
                                     CONTENT_COLORS[
                                         content.type
                                         ] ||
-                                    "bg-orange-500/15 text-orange-400"
+                                    "bg-primary/15 text-primary"
                                 }
                 `}
                             >
@@ -84,11 +84,11 @@ export default function ContentCard({
                             </div>
 
                             <div className="flex-1">
-                                <h3 className="line-clamp-1 text-xl font-semibold text-white">
+                                <h3 className="line-clamp-1 text-xl font-semibold text-foreground">
                                     {content.title}
                                 </h3>
 
-                                <p className="mt-2 line-clamp-3 text-sm text-slate-400">
+                                <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
                                     {content.description ||
                                         "No description available."}
                                 </p>
@@ -127,7 +127,7 @@ export default function ContentCard({
                 </div>
 
                 {/* Footer */}
-                <div className="mt-6 border-t border-slate-800 pt-4">
+                <div className="mt-6 border-t border-border pt-4">
                     <div className="flex items-center justify-between">
             <span
                 className={`
@@ -140,7 +140,7 @@ export default function ContentCard({
                     CONTENT_COLORS[
                         content.type
                         ] ||
-                    "bg-orange-500/15 text-orange-400"
+                    "bg-primary/15 text-primary"
                 }
               `}
             >
@@ -159,7 +159,7 @@ export default function ContentCard({
                 py-2
                 text-sm
                 font-medium
-                text-white
+                text-foreground
                 transition
                 hover:bg-orange-700
               "

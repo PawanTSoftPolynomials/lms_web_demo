@@ -28,7 +28,7 @@ const getEventBadge = (type) => {
   const t = (type || "").toLowerCase();
   if (t === "assignment" || t === "deadline") return { label: "Assignment", className: "bg-purple-500/15 text-purple-300" };
   if (t === "exam") return { label: "Exam", className: "bg-rose-500/15 text-rose-300" };
-  if (t === "quiz") return { label: "Quiz", className: "bg-orange-500/15 text-orange-300" };
+  if (t === "quiz") return { label: "Quiz", className: "bg-primary/15 text-orange-300" };
   return { label: "Live Class", className: "bg-blue-500/15 text-blue-300" };
 };
 
@@ -38,11 +38,11 @@ function EventRow({ event, showDate = false }) {
   return (
     <div className="rounded-xl bg-card border border-card-border p-3 flex items-center gap-3">
       <div className="h-9 w-9 rounded-lg bg-[#141930] border border-card-border flex items-center justify-center shrink-0">
-        <Icon size={16} className="text-slate-300" />
+        <Icon size={16} className="text-foreground" />
       </div>
       <div className="min-w-0 flex-1">
-        <h4 className="text-xs font-bold text-white truncate">{event.title}</h4>
-        <p className="text-[10px] text-slate-500 mt-0.5 truncate">
+        <h4 className="text-xs font-bold text-foreground truncate">{event.title}</h4>
+        <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
           {showDate ? `${event.date} • ` : ""}
           {event.startTime || "All day"}
           {event.courseName ? ` • ${event.courseName}` : ""}
@@ -98,7 +98,7 @@ export default function MobileCalendarView() {
         <button
           type="button"
           onClick={() => setShowFull(false)}
-          className="flex items-center gap-1 text-xs font-bold text-orange-400 active:opacity-70 transition"
+          className="flex items-center gap-1 text-xs font-bold text-primary active:opacity-70 transition"
         >
           <ChevronLeft size={16} /> Back to Calendar
         </button>
@@ -109,19 +109,19 @@ export default function MobileCalendarView() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-black text-white">Calendar</h1>
+      <h1 className="text-xl font-black text-foreground">Calendar</h1>
 
       {/* Today's Schedule */}
       <div className="rounded-xl bg-card border border-card-border p-3">
-        <h2 className="text-xs font-black text-white mb-2.5">Today&apos;s Schedule</h2>
+        <h2 className="text-xs font-black text-foreground mb-2.5">Today&apos;s Schedule</h2>
         {isLoading ? (
           <div className="space-y-2.5">
             {[1, 2].map((n) => (
-              <div key={n} className="h-[54px] rounded-xl bg-slate-800/50 animate-pulse" />
+              <div key={n} className="h-[54px] rounded-xl bg-muted/50 animate-pulse" />
             ))}
           </div>
         ) : todaySchedule.length === 0 ? (
-          <div className="py-6 text-center text-xs text-slate-500 border border-dashed border-card-border rounded-xl">
+          <div className="py-6 text-center text-xs text-muted-foreground border border-dashed border-card-border rounded-xl">
             Nothing scheduled for today.
           </div>
         ) : (
@@ -135,15 +135,15 @@ export default function MobileCalendarView() {
 
       {/* Upcoming Events */}
       <div className="rounded-xl bg-card border border-card-border p-3">
-        <h2 className="text-xs font-black text-white mb-2.5">Upcoming Events</h2>
+        <h2 className="text-xs font-black text-foreground mb-2.5">Upcoming Events</h2>
         {isLoading ? (
           <div className="space-y-2.5">
             {[1, 2].map((n) => (
-              <div key={n} className="h-[54px] rounded-xl bg-slate-800/50 animate-pulse" />
+              <div key={n} className="h-[54px] rounded-xl bg-muted/50 animate-pulse" />
             ))}
           </div>
         ) : upcomingEvents.length === 0 ? (
-          <div className="py-6 text-center text-xs text-slate-500 border border-dashed border-card-border rounded-xl">
+          <div className="py-6 text-center text-xs text-muted-foreground border border-dashed border-card-border rounded-xl">
             Nothing scheduled for the next 7 days.
           </div>
         ) : (
@@ -157,8 +157,8 @@ export default function MobileCalendarView() {
 
       {/* Mini Calendar Preview */}
       <div className="rounded-xl bg-card border border-card-border p-3">
-        <h2 className="text-xs font-black text-white mb-2.5 flex items-center gap-2">
-          <CalendarDays size={14} className="text-orange-400" /> Month Preview
+        <h2 className="text-xs font-black text-foreground mb-2.5 flex items-center gap-2">
+          <CalendarDays size={14} className="text-primary" /> Month Preview
         </h2>
         <MiniCalendar role="STUDENT" />
       </div>
@@ -167,7 +167,7 @@ export default function MobileCalendarView() {
       <button
         type="button"
         onClick={() => setShowFull(true)}
-        className="w-full flex items-center justify-center gap-2 rounded-xl bg-orange-500 active:bg-orange-600 text-slate-950 font-black text-sm py-3 min-h-[44px] transition"
+        className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary active:bg-orange-600 text-slate-950 font-black text-sm py-3 min-h-[44px] transition"
       >
         View Full Calendar <ChevronRight size={16} />
       </button>

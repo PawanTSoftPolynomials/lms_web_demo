@@ -48,7 +48,7 @@ export default function StudentDetailsPage() {
                 <Button
                     type="button"
                     onClick={() => router.back()}
-                    className="bg-slate-700 hover:bg-slate-600"
+                    className="bg-slate-700 hover:bg-muted"
                 >
                     Back
                 </Button>

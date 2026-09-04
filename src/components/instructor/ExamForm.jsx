@@ -58,13 +58,13 @@ export default function ExamForm({ courses = null, lockedCourseId = null, loadin
       {!lockedCourseId && courses && (
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Target Course</label>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Target Course</label>
             <select
               name="courseId"
               value={formData.courseId}
               onChange={handleChange}
               required
-              className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white outline-none focus:border-orange-500"
+              className="w-full rounded-lg border border-transparent bg-background px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-primary"
             >
               <option value="">-- Select Course --</option>
               {courses.map((c) => (
@@ -73,13 +73,13 @@ export default function ExamForm({ courses = null, lockedCourseId = null, loadin
             </select>
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Batch (optional)</label>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Batch (optional)</label>
             <select
               name="batchId"
               value={formData.batchId}
               onChange={handleChange}
               disabled={!formData.courseId}
-              className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white outline-none focus:border-orange-500 disabled:opacity-50"
+              className="w-full rounded-lg border border-transparent bg-background px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-primary disabled:opacity-50"
             >
               <option value="">All Batches</option>
               {batches.map((b) => (
@@ -101,24 +101,24 @@ export default function ExamForm({ courses = null, lockedCourseId = null, loadin
 
       <div className="grid gap-4 md:grid-cols-3">
         <div>
-          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Start Date</label>
+          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Start Date</label>
           <input
             type="datetime-local"
             name="startDate"
             value={formData.startDate}
             onChange={handleChange}
             required
-            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white outline-none focus:border-orange-500"
+            className="w-full rounded-lg border border-transparent bg-background px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-primary"
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">End Date</label>
+          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">End Date</label>
           <input
             type="datetime-local"
             name="dueDate"
             value={formData.dueDate}
             onChange={handleChange}
-            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white outline-none focus:border-orange-500"
+            className="w-full rounded-lg border border-transparent bg-background px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-primary"
           />
         </div>
         <Input
@@ -133,27 +133,27 @@ export default function ExamForm({ courses = null, lockedCourseId = null, loadin
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Instructions</label>
+        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Instructions</label>
         <textarea
           name="instructions"
           rows={4}
           placeholder="Rules, permitted materials, submission instructions..."
           value={formData.instructions}
           onChange={handleChange}
-          className="w-full resize-none rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs text-white outline-none focus:border-orange-500"
+          className="w-full resize-none rounded-lg border border-transparent bg-background px-4 py-2.5 text-xs text-foreground outline-none focus:border-primary"
         />
       </div>
 
-      <div className="flex items-center gap-3 bg-slate-900/40 p-3 rounded-lg border border-slate-850">
+      <div className="flex items-center gap-3 bg-background/40 p-3 rounded-lg border border-slate-850">
         <input
           type="checkbox"
           id="isPublished"
           name="isPublished"
           checked={formData.isPublished}
           onChange={handleChange}
-          className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-orange-500 focus:ring-orange-500 focus:ring-offset-slate-900 cursor-pointer"
+          className="h-4 w-4 rounded border-transparent bg-background text-primary focus:ring-orange-500 focus:ring-offset-slate-900 cursor-pointer"
         />
-        <label htmlFor="isPublished" className="text-xs font-semibold text-slate-300 cursor-pointer select-none">
+        <label htmlFor="isPublished" className="text-xs font-semibold text-foreground cursor-pointer select-none">
           Publish immediately to enrolled students
         </label>
       </div>

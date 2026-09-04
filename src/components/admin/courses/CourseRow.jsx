@@ -25,7 +25,7 @@ export default function CourseRow({
     return (
         <tr
             onClick={() => onView?.(course)}
-            className="border-b border-white/5 transition hover:bg-white/5 cursor-pointer"
+            className="hover:bg-foreground/5 cursor-pointer transition"
         >
             {/* Course */}
             <td className="px-6 py-4">
@@ -33,7 +33,7 @@ export default function CourseRow({
 
 
                     <div className="max-w-xs">
-                        <p className="line-clamp-1 font-semibold text-white">
+                        <p className="line-clamp-1 font-semibold text-foreground">
                             {course.title}
                         </p>
 
@@ -65,7 +65,7 @@ export default function CourseRow({
                 statusColors[
                     course.status
                     ] ||
-                "bg-gray-700 text-white"
+                "bg-gray-700 text-foreground"
             }`}
         >
           {course.status}
@@ -75,7 +75,7 @@ export default function CourseRow({
             {/* Creator */}
             <td className="px-6 py-4">
                 <div>
-                    <p className="font-medium text-white">
+                    <p className="font-medium text-foreground">
                         {
                             course.creator
                                 ?.name

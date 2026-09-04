@@ -219,11 +219,11 @@ export default function GlobalSearch({ role = "student" }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Search dashboard (Ctrl+K)"
-        className="flex items-center gap-2 rounded-xl border border-[#1A1F35] bg-[#0D1021] px-3.5 py-1.5 text-sm font-bold text-slate-300 transition-colors hover:border-slate-800"
+        className="flex items-center gap-2 rounded-xl border border-border bg-card px-3.5 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-border hover:text-foreground"
       >
         <Search size={16} aria-hidden="true" />
         <span className="hidden sm:inline">Search</span>
-        <kbd className="hidden rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-bold text-slate-500 lg:inline">
+        <kbd className="hidden rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[9px] font-bold text-muted-foreground lg:inline">
           Ctrl K
         </kbd>
       </button>
@@ -239,7 +239,7 @@ export default function GlobalSearch({ role = "student" }) {
             className="w-full max-w-xl overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0D0D18]/95 shadow-2xl backdrop-blur-xl"
           >
             <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-3.5">
-              <Search size={18} className="shrink-0 text-slate-500" aria-hidden="true" />
+              <Search size={18} className="shrink-0 text-muted-foreground" aria-hidden="true" />
               <input
                 ref={inputRef}
                 value={query}
@@ -247,28 +247,28 @@ export default function GlobalSearch({ role = "student" }) {
                 onKeyDown={handleKeyDown}
                 placeholder={isInstructor ? "Search courses, students, batches..." : "Search courses, assignments, live classes, notes..."}
                 aria-label="Search dashboard"
-                className="w-full bg-transparent text-sm text-slate-100 outline-none placeholder-slate-500"
+                className="w-full bg-transparent text-sm text-foreground outline-none placeholder-slate-500"
               />
-              <kbd className="hidden shrink-0 rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-bold text-slate-500 sm:inline">
+              <kbd className="hidden shrink-0 rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground sm:inline">
                 Esc
               </kbd>
             </div>
 
             <div className="max-h-[60vh] overflow-y-auto p-2 scrollbar-none">
               {!query.trim() ? (
-                <p className="px-3 py-10 text-center text-xs text-slate-500">
+                <p className="px-3 py-10 text-center text-xs text-muted-foreground">
                   {isInstructor
                     ? "Search across your courses, students, and batches."
                     : "Search across your courses, assignments, live classes, and notes."}
                 </p>
               ) : flatResults.length === 0 ? (
-                <p className="px-3 py-10 text-center text-xs text-slate-500">No results for &ldquo;{query}&rdquo;</p>
+                <p className="px-3 py-10 text-center text-xs text-muted-foreground">No results for &ldquo;{query}&rdquo;</p>
               ) : (
                 groups.map((group) => {
                   const GroupIcon = group.icon;
                   return (
                     <div key={group.id} className="mb-1.5 last:mb-0">
-                      <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">{group.label}</p>
+                      <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{group.label}</p>
                       {group.results.map((r) => {
                         const flatIdx = flatResults.findIndex((f) => f.group === group.label && f.id === r.id);
                         const active = flatIdx === activeIndex;
@@ -279,17 +279,17 @@ export default function GlobalSearch({ role = "student" }) {
                             onMouseEnter={() => setActiveIndex(flatIdx)}
                             onClick={() => goTo(r.href)}
                             className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${
-                              active ? "bg-orange-500/10 text-white" : "text-slate-300 hover:bg-white/[0.05]"
+                              active ? "bg-primary/10 text-foreground" : "text-foreground hover:bg-white/[0.05]"
                             }`}
                           >
-                            <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${active ? "bg-orange-500/15 text-orange-400" : "bg-white/[0.05] text-slate-400"}`}>
+                            <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${active ? "bg-primary/15 text-primary" : "bg-white/[0.05] text-muted-foreground"}`}>
                               <GroupIcon size={15} aria-hidden="true" />
                             </span>
                             <span className="min-w-0 flex-1">
                               <span className="block truncate text-[13px] font-semibold">{r.title}</span>
-                              <span className="block truncate text-[11px] text-slate-500">{r.subtitle}</span>
+                              <span className="block truncate text-[11px] text-muted-foreground">{r.subtitle}</span>
                             </span>
-                            {active && <CornerDownLeft size={14} className="shrink-0 text-slate-500" aria-hidden="true" />}
+                            {active && <CornerDownLeft size={14} className="shrink-0 text-muted-foreground" aria-hidden="true" />}
                           </button>
                         );
                       })}

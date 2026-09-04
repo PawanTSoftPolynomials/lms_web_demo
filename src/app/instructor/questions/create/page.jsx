@@ -153,12 +153,12 @@ export default function CreateQuestionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10 font-sans">
+    <div className="min-h-screen bg-background text-foreground p-6 md:p-10 font-sans">
       <div className="max-w-4xl mx-auto mb-8">
         <div className="flex items-center space-x-3">
           <Link
             href="/instructor/questions"
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+            className="p-2 rounded-xl bg-background border border-transparent text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -166,7 +166,7 @@ export default function CreateQuestionPage() {
             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">
               Create Question
             </h1>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Add a new question manually to your centralized Question Repository.
             </p>
           </div>
@@ -183,19 +183,19 @@ export default function CreateQuestionPage() {
           )}
 
           {/* Question Metadata & Content Card */}
-          <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-5">
-            <h3 className="text-base font-bold text-slate-200">Question Content</h3>
+          <div className="p-6 rounded-3xl bg-background/90 border border-transparent space-y-5">
+            <h3 className="text-base font-bold text-foreground">Question Content</h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                   Course *
                 </label>
                 <select
                   value={courseId}
                   onChange={(e) => handleCourseChange(e.target.value)}
                   required
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"
+                  className="w-full bg-background border border-transparent rounded-xl px-3 py-2.5 text-xs text-foreground focus:border-amber-500 focus:outline-none"
                 >
                   <option value="" disabled>Select a course...</option>
                   {courses.map((c) => (
@@ -205,14 +205,14 @@ export default function CreateQuestionPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                   Module (Optional)
                 </label>
                 <select
                   value={moduleId}
                   onChange={(e) => setModuleId(e.target.value)}
                   disabled={!courseId}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full bg-background border border-transparent rounded-xl px-3 py-2.5 text-xs text-foreground focus:border-amber-500 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <option value="">Whole course (no specific module)</option>
                   {modules.map((m) => (
@@ -223,7 +223,7 @@ export default function CreateQuestionPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                 Question Text *
               </label>
               <textarea
@@ -232,19 +232,19 @@ export default function CreateQuestionPage() {
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 required
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-100 focus:border-amber-500 focus:outline-none"
+                className="w-full bg-background border border-transparent rounded-xl p-4 text-sm text-foreground focus:border-amber-500 focus:outline-none"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                   Question Type
                 </label>
                 <select
                   value={questionType}
                   onChange={(e) => setQuestionType(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"
+                  className="w-full bg-background border border-transparent rounded-xl px-3 py-2.5 text-xs text-foreground focus:border-amber-500 focus:outline-none"
                 >
                   <option value="MCQ_SINGLE">Single Choice (MCQ)</option>
                   <option value="MCQ_MULTI">Multiple Select</option>
@@ -255,13 +255,13 @@ export default function CreateQuestionPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                   Difficulty
                 </label>
                 <select
                   value={difficulty}
                   onChange={(e) => setDifficulty(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"
+                  className="w-full bg-background border border-transparent rounded-xl px-3 py-2.5 text-xs text-foreground focus:border-amber-500 focus:outline-none"
                 >
                   <option value="EASY">Easy</option>
                   <option value="MEDIUM">Medium</option>
@@ -272,7 +272,7 @@ export default function CreateQuestionPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                   Marks *
                 </label>
                 <input
@@ -280,12 +280,12 @@ export default function CreateQuestionPage() {
                   min="1"
                   value={marks}
                   onChange={(e) => setMarks(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"
+                  className="w-full bg-background border border-transparent rounded-xl px-3 py-2.5 text-xs text-foreground focus:border-amber-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                   Negative Marks
                 </label>
                 <input
@@ -294,12 +294,12 @@ export default function CreateQuestionPage() {
                   min="0"
                   value={negativeMarks}
                   onChange={(e) => setNegativeMarks(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"
+                  className="w-full bg-background border border-transparent rounded-xl px-3 py-2.5 text-xs text-foreground focus:border-amber-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                   Tags (Comma separated)
                 </label>
                 <input
@@ -307,7 +307,7 @@ export default function CreateQuestionPage() {
                   placeholder="syntax, basics"
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"
+                  className="w-full bg-background border border-transparent rounded-xl px-3 py-2.5 text-xs text-foreground focus:border-amber-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -315,13 +315,13 @@ export default function CreateQuestionPage() {
 
           {/* Dynamic Options Card for MCQ */}
           {(questionType === "MCQ_SINGLE" || questionType === "MCQ_MULTI") && (
-            <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-4">
+            <div className="p-6 rounded-3xl bg-background/90 border border-transparent space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-slate-200">Answer Options</h3>
+                <h3 className="text-base font-bold text-foreground">Answer Options</h3>
                 <button
                   type="button"
                   onClick={handleAddOption}
-                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-semibold border border-amber-500/30 flex items-center space-x-1"
+                  className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted text-amber-400 text-xs font-semibold border border-amber-500/30 flex items-center space-x-1"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add Option</span>
@@ -330,14 +330,14 @@ export default function CreateQuestionPage() {
 
               <div className="space-y-3">
                 {options.map((opt, idx) => (
-                  <div key={opt.id} className="flex items-center space-x-3 p-3 rounded-2xl bg-slate-950/80 border border-slate-800">
+                  <div key={opt.id} className="flex items-center space-x-3 p-3 rounded-2xl bg-background/80 border border-transparent">
                     <button
                       type="button"
                       onClick={() => handleToggleCorrect(idx)}
                       className={`w-6 h-6 rounded-lg flex items-center justify-center border transition ${
                         opt.isCorrect
                           ? "bg-emerald-500 border-emerald-400 text-slate-950 font-bold"
-                          : "border-slate-700 bg-slate-900 text-transparent"
+                          : "border-transparent bg-background text-transparent"
                       }`}
                       title={opt.isCorrect ? "Correct Option" : "Mark as Correct"}
                     >
@@ -349,14 +349,14 @@ export default function CreateQuestionPage() {
                       placeholder={`Option ${idx + 1}`}
                       value={opt.optionText}
                       onChange={(e) => handleOptionTextChange(idx, e.target.value)}
-                      className="flex-1 bg-transparent border-none text-xs text-slate-100 focus:outline-none"
+                      className="flex-1 bg-transparent border-none text-xs text-foreground focus:outline-none"
                     />
 
                     {options.length > 2 && (
                       <button
                         type="button"
                         onClick={() => handleRemoveOption(idx)}
-                        className="text-slate-500 hover:text-rose-400"
+                        className="text-muted-foreground hover:text-rose-400"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -368,21 +368,21 @@ export default function CreateQuestionPage() {
           )}
 
           {/* Explanation Card */}
-          <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-3">
-            <h3 className="text-base font-bold text-slate-200">Explanation & Notes (Optional)</h3>
+          <div className="p-6 rounded-3xl bg-background/90 border border-transparent space-y-3">
+            <h3 className="text-base font-bold text-foreground">Explanation & Notes (Optional)</h3>
             <textarea
               rows={3}
               placeholder="Provide solution explanation or reference notes for students..."
               value={explanation}
               onChange={(e) => setExplanation(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 focus:border-amber-500 focus:outline-none"
+              className="w-full bg-background border border-transparent rounded-xl p-3 text-sm text-foreground focus:border-amber-500 focus:outline-none"
             />
           </div>
 
           <div className="flex items-center justify-end space-x-3 pt-2">
             <Link
               href="/instructor/questions"
-              className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold"
+              className="px-5 py-2.5 rounded-xl bg-muted hover:bg-muted text-foreground text-xs font-semibold"
             >
               Cancel
             </Link>

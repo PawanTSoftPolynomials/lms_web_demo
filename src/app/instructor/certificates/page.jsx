@@ -70,19 +70,19 @@ export default function CertificatesDashboardPage() {
     <div className="space-y-6 pb-12">
       {/* Header and Back Link */}
       <div className="flex flex-col gap-2">
-        <Link href="/instructor/dashboard" className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-orange-400 transition-colors">
+        <Link href="/instructor/dashboard" className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors">
           <ArrowLeft size={13} /> Back to Dashboard
         </Link>
         <div className="flex items-start justify-between flex-wrap gap-4 mt-2">
           <div>
-            <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-              <Award className="text-orange-500" size={26} />
+            <h1 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2.5">
+              <Award className="text-primary" size={26} />
               Issued Credentials
             </h1>
-            <p className="text-xs text-slate-400 mt-1">Manage and audit certificates granted to students.</p>
+            <p className="text-xs text-muted-foreground mt-1">Manage and audit certificates granted to students.</p>
           </div>
           <Link href="/instructor/certificates/create">
-            <Button className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-400 text-white font-bold text-xs">
+            <Button className="flex items-center gap-1.5 bg-primary hover:bg-orange-400 text-foreground font-bold text-xs">
               <Plus size={14} strokeWidth={3} /> Certificate Template Builder
             </Button>
           </Link>
@@ -92,7 +92,7 @@ export default function CertificatesDashboardPage() {
       {/* KPI Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: 'Total Granted', value: certificates.length, color: 'text-orange-400', bg: 'bg-orange-500/10' },
+          { label: 'Total Granted', value: certificates.length, color: 'text-primary', bg: 'bg-primary/10' },
           { label: 'Active Programs', value: myCourses.length, color: 'text-teal-400', bg: 'bg-teal-500/10' },
           {
             label: 'Issued This Month',
@@ -106,9 +106,9 @@ export default function CertificatesDashboardPage() {
             bg: 'bg-emerald-500/10',
           }
         ].map((kpi, idx) => (
-          <Card key={idx} className="p-4 bg-[#0D1021] border-[#1A1F35] flex items-center justify-between">
+          <Card key={idx} className="p-4 bg-card border-border flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{kpi.label}</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{kpi.label}</p>
               <h3 className={`text-xl font-black mt-1 ${kpi.color}`}>{kpi.value}</h3>
             </div>
             <div className={`p-2.5 rounded-xl ${kpi.bg}`}>
@@ -121,18 +121,18 @@ export default function CertificatesDashboardPage() {
       {/* Filter and Search controls */}
       <div className="flex flex-col sm:flex-row items-center gap-3">
         <div className="relative w-full sm:flex-1">
-          <Search className="absolute left-3 top-3 text-slate-500" size={15} />
+          <Search className="absolute left-3 top-3 text-muted-foreground" size={15} />
           <Input
             placeholder="Search by student name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-[#0D1021] border-[#1A1F35] text-xs text-white placeholder-slate-600 focus:border-orange-500"
+            className="pl-9 bg-card border-border text-xs text-foreground placeholder-slate-600 focus:border-primary"
           />
         </div>
         <select
           value={courseFilter}
           onChange={(e) => setCourseFilter(e.target.value)}
-          className="w-full sm:w-64 h-[38px] rounded-xl border border-[#1A1F35] bg-[#0D1021] px-3 text-xs text-slate-300 outline-none focus:border-orange-500"
+          className="w-full sm:w-64 h-[38px] rounded-xl border border-border bg-card px-3 text-xs text-foreground outline-none focus:border-primary"
         >
           <option value="">All Courses</option>
           {myCourses.map((c) => (
@@ -142,19 +142,19 @@ export default function CertificatesDashboardPage() {
       </div>
 
       {/* Certificates List Grid */}
-      <Card className="border-[#1A1F35] bg-[#0D1021] overflow-hidden">
+      <Card className="border-border bg-card overflow-hidden">
         {filteredCerts.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#1A1F35] bg-[#0A0D1E] text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <tr className="border-b border-border bg-[#0A0D1E] text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                   <th className="py-3 px-5">Student</th>
                   <th className="py-3 px-5">Course</th>
                   <th className="py-3 px-5">Issue Date</th>
                   <th className="py-3 px-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1A1F35]/50 text-xs text-slate-300">
+              <tbody className="divide-y divide-[#1A1F35]/50 text-xs text-foreground">
                 {filteredCerts.map((cert) => {
                   const studentName = cert.userName || cert.user?.name || 'Unknown Student';
                   const studentEmail = cert.userEmail || cert.user?.email || '';
@@ -165,14 +165,14 @@ export default function CertificatesDashboardPage() {
                     <tr key={cert.id} className="hover:bg-white/[0.01] transition-colors">
                       <td className="py-3.5 px-5">
                         <div>
-                          <p className="font-extrabold text-white">{studentName}</p>
-                          <p className="text-[9px] text-slate-500 mt-0.5">{studentEmail}</p>
+                          <p className="font-extrabold text-foreground">{studentName}</p>
+                          <p className="text-[9px] text-muted-foreground mt-0.5">{studentEmail}</p>
                         </div>
                       </td>
-                      <td className="py-3.5 px-5 font-bold text-slate-400">
+                      <td className="py-3.5 px-5 font-bold text-muted-foreground">
                         {courseTitle}
                       </td>
-                      <td className="py-3.5 px-5 font-medium text-slate-500">
+                      <td className="py-3.5 px-5 font-medium text-muted-foreground">
                         {issueDate}
                       </td>
                       <td className="py-3.5 px-5 text-right">
@@ -188,7 +188,7 @@ export default function CertificatesDashboardPage() {
                             </button>
                             <button
                               onClick={() => setConfirmDeleteId(null)}
-                              className="text-[10px] font-black text-slate-400 hover:text-slate-200"
+                              className="text-[10px] font-black text-muted-foreground hover:text-foreground"
                             >
                               Cancel
                             </button>
@@ -196,7 +196,7 @@ export default function CertificatesDashboardPage() {
                         ) : (
                           <button
                             onClick={() => setConfirmDeleteId(cert.id)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all inline-flex items-center"
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-400 hover:bg-rose-500/5 transition-all inline-flex items-center"
                             title="Revoke Credential"
                           >
                             <Trash2 size={14} />
@@ -212,8 +212,8 @@ export default function CertificatesDashboardPage() {
         ) : (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Award className="text-slate-600 mb-3" size={32} />
-            <h3 className="text-sm font-bold text-slate-400">No Credentials Found</h3>
-            <p className="text-xs text-slate-500 mt-1 max-w-sm">No matching certificates found. Expand your search filters or issue a new credential.</p>
+            <h3 className="text-sm font-bold text-muted-foreground">No Credentials Found</h3>
+            <p className="text-xs text-muted-foreground mt-1 max-w-sm">No matching certificates found. Expand your search filters or issue a new credential.</p>
           </div>
         )}
       </Card>

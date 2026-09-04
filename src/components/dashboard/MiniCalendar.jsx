@@ -116,15 +116,15 @@ export default function MiniCalendar({ role }) {
     switch (type) {
       case "class": return "bg-emerald-500";
       case "quiz": return "bg-violet-500";
-      case "assignment": return "bg-orange-500";
+      case "assignment": return "bg-primary";
       default: return "bg-slate-400";
     }
   };
 
   if (loading) {
     return (
-      <Card className="p-4 border border-slate-800 bg-[#B7C9C5]/60">
-        <div className="h-56 flex items-center justify-center text-xs text-slate-400">
+      <Card className="p-4 border border-border bg-background/30">
+        <div className="h-56 flex items-center justify-center text-xs text-muted-foreground">
           Loading calendar...
         </div>
       </Card>
@@ -132,23 +132,23 @@ export default function MiniCalendar({ role }) {
   }
 
   return (
-    <Card className="border border-slate-800 bg-[#B7C9C5]/60 p-4 relative overflow-hidden flex flex-col justify-between h-full">
-      <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-orange-500/5 blur-xl pointer-events-none" />
+    <Card className="border border-border bg-background/40 p-4 relative overflow-hidden flex flex-col justify-between h-full">
+      <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-primary/5 blur-xl pointer-events-none" />
 
       {/* Mini Calendar Header */}
       <div className="flex justify-between items-center mb-3">
-        <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-          <FaCalendarAlt className="text-orange-500" />
+        <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+          <FaCalendarAlt className="text-primary" />
           Schedule Widget
         </h4>
-        <div className="flex items-center gap-1 bg-[#B7C9C5] p-1 rounded-lg border border-slate-800">
-          <button onClick={handlePrevMonth} className="p-1 hover:bg-slate-800 rounded text-[9px] text-slate-400 hover:text-white transition">
+        <div className="flex items-center gap-1 bg-background p-1 rounded-lg border border-border">
+          <button onClick={handlePrevMonth} className="p-1 hover:bg-muted rounded text-[9px] text-muted-foreground hover:text-foreground transition">
             <FaChevronLeft />
           </button>
-          <span className="text-[10px] font-bold text-slate-300 px-1 truncate w-14 text-center select-none">
+          <span className="text-[10px] font-bold text-foreground px-1 truncate w-14 text-center select-none">
             {MONTHS[month]} {year}
           </span>
-          <button onClick={handleNextMonth} className="p-1 hover:bg-slate-800 rounded text-[9px] text-slate-400 hover:text-white transition">
+          <button onClick={handleNextMonth} className="p-1 hover:bg-muted rounded text-[9px] text-muted-foreground hover:text-foreground transition">
             <FaChevronRight />
           </button>
         </div>
@@ -157,7 +157,7 @@ export default function MiniCalendar({ role }) {
       {/* Days Grid */}
       <div className="grid grid-cols-7 text-center gap-y-1 mb-3">
         {WEEKDAYS.map((w, idx) => (
-          <span key={idx} className="text-[9px] font-extrabold text-slate-500 uppercase">
+          <span key={idx} className="text-[9px] font-extrabold text-muted-foreground uppercase">
             {w}
           </span>
         ))}
@@ -176,10 +176,10 @@ export default function MiniCalendar({ role }) {
               onClick={() => setSelectedDate(d.date)}
               className={`h-7 w-7 mx-auto rounded-lg flex flex-col items-center justify-center text-[10px] font-semibold transition cursor-pointer relative ${
                 isSelected
-                  ? "bg-gradient-to-tr from-orange-500 to-pink-500 text-white font-bold"
+                  ? "bg-gradient-to-tr from-orange-500 to-pink-500 text-foreground font-bold"
                   : isToday
-                  ? "bg-slate-800 text-orange-400 border border-orange-500/20"
-                  : "text-slate-300 hover:bg-slate-800/40"
+                  ? "bg-muted text-primary border border-primary/20"
+                  : "text-foreground hover:bg-muted/40"
               }`}
             >
               <span className="leading-none">{d.day}</span>
@@ -197,20 +197,20 @@ export default function MiniCalendar({ role }) {
       </div>
 
       {/* Selected Day Event List */}
-      <div className="border-t border-slate-800/80 pt-3 flex-1 flex flex-col justify-between">
+      <div className="border-t border-border/80 pt-3 flex-1 flex flex-col justify-between">
         <div className="space-y-1.5 flex-1 min-h-[90px] max-h-[110px] overflow-y-auto pr-1">
-          <div className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">
+          <div className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1">
             Agenda for {selectedDateString === new Date().toISOString().split("T")[0] ? "Today" : selectedDateString}
           </div>
           {selectedDateEvents.length === 0 ? (
-            <div className="text-[10px] text-slate-500 italic py-2">
+            <div className="text-[10px] text-muted-foreground italic py-2">
               No activities scheduled on this day.
             </div>
           ) : (
             selectedDateEvents.map(e => (
-              <div key={e.id || e._id} className="text-[10px] flex items-center justify-between p-1.5 rounded-md bg-[#B7C9C5]/50 border border-slate-800 hover:bg-[#B7C9C5]/70 transition gap-2">
-                <span className="truncate text-slate-200 font-bold max-w-[120px]">{e.title}</span>
-                <span className="text-[8px] px-1 py-0.5 rounded font-bold uppercase bg-[#B7C9C5] border border-slate-800 text-slate-400 flex-shrink-0">
+              <div key={e.id || e._id} className="text-[10px] flex items-center justify-between p-1.5 rounded-md bg-background/30 border border-border hover:bg-background/50 transition gap-2">
+                <span className="truncate text-foreground font-bold max-w-[120px]">{e.title}</span>
+                <span className="text-[8px] px-1 py-0.5 rounded font-bold uppercase bg-background border border-border text-muted-foreground flex-shrink-0">
                   {e.startTime}
                 </span>
               </div>
@@ -220,7 +220,7 @@ export default function MiniCalendar({ role }) {
 
         <button
           onClick={handleNavigateToFullCalendar}
-          className="w-full text-center text-[10px] font-semibold text-orange-500 hover:text-orange-400 mt-2 pt-2 border-t border-slate-800/50 transition"
+          className="w-full text-center text-[10px] font-semibold text-primary hover:text-primary mt-2 pt-2 border-t border-border/50 transition"
         >
           Open Full Calendar
         </button>

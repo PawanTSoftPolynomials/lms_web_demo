@@ -20,15 +20,15 @@ export default function QuizRow({
     const passed = submission?.passed;
 
     return (
-        <tr className="border-b border-slate-800 transition hover:bg-slate-800/40">
+        <tr className="hover:bg-foreground/5 transition">
             {/* Quiz */}
             <td className="px-6 py-5">
                 <div>
-                    <h3 className="font-semibold text-white">
+                    <h3 className="font-semibold text-foreground">
                         {quiz.title}
                     </h3>
 
-                    <p className="mt-1 line-clamp-2 text-sm text-slate-400">
+                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                         {quiz.description}
                     </p>
                 </div>
@@ -36,8 +36,8 @@ export default function QuizRow({
 
             {/* Questions */}
             <td className="px-6 py-5">
-                <div className="flex items-center gap-2 text-slate-300">
-                    <HelpCircle className="h-4 w-4 text-orange-500"/>
+                <div className="flex items-center gap-2 text-foreground">
+                    <HelpCircle className="h-4 w-4 text-primary"/>
 
                     <span>
             {quiz._count?.questions ?? 0}
@@ -47,8 +47,8 @@ export default function QuizRow({
 
             {/* Passing Score */}
             <td className="px-6 py-5">
-                <div className="flex items-center gap-2 text-slate-300">
-                    <Target className="h-4 w-4 text-orange-500"/>
+                <div className="flex items-center gap-2 text-foreground">
+                    <Target className="h-4 w-4 text-primary"/>
 
                     <span>
             {quiz.passingScore}%
@@ -58,8 +58,8 @@ export default function QuizRow({
 
             {/* Time */}
             <td className="px-6 py-5">
-                <div className="flex items-center gap-2 text-slate-300">
-                    <Clock className="h-4 w-4 text-orange-500"/>
+                <div className="flex items-center gap-2 text-foreground">
+                    <Clock className="h-4 w-4 text-primary"/>
 
                     <span>
             {quiz.timeLimit} min
@@ -82,8 +82,8 @@ export default function QuizRow({
                         </div>
                     )
                 ) : (
-                    <div className="flex items-center gap-2 text-slate-400 font-medium text-sm">
-                        <HelpCircle className="h-4 w-4 text-slate-500"/>
+                    <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm">
+                        <HelpCircle className="h-4 w-4 text-muted-foreground"/>
                         <span>Not Attempted</span>
                     </div>
                 )}

@@ -9,12 +9,12 @@ export default function CourseGrid({
 
     if (!items.length) {
         return (
-            <div className="rounded-xl border border-dashed border-slate-700 p-12 text-center">
-                <h3 className="text-lg font-semibold text-white">
+            <div className="rounded-xl border border-dashed border-transparent p-12 text-center">
+                <h3 className="text-lg font-semibold text-foreground">
                     No courses found
                 </h3>
 
-                <p className="mt-2 text-slate-400">
+                <p className="mt-2 text-muted-foreground">
                     You have enrolled in all available courses or no courses match your filter criteria.
                 </p>
             </div>
@@ -22,7 +22,7 @@ export default function CourseGrid({
     }
 
     return (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
             {items.map((item, idx) => {
                 const courseObj = isShowingEnrollmentsOnly ? undefined : item;
                 const enrollmentObj = isShowingEnrollmentsOnly

@@ -69,7 +69,7 @@ export default function ForgotPasswordPage() {
       <AuthCard>
         <AuthHeader
           icon={
-            <HiOutlineLockClosed className="text-4xl text-orange-500" />
+            <HiOutlineLockClosed className="text-4xl text-primary" />
           }
           title="Forgot Password"
           description="Enter your registered email address. We'll send you a 6-digit OTP to reset your password."

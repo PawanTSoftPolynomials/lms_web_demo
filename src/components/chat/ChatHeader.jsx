@@ -9,13 +9,13 @@ export default function ChatHeader() {
   };
 
   return (
-    <div className="flex h-16 items-center justify-between border-b border-slate-800/50 bg-slate-950 px-5">
+    <div className="flex h-16 items-center justify-between border-b border-border/50 bg-background px-5">
       <div>
-        <h2 className="text-sm font-semibold text-white">
+        <h2 className="text-sm font-semibold text-foreground">
           {sidebarMode === "chats" ? "Messages" : "Start New Chat"}
         </h2>
 
-        <p className="text-[10px] text-slate-400">
+        <p className="text-[10px] text-muted-foreground">
           {sidebarMode === "chats" ? "Orange LMS Messenger" : "Select a user to chat"}
         </p>
       </div>
@@ -37,8 +37,8 @@ export default function ChatHeader() {
 
             ${
               sidebarMode === "users"
-                ? "bg-orange-500/10 text-orange-500 shadow-[0_0_10px_rgba(242,199,199,0.15)]"
-                : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                ? "bg-primary/10 text-primary shadow-[0_0_10px_rgba(249,115,22,0.15)]"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }
           `}
         >
@@ -60,12 +60,12 @@ export default function ChatHeader() {
 
           rounded-lg
 
-          text-slate-400
+          text-muted-foreground
 
           transition
 
-          hover:bg-slate-800
-          hover:text-white
+          hover:bg-muted
+          hover:text-foreground
           "
         >
           <Minus size={16} />
@@ -82,12 +82,12 @@ export default function ChatHeader() {
 
           rounded-lg
 
-          text-slate-400
+          text-muted-foreground
 
           transition
 
           hover:bg-red-500
-          hover:text-white
+          hover:text-foreground
           "
         >
           <X size={16} />

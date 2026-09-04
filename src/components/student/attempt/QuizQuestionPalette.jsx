@@ -6,13 +6,13 @@ import Button from "@/components/ui/Button";
 
 const STATUS_STYLES = {
     current:
-        "border-orange-500 bg-orange-500 text-white shadow-[0_0_0_3px_rgba(242,199,199,0.25)]",
+        "border-primary bg-primary text-foreground shadow-[0_0_0_3px_rgba(249,115,22,0.25)]",
     answered:
         "border-emerald-500/60 bg-emerald-500/15 text-emerald-400 hover:border-emerald-400",
     visited:
         "border-amber-500/60 bg-amber-500/15 text-amber-400 hover:border-amber-400",
     unvisited:
-        "border-slate-700 bg-slate-800/60 text-slate-400 hover:border-slate-600 hover:text-slate-200",
+        "border-transparent bg-muted/60 text-muted-foreground hover:border-transparent hover:text-foreground",
 };
 
 const LEGEND_ITEMS = [
@@ -54,22 +54,22 @@ export default function QuizQuestionPalette({
     const answeredCount = Object.keys(answers).length;
 
     return (
-        <div className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900 p-5 lg:sticky lg:top-6">
+        <div className="flex flex-col gap-4 rounded-2xl border border-border bg-background p-5 lg:sticky lg:top-6">
             <div className="flex items-center gap-2">
-                <LayoutGrid className="h-4 w-4 text-orange-500" />
+                <LayoutGrid className="h-4 w-4 text-primary" />
 
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground">
                     Question Overview
                 </h3>
             </div>
 
-            <div className="grid grid-cols-6 gap-2 sm:grid-cols-8 lg:grid-cols-5">
+            <div className="grid grid-cols-6 gap-2 overflow-x-auto scrollbar-none pb-1 sm:grid-cols-8 lg:grid-cols-5 lg:overflow-x-visible">
                 {questions.map((question, index) => (
                     <button
                         key={question.id ?? index}
                         type="button"
                         onClick={() => onJumpTo?.(index)}
-                        className={`flex h-10 w-10 items-center justify-center rounded-lg border text-sm font-semibold transition cursor-pointer ${
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-sm font-semibold transition cursor-pointer ${
                             STATUS_STYLES[
                                 statusFor(index, question.id)
                             ]
@@ -80,11 +80,11 @@ export default function QuizQuestionPalette({
                 ))}
             </div>
 
-            <div className="space-y-2 border-t border-slate-800 pt-4">
+            <div className="space-y-2 border-t border-border pt-4">
                 {LEGEND_ITEMS.map((item) => (
                     <div
                         key={item.key}
-                        className="flex items-center justify-between gap-2 text-xs text-slate-400"
+                        className="flex items-center justify-between gap-2 text-xs text-muted-foreground"
                     >
                         <span className="flex items-center gap-2">
                             <span
@@ -93,14 +93,14 @@ export default function QuizQuestionPalette({
                             {item.label}
                         </span>
 
-                        <span className="font-semibold text-slate-300">
+                        <span className="font-semibold text-foreground">
                             {statusCounts[item.key]}
                         </span>
                     </div>
                 ))}
             </div>
 
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
                 {answeredCount} of {questions.length} answered
             </p>
 

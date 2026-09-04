@@ -79,8 +79,8 @@ export default function CourseSectionTabs() {
                             onClick={() => handleTabClick(tab.id)}
                             className={`shrink-0 whitespace-nowrap border-b-2 px-4 py-2 text-sm font-bold transition-colors cursor-pointer ${
                                 isActive
-                                    ? "border-orange-500 text-orange-400"
-                                    : "border-transparent text-slate-400 hover:text-slate-200"
+                                    ? "border-primary text-primary"
+                                    : "border-transparent text-muted-foreground hover:text-foreground"
                             }`}
                         >
                             {tab.label}

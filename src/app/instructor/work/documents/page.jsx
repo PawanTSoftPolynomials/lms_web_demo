@@ -77,7 +77,7 @@ export default function WorkUploadDocumentsPage() {
       render: (row) => {
         const Icon = TYPE_ICON[row.type] || FileIcon;
         return (
-          <span className="flex items-center gap-2 font-semibold text-slate-200">
+          <span className="flex items-center gap-2 font-semibold text-foreground">
             <Icon size={14} className="text-orange-450 shrink-0" />
             {row.title || "Untitled"}
           </span>
@@ -88,7 +88,7 @@ export default function WorkUploadDocumentsPage() {
       key: "type",
       header: "Type",
       render: (row) => (
-        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">{row.type}</span>
+        <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{row.type}</span>
       ),
     },
     {
@@ -102,7 +102,7 @@ export default function WorkUploadDocumentsPage() {
       align: "right",
       render: (row) =>
         row.fileUrl ? (
-          <a href={row.fileUrl} target="_blank" rel="noopener noreferrer" className="text-orange-450 hover:text-orange-400 text-[11px] font-bold">
+          <a href={row.fileUrl} target="_blank" rel="noopener noreferrer" className="text-orange-450 hover:text-primary text-[11px] font-bold">
             Open
           </a>
         ) : null,
@@ -110,10 +110,10 @@ export default function WorkUploadDocumentsPage() {
   ];
 
   return (
-    <Card className="mx-auto max-w-4xl bg-[#0D1021] border border-[#1A1F35] p-6 sm:p-8 rounded-2xl shadow-2xl space-y-6">
+    <Card className="mx-auto max-w-4xl bg-card border border-border p-6 sm:p-8 rounded-2xl shadow-2xl space-y-6">
       <div>
-        <h1 className="text-3xl font-black text-white tracking-tight">Upload Documents</h1>
-        <p className="mt-2 text-sm text-slate-400">Attach PDFs, presentations, documents, archives, or videos to a topic.</p>
+        <h1 className="text-3xl font-black text-foreground tracking-tight">Upload Documents</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Attach PDFs, presentations, documents, archives, or videos to a topic.</p>
       </div>
 
       <CourseModuleLessonSelect
@@ -126,16 +126,16 @@ export default function WorkUploadDocumentsPage() {
       />
 
       {!topicId ? (
-        <div className="rounded-2xl border border-dashed border-[#1A1F35] bg-[#05070E] py-16 text-center">
-          <p className="text-xs font-bold text-slate-500">Select a Course, Module, Lesson, and Topic above to upload documents.</p>
+        <div className="rounded-2xl border border-dashed border-border bg-[#05070E] py-16 text-center">
+          <p className="text-xs font-bold text-muted-foreground">Select a Course, Module, Lesson, and Topic above to upload documents.</p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-[#1A1F35] bg-[#05070E] p-5 space-y-5">
+        <div className="rounded-2xl border border-border bg-[#05070E] p-5 space-y-5">
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold p-3 rounded-xl">{error}</div>
           )}
 
-          <label className="flex items-center gap-2 w-fit px-4 py-2.5 rounded-xl border border-dashed border-slate-700 bg-slate-900 text-xs text-slate-300 hover:border-orange-500 cursor-pointer transition">
+          <label className="flex items-center gap-2 w-fit px-4 py-2.5 rounded-xl border border-dashed border-transparent bg-background text-xs text-foreground hover:border-primary cursor-pointer transition">
             {uploading ? <Loader2 size={14} className="animate-spin" /> : <UploadCloud size={14} />}
             {uploading ? "Uploading..." : "Choose files (PDF, PPT, DOCX, ZIP, Video)"}
             <input type="file" multiple className="hidden" onChange={handleUpload} disabled={uploading} accept=".pdf,.ppt,.pptx,.doc,.docx,.zip,.mp4,.mov,.webm" />

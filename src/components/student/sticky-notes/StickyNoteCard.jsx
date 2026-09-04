@@ -63,7 +63,7 @@ export default function StickyNoteCard({ note, onSeek }) {
           onSeek?.(note.timestamp || 0);
         }
       }}
-      className={`group relative rounded-r-xl border-l-4 border-y border-r border-slate-800/80 p-3 transition-all duration-200 cursor-pointer select-none ${
+      className={`group relative rounded-r-xl border-l-4 border-y border-r border-border/80 p-3 transition-all duration-200 cursor-pointer select-none ${
         colorClasses[color] || colorClasses.yellow
       }`}
     >
@@ -71,7 +71,7 @@ export default function StickyNoteCard({ note, onSeek }) {
       <div className="mb-1.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {/* Timestamp Indicator */}
-          <span className="font-mono text-[11px] font-bold text-orange-400">
+          <span className="font-mono text-[11px] font-bold text-primary">
             {formattedTime}
           </span>
 
@@ -92,10 +92,10 @@ export default function StickyNoteCard({ note, onSeek }) {
               togglePin(note.id);
             }}
             disabled={isPinning}
-            className="p-1 rounded hover:bg-slate-900 text-slate-400 hover:text-orange-400 transition cursor-pointer"
+            className="p-1 rounded hover:bg-background text-muted-foreground hover:text-primary transition cursor-pointer"
             title={note.isPinned ? "Unpin note" : "Pin note"}
           >
-            <Pin size={12} className={note.isPinned ? "fill-orange-400 text-orange-400" : ""} />
+            <Pin size={12} className={note.isPinned ? "fill-orange-400 text-primary" : ""} />
           </button>
 
           <button
@@ -104,7 +104,7 @@ export default function StickyNoteCard({ note, onSeek }) {
               e.stopPropagation();
               setIsEditing(!isEditing);
             }}
-            className="p-1 rounded hover:bg-slate-900 text-slate-400 hover:text-blue-400 transition cursor-pointer"
+            className="p-1 rounded hover:bg-background text-muted-foreground hover:text-blue-400 transition cursor-pointer"
             title="Edit note"
           >
             <Edit2 size={12} />
@@ -117,7 +117,7 @@ export default function StickyNoteCard({ note, onSeek }) {
               deleteStickyNote(note.id);
             }}
             disabled={isDeleting}
-            className="p-1 rounded hover:bg-slate-900 text-slate-400 hover:text-red-400 transition cursor-pointer"
+            className="p-1 rounded hover:bg-background text-muted-foreground hover:text-red-400 transition cursor-pointer"
             title="Delete note"
           >
             <Trash2 size={12} />
@@ -132,7 +132,7 @@ export default function StickyNoteCard({ note, onSeek }) {
             rows={3}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full rounded-lg border border-slate-700 bg-slate-950 p-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-orange-500 font-sans"
+            className="w-full rounded-lg border border-transparent bg-background p-2.5 text-xs text-foreground placeholder-slate-500 outline-none focus:border-primary font-sans"
           />
 
           <div className="flex items-center justify-between">
@@ -154,7 +154,7 @@ export default function StickyNoteCard({ note, onSeek }) {
                 type="button"
                 onClick={handleSave}
                 disabled={isUpdating}
-                className="px-2.5 py-1 rounded-lg bg-orange-500 hover:bg-orange-600 text-slate-950 font-bold text-[10px] uppercase tracking-wider transition cursor-pointer"
+                className="px-2.5 py-1 rounded-lg bg-primary hover:bg-orange-600 text-slate-950 font-bold text-[10px] uppercase tracking-wider transition cursor-pointer"
               >
                 Save
               </button>
@@ -165,7 +165,7 @@ export default function StickyNoteCard({ note, onSeek }) {
                   setColor(note.color);
                   setIsEditing(false);
                 }}
-                className="p-1 rounded border border-slate-700 text-slate-400 hover:text-white"
+                className="p-1 rounded border border-transparent text-muted-foreground hover:text-foreground"
               >
                 <X size={12} />
               </button>
@@ -173,7 +173,7 @@ export default function StickyNoteCard({ note, onSeek }) {
           </div>
         </div>
       ) : (
-        <p className="whitespace-pre-wrap text-xs font-normal leading-relaxed text-slate-200">
+        <p className="whitespace-pre-wrap text-xs font-normal leading-relaxed text-foreground">
           {note.content}
         </p>
       )}

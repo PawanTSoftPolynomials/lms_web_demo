@@ -88,7 +88,7 @@ export default function MyCoursesPage() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-4 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
       <PageHeader
         title={`My Courses${!isLoading && myEnrollments.length ? ` (${filteredCourses.length})` : ""}`}
         subtitle="Track your progress and continue learning your enrolled courses."
@@ -96,13 +96,13 @@ export default function MyCoursesPage() {
       >
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
           <div className="relative w-full min-w-0 md:w-64">
-            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search your courses..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-[#1A1F35] bg-[#0D1021] pl-9 pr-4 py-2 md:py-2.5 text-sm text-slate-200 placeholder-slate-500 outline-none transition focus:border-orange-500/60"
+              className="w-full rounded-xl border border-border bg-card pl-9 pr-4 py-2 md:py-2.5 text-sm text-foreground placeholder-slate-500 outline-none transition focus:border-primary/60"
             />
           </div>
 
@@ -110,7 +110,7 @@ export default function MyCoursesPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-[#1A1F35] bg-[#0D1021] px-3 py-2 md:py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer hover:border-slate-700 transition"
+              className="rounded-xl border border-border bg-card px-3 py-2 md:py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer hover:border-transparent transition"
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -122,7 +122,7 @@ export default function MyCoursesPage() {
             <select
               value={instructorFilter}
               onChange={(e) => setInstructorFilter(e.target.value)}
-              className="rounded-xl border border-[#1A1F35] bg-[#0D1021] px-3 py-2 md:py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer hover:border-slate-700 transition"
+              className="rounded-xl border border-border bg-card px-3 py-2 md:py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer hover:border-transparent transition"
             >
               <option value="all">All Instructors</option>
               {instructors.map((name) => (
@@ -135,7 +135,7 @@ export default function MyCoursesPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="rounded-xl border border-[#1A1F35] bg-[#0D1021] px-3 py-2 md:py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer hover:border-slate-700 transition"
+              className="rounded-xl border border-border bg-card px-3 py-2 md:py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer hover:border-transparent transition"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -148,11 +148,11 @@ export default function MyCoursesPage() {
       </PageHeader>
 
       {isError ? (
-        <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] py-16 text-center space-y-3">
-          <p className="text-sm font-bold text-slate-300">Unable to load your courses.</p>
+        <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
+          <p className="text-sm font-bold text-foreground">Unable to load your courses.</p>
           <button
             onClick={() => refetch()}
-            className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-primary hover:bg-orange-600 text-foreground text-xs font-bold transition cursor-pointer"
           >
             Retry
           </button>
@@ -166,12 +166,12 @@ export default function MyCoursesPage() {
           onAction={() => router.push("/student/courses")}
         />
       ) : (
-        <div className="rounded-2xl border border-[#1A1F35] bg-[#0D1021] px-3 py-4 md:px-12 md:py-6">
+        <div className="flex flex-col flex-1 min-h-0 rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6">
           <div className="md:max-h-[68vh] md:overflow-y-auto md:pr-1 md:-mr-1">
             <div
               ref={sliderRef}
               onScroll={!isLoading && filteredCourses.length > 0 ? handleSliderScroll : undefined}
-              className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-4 md:pb-0 md:grid md:justify-center md:grid-cols-[repeat(auto-fill,224px)] md:overflow-visible md:snap-none"
+              className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-6 md:pb-0 md:grid md:justify-center md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 md:overflow-visible md:snap-none"
             >
               {isLoading
                 ? Array.from({ length: 6 }).map((_, i) => (
@@ -206,7 +206,7 @@ export default function MyCoursesPage() {
                     aria-label={`Go to course slide ${i + 1}`}
                     onClick={() => goToSlide(i)}
                     className={`rounded-full transition-all duration-300 ${
-                      i === activeSlide ? "w-2 h-2 bg-orange-500" : "w-1.5 h-1.5 bg-slate-600"
+                      i === activeSlide ? "w-2 h-2 bg-primary" : "w-1.5 h-1.5 bg-slate-600"
                     }`}
                   />
                 ))}

@@ -14,13 +14,13 @@ const renderMarkdown = (text) => {
     // Bold
     html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
     // Headings
-    html = html.replace(/^### (.*?)$/gm, "<h3 class='text-lg font-bold text-white mt-3 mb-1'>$1</h3>");
-    html = html.replace(/^## (.*?)$/gm, "<h2 class='text-xl font-bold text-white mt-4 mb-2'>$1</h2>");
-    html = html.replace(/^# (.*?)$/gm, "<h1 class='text-2xl font-bold text-white mt-4 mb-2'>$1</h1>");
+    html = html.replace(/^### (.*?)$/gm, "<h3 class='text-lg font-bold text-foreground mt-3 mb-1'>$1</h3>");
+    html = html.replace(/^## (.*?)$/gm, "<h2 class='text-xl font-bold text-foreground mt-4 mb-2'>$1</h2>");
+    html = html.replace(/^# (.*?)$/gm, "<h1 class='text-2xl font-bold text-foreground mt-4 mb-2'>$1</h1>");
     // Lists
-    html = html.replace(/^\-\s+(.*?)$/gm, "<li class='list-disc list-inside ml-4 text-slate-300'>$1</li>");
+    html = html.replace(/^\-\s+(.*?)$/gm, "<li class='list-disc list-inside ml-4 text-foreground'>$1</li>");
     // Code
-    html = html.replace(/`(.*?)`/g, "<code class='bg-slate-800 px-1.5 py-0.5 rounded text-orange-400 font-mono text-sm'>$1</code>");
+    html = html.replace(/`(.*?)`/g, "<code class='bg-muted px-1.5 py-0.5 rounded text-primary font-mono text-sm'>$1</code>");
     // Newlines
     html = html.split("\n").join("<br/>");
     return html;
@@ -34,20 +34,20 @@ export default function SelfAssessmentInput({
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <p className="text-sm text-slate-400">
+            <div className="flex items-center justify-between border-b border-border pb-2">
+                <p className="text-sm text-muted-foreground">
                     Write your detailed self-assessment answer in markdown format:
                 </p>
 
                 {/* Tabs */}
-                <div className="flex bg-slate-950 p-1 rounded-lg border border-slate-800">
+                <div className="flex bg-background p-1 rounded-lg border border-border">
                     <button
                         type="button"
                         onClick={() => setActiveTab("write")}
                         className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition ${
                             activeTab === "write"
-                                ? "bg-orange-500 text-white"
-                                : "text-slate-400 hover:text-white"
+                                ? "bg-primary text-foreground"
+                                : "text-muted-foreground hover:text-foreground"
                         }`}
                     >
                         <Edit2 className="h-3 w-3" /> Write
@@ -57,8 +57,8 @@ export default function SelfAssessmentInput({
                         onClick={() => setActiveTab("preview")}
                         className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition ${
                             activeTab === "preview"
-                                ? "bg-orange-500 text-white"
-                                : "text-slate-400 hover:text-white"
+                                ? "bg-primary text-foreground"
+                                : "text-muted-foreground hover:text-foreground"
                         }`}
                     >
                         <Eye className="h-3 w-3" /> Preview
@@ -74,18 +74,18 @@ export default function SelfAssessmentInput({
                         onChange={(e) => onChange(e.target.value)}
                         placeholder="Type your explanation here. You can use markdown like **bold**, `code`, # Headings, or - Lists..."
                         rows={10}
-                        className="w-full rounded-xl border border-slate-800 bg-slate-950 p-5 text-slate-100 placeholder-slate-600 focus:border-orange-500 focus:outline-none transition font-sans text-base leading-relaxed"
+                        className="w-full rounded-xl border border-border bg-background p-5 text-foreground placeholder-slate-600 focus:border-primary focus:outline-none transition font-sans text-base leading-relaxed"
                     />
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <FileText className="h-4 w-4" />
                         <span>Supports basic markdown formatting. Double check formatting in the Preview tab.</span>
                     </div>
                 </div>
             ) : (
-                <div className="w-full min-h-[250px] rounded-xl border border-slate-800 bg-slate-950 p-6 overflow-auto">
+                <div className="w-full min-h-[250px] rounded-xl border border-border bg-background p-6 overflow-auto">
                     {value ? (
                         <div
-                            className="prose prose-invert max-w-none text-slate-300 leading-relaxed"
+                            className="prose prose-invert max-w-none text-foreground leading-relaxed"
                             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(renderMarkdown(value)) }}
                         />
                     ) : (

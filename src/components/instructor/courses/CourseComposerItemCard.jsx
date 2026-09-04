@@ -17,17 +17,17 @@ export function CourseComposerItemCard({
   metadataText,
   onClick,
   menuItems = [],
-  badgeColorClass = "bg-orange-500/15 text-orange-400 border-orange-500/30",
-  hoverTextClass = "group-hover:text-orange-400",
-  hoverBorderClass = "hover:border-orange-500/40",
-  arrowColorClass = "group-hover:text-orange-400",
+  badgeColorClass = "bg-primary/15 text-primary border-primary/30",
+  hoverTextClass = "group-hover:text-primary",
+  hoverBorderClass = "hover:border-primary/40",
+  arrowColorClass = "group-hover:text-primary",
 }) {
   const formattedNum = String(orderNumber).padStart(2, "0");
 
   return (
     <div
       onClick={onClick}
-      className={`group relative flex flex-col justify-between p-4 rounded-xl border border-[#D9D9D9]/90 bg-[#B7C9C5]/60 hover:bg-[#B7C9C5] ${hoverBorderClass} transition duration-150 shadow-sm cursor-pointer min-h-[125px]`}
+      className={`group relative flex flex-col justify-between p-4 rounded-xl border border-border/90 bg-background/60 hover:bg-background ${hoverBorderClass} transition duration-150 shadow-sm cursor-pointer min-h-[125px]`}
     >
       {/* Top Bar: Order Badge & 3-Dot Kebab Menu */}
       <div className="flex items-center justify-between gap-2">
@@ -42,16 +42,16 @@ export function CourseComposerItemCard({
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="p-1 rounded text-slate-400 hover:text-white hover:bg-[#EDEDED] transition cursor-pointer"
+                  className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
                   aria-label="Item actions"
                 >
                   <MoreVertical size={14} />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-[#B7C9C5] border-[#D9D9D9] text-slate-200">
+              <DropdownMenuContent align="end" className="bg-background border-border text-foreground">
                 {menuItems.map((item, idx) =>
                   item.separator ? (
-                    <DropdownMenuSeparator key={`sep-${idx}`} className="bg-slate-800" />
+                    <DropdownMenuSeparator key={`sep-${idx}`} className="bg-muted" />
                   ) : (
                     <DropdownMenuItem
                       key={item.label || idx}
@@ -61,8 +61,8 @@ export function CourseComposerItemCard({
                         item.destructive
                           ? "text-red-400 hover:bg-red-950/40"
                           : item.highlight
-                          ? "text-purple-400 hover:bg-[#B7C9C5] font-semibold"
-                          : "hover:bg-[#B7C9C5]"
+                          ? "text-purple-400 hover:bg-background font-semibold"
+                          : "hover:bg-background"
                       }`}
                     >
                       {item.icon && <item.icon className="mr-2 size-3.5" />}
@@ -78,22 +78,22 @@ export function CourseComposerItemCard({
 
       {/* Middle: Title & Subtitle */}
       <div className="my-2 space-y-1">
-        <h4 className={`text-sm font-bold text-[#6C7A6D] line-clamp-2 ${hoverTextClass} transition`}>
+        <h4 className={`text-sm font-bold text-foreground line-clamp-2 ${hoverTextClass} transition`}>
           {title}
         </h4>
         {subtitle && (
-          <p className="text-xs text-slate-400 line-clamp-1">
+          <p className="text-xs text-muted-foreground line-clamp-1">
             {subtitle}
           </p>
         )}
       </div>
 
       {/* Bottom Bar: Metadata & Arrow Affordance */}
-      <div className="flex items-center justify-between text-xs pt-2 border-t border-[#D9D9D9]/60 text-slate-400">
+      <div className="flex items-center justify-between text-xs pt-2 border-t border-border/60 text-muted-foreground">
         <span className="text-[11px] font-mono font-medium">
           {metadataText}
         </span>
-        <ArrowRight size={13} className={`text-slate-500 ${arrowColorClass} group-hover:translate-x-0.5 transition`} />
+        <ArrowRight size={13} className={`text-muted-foreground ${arrowColorClass} group-hover:translate-x-0.5 transition`} />
       </div>
     </div>
   );

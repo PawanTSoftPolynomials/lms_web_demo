@@ -35,11 +35,11 @@ const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const EVENT_TYPES = {
   lecture: { label: "Lecture", color: "bg-emerald-500", text: "text-emerald-400", border: "border-emerald-500/30", bgSoft: "bg-emerald-500/10", icon: Video },
-  assignment: { label: "Assignment", color: "bg-orange-500", text: "text-orange-400", border: "border-orange-500/30", bgSoft: "bg-orange-500/10", icon: FileText },
+  assignment: { label: "Assignment", color: "bg-primary", text: "text-primary", border: "border-primary/30", bgSoft: "bg-primary/10", icon: FileText },
   quiz: { label: "Quiz", color: "bg-purple-500", text: "text-purple-400", border: "border-purple-500/30", bgSoft: "bg-purple-500/10", icon: HelpCircle },
   meeting: { label: "Meeting", color: "bg-blue-500", text: "text-blue-400", border: "border-blue-500/30", bgSoft: "bg-blue-500/10", icon: Users },
   office_hours: { label: "Office Hours", color: "bg-pink-500", text: "text-pink-400", border: "border-pink-500/30", bgSoft: "bg-pink-500/10", icon: Clock },
-  holiday: { label: "Holiday", color: "bg-slate-500", text: "text-slate-400", border: "border-slate-500/30", bgSoft: "bg-slate-500/10", icon: Sun },
+  holiday: { label: "Holiday", color: "bg-slate-500", text: "text-muted-foreground", border: "border-slate-500/30", bgSoft: "bg-slate-500/10", icon: Sun },
 };
 
 export default function InstructorScheduleView() {
@@ -299,51 +299,51 @@ export default function InstructorScheduleView() {
   const todayDateStr = useMemo(() => new Date().toISOString().split("T")[0], []);
 
   return (
-    <div className="min-h-screen text-slate-100 bg-[#080B11] p-4 sm:p-6 space-y-6 animate-fade-in">
+    <div className="min-h-screen text-foreground bg-background p-4 sm:p-6 space-y-6 animate-fade-in">
       
       {/* =========================================================================
           1. TOP HEADER CARD
          ========================================================================= */}
-      <div className="relative z-50 bg-[#0D1021] border border-[#1A1F35] rounded-2xl p-5 shadow-2xl backdrop-blur-xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+      <div className="relative z-50 bg-card border border-border rounded-2xl p-5 shadow-2xl backdrop-blur-xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         
         {/* Left Title & Month Switcher */}
         <div className="flex items-center gap-4 flex-wrap">
-          <div className="p-3.5 bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 rounded-2xl text-orange-400">
+          <div className="p-3.5 bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-primary/30 rounded-2xl text-primary">
             <CalendarIcon size={24} />
           </div>
 
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-black text-white tracking-tight font-mono">
+              <h1 className="text-2xl font-black text-foreground tracking-tight font-mono">
                 {MONTHS[month]} {year}
               </h1>
-              <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">
+              <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
                 Command Center
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Manage lectures, assignments, quizzes, meetings, and office hours.
             </p>
           </div>
 
           {/* Month Prev/Next/Today Controls */}
-          <div className="flex items-center bg-[#05070E] p-1.5 rounded-xl border border-[#1A1F35] ml-0 sm:ml-4">
+          <div className="flex items-center bg-[#05070E] p-1.5 rounded-xl border border-border ml-0 sm:ml-4">
             <button
               onClick={handlePrevMonth}
-              className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition cursor-pointer"
+              className="p-2 text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-lg transition cursor-pointer"
               title="Previous Month"
             >
               <ChevronLeft size={16} />
             </button>
             <button
               onClick={handleToday}
-              className="px-3 py-1.5 text-xs font-black text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition mx-1 cursor-pointer"
+              className="px-3 py-1.5 text-xs font-black text-foreground hover:text-foreground hover:bg-white/10 rounded-lg transition mx-1 cursor-pointer"
             >
               Today
             </button>
             <button
               onClick={handleNextMonth}
-              className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition cursor-pointer"
+              className="p-2 text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-lg transition cursor-pointer"
               title="Next Month"
             >
               <ChevronRight size={16} />
@@ -355,7 +355,7 @@ export default function InstructorScheduleView() {
         <div className="flex items-center gap-3 flex-wrap w-full lg:w-auto justify-between lg:justify-end">
 
           {/* Segmented View Switcher: Month / Week / Agenda */}
-          <div className="flex items-center bg-[#05070E] p-1.5 rounded-xl border border-[#1A1F35]">
+          <div className="flex items-center bg-[#05070E] p-1.5 rounded-xl border border-border">
             {[
               { id: "month", label: "Month", icon: Grid },
               { id: "agenda", label: "Agenda", icon: List },
@@ -367,8 +367,8 @@ export default function InstructorScheduleView() {
                   onClick={() => setViewMode(v.id)}
                   className={`px-3 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 transition cursor-pointer ${
                     viewMode === v.id
-                      ? "bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md font-extrabold"
-                      : "text-slate-400 hover:text-white hover:bg-white/5"
+                      ? "bg-gradient-to-r from-orange-500 to-pink-500 text-foreground shadow-md font-extrabold"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                   }`}
                 >
                   <VIcon size={13} />
@@ -382,7 +382,7 @@ export default function InstructorScheduleView() {
           <div className="relative" ref={addMenuRef}>
             <button
               onClick={() => setShowAddMenu((prev) => !prev)}
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95 transition cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-foreground text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95 transition cursor-pointer"
             >
               <Plus size={16} />
               <span>Schedule Session</span>
@@ -390,8 +390,8 @@ export default function InstructorScheduleView() {
             </button>
 
             {showAddMenu && (
-              <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-[#1A1F35] bg-[#05070E] p-1.5 shadow-2xl z-50 text-left animate-in fade-in duration-150">
-                <div className="text-[9px] font-black uppercase tracking-widest text-slate-500 px-3 py-2 border-b border-[#1A1F35]">
+              <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-border bg-[#05070E] p-1.5 shadow-2xl z-50 text-left animate-in fade-in duration-150">
+                <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-3 py-2 border-b border-border">
                   Quick Add Event
                 </div>
                 {Object.keys(EVENT_TYPES).map((key) => {
@@ -401,7 +401,7 @@ export default function InstructorScheduleView() {
                     <button
                       key={key}
                       onClick={() => handleCreateEvent(key)}
-                      className="w-full flex items-center gap-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 px-3 py-2 rounded-xl transition text-left cursor-pointer"
+                      className="w-full flex items-center gap-2.5 text-xs font-bold text-foreground hover:text-foreground hover:bg-white/5 px-3 py-2 rounded-xl transition text-left cursor-pointer"
                     >
                       <IconComp size={14} className={item.text} />
                       <span>{item.label}</span>
@@ -418,9 +418,9 @@ export default function InstructorScheduleView() {
       {/* =========================================================================
           2. MONTHLY SUMMARY SNAPSHOT BAR (Dynamic DB Counts)
          ========================================================================= */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0D1021]/80 border border-[#1A1F35] p-3.5 rounded-2xl backdrop-blur-md text-xs font-bold text-slate-400">
-        <div className="flex items-center gap-2 text-white font-mono uppercase tracking-wider text-[11px]">
-          <Sparkles size={14} className="text-orange-400" />
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-card/80 border border-border p-3.5 rounded-2xl backdrop-blur-md text-xs font-bold text-muted-foreground">
+        <div className="flex items-center gap-2 text-foreground font-mono uppercase tracking-wider text-[11px]">
+          <Sparkles size={14} className="text-primary" />
           <span>Monthly Snapshot:</span>
         </div>
         
@@ -428,7 +428,7 @@ export default function InstructorScheduleView() {
           <span className="flex items-center gap-1.5 text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-500/20">
             <Video size={13} /> {totalLecturesCount} Lectures
           </span>
-          <span className="flex items-center gap-1.5 text-orange-400 bg-orange-500/10 px-3 py-1 rounded-xl border border-orange-500/20">
+          <span className="flex items-center gap-1.5 text-primary bg-primary/10 px-3 py-1 rounded-xl border border-primary/20">
             <FileText size={13} /> {totalAssignmentsCount} Assignments
           </span>
           <span className="flex items-center gap-1.5 text-purple-400 bg-purple-500/10 px-3 py-1 rounded-xl border border-purple-500/20">
@@ -437,7 +437,7 @@ export default function InstructorScheduleView() {
           <span className="flex items-center gap-1.5 text-blue-400 bg-blue-500/10 px-3 py-1 rounded-xl border border-blue-500/20">
             <Users size={13} /> {totalMeetingsCount} Meetings
           </span>
-          <span className="flex items-center gap-1.5 text-slate-300 bg-slate-800/40 px-3 py-1 rounded-xl border border-slate-700/50">
+          <span className="flex items-center gap-1.5 text-foreground bg-muted/40 px-3 py-1 rounded-xl border border-transparent/50">
             <Clock size={13} /> {totalHoursCount} Teaching Hours
           </span>
         </div>
@@ -451,13 +451,13 @@ export default function InstructorScheduleView() {
       <div className="space-y-4">
         
         {viewMode === "month" && (
-          <div className="bg-[#0D1021] border border-[#1A1F35] rounded-2xl overflow-hidden shadow-2xl">
+          <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-2xl">
             {/* Weekday Header */}
-            <div className="grid grid-cols-7 border-b border-[#1A1F35] bg-[#05070E]">
+            <div className="grid grid-cols-7 border-b border-border bg-[#05070E]">
               {WEEKDAYS.map((day) => (
                 <div
                   key={day}
-                  className="py-2 sm:py-3 text-center text-[9px] sm:text-xs font-black text-slate-400 uppercase tracking-widest font-mono border-r last:border-r-0 border-[#1A1F35]"
+                  className="py-2 sm:py-3 text-center text-[9px] sm:text-xs font-black text-muted-foreground uppercase tracking-widest font-mono border-r last:border-r-0 border-border"
                 >
                   <span className="hidden sm:inline">{day}</span>
                   <span className="sm:hidden">{day.substring(0, 3)}</span>
@@ -476,12 +476,12 @@ export default function InstructorScheduleView() {
                   <div
                     key={`${dateStr}-${idx}`}
                     onClick={() => handleDateClick(dateStr)}
-                    className={`min-h-[75px] sm:min-h-[125px] p-1 sm:p-2 border-r border-b border-[#1A1F35] flex flex-col justify-between transition-all group relative cursor-pointer hover:bg-white/[0.03] ${
+                    className={`min-h-[75px] sm:min-h-[125px] p-1 sm:p-2 border-r border-b border-border flex flex-col justify-between transition-all group relative cursor-pointer hover:bg-white/[0.03] ${
                       isCurrentMonth ? "bg-transparent" : "bg-[#05070E]/50 opacity-40"
                     } ${
-                      isToday ? "ring-2 ring-inset ring-orange-500/50 bg-orange-500/[0.03]" : ""
+                      isToday ? "ring-2 ring-inset ring-orange-500/50 bg-primary/[0.03]" : ""
                     } ${
-                      isSelected ? "bg-orange-500/[0.05]" : ""
+                      isSelected ? "bg-primary/[0.05]" : ""
                     }`}
                   >
                     {/* Cell Header */}
@@ -489,8 +489,8 @@ export default function InstructorScheduleView() {
                       <span
                         className={`text-[10px] sm:text-xs font-extrabold font-mono rounded-lg flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 ${
                           isToday
-                            ? "bg-gradient-to-r from-orange-500 to-pink-500 text-white font-black shadow-md"
-                            : "text-slate-300"
+                            ? "bg-gradient-to-r from-orange-500 to-pink-500 text-foreground font-black shadow-md"
+                            : "text-foreground"
                         } ${!isCurrentMonth ? "text-slate-600" : ""}`}
                       >
                         {day}
@@ -504,7 +504,7 @@ export default function InstructorScheduleView() {
                             setSelectedDateStr(dateStr);
                             setShowAddMenu(true);
                           }}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-orange-400 hover:bg-white/10 rounded transition"
+                          className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-primary hover:bg-white/10 rounded transition"
                           title="Schedule on this date"
                         >
                           <Plus size={13} />
@@ -523,7 +523,7 @@ export default function InstructorScheduleView() {
                             className={`px-2 py-1 rounded-lg text-[10.5px] font-extrabold truncate transition flex items-center gap-1.5 hover:brightness-125 ${typeConfig.color} text-slate-950 shadow-sm`}
                             title={`${evt.title} (${evt.startTime})`}
                           >
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-950 shrink-0" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-background shrink-0" />
                             <span className="truncate">{evt.title}</span>
                           </div>
                         );
@@ -531,7 +531,7 @@ export default function InstructorScheduleView() {
 
                       {/* Overflow Indicator (+X More) */}
                       {dayEvents.length > 3 && (
-                        <div className="text-[9px] font-black text-orange-400 px-1.5 py-0.5 bg-orange-500/10 rounded border border-orange-500/20 text-center">
+                        <div className="text-[9px] font-black text-primary px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20 text-center">
                           +{dayEvents.length - 3} More
                         </div>
                       )}
@@ -545,13 +545,13 @@ export default function InstructorScheduleView() {
 
         {/* Agenda View Mode */}
         {viewMode === "agenda" && (
-          <div className="bg-[#0D1021] border border-[#1A1F35] rounded-2xl p-5 space-y-4 shadow-2xl">
-            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 font-mono">
+          <div className="bg-card border border-border rounded-2xl p-5 space-y-4 shadow-2xl">
+            <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground font-mono">
               Chronological Agenda List
             </h3>
             <div className="space-y-3">
               {scheduleEvents.length === 0 ? (
-                <div className="p-8 text-center text-slate-500 text-xs font-bold border border-dashed border-[#1A1F35] rounded-xl">
+                <div className="p-8 text-center text-muted-foreground text-xs font-bold border border-dashed border-border rounded-xl">
                   No scheduled activities found.
                 </div>
               ) : (
@@ -564,7 +564,7 @@ export default function InstructorScheduleView() {
                         setSelectedEvent(evt);
                         setIsDrawerOpen(true);
                       }}
-                      className="p-4 rounded-2xl bg-[#05070E] border border-[#1A1F35] flex items-center justify-between gap-4 hover:border-orange-500/40 cursor-pointer transition"
+                      className="p-4 rounded-2xl bg-[#05070E] border border-border flex items-center justify-between gap-4 hover:border-primary/40 cursor-pointer transition"
                     >
                       <div className="flex items-center gap-3">
                         <div className={`p-3 rounded-xl ${typeConfig.bgSoft} ${typeConfig.text} ${typeConfig.border}`}>
@@ -572,19 +572,19 @@ export default function InstructorScheduleView() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-black text-white">{evt.title}</span>
+                            <span className="text-xs font-black text-foreground">{evt.title}</span>
                             <span className={`text-[8.5px] font-black uppercase px-2 py-0.5 rounded-full ${typeConfig.bgSoft} ${typeConfig.text}`}>
                               {typeConfig.label}
                             </span>
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-1">
+                          <p className="text-[10px] text-muted-foreground mt-1">
                             {evt.course} &bull; {evt.batch} &bull; {evt.date} at {evt.startTime}
                           </p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-slate-500">{evt.room}</span>
+                        <span className="text-[10px] font-bold text-muted-foreground">{evt.room}</span>
                         <ChevronRight size={16} className="text-slate-600" />
                       </div>
                     </div>
@@ -596,13 +596,13 @@ export default function InstructorScheduleView() {
         )}
 
         {/* CALENDAR LEGEND */}
-        <div className="bg-[#0D1021] border border-[#1A1F35] rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-slate-400">
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">
+        <div className="bg-card border border-border rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-muted-foreground">
+          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground font-mono">
             Category Color Legend:
           </span>
           <div className="flex flex-wrap items-center gap-4 text-xs font-extrabold">
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Lecture</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-500" /> Assignment</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-primary" /> Assignment</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-purple-500" /> Quiz</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> Meeting</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-pink-500" /> Office Hours</span>
@@ -616,22 +616,22 @@ export default function InstructorScheduleView() {
          ========================================================================= */}
       {isDrawerOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-[#0D1021] border-l border-[#1A1F35] h-full overflow-y-auto p-6 space-y-6 shadow-2xl flex flex-col justify-between">
+          <div className="w-full max-w-md bg-card border-l border-border h-full overflow-y-auto p-6 space-y-6 shadow-2xl flex flex-col justify-between">
             
             {/* Drawer Header */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-[#1A1F35] pb-4">
+              <div className="flex items-center justify-between border-b border-border pb-4">
                 <div>
-                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-300 font-mono">
+                  <h3 className="text-sm font-black uppercase tracking-widest text-foreground font-mono">
                     Schedule Details
                   </h3>
-                  <p className="text-xs text-orange-400 font-bold mt-0.5">
+                  <p className="text-xs text-primary font-bold mt-0.5">
                     {selectedDateStr}
                   </p>
                 </div>
                 <button
                   onClick={() => setIsDrawerOpen(false)}
-                  className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition cursor-pointer"
+                  className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground transition cursor-pointer"
                 >
                   <X size={16} />
                 </button>
@@ -651,30 +651,30 @@ export default function InstructorScheduleView() {
                     </span>
                   </div>
 
-                  <h2 className="text-lg font-black text-white leading-tight">
+                  <h2 className="text-lg font-black text-foreground leading-tight">
                     {selectedEvent.title}
                   </h2>
 
                   {/* Metadata List */}
-                  <div className="space-y-3 bg-[#05070E] p-4 rounded-2xl border border-[#1A1F35] text-xs font-bold text-slate-300">
+                  <div className="space-y-3 bg-[#05070E] p-4 rounded-2xl border border-border text-xs font-bold text-foreground">
                     <div className="flex justify-between">
-                      <span className="text-slate-500 uppercase tracking-wider text-[9.5px]">Course</span>
+                      <span className="text-muted-foreground uppercase tracking-wider text-[9.5px]">Course</span>
                       <span>{selectedEvent.course}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500 uppercase tracking-wider text-[9.5px]">Batch</span>
+                      <span className="text-muted-foreground uppercase tracking-wider text-[9.5px]">Batch</span>
                       <span>{selectedEvent.batch}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500 uppercase tracking-wider text-[9.5px]">Time & Duration</span>
+                      <span className="text-muted-foreground uppercase tracking-wider text-[9.5px]">Time & Duration</span>
                       <span>{selectedEvent.startTime} ({selectedEvent.duration})</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500 uppercase tracking-wider text-[9.5px]">Room / Location</span>
-                      <span className="text-orange-400">{selectedEvent.room}</span>
+                      <span className="text-muted-foreground uppercase tracking-wider text-[9.5px]">Room / Location</span>
+                      <span className="text-primary">{selectedEvent.room}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500 uppercase tracking-wider text-[9.5px]">Instructor</span>
+                      <span className="text-muted-foreground uppercase tracking-wider text-[9.5px]">Instructor</span>
                       <span>{selectedEvent.instructor}</span>
                     </div>
                   </div>
@@ -682,10 +682,10 @@ export default function InstructorScheduleView() {
                   {/* Description */}
                   {selectedEvent.description && (
                     <div>
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono mb-1.5">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground font-mono mb-1.5">
                         Session Details
                       </h4>
-                      <p className="text-xs text-slate-300 leading-relaxed bg-[#05070E] p-3 rounded-xl border border-[#1A1F35]">
+                      <p className="text-xs text-foreground leading-relaxed bg-[#05070E] p-3 rounded-xl border border-border">
                         {selectedEvent.description}
                       </p>
                     </div>
@@ -694,13 +694,13 @@ export default function InstructorScheduleView() {
                   {/* Attachments */}
                   {selectedEvent.attachments?.length > 0 && (
                     <div>
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono mb-1.5">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground font-mono mb-1.5">
                         Attachments ({selectedEvent.attachments.length})
                       </h4>
                       <div className="space-y-1.5">
                         {selectedEvent.attachments.map((att, idx) => (
-                          <div key={idx} className="flex items-center gap-2 p-2 bg-[#05070E] border border-[#1A1F35] rounded-xl text-xs text-slate-300">
-                            <Paperclip size={13} className="text-orange-400" />
+                          <div key={idx} className="flex items-center gap-2 p-2 bg-[#05070E] border border-border rounded-xl text-xs text-foreground">
+                            <Paperclip size={13} className="text-primary" />
                             <span className="truncate flex-1">{att}</span>
                           </div>
                         ))}
@@ -714,7 +714,7 @@ export default function InstructorScheduleView() {
                       href={selectedEvent.meetingUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg transition"
+                      className="w-full py-3 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg transition"
                     >
                       <Video size={16} />
                       <span>Join Online Session</span>
@@ -722,17 +722,17 @@ export default function InstructorScheduleView() {
                   )}
 
                   {/* Quick Action Bar: Edit, Delete, Duplicate */}
-                  <div className="grid grid-cols-3 gap-2 border-t border-[#1A1F35] pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 border-t border-border pt-4">
                     <button
                       onClick={() => handleDuplicateEvent(selectedEvent)}
-                      className="py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-bold text-slate-300 flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-bold text-foreground flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <Copy size={13} />
                       <span>Duplicate</span>
                     </button>
                     <button
                       onClick={() => alert("Edit session dialog opened")}
-                      className="py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-bold text-slate-300 flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-bold text-foreground flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <Pencil size={13} />
                       <span>Edit</span>
@@ -750,13 +750,13 @@ export default function InstructorScheduleView() {
               ) : (
                 /* Date Details & Quick Add */
                 <div className="space-y-4">
-                  <p className="text-xs text-slate-400">
-                    Scheduled sessions for <strong className="text-white">{selectedDateStr}</strong>:
+                  <p className="text-xs text-muted-foreground">
+                    Scheduled sessions for <strong className="text-foreground">{selectedDateStr}</strong>:
                   </p>
 
                   <button
                     onClick={() => handleCreateEvent("meeting")}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-foreground text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg cursor-pointer"
                   >
                     <Plus size={16} />
                     <span>Create Session on {selectedDateStr}</span>
@@ -764,7 +764,7 @@ export default function InstructorScheduleView() {
 
                   <div className="space-y-3 pt-2">
                     {(eventsByDate[selectedDateStr] || []).length === 0 ? (
-                      <div className="p-6 text-center text-slate-500 text-xs font-bold border border-dashed border-[#1A1F35] rounded-xl">
+                      <div className="p-6 text-center text-muted-foreground text-xs font-bold border border-dashed border-border rounded-xl">
                         No events on this date.
                       </div>
                     ) : (
@@ -772,13 +772,13 @@ export default function InstructorScheduleView() {
                         <div
                           key={evt.id}
                           onClick={() => setSelectedEvent(evt)}
-                          className="p-3.5 rounded-xl bg-[#05070E] border border-[#1A1F35] hover:border-orange-500/40 transition cursor-pointer space-y-1"
+                          className="p-3.5 rounded-xl bg-[#05070E] border border-border hover:border-primary/40 transition cursor-pointer space-y-1"
                         >
                           <div className="flex justify-between text-xs font-bold">
-                            <span className="text-white">{evt.title}</span>
-                            <span className="text-orange-400 font-mono">{evt.startTime}</span>
+                            <span className="text-foreground">{evt.title}</span>
+                            <span className="text-primary font-mono">{evt.startTime}</span>
                           </div>
-                          <p className="text-[10px] text-slate-400">{evt.course} &bull; {evt.batch}</p>
+                          <p className="text-[10px] text-muted-foreground">{evt.course} &bull; {evt.batch}</p>
                         </div>
                       ))
                     )}
@@ -787,10 +787,10 @@ export default function InstructorScheduleView() {
               )}
             </div>
 
-            <div className="pt-4 border-t border-[#1A1F35] text-center">
+            <div className="pt-4 border-t border-border text-center">
               <button
                 onClick={() => setIsDrawerOpen(false)}
-                className="w-full py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700 transition cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-muted text-foreground font-bold text-xs hover:bg-muted transition cursor-pointer"
               >
                 Close Drawer
               </button>
@@ -804,14 +804,14 @@ export default function InstructorScheduleView() {
          ========================================================================= */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 p-4">
-          <div className="w-full max-w-lg bg-[#0D1021] border border-[#1A1F35] rounded-2xl shadow-2xl p-6 relative overflow-hidden">
+          <div className="w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl p-6 relative overflow-hidden">
             {/* Modal Header */}
             <div className="flex justify-between items-center mb-6 relative z-10">
-              <h3 className="text-lg font-black text-white font-mono tracking-tight flex items-center gap-2">
-                <CalendarIcon size={20} className="text-orange-400" />
+              <h3 className="text-lg font-black text-foreground font-mono tracking-tight flex items-center gap-2">
+                <CalendarIcon size={20} className="text-primary" />
                 Schedule New Session
               </h3>
-              <button onClick={() => setIsCreateModalOpen(false)} className="text-slate-400 hover:text-white transition cursor-pointer">
+              <button onClick={() => setIsCreateModalOpen(false)} className="text-muted-foreground hover:text-foreground transition cursor-pointer">
                 <X size={20} />
               </button>
             </div>
@@ -821,54 +821,54 @@ export default function InstructorScheduleView() {
               <div className="grid grid-cols-2 gap-4">
                 
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Title</label>
-                  <input required type="text" value={createModalData.title} onChange={e => setCreateModalData({...createModalData, title: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition" placeholder="e.g. Intro to React" />
+                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Title</label>
+                  <input required type="text" value={createModalData.title} onChange={e => setCreateModalData({...createModalData, title: e.target.value})} className="w-full bg-[#05070E] border border-border rounded-xl px-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary transition" placeholder="e.g. Intro to React" />
                 </div>
                 
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Type</label>
-                  <select value={createModalData.type} onChange={e => setCreateModalData({...createModalData, type: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 appearance-none cursor-pointer transition">
+                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Type</label>
+                  <select value={createModalData.type} onChange={e => setCreateModalData({...createModalData, type: e.target.value})} className="w-full bg-[#05070E] border border-border rounded-xl px-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary appearance-none cursor-pointer transition">
                     {Object.keys(EVENT_TYPES).map(k => <option key={k} value={k}>{EVENT_TYPES[k].label}</option>)}
                   </select>
                 </div>
                 
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Date</label>
-                  <input required type="date" value={createModalData.date} onChange={e => setCreateModalData({...createModalData, date: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition cursor-pointer" />
+                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Date</label>
+                  <input required type="date" value={createModalData.date} onChange={e => setCreateModalData({...createModalData, date: e.target.value})} className="w-full bg-[#05070E] border border-border rounded-xl px-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary transition cursor-pointer" />
                 </div>
                 
-                <div className="col-span-1 sm:col-span-1 grid grid-cols-2 gap-2">
+                <div className="col-span-1 sm:col-span-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Start</label>
-                    <input required type="time" value={createModalData.startTime} onChange={e => setCreateModalData({...createModalData, startTime: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-2 sm:px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition cursor-pointer" />
+                    <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Start</label>
+                    <input required type="time" value={createModalData.startTime} onChange={e => setCreateModalData({...createModalData, startTime: e.target.value})} className="w-full bg-[#05070E] border border-border rounded-xl px-2 sm:px-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary transition cursor-pointer" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Duration</label>
-                    <input type="text" value={createModalData.duration} onChange={e => setCreateModalData({...createModalData, duration: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-2 sm:px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition" placeholder="60 mins" />
+                    <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Duration</label>
+                    <input type="text" value={createModalData.duration} onChange={e => setCreateModalData({...createModalData, duration: e.target.value})} className="w-full bg-[#05070E] border border-border rounded-xl px-2 sm:px-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary transition" placeholder="60 mins" />
                   </div>
                 </div>
 
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Course Name</label>
-                  <input type="text" value={createModalData.course} onChange={e => setCreateModalData({...createModalData, course: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition" placeholder="e.g. General Course" />
+                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Course Name</label>
+                  <input type="text" value={createModalData.course} onChange={e => setCreateModalData({...createModalData, course: e.target.value})} className="w-full bg-[#05070E] border border-border rounded-xl px-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary transition" placeholder="e.g. General Course" />
                 </div>
                 
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Room / Meeting URL</label>
-                  <input type="text" value={createModalData.meetingUrl} onChange={e => setCreateModalData({...createModalData, meetingUrl: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition" placeholder="e.g. https://meet.google..." />
+                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Room / Meeting URL</label>
+                  <input type="text" value={createModalData.meetingUrl} onChange={e => setCreateModalData({...createModalData, meetingUrl: e.target.value})} className="w-full bg-[#05070E] border border-border rounded-xl px-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary transition" placeholder="e.g. https://meet.google..." />
                 </div>
 
                 <div className="col-span-2">
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Description (Optional)</label>
-                  <textarea rows="3" value={createModalData.description} onChange={e => setCreateModalData({...createModalData, description: e.target.value})} className="w-full bg-[#05070E] border border-[#1A1F35] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 resize-none transition" placeholder="Additional details..." />
+                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Description (Optional)</label>
+                  <textarea rows="3" value={createModalData.description} onChange={e => setCreateModalData({...createModalData, description: e.target.value})} className="w-full bg-[#05070E] border border-border rounded-xl px-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary resize-none transition" placeholder="Additional details..." />
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-end gap-3 border-t border-[#1A1F35] mt-6">
-                <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition cursor-pointer">
+              <div className="pt-4 flex justify-end gap-3 border-t border-border mt-6">
+                <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-5 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-white/5 transition cursor-pointer">
                   Cancel
                 </button>
-                <button type="submit" className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 transition cursor-pointer flex items-center gap-2">
+                <button type="submit" className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-foreground text-xs font-black uppercase tracking-widest shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 transition cursor-pointer flex items-center gap-2">
                   <Plus size={14} />
                   <span>Schedule Event</span>
                 </button>
@@ -876,7 +876,7 @@ export default function InstructorScheduleView() {
             </form>
             
             {/* Background Glow */}
-            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-orange-500/10 rounded-full blur-[80px] pointer-events-none" />
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-primary/10 rounded-full blur-[80px] pointer-events-none" />
           </div>
         </div>
       )}

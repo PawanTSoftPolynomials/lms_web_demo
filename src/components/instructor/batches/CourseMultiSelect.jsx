@@ -18,11 +18,11 @@ export default function CourseMultiSelect({ courses, selectedIds, onChange, disa
   };
 
   if (courses.length === 0) {
-    return <p className="text-xs text-slate-500 py-2">No courses available.</p>;
+    return <p className="text-xs text-muted-foreground py-2">No courses available.</p>;
   }
 
   return (
-    <div className="max-h-48 overflow-y-auto rounded-xl border border-[#1A1F35] bg-slate-950 divide-y divide-[#1A1F35]">
+    <div className="max-h-48 overflow-y-auto rounded-xl border border-border bg-background divide-y divide-[#1A1F35]">
       {courses.map((course) => {
         const checked = selectedIds.includes(course.id);
         const disabled = disabledIds.includes(course.id);
@@ -35,10 +35,10 @@ export default function CourseMultiSelect({ courses, selectedIds, onChange, disa
           >
             <span
               className={`h-4 w-4 rounded-md border flex items-center justify-center shrink-0 transition ${
-                checked ? "bg-orange-500 border-orange-500" : "border-slate-700"
+                checked ? "bg-primary border-primary" : "border-transparent"
               }`}
             >
-              {checked && <Check size={11} className="text-white" strokeWidth={3} />}
+              {checked && <Check size={11} className="text-foreground" strokeWidth={3} />}
             </span>
             <input
               type="checkbox"
@@ -47,7 +47,7 @@ export default function CourseMultiSelect({ courses, selectedIds, onChange, disa
               disabled={disabled}
               onChange={() => toggle(course.id)}
             />
-            <span className={`truncate ${checked ? "text-slate-100 font-bold" : "text-slate-300"}`}>
+            <span className={`truncate ${checked ? "text-foreground font-bold" : "text-foreground"}`}>
               {course.title}
             </span>
           </label>

@@ -12,11 +12,11 @@ export default function LinkBlockView({ block }) {
       href={block.url}
       target="_blank"
       rel="noreferrer"
-      className="flex items-center gap-3 rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 hover:border-orange-500 transition"
+      className="flex items-center gap-3 rounded-lg border border-transparent bg-muted px-4 py-3 hover:border-primary transition"
     >
-      <LinkIcon size={18} className="text-orange-400 shrink-0" />
-      <span className="flex-1 text-sm text-slate-200 truncate">{block.title || block.url}</span>
-      <ExternalLink size={16} className="text-slate-500 shrink-0" />
+      <LinkIcon size={18} className="text-primary shrink-0" />
+      <span className="flex-1 text-sm text-foreground truncate">{block.title || block.url}</span>
+      <ExternalLink size={16} className="text-muted-foreground shrink-0" />
     </a>
   );
 }

@@ -54,7 +54,7 @@ export default function QuizTimer({
                         ? "bg-red-500/10"
                         : isWarning
                             ? "bg-amber-500/10"
-                            : "bg-orange-500/10"
+                            : "bg-primary/10"
                 }`}
             >
                 <Clock
@@ -63,13 +63,13 @@ export default function QuizTimer({
                             ? "text-red-400"
                             : isWarning
                                 ? "text-amber-400"
-                                : "text-orange-500"
+                                : "text-primary"
                     }`}
                 />
             </div>
 
             <div>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-muted-foreground">
                     Time Remaining
                 </p>
 
@@ -79,7 +79,7 @@ export default function QuizTimer({
                             ? "text-red-400"
                             : isWarning
                                 ? "text-amber-400"
-                                : "text-orange-400"
+                                : "text-primary"
                     }`}
                 >
                     {formattedTime}

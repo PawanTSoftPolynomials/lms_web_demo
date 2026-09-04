@@ -261,7 +261,7 @@ export default function LearnPage() {
   }
 
   if (isError || !course) {
-    return <Card className="text-slate-300">Course not found.</Card>;
+    return <Card className="text-foreground">Course not found.</Card>;
   }
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -282,34 +282,34 @@ export default function LearnPage() {
     <div className="space-y-4">
       <Link
         href={`/student/feedback?courseId=${course.id}`}
-        className="w-full flex items-center justify-between p-4 sm:p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left min-h-[44px]"
+        className="w-full flex items-center justify-between p-4 sm:p-5 rounded-3xl border border-transparent bg-background/40 hover:bg-background/60 hover:border-transparent/80 transition duration-300 group cursor-pointer text-left min-h-[44px]"
       >
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-emerald-500/15 bg-emerald-500/5 text-emerald-400 shrink-0">
             <MessageSquare size={18} className="stroke-[2.5]" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition truncate">Feedback</h4>
-            <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">Share your feedback to help us improve.</p>
+            <h4 className="text-sm font-extrabold text-foreground group-hover:text-foreground transition truncate">Feedback</h4>
+            <p className="text-[10px] text-muted-foreground font-semibold mt-0.5 truncate">Share your feedback to help us improve.</p>
           </div>
         </div>
-        <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-400 transition-colors shrink-0 ml-2" />
+        <ChevronRight size={14} className="text-slate-600 group-hover:text-primary transition-colors shrink-0 ml-2" />
       </Link>
 
       <Link
         href={`/student/reviews?courseId=${course.id}`}
-        className="w-full flex items-center justify-between p-4 sm:p-5 rounded-3xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 hover:border-slate-700/80 transition duration-300 group cursor-pointer text-left min-h-[44px]"
+        className="w-full flex items-center justify-between p-4 sm:p-5 rounded-3xl border border-transparent bg-background/40 hover:bg-background/60 hover:border-transparent/80 transition duration-300 group cursor-pointer text-left min-h-[44px]"
       >
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-blue-500/15 bg-blue-500/5 text-blue-400 shrink-0">
             <Star size={18} className="stroke-[2.5]" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-sm font-extrabold text-slate-100 group-hover:text-white transition truncate">Reviews</h4>
-            <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">Rate this course and see what others think.</p>
+            <h4 className="text-sm font-extrabold text-foreground group-hover:text-foreground transition truncate">Reviews</h4>
+            <p className="text-[10px] text-muted-foreground font-semibold mt-0.5 truncate">Rate this course and see what others think.</p>
           </div>
         </div>
-        <ChevronRight size={14} className="text-slate-600 group-hover:text-orange-400 transition-colors shrink-0 ml-2" />
+        <ChevronRight size={14} className="text-slate-600 group-hover:text-primary transition-colors shrink-0 ml-2" />
       </Link>
     </div>
   );
@@ -319,7 +319,7 @@ export default function LearnPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#07080f] text-white flex overflow-x-hidden font-sans relative">
+    <div className="min-h-screen bg-[#07080f] text-foreground flex overflow-x-hidden font-sans relative">
 
       {/* ========================================================================= */}
       {/* COURSE CONTENT SIDEBAR — desktop only (xl+). Below xl, Course Content is  */}
@@ -405,7 +405,7 @@ export default function LearnPage() {
               <div className="flex items-center justify-between xl:hidden -mt-1">
                 <Link
                   href="/student/my-courses"
-                  className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-slate-900/60 transition cursor-pointer -ml-2"
+                  className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-background/60 transition cursor-pointer -ml-2"
                   title="Back to My Courses"
                 >
                   <ArrowLeft size={18} />
@@ -414,7 +414,7 @@ export default function LearnPage() {
                   type="button"
                   onClick={toggleLessonBookmark}
                   className={`p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl transition cursor-pointer border-0 outline-none -mr-2 ${
-                    isLessonBookmarked ? "text-orange-400" : "text-slate-400 hover:text-white hover:bg-slate-900/60"
+                    isLessonBookmarked ? "text-primary" : "text-muted-foreground hover:text-foreground hover:bg-background/60"
                   }`}
                   title={isLessonBookmarked ? "Remove Bookmark" : "Bookmark Lesson"}
                 >
@@ -426,21 +426,21 @@ export default function LearnPage() {
                 </button>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-transparent/60 pb-3">
                 <div className="space-y-1 min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-[10px] font-black uppercase tracking-wider text-orange-400">
+                    <span className="px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-black uppercase tracking-wider text-primary">
                       Lesson {currentLessonIndex >= 0 ? currentLessonIndex + 1 : 1} of {lessons.length || 1}
                     </span>
                     {selectedLesson?.duration && selectedLesson.duration !== "N/A" && (
-                      <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
-                        <Clock3 size={11} className="text-orange-500" />
+                      <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
+                        <Clock3 size={11} className="text-primary" />
                         {selectedLesson.duration}
                       </span>
                     )}
                   </div>
-                  <h3 className="text-sm sm:text-base font-black text-white flex items-center gap-2 tracking-wide truncate">
-                    <PlayCircle className="text-orange-500 shrink-0" size={18} />
+                  <h3 className="text-sm sm:text-base font-black text-foreground flex items-center gap-2 tracking-wide truncate">
+                    <PlayCircle className="text-primary shrink-0" size={18} />
                     <span className="truncate">{selectedLesson?.title || "Loading Lesson..."}</span>
                   </h3>
                 </div>
@@ -454,7 +454,7 @@ export default function LearnPage() {
                   className={`hidden xl:inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl border text-xs font-black uppercase tracking-wider transition-all shadow-md shrink-0 self-start sm:self-auto ${
                     isSelectedLessonCompleted
                       ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 cursor-default"
-                      : "bg-slate-900 hover:bg-orange-500 hover:text-slate-950 border-slate-800 hover:border-orange-400 text-slate-200 cursor-pointer"
+                      : "bg-background hover:bg-primary hover:text-slate-950 border-transparent hover:border-orange-400 text-foreground cursor-pointer"
                   }`}
                 >
                   <CheckCircle2 size={15} className={isSelectedLessonCompleted ? "text-emerald-400" : "text-emerald-400 group-hover:text-slate-950"} />
@@ -510,12 +510,12 @@ export default function LearnPage() {
                 add a tap for no benefit there. Left/right arrows let a student
                 reach the hidden tabs with a tap instead of a swipe. */}
             <div className="row-start-2 xl:hidden">
-              <div className="flex items-center gap-1 border-b border-slate-800/60">
+              <div className="flex items-center gap-1 border-b border-transparent/60">
                 <button
                   type="button"
                   onClick={() => scrollContentTabs(-1)}
                   disabled={!canScrollTabsLeft}
-                  className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
+                  className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
                   aria-label="Scroll tabs left"
                 >
                   <ChevronLeft size={16} />
@@ -536,8 +536,8 @@ export default function LearnPage() {
                         onClick={() => setActiveContentTab(tab.id)}
                         className={`flex flex-col items-center gap-1 px-3.5 py-2 min-h-[44px] text-[11px] font-bold uppercase tracking-wide transition cursor-pointer border-0 border-b-2 outline-none shrink-0 bg-transparent ${
                           isActive
-                            ? "text-orange-400 border-orange-500"
-                            : "text-slate-300 border-transparent hover:text-white"
+                            ? "text-primary border-primary"
+                            : "text-foreground border-transparent hover:text-foreground"
                         }`}
                       >
                         <Icon size={18} />
@@ -551,7 +551,7 @@ export default function LearnPage() {
                   type="button"
                   onClick={() => scrollContentTabs(1)}
                   disabled={!canScrollTabsRight}
-                  className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-slate-400 hover:text-white disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
+                  className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
                   aria-label="Scroll tabs right"
                 >
                   <ChevronRight size={16} />
@@ -620,7 +620,7 @@ export default function LearnPage() {
                   <button
                     type="button"
                     onClick={() => setRightPanelOpen(false)}
-                    className="self-end flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-xl text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-white bg-slate-900/60 hover:bg-slate-800 border border-slate-800 transition cursor-pointer"
+                    className="self-end flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-xl text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground bg-background/60 hover:bg-muted border border-transparent transition cursor-pointer"
                     title="Hide side panel"
                     aria-label="Hide side panel"
                   >
@@ -641,7 +641,7 @@ export default function LearnPage() {
                 <button
                   type="button"
                   onClick={() => setRightPanelOpen(true)}
-                  className="flex flex-col items-center gap-3 w-12 rounded-2xl border border-slate-800/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl py-4 hover:border-orange-500/40 hover:bg-slate-900 text-slate-400 hover:text-orange-400 transition cursor-pointer"
+                  className="flex flex-col items-center gap-3 w-12 rounded-2xl border border-transparent/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl py-4 hover:border-primary/40 hover:bg-background text-muted-foreground hover:text-primary transition cursor-pointer"
                   title="Show side panel"
                   aria-label="Show side panel"
                 >
@@ -679,24 +679,24 @@ export default function LearnPage() {
             <div className="hidden xl:block space-y-4 min-w-0 xl:col-start-1 xl:row-start-1">
               <Link
                 href="/student/my-courses"
-                className="inline-flex items-center gap-2 text-xs text-slate-400 transition hover:text-orange-500 font-bold uppercase tracking-wider min-h-[36px]"
+                className="inline-flex items-center gap-2 text-xs text-muted-foreground transition hover:text-primary font-bold uppercase tracking-wider min-h-[36px]"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 Back to My Courses
               </Link>
 
               {/* Minimal inline progress bar */}
-              <div className="flex items-center gap-3 w-full sm:w-64 text-[10px] font-bold text-slate-500 pb-1">
+              <div className="flex items-center gap-3 w-full sm:w-64 text-[10px] font-bold text-muted-foreground pb-1">
                 <span className="uppercase tracking-widest text-[9px]">Progress</span>
                 <div className="flex-1">
                   <ProgressBar value={courseProgress} size="xs" variant="gradient" />
                 </div>
-                <span className="text-orange-400 font-extrabold">{courseProgress}%</span>
+                <span className="text-primary font-extrabold">{courseProgress}%</span>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 items-start">
                 {course.thumbnailUrl && (
-                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border border-slate-800 bg-slate-900/60 flex-shrink-0 flex items-center justify-center">
+                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border border-transparent bg-background/60 flex-shrink-0 flex items-center justify-center">
                     <img
                       src={getDisplayUrl(course.thumbnailUrl)}
                       alt={course.title}
@@ -705,15 +705,15 @@ export default function LearnPage() {
                   </div>
                 )}
                 <div className="space-y-2 min-w-0 flex-1">
-                  <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-wide leading-tight break-words">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-foreground tracking-wide leading-tight break-words">
                     {course.title}
                   </h1>
-                  <p className="text-xs text-slate-400 leading-relaxed font-semibold break-words">
+                  <p className="text-xs text-muted-foreground leading-relaxed font-semibold break-words">
                     {course.description}
                   </p>
-                  <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-slate-500 pt-1">
+                  <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-muted-foreground pt-1">
                     <div className="flex items-center gap-1.5">
-                      <BookOpen className="h-4 w-4 text-orange-500" />
+                      <BookOpen className="h-4 w-4 text-primary" />
                       <span>{course.modules?.length || 0} Modules</span>
                     </div>
                   </div>
@@ -725,7 +725,7 @@ export default function LearnPage() {
                 component (see comment above); what's left (bookmark, personal
                 scratchpad notes) isn't part of the 7-tab set, so it stays as
                 supplementary reference material rather than a tab of its own. */}
-            <div className="hidden xl:block pt-6 border-t border-slate-900/80 min-w-0 xl:col-start-1 xl:row-start-7">
+            <div className="hidden xl:block pt-6 border-t border-transparent/80 min-w-0 xl:col-start-1 xl:row-start-7">
               <LessonTabs
                 lesson={selectedLesson}
                 course={course}

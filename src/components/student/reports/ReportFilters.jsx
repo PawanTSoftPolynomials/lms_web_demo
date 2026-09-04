@@ -10,13 +10,13 @@ export default function ReportFilters({
   onTimeRangeChange,
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <div className="relative">
-        <BookOpen size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+        <BookOpen size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         <select
           value={selectedCourseId ?? "all"}
           onChange={(e) => onCourseChange?.(e.target.value)}
-          className="w-full appearance-none rounded-xl bg-card border border-card-border pl-9 pr-7 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-orange-500/50 transition cursor-pointer truncate"
+          className="w-full appearance-none rounded-xl bg-card border border-card-border pl-9 pr-7 py-2.5 text-xs font-semibold text-foreground focus:outline-none focus:border-primary/50 transition cursor-pointer truncate"
         >
           <option value="all">All Courses</option>
           {courses.map((course) => (
@@ -25,15 +25,15 @@ export default function ReportFilters({
             </option>
           ))}
         </select>
-        <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+        <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
       </div>
 
       <div className="relative">
-        <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+        <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         <select
           value={timeRange}
           onChange={(e) => onTimeRangeChange?.(e.target.value)}
-          className="w-full appearance-none rounded-xl bg-card border border-card-border pl-9 pr-7 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-orange-500/50 transition cursor-pointer truncate"
+          className="w-full appearance-none rounded-xl bg-card border border-card-border pl-9 pr-7 py-2.5 text-xs font-semibold text-foreground focus:outline-none focus:border-primary/50 transition cursor-pointer truncate"
         >
           {TIME_RANGES.map((range) => (
             <option key={range} value={range}>
@@ -41,7 +41,7 @@ export default function ReportFilters({
             </option>
           ))}
         </select>
-        <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+        <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
       </div>
     </div>
   );

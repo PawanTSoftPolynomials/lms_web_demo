@@ -26,7 +26,7 @@ const STATUS_META = {
 };
 
 const toolbarControlClass =
-  "h-9 bg-[#0D1021] border border-[#1A1F35] text-xs px-3 rounded-xl outline-none text-slate-200 focus:border-orange-500/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-[#0D1021] [&>option]:text-slate-200";
+  "h-9 bg-card border border-border text-xs px-3 rounded-xl outline-none text-foreground focus:border-primary/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-card [&>option]:text-foreground";
 
 const timeAgo = (iso) => {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -126,7 +126,7 @@ function FilterToolbar({ onResetAll }) {
       <button
         type="button"
         onClick={handleReset}
-        className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-slate-400 transition hover:text-white"
+        className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-muted-foreground transition hover:text-foreground"
       >
         <RotateCcw size={12} />
         Reset
@@ -152,12 +152,12 @@ function ReplyBox({ queryId }) {
         placeholder="Write a reply..."
         value={reply}
         onChange={(e) => setReply(e.target.value)}
-        className="flex-1 bg-slate-950 border border-slate-800 text-xs px-3 py-2 rounded-lg text-white placeholder-slate-500 outline-none focus:border-orange-500/50"
+        className="flex-1 bg-background border border-transparent text-xs px-3 py-2 rounded-lg text-foreground placeholder-slate-500 outline-none focus:border-primary/50"
       />
       <button
         type="submit"
         disabled={replyMutation.isPending || !reply.trim()}
-        className="p-2 rounded-lg bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-slate-950 transition"
+        className="p-2 rounded-lg bg-primary hover:bg-orange-600 disabled:opacity-40 text-slate-950 transition"
       >
         {replyMutation.isPending ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
       </button>
@@ -174,21 +174,21 @@ function QuestionCard({ query: q }) {
     .join(" · ");
 
   return (
-    <div className="p-4 rounded-xl border border-[#1A1F35] bg-[#0D1021]">
+    <div className="p-4 rounded-xl border border-border bg-card">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-[10px] text-slate-500 font-semibold truncate min-w-0">{contextLabel}</p>
-        <span className="shrink-0 text-[10px] text-slate-500 font-mono">{timeAgo(q.createdAt)}</span>
+        <p className="text-[10px] text-muted-foreground font-semibold truncate min-w-0">{contextLabel}</p>
+        <span className="shrink-0 text-[10px] text-muted-foreground font-mono">{timeAgo(q.createdAt)}</span>
       </div>
 
-      <p className={`text-[13px] font-bold text-slate-100 mt-2 leading-relaxed ${expanded ? "" : "line-clamp-2"}`}>
+      <p className={`text-[13px] font-bold text-foreground mt-2 leading-relaxed ${expanded ? "" : "line-clamp-2"}`}>
         {q.question}
       </p>
 
-      <p className="text-[10.5px] text-slate-500 mt-2">
-        Student: <span className="text-slate-300 font-semibold">{studentName}</span>
+      <p className="text-[10.5px] text-muted-foreground mt-2">
+        Student: <span className="text-foreground font-semibold">{studentName}</span>
       </p>
 
-      <div className="flex items-center justify-between gap-3 mt-3 pt-3 border-t border-[#1A1F35]/60">
+      <div className="flex items-center justify-between gap-3 mt-3 pt-3 border-t border-border/60">
         <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold ${meta.text}`}>
           <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
           {meta.label}
@@ -196,7 +196,7 @@ function QuestionCard({ query: q }) {
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="text-[10.5px] font-bold text-orange-400 hover:text-orange-300 transition"
+          className="text-[10.5px] font-bold text-primary hover:text-orange-300 transition"
         >
           {expanded ? "Hide question ↑" : "View Question →"}
         </button>
@@ -205,9 +205,9 @@ function QuestionCard({ query: q }) {
       {expanded && (
         <div className="mt-3">
           {q.reply && (
-            <div className="pl-3 border-l-2 border-orange-500/30">
-              <p className="text-[10px] font-black text-orange-400 uppercase tracking-wide">Your reply</p>
-              <p className="text-xs text-slate-300 mt-1">{q.reply}</p>
+            <div className="pl-3 border-l-2 border-primary/30">
+              <p className="text-[10px] font-black text-primary uppercase tracking-wide">Your reply</p>
+              <p className="text-xs text-foreground mt-1">{q.reply}</p>
             </div>
           )}
           {q.status !== "ANSWERED" && <ReplyBox queryId={q.id} />}
@@ -245,43 +245,43 @@ function QAContent() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-black text-white tracking-tight">Q&amp;A</h1>
-        <p className="text-xs text-slate-400 mt-1">Student doubts raised across every lesson in your courses.</p>
+        <h1 className="text-xl font-black text-foreground tracking-tight">Q&amp;A</h1>
+        <p className="text-xs text-muted-foreground mt-1">Student doubts raised across every lesson in your courses.</p>
       </div>
 
       <div className="relative">
-        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search questions, students, lessons..."
-          className="w-full h-11 bg-[#0D1021] border border-[#1A1F35] text-sm pl-10 pr-4 rounded-xl outline-none text-slate-200 placeholder-slate-500 focus:border-orange-500/60 transition"
+          className="w-full h-11 bg-card border border-border text-sm pl-10 pr-4 rounded-xl outline-none text-foreground placeholder-slate-500 focus:border-primary/60 transition"
         />
       </div>
 
       <FilterToolbar onResetAll={() => setSearch("")} />
 
       <div>
-        <div className="flex items-center justify-between pb-3 border-b border-[#1A1F35]">
-          <h2 className="text-sm font-black text-white tracking-tight">Questions</h2>
-          <span className="text-xs font-bold text-slate-500">{filteredQueries.length}</span>
+        <div className="flex items-center justify-between pb-3 border-b border-border">
+          <h2 className="text-sm font-black text-foreground tracking-tight">Questions</h2>
+          <span className="text-xs font-bold text-muted-foreground">{filteredQueries.length}</span>
         </div>
 
         <div className="mt-4">
           {isLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-24 animate-pulse bg-slate-800/40 rounded-xl" />
+                <div key={i} className="h-24 animate-pulse bg-muted/40 rounded-xl" />
               ))}
             </div>
           ) : filteredQueries.length === 0 ? (
             <div className="py-10 text-center flex flex-col items-center gap-2">
               <HelpCircle size={20} className="text-slate-600" />
-              <p className="text-sm font-bold text-slate-300">
+              <p className="text-sm font-bold text-foreground">
                 {hasAnyQuestions ? "No questions match your search or filters." : "No questions yet"}
               </p>
-              <p className="text-xs text-slate-500 max-w-sm">
+              <p className="text-xs text-muted-foreground max-w-sm">
                 {hasAnyQuestions
                   ? "Try adjusting or resetting your search and filters."
                   : "Student questions will appear here when they raise doubts from your courses."}

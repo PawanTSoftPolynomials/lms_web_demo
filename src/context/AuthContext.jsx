@@ -51,10 +51,14 @@ export const AuthProvider = ({ children }) => {
       sessionStorage.clear();
     }
 
-    // 3. Clear all React Query cached data
+    // 3. Clear all React Query cached data. Cancel in-flight queries first —
+    // clear() forcibly destroys queries (including ones other providers are
+    // still actively fetching, e.g. NotificationProvider), and destroying an
+    // active fetch surfaces as an unhandled CancelledError rejection unless
+    // it's already been cancelled cleanly beforehand.
     try {
       if (queryClient) {
-        queryClient.clear();
+        queryClient.cancelQueries().finally(() => queryClient.clear());
       }
     } catch (e) {
       console.warn("React query cache clear notice:", e);

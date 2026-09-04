@@ -11,20 +11,20 @@ export default function ReportSummaryCard({
   href,
 }) {
   const body = (
-    <div className="flex items-center gap-2.5 rounded-xl border border-card-border bg-card px-3 py-2.5 hover:border-slate-700 transition-colors">
-      <div className="shrink-0 h-8 w-8 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-500 flex items-center justify-center">
+    <div className="flex items-center gap-2.5 rounded-xl border border-card-border bg-card px-3 py-2.5 hover:border-transparent transition-colors">
+      <div className="shrink-0 h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center">
         <Icon size={15} />
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-bold text-white">{title}</p>
+        <p className="text-xs font-bold text-foreground">{title}</p>
 
         {primaryText && (
-          <p className="text-[11px] text-slate-300 mt-0.5 truncate">{primaryText}</p>
+          <p className="text-[11px] text-foreground mt-0.5 truncate">{primaryText}</p>
         )}
 
         {secondaryText && (
-          <p className="text-[10px] text-slate-500 mt-0.5">{secondaryText}</p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">{secondaryText}</p>
         )}
 
         {typeof progress === "number" && (
@@ -34,7 +34,7 @@ export default function ReportSummaryCard({
         )}
       </div>
 
-      {href && <ChevronRight size={14} className="shrink-0 text-slate-500" />}
+      {href && <ChevronRight size={14} className="shrink-0 text-muted-foreground" />}
     </div>
   );
 

@@ -16,10 +16,10 @@ export default function WorkCreateAssessmentPage() {
   };
 
   return (
-    <Card className="mx-auto max-w-4xl bg-[#0D1021] border border-[#1A1F35] p-6 sm:p-8 rounded-2xl shadow-2xl">
+    <Card className="mx-auto max-w-4xl bg-card border border-border p-6 sm:p-8 rounded-2xl shadow-2xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-white tracking-tight">Create Assessment</h1>
-        <p className="mt-2 text-sm text-slate-400">Set up a gradable assessment — homework, project, case study, or practical.</p>
+        <h1 className="text-3xl font-black text-foreground tracking-tight">Create Assessment</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Set up a gradable assessment — homework, project, case study, or practical.</p>
       </div>
 
       {createAssignment.isSuccess && (

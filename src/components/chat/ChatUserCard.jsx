@@ -29,7 +29,7 @@ export default function ChatUserCard({ conversation, active, onClick }) {
   const getRoleBadgeStyle = (userRole) => {
     const formatted = (userRole || "").toUpperCase();
     if (formatted.includes("INSTRUCTOR")) {
-      return "bg-orange-500/10 text-orange-400 border border-orange-500/25";
+      return "bg-primary/10 text-primary border border-primary/25";
     }
     if (formatted.includes("ADMIN")) {
       return "bg-purple-500/10 text-purple-400 border border-purple-500/25";
@@ -55,12 +55,12 @@ export default function ChatUserCard({ conversation, active, onClick }) {
         transition-all
         duration-300
         border-b
-        border-slate-800/40
+        border-border/40
 
         ${
           active
-            ? "bg-slate-800/30 border-l-[3px] border-l-orange-500 pl-[13px] bg-gradient-to-r from-orange-500/5 to-transparent"
-            : "hover:bg-slate-800/20 border-l-[3px] border-l-transparent"
+            ? "bg-muted/30 border-l-[3px] border-l-orange-500 pl-[13px] bg-gradient-to-r from-orange-500/5 to-transparent"
+            : "hover:bg-muted/20 border-l-[3px] border-l-transparent"
         }
       `}
     >
@@ -71,7 +71,7 @@ export default function ChatUserCard({ conversation, active, onClick }) {
 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
-          <h3 className="font-semibold text-sm text-slate-100 truncate group-hover:text-white transition-colors flex items-center gap-1.5">
+          <h3 className="font-semibold text-sm text-foreground truncate group-hover:text-foreground transition-colors flex items-center gap-1.5">
             <span>{name}</span>
             {role && (
               <span className={`
@@ -84,13 +84,13 @@ export default function ChatUserCard({ conversation, active, onClick }) {
           </h3>
           
           {conversation?.lastSeen && (
-            <span className="text-[10px] text-slate-500 whitespace-nowrap">
+            <span className="text-[10px] text-muted-foreground whitespace-nowrap">
               {conversation.lastSeen}
             </span>
           )}
         </div>
 
-        <p className="mt-1 text-xs text-slate-400 truncate pr-4">
+        <p className="mt-1 text-xs text-muted-foreground truncate pr-4">
           {lastMessage || "No messages yet"}
         </p>
       </div>
@@ -106,12 +106,12 @@ export default function ChatUserCard({ conversation, active, onClick }) {
           items-center
           justify-center
           rounded-full
-          bg-orange-500
+          bg-primary
           px-1.5
           text-[10px]
           font-bold
-          text-white
-          shadow-[0_0_10px_rgba(242,199,199,0.4)]
+          text-foreground
+          shadow-[0_0_10px_rgba(249,115,22,0.4)]
         ">
           {conversation.unread}
         </div>

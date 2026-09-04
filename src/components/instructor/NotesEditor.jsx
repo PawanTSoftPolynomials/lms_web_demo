@@ -65,15 +65,15 @@ const NotesEditor = forwardRef(function NotesEditor(
   };
 
   return (
-    <div className="rounded-xl border border-[#1A1F35] bg-[#05070E] overflow-hidden">
-      <div className="flex items-center gap-1 px-2.5 py-2 border-b border-[#1A1F35] bg-white/[0.01]">
+    <div className="rounded-xl border border-border bg-[#05070E] overflow-hidden">
+      <div className="flex items-center gap-1 px-2.5 py-2 border-b border-border bg-white/[0.01]">
         {TOOLBAR_ACTIONS.map(({ command, icon: Icon, label }) => (
           <button
             key={command}
             type="button"
             title={label}
             onClick={() => exec(command)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition"
           >
             <Icon size={13} />
           </button>
@@ -82,14 +82,14 @@ const NotesEditor = forwardRef(function NotesEditor(
           type="button"
           title="Insert link"
           onClick={insertLink}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition"
         >
           <Link2 size={13} />
         </button>
-        <div className="w-px h-4 bg-[#1A1F35] mx-1" />
+        <div className="w-px h-4 bg-muted mx-1" />
         <label
           title="Attach file"
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
         >
           {uploading ? <Loader2 size={13} className="animate-spin" /> : <Paperclip size={13} />}
           <input type="file" multiple className="hidden" onChange={handleFileChange} disabled={uploading} />
@@ -101,15 +101,15 @@ const NotesEditor = forwardRef(function NotesEditor(
         contentEditable
         suppressContentEditableWarning
         dangerouslySetInnerHTML={{ __html: initialHtml }}
-        className="min-h-[160px] px-4 py-3 text-sm text-slate-200 outline-none [&_a]:text-orange-400 [&_a]:underline"
+        className="min-h-[160px] px-4 py-3 text-sm text-foreground outline-none [&_a]:text-primary [&_a]:underline"
       />
 
       {attachments.length > 0 && (
         <div className="flex flex-wrap gap-2 px-4 pb-3">
           {attachments.map((att, i) => (
-            <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[10.5px] text-slate-300">
+            <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted border border-transparent text-[10.5px] text-foreground">
               {att.name}
-              <button type="button" onClick={() => removeAttachment(i)} className="text-slate-500 hover:text-red-400">
+              <button type="button" onClick={() => removeAttachment(i)} className="text-muted-foreground hover:text-red-400">
                 <X size={11} />
               </button>
             </span>

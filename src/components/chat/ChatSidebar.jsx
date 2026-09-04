@@ -288,7 +288,7 @@ export default function ChatSidebar() {
   const getRoleBadgeStyle = (role) => {
     const formatted = (role || "").toUpperCase();
     if (formatted.includes("INSTRUCTOR")) {
-      return "bg-orange-500/10 text-orange-400 border border-orange-500/25";
+      return "bg-primary/10 text-primary border border-primary/25";
     }
     if (formatted.includes("ADMIN")) {
       return "bg-purple-500/10 text-purple-400 border border-purple-500/25";
@@ -311,10 +311,10 @@ export default function ChatSidebar() {
         {sidebarMode === "chats" ? (
           filteredConversations.length === 0 ? (
             <div className="flex h-40 flex-col items-center justify-center p-6 text-center">
-              <p className="text-xs text-slate-500">No active conversations found</p>
+              <p className="text-xs text-muted-foreground">No active conversations found</p>
               <button
                 onClick={() => setSidebarMode("users")}
-                className="mt-3 text-[11px] font-semibold text-orange-500 hover:underline"
+                className="mt-3 text-[11px] font-semibold text-primary hover:underline"
               >
                 Find users to message
               </button>
@@ -337,11 +337,11 @@ export default function ChatSidebar() {
             ))
           )
         ) : loadingUsers ? (
-          <div className="flex h-40 items-center justify-center text-xs text-slate-500">
+          <div className="flex h-40 items-center justify-center text-xs text-muted-foreground">
             Searching directory...
           </div>
         ) : filteredUsers.length === 0 ? (
-          <div className="flex h-40 items-center justify-center p-6 text-center text-xs text-slate-500">
+          <div className="flex h-40 items-center justify-center p-6 text-center text-xs text-muted-foreground">
             No users matched "{search}"
           </div>
         ) : (
@@ -363,8 +363,8 @@ export default function ChatSidebar() {
                   transition-all
                   duration-300
                   border-b
-                  border-slate-800/40
-                  hover:bg-slate-800/20
+                  border-border/40
+                  hover:bg-muted/20
                   border-l-[3px]
                   border-l-transparent
                   hover:border-l-orange-500/60
@@ -376,7 +376,7 @@ export default function ChatSidebar() {
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-sm text-slate-100 truncate">
+                  <h3 className="font-semibold text-sm text-foreground truncate">
                     {selectedUser.name}
                   </h3>
                   <div className="mt-1 flex items-center gap-2">
@@ -391,7 +391,7 @@ export default function ChatSidebar() {
                     `}>
                       {selectedUser.role || "STUDENT"}
                     </span>
-                    <span className="text-[10px] text-slate-500 truncate">
+                    <span className="text-[10px] text-muted-foreground truncate">
                       {selectedUser.email}
                     </span>
                   </div>

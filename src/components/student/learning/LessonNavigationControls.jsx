@@ -24,8 +24,8 @@ export default function LessonNavigationControls({
           type="button"
           disabled={!previousLesson}
           onClick={onSelectPrevious}
-          className={`relative flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-xl border border-slate-700 font-bold text-[10px] uppercase tracking-wide text-slate-300 hover:text-white hover:border-orange-500 transition cursor-pointer before:content-[''] before:absolute before:-inset-y-[8px] before:inset-x-0 ${
-            !previousLesson ? "opacity-30 cursor-not-allowed hover:border-slate-700 hover:text-slate-300" : ""
+          className={`relative flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-xl border border-transparent font-bold text-[10px] uppercase tracking-wide text-foreground hover:text-foreground hover:border-primary transition cursor-pointer before:content-[''] before:absolute before:-inset-y-[8px] before:inset-x-0 ${
+            !previousLesson ? "opacity-30 cursor-not-allowed hover:border-transparent hover:text-foreground" : ""
           }`}
         >
           <ChevronLeft size={14} />
@@ -50,8 +50,8 @@ export default function LessonNavigationControls({
           type="button"
           disabled={!nextLesson}
           onClick={onSelectNext}
-          className={`relative flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-xl bg-orange-500 hover:bg-orange-600 font-bold text-[10px] uppercase tracking-wide text-slate-950 transition cursor-pointer before:content-[''] before:absolute before:-inset-y-[8px] before:inset-x-0 ${
-            !nextLesson ? "opacity-40 cursor-not-allowed bg-orange-500/40 text-slate-400" : ""
+          className={`relative flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-xl bg-primary hover:bg-orange-600 font-bold text-[10px] uppercase tracking-wide text-slate-950 transition cursor-pointer before:content-[''] before:absolute before:-inset-y-[8px] before:inset-x-0 ${
+            !nextLesson ? "opacity-40 cursor-not-allowed bg-primary/40 text-muted-foreground" : ""
           }`}
         >
           <span>Next</span>
@@ -66,8 +66,8 @@ export default function LessonNavigationControls({
       <button
         disabled={!previousLesson}
         onClick={onSelectPrevious}
-        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl border border-slate-700 font-extrabold text-xs text-slate-300 hover:text-white hover:border-orange-500 transition cursor-pointer ${
-          !previousLesson ? "opacity-30 cursor-not-allowed hover:border-slate-700 text-slate-500" : ""
+        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl border border-transparent font-extrabold text-xs text-foreground hover:text-foreground hover:border-primary transition cursor-pointer ${
+          !previousLesson ? "opacity-30 cursor-not-allowed hover:border-transparent text-muted-foreground" : ""
         }`}
       >
         <ChevronLeft size={16} />
@@ -75,10 +75,10 @@ export default function LessonNavigationControls({
       </button>
 
       <div className="text-center font-mono py-1 sm:py-0 truncate max-w-full">
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">
+        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">
           Active Lesson Pathway
         </span>
-        <p className="text-xs font-bold text-orange-400 truncate max-w-[200px] sm:max-w-[280px]">
+        <p className="text-xs font-bold text-primary truncate max-w-[200px] sm:max-w-[280px]">
           {selectedLesson?.title || "Course Lesson"}
         </p>
       </div>
@@ -86,8 +86,8 @@ export default function LessonNavigationControls({
       <button
         disabled={!nextLesson}
         onClick={onSelectNext}
-        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] rounded-xl bg-orange-500 hover:bg-orange-600 font-black text-xs text-slate-950 transition shadow-lg shadow-orange-500/20 active:scale-95 cursor-pointer ${
-          !nextLesson ? "opacity-40 cursor-not-allowed bg-orange-500/40 text-slate-400" : ""
+        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] rounded-xl bg-primary hover:bg-orange-600 font-black text-xs text-slate-950 transition shadow-lg shadow-orange-500/20 active:scale-95 cursor-pointer ${
+          !nextLesson ? "opacity-40 cursor-not-allowed bg-primary/40 text-muted-foreground" : ""
         }`}
       >
         <span>

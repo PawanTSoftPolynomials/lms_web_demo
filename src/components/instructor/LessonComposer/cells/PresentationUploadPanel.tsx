@@ -254,20 +254,20 @@ export function PresentationUploadPanel({ fileUrl, onFileUrlChange }: Presentati
               onDrop={handleDrop}
               onClick={() => !isUploading && fileInputRef.current?.click()}
               className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-8 text-center transition cursor-pointer ${
-                isDragging ? "border-orange-500 bg-orange-500/5" : "border-slate-800 hover:border-orange-500/50 bg-[#ACACAC]/40"
+                isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 bg-background/40"
               }`}
             >
               <input ref={fileInputRef} type="file" accept=".ppt,.pptx" onChange={handleFileChange} className="hidden" />
               {isUploading ? (
                 <>
-                  <Loader2 className="size-6 animate-spin text-orange-400" />
-                  <p className="text-xs font-bold text-slate-300">Uploading {fileName}…</p>
+                  <Loader2 className="size-6 animate-spin text-primary" />
+                  <p className="text-xs font-bold text-foreground">Uploading {fileName}…</p>
                 </>
               ) : (
                 <>
-                  <Upload className="size-6 text-slate-500" />
-                  <p className="text-xs font-bold text-slate-300">Drag &amp; drop your PPT/PPTX file</p>
-                  <p className="text-[11px] text-slate-500">or click to browse — Supported: .ppt, .pptx</p>
+                  <Upload className="size-6 text-muted-foreground" />
+                  <p className="text-xs font-bold text-foreground">Drag &amp; drop your PPT/PPTX file</p>
+                  <p className="text-[11px] text-muted-foreground">or click to browse — Supported: .ppt, .pptx</p>
                 </>
               )}
             </div>

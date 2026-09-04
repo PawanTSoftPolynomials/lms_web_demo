@@ -41,7 +41,7 @@ export default function ChatMessages({ messages = [] }) {
           className="
           rounded-full
 
-          bg-slate-800
+          bg-muted
 
           px-4
           py-1
@@ -49,7 +49,7 @@ export default function ChatMessages({ messages = [] }) {
           text-xs
           font-medium
 
-          text-slate-400
+          text-muted-foreground
           "
         >
           Today
@@ -58,12 +58,12 @@ export default function ChatMessages({ messages = [] }) {
 
       {loading ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3">
-          <div className="w-8 h-8 rounded-full border-[3px] border-orange-500/20 border-t-orange-500 animate-spin" />
-          <p className="text-xs text-slate-500 font-semibold tracking-wide">Loading messages...</p>
+          <div className="w-8 h-8 rounded-full border-[3px] border-primary/20 border-t-orange-500 animate-spin" />
+          <p className="text-xs text-muted-foreground font-semibold tracking-wide">Loading messages...</p>
         </div>
       ) : messages.length === 0 ? (
         <div className="flex flex-1 items-center justify-center">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             No messages yet.
           </p>
         </div>

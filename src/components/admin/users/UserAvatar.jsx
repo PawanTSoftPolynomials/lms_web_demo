@@ -44,7 +44,7 @@ export default function UserAvatar({
         items-center
         justify-center
         font-semibold
-        text-white
+        text-foreground
         select-none
       `}
         >

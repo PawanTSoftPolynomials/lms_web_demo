@@ -28,38 +28,23 @@ import type { NavItem, NavSubItem } from "@/components/instructor/NavigationStri
 export function QuickActionStrip({ items, ariaLabel, bare = false }: { items: NavItem[]; ariaLabel: string; bare?: boolean }) {
   const pathname = usePathname();
 
-  const mobilePrimary = items.filter((item) => item.primaryOnMobile);
 
   return (
     <nav
       aria-label={ariaLabel}
       className={bare ? "min-w-0" : "-mx-1 rounded-2xl border border-card-border bg-card/80 backdrop-blur-md px-2 py-2 shadow-sm"}
     >
-      {/* Desktop / tablet: full pill row. Bare mode scrolls horizontally
+      {/* Responsive pill row. Bare mode scrolls horizontally
           (fixed-height host bar); standalone mode wraps to fit the window. */}
       <div
         className={
           bare
-            ? "hidden sm:flex items-center gap-1 overflow-x-auto scrollbar-none"
-            : "hidden sm:flex flex-wrap justify-center items-center gap-1.5 p-1"
+            ? "flex items-center gap-1 overflow-x-auto scrollbar-none"
+            : "flex flex-wrap justify-center items-center gap-1.5 p-1"
         }
       >
         {items.map((item) => (
           <NavPill key={item.label} item={item} active={isItemActive(pathname, item)} pathname={pathname} ariaLabel={ariaLabel} />
-        ))}
-      </div>
-
-      {/* Mobile: condensed primary set, horizontally scrollable */}
-      <div className="flex sm:hidden items-center gap-1 overflow-x-auto scrollbar-none">
-        {mobilePrimary.map((item) => (
-          <NavPill
-            key={item.label}
-            item={item}
-            active={isItemActive(pathname, item)}
-            pathname={pathname}
-            ariaLabel={ariaLabel}
-            mobile
-          />
         ))}
       </div>
     </nav>
@@ -86,10 +71,17 @@ function isItemActive(pathname: string, item: NavItem) {
 
 // Opens immediately on hover, closes after a short delay so moving the
 // pointer from trigger to content (or between a submenu and its parent)
-// doesn't close the menu before it lands. Click still works via onOpenChange.
+// doesn't close the menu before it lands. Clicking the trigger "pins" it
+// open — Radix's default trigger behavior toggles an already-open menu
+// closed on click, which fights the hover-open state (the menu would open
+// on hover and then immediately close on the click that was meant to keep
+// it open for the follow-up click on an item). onTriggerClick prevents
+// that default toggle and pins the menu open until an item is chosen or
+// the user clicks outside/presses escape (handled via onOpenChange).
 function useHoverOpen(closeDelayMs = 150) {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pinnedRef = useRef(false);
 
   useEffect(() => () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -100,10 +92,21 @@ function useHoverOpen(closeDelayMs = 150) {
     setOpen(true);
   };
   const onMouseLeave = () => {
+    if (pinnedRef.current) return;
     closeTimer.current = setTimeout(() => setOpen(false), closeDelayMs);
   };
+  const onTriggerClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    pinnedRef.current = true;
+    setOpen(true);
+  };
+  const onOpenChange = (next: boolean) => {
+    if (!next) pinnedRef.current = false;
+    setOpen(next);
+  };
 
-  return { open, setOpen, onMouseEnter, onMouseLeave };
+  return { open, setOpen: onOpenChange, onMouseEnter, onMouseLeave, onTriggerClick };
 }
 
 function NavPill({
@@ -150,6 +153,7 @@ function NavPill({
             aria-current={active ? "page" : undefined}
             onMouseEnter={hover.onMouseEnter}
             onMouseLeave={hover.onMouseLeave}
+            onClick={hover.onTriggerClick}
           >
             {active && !mobile && (
               <motion.span
@@ -211,6 +215,7 @@ function NestedSubMenuItem({ child, pathname }: { child: NavSubItem; pathname: s
         className={cn("flex items-center gap-2", childActive && "font-bold text-primary")}
         onMouseEnter={hover.onMouseEnter}
         onMouseLeave={hover.onMouseLeave}
+        onClick={hover.onTriggerClick}
       >
         <child.icon className="size-3.5" />
         {child.label}

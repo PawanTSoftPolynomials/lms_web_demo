@@ -189,11 +189,11 @@ export default function AdminCoursePage() {
                 <CourseOverview course={course}/>
 
                 <div className="space-y-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
                         <div>
                             <h2 className="text-3xl font-bold">Course Curriculum</h2>
 
-                            <p className="mt-2 text-slate-400">
+                            <p className="mt-2 text-muted-foreground">
                                 Manage modules, lessons and course contents.
                             </p>
                         </div>
@@ -216,11 +216,11 @@ export default function AdminCoursePage() {
                                     onEdit={handleEditModule}
                                     onDelete={handleDeleteModule}
                                 />))}
-                        </div>) : (<Card>
+                        </div>) : (<Card tone="flat">
                             <div className="py-12 text-center">
                                 <h2 className="text-2xl font-bold">No Modules Yet</h2>
 
-                                <p className="mt-3 text-slate-400">
+                                <p className="mt-3 text-muted-foreground">
                                     Start building your course.
                                 </p>
 
@@ -237,7 +237,7 @@ export default function AdminCoursePage() {
                         </Card>)}
                 </div>
 
-                <Card>
+                <Card tone="flat">
                     <h2 className="mb-6 text-2xl font-bold">Course Settings</h2>
 
                     <div className="space-y-5">
@@ -249,7 +249,7 @@ export default function AdminCoursePage() {
                         />
 
                         <div>
-                            <label className="mb-3 block text-sm font-semibold text-slate-300">
+                            <label className="mb-3 block text-sm font-semibold text-foreground">
                                 Description
                             </label>
 
@@ -262,12 +262,12 @@ export default function AdminCoursePage() {
             w-full
             rounded-xl
             border
-            border-slate-700
-            bg-slate-800
+            border-transparent
+            bg-muted
             px-4
             py-3
             outline-none
-            focus:border-orange-500
+            focus:border-primary
           "
                             />
                         </div>
@@ -291,7 +291,7 @@ export default function AdminCoursePage() {
                 <Card className="border border-red-900 bg-red-950/20">
                     <h2 className="text-2xl font-bold text-red-400">Danger Zone</h2>
 
-                    <p className="mt-3 text-slate-400">
+                    <p className="mt-3 text-muted-foreground">
                         Deleting this course is permanent. This action cannot be undone.
                     </p>
 

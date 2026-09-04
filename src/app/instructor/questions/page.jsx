@@ -4,7 +4,7 @@ import QuestionRepositoryView from "@/components/instructor/questions/QuestionRe
 
 export default function QuestionRepositoryPage() {
   return (
-    <div className="min-h-screen bg-slate-950 p-6 md:p-10">
+    <div className="min-h-screen bg-background p-6 md:p-10">
       <div className="max-w-7xl mx-auto">
         <QuestionRepositoryView />
       </div>

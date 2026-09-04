@@ -70,7 +70,7 @@ export default function EditQuizPage() {
                         Quiz Not Found
                     </h2>
 
-                    <p className="mt-2 text-slate-400">
+                    <p className="mt-2 text-muted-foreground">
                         Unable to load the quiz.
                     </p>
                 </div>

@@ -18,7 +18,7 @@ import useRazorpayCheckout from "@/hooks/useRazorpayCheckout";
 function CourseThumbnail({ thumbnailUrl, title, className = "" }) {
     if (!thumbnailUrl) {
         return (
-            <div className={`flex h-full w-full items-center justify-center bg-slate-900 ${className}`}>
+            <div className={`flex h-full w-full items-center justify-center bg-background ${className}`}>
                 <BookOpen className="h-8 w-8 text-slate-700" />
             </div>
         );
@@ -96,13 +96,13 @@ export default function CourseHeader({
     const badges = (
         <div className="flex flex-wrap items-center gap-3">
             {course.category && (
-                <span className="rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300">
+                <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground">
                     {course.category}
                 </span>
             )}
 
             {course.level && (
-                <span className="rounded-full bg-orange-500/10 px-3 py-1 text-xs font-medium text-orange-400">
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                     {course.level}
                 </span>
             )}
@@ -111,28 +111,28 @@ export default function CourseHeader({
 
     const titleBlock = (
         <div>
-            <h1 className="text-2xl font-bold text-white sm:text-3xl">
+            <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
                 {course.title}
             </h1>
 
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                 {avgRating > 0 ? (
-                    <span className="inline-flex items-center gap-1 text-slate-300">
-                        <Star className="h-4 w-4 fill-orange-500 text-orange-500" />
+                    <span className="inline-flex items-center gap-1 text-foreground">
+                        <Star className="h-4 w-4 fill-orange-500 text-primary" />
                         {avgRating.toFixed(1)}
-                        <span className="text-slate-500">({reviewCount} reviews)</span>
+                        <span className="text-muted-foreground">({reviewCount} reviews)</span>
                     </span>
                 ) : (
-                    <span className="text-slate-500">New course</span>
+                    <span className="text-muted-foreground">New course</span>
                 )}
 
-                <span className="inline-flex items-center gap-1 text-slate-300">
-                    <Clock className="h-4 w-4 text-orange-500" />
+                <span className="inline-flex items-center gap-1 text-foreground">
+                    <Clock className="h-4 w-4 text-primary" />
                     {formatDuration(course.estimatedLearningHours)}
                 </span>
             </div>
 
-            <p className={`mt-3 text-sm leading-6 text-slate-400 ${descExpanded ? "" : "line-clamp-2"}`}>
+            <p className={`mt-3 text-sm leading-6 text-muted-foreground ${descExpanded ? "" : "line-clamp-2"}`}>
                 {course.description}
             </p>
 
@@ -140,7 +140,7 @@ export default function CourseHeader({
                 <button
                     type="button"
                     onClick={() => setDescExpanded((prev) => !prev)}
-                    className="mt-1 cursor-pointer text-xs font-medium text-orange-400 hover:text-orange-300"
+                    className="mt-1 cursor-pointer text-xs font-medium text-primary hover:text-orange-300"
                 >
                     {descExpanded ? "Show Less" : "Read More"}
                 </button>
@@ -153,7 +153,7 @@ export default function CourseHeader({
             {isEnrolled ? (
                 <Button
                     onClick={() => router.push(`/student/learn/${course.id}`)}
-                    className="w-full sm:w-auto px-6 py-3 font-semibold text-base text-white bg-orange-500 hover:bg-orange-600"
+                    className="w-full sm:w-auto px-6 py-3 font-semibold text-base text-foreground bg-primary hover:bg-orange-600"
                 >
                     Continue Learning
                 </Button>
@@ -162,7 +162,7 @@ export default function CourseHeader({
                     onClick={handleEnroll}
                     loading={isProcessing}
                     disabled={isProcessing}
-                    className="w-full sm:w-auto px-6 py-3 font-semibold text-base text-white bg-orange-500 hover:bg-orange-600"
+                    className="w-full sm:w-auto px-6 py-3 font-semibold text-base text-foreground bg-primary hover:bg-orange-600"
                 >
                     {getButtonLabel("Enroll Now")}
                 </Button>

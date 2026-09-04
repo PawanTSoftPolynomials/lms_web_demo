@@ -60,7 +60,7 @@ export default function CourseOverview({
         { icon: BookOpen, value: totalModules, label: "Modules", color: "text-purple-400", bg: "bg-purple-500/10" },
         { icon: ListChecks, value: totalLessons, label: "Lessons", color: "text-blue-400", bg: "bg-blue-500/10" },
         { icon: Video, value: totalContents, label: "Contents", color: "text-emerald-400", bg: "bg-emerald-500/10" },
-        { icon: ClipboardList, value: totalQuizzes, label: "Quizzes", color: "text-orange-400", bg: "bg-orange-500/10" },
+        { icon: ClipboardList, value: totalQuizzes, label: "Quizzes", color: "text-primary", bg: "bg-primary/10" },
         { icon: Clock, value: formatDuration(course.estimatedLearningHours), label: "", color: "text-sky-400", bg: "bg-sky-500/10" },
         { icon: BarChart2, value: course.level || "—", label: "", color: "text-rose-400", bg: "bg-rose-500/10" },
     ];
@@ -74,12 +74,12 @@ export default function CourseOverview({
                             <stat.icon className="h-3.5 w-3.5" />
                         </span>
 
-                        <span className="text-sm font-semibold text-white">
+                        <span className="text-sm font-semibold text-foreground">
                             {stat.value}
                         </span>
 
                         {stat.label && (
-                            <span className="text-xs text-slate-400">
+                            <span className="text-xs text-muted-foreground">
                                 {stat.label}
                             </span>
                         )}

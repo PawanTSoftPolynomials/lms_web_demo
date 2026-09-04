@@ -9,7 +9,7 @@ import ChatSidebar from "./ChatSidebar";
 import ChatConversation from "./ChatConversation";
 
 export default function ChatWindow() {
-  const { isOpen, confirmDialog, setConfirmDialog } = useChat();
+  const { isOpen, confirmDialog, setConfirmDialog, activeConversation } = useChat();
 
   return (
     <AnimatePresence>
@@ -43,9 +43,9 @@ export default function ChatWindow() {
           flex-col
 
           border-l
-          border-slate-800/80
+          border-border/80
 
-          bg-slate-950/90
+          bg-background/90
           backdrop-blur-xl
 
           shadow-[-10px_0_50px_rgba(0,0,0,0.6)]
@@ -59,18 +59,20 @@ export default function ChatWindow() {
           <div className="flex flex-1 overflow-hidden">
 
             <div
-              className="
-              w-[280px]
+              className={`
+              w-full
+              md:w-[280px]
               border-r
-              border-slate-800/80
+              border-border/80
 
-              bg-slate-900/40
-              "
+              bg-background/40
+              ${activeConversation ? "hidden md:block" : "block"}
+              `}
             >
               <ChatSidebar />
             </div>
 
-            <div className="flex-1 bg-slate-950/40">
+            <div className={`flex-1 bg-background/40 ${activeConversation ? "block" : "hidden md:block"}`}>
               <ChatConversation />
             </div>
 
@@ -78,22 +80,22 @@ export default function ChatWindow() {
 
           {/* Custom Confirm Dialog Overlay */}
           {confirmDialog?.isOpen && (
-            <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-6 z-[10005] animate-in fade-in duration-200 rounded-2xl">
+            <div className="absolute inset-0 bg-background/85 backdrop-blur-md flex items-center justify-center p-6 z-[10005] animate-in fade-in duration-200 rounded-2xl">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl max-w-sm w-full text-center backdrop-blur-lg"
+                className="bg-background/90 border border-border/80 rounded-2xl p-6 shadow-2xl max-w-sm w-full text-center backdrop-blur-lg"
               >
-                <h3 className="text-lg font-bold text-white mb-2">
+                <h3 className="text-lg font-bold text-foreground mb-2">
                   {confirmDialog.title || "Confirmation"}
                 </h3>
-                <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+                <p className="text-xs text-muted-foreground mb-6 leading-relaxed">
                   {confirmDialog.message || "Are you sure you want to proceed?"}
                 </p>
                 <div className="flex gap-3 justify-center text-xs font-semibold">
                   <button
                     onClick={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
-                    className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                    className="px-4 py-2.5 rounded-xl bg-muted text-foreground hover:bg-muted hover:text-foreground transition-colors"
                   >
                     Cancel
                   </button>
@@ -102,7 +104,7 @@ export default function ChatWindow() {
                       if (confirmDialog.onConfirm) confirmDialog.onConfirm();
                       setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
                     }}
-                    className="px-4 py-2.5 rounded-xl bg-gradient-to-br from-orange-500 to-pink-600 text-white shadow-md shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    className="px-4 py-2.5 rounded-xl bg-gradient-to-br from-orange-500 to-pink-600 text-foreground shadow-md shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                   >
                     Confirm
                   </button>

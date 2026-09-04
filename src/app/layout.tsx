@@ -2,14 +2,19 @@ import type { Metadata } from "next";
 import { AuthProvider } from "@/context/AuthContext";
 import { Geist, Geist_Mono } from "next/font/google";
 import QueryProvider from "@/providers/QueryProvider";
+import { ThemeProvider } from "@/providers/ThemeProvider";
+import { PaletteProvider, PALETTE_ANTI_FLASH_SCRIPT } from "@/providers/PaletteProvider";
 import "@fontsource/poppins/400.css";
 import "@fontsource/poppins/500.css";
 import "@fontsource/poppins/700.css";
 import "@fontsource/playfair-display/700.css";
-import "@fontsource/manrope/400.css";
-import "@fontsource/manrope/500.css";
-import "@fontsource/manrope/600.css";
-import "@fontsource/manrope/700.css";
+import "@fontsource/dm-sans/400.css";
+import "@fontsource/dm-sans/500.css";
+import "@fontsource/dm-sans/700.css";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
 import "./globals.css";
 import { ChatProvider } from "@/context/ChatContext";
 import { ToastProvider } from "@/components/ui/ToastProvider";
@@ -39,22 +44,32 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable}`}
     >
-      <body className="min-h-full flex flex-col">
-        <QueryProvider>
-          <AuthProvider>
-            <ToastProvider>
-              <ConfirmProvider>
-                <NotificationProvider>
-                  <ChatProvider>
-                    {children}
-                  </ChatProvider>
-                </NotificationProvider>
-              </ConfirmProvider>
-            </ToastProvider>
-          </AuthProvider>
-        </QueryProvider>
+      <head>
+      </head>
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        <script
+          dangerouslySetInnerHTML={{ __html: PALETTE_ANTI_FLASH_SCRIPT }}
+        />
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+          <PaletteProvider>
+            <QueryProvider>
+              <AuthProvider>
+                <ToastProvider>
+                  <ConfirmProvider>
+                    <NotificationProvider>
+                      <ChatProvider>
+                        {children}
+                      </ChatProvider>
+                    </NotificationProvider>
+                  </ConfirmProvider>
+                </ToastProvider>
+              </AuthProvider>
+            </QueryProvider>
+          </PaletteProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -7,7 +7,7 @@ export default function Input({
   return (
     <div className="space-y-2">
       {label && (
-        <label className="text-sm text-muted-foreground">
+        <label className="text-sm text-foreground">
           {label}
         </label>
       )}
@@ -16,11 +16,14 @@ export default function Input({
         className={`
           glass-input
           w-full
-          rounded-[0.625rem]
+          rounded-lg
+          border
+          border-transparent
+          bg-muted
           px-4
           py-3
-          text-foreground
-          placeholder:text-muted-foreground
+          outline-none
+          focus:border-primary
           ${className}
         `}
         {...props}

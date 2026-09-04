@@ -84,16 +84,16 @@ export default function ContentBlockCard({
 
   if (draft.blockType === "legacy") {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 flex items-center justify-between gap-3">
+      <div className="rounded-xl border border-border bg-background/40 p-4 flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm text-slate-300 font-medium">{draft.title || "Untitled content"}</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-sm text-foreground font-medium">{draft.title || "Untitled content"}</p>
+          <p className="text-xs text-muted-foreground">
             Created outside the composer ({draft.legacyType}) — edit it in the classic form.
           </p>
         </div>
         <a
           href={`/instructor/contents/edit/${draft.id}`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-lg transition shrink-0"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground hover:text-foreground bg-muted hover:bg-slate-750 border border-transparent/60 rounded-lg transition shrink-0"
         >
           <ExternalLink size={12} /> Edit in classic form
         </a>
@@ -205,7 +205,7 @@ export default function ContentBlockCard({
   return (
     <div
       className={`group relative px-4 py-3.5 transition-colors ${
-        isEditing ? "bg-slate-900/70" : "hover:bg-slate-800/30"
+        isEditing ? "bg-background/70" : "hover:bg-muted/30"
       } ${blockScopeClass(block.id)}`}
     >
       <ScopedCss blockId={block.id} css={draft.cssStyles} />
@@ -216,16 +216,16 @@ export default function ContentBlockCard({
         }`}
       >
         <div className="flex items-center gap-2 min-w-0">
-          <Icon size={13} className="text-orange-400 shrink-0" />
+          <Icon size={13} className="text-primary shrink-0" />
           {isEditing ? (
             <input
               value={draft.title || ""}
               onChange={(e) => patchDraft({ title: e.target.value })}
               placeholder={`${entry.label} block title (optional)`}
-              className="bg-transparent text-sm font-semibold text-white outline-none border-b border-transparent focus:border-orange-500 min-w-0"
+              className="bg-transparent text-sm font-semibold text-foreground outline-none border-b border-transparent focus:border-primary min-w-0"
             />
           ) : (
-            <span className="text-xs font-semibold text-slate-400 truncate">
+            <span className="text-xs font-semibold text-muted-foreground truncate">
               {draft.title || entry.label}
             </span>
           )}
@@ -235,19 +235,19 @@ export default function ContentBlockCard({
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
           >
             <MoreVertical size={16} />
           </button>
           {menuOpen && (
-            <div className="absolute right-0 mt-1 w-48 rounded-lg border border-slate-800 bg-slate-900 shadow-xl z-20 py-1">
+            <div className="absolute right-0 mt-1 w-48 rounded-lg border border-border bg-background shadow-xl z-20 py-1">
               <button
                 type="button"
                 onClick={() => {
                   setMenuOpen(false);
                   setIsEditing(true);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-muted"
               >
                 <Pencil size={12} /> Edit
               </button>
@@ -255,7 +255,7 @@ export default function ContentBlockCard({
                 <button
                   type="button"
                   onClick={handleAddInside}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-muted"
                 >
                   <Layers size={12} /> Add Block Inside
                 </button>
@@ -268,7 +268,7 @@ export default function ContentBlockCard({
                       setMenuOpen(false);
                       onAddAbove();
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-muted"
                   >
                     <Plus size={12} /> Add Block Above
                   </button>
@@ -278,7 +278,7 @@ export default function ContentBlockCard({
                       setMenuOpen(false);
                       onAddBelow();
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-muted"
                   >
                     <Plus size={12} /> Add Block Below
                   </button>
@@ -291,7 +291,7 @@ export default function ContentBlockCard({
                   setMenuOpen(false);
                   onMoveUp();
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 disabled:opacity-30"
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-muted disabled:opacity-30"
               >
                 <ArrowUp size={12} /> Move Up
               </button>
@@ -302,11 +302,11 @@ export default function ContentBlockCard({
                   setMenuOpen(false);
                   onMoveDown();
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 disabled:opacity-30"
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-muted disabled:opacity-30"
               >
                 <ArrowDown size={12} /> Move Down
               </button>
-              <hr className="border-slate-800 my-1" />
+              <hr className="border-border my-1" />
               <button
                 type="button"
                 onClick={handleDelete}
@@ -335,22 +335,22 @@ export default function ContentBlockCard({
           )}
 
           <details className="text-xs">
-            <summary className="text-slate-500 cursor-pointer select-none">
+            <summary className="text-muted-foreground cursor-pointer select-none">
               Advanced: custom CSS
             </summary>
             <input
               value={draft.cssStyles || ""}
               onChange={(e) => patchDraft({ cssStyles: e.target.value })}
               placeholder="e.g. border: 1px solid red;"
-              className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-mono outline-none focus:border-orange-500"
+              className="mt-2 w-full rounded-lg border border-transparent bg-muted px-3 py-2 text-xs font-mono outline-none focus:border-primary"
             />
           </details>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+          <div className="flex justify-end gap-2 pt-2 border-t border-border">
             <button
               type="button"
               onClick={handleCancel}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-lg transition"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground hover:text-foreground bg-muted hover:bg-slate-750 border border-transparent/60 rounded-lg transition"
             >
               <X size={12} /> Cancel
             </button>
@@ -358,7 +358,7 @@ export default function ContentBlockCard({
               type="button"
               onClick={handleSave}
               disabled={createContent.isPending || updateContent.isPending}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground bg-emerald-600 hover:bg-emerald-700 rounded-lg transition disabled:opacity-50"
             >
               <Check size={12} />
               {createContent.isPending || updateContent.isPending ? "Saving…" : "Done"}
@@ -368,7 +368,7 @@ export default function ContentBlockCard({
       ) : isNestable ? (
         <ViewComponent block={draft} allLessonContents={allLessonContents} />
       ) : (
-        <div className="rounded-lg border border-slate-800/80 bg-slate-950/40 p-3">
+        <div className="rounded-lg border border-border/80 bg-background/40 p-3">
           <ViewComponent block={draft} />
         </div>
       )}

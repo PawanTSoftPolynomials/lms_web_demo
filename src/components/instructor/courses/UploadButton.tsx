@@ -62,7 +62,7 @@ export function UploadButton({
         type="button"
         onClick={() => fileInputRef.current?.click()}
         disabled={isUploading || disabled}
-        className={`btn flex items-center justify-center gap-1.5 rounded-xl border border-orange-500/40 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 text-xs font-bold px-3 py-2 transition cursor-pointer disabled:opacity-50 shrink-0 ${className}`}
+        className={`btn flex items-center justify-center gap-1.5 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold px-3 py-2 transition cursor-pointer disabled:opacity-50 shrink-0 ${className}`}
       >
         {isUploading ? (
           <>

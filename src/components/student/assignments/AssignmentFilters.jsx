@@ -30,7 +30,7 @@ export default function AssignmentFilters({
     <select
       value={courseFilter}
       onChange={(e) => setCourseFilter(e.target.value)}
-      className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition focus:border-orange-500"
+      className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
     >
       <option value="">All Courses</option>
       {courseOptions.map((course) => (
@@ -45,7 +45,7 @@ export default function AssignmentFilters({
     <select
       value={statusFilter}
       onChange={(e) => setStatusFilter(e.target.value)}
-      className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition focus:border-orange-500"
+      className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
     >
       <option value="">All Statuses</option>
       {ASSIGNMENT_STATUSES.map((status) => (
@@ -60,7 +60,7 @@ export default function AssignmentFilters({
     <select
       value={sortBy}
       onChange={(e) => setSortBy(e.target.value)}
-      className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition focus:border-orange-500"
+      className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
     >
       <option value="due-earliest">Due Date (Earliest)</option>
       <option value="due-latest">Due Date (Latest)</option>
@@ -73,7 +73,7 @@ export default function AssignmentFilters({
   const hasChips = Boolean((!hideCourseFilter && courseFilter) || statusFilter);
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-3 xl:p-4">
+    <div className="rounded-2xl border border-border bg-background p-3 xl:p-4">
       {/* Desktop (xl+): unchanged single-row layout, matches this page's own
           xl:grid-cols breakpoint. Course-scoped pages drop one column since
           there's nothing left to pick a course from. */}
@@ -109,14 +109,14 @@ export default function AssignmentFilters({
             onClick={() => setShowMobileFilters((prev) => !prev)}
             className={`relative flex items-center gap-2 rounded-xl border px-3.5 py-2.5 min-h-[44px] text-sm font-semibold transition-colors duration-200 cursor-pointer shrink-0 ${
               showMobileFilters
-                ? "border-orange-500 bg-orange-500/10 text-orange-400"
-                : "border-slate-700 bg-slate-800 text-white hover:border-slate-600"
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-transparent bg-muted text-foreground hover:border-transparent"
             }`}
           >
             <SlidersHorizontal size={16} />
             <span>Filters</span>
             {activeFilterCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-bold text-slate-950">
+              <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-slate-950">
                 {activeFilterCount}
               </span>
             )}
@@ -131,7 +131,7 @@ export default function AssignmentFilters({
               <button
                 type="button"
                 onClick={() => setCourseFilter("")}
-                className="flex items-center gap-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 min-h-[32px] text-xs font-semibold text-orange-300 transition-colors duration-200 cursor-pointer"
+                className="flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 min-h-[32px] text-xs font-semibold text-orange-300 transition-colors duration-200 cursor-pointer"
               >
                 Course: {courseFilter}
                 <X size={12} />
@@ -141,7 +141,7 @@ export default function AssignmentFilters({
               <button
                 type="button"
                 onClick={() => setStatusFilter("")}
-                className="flex items-center gap-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 min-h-[32px] text-xs font-semibold text-orange-300 transition-colors duration-200 cursor-pointer"
+                className="flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 min-h-[32px] text-xs font-semibold text-orange-300 transition-colors duration-200 cursor-pointer"
               >
                 Status: {statusFilter}
                 <X size={12} />

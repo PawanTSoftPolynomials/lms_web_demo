@@ -68,7 +68,7 @@ export default function ChatInput() {
   };
 
   return (
-    <div className="border-t border-slate-800/40 bg-slate-900/10 backdrop-blur-md p-4">
+    <div className="border-t border-border/40 bg-background/10 backdrop-blur-md p-4">
       {/* Hidden File Input */}
       <input
         type="file"
@@ -79,25 +79,25 @@ export default function ChatInput() {
 
       {/* Attachment Previews */}
       {(attachments.length > 0 || uploading) && (
-        <div className="flex flex-wrap gap-2 mb-3 p-2 bg-slate-950/40 rounded-xl border border-slate-800/60 max-h-32 overflow-y-auto">
+        <div className="flex flex-wrap gap-2 mb-3 p-2 bg-background/40 rounded-xl border border-border/60 max-h-32 overflow-y-auto">
           {attachments.map((att, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-200"
+              className="flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-lg text-xs text-foreground"
             >
-              <Paperclip size={12} className="text-orange-400" />
+              <Paperclip size={12} className="text-primary" />
               <span className="max-w-[120px] truncate">{att.fileName}</span>
               <button
                 onClick={() => removeAttachment(idx)}
-                className="text-slate-400 hover:text-red-400 font-bold ml-1 transition-colors text-sm"
+                className="text-muted-foreground hover:text-red-400 font-bold ml-1 transition-colors text-sm"
               >
                 &times;
               </button>
             </div>
           ))}
           {uploading && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900/50 border border-slate-800 border-dashed rounded-lg text-xs text-slate-400 animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-background/50 border border-border border-dashed rounded-lg text-xs text-muted-foreground animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
               Uploading...
             </div>
           )}
@@ -105,14 +105,14 @@ export default function ChatInput() {
       )}
 
       <div className="flex items-center gap-1.5">
-        <button className="rounded-xl p-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-white transition-colors duration-200">
+        <button className="rounded-xl p-2.5 text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors duration-200">
           <Smile size={18} />
         </button>
 
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="rounded-xl p-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-white transition-colors duration-200 disabled:opacity-50"
+          className="rounded-xl p-2.5 text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors duration-200 disabled:opacity-50"
         >
           <Paperclip size={18} />
         </button>
@@ -142,25 +142,25 @@ export default function ChatInput() {
           flex-1
           rounded-full
           border
-          border-slate-800/80
-          bg-slate-950/60
+          border-border/80
+          bg-background/60
           px-5
           py-2.5
           text-sm
-          text-slate-100
+          text-foreground
           outline-none
-          placeholder:text-slate-500
+          placeholder:text-muted-foreground
           transition-all
           duration-300
-          focus:border-orange-500/60
-          focus:bg-slate-950
+          focus:border-primary/60
+          focus:bg-background
           focus:ring-1
           focus:ring-orange-500/30
           focus:shadow-[0_0_15px_rgba(242,199,199,0.08)]
           "
         />
 
-        <button className="rounded-xl p-2.5 text-slate-400 hover:bg-slate-800/50 hover:text-white transition-colors duration-200">
+        <button className="rounded-xl p-2.5 text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors duration-200">
           <Mic size={18} />
         </button>
 
@@ -173,9 +173,9 @@ export default function ChatInput() {
           from-orange-500
           to-orange-600
           p-3
-          text-white
-          shadow-[0_4px_15px_rgba(242,199,199,0.3)]
-          hover:shadow-[0_4px_20px_rgba(242,199,199,0.45)]
+          text-foreground
+          shadow-[0_4px_15px_rgba(249,115,22,0.3)]
+          hover:shadow-[0_4px_20px_rgba(249,115,22,0.45)]
           hover:scale-105
           active:scale-95
           transition-all

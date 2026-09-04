@@ -62,7 +62,7 @@ export default function StudentAnnouncementsPage() {
           <button
             onClick={handleMarkAllRead}
             disabled={markAllReadMutation.isPending}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-sm cursor-pointer shrink-0 disabled:opacity-50"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-sm cursor-pointer shrink-0 disabled:opacity-50"
           >
             <CheckCheck size={16} />
             <span>Mark All as Read ({unreadCount})</span>
@@ -73,7 +73,7 @@ export default function StudentAnnouncementsPage() {
       {/* Controls Bar: Search & Filter Tabs */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
         {/* Filter Tabs */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/80 border border-slate-800/80 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-background/80 border border-transparent/80 overflow-x-auto scrollbar-none">
           {ANNOUNCEMENT_FILTER_TABS.map((tab) => {
             const countLabel =
               tab.key === "all"
@@ -88,13 +88,13 @@ export default function StudentAnnouncementsPage() {
                 onClick={() => setFilterTab(tab.key)}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
                   filterTab === tab.key
-                    ? "bg-slate-800 text-white shadow-sm border border-slate-700/60"
-                    : "text-slate-400 hover:text-slate-200"
+                    ? "bg-muted text-foreground shadow-sm border border-transparent/60"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <span>{tab.label}</span>
                 {tab.key === "unread" && unreadCount > 0 ? (
-                  <span className="px-1.5 py-0.2 rounded-full bg-orange-500 text-slate-950 text-[10px] font-black">
+                  <span className="px-1.5 py-0.2 rounded-full bg-primary text-slate-950 text-[10px] font-black">
                     {countLabel}
                   </span>
                 ) : tab.key === "all" ? (
@@ -107,13 +107,13 @@ export default function StudentAnnouncementsPage() {
 
         {/* Search Input */}
         <div className="relative w-full sm:w-64 shrink-0">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search announcements..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900/80 border border-slate-800/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/50 transition"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-background/80 border border-transparent/80 text-xs text-foreground placeholder-slate-500 focus:outline-none focus:border-primary/50 transition"
           />
         </div>
       </div>
@@ -121,12 +121,12 @@ export default function StudentAnnouncementsPage() {
       {/* Main List */}
       <div className="space-y-3">
         {filteredNotifications.length === 0 ? (
-          <Card className="p-12 text-center border border-slate-800/80 bg-slate-900/40 rounded-2xl">
-            <div className="w-12 h-12 rounded-full bg-slate-800/60 text-slate-400 flex items-center justify-center mx-auto mb-3">
+          <Card className="p-12 text-center border border-transparent/80 bg-background/40 rounded-2xl">
+            <div className="w-12 h-12 rounded-full bg-muted/60 text-muted-foreground flex items-center justify-center mx-auto mb-3">
               <Bell size={24} />
             </div>
-            <h3 className="text-sm font-bold text-slate-200">No Announcements Found</h3>
-            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+            <h3 className="text-sm font-bold text-foreground">No Announcements Found</h3>
+            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
               {searchQuery
                 ? "No items match your search query. Try clearing your search keywords."
                 : "You are all caught up! Check back later for new course announcements and updates."}

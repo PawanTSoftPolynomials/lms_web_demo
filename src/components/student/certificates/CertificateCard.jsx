@@ -12,7 +12,7 @@ export default function CertificateCard({ cert, onView, onPrint }) {
         overflow-hidden
         transition-all
         duration-300
-        hover:border-orange-500/30
+        hover:border-primary/30
         hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)]
         hover:-translate-y-1
         group
@@ -24,16 +24,16 @@ export default function CertificateCard({ cert, onView, onPrint }) {
       <div className="flex flex-col gap-6 relative">
         {/* Header Info */}
         <div className="flex justify-between items-start gap-4">
-          <div className="p-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400">
+          <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary">
             <Award size={24} />
           </div>
           <div className="flex flex-col items-end gap-1">
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1">
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider flex items-center gap-1">
               <Hash size={10} />
               {cert.certificateNo}
             </span>
-            <span className="text-[10px] text-slate-400 flex items-center gap-1">
-              <Calendar size={10} className="text-orange-500/80" />
+            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <Calendar size={10} className="text-primary/80" />
               {new Date(cert.issuedAt).toLocaleDateString(undefined, {
                 year: 'numeric',
                 month: 'short',
@@ -45,19 +45,19 @@ export default function CertificateCard({ cert, onView, onPrint }) {
 
         {/* Title & Description */}
         <div className="space-y-2">
-          <h3 className="text-lg font-bold text-white leading-tight group-hover:text-orange-400 transition-colors">
+          <h3 className="text-lg font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
             {cert.course?.title}
           </h3>
-          <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
             {cert.course?.description || "Course completion credential."}
           </p>
         </div>
 
         {/* Recipient info */}
-        <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2 text-slate-300">
-            <div className="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center text-[10px]">
-              <User size={10} className="text-slate-400" />
+        <div className="pt-2 border-t border-border/60 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2 text-foreground">
+            <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px]">
+              <User size={10} className="text-muted-foreground" />
             </div>
             <span className="font-semibold">{cert.user?.name}</span>
           </div>
@@ -73,7 +73,7 @@ export default function CertificateCard({ cert, onView, onPrint }) {
             </Button>
             <Button
               onClick={() => onPrint(cert)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] bg-gradient-to-br from-orange-500 to-pink-600 text-white border-none rounded-lg shadow-md shadow-orange-500/10"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] bg-gradient-to-br from-orange-500 to-pink-600 text-foreground border-none rounded-lg shadow-md shadow-orange-500/10"
             >
               <Download size={12} />
               Print / Save

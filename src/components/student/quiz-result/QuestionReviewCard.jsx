@@ -28,25 +28,25 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
   }
 
   return (
-    <Card className="p-6 border-slate-800 bg-slate-900/30">
+    <Card className="p-6 border-border bg-background/30">
       <div className="flex items-start gap-4">
         {/* Number Badge */}
-        <span className="flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800 text-xs font-bold text-slate-300 border border-slate-700/50">
+        <span className="flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-lg bg-muted text-xs font-bold text-foreground border border-transparent/50">
           {index + 1}
         </span>
 
         <div className="flex-1 space-y-4 min-w-0">
           {/* Question Title & Marks */}
           <div className="flex justify-between items-start gap-4">
-            <h4 className="text-sm font-semibold text-slate-100 leading-relaxed break-words flex-1">
+            <h4 className="text-sm font-semibold text-foreground leading-relaxed break-words flex-1">
               {question.question}
             </h4>
             <div className="flex flex-col items-end gap-1 flex-shrink-0">
-              <span className="text-[10px] bg-slate-850 px-2 py-0.5 rounded border border-slate-800 text-slate-400 font-bold uppercase">
+              <span className="text-[10px] bg-slate-850 px-2 py-0.5 rounded border border-border text-muted-foreground font-bold uppercase">
                 {question.marks || 1} {question.marks === 1 ? "Mark" : "Marks"}
               </span>
               {question.concept && (
-                <span className="text-[9px] text-orange-400 font-semibold uppercase">
+                <span className="text-[9px] text-primary font-semibold uppercase">
                   {question.concept}
                 </span>
               )}
@@ -67,7 +67,7 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
                   ? optionText === question.correctAnswer || (typeof option === "object" && option?.isCorrect)
                   : Array.isArray(question.correctAnswer) && question.correctAnswer.includes(optionText);
 
-                let optionStyle = "border-slate-800 bg-slate-950/40 text-slate-400";
+                let optionStyle = "border-border bg-background/40 text-muted-foreground";
                 let badgeIcon = null;
 
                 if (isSelected) {
@@ -98,9 +98,9 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
 
           {/* 2. ARRANGE_TOKENS Review */}
           {qType === "ARRANGE_TOKENS" && (
-            <div className="space-y-3 bg-slate-950/40 p-4 rounded-xl border border-slate-850">
+            <div className="space-y-3 bg-background/40 p-4 rounded-xl border border-slate-850">
               <div className="space-y-2">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Your Sequence:</span>
+                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Your Sequence:</span>
                 <div className="flex flex-wrap gap-2">
                   {Array.isArray(selectedOption) && selectedOption.length > 0 ? (
                     selectedOption.map((token, tIdx) => {
@@ -116,20 +116,20 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
                       );
                     })
                   ) : (
-                    <span className="text-xs text-slate-500 italic">Not Answered</span>
+                    <span className="text-xs text-muted-foreground italic">Not Answered</span>
                   )}
                 </div>
               </div>
 
               {!isCorrect && Array.isArray(question.correctAnswer) && (
-                <div className="space-y-2 border-t border-slate-900/50 pt-3 mt-2">
+                <div className="space-y-2 border-t border-transparent/50 pt-3 mt-2">
                   <span className="text-[10px] text-slate-505 font-bold uppercase tracking-wider">Correct Sequence:</span>
                   <div className="flex flex-wrap gap-2">
                     {question.correctAnswer.map((token, tIdx) => {
                       const tokenText = typeof token === "string" ? token : (token?.optionText || token?.text || String(token));
                       return (
-                        <span key={tIdx} className="bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-slate-700/40">
-                          <span className="text-[9px] text-slate-500 font-bold">{tIdx + 1}</span>
+                        <span key={tIdx} className="bg-muted text-foreground px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-transparent/40">
+                          <span className="text-[9px] text-muted-foreground font-bold">{tIdx + 1}</span>
                           {tokenText}
                         </span>
                       );
@@ -142,8 +142,8 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
 
           {/* 3. MATCH_PAIRS Review */}
           {qType === "MATCH_PAIRS" && (
-            <div className="space-y-3 bg-slate-950/40 p-4 rounded-xl border border-slate-850">
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Matches Review:</span>
+            <div className="space-y-3 bg-background/40 p-4 rounded-xl border border-slate-850">
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Matches Review:</span>
               <div className="grid gap-3">
                 {Object.entries(question.correctAnswer || {}).map(([leftItem, rightItem]) => {
                   const studentMatch = selectedOption?.[leftItem] || "";
@@ -161,7 +161,7 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
                         <span className="underline">{studentMatch || "(No Match Selected)"}</span>
                       </div>
                       {!isMatchCorrect && (
-                        <div className="text-[10px] text-slate-500 font-medium">
+                        <div className="text-[10px] text-muted-foreground font-medium">
                           Expected Match: <span className="text-emerald-400 font-bold">{rightItem}</span>
                         </div>
                       )}
@@ -175,15 +175,15 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
           {/* 4. SELF_ASSESSMENT Review */}
           {qType === "SELF_ASSESSMENT" && (
             <div className="space-y-3">
-              <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-850 space-y-2">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Your Written Answer:</span>
+              <div className="bg-background/40 p-4 rounded-xl border border-slate-850 space-y-2">
+                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Your Written Answer:</span>
                 <p className="text-xs text-slate-350 leading-relaxed whitespace-pre-wrap">
                   {selectedOption || "(No response typed)"}
                 </p>
               </div>
-              <div className="bg-slate-950/20 p-4 rounded-xl border border-slate-850 space-y-2">
-                <span className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">Evaluation Rubric & Key:</span>
-                <p className="text-xs text-slate-400 leading-relaxed whitespace-pre-wrap">
+              <div className="bg-background/20 p-4 rounded-xl border border-slate-850 space-y-2">
+                <span className="text-[10px] text-primary font-bold uppercase tracking-wider">Evaluation Rubric & Key:</span>
+                <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
                   {question.correctAnswer}
                 </p>
               </div>
@@ -191,7 +191,7 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
           )}
 
           {/* Result Summary Bar */}
-          <div className="flex items-center gap-2 pt-2.5 border-t border-slate-900/60">
+          <div className="flex items-center gap-2 pt-2.5 border-t border-transparent/60">
             {selectedOption ? (
               <>
                 {isCorrect ? (
@@ -207,7 +207,7 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
                 )}
               </>
             ) : (
-              <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold italic">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold italic">
                 <XCircle size={14} />
                 <span>Not Answered</span>
               </div>

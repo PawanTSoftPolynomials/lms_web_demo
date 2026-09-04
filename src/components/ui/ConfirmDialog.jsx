@@ -22,7 +22,7 @@ export default function ConfirmDialog({
     >
       <div className="space-y-6">
 
-        <p className="text-slate-300">
+        <p className="text-foreground">
           {message}
         </p>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Phone, Video, MoreVertical, Trash2, Eraser } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Trash2, Eraser } from "lucide-react";
 
 import useChat from "@/hooks/useChat";
 import useMessages from "@/features/chat/hooks/useMessages";
@@ -58,7 +58,7 @@ export default function ChatConversation() {
   const getRoleBadgeStyle = (userRole) => {
     const formatted = (userRole || "").toUpperCase();
     if (formatted.includes("INSTRUCTOR")) {
-      return "bg-orange-500/10 text-orange-400 border border-orange-500/25";
+      return "bg-primary/10 text-primary border border-primary/25";
     }
     if (formatted.includes("ADMIN")) {
       return "bg-purple-500/10 text-purple-400 border border-purple-500/25";
@@ -102,11 +102,21 @@ export default function ChatConversation() {
   return (
     <div className="flex h-full flex-col relative">
 
-      <div className="flex h-16 items-center justify-between border-b border-slate-800 bg-slate-900 px-5">
+      <div className="flex h-16 items-center justify-between border-b border-border bg-background px-5">
 
-        <div>
+        <div className="flex items-center gap-2 min-w-0">
 
-          <h2 className="font-semibold text-white flex items-center gap-2">
+          <button
+            onClick={() => setActiveConversation(null)}
+            className="md:hidden shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            aria-label="Back to conversations"
+          >
+            <ArrowLeft size={16} />
+          </button>
+
+          <div className="min-w-0">
+
+          <h2 className="font-semibold text-foreground flex items-center gap-2">
             <span>{displayName}</span>
             {role && (
               <span className={`
@@ -118,7 +128,7 @@ export default function ChatConversation() {
             )}
           </h2>
 
-          <p className={`text-xs ${isRecipientTyping ? "text-orange-400 font-semibold" : "text-slate-400"}`}>
+          <p className={`text-xs ${isRecipientTyping ? "text-primary font-semibold" : "text-muted-foreground"}`}>
             {isRecipientTyping
               ? "Typing..."
               : activeConversation.online
@@ -126,22 +136,24 @@ export default function ChatConversation() {
               : activeConversation.lastSeen}
           </p>
 
+          </div>
+
         </div>
 
         <div className="flex gap-2 relative">
 
-          <button className="rounded-lg p-2 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors">
+          <button className="rounded-lg p-2 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
             <Phone size={18} />
           </button>
 
-          <button className="rounded-lg p-2 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors">
+          <button className="rounded-lg p-2 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
             <Video size={18} />
           </button>
 
           <button
             onClick={() => setShowMenu((prev) => !prev)}
             className={`rounded-lg p-2 transition-colors ${
-              showMenu ? "bg-slate-800 text-white" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+              showMenu ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
             <MoreVertical size={18} />
@@ -164,8 +176,8 @@ export default function ChatConversation() {
                 w-48
                 rounded-xl
                 border
-                border-slate-800/80
-                bg-slate-950/95
+                border-border/80
+                bg-background/95
                 backdrop-blur-md
                 p-1.5
                 shadow-2xl
@@ -187,9 +199,9 @@ export default function ChatConversation() {
                     text-left
                     text-xs
                     font-medium
-                    text-slate-300
-                    hover:bg-slate-800/60
-                    hover:text-white
+                    text-foreground
+                    hover:bg-muted/60
+                    hover:text-foreground
                     transition-all
                   "
                 >

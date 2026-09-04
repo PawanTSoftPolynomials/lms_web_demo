@@ -84,13 +84,13 @@ export default function QuizForm({
     };
 
     return (
-        <Card className="mx-auto max-w-4xl bg-[#0D1021] border border-[#1A1F35] p-6 sm:p-8 rounded-2xl shadow-2xl">
+        <Card className="mx-auto max-w-4xl bg-card border border-border p-6 sm:p-8 rounded-2xl shadow-2xl">
             <div className="mb-8">
-                <h1 className="text-3xl font-black text-white tracking-tight">
+                <h1 className="text-3xl font-black text-foreground tracking-tight">
                     {mode === "create" ? "Create Quiz" : "Edit Quiz"}
                 </h1>
 
-                <p className="mt-2 text-sm text-slate-400">
+                <p className="mt-2 text-sm text-muted-foreground">
                     {mode === "create" ? "Create a new quiz for your course and schedule when students can attempt it." : "Update quiz details and schedule parameters."}
                 </p>
             </div>
@@ -99,10 +99,10 @@ export default function QuizForm({
                 {mode === "create" && (
                     <div className="grid gap-6 md:grid-cols-2">
                         <div className="space-y-2">
-                            <label className="text-sm text-slate-300">Course</label>
+                            <label className="text-sm text-foreground">Course</label>
 
                             {lockedCourseId ? (
-                                <div className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-400">
+                                <div className="w-full rounded-lg border border-transparent bg-background px-4 py-3 text-sm text-muted-foreground">
                                     {instructorCourses.find((c) => c.id === lockedCourseId)?.title || "This course"}
                                 </div>
                             ) : (
@@ -111,7 +111,7 @@ export default function QuizForm({
                                     value={formData.courseId}
                                     onChange={handleChange}
                                     required
-                                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-orange-500"
+                                    className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 outline-none focus:border-primary"
                                 >
                                     <option value="" disabled>Select a course...</option>
                                     {availableCourses.map((c) => (
@@ -122,14 +122,14 @@ export default function QuizForm({
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm text-slate-300">Module (Optional)</label>
+                            <label className="text-sm text-foreground">Module (Optional)</label>
 
                             <select
                                 name="moduleId"
                                 value={formData.moduleId}
                                 onChange={handleChange}
                                 disabled={!formData.courseId}
-                                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 outline-none focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <option value="">
                                     {formData.courseId ? "Whole course (no specific module)" : "Select a course first..."}
@@ -152,7 +152,7 @@ export default function QuizForm({
                 />
 
                 <div>
-                    <label className="mb-2 block text-sm font-medium text-white">
+                    <label className="mb-2 block text-sm font-medium text-foreground">
                         Description
                     </label>
 
@@ -162,7 +162,7 @@ export default function QuizForm({
                         value={formData.description}
                         onChange={handleChange}
                         placeholder="Brief description and guidelines for the quiz..."
-                        className="w-full rounded-xl border border-[#1A1F35] bg-[#05070E] px-4 py-3 text-sm text-white outline-none transition focus:border-orange-500"
+                        className="w-full rounded-xl border border-border bg-[#05070E] px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
                     />
                 </div>
 
@@ -188,24 +188,24 @@ export default function QuizForm({
                     />
                 </div>
 
-                <div className="flex items-center gap-3 bg-[#05070E] p-3.5 rounded-xl border border-[#1A1F35]">
+                <div className="flex items-center gap-3 bg-[#05070E] p-3.5 rounded-xl border border-border">
                     <input
                         type="checkbox"
                         id="shuffleQuestions"
                         checked={formData.shuffleQuestions}
                         onChange={(e) => setFormData((prev) => ({ ...prev, shuffleQuestions: e.target.checked }))}
-                        className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-orange-500 focus:ring-orange-500 focus:ring-offset-slate-900 cursor-pointer"
+                        className="h-4 w-4 rounded border-transparent bg-background text-primary focus:ring-orange-500 focus:ring-offset-slate-900 cursor-pointer"
                     />
-                    <label htmlFor="shuffleQuestions" className="text-xs font-semibold text-slate-300 cursor-pointer select-none">
+                    <label htmlFor="shuffleQuestions" className="text-xs font-semibold text-foreground cursor-pointer select-none">
                         Randomize question order for each student attempt
                     </label>
                 </div>
 
                 {/* Scheduling Parameters */}
-                <div className="p-5 rounded-2xl bg-[#05070E] border border-[#1A1F35] space-y-4">
+                <div className="p-5 rounded-2xl bg-[#05070E] border border-border space-y-4">
                     <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-orange-500" />
-                        <h3 className="text-xs font-black uppercase tracking-wider text-orange-400 font-mono">
+                        <span className="w-2 h-2 rounded-full bg-primary" />
+                        <h3 className="text-xs font-black uppercase tracking-wider text-primary font-mono">
                             Quiz Schedule & Availability
                         </h3>
                     </div>
@@ -236,7 +236,7 @@ export default function QuizForm({
                                 type="submit"
                                 onClick={() => setSubmitAction("draft")}
                                 disabled={loading}
-                                className="rounded-xl border border-slate-800 bg-[#05070E] text-slate-300 hover:bg-slate-800 text-xs font-extrabold px-5 py-3.5 transition cursor-pointer"
+                                className="rounded-xl border border-border bg-[#05070E] text-foreground hover:bg-muted text-xs font-extrabold px-5 py-3.5 transition cursor-pointer"
                             >
                                 {loading && submitAction === "draft" ? "Saving..." : "Save as Draft"}
                             </button>
@@ -244,7 +244,7 @@ export default function QuizForm({
                                 type="submit"
                                 onClick={() => setSubmitAction("publish")}
                                 disabled={loading}
-                                className="rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white text-xs font-extrabold px-6 py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95 cursor-pointer"
+                                className="rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-foreground text-xs font-extrabold px-6 py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95 cursor-pointer"
                             >
                                 {loading && submitAction === "publish" ? "Creating..." : "Create Quiz"}
                             </button>
@@ -253,7 +253,7 @@ export default function QuizForm({
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="bg-orange-500 hover:bg-orange-600 font-extrabold"
+                            className="bg-primary hover:bg-orange-600 font-extrabold"
                         >
                             {loading ? "Updating..." : "Update Quiz"}
                         </Button>

@@ -29,9 +29,9 @@ import { changePassword } from "@/services/auth.service";
 function InfoRow({ icon: Icon, label, value, onClick }) {
   const content = (
     <>
-      <Icon size={15} className="text-slate-500 shrink-0" />
-      <span className="text-xs text-slate-400 flex-1 min-w-0">{label}</span>
-      <span className="text-xs font-semibold text-white text-right truncate max-w-[42%]">{value || "Not Provided"}</span>
+      <Icon size={15} className="text-muted-foreground shrink-0" />
+      <span className="text-xs text-muted-foreground flex-1 min-w-0">{label}</span>
+      <span className="text-xs font-semibold text-foreground text-right truncate max-w-[42%]">{value || "Not Provided"}</span>
       <ChevronRight size={14} className="text-slate-600 shrink-0" />
     </>
   );
@@ -58,8 +58,8 @@ function QuickActionButton({ href, onClick, icon: Icon, label, disabled }) {
 
   const content = (
     <>
-      <Icon size={16} className="text-orange-400" />
-      <span className="text-[10px] font-bold text-slate-300 text-center leading-tight">{label}</span>
+      <Icon size={16} className="text-primary" />
+      <span className="text-[10px] font-bold text-foreground text-center leading-tight">{label}</span>
     </>
   );
 
@@ -126,7 +126,7 @@ export default function MobileProfileView({ profile, onEdit }) {
         type="button"
         onClick={() => router.back()}
         aria-label="Go back"
-        className="h-8 w-8 -ml-1.5 flex items-center justify-center rounded-lg text-slate-300 active:bg-white/5 transition"
+        className="h-8 w-8 -ml-1.5 flex items-center justify-center rounded-lg text-foreground active:bg-white/5 transition"
       >
         <ChevronLeft size={22} />
       </button>
@@ -136,10 +136,10 @@ export default function MobileProfileView({ profile, onEdit }) {
         <div className="flex items-center gap-3">
           <UserAvatar name={profile?.name} avatar={profile?.avatar} size="lg" />
           <div className="min-w-0 flex-1">
-            <h2 className="text-base font-black text-white truncate">{profile?.name}</h2>
-            <p className="text-[11px] text-slate-400 truncate mt-0.5">{profile?.email}</p>
+            <h2 className="text-base font-black text-foreground truncate">{profile?.name}</h2>
+            <p className="text-[11px] text-muted-foreground truncate mt-0.5">{profile?.email}</p>
             <div className="flex items-center flex-wrap gap-x-1.5 gap-y-1 mt-1.5">
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-orange-400">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary">
                 <User size={11} /> {profile?.role}
               </span>
               <span className="text-slate-600">•</span>
@@ -171,23 +171,23 @@ export default function MobileProfileView({ profile, onEdit }) {
       {/* Profile Completion */}
       <div className="rounded-xl bg-card border border-card-border p-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-black text-white">Profile Completion</h3>
-          <span className="text-xs font-black text-orange-400">{completionPercent}% Complete</span>
+          <h3 className="text-xs font-black text-foreground">Profile Completion</h3>
+          <span className="text-xs font-black text-primary">{completionPercent}% Complete</span>
         </div>
-        <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden mt-2">
+        <div className="h-1.5 rounded-full bg-muted overflow-hidden mt-2">
           <div
-            className="h-full rounded-full bg-orange-500 transition-all duration-500"
+            className="h-full rounded-full bg-primary transition-all duration-500"
             style={{ width: `${completionPercent}%` }}
           />
         </div>
-        <p className="text-[10px] text-slate-500 mt-2">Complete your profile to get the best learning experience.</p>
+        <p className="text-[10px] text-muted-foreground mt-2">Complete your profile to get the best learning experience.</p>
       </div>
 
       {/* Personal Information */}
       <div className="rounded-xl bg-card border border-card-border p-3">
-        <h3 className="text-xs font-black text-white mb-1 flex items-center gap-2">
-          <span className="h-6 w-6 rounded-lg bg-orange-500/10 flex items-center justify-center">
-            <User size={12} className="text-orange-400" />
+        <h3 className="text-xs font-black text-foreground mb-1 flex items-center gap-2">
+          <span className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center">
+            <User size={12} className="text-primary" />
           </span>
           Personal Information
         </h3>
@@ -201,9 +201,9 @@ export default function MobileProfileView({ profile, onEdit }) {
 
       {/* Academic Information */}
       <div className="rounded-xl bg-card border border-card-border p-3">
-        <h3 className="text-xs font-black text-white mb-1 flex items-center gap-2">
-          <span className="h-6 w-6 rounded-lg bg-orange-500/10 flex items-center justify-center">
-            <GraduationCap size={12} className="text-orange-400" />
+        <h3 className="text-xs font-black text-foreground mb-1 flex items-center gap-2">
+          <span className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center">
+            <GraduationCap size={12} className="text-primary" />
           </span>
           Academic Information
         </h3>
@@ -216,9 +216,9 @@ export default function MobileProfileView({ profile, onEdit }) {
 
       {/* Security & Preferences */}
       <div className="rounded-xl bg-card border border-card-border p-3">
-        <h3 className="text-xs font-black text-white mb-1 flex items-center gap-2">
-          <span className="h-6 w-6 rounded-lg bg-orange-500/10 flex items-center justify-center">
-            <ShieldCheck size={12} className="text-orange-400" />
+        <h3 className="text-xs font-black text-foreground mb-1 flex items-center gap-2">
+          <span className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center">
+            <ShieldCheck size={12} className="text-primary" />
           </span>
           Security & Preferences
         </h3>
@@ -228,18 +228,18 @@ export default function MobileProfileView({ profile, onEdit }) {
             onClick={() => setShowPasswordModal(true)}
             className="w-full flex items-center gap-3 py-2.5 text-left active:opacity-70 transition"
           >
-            <Lock size={15} className="text-slate-500 shrink-0" />
-            <span className="text-xs text-slate-400 flex-1">Change Password</span>
+            <Lock size={15} className="text-muted-foreground shrink-0" />
+            <span className="text-xs text-muted-foreground flex-1">Change Password</span>
             <ChevronRight size={14} className="text-slate-600 shrink-0" />
           </button>
           <Link href="/student/settings" className="flex items-center gap-3 py-2.5 active:opacity-70 transition">
-            <ShieldCheck size={15} className="text-slate-500 shrink-0" />
-            <span className="text-xs text-slate-400 flex-1">Privacy Settings</span>
+            <ShieldCheck size={15} className="text-muted-foreground shrink-0" />
+            <span className="text-xs text-muted-foreground flex-1">Privacy Settings</span>
             <ChevronRight size={14} className="text-slate-600 shrink-0" />
           </Link>
           <Link href="/student/settings" className="flex items-center gap-3 py-2.5 active:opacity-70 transition">
-            <Bell size={15} className="text-slate-500 shrink-0" />
-            <span className="text-xs text-slate-400 flex-1">Notification Preferences</span>
+            <Bell size={15} className="text-muted-foreground shrink-0" />
+            <span className="text-xs text-muted-foreground flex-1">Notification Preferences</span>
             <ChevronRight size={14} className="text-slate-600 shrink-0" />
           </Link>
         </div>
@@ -285,14 +285,14 @@ function ChangePasswordModal({ onClose }) {
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
       <form
         onSubmit={handleSubmit}
-        className="w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl space-y-4 animate-in slide-in-from-bottom sm:zoom-in-95 duration-150"
+        className="w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl border border-border bg-background p-5 shadow-2xl space-y-4 animate-in slide-in-from-bottom sm:zoom-in-95 duration-150"
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-black text-white">Change Password</h3>
+          <h3 className="text-sm font-black text-foreground">Change Password</h3>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition"
+            className="p-1 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition"
           >
             <X size={18} />
           </button>
@@ -316,7 +316,7 @@ function ChangePasswordModal({ onClose }) {
             placeholder="Current Password"
             value={form.currentPassword}
             onChange={(e) => setForm({ ...form, currentPassword: e.target.value })}
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+            className="w-full bg-background border border-border rounded-xl px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
           />
           <input
             type="password"
@@ -324,7 +324,7 @@ function ChangePasswordModal({ onClose }) {
             placeholder="New Password"
             value={form.newPassword}
             onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+            className="w-full bg-background border border-border rounded-xl px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
           />
           <input
             type="password"
@@ -332,14 +332,14 @@ function ChangePasswordModal({ onClose }) {
             placeholder="Confirm New Password"
             value={form.confirmPassword}
             onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+            className="w-full bg-background border border-border rounded-xl px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
           />
         </div>
 
         <button
           type="submit"
           disabled={status.loading}
-          className="w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xs transition active:scale-95 disabled:opacity-50"
+          className="w-full py-3 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 font-black text-xs transition active:scale-95 disabled:opacity-50"
         >
           {status.loading ? "Updating..." : "Update Password"}
         </button>

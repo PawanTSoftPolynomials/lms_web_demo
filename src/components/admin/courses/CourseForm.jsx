@@ -46,7 +46,7 @@ export default function CourseForm({
     };
 
     return (
-        <Card>
+        <Card tone="flat">
             <form
                 onSubmit={handleSubmit}
                 className="space-y-6"
@@ -78,12 +78,12 @@ export default function CourseForm({
               rounded-lg
               border
               border-white/10
-              bg-slate-900
+              bg-background
               px-4
               py-3
-              text-white
+              text-foreground
               outline-none
-              focus:border-orange-500
+              focus:border-primary
             "
                         required
                     />
@@ -120,12 +120,12 @@ export default function CourseForm({
                 rounded-lg
                 border
                 border-white/10
-                bg-slate-900
+                bg-background
                 px-4
                 py-3
-                text-white
+                text-foreground
                 outline-none
-                focus:border-orange-500
+                focus:border-primary
               "
                         >
                             <option value="Beginner">
@@ -158,8 +158,8 @@ export default function CourseForm({
                 {formData.thumbnailUrl && (
                     <div className="overflow-hidden rounded-xl border border-white/10">
                         <Image
-                            src={getDisplayUrl(course.thumbnailUrl)}
-                            alt={course.title}
+                            src={getDisplayUrl(formData.thumbnailUrl)}
+                            alt={formData.title}
                             fill
                             className="object-cover"
                         />
@@ -184,12 +184,12 @@ export default function CourseForm({
               rounded-lg
               border
               border-white/10
-              bg-slate-900
+              bg-background
               px-4
               py-3
-              text-white
+              text-foreground
               outline-none
-              focus:border-orange-500
+              focus:border-primary
             "
                     >
                         <option value="DRAFT">

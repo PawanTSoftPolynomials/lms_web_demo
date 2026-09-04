@@ -43,8 +43,8 @@ export default function OptionList({
               duration-300
               ${
                 isSelected
-                  ? "border-orange-500 bg-orange-500/10 shadow-[0_0_20px_rgba(242,199,199,0.15)]"
-                  : "border-slate-800 bg-slate-900/60 hover:border-orange-500/30 hover:bg-slate-800/80 hover:shadow-lg"
+                  ? "border-primary bg-primary/10 shadow-[0_0_20px_rgba(249,115,22,0.15)]"
+                  : "border-border bg-background/60 hover:border-primary/30 hover:bg-muted/80 hover:shadow-lg"
               }
             `}
           >
@@ -72,8 +72,8 @@ export default function OptionList({
                 duration-300
                 ${
                   isSelected
-                    ? "border-orange-500 bg-orange-500"
-                    : "border-slate-600"
+                    ? "border-primary bg-primary"
+                    : "border-transparent"
                 }
               `}
             >
@@ -98,8 +98,8 @@ export default function OptionList({
                 duration-300
                 ${
                   isSelected
-                    ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
-                    : "bg-slate-800 text-slate-400 border border-slate-700/50"
+                    ? "bg-primary text-foreground shadow-md shadow-orange-500/20"
+                    : "bg-muted text-muted-foreground border border-transparent/50"
                 }
               `}
             >
@@ -111,7 +111,7 @@ export default function OptionList({
               <p
                 className={`text-sm sm:text-base leading-snug transition-colors duration-200 ${
                   isSelected
-                    ? "font-semibold text-white"
+                    ? "font-semibold text-foreground"
                     : "text-slate-350"
                 }`}
               >

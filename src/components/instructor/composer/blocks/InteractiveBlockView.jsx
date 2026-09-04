@@ -8,7 +8,7 @@ export default function InteractiveBlockView({ block }) {
   return (
     <iframe
       src={block.url}
-      className="w-full h-[420px] rounded-lg border border-slate-800 bg-white"
+      className="w-full h-[420px] rounded-lg border border-border bg-white"
     />
   );
 }

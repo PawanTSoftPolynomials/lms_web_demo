@@ -108,14 +108,14 @@ export default function AssessmentForm({
 
       {!lockedCourseId && (
         <div>
-          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Target Course</label>
+          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Target Course</label>
           <select
             name="courseId"
             value={formData.courseId}
             onChange={handleChange}
             required
             disabled={mode === "edit"}
-            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white outline-none focus:border-orange-500 disabled:opacity-50"
+            className="w-full rounded-lg border border-transparent bg-background px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-primary disabled:opacity-50"
           >
             <option value="">-- Select Course --</option>
             {courses.map((c) => (
@@ -137,25 +137,25 @@ export default function AssessmentForm({
       />
 
       <div>
-        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Description</label>
+        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Description</label>
         <textarea
           name="description"
           rows={4}
           placeholder="Assessment brief, directions and grading criteria..."
           value={formData.description}
           onChange={handleChange}
-          className="w-full resize-none rounded-lg border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs text-white outline-none focus:border-orange-500"
+          className="w-full resize-none rounded-lg border border-transparent bg-background px-4 py-2.5 text-xs text-foreground outline-none focus:border-primary"
         />
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <div>
-          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Assessment Type</label>
+          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Assessment Type</label>
           <select
             name="assessmentType"
             value={formData.assessmentType}
             onChange={handleChange}
-            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white outline-none focus:border-orange-500"
+            className="w-full rounded-lg border border-transparent bg-background px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-primary"
           >
             {ASSESSMENT_TYPES.map((t) => (
               <option key={t} value={t}>{t}</option>
@@ -164,21 +164,21 @@ export default function AssessmentForm({
         </div>
         <Input label="Marks" name="marks" type="number" min="0" value={formData.marks} onChange={handleChange} required />
         <div>
-          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Due Date</label>
+          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Due Date</label>
           <input
             type="date"
             name="dueDate"
             value={formData.dueDate}
             onChange={handleChange}
             required
-            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white outline-none focus:border-orange-500"
+            className="w-full rounded-lg border border-transparent bg-background px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-primary"
           />
         </div>
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">Attach Files</label>
-        <label className="flex items-center gap-2 w-fit px-3.5 py-2.5 rounded-lg border border-dashed border-slate-700 bg-slate-900 text-xs text-slate-300 hover:border-orange-500 cursor-pointer transition">
+        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Attach Files</label>
+        <label className="flex items-center gap-2 w-fit px-3.5 py-2.5 rounded-lg border border-dashed border-transparent bg-background text-xs text-foreground hover:border-primary cursor-pointer transition">
           {uploading ? <Loader2 size={13} className="animate-spin" /> : <Paperclip size={13} />}
           {uploading ? "Uploading..." : "Choose files"}
           <input type="file" multiple className="hidden" onChange={handleFileChange} disabled={uploading} />
@@ -186,9 +186,9 @@ export default function AssessmentForm({
         {formData.attachments.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
             {formData.attachments.map((att, i) => (
-              <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[10.5px] text-slate-300">
+              <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted border border-transparent text-[10.5px] text-foreground">
                 {att.name}
-                <button type="button" onClick={() => removeAttachment(i)} className="text-slate-500 hover:text-red-400">
+                <button type="button" onClick={() => removeAttachment(i)} className="text-muted-foreground hover:text-red-400">
                   <X size={11} />
                 </button>
               </span>
@@ -197,16 +197,16 @@ export default function AssessmentForm({
         )}
       </div>
 
-      <div className="flex items-center gap-3 bg-slate-900/40 p-3 rounded-lg border border-slate-850">
+      <div className="flex items-center gap-3 bg-background/40 p-3 rounded-lg border border-slate-850">
         <input
           type="checkbox"
           id="isPublished"
           name="isPublished"
           checked={formData.isPublished}
           onChange={handleChange}
-          className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-orange-500 focus:ring-orange-500 focus:ring-offset-slate-900 cursor-pointer"
+          className="h-4 w-4 rounded border-transparent bg-background text-primary focus:ring-orange-500 focus:ring-offset-slate-900 cursor-pointer"
         />
-        <label htmlFor="isPublished" className="text-xs font-semibold text-slate-300 cursor-pointer select-none">
+        <label htmlFor="isPublished" className="text-xs font-semibold text-foreground cursor-pointer select-none">
           Publish immediately (uncheck to Save Draft)
         </label>
       </div>

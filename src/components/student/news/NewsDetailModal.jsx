@@ -17,7 +17,7 @@ export default function NewsDetailModal({ news, onClose }) {
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
         >
           <X size={18} />
         </button>
@@ -26,33 +26,33 @@ export default function NewsDetailModal({ news, onClose }) {
           <span className={`text-[9px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider border ${news.badgeColor}`}>
             {news.categoryLabel}
           </span>
-          <span className="text-[10px] text-slate-400 font-semibold">
+          <span className="text-[10px] text-muted-foreground font-semibold">
             {news.timestamp}
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs font-bold text-orange-400 uppercase tracking-wider">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-primary uppercase tracking-wider">
           <FolderOpen size={14} className="shrink-0" />
           <span>{news.courseTag}</span>
         </div>
 
-        <h2 className="text-lg font-black text-white leading-tight">
+        <h2 className="text-lg font-black text-foreground leading-tight">
           {news.title}
         </h2>
 
-        <div className="p-4 rounded-xl bg-slate-950/60 border border-card-border text-xs text-slate-300 leading-relaxed space-y-2">
+        <div className="p-4 rounded-xl bg-background/60 border border-card-border text-xs text-foreground leading-relaxed space-y-2">
           <p>{news.content}</p>
         </div>
 
         <div className="pt-2 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-muted text-foreground hover:text-foreground text-xs font-bold cursor-pointer"
           >
             Close
           </button>
           <Link href={news.actionLink}>
-            <button className="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 text-xs font-black uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer">
+            <button className="px-5 py-2 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 text-xs font-black uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer">
               <span>{news.actionLabel}</span>
               <ExternalLink size={13} />
             </button>

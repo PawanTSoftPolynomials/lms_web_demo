@@ -26,7 +26,7 @@ import RecentUsers from "@/components/dashboard/RecentUsers";
 // dynamic() boundary instead of duplicated into this route's own chunk.
 const CourseStatusPieChart = dynamic(
   () => import("@/components/admin/dashboard/CourseStatusPieChart").then((m) => m.CourseStatusPieChart),
-  { ssr: false, loading: () => <div className="h-48 animate-pulse bg-slate-800/50 rounded-2xl" /> }
+  { ssr: false, loading: () => <div className="h-48 animate-pulse bg-muted/50 rounded-2xl" /> }
 );
 
 export default function AdminDashboard() {
@@ -53,8 +53,10 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="-m-3 sm:-m-6 min-h-[calc(100vh-3.5rem)] bg-[#080B11] p-3 sm:p-6 pt-0 sm:pt-0">
-      <div className="flex flex-col gap-6 max-w-[1600px] mx-auto mt-4">
+    <>
+      {/* ============================= UNIFIED RESPONSIVE LAYOUT ============================= */}
+      <div className="-m-3 sm:-m-6 sm:-mt-12 md:-mt-16 -mx-4 sm:-mx-12 md:-mx-16 min-h-[calc(100vh-3.5rem)] bg-background p-3 sm:p-6 pt-0 sm:pt-0">
+        <div className="flex flex-col gap-6 max-w-[1600px] mx-auto mt-4 sm:mt-[3.2px]">
         <AdminKPIs
           coursesCount={dashboard.totalCourses}
           studentsCount={dashboard.totalStudents}
@@ -87,5 +89,6 @@ export default function AdminDashboard() {
         </div>
       </div>
     </div>
+    </>
   );
 }

@@ -40,14 +40,14 @@ export default function ArrangeTokensList({
     <div className="space-y-6">
       {/* Help Instructions */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-muted-foreground">
           Tap the tokens in the correct logical sequence to build the statement:
         </p>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={handleAutoArrange}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-755 border border-slate-700 text-xs font-semibold text-slate-300 transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-slate-755 border border-transparent text-xs font-semibold text-foreground transition cursor-pointer"
           >
             Reset to Default
           </button>
@@ -63,7 +63,7 @@ export default function ArrangeTokensList({
       </div>
 
       {/* 1. Sequence Assembly Area (Dashed Container) */}
-      <div className="relative min-h-[90px] rounded-2xl border-2 border-dashed border-slate-800 bg-slate-950/40 p-5 flex flex-wrap gap-3 items-center transition-all duration-300 hover:border-slate-700/60">
+      <div className="relative min-h-[90px] rounded-2xl border-2 border-dashed border-border bg-background/40 p-5 flex flex-wrap gap-3 items-center transition-all duration-300 hover:border-transparent/60">
         <AnimatePresence>
           {arrangedSequence.length === 0 ? (
             <motion.div
@@ -90,7 +90,7 @@ export default function ArrangeTokensList({
                   whileTap={{ scale: 0.95 }}
                   className="bg-gradient-to-r from-orange-500 to-pink-500 text-slate-950 px-4 py-2.5 rounded-xl text-sm font-extrabold flex items-center gap-2 shadow-lg shadow-orange-500/15 hover:shadow-orange-500/30 transition-shadow cursor-pointer select-none"
                 >
-                  <span className="text-[10px] bg-slate-950/20 px-2 py-0.5 rounded-md text-slate-950/80 font-black">
+                  <span className="text-[10px] bg-background/20 px-2 py-0.5 rounded-md text-slate-950/80 font-black">
                     {index + 1}
                   </span>
                   <span>{tokenText}</span>
@@ -104,11 +104,11 @@ export default function ArrangeTokensList({
       {/* 2. Available Options Pool */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Available Options:</h4>
-          <span className="h-1 flex-1 bg-slate-800/40 rounded-full" />
+          <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Available Options:</h4>
+          <span className="h-1 flex-1 bg-muted/40 rounded-full" />
         </div>
 
-        <div className="min-h-[60px] rounded-2xl border border-slate-800/80 bg-slate-900/30 p-4 flex flex-wrap gap-2.5">
+        <div className="min-h-[60px] rounded-2xl border border-border/80 bg-background/30 p-4 flex flex-wrap gap-2.5">
           <AnimatePresence>
             {options.map((token, index) => {
               const tokenText = getTokenText(token);
@@ -129,8 +129,8 @@ export default function ArrangeTokensList({
                     px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-300 cursor-pointer select-none
                     ${
                       isSelected
-                        ? "border-slate-800/50 bg-slate-850/40 text-slate-650 cursor-not-allowed opacity-30"
-                        : "border-slate-800 bg-slate-900 text-slate-200 hover:border-orange-500/50 hover:bg-slate-850 hover:text-white hover:shadow-md"
+                        ? "border-border/50 bg-slate-850/40 text-slate-650 cursor-not-allowed opacity-30"
+                        : "border-border bg-background text-foreground hover:border-primary/50 hover:bg-slate-850 hover:text-foreground hover:shadow-md"
                     }
                   `}
                 >

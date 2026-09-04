@@ -19,7 +19,7 @@ export default function EmptyState({
   return (
     <div className="py-16 text-center flex flex-col items-center gap-3">
       {Icon && (
-        <div className="glass-secondary h-14 w-14 rounded-2xl bg-primary/10 border-primary/20 text-primary flex items-center justify-center">
+        <div className="h-14 w-14 rounded-2xl bg-primary/10 border border-primary/20 text-orange-450 flex items-center justify-center">
           <Icon size={26} />
         </div>
       )}

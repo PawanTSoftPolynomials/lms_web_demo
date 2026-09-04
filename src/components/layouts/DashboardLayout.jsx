@@ -13,7 +13,7 @@ export default function DashboardLayout({ children, role, title }) {
   const showSidebar = !['STUDENT', 'INSTRUCTOR', 'ADMIN'].includes(role);
 
   return (
-    <div className={`flex min-h-screen ${['INSTRUCTOR', 'ADMIN'].includes(role) ? 'bg-[#080B11]' : 'bg-slate-950'}`}>
+    <div className={`flex min-h-screen bg-background`}>
       {showSidebar && (
         <Sidebar
           role={role}
@@ -42,7 +42,9 @@ export default function DashboardLayout({ children, role, title }) {
           setCollapsed={setCollapsed}
         />
 
-        <main className={`${role === 'STUDENT' ? 'p-4' : 'p-3'} sm:p-6 flex-1 ${['STUDENT', 'INSTRUCTOR', 'ADMIN'].includes(role) ? 'pb-24 sm:pb-6' : ''}`}>{children}</main>
+        <main className="p-4 sm:p-6 md:p-16 flex-1 w-full max-w-[1800px] mx-auto pb-32">
+          {children}
+        </main>
       </div>
       <ChatWidget />
     </div>

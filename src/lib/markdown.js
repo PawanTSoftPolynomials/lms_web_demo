@@ -69,12 +69,50 @@ const marked = new Marked({
       const language = lang ? lang.toLowerCase().trim().split(/\s+/)[0] : "";
       const highlighted = hljs.getLanguage(language)
         ? hljs.highlight(text, { language }).value
-        : escapeHtml(text);
-      const langClass = hljs.getLanguage(language) ? ` language-${language} hljs` : " hljs";
+        : hljs.highlightAuto(text).value;
+      const langClass = (language && hljs.getLanguage(language)) ? ` language-${language} hljs` : " hljs";
       return `<pre><code class="${langClass.trim()}">${highlighted}</code></pre>`;
     },
   },
 });
+
+/**
+ * Syntax-highlights a raw code string to sanitized HTML spans (`hljs-*` classes),
+ * for content stored as-is rather than as a Markdown fenced code block (e.g. a
+ * standalone CODE content block's `htmlContent`). Falls back to hljs's language
+ * auto-detection when no language is given or it isn't a registered one.
+ */
+export function highlightCode(code, language) {
+  if (!code) return "";
+  ensureLanguagesRegistered();
+  const lang = language ? language.toLowerCase().trim().split(/\s+/)[0] : "";
+  const highlighted = hljs.getLanguage(lang)
+    ? hljs.highlight(code, { language: lang }).value
+    : hljs.highlightAuto(code).value;
+  return DOMPurify.sanitize(highlighted, { ADD_ATTR: ["class"] });
+}
+
+/**
+ * `marked`'s `code()` renderer (above) only runs for content it actually parses
+ * as a Markdown-fenced code block — legacy rows that already contain raw
+ * `<pre><code>` HTML (old Quill-authored content, or code pasted without
+ * triple-backtick fences) pass straight through untouched and never get
+ * highlighted. Client-side only (all callers are "use client" components):
+ * parses the sanitized HTML into a detached DOM, finds any `pre code` not
+ * already marked `.hljs`, and highlights it in place via `highlightCode`.
+ */
+function highlightLegacyCodeBlocks(html) {
+  if (typeof document === "undefined") return html;
+  const container = document.createElement("div");
+  container.innerHTML = html;
+  const blocks = container.querySelectorAll("pre code:not(.hljs)");
+  blocks.forEach((block) => {
+    const langMatch = /language-(\S+)/.exec(block.className || "");
+    block.innerHTML = highlightCode(block.textContent || "", langMatch ? langMatch[1] : undefined);
+    block.classList.add("hljs");
+  });
+  return container.innerHTML;
+}
 
 /**
  * Renders a Markdown (or, for not-yet-migrated legacy rows, raw HTML — `marked`
@@ -85,11 +123,12 @@ const marked = new Marked({
 export function renderMarkdownToSafeHtml(source) {
   if (!source) return "";
   const html = marked.parse(source);
-  const safeHtml = DOMPurify.sanitize(html, { ADD_ATTR: ["target"] });
+  const safeHtml = DOMPurify.sanitize(html, { ADD_ATTR: ["target", "class"] });
+  const highlightedHtml = highlightLegacyCodeBlocks(safeHtml);
   // Imported lesson content can carry raw <img>/<a> URLs pointing straight at
   // a private Vercel Blob file — those 403 unless routed through the
   // /api/blob-proxy proxy that getDisplayUrl() otherwise handles for us.
-  return rewritePrivateBlobUrlsInHtml(safeHtml);
+  return rewritePrivateBlobUrlsInHtml(highlightedHtml);
 }
 
 /**

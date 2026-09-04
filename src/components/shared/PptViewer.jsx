@@ -209,35 +209,35 @@ export default function PptViewer({
     <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
       {/* Slide Navigation */}
       {totalSlides > 0 && (
-        <div className="flex items-center gap-1 rounded-xl bg-slate-950 border border-slate-800 px-2 py-1">
+        <div className="flex items-center gap-1 rounded-xl bg-background border border-border px-2 py-1">
           <button
             type="button"
             onClick={() => changeSlide(-1)}
             disabled={activeSlideIndex <= 0}
-            className="rounded-lg p-1 text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-30 transition cursor-pointer"
+            className="rounded-lg p-1 text-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 transition cursor-pointer"
             title="Previous Slide (Left Arrow)"
           >
             <ChevronLeft size={16} />
           </button>
 
-          <div className="flex items-center gap-1 text-xs font-semibold text-slate-200 font-mono">
+          <div className="flex items-center gap-1 text-xs font-semibold text-foreground font-mono">
             <input
               type="text"
               value={pageInput}
               onChange={(e) => setPageInput(e.target.value)}
               onKeyDown={handlePageInputSubmit}
-              className="w-7 rounded bg-slate-900 border border-slate-700 px-1 py-0.5 text-center text-xs font-bold text-white focus:outline-none focus:border-orange-500 font-mono"
+              className="w-7 rounded bg-background border border-transparent px-1 py-0.5 text-center text-xs font-bold text-foreground focus:outline-none focus:border-primary font-mono"
               title="Type slide number and press Enter"
             />
-            <span className="text-slate-400">/</span>
-            <span className="text-slate-300">{totalSlides}</span>
+            <span className="text-muted-foreground">/</span>
+            <span className="text-foreground">{totalSlides}</span>
           </div>
 
           <button
             type="button"
             onClick={() => changeSlide(1)}
             disabled={activeSlideIndex >= totalSlides - 1}
-            className="rounded-lg p-1 text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-30 transition cursor-pointer"
+            className="rounded-lg p-1 text-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 transition cursor-pointer"
             title="Next Slide (Right Arrow)"
           >
             <ChevronRight size={16} />
@@ -246,18 +246,18 @@ export default function PptViewer({
       )}
 
       {/* Zoom Controls */}
-      <div className="flex items-center gap-1 rounded-xl bg-slate-950 border border-slate-800 px-2 py-1">
+      <div className="flex items-center gap-1 rounded-xl bg-background border border-border px-2 py-1">
         <button
           type="button"
           onClick={handleZoomOut}
           disabled={!isFit && zoomScale <= MIN_ZOOM_MULT}
-          className="rounded-lg p-1 text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-30 transition cursor-pointer"
+          className="rounded-lg p-1 text-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 transition cursor-pointer"
           title="Zoom Out"
         >
           <ZoomOut size={15} />
         </button>
 
-        <span className="text-[11px] font-semibold text-slate-300 min-w-[36px] text-center font-mono">
+        <span className="text-[11px] font-semibold text-foreground min-w-[36px] text-center font-mono">
           {isFit ? "Fit" : `${Math.round(zoomScale * 100)}%`}
         </span>
 
@@ -265,7 +265,7 @@ export default function PptViewer({
           type="button"
           onClick={handleZoomIn}
           disabled={!isFit && zoomScale >= MAX_ZOOM_MULT}
-          className="rounded-lg p-1 text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-30 transition cursor-pointer"
+          className="rounded-lg p-1 text-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 transition cursor-pointer"
           title="Zoom In"
         >
           <ZoomIn size={15} />
@@ -275,7 +275,7 @@ export default function PptViewer({
           <button
             type="button"
             onClick={handleFit}
-            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-orange-400 hover:bg-orange-500/10 border border-orange-500/30 transition cursor-pointer"
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-primary hover:bg-primary/10 border border-primary/30 transition cursor-pointer"
             title="Reset to Fit View"
           >
             <Maximize2 size={12} />
@@ -290,7 +290,7 @@ export default function PptViewer({
         download
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 px-3 py-1.5 text-xs font-extrabold text-slate-950 transition cursor-pointer shadow-md"
+        className="flex items-center gap-1.5 rounded-xl bg-primary hover:bg-orange-600 px-3 py-1.5 text-xs font-extrabold text-slate-950 transition cursor-pointer shadow-md"
         title="Download Presentation"
       >
         <Download size={14} />
@@ -312,8 +312,8 @@ export default function PptViewer({
 
   if (!isMounted) {
     return (
-      <div className="flex h-96 w-full items-center justify-center rounded-2xl border border-slate-800 bg-[#0B101D]">
-        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      <div className="flex h-96 w-full items-center justify-center rounded-2xl border border-border bg-[#0B101D]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -322,18 +322,18 @@ export default function PptViewer({
     <div
       className={`flex flex-col w-full ${
         !hideToolbar
-          ? "rounded-2xl border border-slate-800 bg-[#0B101D] shadow-2xl overflow-hidden"
+          ? "rounded-2xl border border-border bg-[#0B101D] shadow-2xl overflow-hidden"
           : ""
       } ${className}`}
     >
       {/* Standalone Header Toolbar */}
       {!hideToolbar && (
-        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-800/80 bg-[#0D1222] px-3.5 py-2.5 text-slate-300 rounded-t-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border/80 bg-[#0D1222] px-3.5 py-2.5 text-foreground rounded-t-2xl">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-500/15 border border-orange-500/30 text-orange-400 shrink-0">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15 border border-primary/30 text-primary shrink-0">
               <Presentation size={15} />
             </div>
-            <span className="text-xs font-bold text-white truncate max-w-[160px] sm:max-w-xs md:max-w-md">
+            <span className="text-xs font-bold text-foreground truncate max-w-[160px] sm:max-w-xs md:max-w-md">
               {title || "Presentation"}
             </span>
           </div>
@@ -345,13 +345,13 @@ export default function PptViewer({
       {/* SLIDE CANVAS VIEWPORT CONTAINER */}
       <div
         ref={viewportRef}
-        className="relative w-full h-[78vh] min-h-[520px] max-h-[900px] overflow-auto bg-[#060913] p-2 sm:p-4 flex justify-center items-center scroll-smooth rounded-2xl border border-slate-800/80"
+        className="relative w-full h-[78vh] min-h-[520px] max-h-[900px] overflow-auto bg-[#060913] p-2 sm:p-4 flex justify-center items-center scroll-smooth rounded-2xl border border-border/80"
       >
         {/* Loading Overlay */}
         {loadingStep && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#060913]/90 z-20 rounded-2xl">
-            <Loader2 className="h-9 w-9 animate-spin text-orange-500" />
-            <p className="text-xs font-bold text-slate-300">{loadingStep}</p>
+            <Loader2 className="h-9 w-9 animate-spin text-primary" />
+            <p className="text-xs font-bold text-foreground">{loadingStep}</p>
           </div>
         )}
 
@@ -360,8 +360,8 @@ export default function PptViewer({
           <div className="my-12 flex flex-col items-center justify-center gap-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-8 text-center max-w-md">
             <AlertCircle className="h-10 w-10 text-amber-400" />
             <div>
-              <h4 className="text-sm font-bold text-white mb-1">Presentation preview unavailable</h4>
-              <p className="text-xs text-slate-400 leading-relaxed mb-4">
+              <h4 className="text-sm font-bold text-foreground mb-1">Presentation preview unavailable</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-4">
                 We couldn't render this presentation in the browser. You can download the file to view it in Microsoft PowerPoint.
               </p>
             </div>
@@ -370,7 +370,7 @@ export default function PptViewer({
               download
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 px-5 py-2.5 text-xs font-bold text-slate-950 transition shadow-lg"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary hover:bg-orange-600 px-5 py-2.5 text-xs font-bold text-slate-950 transition shadow-lg"
             >
               <Download size={15} />
               <span>Download Presentation</span>
@@ -379,7 +379,7 @@ export default function PptViewer({
         ) : currentSlide ? (
           /* Render Complete Active Slide Canvas dynamically sized to fit 100% of the viewport */
           <div
-            className="relative transition-all duration-150 shadow-2xl rounded-xl overflow-hidden border border-slate-700/60 bg-[#0D1021] shrink-0 my-auto mx-auto"
+            className="relative transition-all duration-150 shadow-2xl rounded-xl overflow-hidden border border-transparent/60 bg-card shrink-0 my-auto mx-auto"
             style={{
               width: `${renderedWidth}px`,
               height: `${renderedHeight}px`,
@@ -447,7 +447,7 @@ export default function PptViewer({
                 return (
                   <div
                     key={elem.id}
-                    className="absolute overflow-auto border border-slate-700 rounded-lg p-1 bg-slate-900/80"
+                    className="absolute overflow-auto border border-transparent rounded-lg p-1 bg-background/80"
                     style={{
                       left: `${elem.left}%`,
                       top: `${elem.top}%`,
@@ -455,12 +455,12 @@ export default function PptViewer({
                       height: `${elem.height}%`,
                     }}
                   >
-                    <table className="w-full text-xs text-slate-200 border-collapse">
+                    <table className="w-full text-xs text-foreground border-collapse">
                       <tbody>
                         {elem.rows?.map((row, rIdx) => (
-                          <tr key={rIdx} className="border-b border-slate-800">
+                          <tr key={rIdx} className="border-b border-border">
                             {row?.map((cell, cIdx) => (
-                              <td key={cIdx} className="p-1 border-r border-slate-800">
+                              <td key={cIdx} className="p-1 border-r border-border">
                                 {cell}
                               </td>
                             ))}

@@ -79,7 +79,7 @@ export default function StudentCertificatesPage() {
         <h2 className="text-xl font-semibold text-red-400">
           Unable to load certificates
         </h2>
-        <p className="mt-2 text-slate-400">
+        <p className="mt-2 text-muted-foreground">
           Please check your connection and try again later.
         </p>
       </Card>
@@ -95,8 +95,8 @@ export default function StudentCertificatesPage() {
 
       {/* Info notice about mocks */}
       {(!certificates || certificates.length === 0) && (
-        <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-4 text-xs text-orange-400 flex items-center gap-2 shadow-inner">
-          <Award size={16} className="text-orange-500" />
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-xs text-primary flex items-center gap-2 shadow-inner">
+          <Award size={16} className="text-primary" />
           <span>
             <strong>Sandbox Mode:</strong> You are viewing sample completion certificates. Earn official credentials by completing course lessons and quizzes.
           </span>
@@ -105,7 +105,7 @@ export default function StudentCertificatesPage() {
 
       {/* Toolbar */}
       <div className="relative max-w-md">
-        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500 pointer-events-none">
+        <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground pointer-events-none">
           <Search size={16} />
         </span>
         <input
@@ -120,12 +120,12 @@ export default function StudentCertificatesPage() {
             py-2.5
             rounded-xl
             border
-            border-slate-800/80
-            bg-slate-900/40
+            border-transparent/80
+            bg-background/40
             text-sm
-            text-white
+            text-foreground
             placeholder-slate-500
-            focus:border-orange-500/50
+            focus:border-primary/50
             focus:outline-none
             focus:ring-1
             focus:ring-orange-500/20
@@ -151,12 +151,12 @@ export default function StudentCertificatesPage() {
       </div>
 
       {filteredCertificates.length === 0 && (
-        <Card className="p-12 text-center border-slate-800/80">
-          <div className="mx-auto w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mb-4 text-slate-500">
+        <Card className="p-12 text-center border-transparent/80">
+          <div className="mx-auto w-12 h-12 rounded-full bg-background border border-transparent flex items-center justify-center mb-4 text-muted-foreground">
             <Award size={24} />
           </div>
-          <h3 className="text-lg font-semibold text-white">No certificates found</h3>
-          <p className="mt-1.5 text-xs text-slate-400 max-w-sm mx-auto">
+          <h3 className="text-lg font-semibold text-foreground">No certificates found</h3>
+          <p className="mt-1.5 text-xs text-muted-foreground max-w-sm mx-auto">
             Try adjusting your search terms or view your course progress to complete modules.
           </p>
         </Card>

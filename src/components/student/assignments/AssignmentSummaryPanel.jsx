@@ -18,7 +18,7 @@ import { ASSIGNMENT_QUICK_TIPS } from "@/features/student/constants/assignmentsC
 // dynamic() boundary instead of duplicated into this route's own chunk.
 const DoughnutChartCard = dynamic(() => import("@/components/dashboard/common/DoughnutChartCard"), {
   ssr: false,
-  loading: () => <div className="h-48 animate-pulse bg-slate-800/50 rounded-2xl" />,
+  loading: () => <div className="h-48 animate-pulse bg-muted/50 rounded-2xl" />,
 });
 
 const statusColors = {
@@ -61,13 +61,13 @@ export default function AssignmentSummaryPanel({
     <>
       {/* Desktop (xl+): unchanged — 4-category breakdown + doughnut chart */}
       <div className="hidden xl:block space-y-4">
-        <div className="rounded-3xl border border-slate-800 bg-slate-900 p-4 shadow-lg shadow-black/20">
+        <div className="rounded-3xl border border-border bg-background p-4 shadow-lg shadow-black/20">
           <div className="mb-3 flex items-center justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-slate-400">
+              <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
                 Submission Summary
               </p>
-              <h2 className="text-2xl font-semibold text-white">{total}</h2>
+              <h2 className="text-2xl font-semibold text-foreground">{total}</h2>
             </div>
           </div>
 
@@ -75,10 +75,10 @@ export default function AssignmentSummaryPanel({
             {Object.entries(statusCounts).map(([status, count]) => (
               <div
                 key={status}
-                className="rounded-2xl border border-slate-800 bg-slate-950 p-3"
+                className="rounded-2xl border border-border bg-background p-3"
               >
-                <p className="text-sm text-slate-400">{status}</p>
-                <p className="mt-1 text-xl font-semibold text-white">{count}</p>
+                <p className="text-sm text-muted-foreground">{status}</p>
+                <p className="mt-1 text-xl font-semibold text-foreground">{count}</p>
               </div>
             ))}
           </div>
@@ -97,13 +97,13 @@ export default function AssignmentSummaryPanel({
           contentClassName="h-[150px]"
         />
 
-        <div className="rounded-3xl border border-slate-800 bg-slate-900 p-4 shadow-lg shadow-black/20">
+        <div className="rounded-3xl border border-border bg-background p-4 shadow-lg shadow-black/20">
           <div className="mb-3 flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-white">
+              <h2 className="text-xl font-semibold text-foreground">
                 Upcoming Deadlines
               </h2>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-muted-foreground">
                 Due dates for your next assignments.
               </p>
             </div>
@@ -114,30 +114,30 @@ export default function AssignmentSummaryPanel({
               upcomingDeadlines.slice(0, 4).map((assignment) => (
                 <div
                   key={assignment.id}
-                  className="rounded-2xl bg-slate-950 p-3"
+                  className="rounded-2xl bg-background p-3"
                 >
-                  <p className="text-sm text-slate-200">
+                  <p className="text-sm text-foreground">
                     {assignment.title}
                   </p>
-                  <p className="mt-1 text-sm text-slate-400">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     {assignment.course?.title ?? assignment.courseTitle}
                   </p>
-                  <p className="mt-1 text-sm text-orange-400">
+                  <p className="mt-1 text-sm text-primary">
                     Due {new Date(assignment.dueDate).toLocaleDateString()}
                   </p>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-muted-foreground">
                 No upcoming deadlines.
               </p>
             )}
           </div>
         </div>
 
-        <div className="rounded-3xl border border-slate-800 bg-slate-900 p-4 shadow-lg shadow-black/20">
-          <h2 className="text-xl font-semibold text-white">Quick Tips</h2>
-          <ul className="mt-3 space-y-2 text-sm text-slate-400">
+        <div className="rounded-3xl border border-border bg-background p-4 shadow-lg shadow-black/20">
+          <h2 className="text-xl font-semibold text-foreground">Quick Tips</h2>
+          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             {ASSIGNMENT_QUICK_TIPS.map((tip) => (
               <li key={tip}>• {tip}</li>
             ))}
@@ -147,13 +147,13 @@ export default function AssignmentSummaryPanel({
 
       {/* Mobile & tablet: compact single-row summary + collapsible sections */}
       <div className="xl:hidden space-y-3">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-3">
+        <div className="rounded-2xl border border-border bg-background p-3">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-white">Submission Summary</h2>
+            <h2 className="text-sm font-bold text-foreground">Submission Summary</h2>
             <button
               type="button"
               onClick={onViewAll}
-              className="flex items-center gap-1 text-xs font-semibold text-orange-400 hover:text-orange-300 transition-colors duration-200 cursor-pointer bg-transparent border-0 outline-none min-h-[32px]"
+              className="flex items-center gap-1 text-xs font-semibold text-primary hover:text-orange-300 transition-colors duration-200 cursor-pointer bg-transparent border-0 outline-none min-h-[32px]"
             >
               View All <ChevronRight size={13} />
             </button>
@@ -161,30 +161,30 @@ export default function AssignmentSummaryPanel({
 
           {/* Single slim row instead of 3 separate stat cards — same numbers,
               a fraction of the height. */}
-          <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5">
+          <div className="flex items-center justify-between rounded-xl border border-border bg-background px-3 py-2.5">
             <div className="flex items-center gap-1.5">
-              <FileText size={14} className="text-orange-500" />
-              <span className="text-sm font-bold text-white">{pendingCount}</span>
-              <span className="text-xs text-slate-400">Pending</span>
+              <FileText size={14} className="text-primary" />
+              <span className="text-sm font-bold text-foreground">{pendingCount}</span>
+              <span className="text-xs text-muted-foreground">Pending</span>
             </div>
-            <span className="h-4 w-px bg-slate-800" />
+            <span className="h-4 w-px bg-muted" />
             <div className="flex items-center gap-1.5">
               <Send size={14} className="text-blue-400" />
-              <span className="text-sm font-bold text-white">{submittedCount}</span>
-              <span className="text-xs text-slate-400">Submitted</span>
+              <span className="text-sm font-bold text-foreground">{submittedCount}</span>
+              <span className="text-xs text-muted-foreground">Submitted</span>
             </div>
-            <span className="h-4 w-px bg-slate-800" />
+            <span className="h-4 w-px bg-muted" />
             <div className="flex items-center gap-1.5">
               <CheckCircle2 size={14} className="text-emerald-400" />
-              <span className="text-sm font-bold text-white">{gradedCount}</span>
-              <span className="text-xs text-slate-400">Graded</span>
+              <span className="text-sm font-bold text-foreground">{gradedCount}</span>
+              <span className="text-xs text-muted-foreground">Graded</span>
             </div>
           </div>
         </div>
 
         <div
           ref={deadlinesSectionRef}
-          className="rounded-2xl border border-slate-800 bg-slate-900 p-3"
+          className="rounded-2xl border border-border bg-background p-3"
         >
           {upcomingDeadlines.length > 0 ? (
             <>
@@ -193,18 +193,18 @@ export default function AssignmentSummaryPanel({
                 onClick={onToggleDeadlines}
                 className="flex w-full items-center gap-3 text-left cursor-pointer bg-transparent border-0 outline-none min-h-[44px]"
               >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-500/10 text-orange-400">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <CalendarDays size={16} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-bold text-white">Upcoming Deadlines</h3>
-                  <p className="truncate text-xs text-slate-400">
+                  <h3 className="text-sm font-bold text-foreground">Upcoming Deadlines</h3>
+                  <p className="truncate text-xs text-muted-foreground">
                     {upcomingDeadlines.length} due soon
                   </p>
                 </div>
                 <ChevronDown
                   size={18}
-                  className={`shrink-0 text-slate-400 transition-transform duration-200 ${
+                  className={`shrink-0 text-muted-foreground transition-transform duration-200 ${
                     deadlinesExpanded ? "rotate-180" : ""
                   }`}
                 />
@@ -213,12 +213,12 @@ export default function AssignmentSummaryPanel({
               {deadlinesExpanded && (
                 <div className="mt-3 space-y-2">
                   {upcomingDeadlines.slice(0, 4).map((assignment) => (
-                    <div key={assignment.id} className="rounded-xl bg-slate-950 p-3">
-                      <p className="text-sm text-slate-200">{assignment.title}</p>
-                      <p className="mt-1 text-xs text-slate-400">
+                    <div key={assignment.id} className="rounded-xl bg-background p-3">
+                      <p className="text-sm text-foreground">{assignment.title}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
                         {assignment.course?.title ?? assignment.courseTitle}
                       </p>
-                      <p className="mt-1 text-xs text-orange-400">
+                      <p className="mt-1 text-xs text-primary">
                         Due {new Date(assignment.dueDate).toLocaleDateString()}
                       </p>
                     </div>
@@ -230,12 +230,12 @@ export default function AssignmentSummaryPanel({
             // Nothing to expand into, so this is a flat info row, not a button —
             // no chevron pretending there's more content behind it.
             <div className="flex items-center gap-3 min-h-[36px]">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800/60 text-slate-500">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted/60 text-muted-foreground">
                 <CalendarDays size={16} />
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-bold text-white">Upcoming Deadlines</h3>
-                <p className="truncate text-xs text-slate-400">No upcoming deadlines</p>
+                <h3 className="text-sm font-bold text-foreground">Upcoming Deadlines</h3>
+                <p className="truncate text-xs text-muted-foreground">No upcoming deadlines</p>
               </div>
             </div>
           )}
@@ -243,31 +243,31 @@ export default function AssignmentSummaryPanel({
 
         {/* Quick Tips — secondary info, collapsed by default, last section on
             the page (after assignments, summary, and deadlines). */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-3">
+        <div className="rounded-2xl border border-border bg-background p-3">
           <button
             type="button"
             onClick={() => setTipsExpanded((prev) => !prev)}
             className="flex w-full items-center gap-3 text-left cursor-pointer bg-transparent border-0 outline-none min-h-[44px]"
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-500/10 text-orange-400">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Lightbulb size={16} />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-bold text-white">Quick Tips</h3>
-              <p className="truncate text-xs text-slate-400">
+              <h3 className="text-sm font-bold text-foreground">Quick Tips</h3>
+              <p className="truncate text-xs text-muted-foreground">
                 Check tips to improve your performance
               </p>
             </div>
             <ChevronDown
               size={18}
-              className={`shrink-0 text-slate-400 transition-transform duration-200 ${
+              className={`shrink-0 text-muted-foreground transition-transform duration-200 ${
                 tipsExpanded ? "rotate-180" : ""
               }`}
             />
           </button>
 
           {tipsExpanded && (
-            <ul className="mt-3 space-y-2 text-sm text-slate-400">
+            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               {ASSIGNMENT_QUICK_TIPS.map((tip) => (
                 <li key={tip}>• {tip}</li>
               ))}

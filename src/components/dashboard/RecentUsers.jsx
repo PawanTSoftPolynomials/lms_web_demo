@@ -35,7 +35,7 @@ export default function RecentUsers({
               </div>
             </div>
 
-            <span className="text-xs bg-orange-500/15 text-orange-400 px-2 py-1 rounded-full">
+            <span className="text-xs bg-primary/15 text-primary px-2 py-1 rounded-full">
               {user.role}
             </span>
           </div>

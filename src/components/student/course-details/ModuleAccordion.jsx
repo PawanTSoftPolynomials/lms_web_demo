@@ -61,14 +61,14 @@ export default function ModuleAccordion({
     return (
         <div className="space-y-3">
             <div className="px-1">
-                <h2 className="text-lg font-semibold text-white">
+                <h2 className="text-lg font-semibold text-foreground">
                     Course Content{" "}
-                    <span className="text-sm font-normal text-orange-400">
+                    <span className="text-sm font-normal text-primary">
                         (Preview)
                     </span>
                 </h2>
 
-                <p className="mt-0.5 text-xs text-slate-500">
+                <p className="mt-0.5 text-xs text-muted-foreground">
                     {modules.length} Module{modules.length !== 1 ? "s" : ""}
                 </p>
             </div>
@@ -84,28 +84,28 @@ export default function ModuleAccordion({
                             <button
                                 type="button"
                                 onClick={() => toggleModule(module.id)}
-                                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-slate-800/40"
+                                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-muted/40"
                             >
                                 <div className="min-w-0">
-                                    <h3 className="truncate text-sm font-semibold text-white">
+                                    <h3 className="truncate text-sm font-semibold text-foreground">
                                         Module {index + 1}: {module.title}
                                     </h3>
 
-                                    <p className="mt-0.5 text-xs text-slate-500">
+                                    <p className="mt-0.5 text-xs text-muted-foreground">
                                         {lessonCount} Lesson{lessonCount !== 1 ? "s" : ""}
                                         {durationLabel ? ` • ${durationLabel}` : ""}
                                     </p>
                                 </div>
 
                                 {expanded ? (
-                                    <ChevronDown className="h-4 w-4 shrink-0 text-orange-500" />
+                                    <ChevronDown className="h-4 w-4 shrink-0 text-primary" />
                                 ) : (
-                                    <ChevronRight className="h-4 w-4 shrink-0 text-orange-500" />
+                                    <ChevronRight className="h-4 w-4 shrink-0 text-primary" />
                                 )}
                             </button>
 
                             {expanded && (
-                                <div className="border-t border-slate-800">
+                                <div className="border-t border-border">
                                     <LessonList lessons={module.lessons} />
                                 </div>
                             )}

@@ -117,7 +117,7 @@ export function TextCell({
               placeholder="Write the lesson text in Markdown…"
             />
           </div>
-          <div className="shrink-0 pt-3 border-t border-slate-800 flex justify-end gap-2">
+          <div className="shrink-0 pt-3 border-t border-border flex justify-end gap-2">
             <Button type="button" variant="ghost" size="sm" onClick={handleCancel}>
               Cancel
             </Button>
@@ -175,7 +175,7 @@ export function CreateTextForm({ topicId, order, onCreated, onCancel }: CreateCe
           placeholder="Write the lesson text in Markdown…"
         />
       </div>
-      <div className="shrink-0 pt-3 border-t border-slate-800 flex justify-end gap-2">
+      <div className="shrink-0 pt-3 border-t border-border flex justify-end gap-2">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>

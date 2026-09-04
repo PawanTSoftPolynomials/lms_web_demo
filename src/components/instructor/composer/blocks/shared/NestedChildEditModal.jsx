@@ -30,16 +30,16 @@ export default function NestedChildEditModal({ open, onClose, child, onSave }) {
           value={draft.title || ""}
           onChange={(e) => patch({ title: e.target.value })}
           placeholder={`${entry.label} title (optional)`}
-          className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm outline-none focus:border-orange-500"
+          className="w-full rounded-lg border border-transparent bg-muted px-3 py-2 text-sm outline-none focus:border-primary"
         />
 
         <EditComponent block={draft} onChange={patch} />
 
-        <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+        <div className="flex justify-end gap-2 pt-2 border-t border-border">
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-lg transition"
+            className="px-3 py-1.5 text-xs font-bold text-foreground hover:text-foreground bg-muted hover:bg-slate-750 border border-transparent/60 rounded-lg transition"
           >
             Cancel
           </button>
@@ -49,7 +49,7 @@ export default function NestedChildEditModal({ open, onClose, child, onSave }) {
               onSave(draft);
               onClose();
             }}
-            className="px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition"
+            className="px-3 py-1.5 text-xs font-bold text-foreground bg-emerald-600 hover:bg-emerald-700 rounded-lg transition"
           >
             Done
           </button>

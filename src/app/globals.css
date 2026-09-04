@@ -1,4 +1,3 @@
-
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
@@ -26,19 +25,23 @@
   --color-slate-900: #131321;
   --color-slate-950: #0a0a0f;
 
-  /* Original brand scale — true orange, matching the app's name/identity
-     and the ~2000 hardcoded orange utility classes (bg-orange, text-orange,
-     border-orange) across the app that were always meant to read as
-     literal orange, not a swappable retheme. */
-  --color-orange-400: #C9A23E;
-  --color-orange-500: #B08A2E;
-  --color-orange-600: #8F6F24;
-  --color-orange-700: #6E561A;
+  --color-orange-300: color-mix(in oklab, var(--primary) 60%, white);
+  --color-orange-400: color-mix(in oklab, var(--primary) 80%, white);
+  --color-orange-450: var(--primary);
+  --color-orange-500: var(--primary);
+  --color-orange-600: color-mix(in oklab, var(--primary) 80%, black);
+  --color-orange-650: color-mix(in oklab, var(--primary) 70%, black);
+  --color-orange-700: color-mix(in oklab, var(--primary) 60%, black);
 
-  --color-pink-400: #f472b6;
-  --color-pink-500: #ec4899;
-  --color-pink-600: #db2777;
-  --color-pink-700: #be185d;
+  --color-amber-300: color-mix(in oklab, var(--secondary) 60%, white);
+  --color-amber-400: color-mix(in oklab, var(--secondary) 80%, white);
+  --color-amber-500: var(--secondary);
+  --color-amber-600: color-mix(in oklab, var(--secondary) 80%, black);
+
+  --color-pink-400: color-mix(in oklab, var(--secondary) 80%, white);
+  --color-pink-500: var(--secondary);
+  --color-pink-600: color-mix(in oklab, var(--secondary) 80%, black);
+  --color-pink-700: color-mix(in oklab, var(--secondary) 60%, black);
 
   /* --radius-xl/2xl left at their pre-existing app values, deliberately —
      229 files use bare `rounded-xl` for buttons/badges/small controls, not
@@ -55,123 +58,119 @@
 }
 
 /* ==========================================================================
-   Glass Campus — premium glassmorphism design system.
-   :root/.dark are now genuinely distinct (they'd been made identical by an
-   earlier one-off "white bg / black text" request; this redesign restores
-   real light/dark, per the spec's explicit light+dark direction). Surface
-   tokens (--surface/--card/--popover/--muted/--secondary) hold *translucent*
-   rgba colors rather than opaque ones — that's what makes the backdrop-blur
-   already present on Card.jsx and 65+ other components (previously inert,
-   since blur has nothing to show through an opaque fill) actually render
-   as glass. --card/--popover/--surface intentionally differ in opacity to
-   create the "Glass Level 1/2/3" hierarchy the spec calls for (popover is
-   the floating/overlay level — highest opacity, most legible over content).
+   LIGHT MODE — matched from the user's reference video (instructor
+   dashboard mockup): soft cream page, near-white shadow-based cards
+   (no hard borders), dark-navy headings, a gold/olive accent for
+   progress bars and links. Colors sampled directly from video frames.
+   (default, no .dark class)
    ========================================================================== */
 :root {
-  --background: #A3B2A0;
-  --foreground: #f5f5f5;
-  --heading: #6C7A6D;
+  --background: #F3EDE3;
+  --foreground: #23283D;
 
-  --glass-blur-sm: 8px;
-  --glass-blur-md: 16px;
-  --glass-blur-lg: 24px;
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
-  --glass-shadow-floating: 0 24px 70px rgba(0, 0, 0, 0.5), 0 4px 20px rgba(0, 0, 0, 0.3);
-  --glass-border-floating: rgba(255, 255, 255, 0.12);
+  --surface: #FEFCF8;
+  --surface-foreground: #23283D;
+  --surface-muted: #ECE4D5;
 
-  /* Original app surfaces — solid navy, not translucent, to match the
-     app's actual pre-Glass-Campus look (opaque bg-[#0D1021] cards on a
-     bg-[#080B11] page, bg-[#1A1F35] borders). Kept as CSS custom properties
-     (rather than reverting the glass-* utility classes themselves) so the
-     Glass Campus component work stays intact and reversible — an opaque
-     surface simply has nothing for backdrop-filter to blur, so the glass
-     utilities render flat by construction. */
-  --surface: #C1D3C6;
-  --surface-foreground: #141a11;
-  --surface-muted: #C1D3C6;
+  --card: #FEFCF8;
+  --card-foreground: #23283D;
+  --card-border: #E7DFD1;
 
-  --card: #A3B18D;
-  --card-foreground: #141a11;
-  --card-border: #F4F7F5;
+  --popover: #FEFCF8;
+  --popover-foreground: #23283D;
 
-  --popover: #C1D3C6;
-  --popover-foreground: #141a11;
+  --muted: #ECE4D5;
+  --muted-foreground: #6E7488;
 
-  --muted: #C1D3C6;
-  --muted-foreground: #3f4a3f;
+  --border: #E7DFD1;
+  --input: #FEFCF8;
+  --ring: #B8934A;
 
-  --border: #F4F7F5;
-  --input: #0D1021;
-  --ring: #B08A2E;
+  --primary: #B8934A;
+  --primary-foreground: #23283D;
 
-  --primary: #B08A2E;
-  --primary-foreground: #020617;
+  --secondary: #23283D;
+  --secondary-foreground: #FFFFFF;
 
-  --secondary: #C1D3C6;
-  --secondary-foreground: #141a11;
+  --accent: #B8934A;
+  --accent-foreground: #23283D;
 
-  --accent: rgba(176, 138, 46, 0.1);
-  --accent-foreground: #C9A23E;
+  --success: #20CD83;
+  --success-foreground: #FFFFFF;
+  --warning: #EB9D11;
+  --warning-foreground: #23283D;
+  --destructive: #E8604F;
+  --destructive-foreground: #FFFFFF;
 
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
+  --heading-color: #212945;
 
-  --success: #16a34a;
-  --success-foreground: #ffffff;
-  --warning: #f59e0b;
-  --warning-foreground: #1a1200;
-
-  --shadow-color: 230 35% 25%;
+  --shadow-color: 220 20% 20%;
 }
 
+/* ==========================================================================
+   DARK MODE — "GitHub Dark" pairing: real GitHub dark-theme values —
+   near-black canvas, blue links, green primary actions.
+   ========================================================================== */
 .dark {
-  --background: #A3B2A0;
-  --foreground: #f5f5f5;
-  --heading: #6C7A6D;
+  --background: #0D1117;
+  --foreground: #C9D1D9;
 
-  --glass-blur-sm: 8px;
-  --glass-blur-md: 16px;
-  --glass-blur-lg: 24px;
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
-  --glass-shadow-floating: 0 24px 70px rgba(0, 0, 0, 0.5), 0 4px 20px rgba(0, 0, 0, 0.3);
-  --glass-border-floating: rgba(255, 255, 255, 0.12);
+  --surface: #161B22;
+  --surface-foreground: #C9D1D9;
+  --surface-muted: #1C2129;
 
-  --surface: #C1D3C6;
-  --surface-foreground: #141a11;
-  --surface-muted: #C1D3C6;
+  --card: #161B22;
+  --card-foreground: #C9D1D9;
+  --card-border: #30363D;
 
-  --card: #A3B18D;
-  --card-foreground: #141a11;
-  --card-border: #F4F7F5;
+  --popover: #161B22;
+  --popover-foreground: #C9D1D9;
 
-  --popover: #C1D3C6;
-  --popover-foreground: #141a11;
+  --muted: #1C2129;
+  --muted-foreground: #8B949E;
 
-  --muted: #C1D3C6;
-  --muted-foreground: #3f4a3f;
+  --border: #30363D;
+  --input: #0D1117;
+  --ring: #58A6FF;
 
-  --border: #F4F7F5;
-  --input: #0D1021;
-  --ring: #B08A2E;
+  --primary: #238636;
+  --primary-foreground: #FFFFFF;
 
-  --primary: #B08A2E;
-  --primary-foreground: #020617;
+  --secondary: #30363D;
+  --secondary-foreground: #C9D1D9;
 
-  --secondary: #C1D3C6;
-  --secondary-foreground: #141a11;
+  --accent: #58A6FF;
+  --accent-foreground: #0D1117;
 
-  --accent: rgba(176, 138, 46, 0.14);
-  --accent-foreground: #C9A23E;
+  --success: #3FB950;
+  --success-foreground: #0D1117;
+  --warning: #D29922;
+  --warning-foreground: #0D1117;
+  --destructive: #F85149;
+  --destructive-foreground: #FFFFFF;
 
-  --destructive: #f87171;
-  --destructive-foreground: #1a0505;
+  --heading-color: #E6EDF3;
 
-  --success: #34d399;
-  --success-foreground: #052e1a;
-  --warning: #fbbf24;
-  --warning-foreground: #1a1200;
+  --shadow-color: 220 20% 3%;
+}
 
-  --shadow-color: 230 40% 3%;
+/* Light mode: mirror-invert the neutral slate scale (50<->950, 100<->900, ...) so the thousands
+   of hardcoded bg-slate-900/border-slate-800/text-slate-400 utility classes across the app
+   (built dark-first, never fully migrated to semantic tokens) repaint sensibly on the cream
+   background instead of staying stuck near-black. Dark mode keeps the original @theme values
+   untouched (zero risk to the app's current, tested look). */
+:root:not(.dark) {
+  --color-slate-50: #0a0a0f;
+  --color-slate-100: #131321;
+  --color-slate-200: #1e1e2f;
+  --color-slate-300: #3a3a5c;
+  --color-slate-400: #52527a;
+  --color-slate-500: #737399;
+  --color-slate-600: #a3a3c2;
+  --color-slate-700: #d1d1df;
+  --color-slate-800: #e2e2ec;
+  --color-slate-900: #f1f1f5;
+  --color-slate-950: #fdfdfd;
 }
 
 @theme inline {
@@ -205,46 +204,27 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
 
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
 }
 
 body {
-  background-color: var(--background);
+  background-color: var(--background) !important;
+  background-image: none !important;
   color: var(--foreground);
-  overflow-x: hidden;
-  font-family: "Manrope", sans-serif;
-}
-
-/* Dedicated heading color (--heading, set per mode above) — most of the
-   app's "headings" are Tailwind-classed divs/spans rather than semantic
-   h1-h6 tags, so this only reaches real heading elements; that's a known,
-   documented gap, not a full sweep. */
-h1, h2, h3, h4, h5, h6 {
-  color: var(--heading);
-}
-
-button:hover {
-  cursor: pointer;
-}
-
-img.cursor-pointer:hover {
-  opacity: 0.8;
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Global chrome remap — most of the app's layout chrome (navbars, cards, panels, dropdowns) was
    built with one-off hardcoded hex utility classes (bg-[#0D1021], border-[#1A1F35], ...) instead
-   of the semantic tokens above, so switching theme mode had no visible effect on ~90% of the UI.
+   of the semantic tokens above, so switching theme mode has no visible effect on those elements.
    Rather than rewriting every file, this repaints those exact classes wherever they appear by
-   pointing them at the equivalent semantic token. Values were chosen by matching each hardcoded
-   hex to the closest of --background/--surface/--popover/--border/--muted (many are exact or
-   near-exact matches already, confirming the mapping). Long-tail one-off colors not covered here
-   won't shift with theme. */
+   pointing them at the equivalent semantic token. */
 [class~="bg-[#05070E]"] { background-color: var(--background); }
 [class~="bg-[#05070E]/50"] { background-color: color-mix(in oklab, var(--background) 50%, transparent); }
 [class~="bg-[#060913]"] { background-color: var(--background); }
@@ -408,15 +388,13 @@ img.cursor-pointer:hover {
 
 /* Sidebar's hardcoded orange active-state glow (a literal rgba() box-shadow, not the
    swappable --color-orange-* scale) — repainted to the current --primary so it follows
-   the active palette instead of staying orange under every theme. */
-[class~="shadow-[0_2px_12px_rgba(242,199,199,0.35)]"] {
+   the active theme instead of staying orange under every mode. */
+[class~="shadow-[0_2px_12px_rgba(249,115,22,0.35)]"] {
   box-shadow: 0 2px 12px color-mix(in oklab, var(--primary) 35%, transparent);
 }
 
-/* Soft ambient card/panel shadow used across the app (Card.jsx and others) — was
-   referenced everywhere as `shadow-luxury-sm`/`shadow-luxury-md` but never defined,
-   so it silently rendered no shadow at all. Tinted by --shadow-color (set per
-   light/dark mode above) so it reads as a soft purple-black glow in dark mode. */
+/* Soft ambient card/panel shadow used across the app (Card.jsx and others), tinted by
+   --shadow-color (set per light/dark mode above). */
 @utility shadow-luxury-sm {
   box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.06),
     0 4px 16px -6px hsl(var(--shadow-color) / 0.18);
@@ -536,35 +514,12 @@ img.cursor-pointer:hover {
   }
 }
 
-/* Custom scrollbars for a futuristic look */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 9999px;
-  transition: all 0.3s ease;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #f2c7c7, #ffb7c5);
-}
-
-/* Static rainbow border for primary CTA buttons (no scrolling/animation —
-   was found to read as blinking/flashing). Two background-image layers
-   clipped separately: a flat "fill" gradient clipped to padding-box repaints
-   the button's own interior color, and the rainbow gradient clipped to
-   border-box shows only in the 2px gutter left by the transparent border.
-   --btn-rainbow-fill is set per variant so each keeps its own brand color;
-   falls back to currentColor if unset. Adapts to any button's real
-   size/shape (border-radius: inherit), unlike the fixed pixel dimensions of
-   the original reference design. */
+/* Static "rainbow" fill+border used by Button.jsx's primary/danger variants. Two
+   background-image layers clipped separately: a flat "fill" gradient clipped to
+   padding-box repaints the button's own interior color (--btn-rainbow-fill, set per
+   variant), and a rainbow gradient clipped to border-box shows only in the 2px gutter
+   left by the transparent border. Adapts to any button's real size/shape
+   (border-radius: inherit). */
 @utility btn-rainbow {
   position: relative;
   isolation: isolate;
@@ -596,42 +551,123 @@ img.cursor-pointer:hover {
 }
 
 /* ==========================================================================
-   Experimental photo-derived card palettes — course cards only, applied via
-   a wrapper class on the card root. Each candidate photo gets its own block
-   of CSS custom properties (background gradient + 3-color text hierarchy:
-   h1 / subtitle / highlight); switching which photo is "live" on a card is
-   just swapping which .card-photo-* class is applied, not re-touching the
-   component. Deliberately NOT tied to light/dark mode — these are fixed,
-   self-contained dark card faces regardless of the page's own theme, same
-   as the mood-board reference art they're drawn from.
+   Experimental photo-derived card palette — course cards only, applied via a
+   wrapper class on the card root. Deliberately NOT tied to light/dark mode:
+   a fixed, self-contained dark card face regardless of the page's own theme.
    ========================================================================== */
-
-/* Palette 1 — abstract underwater/jellyfish art: originally a fixed deep-navy
-   dark face regardless of page theme (magenta-pink/teal/gold text hierarchy).
-   Brought onto the current light green reskin on request ("cards colour not
-   changed" — this class was the reason course cards, e.g. CourseGridCard.jsx,
-   MyCourseCard.jsx, BrowseCourseCard.jsx, never picked up the --card token
-   edits): bg gradient now the card green family, border matches the
-   app-wide light border, and h1/subtitle move to the same dark
-   card-foreground/muted-foreground values used everywhere else on this card
-   family — the old bright pink/teal would go illegible on a light card,
-   same problem already fixed for text-white/text-orange-* app-wide.
-   --card-photo-highlight stays a strong accent (drives tag pills and the
-   "View Course" button fill, which already pairs it with dark text) — now
-   the current bright gold primary instead of the old amber. */
 .card-photo-jellyfish {
-  --card-photo-bg-from: #A3B18D;
-  --card-photo-bg-to: #A3B18D;
-  --card-photo-border: #D9D9D9;
-  --card-photo-h1: #6C7A6D;
-  --card-photo-subtitle: #000000;
-  --card-photo-highlight: #B08A2E;
+  --card-photo-bg-from: #161A1D;
+  --card-photo-bg-to: #212529;
+  --card-photo-border: #383E44;
+  --card-photo-h1: #F2CC8F;
+  --card-photo-subtitle: #D3D8DD;
+  --card-photo-highlight: #E07A5F;
 }
 
-/* Title font for every card-photo-* variant — Playfair Display (already
-   loaded app-wide via @fontsource, previously only used on one certificate
-   page) for headline character; body copy stays on Poppins, the app's
-   existing default, so the whole system is still just 2 fonts total. */
 .card-photo-title {
   font-family: "Playfair Display", serif;
 }
+
+/* ==========================================================================
+   Shared surface/control styling — flat, modestly-rounded shapes (GitHub-
+   style: 6-8px corners, no pill buttons), colored via the semantic tokens
+   above so it repaints automatically per mode.
+   ========================================================================== */
+
+.bg-card, .bg-surface, .bg-popover, .card-photo-jellyfish {
+  background-color: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+input, select {
+  background-color: var(--surface-muted) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important;
+  color: var(--foreground) !important;
+  padding: 0.75rem 1rem !important;
+}
+
+input:focus, select:focus {
+  border-color: var(--primary) !important;
+  outline: none;
+}
+
+button, a.bg-primary, a.bg-secondary, a.bg-accent, a.bg-success, a.bg-warning, a.bg-destructive, .btn-rainbow {
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  font-weight: 600;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  border: 1px solid transparent;
+}
+
+button.bg-primary, a.bg-primary, .btn-rainbow {
+  background-color: var(--primary) !important;
+  background-image: none !important;
+  color: var(--primary-foreground) !important;
+}
+button.bg-primary:hover, a.bg-primary:hover, .btn-rainbow:hover {
+  background-color: color-mix(in srgb, var(--primary) 88%, white) !important;
+}
+
+.bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {
+  background-image: linear-gradient(90deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, black) 100%) !important;
+  background-color: transparent !important;
+  border-radius: 9999px !important;
+}
+
+/* Custom scrollbars — colored via tokens, so they already adapt per theme. */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* ==========================================================================
+   GITHUB-STYLE DARK — dark-mode-only overrides: flat surfaces, a hairline
+   border color-shift on hover instead of glow/lift, no gradients. Light
+   mode uses the plain surface/control styling above with no extra treatment.
+   ========================================================================== */
+
+.dark .bg-card, .dark .bg-surface, .dark .bg-popover, .dark .card-photo-jellyfish {
+  background-color: var(--card) !important;
+  border-color: var(--border) !important;
+  box-shadow: none !important;
+}
+
+.dark .bg-card:hover, .dark .card-photo-jellyfish:hover {
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--border)) !important;
+}
+
+/* Heading color, but never override an explicitly chosen status/semantic color
+   (e.g. green/red success-failure counts, amber warnings, "Danger Zone" red). */
+:is(h1, h2, h3, h4, .text-xl, .text-2xl, .text-3xl, .text-4xl, .text-5xl,
+  [class*="text-lg"][class*="font-semibold"],
+  [class*="text-lg"][class*="font-bold"]):not([class*="text-red-"]):not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-rose-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-yellow-"]):not([class*="text-orange-"]):not([class*="text-destructive"]):not([class*="text-success"]):not([class*="text-warning"]) {
+  color: var(--heading-color) !important;
+}
+
+.dark .bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--primary) 75%, transparent), var(--primary)) !important;
+  background-color: transparent !important;
+  box-shadow: 0 0 12px color-mix(in oklab, var(--primary) 40%, transparent) !important;
+}
+
+/* Fix secondary text contrast for hardcoded classes in dark mode to meet WCAG AAA */
+.dark .text-slate-500,
+.dark .text-slate-600,
+.dark .text-gray-500,
+.dark .text-gray-600 {
+  color: var(--muted-foreground) !important;
+}
+

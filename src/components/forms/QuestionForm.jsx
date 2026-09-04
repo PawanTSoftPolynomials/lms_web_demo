@@ -273,11 +273,11 @@ export default function QuestionForm({
     <div className="space-y-8 pb-24">
       {/* Header and Title */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between gap-4 w-full">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
           <div>
-            <h1 className="text-4xl font-bold text-white tracking-tight">Add New Question</h1>
-            <p className="mt-2 text-slate-400">
-              Quiz: <span className="text-orange-400 font-extrabold">{quiz?.title || "Quiz"}</span>
+            <h1 className="text-4xl font-bold text-foreground tracking-tight">Add New Question</h1>
+            <p className="mt-2 text-muted-foreground">
+              Quiz: <span className="text-primary font-extrabold">{quiz?.title || "Quiz"}</span>
             </p>
           </div>
 
@@ -295,7 +295,7 @@ export default function QuestionForm({
               <button
                 type="button"
                 onClick={() => setShowImport(true)}
-                className="flex items-center gap-2 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 font-extrabold text-xs uppercase tracking-wider px-5 py-3 transition active:scale-95 cursor-pointer"
+                className="flex items-center gap-2 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary font-extrabold text-xs uppercase tracking-wider px-5 py-3 transition active:scale-95 cursor-pointer"
               >
                 <span>Import from File</span>
               </button>
@@ -309,7 +309,7 @@ export default function QuestionForm({
                 document.getElementById("question-form-element")?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
               }}
               disabled={loading}
-              className="px-5 py-3 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-850 hover:text-white transition font-extrabold text-xs uppercase tracking-wider"
+              className="px-5 py-3 rounded-xl border border-border bg-background/60 text-foreground hover:bg-slate-850 hover:text-foreground transition font-extrabold text-xs uppercase tracking-wider"
             >
               {loading && submitAction === "save" ? "Saving..." : "Save Draft"}
             </button>
@@ -319,7 +319,7 @@ export default function QuestionForm({
                 document.getElementById("question-form-element")?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
               }}
               disabled={loading}
-              className="px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 transition font-black text-xs uppercase tracking-wider shadow-lg shadow-orange-500/10"
+              className="px-6 py-3 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 transition font-black text-xs uppercase tracking-wider shadow-lg shadow-orange-500/10"
             >
               {loading && submitAction === "publish" ? "Publishing..." : "Publish Quiz"}
             </button>
@@ -332,21 +332,21 @@ export default function QuestionForm({
           {/* ================= LEFT COLUMN: DETAILS & OPTIONS ================= */}
           <div className="lg:col-span-7 space-y-8">
             {/* Question Details Card */}
-            <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl space-y-6">
+            <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-950 border border-border rounded-2xl space-y-6">
               <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400 shrink-0">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
                   <HelpCircle size={22} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white tracking-tight">Question Details</h3>
-                  <p className="text-xs text-slate-400">Define the question information</p>
+                  <h3 className="text-lg font-bold text-foreground tracking-tight">Question Details</h3>
+                  <p className="text-xs text-muted-foreground">Define the question information</p>
                 </div>
               </div>
 
               <div className="space-y-5">
                 {/* Question Title */}
                 <div className="space-y-2">
-                  <label className="text-xs text-slate-500 font-bold uppercase tracking-wider flex justify-between">
+                  <label className="text-xs text-muted-foreground font-bold uppercase tracking-wider flex justify-between">
                     <span>Question Title *</span>
                     <span className="font-mono">{formData.question.length}/500</span>
                   </label>
@@ -358,7 +358,7 @@ export default function QuestionForm({
                     placeholder="Enter your question here..."
                     required
                     rows={4}
-                    className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3 text-sm resize-none placeholder-slate-600"
+                    className="w-full bg-background border border-border text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3 text-sm resize-none placeholder-slate-600"
                   />
                 </div>
 
@@ -366,12 +366,12 @@ export default function QuestionForm({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {/* Type */}
                   <div className="space-y-2">
-                    <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">Question Type *</label>
+                    <label className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Question Type *</label>
                     <select
                       name="type"
                       value={formData.type}
                       onChange={(e) => handleTypeChange(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3.5 text-sm cursor-pointer"
+                      className="w-full bg-background border border-border text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3.5 text-sm cursor-pointer"
                     >
                       <option value="MCQ_SINGLE">Single Choice</option>
                       <option value="MCQ_MULTI">Multiple Choice</option>
@@ -383,12 +383,12 @@ export default function QuestionForm({
 
                   {/* Marks */}
                   <div className="space-y-2">
-                    <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">Marks *</label>
+                    <label className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Marks *</label>
                     <select
                       name="marks"
                       value={formData.marks}
                       onChange={handleChange}
-                      className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3.5 text-sm cursor-pointer"
+                      className="w-full bg-background border border-border text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3.5 text-sm cursor-pointer"
                     >
                       {[1, 2, 3, 4, 5, 10, 15, 20].map((val) => (
                         <option key={val} value={val}>{val}</option>
@@ -398,12 +398,12 @@ export default function QuestionForm({
 
                   {/* Difficulty */}
                   <div className="space-y-2">
-                    <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">Difficulty *</label>
+                    <label className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Difficulty *</label>
                     <select
                       name="difficulty"
                       value={formData.difficulty}
                       onChange={handleChange}
-                      className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3.5 text-sm cursor-pointer"
+                      className="w-full bg-background border border-border text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3.5 text-sm cursor-pointer"
                     >
                       <option value="Easy">Easy</option>
                       <option value="Medium">Medium</option>
@@ -413,14 +413,14 @@ export default function QuestionForm({
 
                   {/* Category / Concept */}
                   <div className="space-y-2">
-                    <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">Category</label>
+                    <label className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Category</label>
                     <input
                       type="text"
                       name="concept"
                       value={formData.concept}
                       onChange={handleChange}
                       placeholder="Select Category / Concept tag"
-                      className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3.5 text-sm placeholder-slate-600"
+                      className="w-full bg-background border border-border text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3.5 text-sm placeholder-slate-600"
                     />
                   </div>
                 </div>
@@ -428,21 +428,21 @@ export default function QuestionForm({
             </Card>
 
             {/* Answer Options Card */}
-            <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl space-y-6">
+            <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-950 border border-border rounded-2xl space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400 shrink-0">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
                     <CheckSquare size={22} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-white tracking-tight">Answer Options</h3>
-                    <p className="text-xs text-slate-400">Add options for this question</p>
+                    <h3 className="text-lg font-bold text-foreground tracking-tight">Answer Options</h3>
+                    <p className="text-xs text-muted-foreground">Add options for this question</p>
                   </div>
                 </div>
 
                 {/* Shuffle options toggle */}
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-slate-500 font-bold">Shuffle Options</span>
+                  <span className="text-xs text-muted-foreground font-bold">Shuffle Options</span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -451,7 +451,7 @@ export default function QuestionForm({
                       onChange={handleChange}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500"></div>
+                    <div className="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                   </label>
                 </div>
               </div>
@@ -461,8 +461,8 @@ export default function QuestionForm({
                 <div className="space-y-4">
                   {formData.options.map((option, index) => (
                     <div key={index} className="flex items-center gap-3 group">
-                      <GripVertical className="text-slate-700 group-hover:text-slate-400 transition cursor-grab" size={16} />
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-800 bg-slate-900 text-xs font-bold text-slate-300">
+                      <GripVertical className="text-slate-700 group-hover:text-muted-foreground transition cursor-grab" size={16} />
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background text-xs font-bold text-foreground">
                         {String.fromCharCode(65 + index)}
                       </span>
                       <input
@@ -470,7 +470,7 @@ export default function QuestionForm({
                         value={option}
                         onChange={(e) => handleOptionChange(index, e.target.value)}
                         placeholder={`Enter option ${String.fromCharCode(65 + index).toLowerCase()}`}
-                        className="flex-1 bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-2.5 text-sm"
+                        className="flex-1 bg-background border border-border text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-2.5 text-sm"
                         required
                       />
                       <label className="flex items-center gap-2 cursor-pointer shrink-0">
@@ -480,9 +480,9 @@ export default function QuestionForm({
                           checked={formData.correctAnswer === option && option !== ""}
                           onChange={() => setFormData((prev) => ({ ...prev, correctAnswer: option }))}
                           disabled={!option}
-                          className="h-4 w-4 border-slate-800 bg-slate-900 text-orange-500 focus:ring-orange-500"
+                          className="h-4 w-4 border-border bg-background text-primary focus:ring-orange-500"
                         />
-                        <span className="text-xs font-bold text-slate-400">Correct</span>
+                        <span className="text-xs font-bold text-muted-foreground">Correct</span>
                       </label>
                       {formData.options.length > 2 && (
                         <button
@@ -498,7 +498,7 @@ export default function QuestionForm({
                   <button
                     type="button"
                     onClick={addOption}
-                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-slate-800 hover:border-orange-500/50 bg-slate-900/30 text-xs font-bold text-orange-400 hover:text-orange-300 transition"
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-border hover:border-primary/50 bg-background/30 text-xs font-bold text-primary hover:text-orange-300 transition"
                   >
                     <Plus size={14} />
                     <span>Add Option</span>
@@ -511,8 +511,8 @@ export default function QuestionForm({
                 <div className="space-y-4">
                   {formData.options.map((option, index) => (
                     <div key={index} className="flex items-center gap-3 group">
-                      <GripVertical className="text-slate-700 group-hover:text-slate-400 transition cursor-grab" size={16} />
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-800 bg-slate-900 text-xs font-bold text-slate-300">
+                      <GripVertical className="text-slate-700 group-hover:text-muted-foreground transition cursor-grab" size={16} />
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background text-xs font-bold text-foreground">
                         {String.fromCharCode(65 + index)}
                       </span>
                       <input
@@ -520,7 +520,7 @@ export default function QuestionForm({
                         value={option}
                         onChange={(e) => handleOptionChange(index, e.target.value)}
                         placeholder={`Enter option ${String.fromCharCode(65 + index).toLowerCase()}`}
-                        className="flex-1 bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-2.5 text-sm"
+                        className="flex-1 bg-background border border-border text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-2.5 text-sm"
                         required
                       />
                       <label className="flex items-center gap-2 cursor-pointer shrink-0">
@@ -529,9 +529,9 @@ export default function QuestionForm({
                           checked={Array.isArray(formData.correctAnswer) && formData.correctAnswer.includes(option) && option !== ""}
                           onChange={() => handleMultiCorrectToggle(option)}
                           disabled={!option}
-                          className="h-4 w-4 border-slate-800 bg-slate-900 rounded text-orange-500 focus:ring-orange-500"
+                          className="h-4 w-4 border-border bg-background rounded text-primary focus:ring-orange-500"
                         />
-                        <span className="text-xs font-bold text-slate-400">Correct</span>
+                        <span className="text-xs font-bold text-muted-foreground">Correct</span>
                       </label>
                       {formData.options.length > 2 && (
                         <button
@@ -547,7 +547,7 @@ export default function QuestionForm({
                   <button
                     type="button"
                     onClick={addOption}
-                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-slate-800 hover:border-orange-500/50 bg-slate-900/30 text-xs font-bold text-orange-400 hover:text-orange-300 transition"
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-border hover:border-primary/50 bg-background/30 text-xs font-bold text-primary hover:text-orange-300 transition"
                   >
                     <Plus size={14} />
                     <span>Add Option</span>
@@ -560,13 +560,13 @@ export default function QuestionForm({
                 <div className="space-y-4">
                   {tokens.map((token, index) => (
                     <div key={index} className="flex items-center gap-3">
-                      <span className="text-slate-500 text-xs font-bold w-6">{index + 1}.</span>
+                      <span className="text-muted-foreground text-xs font-bold w-6">{index + 1}.</span>
                       <input
                         type="text"
                         value={token}
                         onChange={(e) => handleTokenChange(index, e.target.value)}
                         placeholder="Enter token text (Correct Order)"
-                        className="flex-1 bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-2.5 text-sm"
+                        className="flex-1 bg-background border border-border text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-2.5 text-sm"
                         required
                       />
                       {tokens.length > 2 && (
@@ -583,7 +583,7 @@ export default function QuestionForm({
                   <button
                     type="button"
                     onClick={addToken}
-                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-slate-800 hover:border-orange-500/50 bg-slate-900/30 text-xs font-bold text-orange-400 hover:text-orange-300 transition"
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-border hover:border-primary/50 bg-background/30 text-xs font-bold text-primary hover:text-orange-300 transition"
                   >
                     <Plus size={14} />
                     <span>Add Token</span>
@@ -595,14 +595,14 @@ export default function QuestionForm({
               {formData.type === "MATCH_PAIRS" && (
                 <div className="space-y-4">
                   {pairs.map((pair, index) => (
-                    <div key={index} className="flex flex-col sm:flex-row items-center gap-3 bg-slate-950/40 p-4 rounded-xl border border-slate-850">
-                      <span className="text-slate-500 text-xs font-bold w-6 shrink-0">{index + 1}.</span>
+                    <div key={index} className="flex flex-col sm:flex-row items-center gap-3 bg-background/40 p-4 rounded-xl border border-slate-850">
+                      <span className="text-muted-foreground text-xs font-bold w-6 shrink-0">{index + 1}.</span>
                       <input
                         type="text"
                         value={pair.left}
                         onChange={(e) => handlePairChange(index, "left", e.target.value)}
                         placeholder="Left Item"
-                        className="w-full bg-slate-900 border border-slate-850 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-2.5 text-xs"
+                        className="w-full bg-background border border-slate-850 text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-2.5 text-xs"
                         required
                       />
                       <span className="text-slate-600 font-bold font-mono shrink-0">⟷</span>
@@ -611,7 +611,7 @@ export default function QuestionForm({
                         value={pair.right}
                         onChange={(e) => handlePairChange(index, "right", e.target.value)}
                         placeholder="Right Item"
-                        className="w-full bg-slate-900 border border-slate-850 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-2.5 text-xs"
+                        className="w-full bg-background border border-slate-850 text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-2.5 text-xs"
                         required
                       />
                       {pairs.length > 2 && (
@@ -628,7 +628,7 @@ export default function QuestionForm({
                   <button
                     type="button"
                     onClick={addPair}
-                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-slate-800 hover:border-orange-500/50 bg-slate-900/30 text-xs font-bold text-orange-400 hover:text-orange-300 transition"
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-border hover:border-primary/50 bg-background/30 text-xs font-bold text-primary hover:text-orange-300 transition"
                   >
                     <Plus size={14} />
                     <span>Add Pair</span>
@@ -638,8 +638,8 @@ export default function QuestionForm({
 
               {/* SELF_ASSESSMENT Options */}
               {formData.type === "SELF_ASSESSMENT" && (
-                <div className="space-y-3 bg-slate-950/30 p-4 rounded-xl border border-slate-850">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <div className="space-y-3 bg-background/30 p-4 rounded-xl border border-slate-850">
+                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider">
                     Grading Rubric / Criteria
                   </label>
                   <textarea
@@ -649,7 +649,7 @@ export default function QuestionForm({
                     placeholder="Describe how the question response will be self-graded or matching keyword expectations..."
                     required
                     rows={4}
-                    className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3 text-sm resize-none placeholder-slate-600"
+                    className="w-full bg-background border border-border text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3 text-sm resize-none placeholder-slate-600"
                   />
                 </div>
               )}
@@ -659,14 +659,14 @@ export default function QuestionForm({
           {/* ================= RIGHT COLUMN: PREVIEW & EXPLANATION ================= */}
           <div className="lg:col-span-5 space-y-8 lg:sticky lg:top-6">
             {/* Live Student Preview Card */}
-            <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl space-y-5">
+            <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-950 border border-border rounded-2xl space-y-5">
               <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400 shrink-0">
                   <Eye size={22} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white tracking-tight">Live Preview</h3>
-                  <p className="text-xs text-slate-400">This is how the question will appear to students</p>
+                  <h3 className="text-lg font-bold text-foreground tracking-tight">Live Preview</h3>
+                  <p className="text-xs text-muted-foreground">This is how the question will appear to students</p>
                 </div>
               </div>
 
@@ -684,7 +684,7 @@ export default function QuestionForm({
                   {(formData.type === "MCQ_SINGLE" || formData.type === "MCQ_MULTI") &&
                     formData.options.map((opt, i) => (
                       <div key={i} className="flex items-center gap-3">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-slate-300 text-[10px] font-extrabold text-slate-500">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-slate-300 text-[10px] font-extrabold text-muted-foreground">
                           {String.fromCharCode(65 + i)}
                         </span>
                         <span className="text-xs text-slate-600 truncate">{opt || `Option ${String.fromCharCode(65 + i)}`}</span>
@@ -712,7 +712,7 @@ export default function QuestionForm({
                           className="flex items-center justify-between text-xs border border-slate-200 bg-slate-50 px-3 py-2 rounded-lg text-slate-700"
                         >
                           <span className="font-semibold">{pr.left || "Left Term"}</span>
-                          <span className="text-slate-400 font-bold">⟷</span>
+                          <span className="text-muted-foreground font-bold">⟷</span>
                           <span className="font-semibold text-blue-600">{pr.right || "Right Term"}</span>
                         </div>
                       ))}
@@ -728,7 +728,7 @@ export default function QuestionForm({
                   )}
                 </div>
 
-                <div className="border-t border-slate-100 pt-3 text-[10px] text-slate-500 flex items-center gap-1.5">
+                <div className="border-t border-slate-100 pt-3 text-[10px] text-muted-foreground flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
                   <span>
                     {formData.type === "MCQ_SINGLE"
@@ -746,19 +746,19 @@ export default function QuestionForm({
             </Card>
 
             {/* Explanation / Hint Card */}
-            <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl space-y-5">
+            <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-950 border border-border rounded-2xl space-y-5">
               <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400 shrink-0">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
                   <Lightbulb size={22} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white tracking-tight">Explanation / Hint</h3>
-                  <p className="text-xs text-slate-400">Provide explanation for the correct answer (optional)</p>
+                  <h3 className="text-lg font-bold text-foreground tracking-tight">Explanation / Hint</h3>
+                  <p className="text-xs text-muted-foreground">Provide explanation for the correct answer (optional)</p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs text-slate-500 font-bold uppercase tracking-wider flex justify-between">
+                <label className="text-xs text-muted-foreground font-bold uppercase tracking-wider flex justify-between">
                   <span>Hint Content</span>
                   <span className="font-mono">{formData.explanation.length}/500</span>
                 </label>
@@ -769,7 +769,7 @@ export default function QuestionForm({
                   maxLength={500}
                   placeholder="Enter explanation or hint here..."
                   rows={4}
-                  className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3 text-sm resize-none placeholder-slate-600"
+                  className="w-full bg-background border border-border text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3 text-sm resize-none placeholder-slate-600"
                 />
               </div>
             </Card>
@@ -777,11 +777,11 @@ export default function QuestionForm({
         </div>
 
         {/* ================= STICKY BOTTOM ACTION BAR ================= */}
-        <div className="sticky bottom-0 left-0 right-0 z-30 bg-slate-950/90 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 shadow-2xl flex flex-wrap gap-4 items-center justify-between">
+        <div className="sticky bottom-0 left-0 right-0 z-30 bg-background/90 backdrop-blur-md border border-border/80 rounded-2xl p-4 shadow-2xl flex flex-wrap gap-4 items-center justify-between">
           <button
             type="button"
             onClick={handleCancel}
-            className="flex items-center gap-1.5 px-5 py-3 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white transition font-extrabold text-xs uppercase tracking-wider"
+            className="flex items-center gap-1.5 px-5 py-3 rounded-xl border border-border bg-background/60 text-muted-foreground hover:text-foreground transition font-extrabold text-xs uppercase tracking-wider"
           >
             <X size={14} />
             <span>Cancel</span>
@@ -792,7 +792,7 @@ export default function QuestionForm({
               type="submit"
               onClick={() => setSubmitAction("save")}
               disabled={loading}
-              className="px-5 py-3 rounded-xl border border-slate-850 bg-slate-900/40 text-slate-300 hover:bg-slate-850 hover:text-white transition font-extrabold text-xs uppercase tracking-wider"
+              className="px-5 py-3 rounded-xl border border-slate-850 bg-background/40 text-foreground hover:bg-slate-850 hover:text-foreground transition font-extrabold text-xs uppercase tracking-wider"
             >
               {loading && submitAction === "save" ? "Saving..." : "Save Draft"}
             </button>
@@ -802,7 +802,7 @@ export default function QuestionForm({
                 type="submit"
                 onClick={() => setSubmitAction("another")}
                 disabled={loading}
-                className="flex items-center gap-1.5 px-5 py-3 rounded-xl border border-slate-850 bg-slate-900/40 text-orange-400 hover:text-orange-300 transition font-extrabold text-xs uppercase tracking-wider"
+                className="flex items-center gap-1.5 px-5 py-3 rounded-xl border border-slate-850 bg-background/40 text-primary hover:text-orange-300 transition font-extrabold text-xs uppercase tracking-wider"
               >
                 <PlusCircle size={14} />
                 <span>Save & Add Another</span>
@@ -813,7 +813,7 @@ export default function QuestionForm({
               type="submit"
               onClick={() => setSubmitAction("publish")}
               disabled={loading}
-              className="flex items-center gap-1.5 px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 transition font-black text-xs uppercase tracking-wider shadow-lg shadow-orange-500/10"
+              className="flex items-center gap-1.5 px-6 py-3 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 transition font-black text-xs uppercase tracking-wider shadow-lg shadow-orange-500/10"
             >
               <ArrowRight size={14} />
               <span>{loading && submitAction === "publish" ? "Publishing..." : "Publish Quiz"}</span>

@@ -29,7 +29,7 @@ const BUTTONS = [
 /** Inserts Markdown syntax into the editor's textarea — never generates HTML. */
 export default function MarkdownToolbar({ onAction }) {
   return (
-    <div className="flex flex-wrap items-center gap-0.5 border-b border-slate-800 bg-slate-900/60 px-2 py-1.5">
+    <div className="flex flex-wrap items-center gap-0.5 border-b border-border bg-background/60 px-2 py-1.5">
       {BUTTONS.map(({ id, icon: Icon, label }) => (
         <button
           key={id}
@@ -37,7 +37,7 @@ export default function MarkdownToolbar({ onAction }) {
           title={label}
           aria-label={label}
           onClick={() => onAction(id)}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-800 hover:text-orange-400 cursor-pointer"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-primary cursor-pointer"
         >
           <Icon size={14} />
         </button>

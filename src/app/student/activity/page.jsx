@@ -18,7 +18,7 @@ import { timeAgo } from "@/lib/dateUtils";
 const TYPE_META = {
   quiz: { label: "Quizzes", icon: Star, color: "text-purple-400 bg-purple-500/10" },
   certificate: { label: "Certificates", icon: Award, color: "text-amber-400 bg-amber-500/10" },
-  achievement: { label: "Achievements", icon: ActivityIcon, color: "text-orange-400 bg-orange-500/10" },
+  achievement: { label: "Achievements", icon: ActivityIcon, color: "text-primary bg-primary/10" },
   note: { label: "Notes", icon: FileText, color: "text-teal-400 bg-teal-500/10" },
 };
 
@@ -105,7 +105,7 @@ export default function StudentActivityPage() {
   }
 
   return (
-    <div className="space-y-6 text-white">
+    <div className="space-y-6 text-foreground">
       <PageHeader title="Activity" subtitle="A timeline of what you've actually done — quizzes, certificates, achievements, and notes." />
 
       <div className="flex flex-wrap gap-2">
@@ -115,8 +115,8 @@ export default function StudentActivityPage() {
             onClick={() => setFilter(f)}
             className={`cursor-pointer rounded-xl border px-3.5 py-2 text-xs font-bold transition ${
               filter === f
-                ? "border-orange-500/40 bg-orange-500/10 text-orange-400"
-                : "border-slate-800/80 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-white"
+                ? "border-primary/40 bg-primary/10 text-primary"
+                : "border-transparent/80 bg-background/50 text-muted-foreground hover:border-transparent hover:text-foreground"
             }`}
           >
             {f}
@@ -125,10 +125,10 @@ export default function StudentActivityPage() {
       </div>
 
       {filteredEvents.length === 0 ? (
-        <Card className="p-6 py-20 text-center text-slate-400">
+        <Card tone="flat" className="p-6 py-20 text-center text-muted-foreground">
           <ActivityIcon size={40} className="mx-auto mb-3 text-slate-600 opacity-40" />
-          <p className="text-sm font-semibold text-white">No activity yet</p>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="text-sm font-semibold text-foreground">No activity yet</p>
+          <p className="mt-1 text-xs text-muted-foreground">
             Attempt a quiz, earn a certificate, unlock an achievement, or save a note — it'll show up here.
           </p>
         </Card>
@@ -140,19 +140,19 @@ export default function StudentActivityPage() {
             const StatusIcon = event.statusIcon;
             return (
               <Link key={event.id} href={event.href}>
-                <Card className="flex items-start gap-4 p-4 transition hover:border-orange-500/30">
+                <Card className="flex items-start gap-4 p-4 transition hover:border-primary/30">
                   <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${meta.color}`}>
                     <Icon size={18} />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="truncate text-sm font-semibold text-white">{event.title}</p>
-                      <span className="shrink-0 text-[10px] text-slate-500">{timeAgo(event.timestamp)}</span>
+                      <p className="truncate text-sm font-semibold text-foreground">{event.title}</p>
+                      <span className="shrink-0 text-[10px] text-muted-foreground">{timeAgo(event.timestamp)}</span>
                     </div>
                     {event.meta && (
                       <p
                         className={`mt-1 flex items-center gap-1.5 text-xs ${
-                          StatusIcon ? event.statusColor : "text-slate-400"
+                          StatusIcon ? event.statusColor : "text-muted-foreground"
                         }`}
                       >
                         {StatusIcon && <StatusIcon size={13} />}

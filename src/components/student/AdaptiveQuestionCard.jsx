@@ -26,17 +26,17 @@ function AdaptiveOptions({ options, selectedAnswer, onSelect, disabled }) {
             onClick={() => onSelect(option)}
             className={`w-full flex items-center gap-3 rounded-xl border px-3.5 py-3 text-left text-sm transition-colors duration-150 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:cursor-not-allowed disabled:opacity-60 ${
               isSelected
-                ? "border-orange-500/70 bg-orange-500/10 text-white font-medium"
-                : "border-slate-800 bg-slate-950/40 text-slate-300 hover:border-orange-500/30 hover:bg-slate-900/60"
+                ? "border-primary/70 bg-primary/10 text-foreground font-medium"
+                : "border-border bg-background/40 text-foreground hover:border-primary/30 hover:bg-background/60"
             }`}
           >
             <span
               className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors duration-150 ${
-                isSelected ? "border-orange-500" : "border-slate-600"
+                isSelected ? "border-primary" : "border-transparent"
               }`}
               aria-hidden="true"
             >
-              {isSelected && <span className="h-2 w-2 rounded-full bg-orange-500" />}
+              {isSelected && <span className="h-2 w-2 rounded-full bg-primary" />}
             </span>
             <span className="min-w-0 break-words">{option}</span>
           </button>
@@ -79,13 +79,13 @@ export default function AdaptiveQuestionCard({
 }) {
   if (phase === "loading") {
     return (
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+      <div className="rounded-2xl border border-border bg-background/40 p-5">
         <div className="flex items-center gap-3">
           <span className="relative flex h-2 w-2" aria-hidden="true">
             <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
           </span>
-          <p className="text-xs text-slate-400">{loadingMessage || "Preparing your next question..."}</p>
+          <p className="text-xs text-muted-foreground">{loadingMessage || "Preparing your next question..."}</p>
         </div>
       </div>
     );
@@ -93,7 +93,7 @@ export default function AdaptiveQuestionCard({
 
   if (phase === "generation_error") {
     return (
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/30 p-4 flex items-center justify-between gap-3 text-xs text-slate-400">
+      <div className="rounded-2xl border border-border bg-background/30 p-4 flex items-center justify-between gap-3 text-xs text-muted-foreground">
         <span className="flex items-center gap-2">
           <AlertTriangle size={14} className="text-amber-400 shrink-0" />
           Your personalized guidance couldn&apos;t be loaded.
@@ -101,7 +101,7 @@ export default function AdaptiveQuestionCard({
         <button
           type="button"
           onClick={onRetryGeneration}
-          className="inline-flex items-center gap-1 text-orange-400 hover:text-orange-300 font-semibold cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/60 rounded"
+          className="inline-flex items-center gap-1 text-primary hover:text-orange-300 font-semibold cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/60 rounded"
         >
           <RefreshCw size={12} />
           Try again
@@ -114,7 +114,7 @@ export default function AdaptiveQuestionCard({
 
   if (phase === "result" && result) {
     return (
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5" role="status" aria-live="polite">
+      <div className="rounded-2xl border border-border bg-background/40 p-5" role="status" aria-live="polite">
         <div className="flex flex-col gap-3">
           <div
             className={`flex items-center gap-2 text-sm font-semibold ${
@@ -129,14 +129,14 @@ export default function AdaptiveQuestionCard({
             <span>{result.isCorrect ? "Correct" : "Not quite"}</span>
           </div>
 
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-muted-foreground">
             {result.isCorrect
               ? correctFeedback || "Your understanding is improving."
               : incorrectFeedback || "We'll keep working on this concept."}
           </p>
 
           {onContinue && (
-            <div className="pt-3 border-t border-slate-800/70 flex justify-end">
+            <div className="pt-3 border-t border-border/70 flex justify-end">
               <Button onClick={onContinue} className="min-h-[38px] px-4 py-1.5 text-sm">
                 {continueLabel || "Continue"}
               </Button>
@@ -150,14 +150,14 @@ export default function AdaptiveQuestionCard({
   // "ready" | "submitting" | "evaluation_error" — the question never
   // disappears while a submission is in flight.
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+    <div className="rounded-2xl border border-border bg-background/40 p-5">
       <div className="flex flex-col gap-3.5">
         <div>
-          <p className="text-[10px] text-orange-400/90 font-bold uppercase tracking-wider">{kicker}</p>
-          {intro && <p className="text-xs text-slate-400 mt-0.5">{intro}</p>}
+          <p className="text-[10px] text-primary/90 font-bold uppercase tracking-wider">{kicker}</p>
+          {intro && <p className="text-xs text-muted-foreground mt-0.5">{intro}</p>}
         </div>
 
-        <p className="text-sm font-medium text-slate-100">{question.question}</p>
+        <p className="text-sm font-medium text-foreground">{question.question}</p>
 
         <AdaptiveOptions
           options={question.options}

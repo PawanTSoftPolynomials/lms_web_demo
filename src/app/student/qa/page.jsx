@@ -60,18 +60,18 @@ export default function QaPage() {
 
   if (enrolledCourses.length === 0) {
     return (
-      <div className="space-y-6 text-white">
+      <div className="space-y-6 text-foreground">
         <PageHeader
           title="Q&A"
           subtitle="Ask questions about your courses and get answers from instructors and classmates."
         />
-        <div className="rounded-2xl border border-slate-800/80 bg-slate-900/50 p-6 py-20 text-center text-slate-400">
+        <div className="rounded-2xl border border-transparent/80 bg-background/50 p-6 py-20 text-center text-muted-foreground">
           <BookOpen size={40} className="mx-auto mb-3 text-slate-600 opacity-40" />
-          <p className="text-sm font-semibold text-white">No enrolled courses yet</p>
-          <p className="mt-1 text-xs text-slate-400">Q&amp;A is organized by course — enroll in a course to start asking questions.</p>
+          <p className="text-sm font-semibold text-foreground">No enrolled courses yet</p>
+          <p className="mt-1 text-xs text-muted-foreground">Q&amp;A is organized by course — enroll in a course to start asking questions.</p>
           <Link
             href="/student/courses"
-            className="mt-4 inline-block cursor-pointer rounded-xl bg-orange-500 px-4 py-2 text-xs font-bold text-white transition hover:bg-orange-650"
+            className="mt-4 inline-block cursor-pointer rounded-xl bg-primary px-4 py-2 text-xs font-bold text-foreground transition hover:bg-orange-650"
           >
             Browse Courses
           </Link>
@@ -81,14 +81,14 @@ export default function QaPage() {
   }
 
   return (
-    <div className="space-y-6 text-white">
+    <div className="space-y-6 text-foreground">
       <PageHeader
         title="Q&A"
         subtitle="Ask questions about your courses and get answers from instructors and classmates."
       >
         <button
           onClick={() => setShowAskModal(true)}
-          className="flex cursor-pointer items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-xs font-bold text-white shadow-md transition hover:bg-orange-600"
+          className="flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-foreground shadow-md transition hover:bg-orange-600"
         >
           <Plus size={15} /> Ask a Question
         </button>
@@ -100,13 +100,13 @@ export default function QaPage() {
           onClick={() => setActiveCourseId("all")}
           className={`flex shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-bold transition cursor-pointer ${
             activeCourseId === "all"
-              ? "border-orange-500/40 bg-orange-500/10 text-orange-400"
-              : "border-slate-800/80 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-white"
+              ? "border-primary/40 bg-primary/10 text-primary"
+              : "border-transparent/80 bg-background/50 text-muted-foreground hover:border-transparent hover:text-foreground"
           }`}
         >
           <LayoutGrid size={14} />
           All Courses
-          <span className="rounded-full bg-slate-800/80 px-1.5 py-0.5 text-[10px] font-black text-slate-300">{threads.length}</span>
+          <span className="rounded-full bg-muted/80 px-1.5 py-0.5 text-[10px] font-black text-foreground">{threads.length}</span>
         </button>
 
         {enrolledCourses.map((c) => {
@@ -118,13 +118,13 @@ export default function QaPage() {
               onClick={() => setActiveCourseId(c.courseId)}
               className={`flex shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-bold transition cursor-pointer ${
                 active
-                  ? "border-orange-500/40 bg-orange-500/10 text-orange-400"
-                  : "border-slate-800/80 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-white"
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-transparent/80 bg-background/50 text-muted-foreground hover:border-transparent hover:text-foreground"
               }`}
             >
               <BookOpen size={14} />
               <span className="max-w-[160px] truncate">{c.title}</span>
-              <span className="rounded-full bg-slate-800/80 px-1.5 py-0.5 text-[10px] font-black text-slate-300">{stats.total}</span>
+              <span className="rounded-full bg-muted/80 px-1.5 py-0.5 text-[10px] font-black text-foreground">{stats.total}</span>
               {stats.unanswered > 0 && (
                 <span className="rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-black text-amber-400">
                   {stats.unanswered} pending
@@ -138,23 +138,23 @@ export default function QaPage() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative min-w-[200px] flex-1">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search questions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-slate-800/80 bg-slate-900/50 py-2 pl-9 pr-4 text-xs text-white outline-none transition focus:border-orange-500"
+            className="w-full rounded-xl border border-transparent/80 bg-background/50 py-2 pl-9 pr-4 text-xs text-foreground outline-none transition focus:border-primary"
           />
         </div>
 
-        <div className="flex gap-1 rounded-xl border border-slate-800/80 bg-slate-900/50 p-1">
+        <div className="flex gap-1 rounded-xl border border-transparent/80 bg-background/50 p-1">
           {STATUS_FILTERS.map((f) => (
             <button
               key={f}
               onClick={() => setStatusFilter(f)}
               className={`cursor-pointer rounded-lg px-2.5 py-1.5 text-[10.5px] font-black transition ${
-                statusFilter === f ? "bg-orange-500 text-white shadow-md" : "text-slate-400 hover:text-white"
+                statusFilter === f ? "bg-primary text-foreground shadow-md" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {f}
@@ -165,13 +165,13 @@ export default function QaPage() {
 
       {/* Thread list */}
       {filteredThreads.length === 0 ? (
-        <div className="rounded-2xl border border-slate-800/80 bg-slate-900/50 p-6 py-20 text-center text-slate-400">
+        <div className="rounded-2xl border border-transparent/80 bg-background/50 p-6 py-20 text-center text-muted-foreground">
           <HelpCircle size={40} className="mx-auto mb-3 text-slate-600 opacity-40" />
-          <p className="text-sm font-semibold text-white">No questions found</p>
-          <p className="mt-1 text-xs text-slate-400">Be the first to ask something about this course.</p>
+          <p className="text-sm font-semibold text-foreground">No questions found</p>
+          <p className="mt-1 text-xs text-muted-foreground">Be the first to ask something about this course.</p>
           <button
             onClick={() => setShowAskModal(true)}
-            className="mt-4 cursor-pointer rounded-xl bg-orange-500 px-4 py-2 text-xs font-bold text-white transition hover:bg-orange-650"
+            className="mt-4 cursor-pointer rounded-xl bg-primary px-4 py-2 text-xs font-bold text-foreground transition hover:bg-orange-650"
           >
             Ask a Question
           </button>

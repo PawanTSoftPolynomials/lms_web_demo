@@ -17,17 +17,17 @@ function completionColor(rate) {
 
 export function CoursePerformanceTable({ courses = [], isLoading }) {
   if (isLoading) {
-    return <div className="h-48 animate-pulse bg-slate-800/50 rounded-2xl"></div>;
+    return <div className="h-48 animate-pulse bg-muted/50 rounded-2xl"></div>;
   }
 
   return (
-    <div className="rounded-2xl bg-[#0D1021] border border-[#1A1F35] p-5">
+    <div className="rounded-2xl bg-card border border-border p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-black text-slate-200">Course Performance</h3>
-          <p className="text-[10px] text-slate-500 mt-0.5">Top courses by enrollment</p>
+          <h3 className="text-sm font-black text-foreground">Course Performance</h3>
+          <p className="text-[10px] text-muted-foreground mt-0.5">Top courses by enrollment</p>
         </div>
-        <Link href="/admin/courses" className="text-[11px] text-orange-400 font-bold flex items-center gap-1 hover:text-orange-300">
+        <Link href="/admin/courses" className="text-[11px] text-primary font-bold flex items-center gap-1 hover:text-orange-300">
           View all courses &rarr;
         </Link>
       </div>
@@ -35,7 +35,7 @@ export function CoursePerformanceTable({ courses = [], isLoading }) {
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-[#1A1F35] text-[9px] uppercase tracking-widest text-slate-500 font-black">
+            <tr className="border-b border-border text-[9px] uppercase tracking-widest text-muted-foreground font-black">
               <th className="pb-3 font-medium">Course</th>
               <th className="pb-3 font-medium text-center">Students</th>
               <th className="pb-3 font-medium text-center">Completion</th>
@@ -44,40 +44,40 @@ export function CoursePerformanceTable({ courses = [], isLoading }) {
               <th className="pb-3 font-medium text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#1A1F35]">
+          <tbody className="divide-y divide-border">
             {courses.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-6 text-center text-xs text-slate-500">No courses available</td>
+                <td colSpan={6} className="py-6 text-center text-xs text-muted-foreground">No courses available</td>
               </tr>
             ) : (
               courses.map((course) => (
-                <tr key={course.id} className="hover:bg-white/[0.02] transition">
+                <tr key={course.id} className="hover:bg-foreground/5 transition">
                   <td className="py-4 pr-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-slate-800 rounded-lg">
-                        <Code2 size={16} className="text-sky-400" />
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Code2 size={16} className="text-primary" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-200 truncate max-w-[180px]">{course.title}</p>
-                        <p className="text-[10px] text-slate-500">{course.category} &bull; {course.level}</p>
+                        <p className="text-xs font-bold text-foreground truncate max-w-[180px]">{course.title}</p>
+                        <p className="text-[10px] text-muted-foreground">{course.category} &bull; {course.level}</p>
                       </div>
                     </div>
                   </td>
                   <td className="py-4 px-2 text-center">
-                    <div className="flex items-center justify-center gap-1.5 text-slate-300 text-xs font-bold">
-                      <Users size={14} className="text-slate-500" />
+                    <div className="flex items-center justify-center gap-1.5 text-foreground text-xs font-bold">
+                      <Users size={14} className="text-muted-foreground" />
                       {course.students}
                     </div>
                   </td>
                   <td className="py-4 px-2">
                     <div className="flex items-center justify-center gap-2">
-                      <div className="w-14 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                      <div className="w-14 h-1.5 rounded-full bg-muted overflow-hidden">
                         <div
                           className={`h-full rounded-full ${completionColor(course.completionRate)}`}
                           style={{ width: `${Math.min(course.completionRate, 100)}%` }}
                         />
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400 w-7">{course.completionRate}%</span>
+                      <span className="text-[10px] font-bold text-muted-foreground w-7">{course.completionRate}%</span>
                     </div>
                   </td>
                   <td className="py-4 px-2 text-center">
@@ -91,14 +91,14 @@ export function CoursePerformanceTable({ courses = [], isLoading }) {
                     )}
                   </td>
                   <td className="py-4 px-2">
-                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${STATUS_STYLES[course.status] || "bg-slate-800 text-slate-400 border-slate-700"}`}>
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${STATUS_STYLES[course.status] || "bg-muted text-muted-foreground border-transparent"}`}>
                       {course.status}
                     </span>
                   </td>
                   <td className="py-4 pl-4 text-right">
                     <Link
                       href={`/admin/courses/${course.id}`}
-                      className="px-3 py-1.5 rounded-lg border border-orange-500/30 text-[10px] font-bold text-orange-400 hover:bg-orange-500/10 transition"
+                      className="px-3 py-1.5 rounded-lg border border-primary/30 text-[10px] font-bold text-primary hover:bg-primary/10 transition"
                     >
                       View
                     </Link>

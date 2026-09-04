@@ -57,7 +57,7 @@ function FeedRow({ row, onOpenNews, onExpandOlder }) {
     return (
       <div className="flex items-center gap-3 sm:gap-4 pt-4 pb-1.5 first:pt-0">
         <span className="w-[17px] sm:w-[21px] shrink-0" aria-hidden="true" />
-        <h2 className="text-[11px] font-black uppercase tracking-wider text-slate-500">{row.label}</h2>
+        <h2 className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">{row.label}</h2>
       </div>
     );
   }
@@ -69,7 +69,7 @@ function FeedRow({ row, onOpenNews, onExpandOlder }) {
         <button
           type="button"
           onClick={onExpandOlder}
-          className="flex-1 min-w-0 flex items-center justify-center gap-2 rounded-xl border border-dashed border-card-border py-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-500 hover:text-orange-400 hover:border-slate-700 transition cursor-pointer"
+          className="flex-1 min-w-0 flex items-center justify-center gap-2 rounded-xl border border-dashed border-card-border py-2.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:text-primary hover:border-transparent transition cursor-pointer"
         >
           <span>Show Older Updates ({row.count})</span>
           <ChevronDown size={13} />
@@ -230,7 +230,7 @@ export default function StudentNewsPage() {
             type="button"
             onClick={() => scrollTabs(-1)}
             aria-label="Scroll tabs left"
-            className="shrink-0 p-1 text-slate-500 hover:text-white transition cursor-pointer"
+            className="shrink-0 p-1 text-muted-foreground hover:text-foreground transition cursor-pointer"
           >
             <ChevronLeft size={16} />
           </button>
@@ -246,8 +246,8 @@ export default function StudentNewsPage() {
                 onClick={() => setActiveCategory(tab.key)}
                 className={`shrink-0 snap-start whitespace-nowrap text-sm font-semibold pb-1.5 border-b-2 transition cursor-pointer ${
                   activeCategory === tab.key
-                    ? "text-orange-400 border-orange-500"
-                    : "text-white border-transparent hover:text-orange-300"
+                    ? "text-primary border-primary"
+                    : "text-foreground border-transparent hover:text-orange-300"
                 }`}
               >
                 {tab.label}
@@ -259,7 +259,7 @@ export default function StudentNewsPage() {
             type="button"
             onClick={() => scrollTabs(1)}
             aria-label="Scroll tabs right"
-            className="shrink-0 p-1 text-slate-500 hover:text-white transition cursor-pointer"
+            className="shrink-0 p-1 text-muted-foreground hover:text-foreground transition cursor-pointer"
           >
             <ChevronRight size={16} />
           </button>
@@ -267,13 +267,13 @@ export default function StudentNewsPage() {
 
         {/* Search Bar */}
         <div className="relative w-full">
-          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search news & updates..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-card border border-card-border text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500/50 transition"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-card border border-card-border text-xs text-foreground placeholder-slate-500 focus:outline-none focus:border-primary/50 transition"
           />
         </div>
       </div>
@@ -294,7 +294,7 @@ export default function StudentNewsPage() {
           <div style={{ height: rowVirtualizer.getTotalSize(), width: "100%", position: "relative" }}>
             <span
               aria-hidden="true"
-              className="absolute left-[8px] sm:left-[10px] top-0 bottom-0 w-px bg-slate-800"
+              className="absolute left-[8px] sm:left-[10px] top-0 bottom-0 w-px bg-muted"
             />
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const row = rows[virtualRow.index];

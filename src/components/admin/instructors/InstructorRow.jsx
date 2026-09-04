@@ -22,7 +22,7 @@ export default function InstructorRow({
     return (
         <tr
             onClick={() => onView?.(instructor)}
-            className="border-b border-white/5 transition hover:bg-white/5 cursor-pointer"
+            className="hover:bg-foreground/5 cursor-pointer transition"
         >
             {/* Instructor */}
             <td className="px-6 py-4">
@@ -32,7 +32,7 @@ export default function InstructorRow({
                     />
 
                     <div>
-                        <p className="font-medium text-white">
+                        <p className="font-medium text-foreground">
                             {instructor.user.name}
                         </p>
 
@@ -75,7 +75,7 @@ export default function InstructorRow({
                 statusColors[
                     instructor.user.status
                     ] ||
-                "bg-gray-700 text-white"
+                "bg-gray-700 text-foreground"
             }
           `}
         >

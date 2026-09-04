@@ -151,7 +151,7 @@ export default function ContentForm({
                 <h1 className="text-3xl font-bold">
                     {mode === "create" ? "Create Content" : "Edit Content"}
                 </h1>
-                <p className="mt-2 text-slate-400">
+                <p className="mt-2 text-muted-foreground">
                     Add learning material to this lesson.
                 </p>
             </div>
@@ -169,14 +169,14 @@ export default function ContentForm({
 
                 {/* Type Selector */}
                 <div>
-                    <label className="mb-2 block text-sm font-medium text-white">
+                    <label className="mb-2 block text-sm font-medium text-foreground">
                         Content Type
                     </label>
                     <select
                         name="type"
                         value={formData.type}
                         onChange={handleChange}
-                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white focus:border-orange-500 outline-none"
+                        className="w-full rounded-lg border border-transparent bg-background px-4 py-3 text-foreground focus:border-primary outline-none"
                     >
                         <option value="VIDEO">Video</option>
                         <option value="DOCUMENT">Document / PDF / File</option>
@@ -201,7 +201,7 @@ export default function ContentForm({
                 {/* File Picker (DOCUMENT / PRESENTATION) */}
                 {isFileType && (
                     <div>
-                        <label className="mb-2 block text-sm font-medium text-white">
+                        <label className="mb-2 block text-sm font-medium text-foreground">
                             {formData.type === "PRESENTATION"
                                 ? "Presentation File (.ppt, .pptx)"
                                 : "Document File (.pdf, .docx, .xls, .txt, …)"}
@@ -211,16 +211,16 @@ export default function ContentForm({
                         {!formData.fileUrl && !uploadState.uploading && (
                             <div
                                 onClick={() => fileInputRef.current?.click()}
-                                className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-700 bg-slate-900/50 px-6 py-10 text-center cursor-pointer hover:border-orange-500/60 hover:bg-slate-900 transition-all duration-200"
+                                className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-transparent bg-background/50 px-6 py-10 text-center cursor-pointer hover:border-primary/60 hover:bg-background transition-all duration-200"
                             >
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/10 border border-orange-500/20">
-                                    <Upload size={22} className="text-orange-400" />
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
+                                    <Upload size={22} className="text-primary" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-semibold text-white">
+                                    <p className="text-sm font-semibold text-foreground">
                                         Click to choose a file from your device
                                     </p>
-                                    <p className="mt-1 text-xs text-slate-500">
+                                    <p className="mt-1 text-xs text-muted-foreground">
                                         Accepted:{" "}
                                         {formData.type === "PRESENTATION"
                                             ? ".ppt, .pptx, .odp"
@@ -242,13 +242,13 @@ export default function ContentForm({
 
                         {/* Uploading State */}
                         {uploadState.uploading && (
-                            <div className="flex items-center gap-3 rounded-xl border border-orange-500/30 bg-orange-500/5 px-4 py-3.5">
-                                <Loader2 size={18} className="text-orange-400 animate-spin shrink-0" />
+                            <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3.5">
+                                <Loader2 size={18} className="text-primary animate-spin shrink-0" />
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-white truncate">
+                                    <p className="text-sm font-semibold text-foreground truncate">
                                         {uploadState.fileName}
                                     </p>
-                                    <p className="text-xs text-slate-400">Uploading…</p>
+                                    <p className="text-xs text-muted-foreground">Uploading…</p>
                                 </div>
                             </div>
                         )}
@@ -258,11 +258,11 @@ export default function ContentForm({
                             <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-4 py-3.5">
                                 <CheckCircle size={18} className="text-emerald-400 shrink-0" />
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-white truncate">
+                                    <p className="text-sm font-semibold text-foreground truncate">
                                         {uploadState.fileName || "File uploaded"}
                                     </p>
                                     {uploadState.fileSize && (
-                                        <p className="text-xs text-slate-400">
+                                        <p className="text-xs text-muted-foreground">
                                             {formatBytes(uploadState.fileSize)} · Uploaded successfully
                                         </p>
                                     )}
@@ -270,7 +270,7 @@ export default function ContentForm({
                                 <button
                                     type="button"
                                     onClick={handleRemoveFile}
-                                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition shrink-0"
+                                    className="p-1.5 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition shrink-0"
                                     title="Remove file"
                                 >
                                     <X size={14} />
@@ -303,7 +303,7 @@ export default function ContentForm({
                 {/* Text / Markdown Content */}
                 {formData.type === "TEXT" && (
                     <div>
-                        <label className="mb-2 block text-sm font-medium text-white">
+                        <label className="mb-2 block text-sm font-medium text-foreground">
                             Text Content (Markdown)
                         </label>
                         <MarkdownEditor

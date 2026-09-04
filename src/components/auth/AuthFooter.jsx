@@ -10,22 +10,22 @@ export default function AuthFooter({
   actionText,
 }) {
   return (
-    <div className="border-t border-slate-800 pt-5 text-center">
+    <div className="border-t border-border pt-5 text-center">
       {backHref && (
         <Link
           href={backHref}
-          className="text-sm text-slate-400 transition hover:text-white"
+          className="text-sm text-muted-foreground transition hover:text-foreground"
         >
           ← {backText}
         </Link>
       )}
 
       {question && (
-        <p className="mt-3 text-sm text-slate-500">
+        <p className="mt-3 text-sm text-muted-foreground">
           {question}{" "}
           <Link
             href={actionHref}
-            className="font-semibold text-orange-500 hover:text-orange-400"
+            className="font-semibold text-primary hover:text-primary"
           >
             {actionText}
           </Link>

@@ -75,7 +75,7 @@ export default function StudentBatchesPage() {
     { key: "total", label: "Total Batches", value: batches.length, icon: Layers, iconBg: "bg-purple-500/10", iconColor: "text-purple-400", bottomText: "All cohorts" },
     { key: "active", label: "Active Batches", value: activeBatchesCount, icon: CheckCircle2, iconBg: "bg-emerald-500/10", iconColor: "text-emerald-400", bottomText: "Currently running" },
     { key: "classmates", label: "Classmates", value: totalClassmates, icon: Users, iconBg: "bg-blue-500/10", iconColor: "text-blue-400", bottomText: "Across all batches" },
-    { key: "progress", label: "Avg. Progress", value: `${avgProgress}%`, icon: TrendingUp, iconBg: "bg-orange-500/10", iconColor: "text-orange-400", bottomText: "Across all courses" },
+    { key: "progress", label: "Avg. Progress", value: `${avgProgress}%`, icon: TrendingUp, iconBg: "bg-primary/10", iconColor: "text-primary", bottomText: "Across all courses" },
     { key: "assignments", label: "Assignments Due", value: pendingAssignmentsCount, icon: ClipboardList, iconBg: "bg-amber-500/10", iconColor: "text-amber-400", bottomText: "Pending" },
   ];
 
@@ -98,15 +98,15 @@ export default function StudentBatchesPage() {
         {kpis.map((k, idx) => (
           <div
             key={k.key}
-            className={`rounded-xl bg-[#0D1021] border border-[#1A1F35] p-2 ${
+            className={`rounded-xl bg-card border border-border p-2 ${
               idx === kpis.length - 1 && kpis.length % 2 === 1 ? "col-span-2" : ""
             }`}
           >
             <div className={`h-6 w-6 rounded-md ${k.iconBg} flex items-center justify-center mb-1`}>
               <k.icon size={11} className={k.iconColor} />
             </div>
-            <p className="text-sm font-black text-white leading-none">{k.value}</p>
-            <p className="text-[8.5px] text-slate-400 font-semibold leading-tight mt-1">{k.label}</p>
+            <p className="text-sm font-black text-foreground leading-none">{k.value}</p>
+            <p className="text-[8.5px] text-muted-foreground font-semibold leading-tight mt-1">{k.label}</p>
           </div>
         ))}
       </div>
@@ -128,12 +128,12 @@ export default function StudentBatchesPage() {
 
       <div className="flex flex-col lg:flex-row gap-2.5">
         <div className="relative flex-1 min-w-[200px]">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by batch name or course..."
-            className="w-full bg-[#0D1021] border border-[#1A1F35] rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder:text-slate-500 outline-none focus:border-orange-500/50 transition"
+            className="w-full bg-card border border-border rounded-xl pl-9 pr-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 transition"
           />
         </div>
 
@@ -141,7 +141,7 @@ export default function StudentBatchesPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="shrink-0 bg-[#0D1021] border border-[#1A1F35] rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer"
+            className="shrink-0 bg-card border border-border rounded-xl px-3 py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer"
           >
             <option value="">All Statuses</option>
             <option value="ACTIVE">Active</option>
@@ -153,7 +153,7 @@ export default function StudentBatchesPage() {
             <select
               value={instructorFilter}
               onChange={(e) => setInstructorFilter(e.target.value)}
-              className="shrink-0 bg-[#0D1021] border border-[#1A1F35] rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-300 outline-none cursor-pointer"
+              className="shrink-0 bg-card border border-border rounded-xl px-3 py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer"
             >
               <option value="">All Instructors</option>
               {instructors.map((name) => (
@@ -169,7 +169,7 @@ export default function StudentBatchesPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-56 animate-pulse bg-slate-800/50 rounded-2xl" />
+            <div key={i} className="h-56 animate-pulse bg-muted/50 rounded-2xl" />
           ))}
         </div>
       ) : filteredBatches.length === 0 ? (
@@ -198,18 +198,18 @@ export default function StudentBatchesPage() {
                 type="button"
                 disabled={page === 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="px-3 py-2 rounded-xl border border-[#1A1F35] bg-[#0D1021] text-xs font-bold text-slate-300 disabled:opacity-40 hover:border-slate-700 transition"
+                className="px-3 py-2 rounded-xl border border-border bg-card text-xs font-bold text-foreground disabled:opacity-40 hover:border-transparent transition"
               >
                 Previous
               </button>
-              <span className="text-xs font-bold text-slate-400 px-2">
+              <span className="text-xs font-bold text-muted-foreground px-2">
                 Page {page} of {totalPages}
               </span>
               <button
                 type="button"
                 disabled={page === totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="px-3 py-2 rounded-xl border border-[#1A1F35] bg-[#0D1021] text-xs font-bold text-slate-300 disabled:opacity-40 hover:border-slate-700 transition"
+                className="px-3 py-2 rounded-xl border border-border bg-card text-xs font-bold text-foreground disabled:opacity-40 hover:border-transparent transition"
               >
                 Next
               </button>

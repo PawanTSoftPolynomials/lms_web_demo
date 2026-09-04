@@ -15,7 +15,7 @@ export default function VideoBlockView({ block }) {
       {embed.kind === "iframe" && (
         <iframe
           src={embed.src}
-          className="w-full aspect-video rounded-lg border border-slate-800 bg-black"
+          className="w-full aspect-video rounded-lg border border-border bg-black"
           allowFullScreen
         />
       )}

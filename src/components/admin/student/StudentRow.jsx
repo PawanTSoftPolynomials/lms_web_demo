@@ -23,7 +23,7 @@ export default function StudentRow({
     return (
         <tr
             onClick={() => onView?.(student)}
-            className="border-b border-white/5 hover:bg-white/5 transition cursor-pointer"
+            className="hover:bg-foreground/5 cursor-pointer transition"
         >
             {/* Student */}
             <td className="px-6 py-4">
@@ -33,7 +33,7 @@ export default function StudentRow({
                     />
 
                     <div>
-                        <p className="font-medium text-white">
+                        <p className="font-medium text-foreground">
                             {student.name}
                         </p>
 
@@ -67,7 +67,7 @@ export default function StudentRow({
                 STATUS_COLORS[
                     student.status
                     ] ||
-                "bg-gray-700 text-white"
+                "bg-gray-700 text-foreground"
             }
           `}
         >

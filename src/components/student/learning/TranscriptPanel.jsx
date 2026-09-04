@@ -109,7 +109,7 @@ const TranscriptRow = React.memo(
         parts.push(
           <mark
             key={matchIdx}
-            className="bg-orange-500/30 text-orange-200 font-bold px-0.5 rounded"
+            className="bg-primary/30 text-orange-200 font-bold px-0.5 rounded"
           >
             {text.substring(matchIdx, matchIdx + q.length)}
           </mark>
@@ -135,8 +135,8 @@ const TranscriptRow = React.memo(
         aria-current={isActive ? "true" : undefined}
         className={`group relative flex items-start gap-3.5 py-1.5 px-3 rounded-lg transition-colors cursor-pointer select-none ${
           isActive
-            ? "bg-orange-500/10 text-white font-medium"
-            : "hover:bg-slate-900/30 text-slate-300"
+            ? "bg-primary/10 text-foreground font-medium"
+            : "hover:bg-background/30 text-foreground"
         }`}
       >
         {/* Subtle Active Left Accent Bar */}
@@ -148,8 +148,8 @@ const TranscriptRow = React.memo(
         <span
           className={`shrink-0 w-12 font-mono text-[11px] pt-0.5 transition-colors ${
             isActive
-              ? "text-orange-400 font-bold"
-              : "text-orange-400/60 group-hover:text-orange-400"
+              ? "text-primary font-bold"
+              : "text-primary/60 group-hover:text-primary"
           }`}
         >
           {formatTimestamp(segment.start)}
@@ -158,7 +158,7 @@ const TranscriptRow = React.memo(
         {/* Book Paragraph Text */}
         <p
           className={`text-[13px] leading-relaxed min-w-0 flex-1 break-words transition-colors ${
-            isActive ? "text-white font-semibold" : "text-slate-300 group-hover:text-slate-100"
+            isActive ? "text-foreground font-semibold" : "text-foreground group-hover:text-foreground"
           }`}
         >
           {renderText()}
@@ -172,7 +172,7 @@ const TranscriptRow = React.memo(
             onToggleBookmark?.(index);
           }}
           className={`shrink-0 p-1 transition opacity-0 pointer-coarse:opacity-100 group-hover:opacity-100 ${
-            isBookmarked ? "opacity-100 text-orange-400" : "text-slate-500 hover:text-slate-300"
+            isBookmarked ? "opacity-100 text-primary" : "text-muted-foreground hover:text-foreground"
           }`}
           title={isBookmarked ? "Remove Bookmark" : "Bookmark line"}
         >
@@ -319,15 +319,15 @@ export default function TranscriptPanel({
   const showTranscript = status === "ready" && segments.length > 0;
 
   return (
-    <div className="bg-[#0d0e16]/50 border border-slate-800/60 rounded-2xl p-5 space-y-3 relative select-none">
+    <div className="bg-[#0d0e16]/50 border border-border/60 rounded-2xl p-5 space-y-3 relative select-none">
       {/* Clean Minimal Header */}
-      <div className="flex items-center justify-between border-b border-slate-800/40 pb-3">
+      <div className="flex items-center justify-between border-b border-border/40 pb-3">
         <div className="flex items-center gap-2.5">
-          <h4 className="text-xs font-extrabold uppercase tracking-widest text-slate-300">
+          <h4 className="text-xs font-extrabold uppercase tracking-widest text-foreground">
             Lesson Transcript
           </h4>
           {bookmarkedIndices.length > 0 && (
-            <span className="text-[10px] text-orange-400 font-mono">
+            <span className="text-[10px] text-primary font-mono">
               ({bookmarkedIndices.length} bookmarked)
             </span>
           )}
@@ -335,11 +335,11 @@ export default function TranscriptPanel({
 
         {/* Minimal Control Icons */}
         {showTranscript && (
-          <div className="flex items-center gap-1.5 text-slate-400">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
             <button
               type="button"
               onClick={() => setShowSearchInput((prev) => !prev)}
-              className="p-1.5 rounded-lg hover:text-white hover:bg-slate-900 transition cursor-pointer"
+              className="p-1.5 rounded-lg hover:text-foreground hover:bg-background transition cursor-pointer"
               title="Search transcript"
             >
               <Search size={14} />
@@ -348,7 +348,7 @@ export default function TranscriptPanel({
             <button
               type="button"
               onClick={handleCopyTranscript}
-              className="p-1.5 rounded-lg hover:text-white hover:bg-slate-900 transition cursor-pointer"
+              className="p-1.5 rounded-lg hover:text-foreground hover:bg-background transition cursor-pointer"
               title="Copy transcript text"
             >
               {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
@@ -362,7 +362,7 @@ export default function TranscriptPanel({
                 if (next) handleRecenter();
               }}
               className={`p-1.5 rounded-lg transition cursor-pointer ${
-                autoScrollEnabled ? "text-orange-400 bg-orange-500/10" : "hover:text-white hover:bg-slate-900"
+                autoScrollEnabled ? "text-primary bg-primary/10" : "hover:text-foreground hover:bg-background"
               }`}
               title={autoScrollEnabled ? "Auto-scroll ON" : "Auto-scroll OFF"}
             >
@@ -372,7 +372,7 @@ export default function TranscriptPanel({
             <button
               type="button"
               onClick={() => setExpanded((prev) => !prev)}
-              className="p-1.5 rounded-lg hover:text-white hover:bg-slate-900 transition cursor-pointer"
+              className="p-1.5 rounded-lg hover:text-foreground hover:bg-background transition cursor-pointer"
               title={expanded ? "Collapse panel" : "Expand panel"}
             >
               {expanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
@@ -389,14 +389,14 @@ export default function TranscriptPanel({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search words or phrases..."
-            className="w-full bg-[#07080f] border border-slate-800 rounded-lg pl-3 pr-8 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-orange-500/50"
+            className="w-full bg-[#07080f] border border-border rounded-lg pl-3 pr-8 py-1.5 text-xs text-foreground placeholder-slate-500 outline-none focus:border-primary/50"
             autoFocus
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               <X size={12} />
             </button>
@@ -406,8 +406,8 @@ export default function TranscriptPanel({
 
       {/* Loading State */}
       {status === "loading" && (
-        <div className="flex items-center justify-center gap-2 py-8 text-xs font-medium text-slate-400">
-          <Loader2 size={14} className="animate-spin text-orange-500" />
+        <div className="flex items-center justify-center gap-2 py-8 text-xs font-medium text-muted-foreground">
+          <Loader2 size={14} className="animate-spin text-primary" />
           Loading transcript...
         </div>
       )}
@@ -421,7 +421,7 @@ export default function TranscriptPanel({
 
       {/* Unavailable State */}
       {status === "unavailable" && (
-        <p className="py-4 text-center text-xs font-medium italic text-slate-500">
+        <p className="py-4 text-center text-xs font-medium italic text-muted-foreground">
           Transcript unavailable.
         </p>
       )}
@@ -439,7 +439,7 @@ export default function TranscriptPanel({
             }`}
           >
             {filteredSegments.length === 0 ? (
-              <div className="py-6 text-center text-xs text-slate-500 italic">
+              <div className="py-6 text-center text-xs text-muted-foreground italic">
                 No matching lines found.
               </div>
             ) : (
@@ -469,7 +469,7 @@ export default function TranscriptPanel({
             <button
               type="button"
               onClick={handleRecenter}
-              className="absolute bottom-2 right-3 shadow-lg bg-orange-500 hover:bg-orange-600 text-slate-950 font-bold text-[10px] px-3 py-1 rounded-full transition-all flex items-center gap-1.5 cursor-pointer z-10"
+              className="absolute bottom-2 right-3 shadow-lg bg-primary hover:bg-orange-600 text-slate-950 font-bold text-[10px] px-3 py-1 rounded-full transition-all flex items-center gap-1.5 cursor-pointer z-10"
             >
               <Target size={12} />
               <span>Re-center</span>

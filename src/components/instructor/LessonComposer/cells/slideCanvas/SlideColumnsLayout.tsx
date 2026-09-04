@@ -41,7 +41,7 @@ export function SlideColumnsView({ title, columns, backgroundColor = DEFAULT_SLI
   const isEmpty = !hasTitle && visibleColumns.length === 0;
 
   return (
-    <div className="slide-frame mx-auto w-full max-w-[1000px] aspect-video overflow-hidden rounded-xl border border-slate-800 shadow-inner relative" style={{ backgroundColor }}>
+    <div className="slide-frame mx-auto w-full max-w-[1000px] aspect-video overflow-hidden rounded-xl border border-border shadow-inner relative" style={{ backgroundColor }}>
       <style>{`
         .slide-frame {
           container-type: size;
@@ -145,7 +145,7 @@ export function SlideColumnsView({ title, columns, backgroundColor = DEFAULT_SLI
       `}</style>
 
       {isEmpty ? (
-        <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-xs italic text-slate-500">
+        <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-xs italic text-muted-foreground">
           Empty slide.
         </div>
       ) : (
@@ -207,23 +207,23 @@ export function SlideColumnsEditor({ columns, backgroundColor, onChange }: Slide
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-semibold text-slate-300">Columns</label>
-        <div className="flex items-center gap-1 rounded-lg border border-slate-800 bg-[#B7B7B7] p-0.5">
+        <label className="text-xs font-semibold text-foreground">Columns</label>
+        <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-0.5">
           <button
             type="button"
             onClick={removeColumn}
             disabled={columns.length <= MIN_SLIDE_COLUMNS}
-            className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:text-white disabled:opacity-30 disabled:hover:text-slate-400 transition cursor-pointer disabled:cursor-not-allowed"
+            className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:hover:text-muted-foreground transition cursor-pointer disabled:cursor-not-allowed"
             aria-label="Remove column"
           >
             <Minus size={12} />
           </button>
-          <span className="w-6 text-center text-xs font-bold text-white">{columns.length}</span>
+          <span className="w-6 text-center text-xs font-bold text-foreground">{columns.length}</span>
           <button
             type="button"
             onClick={addColumn}
             disabled={columns.length >= MAX_SLIDE_COLUMNS}
-            className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:text-white disabled:opacity-30 disabled:hover:text-slate-400 transition cursor-pointer disabled:cursor-not-allowed"
+            className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:hover:text-muted-foreground transition cursor-pointer disabled:cursor-not-allowed"
             aria-label="Add column"
           >
             <Plus size={12} />
@@ -232,19 +232,19 @@ export function SlideColumnsEditor({ columns, backgroundColor, onChange }: Slide
       </div>
 
       <div
-        className="flex flex-col sm:flex-row gap-4 rounded-xl border border-slate-800 p-3 sm:p-4"
+        className="flex flex-col sm:flex-row gap-4 rounded-xl border border-border p-3 sm:p-4"
         style={{ backgroundColor }}
       >
         {columns.map((column, idx) => (
           <div
             key={column.id}
-            className="flex-1 min-w-0 space-y-2 rounded-lg border border-slate-800 bg-[#ACACAC]/70 p-3"
+            className="flex-1 min-w-0 space-y-2 rounded-lg border border-border bg-background/70 p-3"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+              <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
                 Column {idx + 1}
               </span>
-              <div className="flex items-center gap-0.5 rounded-lg border border-slate-800 bg-[#B7B7B7] p-0.5">
+              <div className="flex items-center gap-0.5 rounded-lg border border-border bg-background p-0.5">
                 {COLUMN_TYPES.map((type) => (
                   <button
                     key={type}
@@ -252,8 +252,8 @@ export function SlideColumnsEditor({ columns, backgroundColor, onChange }: Slide
                     onClick={() => updateColumn(column.id, { contentType: type })}
                     className={`px-2 py-1 rounded text-[10px] font-bold uppercase cursor-pointer transition ${
                       column.contentType === type
-                        ? "bg-orange-500 text-slate-950"
-                        : "text-slate-400 hover:text-white"
+                        ? "bg-primary text-slate-950"
+                        : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     {type}
@@ -267,14 +267,14 @@ export function SlideColumnsEditor({ columns, backgroundColor, onChange }: Slide
               onChange={(e) => updateColumn(column.id, { content: e.target.value })}
               rows={5}
               placeholder={column.contentType === "markdown" ? "Write markdown…" : "Write HTML…"}
-              className="w-full rounded-lg border border-slate-800 bg-[#B7B7B7] px-2.5 py-2 text-xs text-white outline-none focus:border-orange-500 font-mono leading-relaxed resize-y"
+              className="w-full rounded-lg border border-border bg-background px-2.5 py-2 text-xs text-foreground outline-none focus:border-primary font-mono leading-relaxed resize-y"
             />
 
-            <div className="rounded-lg border border-slate-800/60 bg-black/20 p-2.5">
-              <p className="mb-1.5 text-[9px] font-black uppercase tracking-wider text-slate-500">Preview</p>
+            <div className="rounded-lg border border-border/60 bg-black/20 p-2.5">
+              <p className="mb-1.5 text-[9px] font-black uppercase tracking-wider text-muted-foreground">Preview</p>
               {column.content ? (
                 <div
-                  className="prose prose-invert prose-sm max-w-none break-words text-slate-300"
+                  className="prose prose-invert prose-sm max-w-none break-words text-foreground"
                   dangerouslySetInnerHTML={{ __html: renderColumnContent(column) }}
                 />
               ) : (

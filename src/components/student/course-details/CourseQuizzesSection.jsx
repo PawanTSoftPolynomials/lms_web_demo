@@ -10,9 +10,9 @@ export default function CourseQuizzesSection({ courseId }) {
     return (
         <div className="space-y-3">
             <div className="px-1">
-                <h2 className="text-lg font-semibold text-white">Quizzes</h2>
+                <h2 className="text-lg font-semibold text-foreground">Quizzes</h2>
 
-                <p className="mt-0.5 text-xs text-slate-500">
+                <p className="mt-0.5 text-xs text-muted-foreground">
                     {quizzes.length} {quizzes.length === 1 ? "Quiz" : "Quizzes"}
                 </p>
             </div>

@@ -1,11 +1,20 @@
 import Card from "@/components/ui/Card";
 import TrendBadge from "@/components/dashboard/components/TrendBadge";
 
+const COLOR_ICON_BG = {
+  orange: "bg-orange-500/15",
+  blue: "bg-blue-500/15",
+  purple: "bg-purple-500/15",
+  green: "bg-green-500/15",
+  red: "bg-red-500/15",
+};
+
 export default function DashboardStatCard({
   title,
   value,
   icon,
-  iconBgClass = "bg-orange-500/15",
+  color,
+  iconBgClass = color ? COLOR_ICON_BG[color] || "bg-primary/15" : "bg-primary/15",
   trend,
   trendLabel,
   onClick,
@@ -17,11 +26,11 @@ export default function DashboardStatCard({
     <Card
       onClick={onClick}
       className={`
-        group h-full border border-slate-700/50
-        bg-slate-900/60 backdrop-blur-sm
+        group h-full border border-transparent/50
+        bg-background/60 backdrop-blur-sm
         transition-all duration-300
         hover:-translate-y-1
-        hover:border-orange-500/40
+        hover:border-primary/40
         hover:shadow-lg hover:shadow-orange-500/10
         ${onClick ? "cursor-pointer" : ""}
         ${className}
@@ -29,9 +38,9 @@ export default function DashboardStatCard({
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-400">{title}</p>
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
 
-          <h3 className="mt-3 text-3xl font-bold text-white">{value}</h3>
+          <h3 className="mt-3 text-3xl font-bold text-foreground">{value}</h3>
 
           {typeof trend === "number" && (
             <div className="mt-4">
@@ -47,7 +56,7 @@ export default function DashboardStatCard({
             ${iconBgClass}
           `}
         >
-          <div className="text-2xl text-white">{icon}</div>
+          <div className="text-2xl text-foreground">{icon}</div>
         </div>
       </div>
     </Card>

@@ -14,7 +14,7 @@ export default function StudentTable({
     if (!students.length) {
         return (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-lg font-semibold text-foreground">
                     No Students Found
                 </h3>
 
@@ -30,35 +30,29 @@ export default function StudentTable({
             {/* Desktop & Tablet */}
             <div className="hidden overflow-x-auto rounded-xl border border-white/10 md:block">
                 <table className="min-w-full">
-                    <thead className="bg-white/5">
-                    <tr className="text-left text-sm uppercase tracking-wider text-gray-400">
+                    <thead>
+                    <tr className="border-b border-border text-[9px] uppercase tracking-widest text-muted-foreground font-black text-left">
                         <th className="px-6 py-4 font-medium">
                             Student
                         </th>
-
                         <th className="px-6 py-4 font-medium">
                             Course
                         </th>
-
                         <th className="px-6 py-4 font-medium">
                             Progress
                         </th>
-
                         <th className="px-6 py-4 font-medium">
                             Status
                         </th>
-
                         <th className="px-6 py-4 font-medium">
                             Joined
                         </th>
-
                         <th className="px-6 py-4 text-right font-medium">
                             Actions
                         </th>
                     </tr>
                     </thead>
-
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-border">
                     {students.map((student) => (
                         <StudentRow
                             key={student.id}
@@ -87,7 +81,7 @@ export default function StudentTable({
                                 />
 
                                 <div>
-                                    <h3 className="font-semibold text-white">
+                                    <h3 className="font-semibold text-foreground">
                                         {student.name}
                                     </h3>
 
@@ -121,13 +115,13 @@ export default function StudentTable({
                             </div>
                         </div>
 
-                        <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                             <div>
                                 <p className="text-gray-400">
                                     Course
                                 </p>
 
-                                <span className="font-medium text-white">
+                                <span className="font-medium text-foreground">
                   {student.course || "-"}
                 </span>
                             </div>
@@ -137,7 +131,7 @@ export default function StudentTable({
                                     Progress
                                 </p>
 
-                                <span className="font-medium text-white">
+                                <span className="font-medium text-foreground">
                   {student.progress ?? 0}%
                 </span>
                             </div>
@@ -147,7 +141,7 @@ export default function StudentTable({
                                     Status
                                 </p>
 
-                                <span className="text-white">
+                                <span className="text-foreground">
                   {student.status}
                 </span>
                             </div>
@@ -157,7 +151,7 @@ export default function StudentTable({
                                     Joined
                                 </p>
 
-                                <span className="text-white">
+                                <span className="text-foreground">
                   {student.joinedDate || "-"}
                 </span>
                             </div>

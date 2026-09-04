@@ -38,8 +38,8 @@ export default function CreateQuizSelectCoursePage() {
     return (
       <Card className="mx-auto max-w-md mt-10">
         <div className="py-12 text-center">
-          <h2 className="text-xl font-bold text-white">Failed to Load Courses</h2>
-          <p className="mt-2 text-slate-400">Please try again later.</p>
+          <h2 className="text-xl font-bold text-foreground">Failed to Load Courses</h2>
+          <p className="mt-2 text-muted-foreground">Please try again later.</p>
         </div>
       </Card>
     );
@@ -49,32 +49,32 @@ export default function CreateQuizSelectCoursePage() {
     <div className="space-y-6 max-w-md mx-auto mt-10">
       <Link
         href="/instructor/quizzes"
-        className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition"
+        className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition"
       >
         <ArrowLeft size={14} />
         Back to Quizzes
       </Link>
 
-      <Card className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-6">
+      <Card className="bg-gradient-to-br from-slate-900 to-slate-950 border border-transparent rounded-2xl p-6 shadow-2xl space-y-6">
         <div className="space-y-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Folder size={22} />
           </div>
-          <h3 className="text-xl font-bold text-white tracking-tight">Select Course</h3>
-          <p className="text-xs text-slate-400">
+          <h3 className="text-xl font-bold text-foreground tracking-tight">Select Course</h3>
+          <p className="text-xs text-muted-foreground">
             Please choose a course under which you want to create the new quiz.
           </p>
         </div>
 
         <form onSubmit={handleContinue} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+            <label className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
               Course List
             </label>
             <select
               value={selectedCourseId}
               onChange={(e) => setSelectedCourseId(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800 text-white rounded-xl focus:border-orange-500 outline-none transition px-4 py-3.5 text-sm cursor-pointer"
+              className="w-full bg-background border border-transparent text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3.5 text-sm cursor-pointer"
               required
             >
               <option value="" disabled>Select a course</option>
@@ -89,7 +89,7 @@ export default function CreateQuizSelectCoursePage() {
           <Button
             type="submit"
             disabled={!selectedCourseId}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-slate-950 text-sm font-extrabold py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 text-sm font-extrabold py-3.5 transition shadow-lg shadow-orange-500/10 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>Continue to Quiz Details</span>
             <ArrowRight size={16} />

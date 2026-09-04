@@ -139,9 +139,9 @@ function StudentQuizzesPageContent() {
 
   if (isError) {
     return (
-      <Card className="p-8 text-center border border-slate-800 bg-slate-900/60">
-        <h2 className="text-xl font-bold text-white">Unable to load quizzes</h2>
-        <p className="mt-2 text-slate-400">Please try again later.</p>
+      <Card className="p-8 text-center border border-transparent bg-background/60">
+        <h2 className="text-xl font-bold text-foreground">Unable to load quizzes</h2>
+        <p className="mt-2 text-muted-foreground">Please try again later.</p>
       </Card>
     );
   }
@@ -151,8 +151,8 @@ function StudentQuizzesPageContent() {
       {/* 1. Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-none">Quizzes</h1>
-          <p className="text-xs text-slate-400 mt-1.5">View and manage quizzes for your enrolled courses.</p>
+          <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight leading-none">Quizzes</h1>
+          <p className="text-xs text-muted-foreground mt-1.5">View and manage quizzes for your enrolled courses.</p>
         </div>
         {viewingCourseId && (
           <button
@@ -162,9 +162,9 @@ function StudentQuizzesPageContent() {
               setSelectedCourse("all");
               router.replace("/student/quizzes");
             }}
-            className="inline-flex items-center justify-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 px-4 py-2.5 rounded-xl cursor-pointer shadow-sm transition min-h-[44px] shrink-0"
+            className="inline-flex items-center justify-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-foreground hover:text-foreground bg-background border border-transparent hover:border-transparent px-4 py-2.5 rounded-xl cursor-pointer shadow-sm transition min-h-[44px] shrink-0"
           >
-            <ArrowLeft size={16} className="text-orange-500" />
+            <ArrowLeft size={16} className="text-primary" />
             <span>Back to Courses</span>
           </button>
         )}
@@ -186,8 +186,8 @@ function StudentQuizzesPageContent() {
           </div>
 
           {/* Bottom Info Banner */}
-          <div className="rounded-2xl border border-slate-800/60 bg-slate-900/20 p-4 flex gap-3 items-center text-xs text-slate-400">
-            <Info size={16} className="text-orange-500 shrink-0" />
+          <div className="rounded-2xl border border-transparent/60 bg-background/20 p-4 flex gap-3 items-center text-xs text-muted-foreground">
+            <Info size={16} className="text-primary shrink-0" />
             <span className="font-medium">Quizzes help you test your knowledge and track your learning progress.</span>
           </div>
         </div>
@@ -195,12 +195,12 @@ function StudentQuizzesPageContent() {
         /* COURSE DETAIL VIEW (CLEAN DIRECT QUIZ CONTENT VIEW) */
         <div className="space-y-5">
           {/* Header summary for selected course */}
-          <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4 sm:p-5 flex items-center justify-between">
+          <div className="rounded-2xl border border-transparent/80 bg-background/60 p-4 sm:p-5 flex items-center justify-between">
             <div>
-              <h3 className="text-base sm:text-lg font-black text-white tracking-tight leading-snug">
+              <h3 className="text-base sm:text-lg font-black text-foreground tracking-tight leading-snug">
                 {coursesList.find((c) => c.id === viewingCourseId)?.title}
               </h3>
-              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block mt-1">
+              <span className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider block mt-1">
                 {QUIZ_TAB_LABELS[activeTab] || QUIZ_TAB_LABELS.reports}
               </span>
             </div>

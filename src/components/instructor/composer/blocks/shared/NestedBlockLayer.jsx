@@ -95,7 +95,7 @@ const NestedBlockLayer = forwardRef(function NestedBlockLayer(
                   );
                 })()
               ) : (
-                <div className="w-full h-full overflow-auto text-[11px] bg-slate-900/70 rounded-md p-1.5">
+                <div className="w-full h-full overflow-auto text-[11px] bg-background/70 rounded-md p-1.5">
                   <ViewComponent block={child} />
                 </div>
               )}

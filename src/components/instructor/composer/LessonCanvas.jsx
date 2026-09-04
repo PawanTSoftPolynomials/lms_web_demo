@@ -102,23 +102,23 @@ export default function LessonCanvas({ lesson, moduleId, courseId, onOpenAiAssis
   return (
     <div className="space-y-5">
       <div className="space-y-2">
-        <h2 className="text-xl font-black text-white">{lesson.title}</h2>
+        <h2 className="text-xl font-black text-foreground">{lesson.title}</h2>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           onBlur={handleDescriptionBlur}
           rows={2}
           placeholder="Lesson description…"
-          className="w-full rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-300 outline-none focus:border-orange-500 resize-y"
+          className="w-full rounded-lg border border-border bg-background/40 px-3 py-2 text-sm text-foreground outline-none focus:border-primary resize-y"
         />
       </div>
 
       {displayList.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-800 p-8 text-center text-sm text-slate-500">
+        <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
           No content blocks yet. Add your first one below.
         </div>
       ) : (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 divide-y divide-slate-800/60 overflow-hidden">
+        <div className="rounded-xl border border-border bg-background/50 divide-y divide-slate-800/60 overflow-hidden">
           {displayList.map(({ block, isDraft }) => {
             const savedIndex = savedBlocks.findIndex((b) => b.id === block.id);
             return (
@@ -148,18 +148,18 @@ export default function LessonCanvas({ lesson, moduleId, courseId, onOpenAiAssis
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <button
           type="button"
           onClick={() => openAddModal(null)}
-          className="w-full inline-flex items-center justify-center gap-1.5 py-3 text-xs font-bold text-slate-300 hover:text-white bg-slate-900/40 hover:bg-slate-800 border border-dashed border-slate-700 rounded-xl transition cursor-pointer"
+          className="w-full inline-flex items-center justify-center gap-1.5 py-3 text-xs font-bold text-foreground hover:text-foreground bg-background/40 hover:bg-muted border border-dashed border-transparent rounded-xl transition cursor-pointer"
         >
           <Plus size={14} /> Add Block
         </button>
         <button
           type="button"
           onClick={() => onOpenAiAssistant && onOpenAiAssistant("CONTENT", { lessonId: lesson.id, lessonTitle: lesson.title })}
-          className="w-full inline-flex items-center justify-center gap-1.5 py-3 text-xs font-bold text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 border border-dashed border-orange-500/30 rounded-xl transition cursor-pointer"
+          className="w-full inline-flex items-center justify-center gap-1.5 py-3 text-xs font-bold text-primary hover:text-orange-300 bg-primary/10 hover:bg-primary/20 border border-dashed border-primary/30 rounded-xl transition cursor-pointer"
         >
           <Sparkles size={14} /> Generate Content with AI
         </button>

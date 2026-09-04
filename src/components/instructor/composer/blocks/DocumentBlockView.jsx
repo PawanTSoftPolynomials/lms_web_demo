@@ -12,13 +12,13 @@ export default function DocumentBlockView({ block }) {
       href={block.url}
       target="_blank"
       rel="noreferrer"
-      className="flex items-center gap-3 rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 hover:border-orange-500 transition"
+      className="flex items-center gap-3 rounded-lg border border-transparent bg-muted px-4 py-3 hover:border-primary transition"
     >
-      <FileText size={20} className="text-orange-400 shrink-0" />
-      <span className="flex-1 text-sm text-slate-200 truncate">
+      <FileText size={20} className="text-primary shrink-0" />
+      <span className="flex-1 text-sm text-foreground truncate">
         {block.title || block.originalPath || "Document"}
       </span>
-      <Download size={16} className="text-slate-500 shrink-0" />
+      <Download size={16} className="text-muted-foreground shrink-0" />
     </a>
   );
 }

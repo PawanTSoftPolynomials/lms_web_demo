@@ -99,7 +99,7 @@ export default function TopicDetailsPage() {
       <Card>
         <div className="py-16 text-center">
           <h2 className="text-2xl font-semibold">Failed to load topic</h2>
-          <p className="mt-2 text-slate-400">Please try again later.</p>
+          <p className="mt-2 text-muted-foreground">Please try again later.</p>
         </div>
       </Card>
     );
@@ -111,7 +111,7 @@ export default function TopicDetailsPage() {
       {lessonId && (
         <Link
           href={`/instructor/lessons/${lessonId}`}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition"
         >
           <ArrowLeft size={14} />
           Back to Lesson Details
@@ -128,18 +128,18 @@ export default function TopicDetailsPage() {
       {/* Contents Section Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-white tracking-tight">Contents</h2>
-          <p className="mt-1 text-slate-400">Manage topic contents.</p>
+          <h2 className="text-3xl font-bold text-foreground tracking-tight">Contents</h2>
+          <p className="mt-1 text-muted-foreground">Manage topic contents.</p>
         </div>
 
-        <div className="flex items-center gap-1 rounded-xl border border-slate-800 bg-slate-900/60 p-1">
+        <div className="flex items-center gap-1 rounded-xl border border-transparent bg-background/60 p-1">
           <button
             type="button"
             onClick={() => setView("table")}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
               view === "table"
-                ? "bg-orange-500 text-slate-950"
-                : "text-slate-400 hover:text-white"
+                ? "bg-primary text-slate-950"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <Table2 size={13} />
@@ -150,8 +150,8 @@ export default function TopicDetailsPage() {
             onClick={() => setView("compose")}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
               view === "compose"
-                ? "bg-orange-500 text-slate-950"
-                : "text-slate-400 hover:text-white"
+                ? "bg-primary text-slate-950"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <LayoutGrid size={13} />
@@ -167,15 +167,15 @@ export default function TopicDetailsPage() {
         <Card>
           <div className="py-16 text-center">
             <h3 className="text-2xl font-semibold">No Contents Found</h3>
-            <p className="mt-2 text-slate-400">Add your first content.</p>
+            <p className="mt-2 text-muted-foreground">Add your first content.</p>
           </div>
         </Card>
       ) : (
-        <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800/80 rounded-2xl overflow-hidden">
+        <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-transparent/80 rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/40 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                <tr className="border-b border-transparent bg-background/40 text-muted-foreground text-xs font-bold uppercase tracking-wider">
                   <th className="p-5 pl-6">Content Title</th>
                   <th className="p-5">Type</th>
                   <th className="p-5 pr-6 text-left">ACTIONS</th>
@@ -190,11 +190,11 @@ export default function TopicDetailsPage() {
                       onClick={() =>
                         router.push(`/instructor/contents/view/${content.id}`)
                       }
-                      className="border-b border-slate-800/50 hover:bg-slate-850/40 transition-all duration-200 text-sm text-slate-300 cursor-pointer group"
+                      className="border-b border-transparent/50 hover:bg-slate-850/40 transition-all duration-200 text-sm text-foreground cursor-pointer group"
                     >
                       {/* Content Title */}
                       <td className="p-5 pl-6 max-w-xl">
-                        <p className="font-bold text-white group-hover:text-orange-400 transition-colors leading-snug truncate">
+                        <p className="font-bold text-foreground group-hover:text-primary transition-colors leading-snug truncate">
                           {content.title}
                         </p>
                       </td>
@@ -221,7 +221,7 @@ export default function TopicDetailsPage() {
                           <button
                             onClick={() => router.push(`/instructor/contents/view/${content.id}`)}
                             title="View Content"
-                            className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-slate-400 hover:text-white hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
+                            className="p-1 rounded-lg border border-transparent bg-slate-955/40 text-muted-foreground hover:text-foreground hover:bg-muted/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
                           >
                             <Eye size={12} />
                           </button>
@@ -229,7 +229,7 @@ export default function TopicDetailsPage() {
                           <button
                             onClick={() => router.push(`/instructor/contents/edit/${content.id}`)}
                             title="Edit Content"
-                            className="p-1 rounded-lg border border-slate-800 bg-slate-955/40 text-slate-400 hover:text-white hover:bg-slate-800/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
+                            className="p-1 rounded-lg border border-transparent bg-slate-955/40 text-muted-foreground hover:text-foreground hover:bg-muted/80 transition duration-150 flex items-center justify-center w-6.5 h-6.5 cursor-pointer"
                           >
                             <Pencil size={12} />
                           </button>

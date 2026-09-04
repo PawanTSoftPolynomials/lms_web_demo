@@ -234,7 +234,7 @@ export function VideoCell({
               time, so it sizes itself to its own natural dimensions instead
               of being forced into a 16:9 box — forcing one there just
               letterboxes non-16:9 footage into a tiny, mostly-black frame. */}
-          <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-xl border border-slate-800 bg-black shadow-lg">
+          <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-xl border border-border bg-black shadow-lg">
             {embedUrl ? (
               <div className="relative aspect-video w-full">
                 <iframe
@@ -256,7 +256,7 @@ export function VideoCell({
           </div>
         </div>
       ) : (
-        <p className="text-xs italic text-slate-500">No video URL set yet.</p>
+        <p className="text-xs italic text-muted-foreground">No video URL set yet.</p>
       )}
     </CellShell>
   );

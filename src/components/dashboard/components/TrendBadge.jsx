@@ -20,7 +20,7 @@ export default function TrendBadge({
     ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
     : isNegative
     ? "bg-red-500/10 text-red-400 border border-red-500/20"
-    : "bg-slate-700/40 text-slate-400 border border-slate-600";
+    : "bg-slate-700/40 text-muted-foreground border border-transparent";
 
   return (
     <div

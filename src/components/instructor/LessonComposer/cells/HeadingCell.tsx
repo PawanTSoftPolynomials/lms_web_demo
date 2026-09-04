@@ -126,7 +126,7 @@ export function HeadingCell({
         </div>
       ) : displayText ? (
         <ViewTag
-          className="font-bold tracking-tight text-slate-100"
+          className="font-bold tracking-tight text-foreground"
           style={{
             textAlign: design.align,
             color: design.color || undefined,

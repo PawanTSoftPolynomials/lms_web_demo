@@ -30,7 +30,7 @@ export default function ReportsTabStrip() {
         type="button"
         onClick={() => scrollBy(-1)}
         aria-label="Scroll tabs left"
-        className="shrink-0 p-1 text-slate-500 hover:text-white transition cursor-pointer"
+        className="shrink-0 p-1 text-muted-foreground hover:text-foreground transition cursor-pointer"
       >
         <ChevronLeft size={16} />
       </button>
@@ -47,8 +47,8 @@ export default function ReportsTabStrip() {
               href={tab.href}
               className={`shrink-0 pb-2 pt-1 text-xs font-bold whitespace-nowrap border-b-2 transition-colors ${
                 isActive
-                  ? "text-orange-500 border-orange-500"
-                  : "text-white border-transparent hover:text-slate-300"
+                  ? "text-primary border-primary"
+                  : "text-foreground border-transparent hover:text-foreground"
               }`}
             >
               {tab.label}
@@ -61,7 +61,7 @@ export default function ReportsTabStrip() {
         type="button"
         onClick={() => scrollBy(1)}
         aria-label="Scroll tabs right"
-        className="shrink-0 p-1 text-slate-500 hover:text-white transition cursor-pointer"
+        className="shrink-0 p-1 text-muted-foreground hover:text-foreground transition cursor-pointer"
       >
         <ChevronRight size={16} />
       </button>

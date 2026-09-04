@@ -88,8 +88,8 @@ export default function ChatMessage({ message }) {
   const bubbleClass = isOnlyAttachments
     ? "relative w-full"
     : isMine
-      ? "rounded-2xl rounded-tr-none bg-gradient-to-br from-orange-500 via-orange-600 to-pink-600 text-white shadow-[0_4px_15px_rgba(242,199,199,0.2)] px-4.5 py-3"
-      : "rounded-2xl rounded-tl-none border border-slate-800/80 bg-slate-900/60 backdrop-blur-sm text-slate-100 shadow-[0_4px_15px_rgba(0,0,0,0.1)] px-4.5 py-3";
+      ? "rounded-2xl rounded-tr-none bg-gradient-to-br from-orange-500 via-orange-600 to-pink-600 text-foreground shadow-[0_4px_15px_rgba(249,115,22,0.2)] px-4.5 py-3"
+      : "rounded-2xl rounded-tl-none border border-border/80 bg-background/60 backdrop-blur-sm text-foreground shadow-[0_4px_15px_rgba(0,0,0,0.1)] px-4.5 py-3";
 
   return (
     <motion.div
@@ -122,7 +122,7 @@ export default function ChatMessage({ message }) {
       <div className={`flex flex-col ${isMine ? "items-end" : "items-start"}`}>
         {/* Sender Name for incoming messages */}
         {!isMine && senderName && (
-          <span className="text-[10px] font-bold text-orange-400/80 mb-1 ml-1 tracking-wider uppercase">
+          <span className="text-[10px] font-bold text-primary/80 mb-1 ml-1 tracking-wider uppercase">
             {senderName}
           </span>
         )}
@@ -142,9 +142,9 @@ export default function ChatMessage({ message }) {
               group-hover:opacity-100
               transition-all
               duration-200
-              bg-slate-900/90
+              bg-background/90
               border
-              border-slate-800/80
+              border-border/80
               rounded-xl
               p-1
               shadow-md
@@ -152,21 +152,21 @@ export default function ChatMessage({ message }) {
             ">
               <button
                 onClick={handleToggleStar}
-                className={`transition-colors p-1 ${message.isStarred ? "text-amber-500 hover:text-amber-600" : "text-slate-400 hover:text-amber-500"}`}
+                className={`transition-colors p-1 ${message.isStarred ? "text-amber-500 hover:text-amber-600" : "text-muted-foreground hover:text-amber-500"}`}
                 title={message.isStarred ? "Unstar message" : "Star message"}
               >
                 <Star size={11} className={message.isStarred ? "fill-current" : ""} />
               </button>
               <button
                 onClick={() => setIsEditing(true)}
-                className="text-slate-400 hover:text-orange-500 transition-colors p-1"
+                className="text-muted-foreground hover:text-primary transition-colors p-1"
                 title="Edit message"
               >
                 <Pencil size={11} />
               </button>
               <button
                 onClick={handleDelete}
-                className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                className="text-muted-foreground hover:text-red-500 transition-colors p-1"
                 title="Delete message"
               >
                 <Trash2 size={11} />
@@ -185,9 +185,9 @@ export default function ChatMessage({ message }) {
               group-hover:opacity-100
               transition-all
               duration-200
-              bg-slate-900/90
+              bg-background/90
               border
-              border-slate-800/80
+              border-border/80
               rounded-xl
               p-1
               shadow-md
@@ -195,7 +195,7 @@ export default function ChatMessage({ message }) {
             ">
               <button
                 onClick={handleToggleStar}
-                className={`transition-colors p-1 ${message.isStarred ? "text-amber-500 hover:text-amber-600" : "text-slate-400 hover:text-amber-500"}`}
+                className={`transition-colors p-1 ${message.isStarred ? "text-amber-500 hover:text-amber-600" : "text-muted-foreground hover:text-amber-500"}`}
                 title={message.isStarred ? "Unstar message" : "Star message"}
               >
                 <Star size={11} className={message.isStarred ? "fill-current" : ""} />
@@ -215,7 +215,7 @@ export default function ChatMessage({ message }) {
                   
                   if (isImg) {
                     return (
-                      <div key={att.id} className="relative rounded-2xl overflow-hidden border border-slate-800/40 bg-slate-950/20 max-w-[280px] shadow-lg group/img">
+                      <div key={att.id} className="relative rounded-2xl overflow-hidden border border-border/40 bg-background/20 max-w-[280px] shadow-lg group/img">
                         <img
                           src={fileUrlWithBase}
                           alt={att.fileName}
@@ -224,14 +224,14 @@ export default function ChatMessage({ message }) {
                         />
                         {/* Overlay for time and status when only an image */}
                         {isOnlyAttachments && (
-                          <div className="absolute bottom-2 right-2 bg-slate-950/70 backdrop-blur-sm px-2 py-0.5 rounded-full flex items-center gap-1 text-[9px] font-semibold text-slate-200">
+                          <div className="absolute bottom-2 right-2 bg-background/70 backdrop-blur-sm px-2 py-0.5 rounded-full flex items-center gap-1 text-[9px] font-semibold text-foreground">
                             <span>{message.time}</span>
                             {message.isStarred && <Star size={9} className="fill-current text-amber-400" />}
                             {isMine && (
                               message.read ? (
                                 <CheckCheck size={10} className="text-sky-300" />
                               ) : (
-                                <Check size={10} className="text-slate-300" />
+                                <Check size={10} className="text-foreground" />
                               )
                             )}
                           </div>
@@ -249,10 +249,10 @@ export default function ChatMessage({ message }) {
                         className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all text-xs font-semibold leading-tight ${
                           isMine
                             ? "border-orange-400/30 bg-orange-950/20 text-orange-100 hover:bg-orange-950/45"
-                            : "border-slate-800 bg-slate-950/40 text-slate-200 hover:bg-slate-900/60"
+                            : "border-border bg-background/40 text-foreground hover:bg-background/60"
                         }`}
                       >
-                        <div className={`p-2 rounded-lg ${isMine ? "bg-orange-500/20 text-orange-200" : "bg-slate-800 text-slate-400"}`}>
+                        <div className={`p-2 rounded-lg ${isMine ? "bg-primary/20 text-orange-200" : "bg-muted text-muted-foreground"}`}>
                           {att.type === "VIDEO" ? (
                             <Video size={16} />
                           ) : att.type === "AUDIO" ? (
@@ -263,7 +263,7 @@ export default function ChatMessage({ message }) {
                         </div>
                         <div className="flex-1 overflow-hidden">
                           <p className="truncate text-left">{att.fileName}</p>
-                          <span className={`text-[10px] font-normal ${isMine ? "text-orange-200/60" : "text-slate-500"}`}>
+                          <span className={`text-[10px] font-normal ${isMine ? "text-orange-200/60" : "text-muted-foreground"}`}>
                             {att.size ? `${(att.size / 1024).toFixed(1)} KB` : ""}
                           </span>
                         </div>
@@ -271,14 +271,14 @@ export default function ChatMessage({ message }) {
                       
                       {/* Document Card time and status below it when only document */}
                       {isOnlyAttachments && (
-                        <div className={`flex items-center gap-1.5 text-[9px] font-bold text-slate-500 mt-0.5 px-1 ${isMine ? "justify-end" : "justify-start"}`}>
+                        <div className={`flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground mt-0.5 px-1 ${isMine ? "justify-end" : "justify-start"}`}>
                           <span>{message.time}</span>
                           {message.isStarred && <Star size={9} className="fill-current text-amber-500" />}
                           {isMine && (
                             message.read ? (
                               <CheckCheck size={11} className="text-sky-400" />
                             ) : (
-                              <Check size={11} className="text-slate-500" />
+                              <Check size={11} className="text-muted-foreground" />
                             )
                           )}
                         </div>
@@ -294,7 +294,7 @@ export default function ChatMessage({ message }) {
                 <textarea
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
-                  className="bg-transparent text-[14px] text-white focus:outline-none w-full resize-none leading-relaxed border-b border-orange-300/60 pb-1"
+                  className="bg-transparent text-[14px] text-foreground focus:outline-none w-full resize-none leading-relaxed border-b border-orange-300/60 pb-1"
                   rows={1}
                   autoFocus
                 />
@@ -304,13 +304,13 @@ export default function ChatMessage({ message }) {
                       setIsEditing(false);
                       setEditText(message.text || message.content || "");
                     }}
-                    className="text-slate-300 hover:text-white bg-slate-800 px-2 py-1 rounded-md transition-colors"
+                    className="text-foreground hover:text-foreground bg-muted px-2 py-1 rounded-md transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleEdit}
-                    className="text-white bg-orange-500 hover:bg-orange-600 px-2 py-1 rounded-md shadow-sm transition-all"
+                    className="text-foreground bg-primary hover:bg-orange-600 px-2 py-1 rounded-md shadow-sm transition-all"
                   >
                     Save
                   </button>
@@ -339,7 +339,7 @@ export default function ChatMessage({ message }) {
                   ${
                     isMine
                       ? "text-orange-100/80"
-                      : "text-slate-500"
+                      : "text-muted-foreground"
                   }
                 `}
               >

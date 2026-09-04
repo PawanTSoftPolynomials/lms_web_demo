@@ -20,7 +20,7 @@ export default function CourseOverview({
         <div className="grid gap-6 md:grid-cols-2">
 
           <div>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-muted-foreground">
               Course Title
             </p>
 
@@ -30,7 +30,7 @@ export default function CourseOverview({
           </div>
 
           <div>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-muted-foreground">
               Category
             </p>
 
@@ -40,7 +40,7 @@ export default function CourseOverview({
           </div>
 
           <div>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-muted-foreground">
               Level
             </p>
 
@@ -50,7 +50,7 @@ export default function CourseOverview({
           </div>
 
           <div>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-muted-foreground">
               Status
             </p>
 
@@ -73,7 +73,7 @@ export default function CourseOverview({
           Description
         </h2>
 
-        <p className="leading-8 text-slate-300 whitespace-pre-wrap">
+        <p className="leading-8 text-foreground whitespace-pre-wrap">
 
           {course.description ||
             "No description available."}

@@ -102,15 +102,15 @@ export default function VerifyOtpContent() {
     <AuthLayout>
       <AuthCard>
         <AuthHeader
-          icon={<HiOutlineShieldCheck className="text-4xl text-orange-500" />}
+          icon={<HiOutlineShieldCheck className="text-4xl text-primary" />}
           title="Verify Your Email"
           description="Enter the verification code sent to your email address."
         />
 
         {email && (
           <div className="mt-5 text-center">
-            <div className="inline-flex rounded-full border border-orange-500/20 bg-orange-500/10 px-4 py-2">
-              <span className="break-all text-sm font-medium text-orange-400">
+            <div className="inline-flex rounded-full border border-primary/20 bg-primary/10 px-4 py-2">
+              <span className="break-all text-sm font-medium text-primary">
                 {email}
               </span>
             </div>

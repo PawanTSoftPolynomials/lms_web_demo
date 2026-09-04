@@ -36,12 +36,13 @@ export default function Modal({
   flex
   items-center
   justify-center
-  bg-black/40
-  backdrop-blur-md
+  bg-background/80
+  backdrop-blur-sm
   animate-in
   fade-in
   duration-200
-  p-6
+  p-3
+  sm:p-6
 "
       onClick={onClose}
     >
@@ -57,6 +58,11 @@ export default function Modal({
   flex
   flex-col
   overflow-hidden
+  rounded-2xl
+  border
+  border-border
+  bg-background
+  shadow-[0_20px_80px_rgba(0,0,0,0.55)]
   animate-in
   zoom-in-95
   duration-200
@@ -70,8 +76,11 @@ export default function Modal({
     justify-between
     border-b
     border-border
-    px-6
-    py-4
+    bg-background/80
+    px-4
+    py-3
+    sm:px-6
+    sm:py-4
   "
         >
           <h2 className="text-xl font-bold text-foreground">
@@ -87,8 +96,9 @@ export default function Modal({
     w-9
     items-center
     justify-center
-    rounded-[0.625rem]
+    rounded-xl
     text-muted-foreground
+    transition-all
     hover:bg-muted
     hover:text-foreground
     cursor-pointer
@@ -98,7 +108,7 @@ export default function Modal({
           </button>
         </div>
 
-        <div className="p-6 flex-1 min-h-0 flex flex-col overflow-hidden text-foreground">
+        <div className="p-4 sm:p-6 flex-1 min-h-0 flex flex-col overflow-hidden">
           {children}
         </div>
       </div>

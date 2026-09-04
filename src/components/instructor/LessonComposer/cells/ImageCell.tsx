@@ -278,14 +278,14 @@ export function ImageCell({
           <img
             src={getDisplayUrl(view.src)}
             alt={view.alt || "Image preview"}
-            className="mx-auto max-h-80 w-auto rounded-xl border border-slate-800 object-contain shadow-md"
+            className="mx-auto max-h-80 w-auto rounded-xl border border-border object-contain shadow-md"
           />
           {view.caption && (
-            <figcaption className="text-xs text-slate-400 italic">{view.caption}</figcaption>
+            <figcaption className="text-xs text-muted-foreground italic">{view.caption}</figcaption>
           )}
         </figure>
       ) : (
-        <p className="text-xs italic text-slate-500">No image set yet.</p>
+        <p className="text-xs italic text-muted-foreground">No image set yet.</p>
       )}
     </CellShell>
   );

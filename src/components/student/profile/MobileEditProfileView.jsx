@@ -66,7 +66,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="sm:hidden fixed inset-0 z-[80] bg-[#080B11] flex flex-col"
+      className="sm:hidden fixed inset-0 z-[80] bg-background flex flex-col"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 h-14 border-b border-card-border shrink-0">
@@ -75,11 +75,11 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
             type="button"
             onClick={onClose}
             aria-label="Close edit profile"
-            className="h-8 w-8 -ml-1.5 flex items-center justify-center rounded-lg text-slate-300 active:bg-white/5 transition cursor-pointer"
+            className="h-8 w-8 -ml-1.5 flex items-center justify-center rounded-lg text-foreground active:bg-white/5 transition cursor-pointer"
           >
             <ChevronLeft size={22} />
           </button>
-          <h1 className="text-base font-black text-white">Edit Profile</h1>
+          <h1 className="text-base font-black text-foreground">Edit Profile</h1>
         </div>
       </div>
 
@@ -103,7 +103,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
               };
               input.click();
             }}
-            className="text-[11px] font-bold text-orange-400 hover:text-orange-300"
+            className="text-[11px] font-bold text-primary hover:text-orange-300"
           >
             Change Photo
           </button>
@@ -116,7 +116,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
         )}
 
         <div>
-          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">
+          <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">
             Full Name
           </label>
           <input
@@ -125,24 +125,24 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
             value={formData.name}
             onChange={handleChange}
             required
-            className="w-full bg-card border border-card-border rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+            className="w-full bg-card border border-card-border rounded-xl px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
           />
         </div>
 
         <div>
-          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">
+          <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">
             Email
           </label>
           <input
             type="email"
             value={profile?.email || ""}
             disabled
-            className="w-full bg-slate-900/50 border border-slate-800/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-500 outline-none cursor-not-allowed"
+            className="w-full bg-background/50 border border-border/80 rounded-xl px-3.5 py-2.5 text-sm text-muted-foreground outline-none cursor-not-allowed"
           />
         </div>
 
         <div>
-          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">
+          <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">
             Phone Number
           </label>
           <input
@@ -151,7 +151,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
             value={formData.phoneNumber}
             onChange={handleChange}
             placeholder="Enter phone number"
-            className="w-full bg-card border border-card-border rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+            className="w-full bg-card border border-card-border rounded-xl px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
           />
         </div>
 
@@ -164,7 +164,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
         />
 
         <div>
-          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">
+          <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">
             Address
           </label>
           <input
@@ -173,12 +173,12 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
             value={formData.address}
             onChange={handleChange}
             placeholder="Enter address"
-            className="w-full bg-card border border-card-border rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+            className="w-full bg-card border border-card-border rounded-xl px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
           />
         </div>
 
         <div>
-          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">
+          <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">
             Education
           </label>
           <input
@@ -187,12 +187,12 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
             value={formData.education}
             onChange={handleChange}
             placeholder="Enter education background"
-            className="w-full bg-card border border-card-border rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+            className="w-full bg-card border border-card-border rounded-xl px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
           />
         </div>
 
         <div>
-          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">
+          <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">
             Guardian Name
           </label>
           <input
@@ -201,7 +201,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
             value={formData.guardianName}
             onChange={handleChange}
             placeholder="Enter guardian name"
-            className="w-full bg-card border border-card-border rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition"
+            className="w-full bg-card border border-card-border rounded-xl px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
           />
         </div>
       </div>
@@ -211,7 +211,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
         <button
           type="submit"
           disabled={updateProfileMutation.isPending}
-          className="w-full py-3 min-h-[44px] rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-98 text-slate-950 font-black text-sm transition shadow-lg shadow-orange-500/10 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+          className="w-full py-3 min-h-[44px] rounded-xl bg-primary hover:bg-orange-600 active:scale-98 text-slate-950 font-black text-sm transition shadow-lg shadow-orange-500/10 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
         >
           {updateProfileMutation.isPending ? (
             <>

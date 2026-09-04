@@ -19,9 +19,9 @@ export default function QuestionHeader({ quiz, onImport }) {
                         items-center
                         gap-2
                         text-sm
-                        text-slate-400
+                        text-muted-foreground
                         transition
-                        hover:text-orange-400
+                        hover:text-primary
                     "
             >
                 <FaArrowLeft size={14}/>
@@ -39,8 +39,8 @@ export default function QuestionHeader({ quiz, onImport }) {
                                 items-center
                                 justify-center
                                 rounded-2xl
-                                bg-orange-500/15
-                                text-orange-400
+                                bg-primary/15
+                                text-primary
                             "
                     >
                         <FaQuestionCircle size={28}/>
@@ -51,22 +51,22 @@ export default function QuestionHeader({ quiz, onImport }) {
                                 className="
                                     inline-flex
                                     rounded-full
-                                    bg-orange-500/15
+                                    bg-primary/15
                                     px-3
                                     py-1
                                     text-xs
                                     font-medium
-                                    text-orange-400
+                                    text-primary
                                 "
                             >
                                 Questions
                             </span>
 
-                        <h1 className="mt-4 text-4xl font-bold text-white">
+                        <h1 className="mt-4 text-4xl font-bold text-foreground">
                             Manage Questions
                         </h1>
 
-                        <p className="mt-3 max-w-3xl text-slate-400">
+                        <p className="mt-3 max-w-3xl text-muted-foreground">
                             Create, edit and organize questions for this
                             quiz. Each question can contain multiple
                             options, a correct answer and marks.
@@ -86,15 +86,15 @@ export default function QuestionHeader({ quiz, onImport }) {
                                 gap-2
                                 rounded-xl
                                 border
-                                border-slate-700
-                                bg-slate-800
+                                border-transparent
+                                bg-muted
                                 px-5
                                 py-3
                                 font-medium
-                                text-slate-300
+                                text-foreground
                                 transition
-                                hover:border-orange-500/50
-                                hover:text-orange-400
+                                hover:border-primary/50
+                                hover:text-primary
                             "
                     >
                         <FaCloudUploadAlt size={15}/>
@@ -110,14 +110,14 @@ export default function QuestionHeader({ quiz, onImport }) {
                                 gap-2
                                 rounded-xl
                                 border
-                                border-orange-500/40
-                                bg-orange-500/10
+                                border-primary/40
+                                bg-primary/10
                                 px-5
                                 py-3
                                 font-medium
-                                text-orange-400
+                                text-primary
                                 transition
-                                hover:bg-orange-500/20
+                                hover:bg-primary/20
                             "
                     >
                         <FaLayerGroup size={15}/>
@@ -136,7 +136,7 @@ export default function QuestionHeader({ quiz, onImport }) {
                                 px-5
                                 py-3
                                 font-medium
-                                text-white
+                                text-foreground
                                 transition
                                 hover:bg-orange-700
                             "
@@ -153,16 +153,16 @@ export default function QuestionHeader({ quiz, onImport }) {
                     className="
                             rounded-xl
                             border
-                            border-slate-800
-                            bg-slate-900
+                            border-border
+                            bg-background
                             p-5
                         "
                 >
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-muted-foreground">
                         Total Questions
                     </p>
 
-                    <h3 className="mt-2 text-3xl font-bold text-white">
+                    <h3 className="mt-2 text-3xl font-bold text-foreground">
                         {quiz.questions?.length || 0}
                     </h3>
                 </div>
@@ -171,16 +171,16 @@ export default function QuestionHeader({ quiz, onImport }) {
                     className="
                             rounded-xl
                             border
-                            border-slate-800
-                            bg-slate-900
+                            border-border
+                            bg-background
                             p-5
                         "
                 >
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-muted-foreground">
                         Passing Score
                     </p>
 
-                    <h3 className="mt-2 text-3xl font-bold text-orange-400">
+                    <h3 className="mt-2 text-3xl font-bold text-primary">
                         {quiz.passingScore}%
                     </h3>
                 </div>
@@ -189,12 +189,12 @@ export default function QuestionHeader({ quiz, onImport }) {
                     className="
                             rounded-xl
                             border
-                            border-slate-800
-                            bg-slate-900
+                            border-border
+                            bg-background
                             p-5
                         "
                 >
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-muted-foreground">
                         Time Limit
                     </p>
 

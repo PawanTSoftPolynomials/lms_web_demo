@@ -16,7 +16,7 @@ export default function OnlineBadge({
       rounded-full
 
       border-2
-      border-slate-900
+      border-transparent
 
       ${
         online

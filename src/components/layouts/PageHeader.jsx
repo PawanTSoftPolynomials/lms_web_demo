@@ -16,12 +16,12 @@ export default function PageHeader({
       )}
     >
       <div className="select-none">
-        <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-white">
+        <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-foreground">
           {title}
         </h1>
 
         {subtitle && (
-          <p className="mt-1 sm:mt-2 max-w-2xl text-xs sm:text-sm text-slate-400">{subtitle}</p>
+          <p className="mt-1 sm:mt-2 max-w-2xl text-xs sm:text-sm text-muted-foreground">{subtitle}</p>
         )}
       </div>
 

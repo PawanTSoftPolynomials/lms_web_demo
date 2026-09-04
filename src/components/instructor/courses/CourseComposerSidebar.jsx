@@ -131,11 +131,11 @@ const CONTENT_TYPE_META = {
   CODE: { icon: Code2, label: "Code", color: "text-violet-400" },
   CODING_EXERCISE: { icon: Code2, label: "Coding Exercise", color: "text-violet-400" },
   ASSIGNMENT: { icon: ClipboardList, label: "Assignment", color: "text-amber-300" },
-  SCORM: { icon: PackageOpen, label: "SCORM", color: "text-slate-400" },
+  SCORM: { icon: PackageOpen, label: "SCORM", color: "text-muted-foreground" },
   INTERACTIVE_LAB: { icon: FlaskConical, label: "Interactive Lab", color: "text-pink-400" },
   EMBED: { icon: MonitorPlay, label: "Embed", color: "text-indigo-400" },
 };
-const DEFAULT_CONTENT_META = { icon: File, label: "Content", color: "text-slate-400" };
+const DEFAULT_CONTENT_META = { icon: File, label: "Content", color: "text-muted-foreground" };
 
 /** Smoothly animated expand/collapse wrapper (grid-rows trick — no height measuring needed). */
 function Collapsible({ open, children }) {
@@ -169,16 +169,16 @@ function RowMenu({ groupName, items }) {
           <button
             type="button"
             onClick={(e) => e.stopPropagation()}
-            className={`${HOVER_VISIBLE_CLASSES[groupName]} p-1 text-slate-400 hover:text-slate-50 rounded transition cursor-pointer shrink-0`}
+            className={`${HOVER_VISIBLE_CLASSES[groupName]} p-1 text-muted-foreground hover:text-slate-50 rounded transition cursor-pointer shrink-0`}
             aria-label="Actions"
           >
             <MoreVertical size={13} />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="bg-[#B7C9C5] border-[#D9D9D9] text-slate-200" onClick={(e) => e.stopPropagation()}>
+        <DropdownMenuContent align="end" className="bg-background border-border text-foreground" onClick={(e) => e.stopPropagation()}>
           {items.map((item, idx) =>
             item.separator ? (
-              <DropdownMenuSeparator key={`sep-${idx}`} className="bg-slate-800" />
+              <DropdownMenuSeparator key={`sep-${idx}`} className="bg-muted" />
             ) : (
               <DropdownMenuItem
                 key={item.label}
@@ -188,7 +188,7 @@ function RowMenu({ groupName, items }) {
                 onSelect={(e) => {
                   item.onSelect?.(e);
                 }}
-                className={`cursor-pointer ${item.destructive ? "text-red-400 hover:bg-red-950/40" : "hover:bg-[#B7C9C5]"}`}
+                className={`cursor-pointer ${item.destructive ? "text-red-400 hover:bg-red-950/40" : "hover:bg-background"}`}
               >
                 <item.icon className="mr-2 size-3" />
                 {item.label}
@@ -246,9 +246,9 @@ function TopicContentRows({
   };
 
   return (
-    <div className="mt-0.5 mb-1 ml-3 pl-3 py-0.5 space-y-0.5 border-l border-orange-500/20">
+    <div className="mt-0.5 mb-1 ml-3 pl-3 py-0.5 space-y-0.5 border-l border-primary/20">
       {isLoading ? (
-        <div className="flex items-center gap-1.5 py-1.5 px-2 text-[10px] text-slate-500">
+        <div className="flex items-center gap-1.5 py-1.5 px-2 text-[10px] text-muted-foreground">
           <Loader2 size={11} className="animate-spin shrink-0" />
           Loading contents…
         </div>
@@ -258,7 +258,7 @@ function TopicContentRows({
           Failed to load contents.
         </div>
       ) : contents.length === 0 ? (
-        <div className="py-1.5 px-2 text-[10px] text-slate-500 italic">No content yet.</div>
+        <div className="py-1.5 px-2 text-[10px] text-muted-foreground italic">No content yet.</div>
       ) : (
         contents.map((content, cIdx) => {
           const meta = CONTENT_TYPE_META[content.type] || DEFAULT_CONTENT_META;
@@ -272,12 +272,12 @@ function TopicContentRows({
               title={content.title || meta.label}
               className={`group/content flex items-center justify-between gap-2 pl-2 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
                 isContentActive
-                  ? "bg-orange-500/15 text-orange-400 font-semibold"
-                  : "text-slate-400 hover:text-slate-50 hover:bg-[#B7C9C5]/70"
+                  ? "bg-primary/15 text-primary font-semibold"
+                  : "text-muted-foreground hover:text-slate-50 hover:bg-background/70"
               }`}
             >
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                <Icon size={12} className={`shrink-0 ${isContentActive ? "text-orange-400" : meta.color}`} />
+                <Icon size={12} className={`shrink-0 ${isContentActive ? "text-primary" : meta.color}`} />
                 <span className="truncate text-[10.5px] leading-snug">
                   {content.title || `Untitled ${meta.label}`}
                 </span>
@@ -408,11 +408,11 @@ export function CourseComposerSidebar({
   }
 
   return (
-    <aside className="sidebar-panel rounded-2xl border border-[#D9D9D9] bg-[#B7C9C5] p-4 shadow-xl flex flex-col h-full max-h-[calc(100vh-7rem)] overflow-hidden text-slate-200">
+    <aside className="sidebar-panel rounded-2xl border border-border bg-background p-4 shadow-xl flex flex-col h-full max-h-[calc(100vh-7rem)] overflow-hidden text-foreground">
       {/* Panel Title */}
       <div className="flex items-center justify-between gap-2 mb-1 shrink-0">
-        <div className="font-black text-xs uppercase tracking-widest text-slate-200 flex items-center gap-2">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-accent, #f2c7c7)" strokeWidth="2">
+        <div className="font-black text-xs uppercase tracking-widest text-foreground flex items-center gap-2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-accent, #f97316)" strokeWidth="2">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
           </svg>
           <span>Course Map</span>
@@ -420,7 +420,7 @@ export function CourseComposerSidebar({
         <button
           type="button"
           onClick={onToggleOpen}
-          className="p-1 rounded-lg text-slate-400 hover:text-orange-400 hover:bg-[#B7C9C5] transition cursor-pointer shrink-0"
+          className="p-1 rounded-lg text-muted-foreground hover:text-primary hover:bg-background transition cursor-pointer shrink-0"
           aria-label="Hide course map"
           title="Hide course map"
         >
@@ -429,7 +429,7 @@ export function CourseComposerSidebar({
       </div>
 
       {/* Compact subtitle */}
-      <div className="text-[10.5px] text-slate-500 mb-3 pb-3 border-b border-[#D9D9D9]/80">
+      <div className="text-[10.5px] text-muted-foreground mb-3 pb-3 border-b border-border/80">
         Course structure
       </div>
 
@@ -437,7 +437,7 @@ export function CourseComposerSidebar({
       {role === "INSTRUCTOR" && (
         <button
           type="button"
-          className="w-full py-2 mb-3 flex items-center justify-center gap-1.5 rounded-xl border border-orange-500/40 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 text-xs font-bold transition cursor-pointer shrink-0"
+          className="w-full py-2 mb-3 flex items-center justify-center gap-1.5 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold transition cursor-pointer shrink-0"
           onClick={onAddModule}
         >
           <Plus size={14} />
@@ -450,12 +450,12 @@ export function CourseComposerSidebar({
         <div
           className={`flex items-center gap-2 px-3 py-2.5 rounded-xl transition cursor-pointer text-xs flex-1 border-l-[3px] ${
             composerMode === "course"
-              ? "bg-orange-500/15 border-orange-500 text-orange-400 font-bold"
-              : "border-transparent text-slate-300 hover:bg-[#B7C9C5]"
+              ? "bg-primary/15 border-primary text-primary font-bold"
+              : "border-transparent text-foreground hover:bg-background"
           }`}
           onClick={onSelectCourseOverview}
         >
-          <Home size={14} className={composerMode === "course" ? "text-orange-400 shrink-0" : "text-slate-400 shrink-0"} />
+          <Home size={14} className={composerMode === "course" ? "text-primary shrink-0" : "text-muted-foreground shrink-0"} />
           <span className="truncate font-semibold">Course Overview</span>
         </div>
         {role === "INSTRUCTOR" && (
@@ -480,8 +480,8 @@ export function CourseComposerSidebar({
                 <div
                   className={`flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl transition cursor-pointer text-xs border-l-[3px] ${
                     isQuizActive
-                      ? "bg-orange-500/25 border-orange-500 text-black font-bold"
-                      : "border-transparent text-slate-300 hover:bg-[#B7C9C5]"
+                      ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
+                      : "border-transparent text-foreground hover:bg-background"
                   }`}
                   onClick={() => onSelectQuiz?.(quiz, null, null)}
                 >
@@ -533,7 +533,7 @@ export function CourseComposerSidebar({
       {/* Modules Tree */}
       <div className="flex-1 min-h-0 overflow-y-auto space-y-0.5 pr-1 text-xs">
         {modules.length === 0 ? (
-          <div className="py-8 text-center text-slate-500 text-xs italic">
+          <div className="py-8 text-center text-muted-foreground text-xs italic">
             No modules available in this course.
           </div>
         ) : (
@@ -550,10 +550,10 @@ export function CourseComposerSidebar({
                 <div
                   className={`group/module flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-2 rounded-lg transition-colors cursor-pointer border-l-[3px] ${
                     isModuleActive
-                      ? "bg-orange-500/15 border-orange-500 text-orange-400 font-bold"
+                      ? "bg-primary/15 border-primary text-primary font-bold"
                       : moduleHasActiveChild
-                      ? "bg-[#B7C9C5]/40 border-orange-500/40 text-slate-100"
-                      : "border-transparent text-slate-200 hover:bg-[#B7C9C5]/60"
+                      ? "bg-background/40 border-primary/40 text-foreground"
+                      : "border-transparent text-foreground hover:bg-background/60"
                   }`}
                   onClick={() => onSelectModule(mod)}
                 >
@@ -564,16 +564,16 @@ export function CourseComposerSidebar({
                         e.stopPropagation();
                         toggleModule(mod.id);
                       }}
-                      className="p-0.5 text-slate-400 hover:text-slate-50 transition cursor-pointer shrink-0"
+                      className="p-0.5 text-muted-foreground hover:text-slate-50 transition cursor-pointer shrink-0"
                       aria-label={moduleOpen ? "Collapse module" : "Expand module"}
                     >
                       <ChevronRight
                         size={14}
-                        className={`transition-transform duration-200 ${moduleOpen ? "rotate-90 text-orange-500" : ""}`}
+                        className={`transition-transform duration-200 ${moduleOpen ? "rotate-90 text-primary" : ""}`}
                       />
                     </button>
-                    <Layers size={14} className={`shrink-0 ${isModuleActive ? "text-orange-400" : "text-orange-500/80"}`} />
-                    <span className="text-[9px] font-black text-slate-500 tabular-nums shrink-0">
+                    <Layers size={14} className={`shrink-0 ${isModuleActive ? "text-primary" : "text-primary/80"}`} />
+                    <span className="text-[9px] font-black text-muted-foreground tabular-nums shrink-0">
                       M{mIdx + 1}
                     </span>
                     <span className="truncate text-xs font-bold" title={mod.title}>
@@ -605,7 +605,7 @@ export function CourseComposerSidebar({
 
                 {/* Module Children: Module Quizzes + Lessons */}
                 <Collapsible open={moduleOpen}>
-                  <div className="ml-3.5 pl-3 py-0.5 space-y-0.5 border-l border-[#D9D9D9]/70">
+                  <div className="ml-3.5 pl-3 py-0.5 space-y-0.5 border-l border-border/70">
                     {/* Module Quizzes (when present) */}
                     {modQuizzes.length > 0 && (
                       <div className="mb-1 space-y-0.5">
@@ -618,8 +618,8 @@ export function CourseComposerSidebar({
                               <div
                                 className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
                                   isQuizActive
-                                    ? "bg-orange-500/25 border-orange-500 text-black font-bold"
-                                    : "border-transparent text-black/70 hover:text-black hover:bg-[#B7C9C5]/60"
+                                    ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
+                                    : "border-transparent text-emerald-300/80 hover:text-emerald-300 hover:bg-background/60"
                                 }`}
                                 onClick={() => onSelectQuiz?.(quiz, mod, null)}
                               >
@@ -668,7 +668,7 @@ export function CourseComposerSidebar({
                       </div>
                     )}
                     {modLessons.length === 0 ? (
-                      <div className="py-1.5 px-2 text-[10px] text-slate-500 italic">
+                      <div className="py-1.5 px-2 text-[10px] text-muted-foreground italic">
                         No lessons in this module.
                       </div>
                     ) : (
@@ -687,16 +687,16 @@ export function CourseComposerSidebar({
                             <div
                               className={`group/lesson flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg transition-colors border-l-2 ${
                                 isLessonLocked
-                                  ? "cursor-not-allowed opacity-50 border-transparent text-slate-500"
+                                  ? "cursor-not-allowed opacity-50 border-transparent text-muted-foreground"
                                   : "cursor-pointer"
                               } ${
                                 isLessonLocked
                                   ? ""
                                   : isLessonActive
-                                  ? "bg-orange-500/15 border-orange-500 text-orange-400 font-bold"
+                                  ? "bg-primary/15 border-primary text-primary font-bold"
                                   : lessonHasActiveChild
-                                  ? "bg-[#B7C9C5]/30 border-orange-500/30 text-slate-100"
-                                  : "border-transparent text-slate-400 hover:text-slate-50 hover:bg-[#B7C9C5]/50"
+                                  ? "bg-background/30 border-primary/30 text-foreground"
+                                  : "border-transparent text-muted-foreground hover:text-slate-50 hover:bg-background/50"
                               }`}
                               onClick={() => !isLessonLocked && onSelectLesson(lesson.id)}
                               title={isLessonLocked ? "Complete the previous lesson to unlock" : undefined}
@@ -708,21 +708,21 @@ export function CourseComposerSidebar({
                                     e.stopPropagation();
                                     if (!isLessonLocked) toggleLesson(lesson.id);
                                   }}
-                                  className="p-0.5 text-slate-500 hover:text-slate-50 transition cursor-pointer shrink-0"
+                                  className="p-0.5 text-muted-foreground hover:text-slate-50 transition cursor-pointer shrink-0"
                                   aria-label={lessonOpen ? "Collapse lesson" : "Expand lesson"}
                                   disabled={isLessonLocked}
                                 >
                                   <ChevronRight
                                     size={12}
-                                    className={`transition-transform duration-200 ${lessonOpen ? "rotate-90 text-orange-500" : ""}`}
+                                    className={`transition-transform duration-200 ${lessonOpen ? "rotate-90 text-primary" : ""}`}
                                   />
                                 </button>
                                 {isLessonLocked ? (
-                                  <Lock size={12} className="shrink-0 text-slate-500" />
+                                  <Lock size={12} className="shrink-0 text-muted-foreground" />
                                 ) : isCompleted ? (
                                   <CheckCircle2 size={12} className="shrink-0 text-emerald-400" />
                                 ) : (
-                                  <BookOpen size={12} className={`shrink-0 ${isLessonActive ? "text-orange-400" : "text-slate-500"}`} />
+                                  <BookOpen size={12} className={`shrink-0 ${isLessonActive ? "text-primary" : "text-muted-foreground"}`} />
                                 )}
                                 <span className="text-[8.5px] font-black text-slate-600 tabular-nums shrink-0">
                                   L{lIdx + 1}
@@ -756,7 +756,7 @@ export function CourseComposerSidebar({
 
                             {/* Lesson Quizzes + Topics */}
                             <Collapsible open={lessonOpen}>
-                              <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-[#D9D9D9]/60">
+                              <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-border/60">
                                 {/* Lesson Quizzes (when present) */}
                                 {lessonQuizzes.length > 0 && (
                                   <div className="mb-1 space-y-0.5">
@@ -769,8 +769,8 @@ export function CourseComposerSidebar({
                                           <div
                                             className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
                                               isQuizActive
-                                                ? "bg-orange-500/25 border-orange-500 text-black font-bold"
-                                                : "border-transparent text-black/70 hover:text-black hover:bg-[#B7C9C5]/60"
+                                                ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
+                                                : "border-transparent text-emerald-300/80 hover:text-emerald-300 hover:bg-background/60"
                                             }`}
                                             onClick={() => onSelectQuiz?.(quiz, mod, lesson)}
                                           >
@@ -819,7 +819,7 @@ export function CourseComposerSidebar({
                                   </div>
                                 )}
                                 {lessonTopics.length === 0 ? (
-                                  <div className="py-1.5 px-2 text-[10px] text-slate-500 italic">
+                                  <div className="py-1.5 px-2 text-[10px] text-muted-foreground italic">
                                     No topics in this lesson.
                                   </div>
                                 ) : (
@@ -836,8 +836,8 @@ export function CourseComposerSidebar({
                                         <div
                                           className={`group/topic flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
                                             isTopicActive
-                                              ? "bg-orange-500/15 text-orange-400 font-semibold"
-                                              : "text-slate-400 hover:text-slate-50 hover:bg-[#B7C9C5]/40"
+                                              ? "bg-primary/15 text-primary font-semibold"
+                                              : "text-muted-foreground hover:text-slate-50 hover:bg-background/40"
                                           }`}
                                           onClick={() => onSelectTopic?.(topic.id, lesson.id, mod.id)}
                                         >
@@ -848,15 +848,15 @@ export function CourseComposerSidebar({
                                                 e.stopPropagation();
                                                 toggleTopic(topic.id);
                                               }}
-                                              className="p-0.5 text-slate-500 hover:text-slate-50 transition cursor-pointer shrink-0"
+                                              className="p-0.5 text-muted-foreground hover:text-slate-50 transition cursor-pointer shrink-0"
                                               aria-label={topicOpen ? "Collapse topic" : "Expand topic"}
                                             >
                                               <ChevronRight
                                                 size={11}
-                                                className={`transition-transform duration-200 ${topicOpen ? "rotate-90 text-orange-500" : ""}`}
+                                                className={`transition-transform duration-200 ${topicOpen ? "rotate-90 text-primary" : ""}`}
                                               />
                                             </button>
-                                            <TopicIcon size={12} className={`shrink-0 ${isTopicActive ? "text-orange-400" : topicMeta.color}`} />
+                                            <TopicIcon size={12} className={`shrink-0 ${isTopicActive ? "text-primary" : topicMeta.color}`} />
                                             <span className="truncate text-[11px] leading-snug" title={topic.title}>
                                               {displayTitle}
                                             </span>
@@ -891,7 +891,7 @@ export function CourseComposerSidebar({
 
                                         {/* Topic Quizzes + Contents */}
                                         <Collapsible open={topicOpen}>
-                                          <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-[#D9D9D9]/60">
+                                          <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-border/60">
                                             {(topic.quizzes || []).length > 0 && (
                                               <div className="mb-1 space-y-0.5">
                                                 {(topic.quizzes || []).map((quiz, qIdx) => {
@@ -903,8 +903,8 @@ export function CourseComposerSidebar({
                                                       <div
                                                         className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
                                                           isQuizActive
-                                                            ? "bg-orange-500/25 border-orange-500 text-black font-bold"
-                                                            : "border-transparent text-black/70 hover:text-black hover:bg-[#B7C9C5]/60"
+                                                            ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
+                                                            : "border-transparent text-emerald-300/80 hover:text-emerald-300 hover:bg-background/60"
                                                         }`}
                                                         onClick={() => onSelectQuiz?.(quiz, mod, lesson, topic)}
                                                       >

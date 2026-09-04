@@ -48,8 +48,8 @@ export default function ComposerSidebar({
 
   return (
     <aside className="w-full lg:w-80 shrink-0 space-y-3">
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-md p-4 space-y-3">
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">
+      <div className="rounded-2xl border border-border bg-background/50 backdrop-blur-md p-4 space-y-3">
+        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
           Course Map
         </p>
 
@@ -58,8 +58,8 @@ export default function ComposerSidebar({
           onClick={onSelectSettings}
           className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm font-bold transition ${
             view === "settings"
-              ? "bg-orange-500/10 text-orange-400"
-              : "text-slate-300 hover:bg-slate-800/60"
+              ? "bg-primary/10 text-primary"
+              : "text-foreground hover:bg-muted/60"
           }`}
         >
           <Settings size={14} /> Course Settings
@@ -96,21 +96,21 @@ export default function ComposerSidebar({
             onKeyDown={(e) => e.key === "Enter" && handleAddModule()}
             onBlur={() => !newModuleTitle.trim() && setAddingModule(false)}
             placeholder="Module title…"
-            className="w-full bg-slate-800 rounded-lg px-2.5 py-2 text-sm outline-none border border-orange-500"
+            className="w-full bg-muted rounded-lg px-2.5 py-2 text-sm outline-none border border-primary"
           />
         ) : (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setAddingModule(true)}
-              className="inline-flex items-center justify-center gap-1 py-2 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border border-slate-700/60 rounded-lg transition"
+              className="inline-flex items-center justify-center gap-1 py-2 text-xs font-bold text-foreground hover:text-foreground bg-muted hover:bg-slate-750 border border-transparent/60 rounded-lg transition"
             >
               <Plus size={12} /> Module
             </button>
             <button
               type="button"
               onClick={() => onOpenAiAssistant && onOpenAiAssistant("MODULE")}
-              className="inline-flex items-center justify-center gap-1 py-2 text-xs font-bold text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-lg transition"
+              className="inline-flex items-center justify-center gap-1 py-2 text-xs font-bold text-primary hover:text-orange-300 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-lg transition"
             >
               <Sparkles size={12} /> AI Module
             </button>

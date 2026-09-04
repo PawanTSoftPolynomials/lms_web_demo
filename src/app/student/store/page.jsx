@@ -39,21 +39,21 @@ export default function StudentStorePage() {
 
   if (isError) {
     return (
-      <Card className="p-8 text-center">
-        <h2 className="text-xl font-semibold text-white">Unable to load the store</h2>
-        <p className="mt-2 text-slate-400">Please try again later.</p>
+      <Card tone="flat" className="p-8 text-center">
+        <h2 className="text-xl font-semibold text-foreground">Unable to load the store</h2>
+        <p className="mt-2 text-muted-foreground">Please try again later.</p>
       </Card>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-4 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-8 flex flex-col flex-1 min-h-0">
       <PageHeader title="Store" subtitle="Browse every published course and enroll." />
 
-      <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="rounded-xl border border-transparent bg-background p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-white">All Courses</h2>
-          <p className="mt-1 text-sm text-slate-400">
+          <h2 className="text-xl font-semibold text-foreground">All Courses</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             {filteredCourses.length} course{filteredCourses.length !== 1 ? "s" : ""} available
             {paidCount > 0 && ` • ${paidCount} paid`}
             {freeCount > 0 && ` • ${freeCount} free`}
@@ -72,7 +72,9 @@ export default function StudentStorePage() {
         levels={levels}
       />
 
-      <StoreCourseGrid courses={filteredCourses} />
+      <div className="flex flex-col flex-1 min-h-0 rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6">
+        <StoreCourseGrid courses={filteredCourses} />
+      </div>
     </div>
   );
 }

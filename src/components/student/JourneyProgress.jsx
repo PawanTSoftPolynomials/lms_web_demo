@@ -22,7 +22,7 @@ export default function JourneyProgress({ stages, activeKey, doneKeys = [] }) {
 
         return (
           <li key={stage.key} className="flex items-center gap-2.5">
-            {index > 0 && <span className="h-px w-3 bg-slate-800" aria-hidden="true" />}
+            {index > 0 && <span className="h-px w-3 bg-muted" aria-hidden="true" />}
             <span
               className="flex items-center gap-1.5"
               aria-current={isActive ? "step" : undefined}
@@ -30,7 +30,7 @@ export default function JourneyProgress({ stages, activeKey, doneKeys = [] }) {
               <span
                 className={`h-1.5 w-1.5 rounded-full transition-colors duration-200 ${
                   isActive
-                    ? "bg-orange-500"
+                    ? "bg-primary"
                     : isDone
                       ? "bg-slate-500"
                       : "bg-slate-700"
@@ -39,7 +39,7 @@ export default function JourneyProgress({ stages, activeKey, doneKeys = [] }) {
               />
               <span
                 className={`text-[10px] uppercase tracking-wider font-bold transition-colors duration-200 ${
-                  isActive ? "text-orange-400" : isDone ? "text-slate-500" : "text-slate-600"
+                  isActive ? "text-primary" : isDone ? "text-muted-foreground" : "text-slate-600"
                 }`}
               >
                 {stage.label}

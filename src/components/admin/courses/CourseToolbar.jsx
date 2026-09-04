@@ -36,13 +36,13 @@ export default function CourseToolbar({
             rounded-lg
             border
             border-white/10
-            bg-slate-900
+            bg-background
             px-4
             py-2
             text-sm
-            text-white
+            text-foreground
             outline-none
-            focus:border-orange-500
+            focus:border-primary
           "
                 >
                     <option value="">
@@ -68,13 +68,13 @@ export default function CourseToolbar({
             rounded-lg
             border
             border-white/10
-            bg-slate-900
+            bg-background
             px-4
             py-2
             text-sm
-            text-white
+            text-foreground
             outline-none
-            focus:border-orange-500
+            focus:border-primary
           "
                 >
                     <option value="">

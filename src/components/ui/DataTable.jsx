@@ -22,7 +22,7 @@ export default function DataTable({
   stickyHeader = false,
   skeletonRows = 0,
 }) {
-  const headerClass = `border-b border-border text-[9.5px] font-black text-muted-foreground uppercase tracking-widest ${stickyHeader ? "sticky top-0 z-10 bg-popover backdrop-blur-md" : ""}`;
+  const headerClass = `border-b border-border text-[9px] font-black text-muted-foreground uppercase tracking-widest ${stickyHeader ? "sticky top-0 z-10 bg-card" : ""}`;
 
   if (isLoading && skeletonRows > 0) {
     return (
@@ -62,7 +62,7 @@ export default function DataTable({
   if (rows.length === 0) {
     return (
       <div className="py-16 flex flex-col items-center justify-center gap-2 text-center">
-        <Inbox size={22} className="text-muted-foreground" />
+        <Inbox size={22} className="text-slate-600" />
         <p className="text-xs font-bold text-muted-foreground">{emptyLabel}</p>
       </div>
     );
@@ -88,7 +88,7 @@ export default function DataTable({
             <tr
               key={row[rowKey]}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
-              className={`hover:bg-muted/40 transition-colors duration-200 ${onRowClick ? "cursor-pointer" : ""}`}
+              className={`hover:bg-foreground/5 transition ${onRowClick ? "cursor-pointer" : ""}`}
             >
               {columns.map((col) => (
                 <td

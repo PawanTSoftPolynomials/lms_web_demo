@@ -20,8 +20,8 @@ export default function EmptyContents({
         rounded-2xl
         border
         border-dashed
-        border-slate-700
-        bg-slate-900
+        border-transparent
+        bg-background
         px-8
         py-20
         text-center
@@ -36,18 +36,18 @@ export default function EmptyContents({
           items-center
           justify-center
           rounded-full
-          bg-orange-500/10
-          text-orange-400
+          bg-primary/10
+          text-primary
         "
             >
                 <FaFileAlt size={34} />
             </div>
 
-            <h2 className="text-3xl font-bold text-white">
+            <h2 className="text-3xl font-bold text-foreground">
                 No Content Available
             </h2>
 
-            <p className="mt-3 max-w-lg text-slate-400">
+            <p className="mt-3 max-w-lg text-muted-foreground">
                 This topic doesn't have any learning content yet.
                 Add videos, PDFs, external links, or HTML content
                 to help students learn.
@@ -66,7 +66,7 @@ export default function EmptyContents({
             px-6
             py-3
             font-medium
-            text-white
+            text-foreground
             transition
             hover:bg-orange-700
           "
