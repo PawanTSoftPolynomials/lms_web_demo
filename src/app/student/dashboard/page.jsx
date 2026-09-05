@@ -1,15 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   GraduationCap,
   Trophy,
   CheckCircle,
   Activity,
   Clock,
-  ClipboardList,
-  HelpCircle,
   Play,
   CalendarIcon,
 } from "lucide-react";
@@ -26,6 +25,7 @@ import MobileContinueCard from "@/components/dashboard/MobileContinueCard";
 import StudentStatCard from "@/components/dashboard/StudentStatCard";
 import UpcomingEventCard from "@/components/dashboard/UpcomingEventCard";
 import AchievementItem from "@/components/dashboard/AchievementItem";
+import NewAssignedWorkPanel from "@/components/dashboard/NewAssignedWorkPanel";
 import { useAuth } from "@/context/AuthContext";
 import { toMinutesSinceMidnight } from "@/lib/dateUtils";
 import { QUOTES } from "@/constants/dashboardQuotes";
@@ -45,6 +45,14 @@ export default function StudentDashboardPage() {
 
   const dailyQuote = useMemo(() => QUOTES[new Date().getDate() % QUOTES.length], []);
 
+  const [greeting, setGreeting] = useState("Welcome back,");
+  useEffect(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem("show_first_login_greeting") === "true") {
+      sessionStorage.removeItem("show_first_login_greeting");
+      setGreeting("Hi,");
+    }
+  }, []);
+
   const completedLessonsCount = stats.completedLessons ?? 0;
   const totalLessonsCount = stats.totalLessons ?? 0;
   const completionRate = totalLessonsCount > 0 ? Math.round((completedLessonsCount / totalLessonsCount) * 100) : 0;
@@ -53,7 +61,7 @@ export default function StudentDashboardPage() {
     enrolledCount: enrolledCourses.length,
     completedLessonsCount,
     completionRate,
-    certificatesCount: stats.certificatesCount ?? 0,
+    certificatesCount: stats.certificates ?? 0,
   });
 
   const achievementsList = useMemo(() => getAchievementsList(stats), [stats]);
@@ -73,6 +81,41 @@ export default function StudentDashboardPage() {
       .sort((a, b) => (a._minutes ?? 0) - (b._minutes ?? 0))
       .slice(0, 4);
   }, [calendarEvents]);
+
+  // Upcoming's top should line up with Recommended for You's top — two
+  // different-height first items (Welcome banner vs. Continue Learning) sit
+  // above them in independent flex columns, so the placeholder box between
+  // Welcome and Upcoming is sized (via measurement, not CSS alone) to push
+  // Upcoming down to that same starting line. Only applied at xl+ (the
+  // 3-column desktop layout); below that everything stacks naturally.
+  const welcomeRef = useRef(null);
+  const recommendedRef = useRef(null);
+  const [placeholderHeight, setPlaceholderHeight] = useState(null);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 1280px)");
+    const GAP_PX = 16; // Tailwind gap-4
+    const updateHeight = () => {
+      if (mql.matches && welcomeRef.current && recommendedRef.current) {
+        const welcomeBottom = welcomeRef.current.getBoundingClientRect().bottom;
+        const recommendedTop = recommendedRef.current.getBoundingClientRect().top;
+        setPlaceholderHeight(Math.max(0, recommendedTop - welcomeBottom - GAP_PX * 2));
+      } else {
+        setPlaceholderHeight(null);
+      }
+    };
+    updateHeight();
+
+    const resizeObserver = new ResizeObserver(updateHeight);
+    if (welcomeRef.current) resizeObserver.observe(welcomeRef.current);
+    if (recommendedRef.current) resizeObserver.observe(recommendedRef.current);
+    mql.addEventListener("change", updateHeight);
+
+    return () => {
+      resizeObserver.disconnect();
+      mql.removeEventListener("change", updateHeight);
+    };
+  }, [isDashboardLoading, isCoursesLoading]);
 
   const enrolledCourseIds = useMemo(
     () => new Set(enrolledCourses.map((e) => e.courseId || e.course?.id)),
@@ -102,29 +145,36 @@ export default function StudentDashboardPage() {
       <div className="-m-3 sm:-m-6 sm:-mt-12 md:-mt-16 -mx-4 sm:-mx-12 md:-mx-16 min-h-[calc(100vh-3.5rem)] bg-background p-3 sm:p-6 pt-0 sm:pt-0">
         <div className="flex flex-col max-w-[1600px] mx-auto">
 
-        {/* Stat / KPI Strip */}
-        <div className="mt-4 sm:mt-[3.2px] mb-[1.6px]">
-          <div className="flex flex-wrap md:flex-nowrap items-center gap-[2.4px] w-full">
-            {statCards.map((s) => (
-              <StudentStatCard key={s.key} stat={s} isLoading={isDashboardLoading} variant="desktop" />
-            ))}
-          </div>
-        </div>
+        {/*
+          Layout (xl+): 3 independent columns, each its own flex stack (not
+          CSS Grid rows) so a tall item in one column (e.g. a 5-course
+          Continue Learning list) never pushes down unrelated items in
+          another column. Each box is sized to its own natural content —
+          no cross-column height stretching —
+            Col 1: Continue Learning, Recommended for You
+            Col 2: Welcome banner, New Assigned Work, Upcoming
+            Col 3: Stats, Recent Achievements, Calendar
+          Below xl: columns stack in DOM order (Welcome column first).
+        */}
+        <div className="mt-2 xl:mt-2 flex flex-col gap-2 xl:flex-row xl:items-start xl:gap-2">
 
-        {/* Main grid: content (8/12) + sidebar (4/12) */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:gap-[4.8px] mt-4 xl:mt-[3.2px]">
-          {/* Left main column */}
-          <div className="xl:col-span-8 flex flex-col gap-4 xl:gap-[4.8px]">
+          {/* Column: Welcome banner, (placeholder), Upcoming — stretched
+              (xl:self-stretch) to match the tallest natural column, with
+              Upcoming (flex-1) filling the remainder so it ends level with
+              Calendar's bottom. The placeholder above Upcoming is sized
+              (via measurement) so Upcoming's top lines up with Recommended
+              for You's top. */}
+          <div className="flex flex-col gap-2 xl:basis-0 xl:grow-[5] xl:order-2 xl:self-stretch">
 
             {/* Welcome Hero Card */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0B0F1A] to-[#12182B] border border-border p-5 shadow-sm flex flex-col md:flex-row items-center justify-between min-h-[140px]">
+            <div ref={welcomeRef} className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0B0F1A] to-[#12182B] border border-border p-5 shadow-sm flex flex-col md:flex-row items-center justify-between min-h-[140px]">
               <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-primary/10 blur-[60px] pointer-events-none" />
               <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full bg-purple-500/10 blur-[40px] pointer-events-none" />
 
               <div className="relative z-10 w-full md:w-2/3 space-y-2">
                 <div className="space-y-0.5">
-                  <p className="text-muted-foreground text-xs font-medium">Welcome back,</p>
-                  <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight flex items-center gap-2">
+                  <p className="text-muted-foreground text-xs font-medium">{greeting}</p>
+                  <h1 className="text-xl sm:text-3xl font-bold text-foreground tracking-tight flex items-center gap-2">
                     {user?.name ? user.name.split(" ")[0] : "Student"}! <span className="animate-wave origin-bottom-right inline-block text-xl">👋</span>
                   </h1>
                   <p className="text-muted-foreground text-xs">Let&apos;s continue your learning journey. You&apos;ve got this!</p>
@@ -152,6 +202,73 @@ export default function StudentDashboardPage() {
                 </div>
               </div>
             </div>
+
+            {/* New Assigned Work — new quizzes/assignments/tests/projects/exams
+                assigned by an instructor via course, batch, or direct
+                assignment. Height is measured so Upcoming's top lines up
+                with Recommended for You's top (see placeholderHeight
+                above); content scrolls internally if it exceeds that. */}
+            <div
+              className="relative overflow-hidden rounded-2xl bg-card border border-border p-5 flex flex-col"
+              style={{ minHeight: placeholderHeight ?? 80 }}
+            >
+              <Image
+                src="/images/new.png"
+                alt="New"
+                width={64}
+                height={64}
+                className="absolute top-0 right-0 h-14 w-14 pointer-events-none select-none"
+              />
+              <div className="flex items-center justify-between mb-4 border-b border-border pb-3 shrink-0">
+                <h3 className="text-sm font-black text-foreground">New Assigned Work</h3>
+              </div>
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                <NewAssignedWorkPanel />
+              </div>
+            </div>
+
+            {/* Upcoming */}
+            <div className="rounded-2xl bg-card border border-border p-5 flex-1 flex flex-col">
+              <div className="flex items-center justify-between mb-4 border-b border-border pb-3 shrink-0">
+                <h3 className="text-sm font-black text-foreground flex items-center gap-2">
+                  <CalendarIcon size={14} className="text-primary" />
+                  Upcoming (Next 30 Min)
+                </h3>
+                <Link href="/student/calendar" className="text-[11px] text-primary font-bold hover:text-orange-300">
+                  View all
+                </Link>
+              </div>
+
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                {isCalendarEventsLoading ? (
+                  <div className="space-y-2.5">
+                    {[1, 2].map((n) => (
+                      <div key={n} className="h-[54px] rounded-xl bg-muted/50 animate-pulse" />
+                    ))}
+                  </div>
+                ) : upcomingEvents.length === 0 ? (
+                  <div className="py-6 text-center">
+                    <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-2">
+                      <Clock size={16} className="text-muted-foreground" />
+                    </div>
+                    <p className="text-xs text-muted-foreground font-medium">Nothing scheduled for the rest of today</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {upcomingEvents.map((task) => (
+                      <UpcomingEventCard key={task.id} task={task} variant="desktop" />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Column: Continue Learning, Recommended for You — stretched
+              (xl:self-stretch) to match the tallest natural column, with
+              Recommended for You (flex-1) filling the remainder so it ends
+              level with Calendar's bottom. */}
+          <div className="flex flex-col gap-2 xl:basis-0 xl:grow-[4] xl:order-1 xl:self-stretch">
 
             {/* Continue Learning */}
             <div className="rounded-2xl bg-card border border-border p-5">
@@ -187,7 +304,7 @@ export default function StudentDashboardPage() {
             </div>
 
             {/* Recommended for You */}
-            <div className="rounded-2xl bg-card border border-border p-5">
+            <div ref={recommendedRef} className="rounded-2xl bg-card border border-border p-5 flex-1 flex flex-col">
               <RecommendedCoursesCarousel
                 title="Recommended for You"
                 viewAllHref="/student/courses"
@@ -199,51 +316,13 @@ export default function StudentDashboardPage() {
             </div>
           </div>
 
-          {/* Right sidebar column */}
-          <div className="xl:col-span-4 flex flex-col gap-4 xl:gap-[4.8px]">
-
-            {/* Upcoming */}
-            <div className="rounded-2xl bg-card border border-border p-5">
-              <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
-                <h3 className="text-sm font-black text-foreground flex items-center gap-2">
-                  <CalendarIcon size={14} className="text-primary" />
-                  Upcoming (Next 30 Min)
-                </h3>
-                <Link href="/student/calendar" className="text-[11px] text-primary font-bold hover:text-orange-300">
-                  View all
-                </Link>
-              </div>
-
-              {isCalendarEventsLoading ? (
-                <div className="space-y-2.5">
-                  {[1, 2].map((n) => (
-                    <div key={n} className="h-[54px] rounded-xl bg-muted/50 animate-pulse" />
-                  ))}
-                </div>
-              ) : upcomingEvents.length === 0 ? (
-                <div className="py-6 text-center">
-                  <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-2">
-                    <Clock size={16} className="text-muted-foreground" />
-                  </div>
-                  <p className="text-xs text-muted-foreground font-medium">Nothing scheduled for the rest of today</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {upcomingEvents.map((task) => (
-                    <UpcomingEventCard key={task.id} task={task} variant="desktop" />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Calendar */}
-            <div className="rounded-2xl bg-card border border-border p-5">
-              <div className="mb-2">
-                <h3 className="text-sm font-black text-foreground">Calendar</h3>
-              </div>
-              <div className="dashboard-calendar-wrapper text-foreground scale-[0.95] origin-top">
-                <MiniCalendar role="STUDENT" />
-              </div>
+          {/* Column: Stats, Recent Achievements, Calendar — same sidebar
+              slot at xl+, each box sized to its own natural content. */}
+          <div className="flex flex-col gap-2 xl:basis-0 xl:grow-[3] xl:order-3">
+            <div className="grid grid-cols-2 md:flex md:flex-nowrap xl:grid xl:grid-cols-2 items-stretch gap-2">
+              {statCards.map((s) => (
+                <StudentStatCard key={s.key} stat={s} isLoading={isDashboardLoading} variant="desktop" />
+              ))}
             </div>
 
             {/* Recent Achievements */}
@@ -259,20 +338,30 @@ export default function StudentDashboardPage() {
               </div>
 
               {isDashboardLoading ? (
-                <div className="space-y-2.5">
-                  {[1, 2].map((n) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3">
+                  {[1, 2, 3, 4].map((n) => (
                     <div key={n} className="h-[54px] rounded-xl bg-muted/50 animate-pulse" />
                   ))}
                 </div>
               ) : unlockedAchievements.length === 0 ? (
                 <p className="text-xs text-muted-foreground text-center py-4">Keep learning to unlock your first achievement!</p>
               ) : (
-                <div className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-x-4 gap-y-5">
                   {unlockedAchievements.map((ach) => (
                     <AchievementItem key={ach.name} achievement={ach} />
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* Calendar */}
+            <div className="rounded-2xl bg-card border border-border p-5">
+              <div className="mb-2">
+                <h3 className="text-sm font-black text-foreground">Calendar</h3>
+              </div>
+              <div className="dashboard-calendar-wrapper text-foreground scale-[0.95] origin-top">
+                <MiniCalendar role="STUDENT" />
+              </div>
             </div>
           </div>
         </div>

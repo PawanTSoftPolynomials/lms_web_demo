@@ -112,7 +112,7 @@ export default function OptionList({
                 className={`text-sm sm:text-base leading-snug transition-colors duration-200 ${
                   isSelected
                     ? "font-semibold text-foreground"
-                    : "text-slate-350"
+                    : "text-slate-400"
                 }`}
               >
                 {optionText}

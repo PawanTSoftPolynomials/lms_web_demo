@@ -9,6 +9,10 @@ export default function Modal({
   title,
   children,
   size = "md",
+  // Additive, opt-out only — every existing caller keeps the blurred/dimmed
+  // backdrop unchanged. Pass false for a plain popup where the page behind
+  // it should stay fully sharp/visible (no blur, no dimming tint).
+  blurBackdrop = true,
 }) {
   const [mounted, setMounted] =
     useState(false);
@@ -16,6 +20,17 @@ export default function Modal({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose?.();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, onClose]);
 
   if (!mounted || !open)
     return null;
@@ -29,21 +44,20 @@ export default function Modal({
 
   return createPortal(
     <div
-     className="
+     className={`
   fixed
   inset-0
   z-9999
   flex
   items-center
   justify-center
-  bg-background/80
-  backdrop-blur-sm
   animate-in
   fade-in
   duration-200
   p-3
   sm:p-6
-"
+  ${blurBackdrop ? "bg-background/80 backdrop-blur-sm" : "bg-transparent"}
+`}
       onClick={onClose}
     >
       <div
@@ -108,7 +122,7 @@ export default function Modal({
           </button>
         </div>
 
-        <div className="p-4 sm:p-6 flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="p-4 sm:p-6 flex-1 min-h-0 flex flex-col overflow-y-auto">
           {children}
         </div>
       </div>

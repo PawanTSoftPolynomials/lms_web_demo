@@ -6,6 +6,7 @@ import { BookOpen, Search } from "lucide-react";
 
 import PageHeader from "@/components/layouts/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
+import Button from "@/components/ui/Button";
 import MyCourseCard from "@/components/student/my-courses/MyCourseCard";
 import useMyCourses from "@/hooks/queries/student/useMyCourses";
 import { STATUS_OPTIONS, SORT_OPTIONS } from "@/features/student/constants/myCoursesConfig";
@@ -110,7 +111,7 @@ export default function MyCoursesPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-border bg-card px-3 py-2 md:py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer hover:border-transparent transition"
+              className="rounded-xl border border-border bg-card px-3 py-2 md:py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer hover:border-transparent transition [&>option]:bg-card [&>option]:text-foreground"
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -122,7 +123,7 @@ export default function MyCoursesPage() {
             <select
               value={instructorFilter}
               onChange={(e) => setInstructorFilter(e.target.value)}
-              className="rounded-xl border border-border bg-card px-3 py-2 md:py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer hover:border-transparent transition"
+              className="rounded-xl border border-border bg-card px-3 py-2 md:py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer hover:border-transparent transition [&>option]:bg-card [&>option]:text-foreground"
             >
               <option value="all">All Instructors</option>
               {instructors.map((name) => (
@@ -135,7 +136,7 @@ export default function MyCoursesPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="rounded-xl border border-border bg-card px-3 py-2 md:py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer hover:border-transparent transition"
+              className="rounded-xl border border-border bg-card px-3 py-2 md:py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer hover:border-transparent transition [&>option]:bg-card [&>option]:text-foreground"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -150,12 +151,9 @@ export default function MyCoursesPage() {
       {isError ? (
         <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
           <p className="text-sm font-bold text-foreground">Unable to load your courses.</p>
-          <button
-            onClick={() => refetch()}
-            className="px-4 py-2 rounded-xl bg-primary hover:bg-orange-600 text-foreground text-xs font-bold transition cursor-pointer"
-          >
+          <Button onClick={() => refetch()}>
             Retry
-          </button>
+          </Button>
         </div>
       ) : !isLoading && myEnrollments.length === 0 ? (
         <EmptyState

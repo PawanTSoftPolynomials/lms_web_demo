@@ -143,7 +143,7 @@ export default function StudentBatchesPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="shrink-0 bg-card border border-border rounded-xl px-3 py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer"
           >
-            <option value="">All Statuses</option>
+            <option value="">All Status</option>
             <option value="ACTIVE">Active</option>
             <option value="COMPLETED">Completed</option>
             <option value="ARCHIVED">Archived</option>

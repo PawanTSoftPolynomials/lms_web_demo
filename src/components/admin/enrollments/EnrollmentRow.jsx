@@ -19,7 +19,7 @@ export default function EnrollmentRow({
                         }
                     </p>
 
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                         {
                             enrollment.student?.user
                                 ?.email
@@ -38,7 +38,7 @@ export default function EnrollmentRow({
                         }
                     </p>
 
-                    <p className="mt-1 line-clamp-2 text-sm text-gray-400">
+                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                         {
                             enrollment.course
                                 ?.description
@@ -48,13 +48,13 @@ export default function EnrollmentRow({
             </td>
 
             {/* Phone */}
-            <td className="px-6 py-4 text-gray-300">
+            <td className="px-6 py-4 text-muted-foreground">
                 {enrollment.student?.phone ||
                     "-"}
             </td>
 
             {/* Enrolled On */}
-            <td className="px-6 py-4 text-gray-400">
+            <td className="px-6 py-4 text-muted-foreground">
                 {new Date(
                     enrollment.enrolledAt
                 ).toLocaleDateString()}

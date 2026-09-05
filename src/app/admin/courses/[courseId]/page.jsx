@@ -14,6 +14,8 @@ import {
     getCourseById, updateCourse, deleteCourse,
 } from "@/services/course.service";
 import Modal from "@/components/ui/Modal";
+import { useConfirm } from "@/context/ConfirmContext";
+import { useToast } from "@/components/ui/ToastProvider";
 import ModuleForm from "@/components/modules/ModuleForm";
 import {
     useUpdateCourseStatus,
@@ -26,6 +28,8 @@ export default function AdminCoursePage() {
     const {courseId} = useParams();
     const router = useRouter();
     const updateStatusMutation = useUpdateCourseStatus();
+    const confirm = useConfirm();
+    const { showToast } = useToast();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
@@ -68,13 +72,13 @@ export default function AdminCoursePage() {
             if (editingModule) {
                 await updateModule(editingModule.id, moduleData);
 
-                alert("Module updated successfully.");
+                showToast("Module updated successfully.", "success");
             } else {
                 await createModule({
                     ...moduleData, courseId,
                 });
 
-                alert("Module created successfully.");
+                showToast("Module created successfully.", "success");
             }
 
             setEditingModule(null);
@@ -84,7 +88,7 @@ export default function AdminCoursePage() {
         } catch (error) {
             console.error(error);
 
-            alert("Failed to save modules.");
+            showToast("Failed to save modules.", "error");
         } finally {
             setModuleLoading(false);
         }
@@ -94,7 +98,12 @@ export default function AdminCoursePage() {
         setModuleModalOpen(true);
     };
     const handleDeleteModule = async (moduleId) => {
-        const confirmed = window.confirm("Delete this modules?");
+        const confirmed = await confirm({
+            title: "Delete Module",
+            message: "Delete this modules?",
+            confirmText: "Delete",
+            cancelText: "Cancel",
+        });
 
         if (!confirmed) return;
 
@@ -103,11 +112,11 @@ export default function AdminCoursePage() {
 
             await loadCourse();
 
-            alert("Module deleted successfully.");
+            showToast("Module deleted successfully.", "success");
         } catch (error) {
             console.error(error);
 
-            alert("Failed to delete modules.");
+            showToast("Failed to delete modules.", "error");
         }
     };
 
@@ -125,11 +134,11 @@ export default function AdminCoursePage() {
 
             await loadCourse();
 
-            alert("Course updated successfully.");
+            showToast("Course updated successfully.", "success");
         } catch (error) {
             console.error(error);
 
-            alert("Failed to update course.");
+            showToast("Failed to update course.", "error");
         } finally {
             setSaving(false);
         }
@@ -148,7 +157,12 @@ export default function AdminCoursePage() {
     };
 
     const handleDelete = async () => {
-        const confirmed = window.confirm("Delete this course?");
+        const confirmed = await confirm({
+            title: "Delete Course",
+            message: "Delete this course?",
+            confirmText: "Delete",
+            cancelText: "Cancel",
+        });
 
         if (!confirmed) return;
 
@@ -191,7 +205,7 @@ export default function AdminCoursePage() {
                 <div className="space-y-6">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
                         <div>
-                            <h2 className="text-3xl font-bold">Course Curriculum</h2>
+                            <h2 className="text-lg sm:text-xl font-bold">Course Curriculum</h2>
 
                             <p className="mt-2 text-muted-foreground">
                                 Manage modules, lessons and course contents.
@@ -218,7 +232,7 @@ export default function AdminCoursePage() {
                                 />))}
                         </div>) : (<Card tone="flat">
                             <div className="py-12 text-center">
-                                <h2 className="text-2xl font-bold">No Modules Yet</h2>
+                                <h2 className="text-lg font-semibold">No Modules Yet</h2>
 
                                 <p className="mt-3 text-muted-foreground">
                                     Start building your course.
@@ -238,7 +252,7 @@ export default function AdminCoursePage() {
                 </div>
 
                 <Card tone="flat">
-                    <h2 className="mb-6 text-2xl font-bold">Course Settings</h2>
+                    <h2 className="mb-6 text-lg font-semibold">Course Settings</h2>
 
                     <div className="space-y-5">
                         <Input
@@ -249,7 +263,7 @@ export default function AdminCoursePage() {
                         />
 
                         <div>
-                            <label className="mb-3 block text-sm font-semibold text-foreground">
+                            <label className="mb-3 block text-sm text-foreground">
                                 Description
                             </label>
 
@@ -288,8 +302,8 @@ export default function AdminCoursePage() {
                     </div>
                 </Card>
 
-                <Card className="border border-red-900 bg-red-950/20">
-                    <h2 className="text-2xl font-bold text-red-400">Danger Zone</h2>
+                <Card className="border border-destructive/20 bg-destructive/10">
+                    <h2 className="text-lg font-semibold text-destructive">Danger Zone</h2>
 
                     <p className="mt-3 text-muted-foreground">
                         Deleting this course is permanent. This action cannot be undone.

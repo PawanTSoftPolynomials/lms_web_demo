@@ -10,13 +10,13 @@ const statusConfig = {
   PUBLISHED: {
     icon: FaCheckCircle,
     className:
-      "bg-green-500/20 text-green-400 border border-green-500/30",
+      "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
   },
 
   DRAFT: {
     icon: FaClock,
     className:
-      "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
+      "bg-amber-500/20 text-amber-400 border border-amber-500/30",
   },
 
   ARCHIVED: {
@@ -34,7 +34,7 @@ export default function StatusBadge({
 
   if (!config) {
     return (
-      <span className="px-3 py-1 rounded-full text-xs bg-slate-700 text-foreground">
+      <span className="px-3 py-1 rounded-full text-xs bg-muted text-foreground">
         {status}
       </span>
     );
@@ -52,7 +52,7 @@ export default function StatusBadge({
         py-1
         rounded-full
         text-xs
-        font-medium
+        font-semibold
         ${config.className}
       `}
     >

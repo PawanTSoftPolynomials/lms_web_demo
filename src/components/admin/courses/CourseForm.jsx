@@ -60,7 +60,7 @@ export default function CourseForm({
                 />
 
                 <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-300">
+                    <label className="mb-2 block text-sm font-medium text-muted-foreground">
                         Description
                     </label>
 
@@ -77,7 +77,7 @@ export default function CourseForm({
               w-full
               rounded-lg
               border
-              border-white/10
+              border-border
               bg-background
               px-4
               py-3
@@ -103,7 +103,7 @@ export default function CourseForm({
                     />
 
                     <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-300">
+                        <label className="mb-2 block text-sm font-medium text-muted-foreground">
                             Level
                         </label>
 
@@ -119,7 +119,7 @@ export default function CourseForm({
                 w-full
                 rounded-lg
                 border
-                border-white/10
+                border-border
                 bg-background
                 px-4
                 py-3
@@ -156,7 +156,7 @@ export default function CourseForm({
                 />
 
                 {formData.thumbnailUrl && (
-                    <div className="overflow-hidden rounded-xl border border-white/10">
+                    <div className="relative w-full aspect-video overflow-hidden rounded-xl border border-white/10">
                         <Image
                             src={getDisplayUrl(formData.thumbnailUrl)}
                             alt={formData.title}
@@ -167,7 +167,7 @@ export default function CourseForm({
                 )}
 
                 <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-300">
+                    <label className="mb-2 block text-sm font-medium text-muted-foreground">
                         Status
                     </label>
 
@@ -183,7 +183,7 @@ export default function CourseForm({
               w-full
               rounded-lg
               border
-              border-white/10
+              border-border
               bg-background
               px-4
               py-3

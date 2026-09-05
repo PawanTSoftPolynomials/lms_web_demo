@@ -30,7 +30,7 @@ export default function AssignmentFilters({
     <select
       value={courseFilter}
       onChange={(e) => setCourseFilter(e.target.value)}
-      className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
+      className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary [&>option]:bg-card [&>option]:text-foreground"
     >
       <option value="">All Courses</option>
       {courseOptions.map((course) => (
@@ -45,7 +45,7 @@ export default function AssignmentFilters({
     <select
       value={statusFilter}
       onChange={(e) => setStatusFilter(e.target.value)}
-      className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
+      className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary [&>option]:bg-card [&>option]:text-foreground"
     >
       <option value="">All Statuses</option>
       {ASSIGNMENT_STATUSES.map((status) => (
@@ -60,7 +60,7 @@ export default function AssignmentFilters({
     <select
       value={sortBy}
       onChange={(e) => setSortBy(e.target.value)}
-      className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
+      className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary [&>option]:bg-card [&>option]:text-foreground"
     >
       <option value="due-earliest">Due Date (Earliest)</option>
       <option value="due-latest">Due Date (Latest)</option>

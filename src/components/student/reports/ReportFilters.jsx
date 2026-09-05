@@ -16,7 +16,7 @@ export default function ReportFilters({
         <select
           value={selectedCourseId ?? "all"}
           onChange={(e) => onCourseChange?.(e.target.value)}
-          className="w-full appearance-none rounded-xl bg-card border border-card-border pl-9 pr-7 py-2.5 text-xs font-semibold text-foreground focus:outline-none focus:border-primary/50 transition cursor-pointer truncate"
+          className="w-full appearance-none rounded-xl bg-card border border-card-border pl-9 pr-7 py-2.5 text-xs font-semibold text-foreground focus:outline-none focus:border-primary/50 transition cursor-pointer truncate [&>option]:bg-card [&>option]:text-foreground"
         >
           <option value="all">All Courses</option>
           {courses.map((course) => (
@@ -33,7 +33,7 @@ export default function ReportFilters({
         <select
           value={timeRange}
           onChange={(e) => onTimeRangeChange?.(e.target.value)}
-          className="w-full appearance-none rounded-xl bg-card border border-card-border pl-9 pr-7 py-2.5 text-xs font-semibold text-foreground focus:outline-none focus:border-primary/50 transition cursor-pointer truncate"
+          className="w-full appearance-none rounded-xl bg-card border border-card-border pl-9 pr-7 py-2.5 text-xs font-semibold text-foreground focus:outline-none focus:border-primary/50 transition cursor-pointer truncate [&>option]:bg-card [&>option]:text-foreground"
         >
           {TIME_RANGES.map((range) => (
             <option key={range} value={range}>

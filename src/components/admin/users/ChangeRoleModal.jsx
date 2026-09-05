@@ -74,14 +74,14 @@ export default function ChangeRoleModal({ open, onClose, user }) {
                 </div>
 
                 <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-400">
+                    <label className="mb-2 block text-sm text-gray-400">
                         Role
                     </label>
 
                     <select
                         value={selectedRole}
                         onChange={(e) => setSelectedRole(e.target.value)}
-                        className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 text-sm text-foreground outline-none focus:border-primary"
+                        className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 text-sm text-foreground outline-none focus:border-primary [&>option]:bg-card [&>option]:text-foreground"
                     >
                         {ROLES.map((role) => (
                             <option key={role} value={role}>

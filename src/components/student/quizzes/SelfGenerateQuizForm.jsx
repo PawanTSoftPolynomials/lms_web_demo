@@ -29,14 +29,14 @@ export default function SelfGenerateQuizForm({
 
         <div className="border-t border-border/80 pt-4 space-y-4">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Target Course</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest block">Target Course</label>
             <div className="rounded-xl bg-background border border-border px-4 py-3 text-xs sm:text-sm font-semibold text-foreground min-h-[44px] flex items-center">
               {currentCourse?.title ?? "Target Course"}
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Number of Questions</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest block">Number of Questions</label>
             <select
               value={numQuestions}
               onChange={(e) => setNumQuestions(parseInt(e.target.value, 10))}

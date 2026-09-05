@@ -2,10 +2,12 @@
 // at partial opacity) rather than a flat fill, using the glass-button
 // utility for the hover-lift/press-down mechanics + transition timing.
 const VARIANT_CLASSES = {
-  primary: "btn-rainbow [--btn-rainbow-fill:var(--primary)] text-primary-foreground",
+  primary:
+    "btn-rainbow [--btn-rainbow-fill:var(--primary)] [--btn-rainbow-foreground:var(--primary-foreground)] text-primary-foreground",
   secondary:
-    "bg-secondary/60 border border-border text-muted-foreground hover:text-foreground hover:border-primary/40",
-  danger: "btn-rainbow [--btn-rainbow-fill:var(--destructive)] text-destructive-foreground",
+    "bg-transparent border border-border text-muted-foreground hover:text-foreground hover:border-primary/40",
+  danger:
+    "btn-rainbow [--btn-rainbow-fill:var(--destructive)] [--btn-rainbow-foreground:var(--destructive-foreground)] text-destructive-foreground",
   success: "bg-success text-success-foreground hover:opacity-90",
   ghost: "bg-transparent text-muted-foreground hover:text-foreground hover:bg-primary/10",
   outline:

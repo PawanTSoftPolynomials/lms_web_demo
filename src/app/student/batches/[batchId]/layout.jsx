@@ -37,7 +37,7 @@ export default function BatchWorkspaceLayout({ children }) {
         ) : (
           <>
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl font-black text-foreground">{dashboard?.name || "Batch"}</h1>
+              <h1 className="text-xl sm:text-3xl font-bold text-foreground">{dashboard?.name || "Batch"}</h1>
               <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 {dashboard?.status || "ACTIVE"}
               </span>

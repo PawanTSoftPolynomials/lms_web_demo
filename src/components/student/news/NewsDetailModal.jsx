@@ -36,7 +36,7 @@ export default function NewsDetailModal({ news, onClose }) {
           <span>{news.courseTag}</span>
         </div>
 
-        <h2 className="text-lg font-black text-foreground leading-tight">
+        <h2 className="text-lg font-bold text-foreground leading-tight">
           {news.title}
         </h2>
 

@@ -28,7 +28,7 @@ import { useBatchPerformanceOverview } from "@/hooks/queries/instructor/useBatch
 import { useToast } from "@/components/ui/ToastProvider";
 
 const STATUS_OPTIONS = [
-  { value: "", label: "All Statuses" },
+  { value: "", label: "All Status" },
   { value: "ACTIVE", label: "Active" },
   { value: "COMPLETED", label: "Completed" },
   { value: "ARCHIVED", label: "Archived" },
@@ -48,7 +48,7 @@ const STUDENT_COUNT_OPTIONS = [
 ];
 
 const toolbarControlClass =
-  "h-9 bg-card border border-border text-xs px-3 rounded-xl outline-none text-foreground focus:border-primary/60 transition [&>option]:bg-card [&>option]:text-foreground";
+  "h-9 bg-card border border-border text-xs px-3 rounded-xl outline-none text-foreground focus:border-primary/60 transition shrink-0 [&>option]:bg-card [&>option]:text-foreground";
 
 function CreateBatchForm({ courses, onClose }) {
   const [courseIds, setCourseIds] = useState([]);

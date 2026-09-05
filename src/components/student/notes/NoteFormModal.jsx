@@ -32,7 +32,7 @@ export default function NoteFormModal({ editingNote, form, setForm, saving, onCl
             <select
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm text-foreground outline-none focus:border-primary transition cursor-pointer"
+              className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm text-foreground outline-none focus:border-primary transition cursor-pointer [&>option]:bg-card [&>option]:text-foreground"
             >
               {NOTES_CATEGORIES.filter((c) => c !== "All").map((c) => (
                 <option key={c} className="bg-background">{c}</option>

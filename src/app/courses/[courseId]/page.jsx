@@ -48,7 +48,7 @@ export default async function CoursePage({ params }) {
             
             {/* Course Title & Badges block */}
             <div className="space-y-4">
-              <h1 className="text-4xl font-extrabold tracking-tight text-foreground leading-tight">
+              <h1 className="text-xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight">
                 {course.title}
               </h1>
               <p className="text-muted-foreground text-sm font-semibold">

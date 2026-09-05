@@ -81,9 +81,9 @@ const calendarClassNames = {
   dropdowns: "flex items-center gap-1.5",
   dropdown_root: "relative",
   months_dropdown:
-    "bg-[#141930] border border-border text-[12px] font-black text-foreground rounded-lg px-2 py-1 outline-none cursor-pointer",
+    "bg-popover border border-border text-[12px] font-black text-foreground rounded-lg px-2 py-1 outline-none cursor-pointer",
   years_dropdown:
-    "bg-[#141930] border border-border text-[12px] font-black text-foreground rounded-lg px-2 py-1 outline-none cursor-pointer",
+    "bg-popover border border-border text-[12px] font-black text-foreground rounded-lg px-2 py-1 outline-none cursor-pointer",
   button_previous:
     "absolute left-0 top-0 flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-white/5 hover:text-foreground transition disabled:opacity-30 disabled:pointer-events-none",
   button_next:
@@ -189,7 +189,7 @@ export function DateRangePicker({ startDate, endDate, onChange, triggerClassName
       type="button"
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 bg-[#141930] border border-border text-[10.5px] px-3 py-2 rounded-lg outline-none text-foreground hover:border-primary/40 focus:border-primary/60 transition",
+        "flex items-center gap-2 shrink-0 bg-[#141930] border border-border text-[10.5px] px-3 py-2 rounded-lg outline-none text-foreground hover:border-primary/40 focus:border-primary/60 transition",
         triggerClassName
       )}
     >
@@ -213,7 +213,7 @@ export function DateRangePicker({ startDate, endDate, onChange, triggerClassName
         <Popover open={open && isDesktop} onOpenChange={handleOpenChange}>
           <PopoverTrigger asChild>{renderTrigger()}</PopoverTrigger>
           <PopoverContent
-            className="w-auto bg-[#111827] border-border rounded-2xl p-0 shadow-2xl"
+            className="w-auto bg-popover border-border rounded-2xl p-0 shadow-2xl"
             onOpenAutoFocus={(e) => e.preventDefault()}
             onFocusOutside={(e) => e.preventDefault()}
           >
@@ -236,7 +236,7 @@ export function DateRangePicker({ startDate, endDate, onChange, triggerClassName
         <Sheet open={open && !isDesktop} onOpenChange={handleOpenChange}>
           <SheetContent
             side="bottom"
-            className="h-[92dvh] max-h-[92dvh] bg-[#111827] border-border rounded-t-2xl p-0 flex flex-col"
+            className="h-[92dvh] max-h-[92dvh] bg-popover border-border rounded-t-2xl p-0 flex flex-col"
           >
             <SheetTitle className="sr-only">Select date range</SheetTitle>
             <div className="flex-1 overflow-y-auto p-4 flex flex-col items-center justify-center">

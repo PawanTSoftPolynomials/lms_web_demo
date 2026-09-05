@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { FaBars } from "react-icons/fa";
 import { MessageSquare, ChevronRight, Menu } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
@@ -34,6 +35,17 @@ function ProfileDropdown({ user, onLogoutRequest, role }) {
   const profileHref = isAdmin ? "/admin/profile" : "/instructor/profile";
   const settingsHref = isAdmin ? "/admin/profile" : "/instructor/settings";
 
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
   return (
     <>
       <button
@@ -48,7 +60,7 @@ function ProfileDropdown({ user, onLogoutRequest, role }) {
           {user?.name?.[0]?.toUpperCase() || (isAdmin ? 'A' : 'I')}
         </span>
         <span className="hidden md:inline truncate max-w-[80px]">{user?.name || "Profile"}</span>
-        <span className="hidden md:inline text-[9px] text-slate-550 shrink-0">▼</span>
+        <span className="hidden md:inline text-[9px] text-slate-500 shrink-0">▼</span>
       </button>
 
       {open && (
@@ -85,7 +97,7 @@ function ProfileDropdown({ user, onLogoutRequest, role }) {
                 setOpen(false);
                 onLogoutRequest();
               }}
-              className="w-full text-left flex items-center px-3 py-2 text-[10px] font-black text-rose-400 hover:text-rose-350 hover:bg-rose-500/10 rounded-xl transition cursor-pointer"
+              className="w-full text-left flex items-center px-3 py-2 text-[10px] font-black text-rose-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition cursor-pointer"
             >
               🚪 Sign Out
             </button>
@@ -421,10 +433,16 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
               <FaBars />
             </button>
 
-            {/* Logo — full wordmark from sm+; just the mark on mobile, where the
-                header is already tight (hamburger + search + 4 nav-icons). */}
-            <Link href={dashboardHref} className="flex items-center gap-2 font-black text-foreground hover:opacity-90">
-              <span className="text-2xl text-primary">🍊</span>
+            {/* Logo */}
+            <Link href={dashboardHref} className="flex items-center gap-2 hover:opacity-90">
+              <Image
+                src="/images/logo.jpeg"
+                alt="Orange Tree LMS"
+                width={48}
+                height={48}
+                className="h-11 w-11 rounded-lg object-cover"
+                priority
+              />
               <div className="hidden sm:flex flex-col">
                 <span className="text-sm tracking-wider font-extrabold text-primary leading-none">ORANGE TREE</span>
                 <span className="text-[9px] text-muted-foreground font-medium">Learn. Grow. Succeed.</span>
@@ -514,7 +532,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
             </button>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-750 text-foreground transition cursor-pointer"
+              className="px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-foreground transition cursor-pointer"
             >
               Yes, Logout
             </button>
@@ -565,8 +583,15 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                 >
                   <Menu size={20} aria-hidden="true" />
                 </button>
-                <Link href="/student/dashboard" className="flex items-center gap-2 shrink-0 font-black text-foreground hover:opacity-90">
-                  <span className="text-2xl text-primary">🍊</span>
+                <Link href="/student/dashboard" className="flex items-center gap-2 shrink-0 hover:opacity-90">
+                  <Image
+                    src="/images/logo.jpeg"
+                    alt="Orange Tree LMS"
+                    width={48}
+                    height={48}
+                    className="h-9 w-9 rounded-lg object-cover"
+                    priority
+                  />
                   <div className="hidden sm:flex flex-col">
                     <span className="text-sm tracking-wider font-extrabold text-primary leading-none">ORANGE TREE</span>
                     <span className="text-[9px] text-muted-foreground font-medium">Learn. Grow. Succeed.</span>
@@ -703,7 +728,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
             </button>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-750 text-foreground transition cursor-pointer"
+              className="px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-foreground transition cursor-pointer"
             >
               Yes, Logout
             </button>

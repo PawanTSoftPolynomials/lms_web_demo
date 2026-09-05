@@ -89,7 +89,7 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
 
       <div className="flex flex-1 flex-col gap-2.5 p-3 md:p-4">
         <div>
-          <h3 className="card-photo-title text-base md:text-lg font-bold leading-snug line-clamp-1 text-[var(--card-photo-h1)]">
+          <h3 className="card-photo-title text-base md:text-lg font-semibold leading-snug line-clamp-1 text-[var(--card-photo-h1)]">
             {course.title}
           </h3>
           {course.description ? (
@@ -100,7 +100,7 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
         </div>
 
         <div className="mt-auto space-y-2">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
             <div
               className="h-full rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progress}%`, backgroundColor: status === "Completed" ? "#10b981" : "var(--card-photo-highlight)" }}
