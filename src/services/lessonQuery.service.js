@@ -30,3 +30,14 @@ export const getMyLessonQueries = async (filters = {}) => {
   const { data } = await api.get(`/lesson-queries/mine?${params.toString()}`);
   return data.data;
 };
+
+/** A student's own questions across every lesson they've asked about. */
+export const getMyQuestions = async (filters = {}) => {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value) params.set(key, value);
+  });
+
+  const { data } = await api.get(`/lesson-queries/my-questions?${params.toString()}`);
+  return data.data;
+};

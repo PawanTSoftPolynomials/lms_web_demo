@@ -65,16 +65,16 @@ export function InstructorKPIs({
           </div>
           
           <div className="min-w-0">
-            <p className="text-muted-foreground text-[9px] font-bold uppercase tracking-wider truncate">{kpi.label}</p>
+            <p className="text-muted-foreground text-[10.5px] font-bold uppercase tracking-wider truncate">{kpi.label}</p>
             <div className="flex items-end gap-1.5 mt-0.5">
               <p className="text-lg font-black text-foreground leading-none">{kpi.value}</p>
               
               {kpi.href ? (
-                <Link href={kpi.href} className="text-[9px] text-primary font-bold hover:opacity-80 truncate hidden xl:block">
+                <Link href={kpi.href} className="text-[10.5px] text-primary font-bold hover:opacity-80 truncate block">
                   View &rarr;
                 </Link>
               ) : (
-                <p className="text-[9px] text-muted-foreground font-medium hidden xl:flex items-center">
+                <p className="text-[10.5px] text-muted-foreground font-medium hidden xl:flex items-center">
                   {kpi.trend === "up" && <ArrowUpRight size={10} className="text-primary mr-0.5" />}
                   {kpi.bottomText}
                 </p>

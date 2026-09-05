@@ -47,7 +47,7 @@ export function CourseComposerHeader({
       <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
-          className="menu-toggle-btn lg:hidden inline-flex items-center justify-center p-2 rounded-xl border border-border bg-background text-foreground hover:text-foreground cursor-pointer"
+          className="menu-toggle-btn lg:hidden inline-flex shrink-0 items-center justify-center p-2 rounded-xl border border-border bg-background text-foreground hover:text-foreground cursor-pointer"
           id="toggleSidebarBtn"
           onClick={onToggleSidebar}
           title="Toggle Sidebar"
@@ -86,7 +86,7 @@ export function CourseComposerHeader({
           <button
             type="button"
             onClick={onOpenAskAi}
-            className="btn rounded-xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-300 text-slate-950 font-extrabold text-xs px-3.5 py-1.5 transition flex items-center gap-1.5 shadow-md shadow-orange-500/10 cursor-pointer"
+            className="btn shrink-0 rounded-xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-300 text-slate-950 font-extrabold text-xs px-3.5 py-1.5 transition flex items-center gap-1.5 shadow-md shadow-orange-500/10 cursor-pointer"
             title="Ask OTree AI Assistant"
           >
             <Sparkles size={14} className="fill-current animate-pulse shrink-0" />
@@ -98,7 +98,7 @@ export function CourseComposerHeader({
         {!isArchived && (
           <button
             type="button"
-            className="btn rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-bold px-3 py-1.5 transition cursor-pointer disabled:opacity-50"
+            className="btn shrink-0 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-bold px-3 py-1.5 transition cursor-pointer disabled:opacity-50"
             onClick={onSaveCourse}
             disabled={isSaving}
             title="Persist current course changes"
@@ -110,7 +110,7 @@ export function CourseComposerHeader({
         {/* Preview / Mode toggle */}
         <button
           type="button"
-          className={`btn rounded-xl border px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+          className={`btn shrink-0 rounded-xl border px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
             globalMode === "edit"
               ? "border-purple-500/40 bg-purple-500/15 text-purple-300"
               : "border-border bg-background text-foreground hover:bg-muted"
@@ -121,40 +121,10 @@ export function CourseComposerHeader({
           {globalMode === "edit" ? "Preview" : "Edit All"}
         </button>
 
-        {/* Primary Lifecycle Action Button */}
-        {isDraft && (
-          <button
-            type="button"
-            className="btn rounded-xl bg-primary hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-4 py-1.5 transition shadow-md cursor-pointer"
-            onClick={onPublishClick}
-          >
-            Publish
-          </button>
-        )}
-
-        {isPublished && (
-          <button
-            type="button"
-            className="btn rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-bold text-xs px-3.5 py-1.5 transition cursor-pointer"
-            onClick={onUnpublishClick}
-          >
-            Unpublish
-          </button>
-        )}
-
-        {isArchived && onRestoreClick && (
-          <button
-            type="button"
-            className="btn rounded-xl border border-purple-500/40 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-bold text-xs px-3.5 py-1.5 transition cursor-pointer flex items-center gap-1.5"
-            onClick={onRestoreClick}
-          >
-            <Archive size={13} />
-            <span>Restore to Draft</span>
-          </button>
-        )}
-
-        {/* More Menu Dropdown (⋮) */}
-        <div className="relative" ref={menuRef}>
+        {/* More Menu Dropdown (⋮) — kept next to Save/Edit All so the
+            lifecycle action (Publish/Unpublish/Restore) can wrap to its own
+            row on narrow screens without separating More from the rest. */}
+        <div className="relative shrink-0" ref={menuRef}>
           <button
             type="button"
             className="rounded-xl border border-border bg-background p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
@@ -239,6 +209,40 @@ export function CourseComposerHeader({
             </div>
           )}
         </div>
+
+        {/* Primary Lifecycle Action Button — forces its own row on narrow
+            screens (w-full) so it never competes for space with the group
+            above; sits back inline with everything else from sm: up. */}
+        {isDraft && (
+          <button
+            type="button"
+            className="btn w-full sm:w-auto shrink-0 rounded-xl bg-primary hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-4 py-1.5 transition shadow-md cursor-pointer"
+            onClick={onPublishClick}
+          >
+            Publish
+          </button>
+        )}
+
+        {isPublished && (
+          <button
+            type="button"
+            className="btn w-full sm:w-auto shrink-0 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-bold text-xs px-3.5 py-1.5 transition cursor-pointer"
+            onClick={onUnpublishClick}
+          >
+            Unpublish
+          </button>
+        )}
+
+        {isArchived && onRestoreClick && (
+          <button
+            type="button"
+            className="btn w-full sm:w-auto shrink-0 rounded-xl border border-purple-500/40 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-bold text-xs px-3.5 py-1.5 transition cursor-pointer flex items-center justify-center sm:justify-start gap-1.5"
+            onClick={onRestoreClick}
+          >
+            <Archive size={13} />
+            <span>Restore to Draft</span>
+          </button>
+        )}
       </div>
     </header>
   );

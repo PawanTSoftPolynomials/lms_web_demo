@@ -1,20 +1,32 @@
 "use client";
 
-import { useState } from "react";
-import { X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { X, Loader2 } from "lucide-react";
 
-export default function AskQuestionModal({ enrolledCourses, defaultCourseId, onClose, onSubmit }) {
+import useCourse from "@/hooks/queries/student/useCourse";
+
+export default function AskQuestionModal({ enrolledCourses, defaultCourseId, onClose, onSubmit, isSubmitting, error }) {
   const [courseId, setCourseId] = useState(defaultCourseId || enrolledCourses[0]?.courseId || "");
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
+  const [lessonId, setLessonId] = useState("");
+  const [question, setQuestion] = useState("");
 
-  const canSubmit = !!courseId && title.trim().length > 3 && body.trim().length > 0;
+  const { data: course, isLoading: isLoadingLessons } = useCourse(courseId);
+  const lessons = useMemo(
+    () => (course?.modules || []).flatMap((m) => m.lessons || []),
+    [course]
+  );
+
+  const canSubmit = !!courseId && !!lessonId && question.trim().length > 3;
+
+  const handleCourseChange = (nextCourseId) => {
+    setCourseId(nextCourseId);
+    setLessonId("");
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!canSubmit) return;
-    const course = enrolledCourses.find((c) => c.courseId === courseId);
-    onSubmit({ courseId, courseTitle: course?.title || "", title, body });
+    if (!canSubmit || isSubmitting) return;
+    onSubmit({ lessonId, question: question.trim() });
   };
 
   return (
@@ -32,12 +44,12 @@ export default function AskQuestionModal({ enrolledCourses, defaultCourseId, onC
             <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Course *</label>
             <select
               value={courseId}
-              onChange={(e) => setCourseId(e.target.value)}
+              onChange={(e) => handleCourseChange(e.target.value)}
               required
-              className="w-full cursor-pointer rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary"
+              className="w-full cursor-pointer rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary [&>option]:bg-card [&>option]:text-foreground"
             >
               {enrolledCourses.map((c) => (
-                <option key={c.courseId} value={c.courseId} className="bg-background">
+                <option key={c.courseId} value={c.courseId}>
                   {c.title}
                 </option>
               ))}
@@ -45,28 +57,40 @@ export default function AskQuestionModal({ enrolledCourses, defaultCourseId, onC
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Question title *</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. How does async/await handle errors?"
+            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Lesson *</label>
+            <select
+              value={lessonId}
+              onChange={(e) => setLessonId(e.target.value)}
               required
-              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary"
-            />
+              disabled={!courseId || isLoadingLessons}
+              className="w-full cursor-pointer rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary disabled:cursor-not-allowed disabled:opacity-50 [&>option]:bg-card [&>option]:text-foreground"
+            >
+              <option value="">
+                {isLoadingLessons ? "Loading lessons..." : "Select the lesson this is about"}
+              </option>
+              {lessons.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.title}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Details *</label>
+            <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Your question *</label>
             <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Add any context that will help others answer your question..."
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="e.g. How does async/await handle errors in this lesson's example?"
               rows={5}
               required
               className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-primary"
             />
           </div>
+
+          {error && (
+            <p className="text-xs font-semibold text-red-400">{error}</p>
+          )}
 
           <div className="flex gap-3 pt-2">
             <button
@@ -78,9 +102,10 @@ export default function AskQuestionModal({ enrolledCourses, defaultCourseId, onC
             </button>
             <button
               type="submit"
-              disabled={!canSubmit}
-              className="flex-1 cursor-pointer rounded-xl bg-primary py-2 text-sm font-bold text-foreground transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!canSubmit || isSubmitting}
+              className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-primary py-2 text-sm font-bold text-foreground transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
+              {isSubmitting && <Loader2 size={14} className="animate-spin" />}
               Post Question
             </button>
           </div>

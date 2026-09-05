@@ -7,7 +7,7 @@ import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCo
 import { DateRangePicker } from "@/components/ui/DateRangePicker";
 
 const toolbarControlClass =
-  "h-9 bg-card border border-border text-xs px-3 rounded-xl outline-none text-foreground focus:border-primary/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-card [&>option]:text-foreground";
+  "h-9 !bg-card border border-border text-xs !px-3 !py-0 rounded-xl outline-none text-foreground focus:border-primary/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-card [&>option]:text-foreground";
 
 /** Compact search + filter toolbar, structurally ready for a future News API
  * (search/course/date all operate on real state already) — Category is left
@@ -31,7 +31,7 @@ function NewsFilters({ search, setSearch, courseId, setCourseId, startDate, endD
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search news, announcements, updates..."
-          className="w-full h-11 bg-card border border-border text-sm pl-10 pr-4 rounded-xl outline-none text-foreground placeholder-slate-500 focus:border-primary/60 transition"
+          className="w-full h-11 bg-card border border-border text-sm !pl-10 !pr-4 rounded-xl outline-none text-foreground placeholder-slate-500 focus:border-primary/60 transition"
         />
       </div>
 

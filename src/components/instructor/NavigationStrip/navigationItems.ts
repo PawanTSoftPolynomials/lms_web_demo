@@ -84,7 +84,7 @@ export const PRIMARY_NAV_ITEMS: NavItem[] = [
       { label: "Calendar", href: "/instructor/calendar", icon: CalendarDays },
       { label: "News", href: "/instructor/news", icon: Newspaper },
       { label: "Announcements", href: "/instructor/announcements", icon: Megaphone },
-      { label: "Feedback", href: "/instructor/feedback", icon: MessageSquareText },
+      { label: "Reviews", href: "/instructor/feedback", icon: MessageSquareText },
     ],
   },
   {

@@ -126,13 +126,13 @@ export default function CertificatesDashboardPage() {
             placeholder="Search by student name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-card border-border text-xs text-foreground placeholder-slate-600 focus:border-primary"
+            className="!pl-9 bg-card border-border text-xs text-foreground placeholder-slate-600 focus:border-primary"
           />
         </div>
         <select
           value={courseFilter}
           onChange={(e) => setCourseFilter(e.target.value)}
-          className="w-full sm:w-64 h-[38px] rounded-xl border border-border bg-card px-3 text-xs text-foreground outline-none focus:border-primary"
+          className="w-full sm:w-64 h-[38px] rounded-xl border border-border !bg-card !px-3 !py-0 text-xs text-foreground outline-none focus:border-primary"
         >
           <option value="">All Courses</option>
           {myCourses.map((c) => (

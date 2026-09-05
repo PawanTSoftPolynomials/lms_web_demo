@@ -321,7 +321,7 @@ function StudentsDirectoryContent() {
                 placeholder="Search students, email, course..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/[0.02] border border-border text-xs pl-8 pr-3.5 py-2 rounded-xl outline-none text-foreground placeholder-slate-500 focus:border-transparent transition"
+                className="w-full bg-white/[0.02] border border-border text-xs !pl-8 !pr-3.5 py-2 rounded-xl outline-none text-foreground placeholder-slate-500 focus:border-transparent transition"
               />
             </div>
 

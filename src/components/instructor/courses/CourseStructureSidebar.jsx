@@ -70,7 +70,7 @@ export function CourseStructureSidebar({
           placeholder="Filter structure..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-background border border-border rounded-xl pl-8 pr-3 py-1.5 text-xs text-foreground placeholder-slate-500 outline-none focus:border-primary transition"
+          className="w-full bg-background border border-border rounded-xl !pl-8 !pr-3 py-1.5 text-xs text-foreground placeholder-slate-500 outline-none focus:border-primary transition"
         />
       </div>
 

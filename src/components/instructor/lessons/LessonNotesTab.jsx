@@ -70,7 +70,7 @@ export default function LessonNotesTab({ lessonId, videoCurrentTime, onSeekVideo
           placeholder="Search lesson notes..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-[#05070E] border border-border text-xs text-foreground placeholder-slate-500 rounded-xl pl-9 pr-3 py-2 outline-none focus:border-primary/50 transition"
+          className="w-full bg-[#05070E] border border-border text-xs text-foreground placeholder-slate-500 rounded-xl !pl-9 !pr-3 py-2 outline-none focus:border-primary/50 transition"
         />
       </div>
 

@@ -103,7 +103,7 @@ export default function MyCoursesPage() {
               placeholder="Search your courses..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-border bg-card pl-9 pr-4 py-2 md:py-2.5 text-sm text-foreground placeholder-slate-500 outline-none transition focus:border-primary/60"
+              className="w-full rounded-xl border border-border bg-card !pl-9 !pr-4 py-2 md:py-2.5 text-sm text-foreground placeholder-slate-500 outline-none transition focus:border-primary/60"
             />
           </div>
 

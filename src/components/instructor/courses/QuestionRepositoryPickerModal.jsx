@@ -86,7 +86,7 @@ export default function QuestionRepositoryPickerModal({ open, onClose, onAddQues
               setPage(1);
             }}
             placeholder="Search repository questions..."
-            className="w-full rounded-xl border border-transparent bg-background pl-9 pr-3 py-2 text-xs text-foreground outline-none focus:border-emerald-500"
+            className="w-full rounded-xl border border-transparent bg-background !pl-9 !pr-3 py-2 text-xs text-foreground outline-none focus:border-emerald-500"
           />
         </div>
 

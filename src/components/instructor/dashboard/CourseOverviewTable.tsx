@@ -1,13 +1,51 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Users, MoreVertical, Code2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { Users, Code2 } from "lucide-react";
+import ActionMenu from "@/components/menus/ActionMenu";
+import { DeleteCourseModal } from "@/components/instructor/courses/DeleteCourseModal";
+import { useDeleteCourse } from "@/hooks/queries/instructor/useDeleteCourse";
+import { useToast } from "@/components/ui/ToastProvider";
 import type { CourseProgressOverview } from "@/services/instructor/dashboardHome.service";
 
 export function CourseOverviewTable({ courses, isLoading }: { courses: CourseProgressOverview[], isLoading?: boolean }) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const deleteCourseMutation = useDeleteCourse();
+
+  const [courseToDelete, setCourseToDelete] = useState<CourseProgressOverview | null>(null);
+  const [hasStudentData, setHasStudentData] = useState(false);
+
   if (isLoading) {
     return <div className="h-48 animate-pulse bg-muted rounded-2xl"></div>;
   }
+
+  const openDeleteModal = (course: CourseProgressOverview) => {
+    setHasStudentData(false);
+    setCourseToDelete(course);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!courseToDelete) return;
+    try {
+      await deleteCourseMutation.mutateAsync(courseToDelete.id);
+      await queryClient.invalidateQueries({ queryKey: ["instructor-home"] });
+      setCourseToDelete(null);
+      showToast("Course deleted successfully", "success");
+    } catch (err) {
+      const errRes = (err as { response?: { data?: { code?: string; hasStudentData?: boolean; message?: string } }; message?: string });
+      const data = errRes?.response?.data;
+      if (data?.code === "COURSE_HAS_STUDENT_DATA" || data?.hasStudentData) {
+        setHasStudentData(true);
+      } else {
+        showToast(data?.message || errRes?.message || "Failed to delete course", "error");
+      }
+    }
+  };
 
   return (
     <div className="rounded-2xl bg-card border border-border p-5">
@@ -35,7 +73,11 @@ export function CourseOverviewTable({ courses, isLoading }: { courses: CoursePro
               </tr>
             ) : (
               courses.slice(0, 4).map((course) => (
-                <tr key={course.id} className="hover:bg-foreground/5 transition">
+                <tr
+                  key={course.id}
+                  className="hover:bg-foreground/5 transition cursor-pointer"
+                  onClick={() => router.push(`/instructor/courses/${course.id}`)}
+                >
                   <td className="py-4 pr-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-primary/10 rounded-lg">
@@ -57,24 +99,28 @@ export function CourseOverviewTable({ courses, isLoading }: { courses: CoursePro
                     <div className="flex items-center gap-3">
                       <span className="text-xs font-bold text-foreground w-8">{course.progress}%</span>
                       <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-primary rounded-full" 
-                          style={{ width: `${course.progress}%` }} 
+                        <div
+                          className="h-full bg-primary rounded-full"
+                          style={{ width: `${course.progress}%` }}
                         />
                       </div>
                     </div>
                   </td>
-                  <td className="py-4 pl-4 text-right">
+                  <td className="py-4 pl-4 text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-2">
-                      <Link 
-                        href={`/instructor/courses/${course.id}`}
-                        className="px-3 py-1.5 rounded-lg border border-primary/30 text-[10px] font-bold text-primary hover:bg-primary/10 transition"
-                      >
-                        View
-                      </Link>
-                      <button className="p-1 text-muted-foreground hover:text-foreground">
-                        <MoreVertical size={16} />
-                      </button>
+                      <ActionMenu
+                        items={[
+                          {
+                            label: "Edit",
+                            onClick: () => router.push(`/instructor/courses/${course.id}`),
+                          },
+                          {
+                            label: "Delete",
+                            danger: true,
+                            onClick: () => openDeleteModal(course),
+                          },
+                        ]}
+                      />
                     </div>
                   </td>
                 </tr>
@@ -83,6 +129,19 @@ export function CourseOverviewTable({ courses, isLoading }: { courses: CoursePro
           </tbody>
         </table>
       </div>
+
+      <DeleteCourseModal
+        isOpen={!!courseToDelete}
+        onClose={() => setCourseToDelete(null)}
+        onConfirmDelete={handleConfirmDelete}
+        onConfirmArchive={() => {}}
+        isDeleting={deleteCourseMutation.isPending}
+        isArchiving={false}
+        courseTitle={courseToDelete?.courseName}
+        hasStudentData={hasStudentData}
+        isPublished={false}
+        userRole="INSTRUCTOR"
+      />
     </div>
   );
 }

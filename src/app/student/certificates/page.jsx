@@ -115,8 +115,8 @@ export default function StudentCertificatesPage() {
           placeholder="Search by course title or certificate code..."
           className="
             w-full
-            pl-10
-            pr-4
+            !pl-10
+            !pr-4
             py-2.5
             rounded-xl
             border

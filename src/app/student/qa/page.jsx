@@ -10,7 +10,7 @@ import AskQuestionModal from "@/components/student/qa/AskQuestionModal";
 import ThreadCard from "@/components/student/qa/ThreadCard";
 
 export default function QaPage() {
-  const { threads, enrolledCourses, askQuestion, addReply, toggleUpvote } = useQa();
+  const { threads, enrolledCourses, askQuestion, isLoading, isAsking, askError } = useQa();
 
   const [activeCourseId, setActiveCourseId] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,10 +22,12 @@ export default function QaPage() {
   const courseStats = useMemo(() => {
     const stats = new Map();
     for (const t of threads) {
-      const entry = stats.get(t.courseId) || { total: 0, unanswered: 0 };
+      const courseId = t.lesson?.module?.course?.id;
+      if (!courseId) continue;
+      const entry = stats.get(courseId) || { total: 0, unanswered: 0 };
       entry.total += 1;
-      if (t.replies.length === 0) entry.unanswered += 1;
-      stats.set(t.courseId, entry);
+      if (t.status !== "ANSWERED") entry.unanswered += 1;
+      stats.set(courseId, entry);
     }
     return stats;
   }, [threads]);
@@ -42,20 +44,28 @@ export default function QaPage() {
     return threads
       .filter((t) => {
         const q = searchQuery.trim().toLowerCase();
-        const matchesSearch = !q || t.title.toLowerCase().includes(q) || t.body.toLowerCase().includes(q);
-        const matchesCourse = activeCourseId === "all" || t.courseId === activeCourseId;
-        const answered = t.replies.length > 0;
+        const haystack = [t.question, t.lesson?.title, t.lesson?.module?.title, t.lesson?.module?.course?.title]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        const matchesSearch = !q || haystack.includes(q);
+        const matchesCourse = activeCourseId === "all" || t.lesson?.module?.course?.id === activeCourseId;
+        const answered = t.status === "ANSWERED";
         const matchesStatus =
           statusFilter === "All" || (statusFilter === "Answered" ? answered : !answered);
         return matchesSearch && matchesCourse && matchesStatus;
       })
-      .sort((a, b) => b.createdAt - a.createdAt);
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }, [threads, searchQuery, activeCourseId, statusFilter]);
 
-  const handleAsk = ({ courseId, courseTitle, title, body }) => {
-    const id = askQuestion({ courseId, courseTitle, title, body });
-    setShowAskModal(false);
-    setExpandedId(id);
+  const handleAsk = async ({ lessonId, question }) => {
+    try {
+      const id = await askQuestion({ lessonId, question });
+      setShowAskModal(false);
+      setExpandedId(id);
+    } catch {
+      // askError (from context) is already surfaced inside the modal; keep it open.
+    }
   };
 
   if (enrolledCourses.length === 0) {
@@ -144,7 +154,7 @@ export default function QaPage() {
             placeholder="Search questions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-transparent/80 bg-background/50 py-2 pl-9 pr-4 text-xs text-foreground outline-none transition focus:border-primary"
+            className="w-full rounded-xl border border-transparent/80 bg-background/50 py-2 !pl-9 !pr-4 text-xs text-foreground outline-none transition focus:border-primary"
           />
         </div>
 
@@ -164,7 +174,13 @@ export default function QaPage() {
       </div>
 
       {/* Thread list */}
-      {filteredThreads.length === 0 ? (
+      {isLoading ? (
+        <div className="space-y-3.5">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-28 animate-pulse rounded-2xl bg-background/50" />
+          ))}
+        </div>
+      ) : filteredThreads.length === 0 ? (
         <div className="rounded-2xl border border-transparent/80 bg-background/50 p-6 py-20 text-center text-muted-foreground">
           <HelpCircle size={40} className="mx-auto mb-3 text-slate-600 opacity-40" />
           <p className="text-sm font-semibold text-foreground">No questions found</p>
@@ -184,8 +200,6 @@ export default function QaPage() {
               thread={thread}
               expanded={expandedId === thread.id}
               onToggle={(id) => setExpandedId((cur) => (cur === id ? null : id))}
-              onUpvote={toggleUpvote}
-              onReply={addReply}
             />
           ))}
         </div>
@@ -197,6 +211,8 @@ export default function QaPage() {
           defaultCourseId={activeCourseId !== "all" ? activeCourseId : undefined}
           onClose={() => setShowAskModal(false)}
           onSubmit={handleAsk}
+          isSubmitting={isAsking}
+          error={askError}
         />
       )}
     </div>

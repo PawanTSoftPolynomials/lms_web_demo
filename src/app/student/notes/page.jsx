@@ -120,7 +120,7 @@ export default function NotesPage() {
             placeholder="Search notes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-background/50 border border-transparent/80 rounded-xl pl-9 pr-4 py-2 text-xs text-foreground outline-none focus:border-primary transition"
+            className="w-full bg-background/50 border border-transparent/80 rounded-xl !pl-9 !pr-4 py-2 text-xs text-foreground outline-none focus:border-primary transition"
           />
         </div>
 

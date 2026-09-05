@@ -15,6 +15,16 @@ const MONTHS = [
 
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
+// Local calendar-day key (YYYY-MM-DD) — NOT `.toISOString()`, which converts
+// to UTC first and rolls back to the previous day for any positive UTC
+// offset (e.g. IST), making a clicked day highlight the cell before it.
+const toLocalDateString = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
 export default function MiniCalendar({ role }) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -90,7 +100,7 @@ export default function MiniCalendar({ role }) {
   };
 
   const selectedDateString = useMemo(() => {
-    return selectedDate.toISOString().split("T")[0];
+    return toLocalDateString(selectedDate);
   }, [selectedDate]);
 
   // Selected date events
@@ -167,7 +177,7 @@ export default function MiniCalendar({ role }) {
           }
           
           const isSelected = selectedDateString === d.dateString;
-          const isToday = new Date().toISOString().split("T")[0] === d.dateString;
+          const isToday = toLocalDateString(new Date()) === d.dateString;
           const indicators = getDayEventIndicators(d.dateString);
 
           return (
@@ -200,7 +210,7 @@ export default function MiniCalendar({ role }) {
       <div className="border-t border-border/80 pt-3 flex-1 flex flex-col justify-between">
         <div className="space-y-1.5 flex-1 min-h-[90px] max-h-[110px] overflow-y-auto pr-1">
           <div className="text-[9px] font-extrabold text-muted-foreground uppercase tracking-wider mb-1">
-            Agenda for {selectedDateString === new Date().toISOString().split("T")[0] ? "Today" : selectedDateString}
+            Agenda for {selectedDateString === toLocalDateString(new Date()) ? "Today" : selectedDateString}
           </div>
           {selectedDateEvents.length === 0 ? (
             <div className="text-[10px] text-muted-foreground italic py-2">

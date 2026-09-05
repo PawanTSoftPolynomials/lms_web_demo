@@ -273,7 +273,7 @@ export default function StudentNewsPage() {
             placeholder="Search news & updates..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-card border border-card-border text-xs text-foreground placeholder-slate-500 focus:outline-none focus:border-primary/50 transition"
+            className="w-full !pl-9 !pr-4 py-2 rounded-xl bg-card border border-card-border text-xs text-foreground placeholder-slate-500 focus:outline-none focus:border-primary/50 transition"
           />
         </div>
       </div>

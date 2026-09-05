@@ -345,7 +345,7 @@ export default function QuizzesPage() {
                   placeholder="Search quizzes..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-background border border-transparent text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3 pl-12 text-sm"
+                  className="w-full bg-background border border-transparent text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3 !pl-12 text-sm"
                 />
               </div>
 
@@ -618,7 +618,7 @@ export default function QuizzesPage() {
                   placeholder="Search questions..."
                   value={qSearchQuery}
                   onChange={(e) => setQSearchQuery(e.target.value)}
-                  className="w-full bg-background border border-transparent text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3 pl-12 text-sm"
+                  className="w-full bg-background border border-transparent text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3 !pl-12 text-sm"
                 />
               </div>
 

@@ -113,7 +113,7 @@ export default function StudentAnnouncementsPage() {
             placeholder="Search announcements..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-background/80 border border-transparent/80 text-xs text-foreground placeholder-slate-500 focus:outline-none focus:border-primary/50 transition"
+            className="w-full !pl-9 !pr-4 py-2 rounded-xl bg-background/80 border border-transparent/80 text-xs text-foreground placeholder-slate-500 focus:outline-none focus:border-primary/50 transition"
           />
         </div>
       </div>
