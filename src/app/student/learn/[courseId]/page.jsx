@@ -163,17 +163,25 @@ export default function LearnPage() {
 
   // A Topic switch mounts a different (or no) video — the previous Topic's
   // playback position must not leak into the newly-selected Topic's Sticky
-  // Notes timestamps or the debounced state-sync write. Guarded against the
-  // INITIAL null -> first-Topic auto-selection that fires right after a
-  // Lesson loads/restores (see the effect above): that transition must
-  // preserve a just-restored resume position, not zero it. Only a genuine
-  // switch between two already-selected Topics should reset.
-  const previousTopicIdRef = useRef(null);
+  // Notes timestamps or the debounced state-sync write. Must NOT fire on
+  // the INITIAL null -> first-Topic auto-selection right after a Lesson
+  // loads/restores, so a just-restored resume position survives — but a
+  // "previous value" ref can't tell that apart from `selectedTopicId`
+  // legitimately cycling back through null mid-session (a zero-Topic
+  // Lesson sits between two topic-ful ones), which must still reset. A
+  // monotonic "has this page ever attributed a real Topic's timestamp yet"
+  // flag solves both: it's false only for the very first attribution ever,
+  // then stays true for the rest of the page's life, so every later
+  // null -> real transition resets correctly regardless of what happened
+  // in between.
+  const hasAttributedTopicTimestampRef = useRef(false);
   useEffect(() => {
-    if (previousTopicIdRef.current !== null && previousTopicIdRef.current !== selectedTopicId) {
+    if (selectedTopicId === null) return;
+    if (hasAttributedTopicTimestampRef.current) {
       setCurrentTimestamp(0);
+    } else {
+      hasAttributedTopicTimestampRef.current = true;
     }
-    previousTopicIdRef.current = selectedTopicId;
   }, [selectedTopicId]);
 
   const [pendingTopicScroll, setPendingTopicScroll] = useState(null);
