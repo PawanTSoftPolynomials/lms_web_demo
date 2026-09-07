@@ -29,7 +29,7 @@ import { PresentationSlidesEditor, adaptLegacySlide, createDefaultSlideDeck, typ
 import { PresentationUploadPanel } from "./PresentationUploadPanel";
 import { SlideColumnsView } from "./slideCanvas/SlideColumnsLayout";
 import type { CellTypeDefinition } from "../cellTypes";
-import type { CellActionProps, ContentRow, CreateCellFormProps } from "../types";
+import { getContentParent, toParentField, type CellActionProps, type ContentRow, type CreateCellFormProps } from "../types";
 
 interface DocumentCellProps extends CellActionProps {
   content: ContentRow;
@@ -240,10 +240,10 @@ export function DocumentCell({
     const useSlideshow = isPresentation && presentationMode === "slideshow";
     try {
       const payload = useSlideshow
-        ? { title: title || "Presentation", htmlContent: JSON.stringify(slides), fileUrl: "", topicId: content.topicId }
-        : { title: title || cellType.label, fileUrl, htmlContent: "", topicId: content.topicId };
+        ? { title: title || "Presentation", htmlContent: JSON.stringify(slides), fileUrl: "" }
+        : { title: title || cellType.label, fileUrl, htmlContent: "" };
 
-      await updateContent.mutateAsync({ contentId: content.id, contentData: payload });
+      await updateContent.mutateAsync({ contentId: content.id, contentData: payload, parent: getContentParent(content) });
       setMode("view");
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to save."), "error", "Save failed");
@@ -259,7 +259,7 @@ export function DocumentCell({
     if (!confirmed) return;
 
     try {
-      await deleteContent.mutateAsync({ contentId: content.id, topicId: content.topicId });
+      await deleteContent.mutateAsync({ contentId: content.id, parent: getContentParent(content) });
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to delete this file."), "error", "Delete failed");
     }
@@ -456,7 +456,7 @@ interface CreateFileFormProps extends CreateCellFormProps {
   presentationMode?: "slideshow" | "upload";
 }
 
-export function CreateFileForm({ topicId, order, cellType, accept, presentationMode = "upload", onCreated, onCancel }: CreateFileFormProps) {
+export function CreateFileForm({ parent, order, cellType, accept, presentationMode = "upload", onCreated, onCancel }: CreateFileFormProps) {
   const isPresentation = cellType.id === "presentation";
   const useSlideshow = isPresentation && presentationMode === "slideshow";
 
@@ -468,7 +468,7 @@ export function CreateFileForm({ topicId, order, cellType, accept, presentationM
   const { showToast } = useToast();
 
   const handleCreate = async () => {
-    if (!topicId) {
+    if (!parent?.parentId) {
       showToast("Please select or create a topic in the left sidebar first.", "error", "Topic Required");
       return;
     }
@@ -476,7 +476,7 @@ export function CreateFileForm({ topicId, order, cellType, accept, presentationM
       const safeOrder = typeof order === "number" && !isNaN(order) && order > 0 ? order : 1;
       const payload = useSlideshow
         ? {
-            topicId,
+            ...toParentField(parent),
             type: cellType.contentType,
             order: safeOrder,
             title: title || "Presentation",
@@ -484,7 +484,7 @@ export function CreateFileForm({ topicId, order, cellType, accept, presentationM
             fileUrl: "",
           }
         : {
-            topicId,
+            ...toParentField(parent),
             type: cellType.contentType,
             order: safeOrder,
             title: title || cellType.label,
