@@ -32,6 +32,7 @@ export function LessonOverviewView({
   parentModule = null,
   onSelectLesson,
   isDraftMode = false,
+  role = "INSTRUCTOR",
 }) {
   const [contentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
 
@@ -148,7 +149,7 @@ export function LessonOverviewView({
       </div>
 
       {/* Lesson-Level Content Cells */}
-      {!isDraftMode && (
+      {role === "INSTRUCTOR" && !isDraftMode && (
         <div className="pt-4 border-t border-border space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-foreground">Lesson Content</h3>

@@ -20,8 +20,9 @@ export function useUpdateContent() {
             ),
 
         onSuccess: (_, variables) => {
-            const parentType = variables.parent?.parentType;
-            const parentId = variables.parent?.parentId;
+            const parentType = variables.parent?.parentType
+                ?? (variables.contentData?.topicId ? "topic" : undefined);
+            const parentId = variables.parent?.parentId ?? variables.contentData?.topicId;
 
             queryClient.invalidateQueries({
                 queryKey: [

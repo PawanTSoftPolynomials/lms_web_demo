@@ -14,8 +14,9 @@ export function useDeleteContent() {
             deleteContent(contentId),
 
         onSuccess: (_, variables) => {
-            const parentType = variables.parent?.parentType;
-            const parentId = variables.parent?.parentId;
+            const parentType = variables.parent?.parentType
+                ?? (variables.topicId ? "topic" : undefined);
+            const parentId = variables.parent?.parentId ?? variables.topicId;
 
             // refetchType: "all" forces an immediate background refetch even
             // for queries with no currently-mounted observer — otherwise the

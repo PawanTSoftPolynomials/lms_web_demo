@@ -203,7 +203,13 @@ export function LessonComposerPanel({
 
   const openAddCell = (order: number) => {
     if (!parent?.parentId) {
-      showToast("Please select or create a topic in the left sidebar first.", "error", "Topic Required");
+      showToast(
+        parent?.parentType === "topic"
+          ? "Please select or create a topic in the left sidebar first."
+          : "Please select or create this item first.",
+        "error",
+        parent?.parentType === "topic" ? "Topic Required" : "Selection Required"
+      );
       return;
     }
     setInsertOrder(order);
