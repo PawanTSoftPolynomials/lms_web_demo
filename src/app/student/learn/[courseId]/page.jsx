@@ -161,6 +161,13 @@ export default function LearnPage() {
     }
   }, [selectedLesson?.id]);
 
+  // A Topic switch mounts a different (or no) video — the previous Topic's
+  // playback position must not leak into the newly-selected Topic's Sticky
+  // Notes timestamps or the debounced state-sync write.
+  useEffect(() => {
+    setCurrentTimestamp(0);
+  }, [selectedTopicId]);
+
   const [pendingTopicScroll, setPendingTopicScroll] = useState(null);
   const [videoDuration, setVideoDuration] = useState(0);
 
@@ -249,7 +256,8 @@ export default function LearnPage() {
   // to scope to, so it falls back to the Lesson-wide list above unchanged.
   const selectedTopicContents = useMemo(() => {
     if (!hasTopics) return selectedLessonContents;
-    const topic = (selectedLesson?.topics || []).find((t) => t.id === selectedTopicId);
+    const effectiveTopicId = selectedTopicId ?? selectedLesson?.topics?.[0]?.id;
+    const topic = (selectedLesson?.topics || []).find((t) => t.id === effectiveTopicId);
     return topic?.contents || [];
   }, [selectedLesson, selectedTopicId, hasTopics, selectedLessonContents]);
 
@@ -310,6 +318,23 @@ export default function LearnPage() {
   };
 
   const { segments: transcriptSegments, status: transcriptStatus } = useTranscript(selectedLesson?.id);
+
+  // useTranscript is Lesson-keyed and returns segments for whichever single
+  // video the backend associates with that Lesson — a pre-existing
+  // simplification. When a Lesson has more than one Topic containing a
+  // video, we can no longer be sure the fetched transcript matches the
+  // Topic currently on screen; showing it anyway would let a student read
+  // and seek a transcript against the wrong video. Suppress it in that
+  // ambiguous case only — single-video Lessons (the common case) are
+  // unaffected.
+  const lessonVideoTopicCount = useMemo(() => {
+    return (selectedLesson?.topics || []).filter((topic) =>
+      (topic.contents || []).some((content) => content.type === "VIDEO")
+    ).length;
+  }, [selectedLesson]);
+  const transcriptAmbiguous = hasTopics && lessonVideoTopicCount > 1;
+  const effectiveTranscriptSegments = transcriptAmbiguous ? [] : transcriptSegments;
+  const effectiveTranscriptStatus = transcriptAmbiguous ? "unavailable" : transcriptStatus;
 
   const handleTranscriptSeek = (seconds) => {
     videoPlayerRef.current?.seekTo(seconds);
@@ -669,8 +694,8 @@ export default function LearnPage() {
 
               {activeContentTab === "transcript" && (
                 <TranscriptPanel
-                  segments={transcriptSegments}
-                  status={transcriptStatus}
+                  segments={effectiveTranscriptSegments}
+                  status={effectiveTranscriptStatus}
                   currentTime={currentTimestamp}
                   onSeek={handleTranscriptSeek}
                 />
@@ -700,8 +725,8 @@ export default function LearnPage() {
 
             <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-4">
               <TranscriptPanel
-                segments={transcriptSegments}
-                status={transcriptStatus}
+                segments={effectiveTranscriptSegments}
+                status={effectiveTranscriptStatus}
                 currentTime={currentTimestamp}
                 onSeek={handleTranscriptSeek}
               />

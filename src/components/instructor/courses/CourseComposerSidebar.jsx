@@ -856,7 +856,11 @@ export function CourseComposerSidebar({
                                                 className={`transition-transform duration-200 ${topicOpen ? "rotate-90 text-primary" : ""}`}
                                               />
                                             </button>
-                                            <TopicIcon size={12} className={`shrink-0 ${isTopicActive ? "text-primary" : topicMeta.color}`} />
+                                            {topic.completed ? (
+                                              <CheckCircle2 size={12} className="shrink-0 text-emerald-400" />
+                                            ) : (
+                                              <TopicIcon size={12} className={`shrink-0 ${isTopicActive ? "text-primary" : topicMeta.color}`} />
+                                            )}
                                             <span className="truncate text-[11px] leading-snug" title={topic.title}>
                                               {displayTitle}
                                             </span>
