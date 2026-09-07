@@ -1,45 +1,24 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { MoreVertical, Settings, Copy, Archive, Trash2, Globe, FileText, CheckCircle, Sparkles } from "lucide-react";
+import { Archive, Sparkles } from "lucide-react";
 
 export function CourseComposerHeader({
   course,
   courseId,
-  globalMode = "rendered",
-  onToggleGlobalMode,
   onSaveCourse,
   onImportCourse,
   onOpenAskAi,
   isSaving,
   onPublishClick,
   onUnpublishClick,
-  onDuplicateClick,
-  onArchiveClick,
   onRestoreClick,
-  onDeleteClick,
   onToggleSidebar,
-  userRole = "INSTRUCTOR"
 }) {
-  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
-  const menuRef = useRef(null);
-
   const status = course?.status || "DRAFT";
   const isPublished = status === "PUBLISHED";
   const isArchived = status === "ARCHIVED";
   const isDraft = status === "DRAFT";
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMoreMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   return (
     <header className="app-header flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-border bg-background px-4 py-3 shadow-xl text-foreground">
@@ -79,7 +58,7 @@ export function CourseComposerHeader({
         </div>
       </div>
 
-      {/* Right: Actions Hierarchy: ✨ Ask OTree AI | Save | Edit All | Publish | ⋮ More Menu */}
+      {/* Right: Actions Hierarchy: ✨ Ask OTree AI | Save | Publish */}
       <div className="header-actions flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end mt-2 sm:mt-0">
         {/* Unified ✨ Ask OTree AI button */}
         {onOpenAskAi && (
@@ -106,109 +85,6 @@ export function CourseComposerHeader({
             {isSaving ? "Saving..." : "Save"}
           </button>
         )}
-
-        {/* Preview / Mode toggle */}
-        <button
-          type="button"
-          className={`btn shrink-0 rounded-xl border px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
-            globalMode === "edit"
-              ? "border-purple-500/40 bg-purple-500/15 text-purple-300"
-              : "border-border bg-background text-foreground hover:bg-muted"
-          }`}
-          onClick={onToggleGlobalMode}
-          title="Toggle preview / edit mode"
-        >
-          {globalMode === "edit" ? "Preview" : "Edit All"}
-        </button>
-
-        {/* More Menu Dropdown (⋮) — kept next to Save/Edit All so the
-            lifecycle action (Publish/Unpublish/Restore) can wrap to its own
-            row on narrow screens without separating More from the rest. */}
-        <div className="relative shrink-0" ref={menuRef}>
-          <button
-            type="button"
-            className="rounded-xl border border-border bg-background p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
-            onClick={() => setMoreMenuOpen(!moreMenuOpen)}
-            title="More Options"
-          >
-            <MoreVertical size={16} />
-          </button>
-
-          {moreMenuOpen && (
-            <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-border bg-background p-1.5 shadow-2xl z-50 text-xs text-foreground space-y-0.5">
-              <button
-                type="button"
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-background text-left transition cursor-pointer"
-                onClick={() => {
-                  setMoreMenuOpen(false);
-                  onSaveCourse();
-                }}
-              >
-                <Settings size={14} className="text-muted-foreground" />
-                <span>Course Settings</span>
-              </button>
-
-              {onDuplicateClick && (
-                <button
-                  type="button"
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-background text-left transition cursor-pointer"
-                  onClick={() => {
-                    setMoreMenuOpen(false);
-                    onDuplicateClick();
-                  }}
-                >
-                  <Copy size={14} className="text-muted-foreground" />
-                  <span>Duplicate</span>
-                </button>
-              )}
-
-              {/* Archive - exposed to Admin */}
-              {onArchiveClick && userRole === "ADMIN" && !isArchived && (
-                <button
-                  type="button"
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-background text-left transition cursor-pointer text-purple-400"
-                  onClick={() => {
-                    setMoreMenuOpen(false);
-                    onArchiveClick();
-                  }}
-                >
-                  <Archive size={14} />
-                  <span>Archive</span>
-                </button>
-              )}
-
-              {/* Restore - exposed to Admin if archived */}
-              {onRestoreClick && userRole === "ADMIN" && isArchived && (
-                <button
-                  type="button"
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-purple-500/10 text-purple-300 text-left transition cursor-pointer"
-                  onClick={() => {
-                    setMoreMenuOpen(false);
-                    onRestoreClick();
-                  }}
-                >
-                  <Archive size={14} />
-                  <span>Restore</span>
-                </button>
-              )}
-
-              {/* Delete option - shown for drafts */}
-              {onDeleteClick && (isDraft || userRole === "ADMIN") && (
-                <button
-                  type="button"
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-red-500/10 text-red-400 text-left transition cursor-pointer border-t border-transparent mt-1 pt-2"
-                  onClick={() => {
-                    setMoreMenuOpen(false);
-                    onDeleteClick();
-                  }}
-                >
-                  <Trash2 size={14} />
-                  <span>Delete</span>
-                </button>
-              )}
-            </div>
-          )}
-        </div>
 
         {/* Primary Lifecycle Action Button — forces its own row on narrow
             screens (w-full) so it never competes for space with the group
