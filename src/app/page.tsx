@@ -3,30 +3,36 @@ import Hero from "@/components/home/Hero";
 import GoalCategoryDiscovery from "@/components/home/GoalCategoryDiscovery";
 import CourseDiscovery from "@/components/home/CourseDiscovery";
 import LearningExperience from "@/components/home/LearningExperience";
+import OutcomeSection from "@/components/home/OutcomeSection";
 import FinalCta from "@/components/home/FinalCta";
 import Footer from "@/components/layouts/Footer";
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-2 sm:space-y-4">
-        <LandingNavbar />
+      <LandingNavbar />
 
-        {/* Region 1: HERO & PRODUCT STORY Visual */}
-        <Hero />
+      {/* Each section below owns its own vertical rhythm and, where it needs
+          to read as a distinct scene, its own full-bleed background band —
+          sections are no longer forced into one shared tight spacing rail. */}
 
-        {/* Region 2: COMPACT DISCOVERY & TRUST (Goals + Categories + Stats) */}
-        <GoalCategoryDiscovery />
+      {/* Scene 1: Hero */}
+      <Hero />
 
-        {/* Region 3: UNIFIED COURSE DISCOVERY */}
-        <CourseDiscovery />
+      {/* Scene 2: Explore by domain — compact, supporting */}
+      <GoalCategoryDiscovery />
 
-        {/* Region 4: LEARNING EXPERIENCE & PROGRESSION (Learn → Practice → Assess → Track → Achieve) */}
-        <LearningExperience />
+      {/* Scene 3: Course discovery — one featured course + supporting grid */}
+      <CourseDiscovery />
 
-        {/* Region 5: FINAL CALL-TO-ACTION */}
-        <FinalCta />
-      </div>
+      {/* Scene 4: Why Orange Tree is different — one unified product story */}
+      <LearningExperience />
+
+      {/* Scene 5: Outcome — completion & certificate */}
+      <OutcomeSection />
+
+      {/* Scene 6: Final CTA */}
+      <FinalCta />
 
       <Footer />
     </main>

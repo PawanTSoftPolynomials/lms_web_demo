@@ -1,131 +1,67 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Target, Sparkles, Award, Zap, BookOpen, Users, ArrowUpRight } from "lucide-react";
+import { useMemo } from "react";
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import { useLandingData } from "@/hooks/queries/useLandingData";
 import Eyebrow from "@/components/ui/Eyebrow";
 
-const GOAL_ITEMS = [
-  { id: "skill", title: "Learn a Skill", desc: "Job-ready course modules", icon: Target, color: "text-primary bg-primary/10" },
-  { id: "knowledge", title: "Build Knowledge", desc: "Practical lessons & notes", icon: Sparkles, color: "text-amber-600 dark:text-amber-400 bg-amber-500/10" },
-  { id: "certification", title: "Get Certified", desc: "Verifiable credentials", icon: Award, color: "text-purple-600 dark:text-purple-400 bg-purple-500/10" },
-  { id: "practice", title: "Practice & Improve", desc: "Quizzes & topic reviews", icon: Zap, color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10" },
-];
-
 export default function GoalCategoryDiscovery() {
-  const { data } = useLandingData();
+  const { data, isLoading } = useLandingData();
   const allCourses = useMemo(() => data?.courses ?? [], [data]);
-  const stats = data?.stats;
-  const [selectedCat, setSelectedCat] = useState("All");
 
-  // Derive categories dynamically from real course data
-  const categoryStats = useMemo(() => {
+  // Real categories only — derived from real published courses, never a
+  // fabricated fallback list, and never shown with a misleading "(0)".
+  const categories = useMemo(() => {
     const counts = {};
     allCourses.forEach((c) => {
-      const cat = c.category || "General";
-      counts[cat] = (counts[cat] || 0) + 1;
+      const cat = c.category?.trim();
+      if (cat) counts[cat] = (counts[cat] || 0) + 1;
     });
-    return counts;
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
   }, [allCourses]);
 
-  const categoriesList = useMemo(() => {
-    const keys = Object.keys(categoryStats);
-    if (keys.length === 0) return ["General", "Entrance Exam", "Development"];
-    return keys;
-  }, [categoryStats]);
+  // Only hide once loading has genuinely finished with no real categories —
+  // never during the loading window itself, which is what let this section
+  // race ahead of its own data and render nothing.
+  if (!isLoading && categories.length === 0) return null;
 
   return (
-    <section id="discovery" className="scroll-mt-20 py-6 sm:py-8 lg:py-10 border-t border-border">
-      {/* Header */}
-      <div className="mb-5 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3">
-        <div>
-          <Eyebrow>Discovery & Domains</Eyebrow>
-          <h2 className="mt-1.5 text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-            What do you want to learn?
-          </h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Explore learning goals and course tracks by subject domain.
-          </p>
-        </div>
+    <section id="discovery" className="scroll-mt-20 py-14 sm:py-16 lg:py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Eyebrow>Explore by Domain</Eyebrow>
+        <h2 className="mt-3 max-w-xl font-display text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+          What can you learn here?
+        </h2>
 
-        {/* Tertiary Slim Trust Metrics Row */}
-        {stats && (
-          <div className="flex items-center gap-3 text-2xs text-muted-foreground border border-border bg-card px-3 py-1.5 rounded-full shadow-2xs shrink-0">
-            <span className="flex items-center gap-1">
-              <Users size={12} className="text-primary" />
-              <strong className="text-foreground">{stats.students || 0}+</strong> Learners
-            </span>
-            <span className="text-border">•</span>
-            <span className="flex items-center gap-1">
-              <BookOpen size={12} className="text-primary" />
-              <strong className="text-foreground">{stats.courses || 0}+</strong> Courses
-            </span>
-            <span className="text-border">•</span>
-            <span className="flex items-center gap-1">
-              <Award size={12} className="text-primary" />
-              <strong className="text-foreground">{stats.certificates || 0}+</strong> Certificates
-            </span>
+        {isLoading ? (
+          <div className="mt-8 flex flex-wrap gap-x-10 gap-y-4">
+            <div className="h-9 w-40 animate-pulse rounded bg-muted" />
+            <div className="h-7 w-32 animate-pulse rounded bg-muted" />
+            <div className="h-7 w-28 animate-pulse rounded bg-muted" />
+          </div>
+        ) : (
+          <div className="mt-8 flex flex-wrap items-baseline gap-x-10 gap-y-4">
+            {categories.map(([cat, count], i) => (
+              <Link
+                key={cat}
+                href="#courses"
+                className={`group inline-flex items-baseline gap-2 font-display font-black tracking-tight text-foreground transition hover:text-primary ${
+                  i === 0 ? "text-3xl sm:text-4xl" : "text-xl sm:text-2xl text-foreground/70 hover:text-primary"
+                }`}
+              >
+                <span>{cat}</span>
+                <ArrowUpRight
+                  size={i === 0 ? 20 : 15}
+                  className="text-muted-foreground/50 transition group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+                <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground self-center">
+                  {count} course{count === 1 ? "" : "s"}
+                </span>
+              </Link>
+            ))}
           </div>
         )}
-      </div>
-
-      {/* Primary Goal Selector Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mb-4">
-        {GOAL_ITEMS.map((goal) => {
-          const Icon = goal.icon;
-          return (
-            <div
-              key={goal.id}
-              className="group p-3 sm:p-3.5 rounded-xl border border-border bg-card hover:border-primary/50 transition cursor-pointer flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className={`p-1.5 rounded-lg ${goal.color}`}>
-                    <Icon size={14} />
-                  </span>
-                  <ArrowUpRight size={13} className="text-muted-foreground group-hover:text-primary transition" />
-                </div>
-                <h3 className="text-xs sm:text-sm font-bold text-foreground group-hover:text-primary transition">{goal.title}</h3>
-                <p className="text-2xs text-muted-foreground mt-0.5 line-clamp-1">{goal.desc}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Secondary Subject Category Chips */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-        <span className="text-2xs font-bold text-muted-foreground uppercase tracking-wider shrink-0 mr-1">Domains:</span>
-        <button
-          type="button"
-          onClick={() => setSelectedCat("All")}
-          className={`px-3 py-1 rounded-full text-2xs font-bold transition cursor-pointer shrink-0 ${
-            selectedCat === "All"
-              ? "bg-primary text-primary-foreground shadow-2xs"
-              : "border border-border bg-card text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          All Subjects ({allCourses.length})
-        </button>
-
-        {categoriesList.map((cat) => {
-          const count = categoryStats[cat] || 0;
-          const isSelected = selectedCat === cat;
-          return (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setSelectedCat(cat)}
-              className={`px-3 py-1 rounded-full text-2xs font-bold transition cursor-pointer shrink-0 ${
-                isSelected
-                  ? "bg-primary text-primary-foreground shadow-2xs"
-                  : "border border-border bg-card text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {cat} ({count})
-            </button>
-          );
-        })}
       </div>
     </section>
   );

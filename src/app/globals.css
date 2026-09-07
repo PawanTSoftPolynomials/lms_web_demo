@@ -3,8 +3,17 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+html {
+  /* `hidden` (not `clip`) establishes a scroll container on the root and
+     breaks `position: sticky` for every descendant — including the landing
+     navbar. `clip` prevents the same horizontal overflow without that
+     side effect. */
+  overflow-x: clip;
+}
+
 body {
   font-family: var(--font-ui);
+  overflow-x: clip;
 }
 
 .learning-content,
@@ -645,10 +654,9 @@ body {
    via the semantic tokens above so it repaints automatically per mode.
    ========================================================================== */
 
-.bg-card, .bg-surface, .bg-popover, .card-photo-jellyfish {
+.bg-card, .bg-popover, .card-photo-jellyfish {
   background-color: var(--card) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 8px !important;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
@@ -737,7 +745,7 @@ button.bg-primary:hover, a.bg-primary:hover, .btn-rainbow:hover {
    mode uses the plain surface/control styling above with no extra treatment.
    ========================================================================== */
 
-.dark .bg-card, .dark .bg-surface, .dark .bg-popover, .dark .card-photo-jellyfish {
+.dark .bg-card, .dark .bg-popover, .dark .card-photo-jellyfish {
   background-color: var(--card) !important;
   border-color: var(--border) !important;
   box-shadow: none !important;

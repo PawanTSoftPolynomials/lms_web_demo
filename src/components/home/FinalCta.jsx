@@ -6,29 +6,29 @@ import Button from "@/components/ui/Button";
 
 export default function FinalCta() {
   return (
-    <section className="py-6 sm:py-8 lg:py-10 border-t border-border">
-      <div className="flex flex-col items-center gap-4 sm:gap-5 rounded-2xl sm:rounded-3xl bg-primary p-6 sm:p-10 lg:p-12 text-center shadow-xs">
-        <h2 className="text-xl sm:text-3xl font-bold text-primary-foreground">
-          Ready to Start Your Learning Journey?
+    <section className="relative py-24 sm:py-32 lg:py-40 overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 left-1/2 w-screen -translate-x-1/2 bg-[radial-gradient(ellipse_55%_60%_at_50%_100%,color-mix(in_oklab,var(--primary)_10%,transparent),transparent_70%)]"
+      />
+
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-foreground leading-[1.05]">
+          Start learning today.
         </h2>
-        <p className="max-w-lg text-xs sm:text-sm text-primary-foreground/90 leading-relaxed">
-          Create your free account today to explore verified courses, track your module progress, and earn completion certificates.
+        <p className="mt-5 text-sm sm:text-base text-muted-foreground leading-relaxed max-w-md mx-auto">
+          Choose a course, build your knowledge, and track your progress from your
+          first lesson to completion.
         </p>
 
-        <div className="mt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-          <Button asChild size="lg" className="bg-primary-foreground text-primary hover:brightness-95 font-bold w-full sm:w-auto">
-            <Link href="/register">
-              <span>Create Free Account</span>
+        <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Button asChild size="lg" className="w-full sm:w-auto font-bold inline-flex items-center justify-center">
+            <Link href="#courses">
+              <span>Explore Courses</span>
               <ArrowRight size={15} className="ml-1" />
             </Link>
           </Button>
-
-          <Button
-            asChild
-            variant="outline"
-            size="lg"
-            className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 font-bold w-full sm:w-auto"
-          >
+          <Button asChild variant="outline" size="lg" className="w-full sm:w-auto font-bold">
             <Link href="/login">Sign In</Link>
           </Button>
         </div>
