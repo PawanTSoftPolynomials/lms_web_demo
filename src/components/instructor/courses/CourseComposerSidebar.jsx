@@ -567,7 +567,7 @@ export function CourseComposerSidebar({
         )}
       </div>
 
-      {/* Course-Level Content Cells */}
+      {/* Course-Level Content Cells (course-level quizzes are merged into this list) */}
       {(courseId || modules[0]?.courseId) && (
         <ParentContentRows
           parent={{ parentType: "course", parentId: courseId || modules[0]?.courseId }}
@@ -575,71 +575,15 @@ export function CourseComposerSidebar({
           selectedCellId={selectedCellId}
           onSelectContent={(content) => onSelectCourseContent?.(content)}
           onDeleteContent={(e, content) => onDeleteCourseContent?.(e, content)}
+          quizzes={courseQuizzes}
+          composerMode={composerMode}
+          composeQuizId={composeQuizId}
+          onSelectQuiz={(quiz, opts) => onSelectQuiz?.(quiz, null, null, null, opts)}
+          onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, null, null, null)}
+          onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, null, null, null)}
           role={role}
           isDraftMode={isDraftMode}
         />
-      )}
-
-      {/* Course-Level Quizzes (when present) */}
-      {courseQuizzes.length > 0 && (
-        <div className="mb-2 space-y-0.5 pl-1">
-          {courseQuizzes.map((quiz, qIdx) => {
-            const isQuizActive = composerMode === "quiz" && composeQuizId === quiz.id;
-            const questions = quiz.questions || (quiz.quizQuestions || []).map((qq) => qq.question) || [];
-
-            return (
-              <div key={quiz.id || `c-quiz-${qIdx}`}>
-                <div
-                  className={`flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl transition cursor-pointer text-xs border-l-[3px] ${
-                    isQuizActive
-                      ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
-                      : "border-transparent text-foreground hover:bg-background"
-                  }`}
-                  onClick={() => onSelectQuiz?.(quiz, null, null)}
-                >
-                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                    <HelpCircle size={14} className="text-emerald-400 shrink-0" />
-                    <span className="truncate text-[11.5px] font-semibold">{quiz.title || "Course Quiz"}</span>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
-                      {questions.length} Qs
-                    </span>
-                    {role === "INSTRUCTOR" && (
-                      <RowMenu
-                        groupName="quiz"
-                        items={[
-                          {
-                            label: "Edit Quiz",
-                            icon: Pencil,
-                            onSelect: () => onSelectQuiz?.(quiz, null, null, { startEditing: true }),
-                          },
-                          {
-                            label: "Preview Quiz",
-                            icon: Eye,
-                            onSelect: () => onSelectQuiz?.(quiz, null, null, { startEditing: false }),
-                          },
-                          {
-                            label: "Duplicate Quiz",
-                            icon: Copy,
-                            onSelect: () => onDuplicateQuiz?.(quiz, null, null),
-                          },
-                          { separator: true },
-                          {
-                            label: "Delete Quiz",
-                            icon: Trash2,
-                            destructive: true,
-                            onSelect: (e) => onDeleteQuiz?.(e, quiz, null, null),
-                          },
-                        ]}
-                      />
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
       )}
 
       {/* Modules Tree */}
@@ -719,79 +663,24 @@ export function CourseComposerSidebar({
                 {/* Module Children: Module Content + Module Quizzes + Lessons */}
                 <Collapsible open={moduleOpen}>
                   <div className="ml-3.5 pl-3 py-0.5 space-y-0.5 border-l border-border/70">
-                    {/* Module-Level Content Cells */}
+                    {/* Module-Level Content Cells (module-level quizzes are merged into this list) */}
                     <ParentContentRows
                       parent={{ parentType: "module", parentId: mod.id }}
                       isActive={composerMode === "module" && composeModuleId === mod.id}
                       selectedCellId={selectedCellId}
                       onSelectContent={(content) => onSelectModuleContent?.(content, mod)}
                       onDeleteContent={(e, content) => onDeleteModuleContent?.(e, content, mod)}
+                      quizzes={modQuizzes}
+                      composerMode={composerMode}
+                      composeQuizId={composeQuizId}
+                      onSelectQuiz={(quiz, opts) => onSelectQuiz?.(quiz, mod, null, null, opts)}
+                      onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, mod, null, null)}
+                      onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, mod, null, null)}
                       role={role}
                       isDraftMode={isDraftMode}
                       draftContents={mod.contents}
                     />
 
-                    {/* Module Quizzes (when present) */}
-                    {modQuizzes.length > 0 && (
-                      <div className="mb-1 space-y-0.5">
-                        {modQuizzes.map((quiz, qIdx) => {
-                          const isQuizActive = composerMode === "quiz" && composeQuizId === quiz.id;
-                          const questions = quiz.questions || (quiz.quizQuestions || []).map((qq) => qq.question) || [];
-
-                          return (
-                            <div key={quiz.id || `m-quiz-${qIdx}`}>
-                              <div
-                                className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
-                                  isQuizActive
-                                    ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
-                                    : "border-transparent text-emerald-300/80 hover:text-emerald-300 hover:bg-background/60"
-                                }`}
-                                onClick={() => onSelectQuiz?.(quiz, mod, null)}
-                              >
-                                <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                  <HelpCircle size={13} className="text-emerald-400 shrink-0" />
-                                  <span className="truncate text-[11px] font-semibold">{quiz.title || "Module Quiz"}</span>
-                                </div>
-                                <div className="flex items-center gap-1 shrink-0">
-                                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
-                                    {questions.length} Qs
-                                  </span>
-                                  {role === "INSTRUCTOR" && (
-                                    <RowMenu
-                                      groupName="quiz"
-                                      items={[
-                                        {
-                                          label: "Edit Quiz",
-                                          icon: Pencil,
-                                          onSelect: () => onSelectQuiz?.(quiz, mod, null, { startEditing: true }),
-                                        },
-                                        {
-                                          label: "Preview Quiz",
-                                          icon: Eye,
-                                          onSelect: () => onSelectQuiz?.(quiz, mod, null, { startEditing: false }),
-                                        },
-                                        {
-                                          label: "Duplicate Quiz",
-                                          icon: Copy,
-                                          onSelect: () => onDuplicateQuiz?.(quiz, mod, null),
-                                        },
-                                        { separator: true },
-                                        {
-                                          label: "Delete Quiz",
-                                          icon: Trash2,
-                                          destructive: true,
-                                          onSelect: (e) => onDeleteQuiz?.(e, quiz, mod, null),
-                                        },
-                                      ]}
-                                    />
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
                     {modLessons.length === 0 ? (
                       <div className="py-1.5 px-2 text-[10px] text-muted-foreground italic">
                         No lessons in this module.
@@ -883,79 +772,24 @@ export function CourseComposerSidebar({
                             {/* Lesson Content + Lesson Quizzes + Topics */}
                             <Collapsible open={lessonOpen}>
                               <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-border/60">
-                                {/* Lesson-Level Content Cells */}
+                                {/* Lesson-Level Content Cells (lesson-level quizzes are merged into this list) */}
                                 <ParentContentRows
                                   parent={{ parentType: "lesson", parentId: lesson.id }}
                                   isActive={composerMode === "lesson" && composeLessonId === lesson.id}
                                   selectedCellId={selectedCellId}
                                   onSelectContent={(content) => onSelectLessonContent?.(content, lesson, mod)}
                                   onDeleteContent={(e, content) => onDeleteLessonContent?.(e, content, lesson, mod)}
+                                  quizzes={lessonQuizzes}
+                                  composerMode={composerMode}
+                                  composeQuizId={composeQuizId}
+                                  onSelectQuiz={(quiz, opts) => onSelectQuiz?.(quiz, mod, lesson, null, opts)}
+                                  onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, mod, lesson, null)}
+                                  onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, mod, lesson, null)}
                                   role={role}
                                   isDraftMode={isDraftMode}
                                   draftContents={lesson.contents}
                                 />
 
-                                {/* Lesson Quizzes (when present) */}
-                                {lessonQuizzes.length > 0 && (
-                                  <div className="mb-1 space-y-0.5">
-                                    {lessonQuizzes.map((quiz, qIdx) => {
-                                      const isQuizActive = composerMode === "quiz" && composeQuizId === quiz.id;
-                                      const questions = quiz.questions || (quiz.quizQuestions || []).map((qq) => qq.question) || [];
-
-                                      return (
-                                        <div key={quiz.id || `l-quiz-${qIdx}`}>
-                                          <div
-                                            className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
-                                              isQuizActive
-                                                ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
-                                                : "border-transparent text-emerald-300/80 hover:text-emerald-300 hover:bg-background/60"
-                                            }`}
-                                            onClick={() => onSelectQuiz?.(quiz, mod, lesson)}
-                                          >
-                                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                              <HelpCircle size={13} className="text-emerald-400 shrink-0" />
-                                              <span className="truncate text-[11px] font-semibold">{quiz.title || "Lesson Quiz"}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1 shrink-0">
-                                              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
-                                                {questions.length} Qs
-                                              </span>
-                                              {role === "INSTRUCTOR" && (
-                                                <RowMenu
-                                                  groupName="quiz"
-                                                  items={[
-                                                    {
-                                                      label: "Edit Quiz",
-                                                      icon: Pencil,
-                                                      onSelect: () => onSelectQuiz?.(quiz, mod, lesson, { startEditing: true }),
-                                                    },
-                                                    {
-                                                      label: "Preview Quiz",
-                                                      icon: Eye,
-                                                      onSelect: () => onSelectQuiz?.(quiz, mod, lesson, { startEditing: false }),
-                                                    },
-                                                    {
-                                                      label: "Duplicate Quiz",
-                                                      icon: Copy,
-                                                      onSelect: () => onDuplicateQuiz?.(quiz, mod, lesson),
-                                                    },
-                                                    { separator: true },
-                                                    {
-                                                      label: "Delete Quiz",
-                                                      icon: Trash2,
-                                                      destructive: true,
-                                                      onSelect: (e) => onDeleteQuiz?.(e, quiz, mod, lesson),
-                                                    },
-                                                  ]}
-                                                />
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                )}
                                 {lessonTopics.length === 0 ? (
                                   <div className="py-1.5 px-2 text-[10px] text-muted-foreground italic">
                                     No topics in this lesson.
@@ -1027,76 +861,20 @@ export function CourseComposerSidebar({
                                           )}
                                         </div>
 
-                                        {/* Topic Quizzes + Contents */}
+                                        {/* Topic Content Cells (topic-level quizzes are merged into this list) */}
                                         <Collapsible open={topicOpen}>
-                                          <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-border/60">
-                                            {(topic.quizzes || []).length > 0 && (
-                                              <div className="mb-1 space-y-0.5">
-                                                {(topic.quizzes || []).map((quiz, qIdx) => {
-                                                  const isQuizActive = composerMode === "quiz" && composeQuizId === quiz.id;
-                                                  const questions = quiz.questions || (quiz.quizQuestions || []).map((qq) => qq.question) || [];
-
-                                                  return (
-                                                    <div key={quiz.id || `t-quiz-${qIdx}`}>
-                                                      <div
-                                                        className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
-                                                          isQuizActive
-                                                            ? "bg-emerald-500/15 border-emerald-500 text-emerald-400 font-bold"
-                                                            : "border-transparent text-emerald-300/80 hover:text-emerald-300 hover:bg-background/60"
-                                                        }`}
-                                                        onClick={() => onSelectQuiz?.(quiz, mod, lesson, topic)}
-                                                      >
-                                                        <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                                          <HelpCircle size={13} className="text-emerald-400 shrink-0" />
-                                                          <span className="truncate text-[11px] font-semibold">{quiz.title || "Topic Quiz"}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-1 shrink-0">
-                                                          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
-                                                            {questions.length} Qs
-                                                          </span>
-                                                          {role === "INSTRUCTOR" && (
-                                                            <RowMenu
-                                                              groupName="quiz"
-                                                              items={[
-                                                                {
-                                                                  label: "Edit Quiz",
-                                                                  icon: Pencil,
-                                                                  onSelect: () => onSelectQuiz?.(quiz, mod, lesson, topic, { startEditing: true }),
-                                                                },
-                                                                {
-                                                                  label: "Preview Quiz",
-                                                                  icon: Eye,
-                                                                  onSelect: () => onSelectQuiz?.(quiz, mod, lesson, topic, { startEditing: false }),
-                                                                },
-                                                                {
-                                                                  label: "Duplicate Quiz",
-                                                                  icon: Copy,
-                                                                  onSelect: () => onDuplicateQuiz?.(quiz, mod, lesson, topic),
-                                                                },
-                                                                { separator: true },
-                                                                {
-                                                                  label: "Delete Quiz",
-                                                                  icon: Trash2,
-                                                                  destructive: true,
-                                                                  onSelect: (e) => onDeleteQuiz?.(e, quiz, mod, lesson, topic),
-                                                                },
-                                                              ]}
-                                                            />
-                                                          )}
-                                                        </div>
-                                                      </div>
-                                                    </div>
-                                                  );
-                                                })}
-                                              </div>
-                                            )}
-                                          </div>
                                           <ParentContentRows
                                             parent={{ parentType: "topic", parentId: topic.id }}
                                             isActive={composerMode === "topic"}
                                             selectedCellId={selectedCellId}
                                             onSelectContent={(content) => onSelectContent?.(content, topic, lesson, mod)}
                                             onDeleteContent={(e, content) => onDeleteContent?.(e, content, topic.id)}
+                                            quizzes={topic.quizzes || []}
+                                            composerMode={composerMode}
+                                            composeQuizId={composeQuizId}
+                                            onSelectQuiz={(quiz, opts) => onSelectQuiz?.(quiz, mod, lesson, topic, opts)}
+                                            onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, mod, lesson, topic)}
+                                            onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, mod, lesson, topic)}
                                             role={role}
                                             isDraftMode={isDraftMode}
                                             draftContents={topic.contents}
