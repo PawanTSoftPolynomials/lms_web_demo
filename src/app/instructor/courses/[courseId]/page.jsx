@@ -1389,6 +1389,19 @@ export default function CourseDetailsPage() {
     setMobileSidebarOpen(false);
   };
 
+  const handleAddContentToCourse = () => {
+    handleSelectCourseOverview();
+  };
+
+  const handleAddContentToModule = (mod) => {
+    handleSelectModule(mod);
+  };
+
+  const handleAddContentToLesson = (lesson, mod = null) => {
+    handleSelectLesson(lesson.id);
+    if (mod?.id) setComposeModuleId(mod.id);
+  };
+
   const handleEntityCreated = ({ entity, parentId, moduleId, created }) => {
     if (!created?.id) return;
     if (entity === "module") {
@@ -1856,7 +1869,10 @@ export default function CourseDetailsPage() {
             onEditTopic={(topic, lessonId, moduleId) =>
               openEntityModal({ entity: "topic", mode: "edit", entityData: topic, parentId: lessonId, moduleId })
             }
-            onAddContent={handleAddContentFromSidebar}
+            onAddContentToTopic={handleAddContentFromSidebar}
+            onAddContentToCourse={handleAddContentToCourse}
+            onAddContentToModule={handleAddContentToModule}
+            onAddContentToLesson={handleAddContentToLesson}
             onDeleteLesson={handleDeleteLesson}
             onDeleteModule={handleDeleteModule}
             onDeleteTopic={handleDeleteTopic}
@@ -1928,6 +1944,7 @@ export default function CourseDetailsPage() {
                 onSelectModule={handleSelectModule}
                 onSelectQuiz={handleSelectQuiz}
                 onAddModule={() => openEntityModal({ entity: "module", mode: "create", courseId })}
+                isDraftMode={isDraftMode}
               />
             )}
 
@@ -1973,11 +1990,12 @@ export default function CourseDetailsPage() {
                 topics={composingLesson?.topics || []}
                 onSelectTopic={handleSelectTopic}
                 onAddTopic={() => openEntityModal({ entity: "topic", mode: "create", parentId: composeLessonId, moduleId: composeModuleId })}
-                onAddContent={handleAddContentFromSidebar}
+                onAddContentToTopic={handleAddContentFromSidebar}
                 onEditTopic={(topic) => openEntityModal({ entity: "topic", mode: "edit", entityId: topic.id, initialData: topic, parentId: composeLessonId, moduleId: composeModuleId })}
                 onDeleteTopic={(e, topic, lId) => handleDeleteTopic(e, topic, lId || composeLessonId)}
                 parentModule={activeModuleObj}
                 onSelectLesson={handleSelectLesson}
+                isDraftMode={isDraftMode}
               />
             )}
 
@@ -1992,12 +2010,13 @@ export default function CourseDetailsPage() {
                 onDeleteLesson={handleDeleteLesson}
                 allModules={effectiveModules}
                 onSelectModule={handleSelectModule}
+                isDraftMode={isDraftMode}
               />
             )}
 
             {composerMode === "topic" && (
               <LessonComposerPanel
-                topicId={composeTopicId}
+                parent={{ parentType: "topic", parentId: composeTopicId }}
                 selectedCellId={selectedCellId}
                 onSelectCell={setSelectedCellId}
                 autoOpenAddSignal={autoOpenAddSignal}
