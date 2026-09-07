@@ -37,18 +37,18 @@ import { CELL_TYPES, type ContentType } from "./cellTypes";
 import { detectHtmlCellVariant } from "./htmlCellVariant";
 import { planInsert, sortByOrder } from "./blockOrder";
 import { getErrorMessage } from "./getErrorMessage";
-import type { CellActionProps, ContentRow } from "./types";
+import type { CellActionProps, ContentParent, ContentRow } from "./types";
 
 interface LessonComposerPanelProps {
-  topicId: string;
+  parent: ContentParent;
   selectedCellId?: string | null;
   onSelectCell?: (contentId: string) => void;
-  /** Bump this (e.g. a counter) to immediately open the Add Content picker for the current topic — used by the Course Map's "Add Content" action so it never has to navigate to a separate page. */
+  /** Bump this (e.g. a counter) to immediately open the Add Content picker for the current parent — used by the Course Map's "Add Content" action so it never has to navigate to a separate page. */
   autoOpenAddSignal?: number;
   draftContents?: ContentRow[];
   isDraftMode?: boolean;
   onUpdateDraftContents?: (contents: ContentRow[]) => void;
-  /** Opens the lesson-quiz creation flow for this topic's parent lesson — a Quiz isn't a Content row, so picking it from the Add Content grid hands off to that flow instead of an in-panel form. Omit to hide the Quiz option. */
+  /** Opens the lesson-quiz creation flow for this topic's parent lesson — a Quiz isn't a Content row, so picking it from the Add Content grid hands off to that flow instead of an in-panel form. Only ever passed when parent.parentType === "topic". Omit to hide the Quiz option. */
   onAddQuiz?: () => void;
 }
 
@@ -167,7 +167,7 @@ function renderCell(content: ContentRow, actionProps: CellActionProps) {
 }
 
 export function LessonComposerPanel({
-  topicId,
+  parent,
   selectedCellId,
   onSelectCell,
   autoOpenAddSignal,
@@ -176,7 +176,7 @@ export function LessonComposerPanel({
   onUpdateDraftContents,
   onAddQuiz,
 }: LessonComposerPanelProps) {
-  const { data: apiContents = [], isLoading: isApiLoading, isError: isApiError } = useContents(isDraftMode ? "" : topicId);
+  const { data: apiContents = [], isLoading: isApiLoading, isError: isApiError } = useContents(isDraftMode ? undefined : parent);
 
   const contents: ContentRow[] = isDraftMode ? (draftContents || []) : (apiContents || []);
   const isLoading = isDraftMode ? false : isApiLoading;
@@ -202,7 +202,7 @@ export function LessonComposerPanel({
   };
 
   const openAddCell = (order: number) => {
-    if (!topicId) {
+    if (!parent?.parentId) {
       showToast("Please select or create a topic in the left sidebar first.", "error", "Topic Required");
       return;
     }
@@ -231,7 +231,8 @@ export function LessonComposerPanel({
       for (const shift of plan.shifts) {
         await updateContent.mutateAsync({
           contentId: shift.contentId,
-          contentData: { order: shift.newOrder, topicId },
+          contentData: { order: shift.newOrder },
+          parent,
         });
       }
       openAddCell(plan.insertOrder);
@@ -297,13 +298,15 @@ export function LessonComposerPanel({
   return (
     <div className="space-y-5">
       {/* Canvas */}
-      {!topicId ? (
+      {!parent?.parentId ? (
         <div className="rounded-2xl border-2 border-dashed border-amber-500/30 bg-amber-500/5 p-12 text-center">
           <p className="text-sm font-bold text-amber-400">
-            No topic found for this lesson.
+            {parent?.parentType === "topic" ? "No topic found for this lesson." : "Nothing selected yet."}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Please click <strong className="text-foreground">+ New Topic</strong> in the left Course Map sidebar to create a topic before adding content blocks.
+            {parent?.parentType === "topic"
+              ? <>Please click <strong className="text-foreground">+ New Topic</strong> in the left Course Map sidebar to create a topic before adding content blocks.</>
+              : "Select or create this item first."}
           </p>
         </div>
       ) : contents.length === 0 ? (
@@ -352,7 +355,7 @@ export function LessonComposerPanel({
       )}
 
       <AddCellModal
-        topicId={topicId}
+        parent={parent}
         order={insertOrder ?? nextOrder}
         open={insertOrder !== null}
         onOpenChange={(open) => {
