@@ -13,7 +13,7 @@ import { useCreateContent, useUpdateContent, useDeleteContent } from "../content
 import { CellShell } from "../CellShell";
 import { CELL_TYPES } from "../cellTypes";
 import { getErrorMessage } from "../getErrorMessage";
-import type { CellActionProps, ContentRow, CreateCellFormProps } from "../types";
+import { getContentParent, toParentField, type CellActionProps, type ContentRow, type CreateCellFormProps } from "../types";
 
 const CELL_TYPE = CELL_TYPES.find((c) => c.id === "text")!;
 
@@ -60,7 +60,8 @@ export function TextCell({
     try {
       await updateContent.mutateAsync({
         contentId: content.id,
-        contentData: { title, htmlContent: escapeForContentApi(markdownSource), topicId: content.topicId },
+        contentData: { title, htmlContent: escapeForContentApi(markdownSource) },
+        parent: getContentParent(content),
       });
       setMode("view");
     } catch (error) {
@@ -77,7 +78,7 @@ export function TextCell({
     if (!confirmed) return;
 
     try {
-      await deleteContent.mutateAsync({ contentId: content.id, topicId: content.topicId });
+      await deleteContent.mutateAsync({ contentId: content.id, parent: getContentParent(content) });
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to delete this block."), "error", "Delete failed");
     }
@@ -137,7 +138,7 @@ export function TextCell({
 }
 
 /** The "Add Cell" creation form for a Text block — hosted inside AddCellModal. */
-export function CreateTextForm({ topicId, order, onCreated, onCancel }: CreateCellFormProps) {
+export function CreateTextForm({ parent, order, onCreated, onCancel }: CreateCellFormProps) {
   const [title, setTitle] = useState("");
   const [markdownSource, setMarkdownSource] = useState("");
 
@@ -147,7 +148,7 @@ export function CreateTextForm({ topicId, order, onCreated, onCancel }: CreateCe
   const handleCreate = async () => {
     try {
       await createContent.mutateAsync({
-        topicId,
+        ...toParentField(parent),
         type: "HTML",
         order,
         title,

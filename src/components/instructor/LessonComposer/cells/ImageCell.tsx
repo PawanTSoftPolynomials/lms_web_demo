@@ -14,7 +14,7 @@ import { CellShell } from "../CellShell";
 import { CELL_TYPES } from "../cellTypes";
 import { getErrorMessage } from "../getErrorMessage";
 import { IMAGE_MARKER_CLASS } from "../htmlCellVariant";
-import type { CellActionProps, ContentRow, CreateCellFormProps } from "../types";
+import { getContentParent, toParentField, type CellActionProps, type ContentRow, type CreateCellFormProps } from "../types";
 
 const CELL_TYPE = CELL_TYPES.find((c) => c.id === "image")!;
 
@@ -123,8 +123,8 @@ export function ImageCell({
         contentData: {
           title: alt || content.title || "Image",
           htmlContent: buildImageHtml({ src, alt, caption }),
-          topicId: content.topicId,
         },
+        parent: getContentParent(content),
       });
       setMode("view");
     } catch (error) {
@@ -141,7 +141,7 @@ export function ImageCell({
     if (!confirmed) return;
 
     try {
-      await deleteContent.mutateAsync({ contentId: content.id, topicId: content.topicId });
+      await deleteContent.mutateAsync({ contentId: content.id, parent: getContentParent(content) });
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to delete this image."), "error", "Delete failed");
     }
@@ -291,7 +291,7 @@ export function ImageCell({
   );
 }
 
-export function CreateImageForm({ topicId, order, onCreated, onCancel }: CreateCellFormProps) {
+export function CreateImageForm({ parent, order, onCreated, onCancel }: CreateCellFormProps) {
   const [src, setSrc] = useState("");
   const [alt, setAlt] = useState("");
   const [caption, setCaption] = useState("");
@@ -326,14 +326,14 @@ export function CreateImageForm({ topicId, order, onCreated, onCancel }: CreateC
   };
 
   const handleCreate = async () => {
-    if (!topicId) {
+    if (!parent?.parentId) {
       showToast("Please select or create a lesson in the left sidebar first.", "error", "Lesson Required");
       return;
     }
     try {
       const safeOrder = typeof order === "number" && !isNaN(order) && order > 0 ? order : 1;
       await createContent.mutateAsync({
-        topicId,
+        ...toParentField(parent),
         type: "HTML",
         order: safeOrder,
         title: alt || "Image",

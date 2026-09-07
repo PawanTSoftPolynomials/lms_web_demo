@@ -11,7 +11,7 @@ import { CellShell } from "../CellShell";
 import { CELL_TYPES } from "../cellTypes";
 import { getErrorMessage } from "../getErrorMessage";
 import { buildHeadingHtml, parseHeadingDesign } from "../blockStyle";
-import type { CellActionProps, ContentRow, CreateCellFormProps } from "../types";
+import { getContentParent, toParentField, type CellActionProps, type ContentRow, type CreateCellFormProps } from "../types";
 
 const CELL_TYPE = CELL_TYPES.find((c) => c.id === "heading")!;
 
@@ -60,8 +60,8 @@ export function HeadingCell({
         contentData: {
           title: text,
           htmlContent: buildHeadingHtml({ ...parseHeadingDesign(content.htmlContent), text }),
-          topicId: content.topicId,
         },
+        parent: getContentParent(content),
       });
       setMode("view");
     } catch (error) {
@@ -78,7 +78,7 @@ export function HeadingCell({
     if (!confirmed) return;
 
     try {
-      await deleteContent.mutateAsync({ contentId: content.id, topicId: content.topicId });
+      await deleteContent.mutateAsync({ contentId: content.id, parent: getContentParent(content) });
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to delete this heading."), "error", "Delete failed");
     }
@@ -145,7 +145,7 @@ export function HeadingCell({
 }
 
 /** The "Add Cell" creation form for a Heading block — hosted inside AddCellModal. */
-export function CreateHeadingForm({ topicId, order, onCreated, onCancel }: CreateCellFormProps) {
+export function CreateHeadingForm({ parent, order, onCreated, onCancel }: CreateCellFormProps) {
   const [text, setText] = useState("");
 
   const createContent = useCreateContent();
@@ -154,7 +154,7 @@ export function CreateHeadingForm({ topicId, order, onCreated, onCancel }: Creat
   const handleCreate = async () => {
     try {
       await createContent.mutateAsync({
-        topicId,
+        ...toParentField(parent),
         type: "HTML",
         order,
         title: text,

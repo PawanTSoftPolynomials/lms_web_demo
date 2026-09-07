@@ -14,7 +14,7 @@ import { useCreateContent, useUpdateContent, useDeleteContent } from "../content
 import { CellShell } from "../CellShell";
 import { CELL_TYPES } from "../cellTypes";
 import { getErrorMessage } from "../getErrorMessage";
-import type { CellActionProps, ContentRow, CreateCellFormProps } from "../types";
+import { getContentParent, toParentField, type CellActionProps, type ContentRow, type CreateCellFormProps } from "../types";
 
 const CELL_TYPE = CELL_TYPES.find((c) => c.id === "video")!;
 
@@ -88,7 +88,8 @@ export function VideoCell({
     try {
       await updateContent.mutateAsync({
         contentId: content.id,
-        contentData: { title, videoUrl, topicId: content.topicId },
+        contentData: { title, videoUrl },
+        parent: getContentParent(content),
       });
       setMode("view");
     } catch (error) {
@@ -105,7 +106,7 @@ export function VideoCell({
     if (!confirmed) return;
 
     try {
-      await deleteContent.mutateAsync({ contentId: content.id, topicId: content.topicId });
+      await deleteContent.mutateAsync({ contentId: content.id, parent: getContentParent(content) });
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to delete this video."), "error", "Delete failed");
     }
@@ -262,7 +263,7 @@ export function VideoCell({
   );
 }
 
-export function CreateVideoForm({ topicId, order, onCreated, onCancel }: CreateCellFormProps) {
+export function CreateVideoForm({ parent, order, onCreated, onCancel }: CreateCellFormProps) {
   const [title, setTitle] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -296,12 +297,12 @@ export function CreateVideoForm({ topicId, order, onCreated, onCancel }: CreateC
   };
 
   const handleCreate = async () => {
-    if (!topicId) {
+    if (!parent?.parentId) {
       showToast("Please select or create a lesson in the left sidebar first.", "error", "Lesson Required");
       return;
     }
     try {
-      await createContent.mutateAsync({ topicId, type: "VIDEO", order, title, videoUrl });
+      await createContent.mutateAsync({ ...toParentField(parent), type: "VIDEO", order, title, videoUrl });
       onCreated();
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to add this video."), "error", "Add failed");
