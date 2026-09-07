@@ -37,6 +37,8 @@ import useTranscript from "@/hooks/queries/student/useTranscript";
 import useTrackCourseAccess from "@/hooks/queries/student/useTrackCourseAccess";
 import useLearningStateSync from "@/hooks/queries/student/useLearningStateSync";
 import useLessonNavigation from "@/hooks/queries/student/useLessonNavigation";
+import useTopicNavigation from "@/hooks/queries/student/useTopicNavigation";
+import useCompleteTopic from "@/hooks/queries/student/useCompleteTopic";
 
 import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
@@ -125,6 +127,40 @@ export default function LearnPage() {
     ? completedLessonIds.includes(selectedLesson.id)
     : false;
 
+  const [selectedTopicId, setSelectedTopicId] = useState(null);
+  const completeTopicMutation = useCompleteTopic();
+
+  // Whether the current lesson uses the topic-scoped pathway at all — a
+  // legacy/edge-case lesson with zero Topics falls back to the old
+  // lesson-wide bar and content flatten further down instead.
+  const hasTopics = (selectedLesson?.topics?.length ?? 0) > 0;
+
+  const {
+    currentTopic,
+    previousTopic,
+    nextTopic,
+    nextLessonForTopic,
+    selectTopic,
+  } = useTopicNavigation(course, selectedLesson, selectedTopicId, setSelectedLesson, setSelectedTopicId, lessons);
+
+  // Whenever the selected Lesson changes to one whose Topics don't include
+  // the currently selected Topic, default to that Lesson's first Topic.
+  // Deliberately keyed only on selectedLesson?.id: when selectTopic crosses
+  // a Lesson boundary it sets selectedLesson and selectedTopicId together in
+  // the same handler (batched into one render), so by the time this effect
+  // runs, selectedTopicId already belongs to the new selectedLesson and this
+  // is a no-op — it only fires the reset for lesson-level navigation
+  // (sidebar lesson/module clicks, resume-from-URL/DB, zero-topic Next/Prev
+  // Lesson) that never touched selectedTopicId itself.
+  useEffect(() => {
+    if (!selectedLesson) return;
+    const topicsOfLesson = selectedLesson.topics || [];
+    const stillValid = topicsOfLesson.some((t) => t.id === selectedTopicId);
+    if (!stillValid) {
+      setSelectedTopicId(topicsOfLesson[0]?.id || null);
+    }
+  }, [selectedLesson?.id]);
+
   const [pendingTopicScroll, setPendingTopicScroll] = useState(null);
   const [videoDuration, setVideoDuration] = useState(0);
 
@@ -161,7 +197,12 @@ export default function LearnPage() {
   // alike) has been visited. See handleContentVisited / LessonContentBlock.
   const handleVideoEnded = () => {
     handleContentVisited(documentGroupedContents?.[0]?.contentIds);
-    if (nextLesson) {
+    // Auto-advancing on video end does not itself complete the unit (same
+    // asymmetry as today: only the explicit Next click does) — it just
+    // moves the pointer forward.
+    if (hasTopics) {
+      if (nextTopic) selectTopic(nextTopic);
+    } else if (nextLesson) {
       setSelectedLesson(nextLesson);
     }
   };
@@ -195,25 +236,73 @@ export default function LearnPage() {
     }
   }, [pendingTopicScroll, selectedLesson]);
 
-  // Content now nests under Topic (Lesson -> Topic -> Content), so flatten
-  // every topic's contents back into the flat list this page's UI expects.
+  // Content now nests under Topic (Lesson -> Topic -> Content). Resources
+  // (instructorAttachments below) stays Lesson-wide by design, so this
+  // flattens every topic's contents the way it always has.
   const selectedLessonContents = useMemo(() => {
     return (selectedLesson?.topics || []).flatMap((topic) => topic.contents || []);
   }, [selectedLesson]);
 
+  // The primary content pane (video + document blocks) shows only the
+  // currently selected Topic's contents, not the whole Lesson's — that's
+  // the point of Topic-scoped navigation. A zero-Topic lesson has no Topic
+  // to scope to, so it falls back to the Lesson-wide list above unchanged.
+  const selectedTopicContents = useMemo(() => {
+    if (!hasTopics) return selectedLessonContents;
+    const topic = (selectedLesson?.topics || []).find((t) => t.id === selectedTopicId);
+    return topic?.contents || [];
+  }, [selectedLesson, selectedTopicId, hasTopics, selectedLessonContents]);
+
   // Imported courses store each markdown block (heading/paragraph/table/...)
-  // as its own HTML content row — dozens per lesson. Merge consecutive HTML
-  // rows into one flowing document item instead of showing (or dropping) one
-  // generic card per block; every other content type is untouched.
+  // as its own HTML content row — dozens per lesson/topic. Merge consecutive
+  // HTML rows into one flowing document item instead of showing (or
+  // dropping) one generic card per block; every other content type is
+  // untouched.
   const documentGroupedContents = useMemo(
-    () => groupLessonContentForDocumentView(selectedLessonContents),
-    [selectedLessonContents]
+    () => groupLessonContentForDocumentView(selectedTopicContents),
+    [selectedTopicContents]
   );
 
   const markComplete = async () => {
     if (!selectedLesson?.id) return;
     completeLessonMutation.mutate({ lessonId: selectedLesson.id });
   };
+
+  // Single source of truth for what "Previous/Complete/Next" do, shared by
+  // both LessonNavigationControls instances (compact + full) and the inline
+  // header complete button below — Topic-scoped when the lesson has Topics,
+  // otherwise identical to today's Lesson-level behavior.
+  const goToPreviousUnit = () => {
+    if (hasTopics) {
+      if (previousTopic) selectTopic(previousTopic);
+    } else if (previousLesson) {
+      setSelectedLesson(previousLesson);
+    }
+  };
+
+  const completeCurrentUnit = () => {
+    if (hasTopics) {
+      if (currentTopic) completeTopicMutation.mutate({ topicId: currentTopic.id });
+    } else {
+      markComplete();
+    }
+  };
+
+  // Advancing past a unit implicitly completes it, mirroring today's
+  // Next-Lesson behavior (which already calls markComplete() as a side
+  // effect, not just an explicit button click).
+  const goToNextUnit = () => {
+    completeCurrentUnit();
+    if (hasTopics) {
+      if (nextTopic) selectTopic(nextTopic);
+    } else if (nextLesson) {
+      setSelectedLesson(nextLesson);
+    }
+  };
+
+  const isCurrentUnitCompleted = hasTopics
+    ? Boolean(currentTopic?.completed)
+    : isSelectedLessonCompleted;
 
   const handleLogout = () => {
     logout();
@@ -333,9 +422,10 @@ export default function LearnPage() {
         <CourseStructureSidebar
           modules={course.modules || []}
           completedLessonIds={completedLessonIds}
-          composerMode={selectedLesson ? "lesson" : "course"}
+          composerMode={hasTopics ? "topic" : selectedLesson ? "lesson" : "course"}
           composeLessonId={selectedLesson?.id}
           composeModuleId={selectedLesson?.moduleId}
+          composeTopicId={selectedTopicId}
           isOpen={courseSidebarOpen}
           onToggleOpen={() => setCourseSidebarOpen(false)}
           onSelectCourseOverview={() => router.push(`/student/courses/${courseId}`)}
@@ -350,12 +440,18 @@ export default function LearnPage() {
             const match = lessons.find((l) => l.id === lessonId);
             if (!match) return;
             selectLesson(match);
-            if (!match.locked) setPendingTopicScroll(topicId);
+            if (!match.locked) {
+              setSelectedTopicId(topicId);
+              setPendingTopicScroll(topicId);
+            }
           }}
           onSelectContent={(content, topic, lesson) => {
             const match = lesson?.id ? lessons.find((l) => l.id === lesson.id) : null;
             if (match) selectLesson(match);
-            if (topic?.id && !match?.locked) setPendingTopicScroll(topic.id);
+            if (topic?.id && !match?.locked) {
+              setSelectedTopicId(topic.id);
+              setPendingTopicScroll(topic.id);
+            }
           }}
           onSelectQuiz={(quiz) => {
             const returnTo = `/student/learn/${courseId}${selectedLesson?.id ? `?lessonId=${selectedLesson.id}` : ""}`;
@@ -456,16 +552,16 @@ export default function LearnPage() {
                     version of this in the row below the player instead. */}
                 <button
                   type="button"
-                  disabled={isSelectedLessonCompleted}
-                  onClick={markComplete}
+                  disabled={isCurrentUnitCompleted}
+                  onClick={completeCurrentUnit}
                   className={`hidden xl:inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl border text-xs font-black uppercase tracking-wider transition-all shadow-md shrink-0 self-start sm:self-auto ${
-                    isSelectedLessonCompleted
+                    isCurrentUnitCompleted
                       ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 cursor-default"
                       : "bg-background hover:bg-primary hover:text-slate-950 border-transparent hover:border-orange-400 text-foreground cursor-pointer"
                   }`}
                 >
-                  <CheckCircle2 size={15} className={isSelectedLessonCompleted ? "text-emerald-400" : "text-emerald-400 group-hover:text-slate-950"} />
-                  <span>{isSelectedLessonCompleted ? "Completed" : "Mark Complete"}</span>
+                  <CheckCircle2 size={15} className={isCurrentUnitCompleted ? "text-emerald-400" : "text-emerald-400 group-hover:text-slate-950"} />
+                  <span>{isCurrentUnitCompleted ? "Completed" : hasTopics ? "Complete Topic" : "Mark Complete"}</span>
                 </button>
               </div>
 
@@ -498,17 +594,13 @@ export default function LearnPage() {
                   attention. Desktop keeps its own Mark Complete + fuller bar. */}
               <LessonNavigationControls
                 variant="compact"
-                previousLesson={previousLesson}
-                nextLesson={nextLesson}
-                isSelectedLessonCompleted={isSelectedLessonCompleted}
-                onSelectPrevious={() => {
-                  if (previousLesson) setSelectedLesson(previousLesson);
-                }}
-                onMarkComplete={markComplete}
-                onSelectNext={() => {
-                  markComplete();
-                  if (nextLesson) setSelectedLesson(nextLesson);
-                }}
+                unitLabel={hasTopics ? "Topic" : "Lesson"}
+                previousItem={hasTopics ? previousTopic : previousLesson}
+                nextItem={hasTopics ? nextTopic : nextLesson}
+                isCompleted={isCurrentUnitCompleted}
+                onSelectPrevious={goToPreviousUnit}
+                onMarkComplete={completeCurrentUnit}
+                onSelectNext={goToNextUnit}
               />
             </div>
 
@@ -748,17 +840,14 @@ export default function LearnPage() {
             <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-8">
               <LessonNavigationControls
                 variant="full"
-                previousLesson={previousLesson}
-                nextLesson={nextLesson}
-                nextModule={nextModule}
-                selectedLesson={selectedLesson}
-                onSelectPrevious={() => {
-                  if (previousLesson) setSelectedLesson(previousLesson);
-                }}
-                onSelectNext={() => {
-                  markComplete();
-                  if (nextLesson) setSelectedLesson(nextLesson);
-                }}
+                unitLabel={hasTopics ? "Topic" : "Lesson"}
+                previousItem={hasTopics ? previousTopic : previousLesson}
+                nextItem={hasTopics ? nextTopic : nextLesson}
+                nextGroupTitle={hasTopics ? nextLessonForTopic?.title : nextModule?.title}
+                currentTitle={hasTopics ? currentTopic?.title : selectedLesson?.title}
+                isCompleted={isCurrentUnitCompleted}
+                onSelectPrevious={goToPreviousUnit}
+                onSelectNext={goToNextUnit}
               />
             </div>
 
