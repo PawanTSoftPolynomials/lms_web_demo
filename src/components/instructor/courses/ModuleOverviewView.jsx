@@ -27,8 +27,10 @@ export function ModuleOverviewView({
   onSelectModule,
   isDraftMode = false,
   role = "INSTRUCTOR",
+  contentAutoOpenSignal: externalContentAutoOpenSignal = 0,
 }) {
-  const [contentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
+  const [localContentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
+  const contentAutoOpenSignal = externalContentAutoOpenSignal + localContentAutoOpenSignal;
 
   if (!module) return null;
 

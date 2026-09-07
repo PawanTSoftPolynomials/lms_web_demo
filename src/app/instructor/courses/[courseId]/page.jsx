@@ -554,6 +554,9 @@ export default function CourseDetailsPage() {
 
   // Auto-open signal for Add Content picker
   const [autoOpenAddSignal, setAutoOpenAddSignal] = useState(0);
+  const [courseContentAutoOpenSignal, setCourseContentAutoOpenSignal] = useState(0);
+  const [moduleContentAutoOpenSignal, setModuleContentAutoOpenSignal] = useState(0);
+  const [lessonContentAutoOpenSignal, setLessonContentAutoOpenSignal] = useState(0);
 
   // Mobile Drawer State
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -1391,15 +1394,18 @@ export default function CourseDetailsPage() {
 
   const handleAddContentToCourse = () => {
     handleSelectCourseOverview();
+    setCourseContentAutoOpenSignal((n) => n + 1);
   };
 
   const handleAddContentToModule = (mod) => {
     handleSelectModule(mod);
+    setModuleContentAutoOpenSignal((n) => n + 1);
   };
 
   const handleAddContentToLesson = (lesson, mod = null) => {
     handleSelectLesson(lesson.id);
     if (mod?.id) setComposeModuleId(mod.id);
+    setLessonContentAutoOpenSignal((n) => n + 1);
   };
 
   const handleEntityCreated = ({ entity, parentId, moduleId, created }) => {
@@ -1945,6 +1951,7 @@ export default function CourseDetailsPage() {
                 onSelectQuiz={handleSelectQuiz}
                 onAddModule={() => openEntityModal({ entity: "module", mode: "create", courseId })}
                 isDraftMode={isDraftMode}
+                contentAutoOpenSignal={courseContentAutoOpenSignal}
               />
             )}
 
@@ -1996,6 +2003,7 @@ export default function CourseDetailsPage() {
                 parentModule={activeModuleObj}
                 onSelectLesson={handleSelectLesson}
                 isDraftMode={isDraftMode}
+                contentAutoOpenSignal={lessonContentAutoOpenSignal}
               />
             )}
 
@@ -2011,6 +2019,7 @@ export default function CourseDetailsPage() {
                 allModules={effectiveModules}
                 onSelectModule={handleSelectModule}
                 isDraftMode={isDraftMode}
+                contentAutoOpenSignal={moduleContentAutoOpenSignal}
               />
             )}
 

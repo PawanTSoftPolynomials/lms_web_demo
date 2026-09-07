@@ -20,8 +20,10 @@ export function CourseOverviewView({
   role = "INSTRUCTOR",
   onStartLearning,
   isDraftMode = false,
+  contentAutoOpenSignal: externalContentAutoOpenSignal = 0,
 }) {
-  const [contentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
+  const [localContentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
+  const contentAutoOpenSignal = externalContentAutoOpenSignal + localContentAutoOpenSignal;
   return (
     <div className={`notebook-cell rounded-2xl border border-border bg-background p-5 shadow-md ${isEditing ? "active-cell border-primary/50" : ""}`}>
       {/* Left Action Bar */}

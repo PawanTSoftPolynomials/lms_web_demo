@@ -33,8 +33,10 @@ export function LessonOverviewView({
   onSelectLesson,
   isDraftMode = false,
   role = "INSTRUCTOR",
+  contentAutoOpenSignal: externalContentAutoOpenSignal = 0,
 }) {
-  const [contentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
+  const [localContentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
+  const contentAutoOpenSignal = externalContentAutoOpenSignal + localContentAutoOpenSignal;
 
   if (!lesson) return null;
 
