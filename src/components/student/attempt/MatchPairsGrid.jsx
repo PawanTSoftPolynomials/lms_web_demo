@@ -76,7 +76,7 @@ export default function MatchPairsGrid({
       {/* Description & Action Bar */}
       <div className="flex items-center justify-between border-b border-border pb-3">
         <div className="flex items-center gap-2">
-          <HelpCircle className="h-4 w-4 text-slate-450" />
+          <HelpCircle className="h-4 w-4 text-slate-400" />
           <p className="text-sm text-muted-foreground">
             Tap a card on the left, then tap its correct match on the right to pair them:
           </p>
@@ -176,7 +176,7 @@ export default function MatchPairsGrid({
                   ${
                     isMatched
                       ? `${style.border} text-foreground`
-                      : "border-border bg-background/50 text-slate-350 hover:border-transparent hover:bg-muted/80"
+                      : "border-border bg-background/50 text-slate-400 hover:border-transparent hover:bg-muted/80"
                   }
                 `}
               >

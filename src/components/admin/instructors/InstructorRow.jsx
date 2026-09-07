@@ -5,7 +5,6 @@ import ActionMenu from "@/components/menus/ActionMenu";
 
 export default function InstructorRow({
                                           instructor,
-                                          onView,
                                           onDelete,
                                           onChangeRole,
                                       }) {
@@ -14,15 +13,14 @@ export default function InstructorRow({
         ACTIVE:
             "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20",
         INACTIVE:
-            "bg-gray-500/15 text-gray-400 border border-gray-500/20",
+            "bg-muted text-muted-foreground border border-border",
         BLOCKED:
             "bg-red-500/15 text-red-400 border border-red-500/20",
     };
 
     return (
         <tr
-            onClick={() => onView?.(instructor)}
-            className="hover:bg-foreground/5 cursor-pointer transition"
+            className="hover:bg-foreground/5 transition"
         >
             {/* Instructor */}
             <td className="px-6 py-4">
@@ -36,7 +34,7 @@ export default function InstructorRow({
                             {instructor.user.name}
                         </p>
 
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-muted-foreground">
                             {instructor.user.email}
                         </p>
                     </div>
@@ -44,19 +42,19 @@ export default function InstructorRow({
             </td>
 
             {/* Specialization */}
-            <td className="px-6 py-4 text-gray-300">
+            <td className="px-6 py-4 text-muted-foreground">
                 {instructor.specialization ||
                     "-"}
             </td>
 
             {/* Qualification */}
-            <td className="px-6 py-4 text-gray-300">
+            <td className="px-6 py-4 text-muted-foreground">
                 {instructor.qualification ||
                     "-"}
             </td>
 
             {/* Experience */}
-            <td className="px-6 py-4 text-gray-300">
+            <td className="px-6 py-4 text-muted-foreground">
                 {instructor.experience != null
                     ? `${instructor.experience} Years`
                     : "-"}
@@ -75,7 +73,7 @@ export default function InstructorRow({
                 statusColors[
                     instructor.user.status
                     ] ||
-                "bg-gray-700 text-foreground"
+                "bg-muted text-foreground"
             }
           `}
         >
@@ -87,13 +85,6 @@ export default function InstructorRow({
             <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                 <ActionMenu
                     items={[
-                        {
-                            label: "View",
-                            onClick: () =>
-                                onView?.(
-                                    instructor
-                                ),
-                        },
                         {
                             label: "Change Role",
                             onClick: () =>

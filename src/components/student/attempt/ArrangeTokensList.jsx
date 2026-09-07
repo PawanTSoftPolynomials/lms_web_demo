@@ -47,7 +47,7 @@ export default function ArrangeTokensList({
           <button
             type="button"
             onClick={handleAutoArrange}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-slate-755 border border-transparent text-xs font-semibold text-foreground transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-slate-800 border border-transparent text-xs font-semibold text-foreground transition cursor-pointer"
           >
             Reset to Default
           </button>
@@ -72,7 +72,7 @@ export default function ArrangeTokensList({
               exit={{ opacity: 0 }}
               className="absolute inset-0 flex items-center justify-center pointer-events-none"
             >
-              <span className="text-sm text-slate-450 italic">Tap the options below to arrange them here.</span>
+              <span className="text-sm text-slate-400 italic">Tap the options below to arrange them here.</span>
             </motion.div>
           ) : (
             arrangedSequence.map((token, index) => {
@@ -129,8 +129,8 @@ export default function ArrangeTokensList({
                     px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-300 cursor-pointer select-none
                     ${
                       isSelected
-                        ? "border-border/50 bg-slate-850/40 text-slate-650 cursor-not-allowed opacity-30"
-                        : "border-border bg-background text-foreground hover:border-primary/50 hover:bg-slate-850 hover:text-foreground hover:shadow-md"
+                        ? "border-border/50 bg-slate-800/40 text-slate-600 cursor-not-allowed opacity-30"
+                        : "border-border bg-background text-foreground hover:border-primary/50 hover:bg-slate-800 hover:text-foreground hover:shadow-md"
                     }
                   `}
                 >

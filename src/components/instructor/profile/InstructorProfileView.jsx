@@ -170,7 +170,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
       />
 
       {/* HERO */}
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-slate-900 via-[#0B0F17] to-slate-950 p-6 md:p-8 shadow-2xl">
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-[var(--card)] via-[var(--surface-muted)] to-[var(--card)] p-6 md:p-8 shadow-2xl">
         <div className="absolute top-0 right-0 -mt-8 -mr-8 h-64 w-64 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
@@ -312,7 +312,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
+                    className="w-full bg-background border border-border rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
@@ -325,7 +325,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
                     type="email"
                     value={profile?.email || ""}
                     disabled
-                    className="w-full bg-background/60 border border-border/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-muted-foreground outline-none cursor-not-allowed"
+                    className="w-full bg-background/60 border border-border/80 rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-muted-foreground outline-none cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -340,7 +340,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
                     value={formData.phoneNumber}
                     onChange={handleChange}
                     placeholder="+91 98765 43210"
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
+                    className="w-full bg-background border border-border rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
@@ -354,7 +354,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
+                    className="w-full bg-background border border-border rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
@@ -392,7 +392,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
                     value={formData.specialization}
                     onChange={handleChange}
                     placeholder="e.g. Full-Stack Web Development"
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
+                    className="w-full bg-background border border-border rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
@@ -407,7 +407,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
                     value={formData.qualification}
                     onChange={handleChange}
                     placeholder="e.g. M.Tech, Computer Science"
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
+                    className="w-full bg-background border border-border rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
@@ -422,7 +422,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
                     name="experience"
                     value={formData.experience}
                     onChange={handleChange}
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
+                    className="w-full bg-background border border-border rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
@@ -437,7 +437,7 @@ export default function InstructorProfileView({ profile, onRefresh }) {
                     value={formData.bio}
                     onChange={handleChange}
                     placeholder="A short bio students and admins will see on your instructor profile..."
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition resize-none"
+                    className="w-full bg-background border border-border rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition resize-none"
                   />
                 </div>
               </div>

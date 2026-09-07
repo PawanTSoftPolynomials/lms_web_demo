@@ -5,7 +5,7 @@ import {
     GraduationCap,
 } from "lucide-react";
 
-import StatCard from "@/components/student/dashboard/StatCard";
+import StudentStatCard from "@/components/dashboard/StudentStatCard";
 
 export default function CourseStats({
                                         courses = [],
@@ -24,31 +24,46 @@ export default function CourseStats({
         (course) => course.level === "Advanced"
     ).length;
 
+    const stats = [
+        {
+            key: "total",
+            label: "Total Courses",
+            value: totalCourses,
+            icon: BookOpen,
+            color: "text-purple-400",
+            bg: "bg-purple-500/10",
+        },
+        {
+            key: "beginner",
+            label: "Beginner",
+            value: beginnerCourses,
+            icon: GraduationCap,
+            color: "text-emerald-400",
+            bg: "bg-emerald-500/10",
+        },
+        {
+            key: "intermediate",
+            label: "Intermediate",
+            value: intermediateCourses,
+            icon: CircleDashed,
+            color: "text-blue-400",
+            bg: "bg-blue-500/10",
+        },
+        {
+            key: "advanced",
+            label: "Advanced",
+            value: advancedCourses,
+            icon: TrendingUp,
+            color: "text-orange-400",
+            bg: "bg-orange-500/10",
+        },
+    ];
+
     return (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard
-                title="Total Courses"
-                value={totalCourses}
-                icon={<BookOpen className="h-6 w-6"/>}
-            />
-
-            <StatCard
-                title="Beginner"
-                value={beginnerCourses}
-                icon={<GraduationCap className="h-6 w-6"/>}
-            />
-
-            <StatCard
-                title="Intermediate"
-                value={intermediateCourses}
-                icon={<CircleDashed className="h-6 w-6"/>}
-            />
-
-            <StatCard
-                title="Advanced"
-                value={advancedCourses}
-                icon={<TrendingUp className="h-6 w-6"/>}
-            />
+            {stats.map((stat) => (
+                <StudentStatCard key={stat.key} stat={stat} />
+            ))}
         </div>
     );
 }

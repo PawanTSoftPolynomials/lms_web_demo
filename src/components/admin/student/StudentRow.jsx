@@ -11,7 +11,7 @@ const STATUS_COLORS = {
     "Struggling":
         "bg-red-500/15 text-red-400 border border-red-500/20",
     "Not Started":
-        "bg-gray-500/15 text-gray-400 border border-gray-500/20",
+        "bg-muted text-muted-foreground border border-border",
 };
 
 export default function StudentRow({
@@ -37,7 +37,7 @@ export default function StudentRow({
                             {student.name}
                         </p>
 
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-muted-foreground">
                             {student.email}
                         </p>
                     </div>
@@ -45,12 +45,12 @@ export default function StudentRow({
             </td>
 
             {/* Course */}
-            <td className="px-6 py-4 text-gray-300">
+            <td className="px-6 py-4 text-muted-foreground">
                 {student.course || "-"}
             </td>
 
             {/* Progress */}
-            <td className="px-6 py-4 text-gray-300">
+            <td className="px-6 py-4 text-muted-foreground">
                 {student.progress ?? 0}%
             </td>
 
@@ -67,7 +67,7 @@ export default function StudentRow({
                 STATUS_COLORS[
                     student.status
                     ] ||
-                "bg-gray-700 text-foreground"
+                "bg-muted text-foreground"
             }
           `}
         >
@@ -76,7 +76,7 @@ export default function StudentRow({
             </td>
 
             {/* Joined */}
-            <td className="px-6 py-4 text-gray-400">
+            <td className="px-6 py-4 text-muted-foreground">
                 {student.joinedDate || "-"}
             </td>
 

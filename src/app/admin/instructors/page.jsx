@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
@@ -15,8 +14,6 @@ import ChangeRoleModal from "@/components/admin/users/ChangeRoleModal";
 import { useInstructors } from "@/hooks/queries/admin/useInstructors";
 
 export default function AdminInstructorsPage() {
-    const router = useRouter();
-
     const {
         data: instructors = [],
         isLoading,
@@ -119,13 +116,6 @@ export default function AdminInstructorsPage() {
                 <InstructorTable
                     instructors={
                         filteredInstructors
-                    }
-                    onView={(
-                        instructor
-                    ) =>
-                        router.push(
-                            `/admin/instructors/${instructor.id}`
-                        )
                     }
                     onDelete={(
                         instructor

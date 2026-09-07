@@ -166,7 +166,7 @@ export default function ImportQuestionsToQuizPage({ params }) {
                   placeholder="Search repository questions..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-background border border-transparent rounded-xl pl-9 pr-3 py-2 text-xs text-foreground focus:border-amber-500 focus:outline-none"
+                  className="w-full bg-background border border-transparent rounded-xl !pl-9 !pr-3 py-2 text-xs text-foreground focus:border-amber-500 focus:outline-none"
                 />
               </div>
 

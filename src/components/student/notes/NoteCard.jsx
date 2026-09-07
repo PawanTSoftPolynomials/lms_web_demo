@@ -21,12 +21,14 @@ export default function NoteCard({ note, onOpen, onToggleStar, onDelete }) {
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => onToggleStar(note.id)}
+            aria-label={note.starred ? "Remove from favorites" : "Add to favorites"}
             className="p-1 hover:bg-amber-500/10 rounded-lg transition text-muted-foreground hover:text-amber-500"
           >
             <Star size={14} className={note.starred ? "fill-amber-500 text-amber-500" : ""} />
           </button>
           <button
             onClick={() => onDelete(note.id)}
+            aria-label="Delete note"
             className="p-1 hover:bg-red-500/10 rounded-lg transition text-muted-foreground hover:text-red-500"
           >
             <Trash2 size={14} />

@@ -20,7 +20,7 @@ export default function StudentDetails({
 
     return (
         <Card tone="flat" className="space-y-8">
-            <div className="flex flex-col items-center gap-4 border-b border-white/10 pb-8 md:flex-row">
+            <div className="flex flex-col items-center gap-4 border-b border-border pb-8 md:flex-row">
                 <UserAvatar
                     name={student.user.name}
                     size="lg"
@@ -31,7 +31,7 @@ export default function StudentDetails({
                         {student.user.name}
                     </h2>
 
-                    <p className="text-gray-400">
+                    <p className="text-muted-foreground">
                         {student.user.email}
                     </p>
 

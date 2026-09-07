@@ -28,7 +28,7 @@ import { useBatchPerformanceOverview } from "@/hooks/queries/instructor/useBatch
 import { useToast } from "@/components/ui/ToastProvider";
 
 const STATUS_OPTIONS = [
-  { value: "", label: "All Statuses" },
+  { value: "", label: "All Status" },
   { value: "ACTIVE", label: "Active" },
   { value: "COMPLETED", label: "Completed" },
   { value: "ARCHIVED", label: "Archived" },
@@ -48,7 +48,7 @@ const STUDENT_COUNT_OPTIONS = [
 ];
 
 const toolbarControlClass =
-  "h-9 bg-card border border-border text-xs px-3 rounded-xl outline-none text-foreground focus:border-primary/60 transition [&>option]:bg-card [&>option]:text-foreground";
+  "h-9 !bg-card border border-border text-xs !px-3 !py-0 rounded-xl outline-none text-foreground focus:border-primary/60 transition shrink-0 [&>option]:bg-card [&>option]:text-foreground";
 
 function CreateBatchForm({ courses, onClose }) {
   const [courseIds, setCourseIds] = useState([]);
@@ -348,7 +348,7 @@ function BatchesContent() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search batches, students or courses..."
-            className="w-full h-11 bg-card border border-border text-sm pl-10 pr-4 rounded-xl outline-none text-foreground placeholder-slate-500 focus:border-primary/60 transition"
+            className="w-full h-11 bg-card border border-border text-sm !pl-10 !pr-4 rounded-xl outline-none text-foreground placeholder-slate-500 focus:border-primary/60 transition"
           />
         </div>
 

@@ -18,7 +18,7 @@ export default function StudentTable({
                     No Students Found
                 </h3>
 
-                <p className="mt-2 text-sm text-gray-400">
+                <p className="mt-2 text-sm text-muted-foreground">
                     There are no students available.
                 </p>
             </div>
@@ -28,7 +28,7 @@ export default function StudentTable({
     return (
         <>
             {/* Desktop & Tablet */}
-            <div className="hidden overflow-x-auto rounded-xl border border-white/10 md:block">
+            <div className="hidden overflow-x-auto rounded-xl border border-border md:block">
                 <table className="min-w-full">
                     <thead>
                     <tr className="border-b border-border text-[9px] uppercase tracking-widest text-muted-foreground font-black text-left">
@@ -72,7 +72,7 @@ export default function StudentTable({
                     <div
                         key={student.id}
                         onClick={() => onView?.(student)}
-                        className="rounded-xl border border-white/10 bg-white/5 p-4 cursor-pointer hover:bg-white/10 transition"
+                        className="rounded-xl border border-border bg-card p-4 cursor-pointer hover:bg-foreground/5 transition"
                     >
                         <div className="flex items-start justify-between">
                             <div className="flex gap-3">
@@ -85,7 +85,7 @@ export default function StudentTable({
                                         {student.name}
                                     </h3>
 
-                                    <p className="break-all text-xs text-gray-400">
+                                    <p className="break-all text-xs text-muted-foreground">
                                         {student.email}
                                     </p>
                                 </div>
@@ -117,7 +117,7 @@ export default function StudentTable({
 
                         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                             <div>
-                                <p className="text-gray-400">
+                                <p className="text-muted-foreground">
                                     Course
                                 </p>
 
@@ -127,7 +127,7 @@ export default function StudentTable({
                             </div>
 
                             <div>
-                                <p className="text-gray-400">
+                                <p className="text-muted-foreground">
                                     Progress
                                 </p>
 
@@ -137,7 +137,7 @@ export default function StudentTable({
                             </div>
 
                             <div className="col-span-2">
-                                <p className="text-gray-400">
+                                <p className="text-muted-foreground">
                                     Status
                                 </p>
 
@@ -147,7 +147,7 @@ export default function StudentTable({
                             </div>
 
                             <div className="col-span-2">
-                                <p className="text-gray-400">
+                                <p className="text-muted-foreground">
                                     Joined
                                 </p>
 

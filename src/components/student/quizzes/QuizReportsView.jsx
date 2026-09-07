@@ -55,7 +55,7 @@ export default function QuizReportsView({ reportStats, filteredByCourse }) {
                     <span className="font-extrabold text-foreground">Score: {submission.score}/{quiz._count?.questions ?? 10} ({submission.percentage}%)</span>
                   </div>
                   <Link href={`/student/result/${quiz.id}`} className="block pt-1">
-                    <button className="w-full py-2.5 rounded-xl bg-muted hover:bg-slate-750 text-foreground text-xs font-extrabold min-h-[44px]">
+                    <button className="w-full py-2.5 rounded-xl bg-muted hover:bg-slate-700 text-foreground text-xs font-extrabold min-h-[44px]">
                       View Result
                     </button>
                   </Link>

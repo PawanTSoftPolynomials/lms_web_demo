@@ -17,7 +17,7 @@ function InfoItem({
                       value,
                   }) {
     return (
-        <div className="rounded-xl border border-white/10 bg-white/5 p-5">
+        <div className="rounded-xl border border-border bg-card p-5">
             <div className="mb-3 flex items-center gap-2 text-primary">
                 {icon}
 
@@ -26,7 +26,7 @@ function InfoItem({
         </span>
             </div>
 
-            <p className="text-gray-300 break-all">
+            <p className="text-muted-foreground break-all">
                 {value || "-"}
             </p>
         </div>

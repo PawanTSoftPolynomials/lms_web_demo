@@ -65,14 +65,14 @@ export default function ProfileCard({
                 </div>
 
                 {/* Information */}
-                <div className="mt-8 w-full space-y-4 border-t border-white/10 pt-6">
+                <div className="mt-8 w-full space-y-4 border-t border-border pt-6">
                     <div className="flex items-center gap-3">
                         <Mail
                             size={18}
                             className="text-primary"
                         />
 
-                        <span className="text-gray-300">
+                        <span className="text-muted-foreground">
               {profile.email}
             </span>
                     </div>
@@ -83,7 +83,7 @@ export default function ProfileCard({
                             className="text-primary"
                         />
 
-                        <span className="text-gray-300">
+                        <span className="text-muted-foreground">
               {profile.phoneNumber ||
                   "-"}
             </span>
@@ -95,7 +95,7 @@ export default function ProfileCard({
                             className="text-primary"
                         />
 
-                        <span className="text-gray-300">
+                        <span className="text-muted-foreground">
               {profile.address ||
                   "-"}
             </span>
@@ -107,12 +107,12 @@ export default function ProfileCard({
                             className="text-primary"
                         />
 
-                        <span className="text-gray-300">
+                        <span className="text-muted-foreground">
               {profile.role}
             </span>
                     </div>
 
-                    <div className="pt-4 text-sm text-gray-500">
+                    <div className="pt-4 text-sm text-muted-foreground">
                         Member since{" "}
                         {new Date(
                             profile.createdAt

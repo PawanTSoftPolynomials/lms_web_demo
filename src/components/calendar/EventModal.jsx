@@ -328,7 +328,7 @@ export default function EventModal({
               <select
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                className="w-full rounded-xl border border-border bg-muted p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full rounded-xl border border-border bg-muted p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500 [&>option]:bg-card [&>option]:text-foreground"
               >
                 <option value="class">Online Class (Live Lecture)</option>
                 <option value="quiz">Quiz Session</option>
@@ -341,7 +341,7 @@ export default function EventModal({
               <select
                 value={formData.courseId}
                 onChange={(e) => setFormData({ ...formData, courseId: e.target.value })}
-                className="w-full rounded-xl border border-border bg-muted p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full rounded-xl border border-border bg-muted p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500 [&>option]:bg-card [&>option]:text-foreground"
                 required
               >
                 <option value="">-- Choose Course --</option>
@@ -387,7 +387,7 @@ export default function EventModal({
               <select
                 value={formData.instructorId}
                 onChange={(e) => setFormData({ ...formData, instructorId: e.target.value })}
-                className="w-full rounded-xl border border-border bg-muted p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full rounded-xl border border-border bg-muted p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500 [&>option]:bg-card [&>option]:text-foreground"
               >
                 <option value="">-- Select Instructor --</option>
                 {instructors.map((t) => (

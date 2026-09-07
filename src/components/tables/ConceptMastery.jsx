@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowDownRight, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 
 import ChartCard from '@/components/ui/ChartCard';
 import HealthBadge from '@/components/ui/HealthBadge';
@@ -79,10 +79,6 @@ export default function ConceptMastery({ role, data }) {
                         {item.context}
                       </span>
                     )}
-                    <ArrowRight
-                      size={16}
-                      className="mt-1 opacity-0 transition group-hover:translate-x-1 group-hover:opacity-100"
-                    />
                   </button>
                 </td>
                 <td className="text-center font-semibold">{item[countKey]}</td>

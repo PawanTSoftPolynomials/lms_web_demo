@@ -16,14 +16,14 @@ export default function CourseToolbar({
                                       }) {
     return (
         <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex flex-1 flex-col gap-4 md:flex-row">
+            <div className="flex flex-1 flex-col gap-4 md:flex-row md:flex-wrap">
                 <Input
                     placeholder="Search by title, category or creator..."
                     value={search}
                     onChange={(e) =>
                         onSearchChange?.(e.target.value)
                     }
-                    className="md:max-w-sm"
+                    className="md:max-w-sm md:shrink-0"
                 />
 
                 {/* Status Filter */}
@@ -35,7 +35,8 @@ export default function CourseToolbar({
                     className="
             rounded-lg
             border
-            border-white/10
+            border-border
+            shrink-0
             bg-background
             px-4
             py-2
@@ -67,7 +68,8 @@ export default function CourseToolbar({
                     className="
             rounded-lg
             border
-            border-white/10
+            border-border
+            shrink-0
             bg-background
             px-4
             py-2

@@ -1,6 +1,7 @@
 "use client";
 
 import ActionMenu from "@/components/menus/ActionMenu";
+import CourseStatusBadge from "@/components/courses/CourseStatusBadge";
 
 import CourseRow from "./CourseRow";
 
@@ -17,7 +18,7 @@ export default function CourseTable({
                     No Courses Found
                 </h3>
 
-                <p className="mt-2 text-sm text-gray-400">
+                <p className="mt-2 text-sm text-muted-foreground">
                     There are no courses available.
                 </p>
             </div>
@@ -27,7 +28,7 @@ export default function CourseTable({
     return (
         <>
             {/* Desktop & Tablet */}
-            <div className="hidden overflow-x-auto rounded-xl border border-white/10 md:block">
+            <div className="hidden overflow-x-auto rounded-xl border border-border md:block">
                 <table className="min-w-full">
                     <thead>
                     <tr className="border-b border-border text-[9px] uppercase tracking-widest text-muted-foreground font-black text-left">
@@ -74,11 +75,11 @@ export default function CourseTable({
                     <div
                         key={course.id}
                         onClick={() => onView?.(course)}
-                        className="rounded-xl border border-white/10 bg-white/5 p-4 cursor-pointer hover:bg-white/10 transition"
+                        className="rounded-xl border border-border bg-card p-4 cursor-pointer hover:bg-foreground/5 transition"
                     >
                         <div className="flex items-start justify-between gap-3">
                             <div className="flex gap-3">
-                                <div className="relative h-16 w-24 overflow-hidden rounded-lg border border-white/10">
+                                <div className="relative h-16 w-24 overflow-hidden rounded-lg border border-border">
 
                                 </div>
 
@@ -87,7 +88,7 @@ export default function CourseTable({
                                         {course.title}
                                     </h3>
 
-                                    <p className="mt-1 text-xs text-gray-400">
+                                    <p className="mt-1 text-xs text-muted-foreground">
                                         {course.creator
                                             ?.name || "-"}
                                     </p>
@@ -126,7 +127,7 @@ export default function CourseTable({
 
                         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                             <div>
-                                <p className="text-gray-400">
+                                <p className="text-muted-foreground">
                                     Category
                                 </p>
 
@@ -136,7 +137,7 @@ export default function CourseTable({
                             </div>
 
                             <div>
-                                <p className="text-gray-400">
+                                <p className="text-muted-foreground">
                                     Level
                                 </p>
 
@@ -146,24 +147,15 @@ export default function CourseTable({
                             </div>
 
                             <div>
-                                <p className="text-gray-400">
+                                <p className="text-muted-foreground">
                                     Status
                                 </p>
 
-                                <span
-                                    className={`font-medium ${
-                                        course.status ===
-                                        "PUBLISHED"
-                                            ? "text-green-400"
-                                            : "text-yellow-400"
-                                    }`}
-                                >
-                  {course.status}
-                </span>
+                                <CourseStatusBadge status={course.status} />
                             </div>
 
                             <div>
-                                <p className="text-gray-400">
+                                <p className="text-muted-foreground">
                                     Created
                                 </p>
 
@@ -175,7 +167,7 @@ export default function CourseTable({
                             </div>
 
                             <div className="col-span-2">
-                                <p className="text-gray-400">
+                                <p className="text-muted-foreground">
                                     Description
                                 </p>
 

@@ -73,8 +73,6 @@ export default function InstructorCoursesPage() {
 
   return (
     <div className="-m-3 sm:-m-6 -mt-8 sm:-mt-12 md:-mt-16 -mx-8 sm:-mx-12 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
-      <h1 className="sr-only">My Courses</h1>
-
       {isError ? (
         <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
           <p className="text-sm font-bold text-foreground">Unable to load courses.</p>
@@ -107,9 +105,9 @@ export default function InstructorCoursesPage() {
                 <input
                   type="text"
                   placeholder="Search courses..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="search-pill-input w-full h-[46px] rounded-full text-sm text-foreground placeholder:text-muted-foreground/60 transition-all duration-200"
+                  value={filters.search}
+                  onChange={(e) => set("search")(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-card !pl-9 !pr-4 py-2 md:py-2.5 text-sm text-foreground placeholder-slate-500 outline-none transition focus:border-primary/60"
                 />
               </div>
             </div>

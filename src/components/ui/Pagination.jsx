@@ -13,7 +13,7 @@ export default function Pagination({ page, totalPages, total, limit, onPageChang
         <select
           value={limit}
           onChange={(e) => onLimitChange(Number(e.target.value))}
-          className="bg-background border border-border rounded-lg px-2 py-1 text-foreground outline-none focus:border-primary/50"
+          className="bg-background border border-border rounded-lg px-2 py-1 text-foreground outline-none focus:border-primary/50 [&>option]:bg-card [&>option]:text-foreground"
         >
           {ROWS_PER_PAGE_OPTIONS.map((n) => (
             <option key={n} value={n}>{n}</option>

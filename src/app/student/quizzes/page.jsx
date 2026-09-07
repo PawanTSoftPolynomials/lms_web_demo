@@ -151,7 +151,7 @@ function StudentQuizzesPageContent() {
       {/* 1. Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight leading-none">Quizzes</h1>
+          <h1 className="text-xl sm:text-3xl font-bold text-foreground tracking-tight leading-none">Quizzes</h1>
           <p className="text-xs text-muted-foreground mt-1.5">View and manage quizzes for your enrolled courses.</p>
         </div>
         {viewingCourseId && (
@@ -197,7 +197,7 @@ function StudentQuizzesPageContent() {
           {/* Header summary for selected course */}
           <div className="rounded-2xl border border-transparent/80 bg-background/60 p-4 sm:p-5 flex items-center justify-between">
             <div>
-              <h3 className="text-base sm:text-lg font-black text-foreground tracking-tight leading-snug">
+              <h3 className="text-lg sm:text-xl font-bold text-foreground tracking-tight leading-snug">
                 {coursesList.find((c) => c.id === viewingCourseId)?.title}
               </h3>
               <span className="text-[10px] text-muted-foreground font-extrabold uppercase tracking-wider block mt-1">

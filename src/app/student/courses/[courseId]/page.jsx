@@ -130,7 +130,7 @@ export default function CourseDetailsPage({ params }) {
                   {composerMode === "lesson" && `Lesson: ${activeLessonObj?.title || "Lesson Overview"}`}
                   {composerMode === "module" && `Module: ${activeModuleObj?.title || "Module Overview"}`}
                 </div>
-                <h2 className="text-lg sm:text-xl font-black text-foreground tracking-tight">
+                <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
                   {composerMode === "course" && (course.title || "Course Overview Header")}
                   {composerMode === "lesson" && (activeLessonObj?.title || "Lesson Overview Header")}
                   {composerMode === "module" && (activeModuleObj?.title || "Module Overview")}

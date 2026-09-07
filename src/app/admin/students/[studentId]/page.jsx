@@ -47,8 +47,8 @@ export default function StudentDetailsPage() {
             <div className="flex justify-end gap-4">
                 <Button
                     type="button"
+                    variant="secondary"
                     onClick={() => router.back()}
-                    className="bg-slate-700 hover:bg-muted"
                 >
                     Back
                 </Button>

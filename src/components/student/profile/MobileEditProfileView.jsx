@@ -116,7 +116,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
         )}
 
         <div>
-          <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">
+          <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">
             Full Name
           </label>
           <input
@@ -130,7 +130,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
         </div>
 
         <div>
-          <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">
+          <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">
             Email
           </label>
           <input
@@ -142,7 +142,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
         </div>
 
         <div>
-          <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">
+          <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">
             Phone Number
           </label>
           <input
@@ -164,7 +164,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
         />
 
         <div>
-          <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">
+          <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">
             Address
           </label>
           <input
@@ -178,7 +178,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
         </div>
 
         <div>
-          <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">
+          <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">
             Education
           </label>
           <input
@@ -192,7 +192,7 @@ export default function MobileEditProfileView({ isOpen, onClose, profile }) {
         </div>
 
         <div>
-          <label className="block text-[10px] font-bold text-muted-foreground uppercase mb-1.5">
+          <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">
             Guardian Name
           </label>
           <input

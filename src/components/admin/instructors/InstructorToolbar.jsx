@@ -14,14 +14,14 @@ export default function InstructorToolbar({
                                           }) {
     return (
         <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-1 flex-col gap-4 md:flex-row">
+            <div className="flex flex-1 flex-col gap-4 md:flex-row md:flex-wrap">
                 <Input
                     placeholder="Search by name or email..."
                     value={search}
                     onChange={(e) =>
                         onSearchChange?.(e.target.value)
                     }
-                    className="md:max-w-sm"
+                    className="md:max-w-sm md:shrink-0"
                 />
 
                 <select
@@ -32,7 +32,8 @@ export default function InstructorToolbar({
                     className="
             rounded-lg
             border
-            border-white/10
+            border-border
+            shrink-0
             bg-background
             px-4
             py-2

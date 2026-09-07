@@ -19,13 +19,13 @@ import { LIVE_CLASSES_FILTERS } from "@/features/student/constants/liveClassesCo
 const statusBadge = (status) => {
   switch (status) {
     case "LIVE":
-      return <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 bg-red-500 text-foreground rounded-full animate-pulse"><RadioTower size={10} /> Live Now</span>;
+      return <span className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider px-2.5 py-1 bg-red-500 text-foreground rounded-full animate-pulse"><RadioTower size={10} /> Live Now</span>;
     case "COMPLETED":
-      return <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full"><CheckCircle size={10} /> Completed</span>;
+      return <span className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full"><CheckCircle size={10} /> Completed</span>;
     case "CANCELLED":
-      return <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-1 bg-muted border border-transparent/50 text-muted-foreground rounded-full">Cancelled</span>;
+      return <span className="text-[9px] font-semibold uppercase tracking-wider px-2.5 py-1 bg-muted border border-transparent/50 text-muted-foreground rounded-full">Cancelled</span>;
     default:
-      return <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 bg-primary/10 border border-primary/20 text-primary rounded-full"><Calendar size={10} /> Scheduled</span>;
+      return <span className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider px-2.5 py-1 bg-primary/10 border border-primary/20 text-primary rounded-full"><Calendar size={10} /> Scheduled</span>;
   }
 };
 
@@ -116,7 +116,7 @@ export default function LiveClassesPage() {
         </div>
       ) : displayed.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground bg-background/50 border border-transparent/80 rounded-2xl p-6">
-          <Video size={40} className="mx-auto mb-3 opacity-40 text-slate-450" />
+          <Video size={40} className="mx-auto mb-3 opacity-40 text-muted-foreground" />
           <p className="text-sm font-semibold text-foreground">No classes scheduled</p>
           <p className="text-xs mt-1 text-muted-foreground">Your instructor hasn't scheduled any live classes yet.</p>
         </div>
@@ -157,7 +157,7 @@ export default function LiveClassesPage() {
                       rel="noreferrer"
                       className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-xl transition flex-shrink-0 cursor-pointer ${
                         cls.status === "LIVE"
-                          ? "bg-red-650 text-foreground hover:bg-red-700 shadow"
+                          ? "bg-red-600 text-foreground hover:bg-red-700 shadow"
                           : "bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20"
                       }`}
                     >

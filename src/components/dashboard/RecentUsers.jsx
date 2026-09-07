@@ -16,7 +16,7 @@ export default function RecentUsers({
         {users.map((user) => (
           <div
             key={user.id}
-            className="flex items-center justify-between border-b border-white/10 pb-4 last:border-none"
+            className="flex items-center justify-between border-b border-border pb-4 last:border-none"
           >
             <div className="flex items-center gap-3">
               <UserAvatar
@@ -29,7 +29,7 @@ export default function RecentUsers({
                   {user.name}
                 </p>
 
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   {user.email}
                 </p>
               </div>

@@ -33,7 +33,7 @@ export default function AuthInput({
           border-transparent
           bg-muted
           pl-4
-          pr-11
+          !pr-11
           py-3
           text-foreground
           outline-none

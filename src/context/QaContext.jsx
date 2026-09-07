@@ -1,19 +1,17 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 
-import useAuth from "@/hooks/useAuth";
 import useDashboard from "@/hooks/queries/student/useDashboard";
+import { useMyQuestions, useCreateLessonQuery } from "@/hooks/queries/student/useLessonQueries";
 
 const QaContext = createContext(null);
 
-const STORAGE_KEY = "orange_tree_qa_threads_v3";
-
 export function QaProvider({ children }) {
-  const { user } = useAuth();
   const { data: dashboardData } = useDashboard();
-  const [threads, setThreads] = useState([]);
-  const [hydrated, setHydrated] = useState(false);
+  const { data: threads = [], isLoading } = useMyQuestions();
+  const createLessonQuery = useCreateLessonQuery();
+  const [askError, setAskError] = useState("");
 
   const enrolledCourses = useMemo(
     () =>
@@ -23,95 +21,36 @@ export function QaProvider({ children }) {
     [dashboardData]
   );
 
-  // Load previously-asked questions from localStorage once on mount (client
-  // only, avoids SSR/hydration mismatch). No seed/sample data — starts empty
-  // until the student or an instructor actually posts something.
-  useEffect(() => {
-    if (hydrated) return;
-
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        setThreads(JSON.parse(raw));
-      }
-    } catch {
-      // ignore malformed storage, start empty
-    }
-
-    setHydrated(true);
-  }, [hydrated]);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(threads));
-    } catch {
-      // storage full/unavailable — non-critical, silently skip persistence
-    }
-  }, [threads, hydrated]);
-
   const askQuestion = useCallback(
-    ({ courseId, courseTitle, title, body }) => {
-      const thread = {
-        id: `q-${Date.now()}`,
-        courseId,
-        courseTitle,
-        title: title.trim(),
-        body: body.trim(),
-        askedByName: user?.name || "You",
-        askedByMe: true,
-        createdAt: Date.now(),
-        upvotes: 0,
-        upvotedByMe: false,
-        replies: [],
-      };
-      setThreads((prev) => [thread, ...prev]);
-      return thread.id;
+    async ({ lessonId, question }) => {
+      setAskError("");
+      try {
+        const created = await createLessonQuery.mutateAsync({ lessonId, question });
+        return created.id;
+      } catch (err) {
+        setAskError(err?.response?.data?.message || "Failed to post your question. Please try again.");
+        throw err;
+      }
     },
-    [user]
+    [createLessonQuery]
   );
 
-  const addReply = useCallback((threadId, body) => {
-    if (!body.trim()) return;
-    setThreads((prev) =>
-      prev.map((t) =>
-        t.id === threadId
-          ? {
-              ...t,
-              replies: [
-                ...t.replies,
-                {
-                  id: `${threadId}-r${Date.now()}`,
-                  authorName: "You",
-                  authorRole: "STUDENT",
-                  body: body.trim(),
-                  createdAt: Date.now(),
-                },
-              ],
-            }
-          : t
-      )
-    );
-  }, []);
-
-  const toggleUpvote = useCallback((threadId) => {
-    setThreads((prev) =>
-      prev.map((t) =>
-        t.id === threadId
-          ? { ...t, upvotedByMe: !t.upvotedByMe, upvotes: t.upvotes + (t.upvotedByMe ? -1 : 1) }
-          : t
-      )
-    );
-  }, []);
-
   const pendingCount = useMemo(
-    () => threads.filter((t) => t.askedByMe && t.replies.length === 0).length,
+    () => threads.filter((t) => t.status !== "ANSWERED").length,
     [threads]
   );
 
   const value = useMemo(
-    () => ({ threads, enrolledCourses, askQuestion, addReply, toggleUpvote, pendingCount }),
-    [threads, enrolledCourses, askQuestion, addReply, toggleUpvote, pendingCount]
+    () => ({
+      threads,
+      enrolledCourses,
+      askQuestion,
+      isLoading,
+      isAsking: createLessonQuery.isPending,
+      askError,
+      pendingCount,
+    }),
+    [threads, enrolledCourses, askQuestion, isLoading, createLessonQuery.isPending, askError, pendingCount]
   );
 
   return <QaContext.Provider value={value}>{children}</QaContext.Provider>;

@@ -38,8 +38,8 @@ export default function ChatSearch({ value, onChange }) {
           bg-background/50
           backdrop-blur-sm
 
-          pl-10
-          pr-4
+          !pl-10
+          !pr-4
 
           text-xs
           text-foreground

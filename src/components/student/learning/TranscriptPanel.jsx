@@ -109,7 +109,7 @@ const TranscriptRow = React.memo(
         parts.push(
           <mark
             key={matchIdx}
-            className="bg-primary/30 text-orange-200 font-bold px-0.5 rounded"
+            className="bg-primary/30 text-orange-400 font-bold px-0.5 rounded"
           >
             {text.substring(matchIdx, matchIdx + q.length)}
           </mark>

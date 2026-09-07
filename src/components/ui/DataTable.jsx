@@ -88,27 +88,22 @@ export default function DataTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {rows.map((row, idx) => {
-            const keyVal = typeof rowKey === "function" ? rowKey(row, idx) : row[rowKey] ?? idx;
-            return (
-              <tr
-                key={keyVal}
-                onClick={onRowClick ? () => onRowClick(row) : undefined}
-                className={`hover:bg-foreground/5 transition ${onRowClick ? "cursor-pointer" : ""}`}
-              >
-                {columns.map((col) => (
-                  <td
-                    key={col.key}
-                    className={`py-3.5 px-2 first:pl-0 last:pr-0 text-foreground ${
-                      col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left"
-                    }`}
-                  >
-                    {col.render ? col.render(row, idx) : (row[col.key] ?? "—")}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
+          {rows.map((row) => (
+            <tr
+              key={row[rowKey]}
+              onClick={onRowClick ? () => onRowClick(row) : undefined}
+              className={`hover:bg-foreground/5 transition ${onRowClick ? "cursor-pointer" : ""}`}
+            >
+              {columns.map((col) => (
+                <td
+                  key={col.key}
+                  className={`py-3.5 px-2 first:pl-0 last:pr-0 text-foreground ${col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left"}`}
+                >
+                  {col.render ? col.render(row) : (row[col.key] ?? "—")}
+                </td>
+              ))}
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

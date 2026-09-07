@@ -108,7 +108,7 @@ export default function BookmarksPage() {
             placeholder="Search bookmarks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-background/50 border border-transparent/80 rounded-xl pl-9 pr-4 py-2 text-xs text-foreground outline-none focus:border-primary transition"
+            className="w-full bg-background/50 border border-transparent/80 rounded-xl !pl-9 !pr-4 py-2 text-xs text-foreground outline-none focus:border-primary transition"
           />
         </div>
       </div>
@@ -181,6 +181,7 @@ export default function BookmarksPage() {
                     href={bookmark.url}
                     target="_blank"
                     rel="noreferrer"
+                    aria-label="Open bookmark"
                     className="p-2 hover:bg-primary/10 rounded-xl transition text-muted-foreground hover:text-primary"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -192,6 +193,7 @@ export default function BookmarksPage() {
                     e.stopPropagation();
                     handleDelete(bookmark.id);
                   }}
+                  aria-label="Remove bookmark"
                   className="p-2 hover:bg-red-500/10 rounded-xl transition text-muted-foreground hover:text-red-500"
                 >
                   <Trash2 size={15} />

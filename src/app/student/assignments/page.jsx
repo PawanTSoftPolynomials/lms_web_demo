@@ -232,7 +232,7 @@ function AssignmentsPageContent() {
                     onClick={() => setActiveTab(tab.value)}
                     className={`rounded-full px-4 py-2 text-sm transition ${
                       active
-                        ? "bg-orange-600 text-foreground"
+                        ? "bg-primary text-primary-foreground"
                         : "bg-muted text-foreground hover:bg-muted"
                     }`}
                   >
@@ -317,7 +317,7 @@ function AssignmentsPageContent() {
 
                 {hasActiveFilters ? (
                   <>
-                    <h2 className="text-lg font-bold text-foreground">No matches found</h2>
+                    <h2 className="text-lg font-semibold text-foreground">No matches found</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                       No assignments match your current filters.
                     </p>
@@ -331,7 +331,7 @@ function AssignmentsPageContent() {
                   </>
                 ) : (
                   <>
-                    <h2 className="text-lg font-bold text-foreground">🎉 You&apos;re all caught up!</h2>
+                    <h2 className="text-lg font-semibold text-foreground">🎉 You&apos;re all caught up!</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                       No assignments are available right now.
                     </p>

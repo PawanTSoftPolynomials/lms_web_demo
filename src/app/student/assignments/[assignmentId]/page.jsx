@@ -42,7 +42,7 @@ export default function AssignmentDetailPage({ params }) {
   if (isError || !assignment) {
     return (
       <Card tone="flat" className="p-8 text-center">
-        <h2 className="text-xl font-semibold text-foreground">
+        <h2 className="text-xl font-bold text-foreground">
           Assignment not found
         </h2>
         <p className="mt-2 text-muted-foreground">

@@ -122,7 +122,7 @@ export default function CurriculumModule({
   </span>
                                 </div>
 
-                                <h2 className="mt-1 text-3xl font-bold tracking-tight">
+                                <h2 className="mt-1 text-lg sm:text-xl font-semibold tracking-tight">
 
                                     {module.title}
 
@@ -219,7 +219,7 @@ export default function CurriculumModule({
                                                         Lesson {lessonIndex + 1}
                                                     </p>
 
-                                                    <h3 className="text-xl font-semibold">
+                                                    <h3 className="text-lg font-semibold">
                                                         {lesson.title}
                                                     </h3>
 

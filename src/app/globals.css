@@ -60,10 +60,6 @@ body {
   --color-slate-900: #131321;
   --color-slate-950: #0a0a0f;
 
-  /* Approved redesign (Ayan, "Make it responsive" — see globals history):
-     the ~2000 hardcoded orange/pink utility classes (bg-orange, text-orange,
-     border-orange) across the app now repaint off the live --primary/--secondary
-     tokens instead of a fixed hex, so they follow the current theme. */
   --color-orange-300: color-mix(in oklab, var(--primary) 60%, white);
   --color-orange-400: color-mix(in oklab, var(--primary) 80%, white);
   --color-orange-450: var(--primary);
@@ -76,6 +72,11 @@ body {
   --color-amber-400: color-mix(in oklab, var(--secondary) 80%, white);
   --color-amber-500: var(--secondary);
   --color-amber-600: color-mix(in oklab, var(--secondary) 80%, black);
+
+  --color-pink-400: color-mix(in oklab, var(--secondary) 80%, white);
+  --color-pink-500: var(--secondary);
+  --color-pink-600: color-mix(in oklab, var(--secondary) 80%, black);
+  --color-pink-700: color-mix(in oklab, var(--secondary) 60%, black);
 
   --color-pink-400: color-mix(in oklab, var(--secondary) 80%, white);
   --color-pink-500: var(--secondary);
@@ -100,107 +101,14 @@ body {
 }
 
 /* ==========================================================================
-   SEMANTIC TYPOGRAPHY TOKENS (Phase 4B) — Pawan-only addition, predates the
-   Ayan redesign below; still consumed by components outside that redesign's
-   scope (analytics/report tables, Hero, CourseComposerSidebar, etc.), so it
-   stays even though the Ayan branch never had it.
-   ========================================================================== */
-@utility text-display {
-  font-family: var(--font-display);
-  font-size: var(--text-4xl);
-  line-height: var(--text-4xl--line-height);
-  font-weight: 800;
-  letter-spacing: -0.025em;
-
-  @media (min-width: 768px) {
-    font-size: var(--text-5xl);
-    line-height: var(--text-5xl--line-height);
-  }
-}
-
-@utility text-h1 {
-  font-family: var(--font-display);
-  font-size: var(--text-2xl);
-  line-height: var(--text-2xl--line-height);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-
-  @media (min-width: 640px) {
-    font-size: var(--text-3xl);
-    line-height: var(--text-3xl--line-height);
-  }
-}
-
-@utility text-h2 {
-  font-size: var(--text-xl);
-  line-height: var(--text-xl--line-height);
-  font-weight: 700;
-  letter-spacing: -0.015em;
-}
-
-@utility text-h3 {
-  font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
-  font-weight: 900;
-  letter-spacing: -0.01em;
-}
-
-@utility text-h4 {
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-weight: 700;
-}
-
-@utility text-card-title {
-  font-size: var(--text-xs);
-  line-height: 1.35;
-  font-weight: 700;
-}
-
-@utility text-body {
-  font-size: var(--text-sm);
-  line-height: 1.6;
-  font-weight: 400;
-}
-
-@utility text-body-small {
-  font-size: var(--text-xs);
-  line-height: 1.5;
-  font-weight: 400;
-}
-
-@utility text-label {
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-weight: 600;
-}
-
-@utility text-caption {
-  font-size: var(--text-2xs, 0.6875rem);
-  line-height: var(--text-2xs--line-height, 1rem);
-  font-weight: 600;
-}
-
-@utility text-nav {
-  font-size: var(--text-xs);
-  line-height: var(--text-xs--line-height);
-  font-weight: 500;
-}
-
-/* ==========================================================================
-   LIGHT MODE — approved redesign (Ayan, "Make it responsive"): matched from
-   the reference video of the instructor dashboard mockup — soft cream page,
-   near-white shadow-based cards (no hard borders), dark-navy headings, a
-   gold/olive accent for progress bars and links. Colors sampled directly
-   from video frames. (default, no .dark class)
+   LIGHT MODE — matched from the user's reference video (instructor
+   dashboard mockup): soft cream page, near-white shadow-based cards
+   (no hard borders), dark-navy headings, a gold/olive accent for
+   progress bars and links. Colors sampled directly from video frames.
+   (default, no .dark class)
    ========================================================================== */
 :root {
-  /* Kept from the pre-redesign font system (Pawan-only, added after this
-     redesign branched) — still relied on by .learning-content/.prose and
-     the Phase 4B typography utilities above. */
-  --font-display: var(--font-bricolage-grotesque), "Bricolage Grotesque", system-ui, sans-serif;
-  --font-ui: var(--font-instrument-sans), "Instrument Sans", system-ui, -apple-system, sans-serif;
-  --font-content: var(--font-source-serif-4), "Source Serif 4", Georgia, serif;
+  color-scheme: light;
 
   --background: #F3EDE3;
   --foreground: #23283D;
@@ -218,16 +126,12 @@ body {
 
   --muted: #ECE4D5;
   --muted-foreground: #6E7488;
-  --text-secondary: #5f625d;
 
   --border: #E7DFD1;
-  --border-strong: #cfc6b4;
   --input: #FEFCF8;
   --ring: #B8934A;
 
   --primary: #B8934A;
-  --primary-hover: color-mix(in oklab, var(--primary) 85%, black);
-  --primary-subtle: color-mix(in oklab, var(--primary) 15%, var(--surface));
   --primary-foreground: #23283D;
 
   --secondary: #23283D;
@@ -242,28 +146,18 @@ body {
   --warning-foreground: #23283D;
   --destructive: #E8604F;
   --destructive-foreground: #FFFFFF;
-  --error: var(--destructive);
-  --error-foreground: var(--destructive-foreground);
-  --info: #3978a8;
-  --info-foreground: #16233a;
-
-  /* Deliberately dark, immersive backdrop for course/lesson/quiz content
-     surfaces (Course Composer preview, the learning player) — not the
-     app's default background. Unrelated to this redesign, kept as-is. */
-  --learning-surface: #202b25;
-  --learning-surface-foreground: #e7ecf6;
-
   --heading-color: #212945;
 
   --shadow-color: 220 20% 20%;
 }
 
 /* ==========================================================================
-   DARK MODE — approved redesign (Ayan, "Make it responsive"): "GitHub Dark"
-   pairing — real GitHub dark-theme values, near-black canvas, blue links,
-   green primary actions.
+   DARK MODE — "GitHub Dark" pairing: real GitHub dark-theme values —
+   near-black canvas, blue links, green primary actions.
    ========================================================================== */
 .dark {
+  color-scheme: dark;
+
   --background: #0D1117;
   --foreground: #C9D1D9;
 
@@ -280,16 +174,12 @@ body {
 
   --muted: #1C2129;
   --muted-foreground: #8B949E;
-  --text-secondary: #c1baa9;
 
   --border: #30363D;
-  --border-strong: #4d4839;
   --input: #0D1117;
   --ring: #58A6FF;
 
   --primary: #238636;
-  --primary-hover: color-mix(in oklab, var(--primary) 85%, white);
-  --primary-subtle: color-mix(in oklab, var(--primary) 20%, var(--surface));
   --primary-foreground: #FFFFFF;
 
   --secondary: #30363D;
@@ -304,14 +194,6 @@ body {
   --warning-foreground: #0D1117;
   --destructive: #F85149;
   --destructive-foreground: #FFFFFF;
-  --error: var(--destructive);
-  --error-foreground: var(--destructive-foreground);
-  --info: #82a5d3;
-  --info-foreground: #0e1c2f;
-
-  /* Unrelated to this redesign, kept as-is (see light-mode comment above). */
-  --learning-surface: #1f2a44;
-  --learning-surface-foreground: #e7ecf6;
 
   --heading-color: #E6EDF3;
 
@@ -632,16 +514,24 @@ body {
 
 /* ==========================================================================
    Experimental photo-derived card palette — course cards only, applied via a
-   wrapper class on the card root. Deliberately NOT tied to light/dark mode:
-   a fixed, self-contained dark card face regardless of the page's own theme.
+   wrapper class on the card root. Theme-aware: light-mode uses the app's own
+   surface tokens, dark-mode restores the original bespoke dark card face.
    ========================================================================== */
 .card-photo-jellyfish {
+  --card-photo-bg-from: var(--card);
+  --card-photo-bg-to: var(--muted);
+  --card-photo-border: var(--border);
+  --card-photo-h1: var(--heading-color);
+  --card-photo-subtitle: var(--muted-foreground);
+  --card-photo-highlight: #E07A5F;
+}
+
+.dark .card-photo-jellyfish {
   --card-photo-bg-from: #161A1D;
   --card-photo-bg-to: #212529;
   --card-photo-border: #383E44;
   --card-photo-h1: #F2CC8F;
   --card-photo-subtitle: #D3D8DD;
-  --card-photo-highlight: #E07A5F;
 }
 
 .card-photo-title {
@@ -649,14 +539,15 @@ body {
 }
 
 /* ==========================================================================
-   Shared surface/control styling — approved redesign: flat, modestly-rounded
-   shapes (GitHub-style: 6-8px corners, no pill buttons, no glass), colored
-   via the semantic tokens above so it repaints automatically per mode.
+   Shared surface/control styling — flat, modestly-rounded shapes (GitHub-
+   style: 6-8px corners, no pill buttons), colored via the semantic tokens
+   above so it repaints automatically per mode.
    ========================================================================== */
 
 .bg-card, .bg-popover, .card-photo-jellyfish {
   background-color: var(--card) !important;
   border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
@@ -673,33 +564,6 @@ input:focus, select:focus {
   outline: none;
 }
 
-select.select-field {
-  padding-top: 0.375rem !important;
-  padding-bottom: 0.375rem !important;
-  padding-left: 0.75rem !important;
-  padding-right: 2rem !important;
-  height: 38px !important;
-  line-height: 1.25rem !important;
-}
-
-input.rounded-full, .search-pill-input {
-  background-color: var(--card) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 9999px !important;
-  color: var(--foreground) !important;
-  padding-left: 2.75rem !important;
-  padding-right: 1rem !important;
-  padding-top: 0.5rem !important;
-  padding-bottom: 0.5rem !important;
-  height: 46px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
-}
-
-input.rounded-full:focus, .search-pill-input:focus {
-  border-color: var(--primary) !important;
-  box-shadow: 0 0 0 3px var(--primary-subtle) !important;
-}
-
 button, a.bg-primary, a.bg-secondary, a.bg-accent, a.bg-success, a.bg-warning, a.bg-destructive, .btn-rainbow {
   border-radius: 6px !important;
   box-shadow: none !important;
@@ -709,12 +573,12 @@ button, a.bg-primary, a.bg-secondary, a.bg-accent, a.bg-success, a.bg-warning, a
 }
 
 button.bg-primary, a.bg-primary, .btn-rainbow {
-  background-color: var(--primary) !important;
+  background-color: var(--btn-rainbow-fill, var(--primary)) !important;
   background-image: none !important;
-  color: var(--primary-foreground) !important;
+  color: var(--btn-rainbow-foreground, var(--primary-foreground)) !important;
 }
 button.bg-primary:hover, a.bg-primary:hover, .btn-rainbow:hover {
-  background-color: color-mix(in srgb, var(--primary) 88%, white) !important;
+  background-color: color-mix(in srgb, var(--btn-rainbow-fill, var(--primary)) 88%, white) !important;
 }
 
 .bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {
@@ -745,7 +609,7 @@ button.bg-primary:hover, a.bg-primary:hover, .btn-rainbow:hover {
    mode uses the plain surface/control styling above with no extra treatment.
    ========================================================================== */
 
-.dark .bg-card, .dark .bg-popover, .dark .card-photo-jellyfish {
+.dark .bg-card, .dark .bg-surface, .dark .bg-popover, .dark .card-photo-jellyfish {
   background-color: var(--card) !important;
   border-color: var(--border) !important;
   box-shadow: none !important;
@@ -776,3 +640,4 @@ button.bg-primary:hover, a.bg-primary:hover, .btn-rainbow:hover {
 .dark .text-gray-600 {
   color: var(--muted-foreground) !important;
 }
+

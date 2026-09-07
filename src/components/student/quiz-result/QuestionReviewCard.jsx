@@ -42,7 +42,7 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
               {question.question}
             </h4>
             <div className="flex flex-col items-end gap-1 flex-shrink-0">
-              <span className="text-[10px] bg-slate-850 px-2 py-0.5 rounded border border-border text-muted-foreground font-bold uppercase">
+              <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded border border-border text-muted-foreground font-bold uppercase">
                 {question.marks || 1} {question.marks === 1 ? "Mark" : "Marks"}
               </span>
               {question.concept && (
@@ -79,7 +79,7 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
                     badgeIcon = <X className="h-3.5 w-3.5 text-rose-400 shrink-0" />;
                   }
                 } else if (isAnswerCorrect) {
-                  optionStyle = "border-emerald-500/25 bg-emerald-500/5 text-emerald-450";
+                  optionStyle = "border-emerald-500/25 bg-emerald-500/5 text-emerald-400";
                   badgeIcon = <Check className="h-3.5 w-3.5 text-emerald-500/60 shrink-0" />;
                 }
 
@@ -98,7 +98,7 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
 
           {/* 2. ARRANGE_TOKENS Review */}
           {qType === "ARRANGE_TOKENS" && (
-            <div className="space-y-3 bg-background/40 p-4 rounded-xl border border-slate-850">
+            <div className="space-y-3 bg-background/40 p-4 rounded-xl border border-slate-800">
               <div className="space-y-2">
                 <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Your Sequence:</span>
                 <div className="flex flex-wrap gap-2">
@@ -108,7 +108,7 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
                       const isCorrectPos = Array.isArray(question.correctAnswer) && question.correctAnswer[tIdx] === tokenText;
                       return (
                         <span key={tIdx} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 ${
-                          isCorrectPos ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-455 border border-rose-500/20"
+                          isCorrectPos ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
                         }`}>
                           <span className="text-[9px] opacity-60 font-bold">{tIdx + 1}</span>
                           {tokenText}
@@ -123,7 +123,7 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
 
               {!isCorrect && Array.isArray(question.correctAnswer) && (
                 <div className="space-y-2 border-t border-transparent/50 pt-3 mt-2">
-                  <span className="text-[10px] text-slate-505 font-bold uppercase tracking-wider">Correct Sequence:</span>
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Correct Sequence:</span>
                   <div className="flex flex-wrap gap-2">
                     {question.correctAnswer.map((token, tIdx) => {
                       const tokenText = typeof token === "string" ? token : (token?.optionText || token?.text || String(token));
@@ -142,7 +142,7 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
 
           {/* 3. MATCH_PAIRS Review */}
           {qType === "MATCH_PAIRS" && (
-            <div className="space-y-3 bg-background/40 p-4 rounded-xl border border-slate-850">
+            <div className="space-y-3 bg-background/40 p-4 rounded-xl border border-slate-800">
               <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Matches Review:</span>
               <div className="grid gap-3">
                 {Object.entries(question.correctAnswer || {}).map(([leftItem, rightItem]) => {
@@ -152,8 +152,8 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
                   return (
                     <div key={leftItem} className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border text-xs gap-3 ${
                       isMatchCorrect
-                        ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-450"
-                        : "border-rose-500/20 bg-rose-500/5 text-rose-455"
+                        ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400"
+                        : "border-rose-500/20 bg-rose-500/5 text-rose-400"
                     }`}>
                       <div className="font-semibold flex items-center gap-2">
                         <span>{leftItem}</span>
@@ -175,13 +175,13 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
           {/* 4. SELF_ASSESSMENT Review */}
           {qType === "SELF_ASSESSMENT" && (
             <div className="space-y-3">
-              <div className="bg-background/40 p-4 rounded-xl border border-slate-850 space-y-2">
+              <div className="bg-background/40 p-4 rounded-xl border border-slate-800 space-y-2">
                 <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Your Written Answer:</span>
-                <p className="text-xs text-slate-350 leading-relaxed whitespace-pre-wrap">
+                <p className="text-xs text-slate-400 leading-relaxed whitespace-pre-wrap">
                   {selectedOption || "(No response typed)"}
                 </p>
               </div>
-              <div className="bg-background/20 p-4 rounded-xl border border-slate-850 space-y-2">
+              <div className="bg-background/20 p-4 rounded-xl border border-slate-800 space-y-2">
                 <span className="text-[10px] text-primary font-bold uppercase tracking-wider">Evaluation Rubric & Key:</span>
                 <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
                   {question.correctAnswer}
@@ -200,7 +200,7 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
                     <span>Correct Choice</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1.5 text-xs text-rose-455 font-semibold">
+                  <div className="flex items-center gap-1.5 text-xs text-rose-400 font-semibold">
                     <XCircle size={14} />
                     <span>Incorrect Choice</span>
                   </div>

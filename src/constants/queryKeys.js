@@ -100,6 +100,7 @@ export const QUERY_KEYS = {
     LESSON_NOTES: "lesson-notes",
     LESSON_QUERIES: "lesson-queries",
     MY_LESSON_QUERIES: "my-lesson-queries",
+    MY_QUESTIONS: "my-questions",
     DISCUSSIONS: "discussions",
 
     BATCHES: "batches",

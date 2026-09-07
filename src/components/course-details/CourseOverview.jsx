@@ -13,7 +13,7 @@ export default function CourseOverview({
 
       <Card>
 
-        <h2 className="mb-6 text-2xl font-bold">
+        <h2 className="mb-6 text-lg font-semibold">
           Course Information
         </h2>
 
@@ -69,7 +69,7 @@ export default function CourseOverview({
 
       <Card>
 
-        <h2 className="mb-6 text-2xl font-bold">
+        <h2 className="mb-6 text-lg font-semibold">
           Description
         </h2>
 

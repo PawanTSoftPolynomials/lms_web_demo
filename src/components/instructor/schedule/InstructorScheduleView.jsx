@@ -33,6 +33,17 @@ const MONTHS = [
 ];
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+// Local calendar-day key (YYYY-MM-DD) — NOT `.toISOString()`, which converts
+// to UTC first and rolls every locally-constructed midnight back to the
+// previous day for any positive UTC offset (e.g. IST), shifting which grid
+// cell "today"/a clicked date actually lands on.
+const toLocalDateString = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
 const EVENT_TYPES = {
   lecture: { label: "Lecture", color: "bg-emerald-500", text: "text-emerald-400", border: "border-emerald-500/30", bgSoft: "bg-emerald-500/10", icon: Video },
   assignment: { label: "Assignment", color: "bg-primary", text: "text-primary", border: "border-primary/30", bgSoft: "bg-primary/10", icon: FileText },
@@ -48,7 +59,7 @@ export default function InstructorScheduleView() {
   const [viewMode, setViewMode] = useState("month"); // 'month' | 'week' | 'agenda'
   
   // Drawer & Modal States
-  const [selectedDateStr, setSelectedDateStr] = useState(new Date().toISOString().split("T")[0]);
+  const [selectedDateStr, setSelectedDateStr] = useState(toLocalDateString(new Date()));
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -131,7 +142,7 @@ export default function InstructorScheduleView() {
       days.push({
         day: d,
         isCurrentMonth: false,
-        dateStr: dateObj.toISOString().split("T")[0],
+        dateStr: toLocalDateString(dateObj),
       });
     }
     // Current Month
@@ -140,7 +151,7 @@ export default function InstructorScheduleView() {
       days.push({
         day: d,
         isCurrentMonth: true,
-        dateStr: dateObj.toISOString().split("T")[0],
+        dateStr: toLocalDateString(dateObj),
       });
     }
     // Next Month Padding
@@ -150,7 +161,7 @@ export default function InstructorScheduleView() {
       days.push({
         day: d,
         isCurrentMonth: false,
-        dateStr: dateObj.toISOString().split("T")[0],
+        dateStr: toLocalDateString(dateObj),
       });
     }
     return days;
@@ -162,7 +173,7 @@ export default function InstructorScheduleView() {
   const handleToday = () => {
     const now = new Date();
     setCurrentDate(now);
-    setSelectedDateStr(now.toISOString().split("T")[0]);
+    setSelectedDateStr(toLocalDateString(now));
   };
 
   // Click on date cell
@@ -187,7 +198,7 @@ export default function InstructorScheduleView() {
       type: typeKey,
       course: "",
       batch: "",
-      date: selectedDateStr || new Date().toISOString().split("T")[0],
+      date: selectedDateStr || toLocalDateString(new Date()),
       startTime: "10:00",
       duration: "60 mins",
       room: "",
@@ -296,7 +307,7 @@ export default function InstructorScheduleView() {
   const totalMeetingsCount = useMemo(() => scheduleEvents.filter(e => e.type === "meeting").length, [scheduleEvents]);
   const totalHoursCount = useMemo(() => (scheduleEvents.length * 1.5).toFixed(1), [scheduleEvents]);
 
-  const todayDateStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const todayDateStr = useMemo(() => toLocalDateString(new Date()), []);
 
   return (
     <div className="min-h-screen text-foreground bg-background p-4 sm:p-6 space-y-6 animate-fade-in">
@@ -304,7 +315,7 @@ export default function InstructorScheduleView() {
       {/* =========================================================================
           1. TOP HEADER CARD
          ========================================================================= */}
-      <div className="relative z-50 bg-card border border-border rounded-2xl p-5 shadow-2xl backdrop-blur-xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+      <div className="relative bg-card border border-border rounded-2xl p-5 shadow-2xl backdrop-blur-xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         
         {/* Left Title & Month Switcher */}
         <div className="flex items-center gap-4 flex-wrap">

@@ -16,7 +16,7 @@ export default function EnrollmentTable({
                     No Enrollments Found
                 </h3>
 
-                <p className="mt-2 text-sm text-gray-400">
+                <p className="mt-2 text-sm text-muted-foreground">
                     There are no enrollments available.
                 </p>
             </div>
@@ -26,7 +26,7 @@ export default function EnrollmentTable({
     return (
         <>
             {/* Desktop & Tablet */}
-            <div className="hidden overflow-x-auto rounded-xl border border-white/10 md:block">
+            <div className="hidden overflow-x-auto rounded-xl border border-border md:block">
                 <table className="min-w-full">
                     <thead>
                     <tr className="border-b border-border text-[9px] uppercase tracking-widest text-muted-foreground font-black text-left">
@@ -76,7 +76,7 @@ export default function EnrollmentTable({
                             key={
                                 enrollment.id
                             }
-                            className="rounded-xl border border-white/10 bg-white/5 p-4"
+                            className="rounded-xl border border-border bg-card p-4"
                         >
                             <div className="flex items-start justify-between gap-3">
                                 <div>
@@ -89,7 +89,7 @@ export default function EnrollmentTable({
                                         }
                                     </h3>
 
-                                    <p className="break-all text-xs text-gray-400">
+                                    <p className="break-all text-xs text-muted-foreground">
                                         {
                                             enrollment
                                                 .student
@@ -126,7 +126,7 @@ export default function EnrollmentTable({
 
                             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                                 <div>
-                                    <p className="text-gray-400">
+                                    <p className="text-muted-foreground">
                                         Course
                                     </p>
 
@@ -140,7 +140,7 @@ export default function EnrollmentTable({
                                 </div>
 
                                 <div>
-                                    <p className="text-gray-400">
+                                    <p className="text-muted-foreground">
                                         Phone
                                     </p>
 
@@ -153,7 +153,7 @@ export default function EnrollmentTable({
                                 </div>
 
                                 <div className="col-span-2">
-                                    <p className="text-gray-400">
+                                    <p className="text-muted-foreground">
                                         Enrolled
                                     </p>
 

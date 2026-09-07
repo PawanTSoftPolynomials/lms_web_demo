@@ -51,13 +51,9 @@ export default async function CoursePage({ params }) {
           {/* Left Column: Course Main Content (8 cols) */}
           <div className="lg:col-span-8 space-y-6">
             
-            {/* Course Title & Metadata Hero Block */}
-            <div className="space-y-3">
-              <span className="inline-block px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-2xs font-extrabold uppercase tracking-wider">
-                {course.category || "Featured Course"}
-              </span>
-
-              <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground leading-tight">
+            {/* Course Title & Badges block */}
+            <div className="space-y-4">
+              <h1 className="text-xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight">
                 {course.title}
               </h1>
 

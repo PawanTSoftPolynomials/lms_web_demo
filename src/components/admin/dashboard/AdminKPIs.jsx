@@ -73,17 +73,17 @@ export function AdminKPIs({
           </div>
 
           <div className="min-w-0">
-            <p className="text-muted-foreground text-[9px] font-bold uppercase tracking-wider truncate">{kpi.label}</p>
+            <p className="text-muted-foreground text-[10.5px] font-bold uppercase tracking-wider truncate">{kpi.label}</p>
             <div className="flex items-end gap-1.5 mt-0.5">
               <p className="text-lg font-black text-foreground leading-none">{kpi.value}</p>
               {kpi.href && (
-                <Link href={kpi.href} className="text-[9px] text-primary font-bold hover:opacity-80 truncate hidden xl:block">
+                <Link href={kpi.href} className="text-[10.5px] text-primary font-bold hover:opacity-80 truncate block">
                   View &rarr;
                 </Link>
               )}
             </div>
             {kpi.delta && (
-              <p className="text-[9px] text-emerald-400 font-bold mt-0.5 truncate">{kpi.delta}</p>
+              <p className="text-[10.5px] text-emerald-400 font-bold mt-0.5 truncate">{kpi.delta}</p>
             )}
           </div>
         </div>
