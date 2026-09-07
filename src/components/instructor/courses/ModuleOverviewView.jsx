@@ -28,9 +28,14 @@ export function ModuleOverviewView({
   isDraftMode = false,
   role = "INSTRUCTOR",
   contentAutoOpenSignal: externalContentAutoOpenSignal = 0,
+  onContentAutoOpenConsumed,
 }) {
   const [localContentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
   const contentAutoOpenSignal = externalContentAutoOpenSignal + localContentAutoOpenSignal;
+  const handleContentAutoOpenConsumed = () => {
+    setContentAutoOpenSignal(0);
+    onContentAutoOpenConsumed?.();
+  };
 
   if (!module) return null;
 
@@ -92,6 +97,7 @@ export function ModuleOverviewView({
           <LessonComposerPanel
             parent={{ parentType: "module", parentId: module.id }}
             autoOpenAddSignal={contentAutoOpenSignal}
+            onAutoOpenConsumed={handleContentAutoOpenConsumed}
           />
         </div>
       )}

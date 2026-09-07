@@ -34,9 +34,14 @@ export function LessonOverviewView({
   isDraftMode = false,
   role = "INSTRUCTOR",
   contentAutoOpenSignal: externalContentAutoOpenSignal = 0,
+  onContentAutoOpenConsumed,
 }) {
   const [localContentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
   const contentAutoOpenSignal = externalContentAutoOpenSignal + localContentAutoOpenSignal;
+  const handleContentAutoOpenConsumed = () => {
+    setContentAutoOpenSignal(0);
+    onContentAutoOpenConsumed?.();
+  };
 
   if (!lesson) return null;
 
@@ -167,6 +172,7 @@ export function LessonOverviewView({
           <LessonComposerPanel
             parent={{ parentType: "lesson", parentId: lesson.id }}
             autoOpenAddSignal={contentAutoOpenSignal}
+            onAutoOpenConsumed={handleContentAutoOpenConsumed}
           />
         </div>
       )}

@@ -21,9 +21,14 @@ export function CourseOverviewView({
   onStartLearning,
   isDraftMode = false,
   contentAutoOpenSignal: externalContentAutoOpenSignal = 0,
+  onContentAutoOpenConsumed,
 }) {
   const [localContentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
   const contentAutoOpenSignal = externalContentAutoOpenSignal + localContentAutoOpenSignal;
+  const handleContentAutoOpenConsumed = () => {
+    setContentAutoOpenSignal(0);
+    onContentAutoOpenConsumed?.();
+  };
   return (
     <div className={`notebook-cell rounded-2xl border border-border bg-background p-5 shadow-md ${isEditing ? "active-cell border-primary/50" : ""}`}>
       {/* Left Action Bar */}
@@ -245,6 +250,7 @@ export function CourseOverviewView({
                   <LessonComposerPanel
                     parent={{ parentType: "course", parentId: course?.id }}
                     autoOpenAddSignal={contentAutoOpenSignal}
+                    onAutoOpenConsumed={handleContentAutoOpenConsumed}
                   />
                 </div>
               )}

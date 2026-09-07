@@ -1996,6 +1996,7 @@ export default function CourseDetailsPage() {
                 onAddModule={() => openEntityModal({ entity: "module", mode: "create", courseId })}
                 isDraftMode={isDraftMode}
                 contentAutoOpenSignal={courseContentAutoOpenSignal}
+                onContentAutoOpenConsumed={() => setCourseContentAutoOpenSignal(0)}
               />
             )}
 
@@ -2048,6 +2049,7 @@ export default function CourseDetailsPage() {
                 onSelectLesson={handleSelectLesson}
                 isDraftMode={isDraftMode}
                 contentAutoOpenSignal={lessonContentAutoOpenSignal}
+                onContentAutoOpenConsumed={() => setLessonContentAutoOpenSignal(0)}
               />
             )}
 
@@ -2064,6 +2066,7 @@ export default function CourseDetailsPage() {
                 onSelectModule={handleSelectModule}
                 isDraftMode={isDraftMode}
                 contentAutoOpenSignal={moduleContentAutoOpenSignal}
+                onContentAutoOpenConsumed={() => setModuleContentAutoOpenSignal(0)}
               />
             )}
 
@@ -2073,6 +2076,7 @@ export default function CourseDetailsPage() {
                 selectedCellId={selectedCellId}
                 onSelectCell={setSelectedCellId}
                 autoOpenAddSignal={autoOpenAddSignal}
+                onAutoOpenConsumed={() => setAutoOpenAddSignal(0)}
                 onAddQuiz={composingTopic ? () => handleAddTopicQuiz(composingTopic, composingLesson, composingModule) : undefined}
                 draftContents={isDraftMode ? composingTopic?.contents || [] : undefined}
                 isDraftMode={isDraftMode}

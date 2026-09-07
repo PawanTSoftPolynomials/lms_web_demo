@@ -45,6 +45,8 @@ interface LessonComposerPanelProps {
   onSelectCell?: (contentId: string) => void;
   /** Bump this (e.g. a counter) to immediately open the Add Content picker for the current parent — used by the Course Map's "Add Content" action so it never has to navigate to a separate page. */
   autoOpenAddSignal?: number;
+  /** Called right after `autoOpenAddSignal` triggers the picker to open — the caller should reset its counter back to 0 here, so a stale non-zero value can't re-trigger on a later remount (see the effect's comment for why that matters). */
+  onAutoOpenConsumed?: () => void;
   draftContents?: ContentRow[];
   isDraftMode?: boolean;
   onUpdateDraftContents?: (contents: ContentRow[]) => void;
@@ -171,6 +173,7 @@ export function LessonComposerPanel({
   selectedCellId,
   onSelectCell,
   autoOpenAddSignal,
+  onAutoOpenConsumed,
   draftContents,
   isDraftMode = false,
   onUpdateDraftContents,
@@ -261,7 +264,13 @@ export function LessonComposerPanel({
 
   // Lets the Course Map's "Add Content" action open this topic's Add
   // Content picker immediately, without a second click once the topic
-  // becomes the active composer view.
+  // becomes the active composer view. `onAutoOpenConsumed` is called right
+  // after firing so the caller can reset its counter back to 0 — this
+  // component remounts on every composerMode switch (Course/Module/Lesson/
+  // Topic are each a separate conditional block in the page), so a signal
+  // that stays non-zero after being handled would look "new" again to the
+  // next fresh mount (its own ref starts empty) and re-fire on every
+  // revisit, not just the visit that actually requested it.
   const handledAutoOpenSignal = useRef<number | undefined>(undefined);
   useEffect(() => {
     if (!autoOpenAddSignal || autoOpenAddSignal <= 0) return;
@@ -269,6 +278,7 @@ export function LessonComposerPanel({
     if (handledAutoOpenSignal.current === autoOpenAddSignal) return;
     handledAutoOpenSignal.current = autoOpenAddSignal;
     openAddCell(nextOrder);
+    onAutoOpenConsumed?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoOpenAddSignal, isLoading]);
 
