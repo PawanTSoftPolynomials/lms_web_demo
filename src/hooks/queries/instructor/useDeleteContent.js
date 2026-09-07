@@ -14,6 +14,9 @@ export function useDeleteContent() {
             deleteContent(contentId),
 
         onSuccess: (_, variables) => {
+            const parentType = variables.parent?.parentType;
+            const parentId = variables.parent?.parentId;
+
             // refetchType: "all" forces an immediate background refetch even
             // for queries with no currently-mounted observer — otherwise the
             // data is only marked stale and won't actually refresh until
@@ -21,7 +24,8 @@ export function useDeleteContent() {
             queryClient.invalidateQueries({
                 queryKey: [
                     QUERY_KEYS.CONTENTS,
-                    variables.topicId,
+                    parentType,
+                    parentId,
                 ],
                 refetchType: "all",
             });
