@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { UploadButton } from "@/components/instructor/courses/UploadButton";
 import { getDisplayUrl } from "@/lib/blob";
+import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
 
 export function CourseOverviewView({
   course,
@@ -18,7 +19,9 @@ export function CourseOverviewView({
   onAddModule,
   role = "INSTRUCTOR",
   onStartLearning,
+  isDraftMode = false,
 }) {
+  const [contentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
   return (
     <div className={`notebook-cell rounded-2xl border border-border bg-background p-5 shadow-md ${isEditing ? "active-cell border-primary/50" : ""}`}>
       {/* Left Action Bar */}
@@ -308,6 +311,26 @@ export function CourseOverviewView({
                   })}
                 </div>
               </div>
+
+              {/* Course-Level Content Cells */}
+              {role === "INSTRUCTOR" && !isDraftMode && (
+                <div className="pt-4 border-t border-border/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-foreground">Course Content</h3>
+                    <button
+                      type="button"
+                      onClick={() => setContentAutoOpenSignal((n) => n + 1)}
+                      className="text-xs font-bold text-primary hover:text-orange-300 cursor-pointer"
+                    >
+                      + Add Content
+                    </button>
+                  </div>
+                  <LessonComposerPanel
+                    parent={{ parentType: "course", parentId: course?.id }}
+                    autoOpenAddSignal={contentAutoOpenSignal}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>
