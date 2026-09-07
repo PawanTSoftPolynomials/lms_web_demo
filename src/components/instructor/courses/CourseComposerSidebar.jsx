@@ -49,6 +49,7 @@ import { useReorderModules } from "@/hooks/queries/instructor/useReorderModules"
 import { useReorderLessons } from "@/hooks/queries/instructor/useReorderLessons";
 import { useReorderTopics } from "@/hooks/queries/instructor/useReorderTopics";
 import { useReorderContents } from "@/hooks/queries/instructor/useReorderContents";
+import { useUpdateQuizOrder } from "@/hooks/queries/instructor/useUpdateQuizOrder";
 import { swapSiblingOrder } from "@/lib/reorderSiblings";
 import { useToast } from "@/components/ui/ToastProvider";
 
@@ -216,6 +217,12 @@ function ParentContentRows({
   selectedCellId,
   onSelectContent,
   onDeleteContent,
+  quizzes = [],
+  composerMode,
+  composeQuizId,
+  onSelectQuiz,
+  onDuplicateQuiz,
+  onDeleteQuiz,
   role = "INSTRUCTOR",
   isDraftMode = false,
   draftContents,
@@ -227,23 +234,47 @@ function ParentContentRows({
   const isError = isDraftMode ? false : isApiError;
   const { duplicate } = useDuplicateContent();
   const reorderContents = useReorderContents();
+  const updateQuizOrder = useUpdateQuizOrder();
   const { showToast } = useToast();
 
-  const handleMove = async (contentId, direction) => {
-    const plan = swapSiblingOrder(contents, contentId, direction);
+  // One merged, order-sorted list — this is what makes a quiz occupy a real
+  // position among its sibling content cells instead of always rendering in
+  // its own separate block. Ties (possible only via Add Above/Below on a
+  // content cell, which shifts sibling content rows but not quiz rows in
+  // the same scope — a known, non-fatal limitation, see the design spec)
+  // are broken deterministically: content sorts first.
+  const mergedRows = [
+    ...contents.map((c) => ({ ...c, kind: "content" })),
+    ...quizzes.map((q) => ({ ...q, kind: "quiz" })),
+  ].sort((a, b) => {
+    const orderDiff = (a.order ?? 0) - (b.order ?? 0);
+    if (orderDiff !== 0) return orderDiff;
+    return a.kind === b.kind ? 0 : a.kind === "content" ? -1 : 1;
+  });
+
+  const handleMove = async (id, direction) => {
+    const plan = swapSiblingOrder(mergedRows, id, direction);
     if (!plan) return;
+    const kindOf = (rowId) => mergedRows.find((r) => r.id === rowId)?.kind;
+    const contentUpdates = plan.filter((p) => kindOf(p.id) === "content");
+    const quizUpdates = plan.filter((p) => kindOf(p.id) === "quiz");
     try {
-      await reorderContents.mutateAsync({ parent, contents: plan });
+      if (contentUpdates.length > 0) {
+        await reorderContents.mutateAsync({ parent, contents: contentUpdates });
+      }
+      await Promise.all(
+        quizUpdates.map((q) => updateQuizOrder.mutateAsync({ quizId: q.id, order: q.order }))
+      );
     } catch {
-      showToast("Failed to reorder content", "error");
+      showToast("Failed to reorder", "error");
     }
   };
 
   const handleDuplicate = async (content) => {
-    const validOrders = contents
-      .map((c) => (typeof c.order === "number" && c.order > 0 ? c.order : 0))
+    const validOrders = mergedRows
+      .map((r) => (typeof r.order === "number" && r.order > 0 ? r.order : 0))
       .filter((o) => o > 0);
-    const nextOrder = validOrders.length > 0 ? Math.max(...validOrders) + 1 : contents.length + 1;
+    const nextOrder = validOrders.length > 0 ? Math.max(...validOrders) + 1 : mergedRows.length + 1;
     try {
       await duplicate(content, nextOrder);
     } catch {
@@ -263,10 +294,61 @@ function ParentContentRows({
           <AlertCircle size={11} className="shrink-0" />
           Failed to load contents.
         </div>
-      ) : contents.length === 0 ? (
+      ) : mergedRows.length === 0 ? (
         <div className="py-1.5 px-2 text-[10px] text-muted-foreground italic">No content yet.</div>
       ) : (
-        contents.map((content, cIdx) => {
+        mergedRows.map((row, rIdx) => {
+          if (row.kind === "quiz") {
+            const isQuizActive = composerMode === "quiz" && composeQuizId === row.id;
+            const questions = row.questions || (row.quizQuestions || []).map((qq) => qq.question) || [];
+
+            return (
+              <div
+                key={row.id}
+                onClick={() => onSelectQuiz?.(row)}
+                title={row.title || "Quiz"}
+                className={`group/content flex items-center justify-between gap-2 pl-2 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
+                  isQuizActive
+                    ? "bg-emerald-500/15 text-emerald-400 font-semibold"
+                    : "text-emerald-300/80 hover:text-emerald-300 hover:bg-background/70"
+                }`}
+              >
+                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                  <HelpCircle size={12} className="shrink-0 text-emerald-400" />
+                  <span className="truncate text-[10.5px] leading-snug">
+                    {row.title || "Untitled Quiz"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
+                    {questions.length} Qs
+                  </span>
+                  {role === "INSTRUCTOR" && (
+                    <RowMenu
+                      groupName="content"
+                      items={[
+                        { label: "Edit Quiz", icon: Pencil, onSelect: () => onSelectQuiz?.(row, { startEditing: true }) },
+                        { label: "Preview Quiz", icon: Eye, onSelect: () => onSelectQuiz?.(row, { startEditing: false }) },
+                        { label: "Duplicate Quiz", icon: Copy, onSelect: () => onDuplicateQuiz?.(row) },
+                        { separator: true },
+                        { label: "Move Up", icon: ArrowUp, disabled: rIdx === 0, onSelect: () => handleMove(row.id, "up") },
+                        { label: "Move Down", icon: ArrowDown, disabled: rIdx === mergedRows.length - 1, onSelect: () => handleMove(row.id, "down") },
+                        { separator: true },
+                        {
+                          label: "Delete Quiz",
+                          icon: Trash2,
+                          destructive: true,
+                          onSelect: (e) => onDeleteQuiz?.(e, row),
+                        },
+                      ]}
+                    />
+                  )}
+                </div>
+              </div>
+            );
+          }
+
+          const content = row;
           const meta = CONTENT_TYPE_META[content.type] || DEFAULT_CONTENT_META;
           const Icon = meta.icon;
           const isContentActive = isActive && selectedCellId === content.id;
@@ -296,8 +378,8 @@ function ParentContentRows({
                     { label: "Edit Content", icon: Pencil, onSelect: () => onSelectContent?.(content) },
                     { label: "Duplicate Content", icon: Copy, onSelect: () => handleDuplicate(content) },
                     { separator: true },
-                    { label: "Move Up", icon: ArrowUp, disabled: cIdx === 0, onSelect: () => handleMove(content.id, "up") },
-                    { label: "Move Down", icon: ArrowDown, disabled: cIdx === contents.length - 1, onSelect: () => handleMove(content.id, "down") },
+                    { label: "Move Up", icon: ArrowUp, disabled: rIdx === 0, onSelect: () => handleMove(content.id, "up") },
+                    { label: "Move Down", icon: ArrowDown, disabled: rIdx === mergedRows.length - 1, onSelect: () => handleMove(content.id, "down") },
                     { separator: true },
                     {
                       label: "Delete Content",
