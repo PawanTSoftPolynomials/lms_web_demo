@@ -187,7 +187,13 @@ export function LessonOverviewView({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
             {displayTopics.map((topic, idx) => {
-              const contentCount = Array.isArray(topic.contents) ? topic.contents.length : 0;
+              // The modules tree (useModules) loads each topic's content count via
+              // Prisma's `_count: { select: { contents: true } }` rather than the
+              // full `contents` array (that full list is fetched separately, only
+              // when a topic is actually opened) — draft-mode topics built from an
+              // imported course JSON are the one case with a real `contents` array
+              // instead, hence the fallback.
+              const contentCount = topic._count?.contents ?? (Array.isArray(topic.contents) ? topic.contents.length : 0);
 
               const menuItems = [
                 {

@@ -116,7 +116,13 @@ export function ModuleOverviewView({
             {lessons.map((lesson, idx) => {
               const topics = lesson.topics || [];
               const topicsCount = topics.length;
-              const contentsCount = topics.reduce((acc, t) => acc + (Array.isArray(t.contents) ? t.contents.length : 0), 0);
+              // See LessonOverviewView: useModules supplies each topic's content
+              // count via Prisma's `_count.contents`, not a full `contents` array
+              // (draft-mode topics are the exception, hence the fallback).
+              const contentsCount = topics.reduce(
+                (acc, t) => acc + (t._count?.contents ?? (Array.isArray(t.contents) ? t.contents.length : 0)),
+                0
+              );
 
               const menuItems = [
                 {

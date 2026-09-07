@@ -878,6 +878,7 @@ export default function CourseDetailsPage() {
     setSelectedQuizState(null);
     setQuizStartEditing(false);
     setSelectedCellId(null);
+    setAutoOpenAddSignal(0);
     setMobileSidebarOpen(false);
   };
 
@@ -1446,6 +1447,8 @@ export default function CourseDetailsPage() {
     setComposeTopicId(null);
     setComposeQuizId(null);
     setComposerMode("lesson");
+    setSelectedCellId(null);
+    setAutoOpenAddSignal(0);
 
     const { lesson: foundLesson, module: foundModule } = findModuleAndLessonById(effectiveModules, lessonId);
     if (foundLesson) {
@@ -1467,6 +1470,8 @@ export default function CourseDetailsPage() {
     setComposeTopicId(null);
     setComposeQuizId(null);
     setComposerMode("module");
+    setSelectedCellId(null);
+    setAutoOpenAddSignal(0);
     setMobileSidebarOpen(false);
   };
 
@@ -1476,6 +1481,18 @@ export default function CourseDetailsPage() {
     setComposeModuleId(moduleId);
     setComposeQuizId(null);
     setComposerMode("topic");
+    setSelectedCellId(null);
+    // Root-cause fix: without this, a stale autoOpenAddSignal left over from
+    // an earlier "+ Add Content" click (anywhere, anytime this session)
+    // survives here, and since LessonComposerPanel remounts fresh every time
+    // composerMode re-enters "topic" (its handledAutoOpenSignal ref resets
+    // to undefined on remount while this counter never resets on its own),
+    // the panel's mount effect misreads that leftover signal as a brand-new
+    // request and immediately pops "Add New Content Cell" over this existing
+    // topic's real content. Clearing it here — before the panel mounts —
+    // ensures a plain "select existing topic" click never carries forward an
+    // unconsumed create-content request.
+    setAutoOpenAddSignal(0);
     setMobileSidebarOpen(false);
   };
 
@@ -1486,6 +1503,10 @@ export default function CourseDetailsPage() {
     setComposeQuizId(null);
     setComposerMode("topic");
     setSelectedCellId(content.id);
+    // Same fix as handleSelectTopic: clear any leftover auto-open signal so
+    // this fresh LessonComposerPanel mount doesn't misread it as a request
+    // to open the create modal instead of showing the clicked content.
+    setAutoOpenAddSignal(0);
     setMobileSidebarOpen(false);
   };
 
@@ -1494,6 +1515,7 @@ export default function CourseDetailsPage() {
     if (lessonId) setComposeLessonId(lessonId);
     if (moduleId) setComposeModuleId(moduleId);
     setComposerMode("topic");
+    setSelectedCellId(null);
     setAutoOpenAddSignal((n) => n + 1);
     setMobileSidebarOpen(false);
   };
@@ -1515,6 +1537,7 @@ export default function CourseDetailsPage() {
       setComposeLessonId(parentId);
       setComposeTopicId(created.id);
       setComposerMode("topic");
+      setAutoOpenAddSignal(0);
     }
   };
 
