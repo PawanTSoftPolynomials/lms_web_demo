@@ -565,7 +565,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                   <select
                     value={selectedModuleId}
                     onChange={(e) => handleModuleChange(e.target.value)}
-                    className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                    className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                   >
                     {modules.length > 0 ? (
                       modules.map((m) => (
@@ -580,18 +580,23 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                 </div>
               )}
 
-              {/* TOPIC & LESSON QUIZ: 2-column Grid (Module | Lesson) */}
+              {/* TOPIC & LESSON QUIZ: Module + Lesson, stacked full-width */}
               {((selectedScope === "TOPIC") || (selectedScope === "QUIZ" && quizLevel === "LESSON")) && (
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-muted-foreground block">
                     Target location
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* Stacked full-width, not a 2-col grid: at the modal's compact
+                      width, halving it per select truncated real module/lesson
+                      titles (e.g. "Module 1: Spring Boot & RESTful Web
+                      Services") even after the h-9/padding fix — full width is
+                      what actually fits them. */}
+                  <div className="grid grid-cols-1 gap-2.5">
                     <div>
                       <select
                         value={selectedModuleId}
                         onChange={(e) => handleModuleChange(e.target.value)}
-                        className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {modules.length > 0 ? (
                           modules.map((m) => (
@@ -609,7 +614,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                       <select
                         value={selectedLessonId}
                         onChange={(e) => handleLessonChange(e.target.value)}
-                        className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {(activeModuleObj?.lessons || []).length > 0 ? (
                           (activeModuleObj?.lessons || []).map((l) => (
@@ -626,18 +631,23 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                 </div>
               )}
 
-              {/* CONTENT & TOPIC QUIZ: Top Row (Module | Lesson 2-col) + Bottom Row (Topic 100%) */}
+              {/* CONTENT & TOPIC QUIZ: Module + Lesson + Topic, all stacked full-width */}
               {((selectedScope === "CONTENT") || (selectedScope === "QUIZ" && quizLevel === "TOPIC")) && (
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-muted-foreground block">
                     Target location
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* Stacked full-width, not a 2-col grid: at the modal's compact
+                      width, halving it per select truncated real module/lesson
+                      titles (e.g. "Module 1: Spring Boot & RESTful Web
+                      Services") even after the h-9/padding fix — full width is
+                      what actually fits them. */}
+                  <div className="grid grid-cols-1 gap-2.5">
                     <div>
                       <select
                         value={selectedModuleId}
                         onChange={(e) => handleModuleChange(e.target.value)}
-                        className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {modules.length > 0 ? (
                           modules.map((m) => (
@@ -655,7 +665,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                       <select
                         value={selectedLessonId}
                         onChange={(e) => handleLessonChange(e.target.value)}
-                        className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {(activeModuleObj?.lessons || []).length > 0 ? (
                           (activeModuleObj?.lessons || []).map((l) => (
@@ -674,7 +684,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                     <select
                       value={selectedTopicId}
                       onChange={(e) => handleTopicChange(e.target.value)}
-                      className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-emerald-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                      className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-emerald-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                     >
                       {(activeLessonObj?.topics || []).length > 0 ? (
                         (activeLessonObj?.topics || []).map((t) => (
@@ -699,7 +709,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                   <select
                     value={selectedModuleId}
                     onChange={(e) => handleModuleChange(e.target.value)}
-                    className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                    className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                   >
                     {modules.length > 0 ? (
                       modules.map((m) => (
@@ -725,7 +735,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                   <select
                     value={selectedOrderValue}
                     onChange={(e) => setSelectedOrderValue(e.target.value)}
-                    className="select-field w-full h-9 bg-background border border-border rounded-lg text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                    className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                   >
                     <option value="AUTO_END" className="bg-card text-foreground">Auto / End</option>
                     {siblingItems.map((item, i) => (
