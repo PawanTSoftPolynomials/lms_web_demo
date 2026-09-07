@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import {
-  FileText, Plus, Edit, Trash2, ArrowLeft,
+  FileText, Edit, Trash2, ArrowLeft,
   Clock, BookOpen, Calendar, Filter, X
 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 import Card from "@/components/ui/Card";
 import Loader from "@/components/common/Loader";
@@ -14,20 +14,16 @@ import AssessmentForm from "@/components/instructor/AssessmentForm";
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 import {
   useInstructorAssignments,
-  useCreateAssignment,
   useUpdateAssignment,
   useDeleteAssignment,
 } from "@/hooks/queries/instructor/useAssignments";
 
 export default function InstructorAssignmentsPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { user } = useAuth();
 
   const [courseFilter, setCourseFilter] = useState("all");
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState(null);
-  const [presetCourseId, setPresetCourseId] = useState("");
 
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -40,38 +36,15 @@ export default function InstructorAssignmentsPage() {
     (c) => c.creatorId === user?.id && c.status === "PUBLISHED"
   );
 
-  const hasAutoOpened = useRef(false);
-
-  useEffect(() => {
-    const action = searchParams.get("action");
-    const paramCourseId = searchParams.get("courseId");
-    
-    if (action === "create" && eligibleCourses.length > 0 && !hasAutoOpened.current) {
-      setPresetCourseId(paramCourseId || eligibleCourses[0]?.id || "");
-      setIsFormOpen(true);
-      hasAutoOpened.current = true;
-    }
-  }, [searchParams, eligibleCourses]);
-
-  const createMutation = useCreateAssignment();
   const updateMutation = useUpdateAssignment();
   const deleteMutation = useDeleteAssignment();
 
-  const openCreateForm = () => {
-    setEditingAssignment(null);
-    setPresetCourseId(eligibleCourses[0]?.id || "");
-    setIsFormOpen(true);
-    setErrorMsg("");
-  };
-
   const openEditForm = (assignment) => {
     setEditingAssignment(assignment);
-    setIsFormOpen(true);
     setErrorMsg("");
   };
 
   const closeForm = () => {
-    setIsFormOpen(false);
     setEditingAssignment(null);
   };
 
@@ -81,28 +54,17 @@ export default function InstructorAssignmentsPage() {
       return;
     }
 
-    if (editingAssignment) {
-      updateMutation.mutate(
-        { id: editingAssignment.id, payload },
-        {
-          onSuccess: () => {
-            setSuccessMsg("Assignment updated successfully!");
-            closeForm();
-            setTimeout(() => setSuccessMsg(""), 4000);
-          },
-          onError: (err) => setErrorMsg(err.response?.data?.message || "Failed to update assignment."),
-        }
-      );
-    } else {
-      createMutation.mutate(payload, {
+    updateMutation.mutate(
+      { id: editingAssignment.id, payload },
+      {
         onSuccess: () => {
-          setSuccessMsg("Assignment created successfully!");
+          setSuccessMsg("Assignment updated successfully!");
           closeForm();
           setTimeout(() => setSuccessMsg(""), 4000);
         },
-        onError: (err) => setErrorMsg(err.response?.data?.message || "Failed to create assignment."),
-      });
-    }
+        onError: (err) => setErrorMsg(err.response?.data?.message || "Failed to update assignment."),
+      }
+    );
   };
 
   const handleDelete = (id) => {
@@ -139,17 +101,9 @@ export default function InstructorAssignmentsPage() {
             </button>
             <div>
               <h1 className="sr-only">Manage Assignments</h1>
-              <p className="sr-only">Create, edit, and review learning assignments for student courses</p>
+              <p className="sr-only">Edit, and review learning assignments for student courses</p>
             </div>
           </div>
-
-          <button
-            onClick={openCreateForm}
-            className="flex items-center gap-2 cursor-pointer rounded-xl bg-orange-650 hover:bg-orange-700 text-foreground font-bold text-xs px-4 py-2.5 transition duration-200"
-          >
-            <Plus size={15} />
-            Add Assignment
-          </button>
         </div>
       </div>
 
@@ -194,7 +148,7 @@ export default function InstructorAssignmentsPage() {
           {filteredAssignments.length === 0 ? (
             <Card className="p-8 text-center text-muted-foreground text-xs border border-transparent bg-background/60">
               <FileText className="mx-auto text-slate-600 mb-3" size={24} />
-              No assignments found. Click "Add Assignment" to create one!
+              No assignments found. Add an Assignment content cell from within a course's Composer to create one.
             </Card>
           ) : (
             <div className="grid gap-4">
@@ -255,7 +209,7 @@ export default function InstructorAssignmentsPage() {
       </div>
 
       {/* Modal/Drawer Form Overlay */}
-      {isFormOpen && (
+      {editingAssignment && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <Card className="max-w-2xl w-full border border-transparent bg-background p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button
@@ -266,7 +220,7 @@ export default function InstructorAssignmentsPage() {
             </button>
 
             <h3 className="text-lg font-bold text-foreground mb-6 border-b border-slate-850 pb-3">
-              {editingAssignment ? "Edit Assignment" : "Add Assignment"}
+              Edit Assignment
             </h3>
 
             <div className="flex justify-end mb-2">
@@ -280,10 +234,10 @@ export default function InstructorAssignmentsPage() {
             </div>
 
             <AssessmentForm
-              mode={editingAssignment ? "edit" : "create"}
-              initialValues={editingAssignment || (presetCourseId ? { courseId: presetCourseId } : null)}
+              mode="edit"
+              initialValues={editingAssignment}
               courses={eligibleCourses}
-              loading={createMutation.isPending || updateMutation.isPending}
+              loading={updateMutation.isPending}
               submitError={errorMsg}
               onSubmit={handleFormSubmit}
             />

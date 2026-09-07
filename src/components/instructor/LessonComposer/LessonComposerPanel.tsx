@@ -32,28 +32,31 @@ import { VideoCell } from "./cells/VideoCell";
 import { LinkCell } from "./cells/LinkCell";
 import { DocumentCell } from "./cells/DocumentCell";
 import { InteractiveCell } from "./cells/InteractiveCell";
+import { AssignmentCell } from "./cells/AssignmentCell";
 import { useDuplicateContent, useUpdateContent } from "./contentMutations";
 import { CELL_TYPES, type ContentType } from "./cellTypes";
 import { detectHtmlCellVariant } from "./htmlCellVariant";
 import { planInsert, sortByOrder } from "./blockOrder";
 import { getErrorMessage } from "./getErrorMessage";
-import type { CellActionProps, ContentRow } from "./types";
+import type { CellActionProps, ContentParent, ContentRow } from "./types";
 
 interface LessonComposerPanelProps {
-  topicId: string;
+  parent: ContentParent;
   selectedCellId?: string | null;
   onSelectCell?: (contentId: string) => void;
-  /** Bump this (e.g. a counter) to immediately open the Add Content picker for the current topic — used by the Course Map's "Add Content" action so it never has to navigate to a separate page. */
+  /** Bump this (e.g. a counter) to immediately open the Add Content picker for the current parent — used by the Course Map's "Add Content" action so it never has to navigate to a separate page. */
   autoOpenAddSignal?: number;
+  /** Called right after `autoOpenAddSignal` triggers the picker to open — the caller should reset its counter back to 0 here, so a stale non-zero value can't re-trigger on a later remount (see the effect's comment for why that matters). */
+  onAutoOpenConsumed?: () => void;
   draftContents?: ContentRow[];
   isDraftMode?: boolean;
   onUpdateDraftContents?: (contents: ContentRow[]) => void;
-  /** Opens the lesson-quiz creation flow for this topic's parent lesson — a Quiz isn't a Content row, so picking it from the Add Content grid hands off to that flow instead of an in-panel form. Omit to hide the Quiz option. */
+  /** Opens the lesson-quiz creation flow for this topic's parent lesson — a Quiz isn't a Content row, so picking it from the Add Content grid hands off to that flow instead of an in-panel form. Only ever passed when parent.parentType === "topic". Omit to hide the Quiz option. */
   onAddQuiz?: () => void;
 }
 
 /** Determines block badge representation (label & color variant) for target UI */
-function getBlockBadge(content: ContentRow): { text: string; variant: "heading" | "text" | "code" | "image" | "video" | "document" | "default" } {
+function getBlockBadge(content: ContentRow): { text: string; variant: "heading" | "text" | "code" | "image" | "video" | "document" | "assignment" | "default" } {
   switch (content.type) {
     case "HTML": {
       const variant = detectHtmlCellVariant(content.htmlContent);
@@ -83,6 +86,12 @@ function getBlockBadge(content: ContentRow): { text: string; variant: "heading" 
       return { text: "DOC", variant: "document" };
     case "PRESENTATION":
       return { text: "SLIDE", variant: "document" };
+    case "ASSIGNMENT":
+      // No badgeText — CellShell falls back to rendering the cell type's
+      // own icon (ClipboardCheck) instead of a cramped 4-letter initialism,
+      // which reads as a proper Assignment identity rather than a generic
+      // file abbreviation like "DOC"/"VID".
+      return { text: "", variant: "assignment" };
     case "CODE":
       return { text: "</>", variant: "code" };
     default:
@@ -145,6 +154,8 @@ function renderCell(content: ContentRow, actionProps: CellActionProps) {
           {...actionProps}
         />
       );
+    case "ASSIGNMENT":
+      return <AssignmentCell content={content} {...actionProps} />;
     default:
       if (content.htmlContent) {
         return <TextCell content={content} {...actionProps} />;
@@ -167,16 +178,17 @@ function renderCell(content: ContentRow, actionProps: CellActionProps) {
 }
 
 export function LessonComposerPanel({
-  topicId,
+  parent,
   selectedCellId,
   onSelectCell,
   autoOpenAddSignal,
+  onAutoOpenConsumed,
   draftContents,
   isDraftMode = false,
   onUpdateDraftContents,
   onAddQuiz,
 }: LessonComposerPanelProps) {
-  const { data: apiContents = [], isLoading: isApiLoading, isError: isApiError } = useContents(isDraftMode ? "" : topicId);
+  const { data: apiContents = [], isLoading: isApiLoading, isError: isApiError } = useContents(isDraftMode ? undefined : parent);
 
   const contents: ContentRow[] = isDraftMode ? (draftContents || []) : (apiContents || []);
   const isLoading = isDraftMode ? false : isApiLoading;
@@ -202,8 +214,14 @@ export function LessonComposerPanel({
   };
 
   const openAddCell = (order: number) => {
-    if (!topicId) {
-      showToast("Please select or create a topic in the left sidebar first.", "error", "Topic Required");
+    if (!parent?.parentId) {
+      showToast(
+        parent?.parentType === "topic"
+          ? "Please select or create a topic in the left sidebar first."
+          : "Please select or create this item first.",
+        "error",
+        parent?.parentType === "topic" ? "Topic Required" : "Selection Required"
+      );
       return;
     }
     setInsertOrder(order);
@@ -231,7 +249,8 @@ export function LessonComposerPanel({
       for (const shift of plan.shifts) {
         await updateContent.mutateAsync({
           contentId: shift.contentId,
-          contentData: { order: shift.newOrder, topicId },
+          contentData: { order: shift.newOrder },
+          parent,
         });
       }
       openAddCell(plan.insertOrder);
@@ -254,7 +273,13 @@ export function LessonComposerPanel({
 
   // Lets the Course Map's "Add Content" action open this topic's Add
   // Content picker immediately, without a second click once the topic
-  // becomes the active composer view.
+  // becomes the active composer view. `onAutoOpenConsumed` is called right
+  // after firing so the caller can reset its counter back to 0 — this
+  // component remounts on every composerMode switch (Course/Module/Lesson/
+  // Topic are each a separate conditional block in the page), so a signal
+  // that stays non-zero after being handled would look "new" again to the
+  // next fresh mount (its own ref starts empty) and re-fire on every
+  // revisit, not just the visit that actually requested it.
   const handledAutoOpenSignal = useRef<number | undefined>(undefined);
   useEffect(() => {
     if (!autoOpenAddSignal || autoOpenAddSignal <= 0) return;
@@ -262,6 +287,7 @@ export function LessonComposerPanel({
     if (handledAutoOpenSignal.current === autoOpenAddSignal) return;
     handledAutoOpenSignal.current = autoOpenAddSignal;
     openAddCell(nextOrder);
+    onAutoOpenConsumed?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoOpenAddSignal, isLoading]);
 
@@ -297,13 +323,15 @@ export function LessonComposerPanel({
   return (
     <div className="space-y-5">
       {/* Canvas */}
-      {!topicId ? (
+      {!parent?.parentId ? (
         <div className="rounded-2xl border-2 border-dashed border-amber-500/30 bg-amber-500/5 p-12 text-center">
           <p className="text-sm font-bold text-amber-400">
-            No topic found for this lesson.
+            {parent?.parentType === "topic" ? "No topic found for this lesson." : "Nothing selected yet."}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Please click <strong className="text-foreground">+ New Topic</strong> in the left Course Map sidebar to create a topic before adding content blocks.
+            {parent?.parentType === "topic"
+              ? <>Please click <strong className="text-foreground">+ New Topic</strong> in the left Course Map sidebar to create a topic before adding content blocks.</>
+              : "Select or create this item first."}
           </p>
         </div>
       ) : contents.length === 0 ? (
@@ -352,7 +380,7 @@ export function LessonComposerPanel({
       )}
 
       <AddCellModal
-        topicId={topicId}
+        parent={parent}
         order={insertOrder ?? nextOrder}
         open={insertOrder !== null}
         onOpenChange={(open) => {

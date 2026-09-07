@@ -201,22 +201,28 @@ function RowMenu({ groupName, items }) {
   );
 }
 
-/** Lazily fetches and renders a single topic's Content rows — only mounted once its topic is expanded. */
-function TopicContentRows({
-  topic,
-  lesson,
-  mod,
-  composerMode,
+/**
+ * Lazily fetches and renders one parent's Content Cell rows in the sidebar
+ * tree — only mounted once that node is expanded. Used under the Course
+ * root, every Module row, every Lesson row, and every Topic row, each
+ * passing its own `parent` ({parentType, parentId}) — the same generic
+ * shape the rest of the Content Cell system already uses (see
+ * LessonComposer/types.ts's ContentParent), so this is one component
+ * reused at all 4 levels rather than a parallel per-level implementation.
+ */
+function ParentContentRows({
+  parent,
+  isActive,
   selectedCellId,
   onSelectContent,
   onDeleteContent,
   role = "INSTRUCTOR",
-  completedLessonIds = [],
   isDraftMode = false,
+  draftContents,
 }) {
-  const { data: apiContents = [], isLoading: isApiLoading, isError: isApiError } = useContents(isDraftMode ? "" : topic.id);
+  const { data: apiContents = [], isLoading: isApiLoading, isError: isApiError } = useContents(isDraftMode ? undefined : parent);
 
-  const contents = isDraftMode ? (topic?.contents || []) : (apiContents || []);
+  const contents = isDraftMode ? (draftContents || []) : (apiContents || []);
   const isLoading = isDraftMode ? false : isApiLoading;
   const isError = isDraftMode ? false : isApiError;
   const { duplicate } = useDuplicateContent();
@@ -227,7 +233,7 @@ function TopicContentRows({
     const plan = swapSiblingOrder(contents, contentId, direction);
     if (!plan) return;
     try {
-      await reorderContents.mutateAsync({ topicId: topic.id, contents: plan });
+      await reorderContents.mutateAsync({ parent, contents: plan });
     } catch {
       showToast("Failed to reorder content", "error");
     }
@@ -263,12 +269,12 @@ function TopicContentRows({
         contents.map((content, cIdx) => {
           const meta = CONTENT_TYPE_META[content.type] || DEFAULT_CONTENT_META;
           const Icon = meta.icon;
-          const isContentActive = composerMode === "topic" && selectedCellId === content.id;
+          const isContentActive = isActive && selectedCellId === content.id;
 
           return (
             <div
               key={content.id}
-              onClick={() => onSelectContent?.(content, topic, lesson, mod)}
+              onClick={() => onSelectContent?.(content)}
               title={content.title || meta.label}
               className={`group/content flex items-center justify-between gap-2 pl-2 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
                 isContentActive
@@ -287,7 +293,7 @@ function TopicContentRows({
                 <RowMenu
                   groupName="content"
                   items={[
-                    { label: "Edit Content", icon: Pencil, onSelect: () => onSelectContent?.(content, topic, lesson, mod) },
+                    { label: "Edit Content", icon: Pencil, onSelect: () => onSelectContent?.(content) },
                     { label: "Duplicate Content", icon: Copy, onSelect: () => handleDuplicate(content) },
                     { separator: true },
                     { label: "Move Up", icon: ArrowUp, disabled: cIdx === 0, onSelect: () => handleMove(content.id, "up") },
@@ -297,7 +303,7 @@ function TopicContentRows({
                       label: "Delete Content",
                       icon: Trash2,
                       destructive: true,
-                      onSelect: (e) => onDeleteContent?.(e, content, topic.id),
+                      onSelect: (e) => onDeleteContent?.(e, content),
                     },
                   ]}
                 />
@@ -331,6 +337,13 @@ export function CourseComposerSidebar({
   onSelectModule,
   onSelectTopic,
   onSelectContent,
+  onSelectCourseContent,
+  onSelectModuleContent,
+  onSelectLessonContent,
+  onDeleteCourseContent,
+  onDeleteModuleContent,
+  onDeleteLessonContent,
+  courseId,
   onAddLesson,
   onAddQuizToCourse,
   onAddQuizToModule,
@@ -338,7 +351,10 @@ export function CourseComposerSidebar({
   onAddQuizToTopic,
   onAddModule,
   onAddTopic,
-  onAddContent,
+  onAddContentToTopic,
+  onAddContentToCourse,
+  onAddContentToModule,
+  onAddContentToLesson,
   onEditModule,
   onEditLesson,
   onEditTopic,
@@ -462,11 +478,25 @@ export function CourseComposerSidebar({
           <RowMenu
             groupName="module"
             items={[
+              { label: "Add Content", icon: Plus, onSelect: () => onAddContentToCourse?.() },
               { label: "Add Course Quiz", icon: HelpCircle, onSelect: () => onAddQuizToCourse?.() },
             ]}
           />
         )}
       </div>
+
+      {/* Course-Level Content Cells */}
+      {(courseId || modules[0]?.courseId) && (
+        <ParentContentRows
+          parent={{ parentType: "course", parentId: courseId || modules[0]?.courseId }}
+          isActive={composerMode === "course"}
+          selectedCellId={selectedCellId}
+          onSelectContent={(content) => onSelectCourseContent?.(content)}
+          onDeleteContent={(e, content) => onDeleteCourseContent?.(e, content)}
+          role={role}
+          isDraftMode={isDraftMode}
+        />
+      )}
 
       {/* Course-Level Quizzes (when present) */}
       {courseQuizzes.length > 0 && (
@@ -587,6 +617,7 @@ export function CourseComposerSidebar({
                       items={[
                         { label: "Edit Module", icon: Pencil, onSelect: () => onEditModule?.(mod) },
                         { label: "Add Lesson", icon: Plus, onSelect: () => onAddLesson?.(mod.id) },
+                        { label: "Add Content", icon: Plus, onSelect: () => onAddContentToModule?.(mod) },
                         { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToModule?.(mod) },
                         { separator: true },
                         { label: "Move Up", icon: ArrowUp, disabled: mIdx === 0, onSelect: () => handleMoveModule(mod, "up") },
@@ -603,9 +634,21 @@ export function CourseComposerSidebar({
                   )}
                 </div>
 
-                {/* Module Children: Module Quizzes + Lessons */}
+                {/* Module Children: Module Content + Module Quizzes + Lessons */}
                 <Collapsible open={moduleOpen}>
                   <div className="ml-3.5 pl-3 py-0.5 space-y-0.5 border-l border-border/70">
+                    {/* Module-Level Content Cells */}
+                    <ParentContentRows
+                      parent={{ parentType: "module", parentId: mod.id }}
+                      isActive={composerMode === "module" && composeModuleId === mod.id}
+                      selectedCellId={selectedCellId}
+                      onSelectContent={(content) => onSelectModuleContent?.(content, mod)}
+                      onDeleteContent={(e, content) => onDeleteModuleContent?.(e, content, mod)}
+                      role={role}
+                      isDraftMode={isDraftMode}
+                      draftContents={mod.contents}
+                    />
+
                     {/* Module Quizzes (when present) */}
                     {modQuizzes.length > 0 && (
                       <div className="mb-1 space-y-0.5">
@@ -738,6 +781,7 @@ export function CourseComposerSidebar({
                                   items={[
                                     { label: "Edit Lesson", icon: Pencil, onSelect: () => onEditLesson?.(lesson, mod.id) },
                                     { label: "Add Topic", icon: Plus, onSelect: () => onAddTopic?.(lesson.id) },
+                                    { label: "Add Content", icon: Plus, onSelect: () => onAddContentToLesson?.(lesson, mod) },
                                     { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToLesson?.(lesson, mod) },
                                     { separator: true },
                                     { label: "Move Up", icon: ArrowUp, disabled: lIdx === 0, onSelect: () => handleMoveLesson(mod, lesson.id, "up") },
@@ -754,9 +798,21 @@ export function CourseComposerSidebar({
                               )}
                             </div>
 
-                            {/* Lesson Quizzes + Topics */}
+                            {/* Lesson Content + Lesson Quizzes + Topics */}
                             <Collapsible open={lessonOpen}>
                               <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-border/60">
+                                {/* Lesson-Level Content Cells */}
+                                <ParentContentRows
+                                  parent={{ parentType: "lesson", parentId: lesson.id }}
+                                  isActive={composerMode === "lesson" && composeLessonId === lesson.id}
+                                  selectedCellId={selectedCellId}
+                                  onSelectContent={(content) => onSelectLessonContent?.(content, lesson, mod)}
+                                  onDeleteContent={(e, content) => onDeleteLessonContent?.(e, content, lesson, mod)}
+                                  role={role}
+                                  isDraftMode={isDraftMode}
+                                  draftContents={lesson.contents}
+                                />
+
                                 {/* Lesson Quizzes (when present) */}
                                 {lessonQuizzes.length > 0 && (
                                   <div className="mb-1 space-y-0.5">
@@ -872,7 +928,7 @@ export function CourseComposerSidebar({
                                               groupName="topic"
                                               items={[
                                                 { label: "Edit Topic", icon: Pencil, onSelect: () => onEditTopic?.(topic, lesson.id, mod.id) },
-                                                { label: "Add Content", icon: Plus, onSelect: () => onAddContent?.(topic.id, lesson.id, mod.id) },
+                                                { label: "Add Content", icon: Plus, onSelect: () => onAddContentToTopic?.(topic.id, lesson.id, mod.id) },
                                                 { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToTopic?.(topic, lesson, mod) },
                                                 { separator: true },
                                                 { label: "Move Up", icon: ArrowUp, disabled: tIdx === 0, onSelect: () => handleMoveTopic(lesson, topic.id, "up") },
@@ -953,16 +1009,15 @@ export function CourseComposerSidebar({
                                               </div>
                                             )}
                                           </div>
-                                          <TopicContentRows
-                                            topic={topic}
-                                            lesson={lesson}
-                                            mod={mod}
-                                            composerMode={composerMode}
+                                          <ParentContentRows
+                                            parent={{ parentType: "topic", parentId: topic.id }}
+                                            isActive={composerMode === "topic"}
                                             selectedCellId={selectedCellId}
-                                            onSelectContent={onSelectContent}
-                                            onDeleteContent={onDeleteContent}
+                                            onSelectContent={(content) => onSelectContent?.(content, topic, lesson, mod)}
+                                            onDeleteContent={(e, content) => onDeleteContent?.(e, content, topic.id)}
                                             role={role}
                                             isDraftMode={isDraftMode}
+                                            draftContents={topic.contents}
                                           />
                                         </Collapsible>
                                       </div>

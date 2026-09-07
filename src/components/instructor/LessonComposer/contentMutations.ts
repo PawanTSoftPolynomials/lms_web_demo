@@ -5,10 +5,13 @@ import { useUpdateContent as useUpdateContentBase } from "@/hooks/queries/instru
 import { useDeleteContent as useDeleteContentBase } from "@/hooks/queries/instructor/useDeleteContent";
 
 import type { ContentType } from "./cellTypes";
-import type { ContentRow } from "./types";
+import { getContentParent, toParentField, type ContentParent, type ContentRow } from "./types";
 
 export interface CreateContentVariables {
-  topicId: string;
+  courseId?: string;
+  moduleId?: string;
+  lessonId?: string;
+  topicId?: string;
   type: ContentType;
   order: number;
   title?: string;
@@ -17,16 +20,18 @@ export interface CreateContentVariables {
   htmlContent?: string;
   externalUrl?: string;
   duration?: number;
+  data?: Record<string, unknown> | null;
 }
 
 export interface UpdateContentVariables {
   contentId: string;
-  contentData: Record<string, unknown> & { topicId: string };
+  contentData: Record<string, unknown>;
+  parent: ContentParent;
 }
 
 export interface DeleteContentVariables {
   contentId: string;
-  topicId: string;
+  parent: ContentParent;
 }
 
 /** `useCreateContent`'s `mutationFn` is a plain function reference (not a destructured inline arrow), so unlike the two below, React Query infers its variable type fine across the JS/TS boundary — this wrapper exists only for a consistent import path alongside them. */
@@ -54,7 +59,7 @@ export function useDeleteContent(): UseMutationResult<unknown, unknown, DeleteCo
 /** Copies every content field a `Content` row might have — safe to call for any cell type, since only the fields that type actually uses ever end up non-null on the source row. */
 function buildDuplicatePayload(content: ContentRow, order: number): CreateContentVariables {
   return {
-    topicId: content.topicId,
+    ...toParentField(getContentParent(content)),
     type: content.type as ContentType,
     order,
     title: content.title ? `${content.title} (Copy)` : undefined,

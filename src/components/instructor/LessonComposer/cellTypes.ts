@@ -1,4 +1,5 @@
 import {
+  ClipboardCheck,
   File,
   FileText,
   Heading,
@@ -35,7 +36,8 @@ export type ContentType =
   | "LINK"
   | "EMBED"
   | "DOCUMENT"
-  | "PRESENTATION";
+  | "PRESENTATION"
+  | "ASSIGNMENT";
 
 export type CellTypeId =
   | "text"
@@ -47,6 +49,7 @@ export type CellTypeId =
   | "document"
   | "presentation"
   | "pdf"
+  | "assignment"
   // Not a real Content row (see the note below CELL_TYPES) — a Quiz attaches
   // to the topic's parent Lesson instead, so it's only ever an id in this
   // union for the Add Content picker to reference, never registered in
@@ -142,6 +145,14 @@ export const CELL_TYPES: CellTypeDefinition[] = [
     contentType: "DOCUMENT",
     supportedByApiToday: true,
   },
+  {
+    id: "assignment",
+    label: "Assignment",
+    description: "A descriptive assignment with instructions and an optional reference file — not a quiz.",
+    icon: ClipboardCheck,
+    contentType: "ASSIGNMENT",
+    supportedByApiToday: true,
+  },
 ];
 
 /**
@@ -165,6 +176,8 @@ export function getCellTypeForContent(content: ContentRow): CellTypeDefinition |
       return CELL_TYPES.find((c) => c.id === "document") || CELL_TYPES.find((c) => c.id === "pdf");
     case "PRESENTATION":
       return CELL_TYPES.find((c) => c.id === "presentation");
+    case "ASSIGNMENT":
+      return CELL_TYPES.find((c) => c.id === "assignment");
     default:
       return CELL_TYPES.find((c) => c.id === "document") || CELL_TYPES.find((c) => c.id === "text");
   }

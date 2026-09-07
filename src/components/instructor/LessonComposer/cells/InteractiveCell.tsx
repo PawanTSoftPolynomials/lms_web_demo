@@ -10,7 +10,7 @@ import { useCreateContent, useUpdateContent, useDeleteContent } from "../content
 import { CellShell } from "../CellShell";
 import { CELL_TYPES } from "../cellTypes";
 import { getErrorMessage } from "../getErrorMessage";
-import type { CellActionProps, ContentRow, CreateCellFormProps } from "../types";
+import { getContentParent, toParentField, type CellActionProps, type ContentRow, type CreateCellFormProps } from "../types";
 
 const CELL_TYPE = CELL_TYPES.find((c) => c.id === "interactive") || {
   id: "interactive",
@@ -69,7 +69,8 @@ export function InteractiveCell({
       const htmlContent = `<iframe src="${embedUrl}" width="100%" height="${height}" frameborder="0" allowfullscreen></iframe>`;
       await updateContent.mutateAsync({
         contentId: content.id,
-        contentData: { title, externalUrl: embedUrl, htmlContent, topicId: content.topicId },
+        contentData: { title, externalUrl: embedUrl, htmlContent },
+        parent: getContentParent(content),
       });
       setMode("view");
     } catch (error) {
@@ -86,7 +87,7 @@ export function InteractiveCell({
     if (!confirmed) return;
 
     try {
-      await deleteContent.mutateAsync({ contentId: content.id, topicId: content.topicId });
+      await deleteContent.mutateAsync({ contentId: content.id, parent: getContentParent(content) });
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to delete block."), "error", "Delete failed");
     }
@@ -189,7 +190,7 @@ export function InteractiveCell({
   );
 }
 
-export function CreateInteractiveForm({ topicId, order, onCreated, onCancel }: CreateCellFormProps) {
+export function CreateInteractiveForm({ parent, order, onCreated, onCancel }: CreateCellFormProps) {
   const [title, setTitle] = useState("");
   const [embedUrl, setEmbedUrl] = useState("");
   const [height, setHeight] = useState(600);
@@ -206,7 +207,7 @@ export function CreateInteractiveForm({ topicId, order, onCreated, onCancel }: C
     try {
       const htmlContent = `<iframe src="${embedUrl}" width="100%" height="${height}" frameborder="0" allowfullscreen></iframe>`;
       await createContent.mutateAsync({
-        topicId,
+        ...toParentField(parent),
         type: "EMBED",
         order,
         title: title || "Interactive Embed",

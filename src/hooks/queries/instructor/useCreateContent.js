@@ -6,6 +6,16 @@ import {
 import { createContent } from "@/services/content.service";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
+const PARENT_FIELDS = ["courseId", "moduleId", "lessonId", "topicId"];
+
+/** Reads whichever of courseId/moduleId/lessonId/topicId is present on the create payload and returns it as [parentType, parentId] for cache-key purposes. */
+function parentFromCreateVariables(variables) {
+    for (const field of PARENT_FIELDS) {
+        if (variables[field]) return [field.replace(/Id$/, ""), variables[field]];
+    }
+    return [undefined, undefined];
+}
+
 export function useCreateContent() {
     const queryClient = useQueryClient();
 
@@ -13,6 +23,8 @@ export function useCreateContent() {
         mutationFn: createContent,
 
         onSuccess: (_, variables) => {
+            const [parentType, parentId] = parentFromCreateVariables(variables);
+
             // refetchType: "all" forces an immediate background refetch even
             // for queries with no currently-mounted observer — otherwise the
             // data is only marked stale and won't actually refresh until
@@ -20,7 +32,8 @@ export function useCreateContent() {
             queryClient.invalidateQueries({
                 queryKey: [
                     QUERY_KEYS.CONTENTS,
-                    variables.topicId,
+                    parentType,
+                    parentId,
                 ],
                 refetchType: "all",
             });

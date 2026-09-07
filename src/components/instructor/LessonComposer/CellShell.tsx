@@ -36,7 +36,7 @@ interface CellShellProps {
   /** Keeps the hover-only chrome visible without a mouse — the touch-device fallback, since touch has no hover. */
   isSelected?: boolean;
   badgeText?: string;
-  badgeVariant?: "heading" | "text" | "code" | "image" | "video" | "document" | "default";
+  badgeVariant?: "heading" | "text" | "code" | "image" | "video" | "document" | "assignment" | "default";
   headerActions?: ReactNode;
   children: ReactNode;
 }
@@ -48,6 +48,7 @@ const BADGE_STYLES = {
   image: "bg-primary/20 text-primary border-primary/30",
   video: "bg-purple-500/20 text-purple-400 border-purple-500/30",
   document: "bg-sky-500/20 text-sky-400 border-sky-500/30",
+  assignment: "bg-amber-500/20 text-amber-400 border-amber-500/30",
   default: "bg-muted text-foreground border-transparent",
 };
 

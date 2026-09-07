@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useState } from "react";
 import {
   Folder,
   Plus,
@@ -11,6 +12,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { CourseComposerItemCard } from "./CourseComposerItemCard";
+import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
 
 export function ModuleOverviewView({
   module,
@@ -23,7 +25,18 @@ export function ModuleOverviewView({
   onDeleteLesson,
   allModules = [],
   onSelectModule,
+  isDraftMode = false,
+  role = "INSTRUCTOR",
+  contentAutoOpenSignal: externalContentAutoOpenSignal = 0,
+  onContentAutoOpenConsumed,
 }) {
+  const [localContentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
+  const contentAutoOpenSignal = externalContentAutoOpenSignal + localContentAutoOpenSignal;
+  const handleContentAutoOpenConsumed = () => {
+    setContentAutoOpenSignal(0);
+    onContentAutoOpenConsumed?.();
+  };
+
   if (!module) return null;
 
   const lessons = module.lessons || [];
@@ -66,6 +79,28 @@ export function ModuleOverviewView({
           </p>
         )}
       </div>
+
+      {/* Module-Level Content Cells */}
+      {role === "INSTRUCTOR" && !isDraftMode && (
+        <div className="pt-4 border-t border-border space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-foreground">Module Content</h3>
+            <button
+              type="button"
+              onClick={() => setContentAutoOpenSignal((n) => n + 1)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold transition cursor-pointer"
+            >
+              <Plus size={14} />
+              Add Content
+            </button>
+          </div>
+          <LessonComposerPanel
+            parent={{ parentType: "module", parentId: module.id }}
+            autoOpenAddSignal={contentAutoOpenSignal}
+            onAutoOpenConsumed={handleContentAutoOpenConsumed}
+          />
+        </div>
+      )}
 
       {/* LESSONS SECTION */}
       <div className="pt-4 border-t border-border space-y-4">

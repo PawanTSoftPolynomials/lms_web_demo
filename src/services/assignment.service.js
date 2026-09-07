@@ -28,11 +28,6 @@ export const getInstructorAssignments = async (courseId) => {
   return data.data ?? data;
 };
 
-export const createAssignment = async (payload) => {
-  const { data } = await api.post("/assignments", payload);
-  return data.data ?? data;
-};
-
 export const updateAssignment = async (assignmentId, payload) => {
   const { data } = await api.put(`/assignments/${assignmentId}`, payload);
   return data.data ?? data;
