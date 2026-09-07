@@ -29,6 +29,7 @@ export function ModuleOverviewView({
   role = "INSTRUCTOR",
   contentAutoOpenSignal: externalContentAutoOpenSignal = 0,
   onContentAutoOpenConsumed,
+  onAddQuiz,
 }) {
   const [localContentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
   const contentAutoOpenSignal = externalContentAutoOpenSignal + localContentAutoOpenSignal;
@@ -98,6 +99,7 @@ export function ModuleOverviewView({
             parent={{ parentType: "module", parentId: module.id }}
             autoOpenAddSignal={contentAutoOpenSignal}
             onAutoOpenConsumed={handleContentAutoOpenConsumed}
+            onAddQuiz={onAddQuiz}
           />
         </div>
       )}

@@ -117,6 +117,7 @@ export default function CourseDetailsPage() {
   const [composeQuizId, setComposeQuizId] = useState(null);
   const [selectedQuizState, setSelectedQuizState] = useState(null);
   const [quizStartEditing, setQuizStartEditing] = useState(false);
+  const [pendingQuizOrder, setPendingQuizOrder] = useState(null);
   const [selectedCellId, setSelectedCellId] = useState(null);
 
   // Edit Mode for Metadata Headers
@@ -803,7 +804,7 @@ export default function CourseDetailsPage() {
     setMobileSidebarOpen(false);
   };
 
-  const handleAddCourseQuiz = () => {
+  const handleAddCourseQuiz = (order) => {
     setComposeModuleId(null);
     setComposeLessonId(null);
     setComposeTopicId(null);
@@ -813,10 +814,11 @@ export default function CourseDetailsPage() {
     setComposerMode("quiz");
     setQuizStartEditing(true);
     setSelectedCellId(null);
+    setPendingQuizOrder(order ?? null);
     setMobileSidebarOpen(false);
   };
 
-  const handleAddModuleQuiz = (mod) => {
+  const handleAddModuleQuiz = (mod, order) => {
     const targetModuleId = mod?.id || mod?._id || composeModuleId;
     setComposeModuleId(targetModuleId);
     setComposeLessonId(null);
@@ -827,10 +829,11 @@ export default function CourseDetailsPage() {
     setComposerMode("quiz");
     setQuizStartEditing(true);
     setSelectedCellId(null);
+    setPendingQuizOrder(order ?? null);
     setMobileSidebarOpen(false);
   };
 
-  const handleAddLessonQuiz = (lesson, mod = null) => {
+  const handleAddLessonQuiz = (lesson, mod = null, order) => {
     const targetModuleId = mod?.id || mod?._id || composeModuleId;
     setComposeModuleId(targetModuleId || null);
     setComposeLessonId(lesson?.id || lesson?._id || null);
@@ -841,10 +844,11 @@ export default function CourseDetailsPage() {
     setComposerMode("quiz");
     setQuizStartEditing(true);
     setSelectedCellId(null);
+    setPendingQuizOrder(order ?? null);
     setMobileSidebarOpen(false);
   };
 
-  const handleAddTopicQuiz = (topic, lesson = null, mod = null) => {
+  const handleAddTopicQuiz = (topic, lesson = null, mod = null, order) => {
     const targetLessonId = lesson?.id || lesson?._id || composeLessonId;
     const targetModuleId = mod?.id || mod?._id || composeModuleId;
     setComposeModuleId(targetModuleId || null);
@@ -856,6 +860,7 @@ export default function CourseDetailsPage() {
     setComposerMode("quiz");
     setQuizStartEditing(true);
     setSelectedCellId(null);
+    setPendingQuizOrder(order ?? null);
     setMobileSidebarOpen(false);
   };
 
@@ -1084,8 +1089,10 @@ export default function CourseDetailsPage() {
             moduleId: composeModuleId || null,
             lessonId: composeLessonId || null,
             topicId: composeTopicId || null,
+            order: pendingQuizOrder ?? undefined,
             questions: updatedQuizData.questions || [],
           });
+          setPendingQuizOrder(null);
 
           if (updatedQuizData.questions?.length > 0) {
             try {
@@ -1993,6 +2000,7 @@ export default function CourseDetailsPage() {
                 modules={effectiveModules}
                 onSelectModule={handleSelectModule}
                 onSelectQuiz={handleSelectQuiz}
+                onAddQuiz={(order) => handleAddCourseQuiz(order)}
                 onAddModule={() => openEntityModal({ entity: "module", mode: "create", courseId })}
                 isDraftMode={isDraftMode}
                 contentAutoOpenSignal={courseContentAutoOpenSignal}
@@ -2050,6 +2058,7 @@ export default function CourseDetailsPage() {
                 isDraftMode={isDraftMode}
                 contentAutoOpenSignal={lessonContentAutoOpenSignal}
                 onContentAutoOpenConsumed={() => setLessonContentAutoOpenSignal(0)}
+                onAddQuiz={(order) => handleAddLessonQuiz(composingLesson, composingModule, order)}
               />
             )}
 
@@ -2067,6 +2076,7 @@ export default function CourseDetailsPage() {
                 isDraftMode={isDraftMode}
                 contentAutoOpenSignal={moduleContentAutoOpenSignal}
                 onContentAutoOpenConsumed={() => setModuleContentAutoOpenSignal(0)}
+                onAddQuiz={(order) => handleAddModuleQuiz(activeModuleObj, order)}
               />
             )}
 
@@ -2077,7 +2087,7 @@ export default function CourseDetailsPage() {
                 onSelectCell={setSelectedCellId}
                 autoOpenAddSignal={autoOpenAddSignal}
                 onAutoOpenConsumed={() => setAutoOpenAddSignal(0)}
-                onAddQuiz={composingTopic ? () => handleAddTopicQuiz(composingTopic, composingLesson, composingModule) : undefined}
+                onAddQuiz={composingTopic ? (order) => handleAddTopicQuiz(composingTopic, composingLesson, composingModule, order) : undefined}
                 draftContents={isDraftMode ? composingTopic?.contents || [] : undefined}
                 isDraftMode={isDraftMode}
                 onUpdateDraftContents={(newContents) => {

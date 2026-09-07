@@ -16,6 +16,7 @@ export function CourseOverviewView({
   modules = [],
   onSelectModule,
   onSelectQuiz,
+  onAddQuiz,
   onAddModule,
   role = "INSTRUCTOR",
   onStartLearning,
@@ -251,6 +252,7 @@ export function CourseOverviewView({
                     parent={{ parentType: "course", parentId: course?.id }}
                     autoOpenAddSignal={contentAutoOpenSignal}
                     onAutoOpenConsumed={handleContentAutoOpenConsumed}
+                    onAddQuiz={onAddQuiz}
                   />
                 </div>
               )}
