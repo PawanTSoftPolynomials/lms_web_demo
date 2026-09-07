@@ -163,9 +163,17 @@ export default function LearnPage() {
 
   // A Topic switch mounts a different (or no) video — the previous Topic's
   // playback position must not leak into the newly-selected Topic's Sticky
-  // Notes timestamps or the debounced state-sync write.
+  // Notes timestamps or the debounced state-sync write. Guarded against the
+  // INITIAL null -> first-Topic auto-selection that fires right after a
+  // Lesson loads/restores (see the effect above): that transition must
+  // preserve a just-restored resume position, not zero it. Only a genuine
+  // switch between two already-selected Topics should reset.
+  const previousTopicIdRef = useRef(null);
   useEffect(() => {
-    setCurrentTimestamp(0);
+    if (previousTopicIdRef.current !== null && previousTopicIdRef.current !== selectedTopicId) {
+      setCurrentTimestamp(0);
+    }
+    previousTopicIdRef.current = selectedTopicId;
   }, [selectedTopicId]);
 
   const [pendingTopicScroll, setPendingTopicScroll] = useState(null);
