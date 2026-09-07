@@ -1608,6 +1608,43 @@ export default function CourseDetailsPage() {
     }
   };
 
+  // Course/Module/Lesson-level content cells are hidden while isDraftMode
+  // is true (see CourseOverviewView/ModuleOverviewView/LessonOverviewView),
+  // so these three sidebar handlers only ever need the live-API path —
+  // unlike handleDeleteContent above, no draftModules branch is needed.
+  const handleDeleteContentAtParent = async (e, content, parent) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this content?")) return;
+    try {
+      await deleteContentMutation.mutateAsync({ contentId: content.id, parent });
+      showToast("Content deleted successfully", "success");
+      if (selectedCellId === content.id) setSelectedCellId(null);
+    } catch (err) {
+      showToast("Failed to delete content", "error");
+    }
+  };
+
+  const handleDeleteCourseContent = (e, content) =>
+    handleDeleteContentAtParent(e, content, { parentType: "course", parentId: courseId });
+  const handleDeleteModuleContent = (e, content, mod) =>
+    handleDeleteContentAtParent(e, content, { parentType: "module", parentId: mod.id });
+  const handleDeleteLessonContent = (e, content, lesson) =>
+    handleDeleteContentAtParent(e, content, { parentType: "lesson", parentId: lesson.id });
+
+  const handleSelectCourseContent = (content) => {
+    handleSelectCourseOverview();
+    setSelectedCellId(content.id);
+  };
+  const handleSelectModuleContent = (content, mod) => {
+    handleSelectModule(mod);
+    setSelectedCellId(content.id);
+  };
+  const handleSelectLessonContent = (content, lesson, mod) => {
+    handleSelectLesson(lesson.id);
+    if (mod?.id) setComposeModuleId(mod.id);
+    setSelectedCellId(content.id);
+  };
+
   const handleSaveCourse = async () => {
     if (isDraftMode) {
       if (!draftData || !draftData.jobId) {
@@ -1861,6 +1898,13 @@ export default function CourseDetailsPage() {
             onSelectModule={handleSelectModule}
             onSelectTopic={handleSelectTopic}
             onSelectContent={handleSelectContent}
+            onSelectCourseContent={handleSelectCourseContent}
+            onSelectModuleContent={handleSelectModuleContent}
+            onSelectLessonContent={handleSelectLessonContent}
+            onDeleteCourseContent={handleDeleteCourseContent}
+            onDeleteModuleContent={handleDeleteModuleContent}
+            onDeleteLessonContent={handleDeleteLessonContent}
+            courseId={courseId}
             onAddModule={() => openEntityModal({ entity: "module", mode: "create", courseId })}
             onEditModule={(mod) => openEntityModal({ entity: "module", mode: "edit", entityData: mod })}
             onAddLesson={(targetModuleId) =>
