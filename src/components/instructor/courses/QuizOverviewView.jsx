@@ -37,6 +37,36 @@ function getOptionText(opt) {
 
 const optionToText = getOptionText;
 
+// Normalizes a saved quiz's questions into this editor's local shape,
+// whether they arrive as a pre-flattened `quiz.questions` (e.g. the create
+// API's response) or the raw `quiz.quizQuestions` join relation. Shared by
+// the lazy `questions` initializer (so a freshly-mounted QuizOverviewView's
+// very first render already reflects a quiz prop that already has its
+// questions, instead of starting empty and waiting for an effect) and the
+// useEffect that re-syncs on later quiz/quizMode changes.
+function deriveQuestionsFromQuiz(quiz) {
+  const rawQuestions = quiz.questions || (quiz.quizQuestions || []).map((qq) => ({
+    ...qq.question,
+    id: qq.question?.id || qq.id,
+    marks: qq.marks || qq.question?.marks || 1,
+    order: qq.order,
+  })) || [];
+
+  return rawQuestions.map((q, idx) => ({
+    id: q.id || `draft-que-${quiz.id || "temp"}-${idx + 1}`,
+    question: q.question || q.title || "",
+    questionType: (q.questionType || q.type || "MCQ_SINGLE").toUpperCase(),
+    options: Array.isArray(q.options)
+      ? q.options.map(optionToText)
+      : (typeof q.options === "object" && q.options !== null ? Object.values(q.options).map(optionToText) : ["Option 1", "Option 2"]),
+    correctAnswer: q.correctAnswer !== undefined ? q.correctAnswer : "",
+    explanation: q.explanation || "",
+    marks: q.marks !== undefined ? Number(q.marks) : 1,
+    difficulty: q.difficulty || "MEDIUM",
+    isMandatory: q.isMandatory !== false,
+  }));
+}
+
 export function QuizOverviewView({
   quiz,
   quizMode = "view",
@@ -62,8 +92,15 @@ export function QuizOverviewView({
     isPublished: true,
   });
 
-  // Editable Questions Array
-  const [questions, setQuestions] = useState([]);
+  // Editable Questions Array — lazily seeded from `quiz` so a freshly-
+  // mounted instance (e.g. right after create, when QuizOverviewView's key
+  // changes from a placeholder to the real quiz id and React remounts it)
+  // renders the already-known questions on its first paint, instead of
+  // starting empty and waiting for the sync effect below to correct it a
+  // render later.
+  const [questions, setQuestions] = useState(() =>
+    quiz && quizMode !== "create" ? deriveQuestionsFromQuiz(quiz) : []
+  );
   const [error, setError] = useState("");
   const [showRepoPicker, setShowRepoPicker] = useState(false);
 
@@ -97,28 +134,7 @@ export function QuizOverviewView({
         isPublished: quiz.isPublished !== false,
       });
 
-      const rawQuestions = quiz.questions || (quiz.quizQuestions || []).map((qq) => ({
-        ...qq.question,
-        id: qq.question?.id || qq.id,
-        marks: qq.marks || qq.question?.marks || 1,
-        order: qq.order,
-      })) || [];
-
-      const normalized = rawQuestions.map((q, idx) => ({
-        id: q.id || `draft-que-${quiz.id || "temp"}-${idx + 1}`,
-        question: q.question || q.title || "",
-        questionType: (q.questionType || q.type || "MCQ_SINGLE").toUpperCase(),
-        options: Array.isArray(q.options)
-          ? q.options.map(optionToText)
-          : (typeof q.options === "object" && q.options !== null ? Object.values(q.options).map(optionToText) : ["Option 1", "Option 2"]),
-        correctAnswer: q.correctAnswer !== undefined ? q.correctAnswer : "",
-        explanation: q.explanation || "",
-        marks: q.marks !== undefined ? Number(q.marks) : 1,
-        difficulty: q.difficulty || "MEDIUM",
-        isMandatory: q.isMandatory !== false,
-      }));
-
-      setQuestions(normalized);
+      setQuestions(deriveQuestionsFromQuiz(quiz));
       setCurrentQuestionIndex(0);
     }
   }, [quiz, quizMode]);

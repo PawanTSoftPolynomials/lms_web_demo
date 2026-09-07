@@ -339,30 +339,17 @@ export default function CourseDetailsPage() {
             );
           }
         } else if (scope === "QUIZ" && createdEntity?.id) {
+          // course.quizzes (QUERY_KEYS.COURSE) is the source of truth
+          // effectiveModules falls back to for every quiz level — getModules()
+          // never includes a quizzes relation on Module/Lesson/Topic, so
+          // patching mod/lesson/topic.quizzes on the MODULES cache always
+          // started from an empty array and replaced the visible list
+          // instead of joining it. Appending here, regardless of level,
+          // fixes all four (Course/Module/Lesson/Topic) the same way.
           const newQuiz = { ...createdEntity, questions: [] };
-          if (quizLevel === "COURSE") {
-            queryClient.setQueryData([QUERY_KEYS.COURSE, courseId], (old) =>
-              old ? { ...old, quizzes: [...(old.quizzes || []), newQuiz] } : old
-            );
-          } else if (quizLevel === "MODULE" && targetModuleId) {
-            patchModules((mods) =>
-              withModule(mods, targetModuleId, (mod) => ({ ...mod, quizzes: [...(mod.quizzes || []), newQuiz] }))
-            );
-          } else if (quizLevel === "LESSON" && targetModuleId && targetLessonId) {
-            patchModules((mods) =>
-              withModule(mods, targetModuleId, (mod) =>
-                withLessonIn(mod, targetLessonId, (les) => ({ ...les, quizzes: [...(les.quizzes || []), newQuiz] }))
-              )
-            );
-          } else if (quizLevel === "TOPIC" && targetModuleId && targetLessonId && targetTopicId) {
-            patchModules((mods) =>
-              withModule(mods, targetModuleId, (mod) =>
-                withLessonIn(mod, targetLessonId, (les) =>
-                  withTopicIn(les, targetTopicId, (top) => ({ ...top, quizzes: [...(top.quizzes || []), newQuiz] }))
-                )
-              )
-            );
-          }
+          queryClient.setQueryData([QUERY_KEYS.COURSE, courseId], (old) =>
+            old ? { ...old, quizzes: [...(old.quizzes || []), newQuiz] } : old
+          );
         }
 
         await Promise.all([
@@ -1204,43 +1191,21 @@ export default function CourseDetailsPage() {
           }
 
           // Reflect the new quiz in the Course Map immediately from this
-          // response, the same way handleApplyAiGeneratedData's QUIZ branch
-          // already does — otherwise the Module/Lesson/Topic quiz list stays
-          // on its stale MODULES-cache snapshot until the invalidation below
-          // finishes its round-trip, which is the visible delay this fixes.
+          // response. course.quizzes (QUERY_KEYS.COURSE) — not mod/lesson/
+          // topic.quizzes on the MODULES cache — is the actual source of
+          // truth effectiveModules falls back to, since getModules() never
+          // includes a quizzes relation at any level. Writing into
+          // mod/lesson/topic.quizzes there always started from an empty
+          // array, so each new quiz replaced the visible list instead of
+          // joining it. Appending to course.quizzes works identically for
+          // Course/Module/Lesson/Topic — effectiveModules' existing
+          // moduleId/lessonId/topicId filtering places each quiz correctly.
           const newQuiz = { ...resQuiz, questions: updatedQuizData.questions || [] };
-          if (composeTopicId && composeLessonId && composeModuleId) {
-            queryClient.setQueryData([QUERY_KEYS.MODULES, courseId], (old) =>
-              Array.isArray(old)
-                ? withModule(old, composeModuleId, (mod) =>
-                    withLessonIn(mod, composeLessonId, (les) =>
-                      withTopicIn(les, composeTopicId, (top) => ({ ...top, quizzes: [...(top.quizzes || []), newQuiz] }))
-                    )
-                  )
-                : old
-            );
-          } else if (composeLessonId && composeModuleId) {
-            queryClient.setQueryData([QUERY_KEYS.MODULES, courseId], (old) =>
-              Array.isArray(old)
-                ? withModule(old, composeModuleId, (mod) =>
-                    withLessonIn(mod, composeLessonId, (les) => ({ ...les, quizzes: [...(les.quizzes || []), newQuiz] }))
-                  )
-                : old
-            );
-          } else if (composeModuleId) {
-            queryClient.setQueryData([QUERY_KEYS.MODULES, courseId], (old) =>
-              Array.isArray(old)
-                ? withModule(old, composeModuleId, (mod) => ({ ...mod, quizzes: [...(mod.quizzes || []), newQuiz] }))
-                : old
-            );
-          } else {
-            queryClient.setQueryData([QUERY_KEYS.COURSE, courseId], (old) =>
-              old ? { ...old, quizzes: [...(old.quizzes || []), newQuiz] } : old
-            );
-          }
+          queryClient.setQueryData([QUERY_KEYS.COURSE, courseId], (old) =>
+            old ? { ...old, quizzes: [...(old.quizzes || []), newQuiz] } : old
+          );
 
           await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MODULES, courseId] });
           await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
 
           showToast(composeTopicId ? "Topic quiz created successfully!" : composeLessonId ? "Lesson quiz created successfully!" : composeModuleId ? "Module quiz created successfully!" : "Course quiz created successfully!", "success");
