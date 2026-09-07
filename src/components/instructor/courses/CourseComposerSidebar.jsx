@@ -338,7 +338,10 @@ export function CourseComposerSidebar({
   onAddQuizToTopic,
   onAddModule,
   onAddTopic,
-  onAddContent,
+  onAddContentToTopic,
+  onAddContentToCourse,
+  onAddContentToModule,
+  onAddContentToLesson,
   onEditModule,
   onEditLesson,
   onEditTopic,
@@ -462,6 +465,7 @@ export function CourseComposerSidebar({
           <RowMenu
             groupName="module"
             items={[
+              { label: "Add Content", icon: Plus, onSelect: () => onAddContentToCourse?.() },
               { label: "Add Course Quiz", icon: HelpCircle, onSelect: () => onAddQuizToCourse?.() },
             ]}
           />
@@ -587,6 +591,7 @@ export function CourseComposerSidebar({
                       items={[
                         { label: "Edit Module", icon: Pencil, onSelect: () => onEditModule?.(mod) },
                         { label: "Add Lesson", icon: Plus, onSelect: () => onAddLesson?.(mod.id) },
+                        { label: "Add Content", icon: Plus, onSelect: () => onAddContentToModule?.(mod) },
                         { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToModule?.(mod) },
                         { separator: true },
                         { label: "Move Up", icon: ArrowUp, disabled: mIdx === 0, onSelect: () => handleMoveModule(mod, "up") },
@@ -738,6 +743,7 @@ export function CourseComposerSidebar({
                                   items={[
                                     { label: "Edit Lesson", icon: Pencil, onSelect: () => onEditLesson?.(lesson, mod.id) },
                                     { label: "Add Topic", icon: Plus, onSelect: () => onAddTopic?.(lesson.id) },
+                                    { label: "Add Content", icon: Plus, onSelect: () => onAddContentToLesson?.(lesson, mod) },
                                     { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToLesson?.(lesson, mod) },
                                     { separator: true },
                                     { label: "Move Up", icon: ArrowUp, disabled: lIdx === 0, onSelect: () => handleMoveLesson(mod, lesson.id, "up") },
@@ -872,7 +878,7 @@ export function CourseComposerSidebar({
                                               groupName="topic"
                                               items={[
                                                 { label: "Edit Topic", icon: Pencil, onSelect: () => onEditTopic?.(topic, lesson.id, mod.id) },
-                                                { label: "Add Content", icon: Plus, onSelect: () => onAddContent?.(topic.id, lesson.id, mod.id) },
+                                                { label: "Add Content", icon: Plus, onSelect: () => onAddContentToTopic?.(topic.id, lesson.id, mod.id) },
                                                 { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToTopic?.(topic, lesson, mod) },
                                                 { separator: true },
                                                 { label: "Move Up", icon: ArrowUp, disabled: tIdx === 0, onSelect: () => handleMoveTopic(lesson, topic.id, "up") },
