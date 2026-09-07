@@ -161,28 +161,48 @@ export default function LearnPage() {
     }
   }, [selectedLesson?.id]);
 
-  // A Topic switch mounts a different (or no) video — the previous Topic's
-  // playback position must not leak into the newly-selected Topic's Sticky
-  // Notes timestamps or the debounced state-sync write. Must NOT fire on
-  // the INITIAL null -> first-Topic auto-selection right after a Lesson
-  // loads/restores, so a just-restored resume position survives — but a
-  // "previous value" ref can't tell that apart from `selectedTopicId`
-  // legitimately cycling back through null mid-session (a zero-Topic
-  // Lesson sits between two topic-ful ones), which must still reset. A
-  // monotonic "has this page ever attributed a real Topic's timestamp yet"
-  // flag solves both: it's false only for the very first attribution ever,
-  // then stays true for the rest of the page's life, so every later
-  // null -> real transition resets correctly regardless of what happened
-  // in between.
-  const hasAttributedTopicTimestampRef = useRef(false);
+  // A content-unit switch (a different Topic, or a different zero-Topic
+  // Lesson) mounts a different (or no) video — the previous unit's
+  // playback position must not leak into the newly-selected unit's Sticky
+  // Notes timestamps or the debounced state-sync write. Must NOT fire
+  // while the very first unit is still settling (Lesson restored but its
+  // first Topic hasn't been auto-selected yet), so a just-restored resume
+  // position survives.
+  //
+  // Keyed on BOTH selectedLesson and selectedTopicId together, not
+  // selectedTopicId alone — a zero-Topic Lesson always reports
+  // selectedTopicId as null, so a null-only signal can't tell "still
+  // settling the very first unit" apart from "genuinely on a zero-Topic
+  // Lesson" apart from "genuinely on a *different* zero-Topic Lesson than
+  // last time." Three prior fix rounds each patched a selectedTopicId-only
+  // signal and each left one of those cases wrong — round 1 (unconditional
+  // reset) broke initial settle, round 2 (previous-value sentinel) missed
+  // a real-Topic -> zero-Topic-Lesson -> real-Topic sequence, round 3
+  // (monotonic attributed flag) missed real-Topic -> zero-Topic-Lesson
+  // directly (the guard's `selectedTopicId === null` early return skipped
+  // the reset on entry into a zero-Topic Lesson, not just before settle).
+  // A composite lesson+topic key sidesteps all three: "settling" is
+  // defined once (Lesson present, and either it has no Topics or its
+  // first Topic hasn't landed yet) rather than re-derived from a sentinel
+  // that means different things at different points in the transition.
+  const hasSettledInitialUnitRef = useRef(false);
+  const previousUnitKeyRef = useRef(null);
   useEffect(() => {
-    if (selectedTopicId === null) return;
-    if (hasAttributedTopicTimestampRef.current) {
-      setCurrentTimestamp(0);
-    } else {
-      hasAttributedTopicTimestampRef.current = true;
+    if (!selectedLesson) return;
+    const stillWaitingForFirstTopic = hasTopics && selectedTopicId === null;
+    if (stillWaitingForFirstTopic) return;
+
+    const unitKey = `${selectedLesson.id}::${selectedTopicId ?? ""}`;
+    if (!hasSettledInitialUnitRef.current) {
+      hasSettledInitialUnitRef.current = true;
+      previousUnitKeyRef.current = unitKey;
+      return;
     }
-  }, [selectedTopicId]);
+    if (unitKey !== previousUnitKeyRef.current) {
+      setCurrentTimestamp(0);
+      previousUnitKeyRef.current = unitKey;
+    }
+  }, [selectedLesson?.id, selectedTopicId, hasTopics]);
 
   const [pendingTopicScroll, setPendingTopicScroll] = useState(null);
   const [videoDuration, setVideoDuration] = useState(0);
