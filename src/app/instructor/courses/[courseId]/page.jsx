@@ -1203,10 +1203,47 @@ export default function CourseDetailsPage() {
             }
           }
 
+          // Reflect the new quiz in the Course Map immediately from this
+          // response, the same way handleApplyAiGeneratedData's QUIZ branch
+          // already does — otherwise the Module/Lesson/Topic quiz list stays
+          // on its stale MODULES-cache snapshot until the invalidation below
+          // finishes its round-trip, which is the visible delay this fixes.
+          const newQuiz = { ...resQuiz, questions: updatedQuizData.questions || [] };
+          if (composeTopicId && composeLessonId && composeModuleId) {
+            queryClient.setQueryData([QUERY_KEYS.MODULES, courseId], (old) =>
+              Array.isArray(old)
+                ? withModule(old, composeModuleId, (mod) =>
+                    withLessonIn(mod, composeLessonId, (les) =>
+                      withTopicIn(les, composeTopicId, (top) => ({ ...top, quizzes: [...(top.quizzes || []), newQuiz] }))
+                    )
+                  )
+                : old
+            );
+          } else if (composeLessonId && composeModuleId) {
+            queryClient.setQueryData([QUERY_KEYS.MODULES, courseId], (old) =>
+              Array.isArray(old)
+                ? withModule(old, composeModuleId, (mod) =>
+                    withLessonIn(mod, composeLessonId, (les) => ({ ...les, quizzes: [...(les.quizzes || []), newQuiz] }))
+                  )
+                : old
+            );
+          } else if (composeModuleId) {
+            queryClient.setQueryData([QUERY_KEYS.MODULES, courseId], (old) =>
+              Array.isArray(old)
+                ? withModule(old, composeModuleId, (mod) => ({ ...mod, quizzes: [...(mod.quizzes || []), newQuiz] }))
+                : old
+            );
+          } else {
+            queryClient.setQueryData([QUERY_KEYS.COURSE, courseId], (old) =>
+              old ? { ...old, quizzes: [...(old.quizzes || []), newQuiz] } : old
+            );
+          }
+
           await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MODULES, courseId] });
           await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
 
-          showToast(composeTopicId ? "Topic quiz created successfully!" : composeLessonId ? "Lesson quiz created successfully!" : "Module quiz created successfully!", "success");
+          showToast(composeTopicId ? "Topic quiz created successfully!" : composeLessonId ? "Lesson quiz created successfully!" : composeModuleId ? "Module quiz created successfully!" : "Course quiz created successfully!", "success");
           setSelectedQuizState(resQuiz);
           setComposeQuizId(resQuiz.id);
           setQuizMode("view");

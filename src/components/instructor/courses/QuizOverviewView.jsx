@@ -668,23 +668,27 @@ export function QuizOverviewView({
 
             {/* Right: Next Button & Add Question */}
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleAddQuestion}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs font-bold transition cursor-pointer"
-                title="Add a new question"
-              >
-                <Plus size={13} /> Add
-              </button>
+              {questions.length > 0 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleAddQuestion}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs font-bold transition cursor-pointer"
+                    title="Add a new question"
+                  >
+                    <Plus size={13} /> Add
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => setShowRepoPicker(true)}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-sky-500/40 bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 text-xs font-bold transition cursor-pointer"
-                title="Add from Question Repository"
-              >
-                <Library size={13} /> From Repository
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowRepoPicker(true)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-sky-500/40 bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 text-xs font-bold transition cursor-pointer"
+                    title="Add from Question Repository"
+                  >
+                    <Library size={13} /> From Repository
+                  </button>
+                </>
+              )}
 
               <button
                 type="button"
