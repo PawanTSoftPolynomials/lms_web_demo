@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   ArrowLeft, BookOpen, Clock3, ChevronRight, ChevronLeft, PlayCircle,
   CheckCircle2, MessageSquare, Star, Bookmark, BookmarkCheck, PanelRightOpen, PanelRightClose,
+  PanelLeftOpen,
 } from "lucide-react";
 
 import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel";
@@ -73,13 +74,15 @@ export default function LearnPage() {
   const { toggleChat, isOpen: chatOpen, chatUnreadCount, setIsOpen } = useChat();
   const { notifications, markAllRead, markAsRead } = useNotification();
 
-  // Course Content Sidebar toggle state
-  const [courseSidebarOpen, setCourseSidebarOpen] = useState(false);
+  // Course Content Sidebar toggle state — open by default so the Course
+  // Index is what a student sees on first arriving at a lesson.
+  const [courseSidebarOpen, setCourseSidebarOpen] = useState(true);
 
   // Right-hand utility column (Ask Instructor / Sticky Notes / Feedback)
   // collapse state — desktop only, mirrors the left Course Map sidebar's
-  // collapse behavior.
-  const [rightPanelOpen, setRightPanelOpen] = useState(true);
+  // collapse behavior. Closed by default to match the Course Index being
+  // open on first arrival (avoids both wide panels competing for space).
+  const [rightPanelOpen, setRightPanelOpen] = useState(false);
 
   const videoPlayerRef = useRef(null);
 
@@ -335,7 +338,7 @@ export default function LearnPage() {
           composeModuleId={selectedLesson?.moduleId}
           isOpen={courseSidebarOpen}
           onToggleOpen={() => setCourseSidebarOpen(false)}
-          onSelectCourseOverview={() => {}}
+          onSelectCourseOverview={() => router.push(`/student/courses/${courseId}`)}
           onSelectLesson={(lessonId) => {
             const match = lessons.find((l) => l.id === lessonId);
             selectLesson(match);
@@ -353,6 +356,10 @@ export default function LearnPage() {
             const match = lesson?.id ? lessons.find((l) => l.id === lesson.id) : null;
             if (match) selectLesson(match);
             if (topic?.id && !match?.locked) setPendingTopicScroll(topic.id);
+          }}
+          onSelectQuiz={(quiz) => {
+            const returnTo = `/student/learn/${courseId}${selectedLesson?.id ? `?lessonId=${selectedLesson.id}` : ""}`;
+            router.push(`/student/attempt/${quiz.id}?from=${encodeURIComponent(returnTo)}`);
           }}
           role="STUDENT"
         />
@@ -677,13 +684,16 @@ export default function LearnPage() {
                 in the header (back arrow) and Course Content (progress %), and it
                 isn't part of the tabbed flow you're designing toward there. */}
             <div className="hidden xl:block space-y-4 min-w-0 xl:col-start-1 xl:row-start-1">
-              <Link
-                href="/student/my-courses"
-                className="inline-flex items-center gap-2 text-xs text-muted-foreground transition hover:text-primary font-bold uppercase tracking-wider min-h-[36px]"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                Back to My Courses
-              </Link>
+              {!courseSidebarOpen && (
+                <button
+                  type="button"
+                  onClick={() => setCourseSidebarOpen(true)}
+                  className="inline-flex items-center gap-2 text-xs text-muted-foreground transition hover:text-primary font-bold uppercase tracking-wider min-h-[36px] cursor-pointer border-0 bg-transparent p-0"
+                >
+                  <PanelLeftOpen className="h-3.5 w-3.5" />
+                  Course Index
+                </button>
+              )}
 
               {/* Minimal inline progress bar */}
               <div className="flex items-center gap-3 w-full sm:w-64 text-[10px] font-bold text-muted-foreground pb-1">

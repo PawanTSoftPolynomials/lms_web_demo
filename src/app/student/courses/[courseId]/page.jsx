@@ -104,6 +104,10 @@ export default function CourseDetailsPage({ params }) {
             onSelectModule={(mod) => handleSelectModule(mod)}
             onSelectTopic={(topicId, lessonId) => handleStartLearning(lessonId)}
             onSelectContent={(content, topic, lesson) => handleStartLearning(lesson?.id)}
+            onSelectQuiz={(quiz) => {
+              const returnTo = `/student/courses/${courseId}`;
+              router.push(`/student/attempt/${quiz.id}?from=${encodeURIComponent(returnTo)}`);
+            }}
             role="STUDENT"
           />
         </div>
