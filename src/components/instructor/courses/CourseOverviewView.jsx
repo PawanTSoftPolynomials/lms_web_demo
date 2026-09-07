@@ -229,6 +229,26 @@ export function CourseOverviewView({
                 <div><strong className="text-muted-foreground">Duration:</strong> {course?.duration || "Self-Paced"}</div>
               </div>
 
+              {/* Course-Level Content Cells */}
+              {role === "INSTRUCTOR" && !isDraftMode && (
+                <div className="pt-4 border-t border-border/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-foreground">Course Content</h3>
+                    <button
+                      type="button"
+                      onClick={() => setContentAutoOpenSignal((n) => n + 1)}
+                      className="text-xs font-bold text-primary hover:text-orange-300 cursor-pointer"
+                    >
+                      + Add Content
+                    </button>
+                  </div>
+                  <LessonComposerPanel
+                    parent={{ parentType: "course", parentId: course?.id }}
+                    autoOpenAddSignal={contentAutoOpenSignal}
+                  />
+                </div>
+              )}
+
               {/* Course-Level Quizzes (when present) */}
               {Array.isArray(course?.quizzes) && course.quizzes.length > 0 && (
                 <div className="pt-4 border-t border-border/80 space-y-3">
@@ -313,26 +333,6 @@ export function CourseOverviewView({
                   })}
                 </div>
               </div>
-
-              {/* Course-Level Content Cells */}
-              {role === "INSTRUCTOR" && !isDraftMode && (
-                <div className="pt-4 border-t border-border/80 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-foreground">Course Content</h3>
-                    <button
-                      type="button"
-                      onClick={() => setContentAutoOpenSignal((n) => n + 1)}
-                      className="text-xs font-bold text-primary hover:text-orange-300 cursor-pointer"
-                    >
-                      + Add Content
-                    </button>
-                  </div>
-                  <LessonComposerPanel
-                    parent={{ parentType: "course", parentId: course?.id }}
-                    autoOpenAddSignal={contentAutoOpenSignal}
-                  />
-                </div>
-              )}
             </div>
           )}
         </div>
