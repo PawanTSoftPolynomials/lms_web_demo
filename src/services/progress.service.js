@@ -31,3 +31,14 @@ export const markContentVisited =
 
     return response.data;
   };
+
+export const completeTopic =
+  async (data) => {
+    const response =
+      await api.post(
+        "/progress/complete-topic",
+        data
+      );
+
+    return response.data;
+  };
