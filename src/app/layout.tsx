@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/context/AuthContext";
-import { Geist, Geist_Mono } from "next/font/google";
 import QueryProvider from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { PaletteProvider, PALETTE_ANTI_FLASH_SCRIPT } from "@/providers/PaletteProvider";
-import "@fontsource/poppins/400.css";
-import "@fontsource/poppins/500.css";
-import "@fontsource/poppins/700.css";
 import "@fontsource/playfair-display/700.css";
-import "@fontsource/dm-sans/400.css";
-import "@fontsource/dm-sans/500.css";
-import "@fontsource/dm-sans/700.css";
 import "@fontsource/inter/400.css";
 import "@fontsource/inter/500.css";
 import "@fontsource/inter/600.css";
@@ -20,16 +13,6 @@ import { ChatProvider } from "@/context/ChatContext";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { NotificationProvider } from "@/context/NotificationContext";
 import { ConfirmProvider } from "@/context/ConfirmContext";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Orange LMS",
@@ -45,7 +28,6 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable}`}
     >
       <head>
       </head>

@@ -1,53 +1,20 @@
 "use client";
 
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-} from "recharts";
+import dynamic from "next/dynamic";
 
-import DashboardChart from "@/components/dashboard/common/DashboardChart";
-import ChartTooltip from "@/components/dashboard/components/ChartTooltip";
+// recharts is loaded only when this chart actually mounts, and only once —
+// keeping it out of every route's static bundle instead of duplicated per
+// route (see PERFORMANCE_AUDIT.md Phase 5 / recommendation #6).
+//
+// Note: next/dynamic's `loading` component only ever receives
+// {isLoading, error, pastDelay} — never the wrapped component's own props —
+// so this can't show the real title/subtitle while loading (same
+// generic-skeleton constraint the other chart wrappers in this codebase have).
+const DoughnutChartCard = dynamic(() => import("./DoughnutChartCard.chart"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[340px] animate-pulse bg-muted/50 rounded-2xl" />
+  ),
+});
 
-const DEFAULT_COLORS = ["#f97316", "#3b82f6", "#22c55e", "#a855f7", "#ef4444"];
-
-export default function DoughnutChartCard({
-  title,
-  subtitle,
-  data = [],
-  dataKey = "value",
-  nameKey = "name",
-  colors = DEFAULT_COLORS,
-  height = 300,
-  innerRadius = 70,
-  outerRadius = 100,
-  contentClassName = "h-[340px]",
-}) {
-  return (
-    <DashboardChart title={title} subtitle={subtitle} contentClassName={contentClassName}>
-      <ResponsiveContainer width="100%" height={height}>
-        <PieChart>
-          <Pie
-            data={data}
-            dataKey={dataKey}
-            nameKey={nameKey}
-            innerRadius={innerRadius}
-            outerRadius={outerRadius}
-            paddingAngle={4}
-          >
-            {data.map((_, index) => (
-              <Cell key={index} fill={colors[index % colors.length]} />
-            ))}
-          </Pie>
- 
-          <Tooltip content={<ChartTooltip />} />
- 
-          <Legend />
-        </PieChart>
-      </ResponsiveContainer>
-    </DashboardChart>
-  );
-}
+export default DoughnutChartCard;

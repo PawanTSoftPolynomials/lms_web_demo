@@ -43,6 +43,7 @@ import { ChatWidget } from "@/components/chat";
 
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
+import useMediaQuery from "@/hooks/useMediaQuery";
 import { useNotification } from "@/context/NotificationContext";
 
 export default function LearnPage() {
@@ -75,6 +76,15 @@ export default function LearnPage() {
 
   // Course Content Sidebar toggle state
   const [courseSidebarOpen, setCourseSidebarOpen] = useState(false);
+
+  // Real viewport check (not just a CSS breakpoint) so the mobile tab panel
+  // and the desktop stacked panels below are never BOTH mounted at once —
+  // Overview/Transcript/Resources/StickyNotes/AskInstructor/Feedback/Quiz
+  // each fetch their own data and run their own effects, so mounting both
+  // copies regardless of which one is actually visible doubles that cost
+  // for no visual benefit (see PERFORMANCE_AUDIT.md Phase 6). Matches
+  // Tailwind's default `xl` breakpoint (1280px) used throughout this page.
+  const isDesktop = useMediaQuery("(min-width: 1280px)");
 
   // Right-hand utility column (Ask Instructor / Sticky Notes / Feedback)
   // collapse state — desktop only, mirrors the left Course Map sidebar's
@@ -508,56 +518,61 @@ export default function LearnPage() {
             {/* CONTENT TAB STRIP — mobile & tablet only. Desktop shows every
                 section stacked at once (below), so switching tabs would just
                 add a tap for no benefit there. Left/right arrows let a student
-                reach the hidden tabs with a tap instead of a swipe. */}
-            <div className="row-start-2 xl:hidden">
-              <div className="flex items-center gap-1 border-b border-transparent/60">
-                <button
-                  type="button"
-                  onClick={() => scrollContentTabs(-1)}
-                  disabled={!canScrollTabsLeft}
-                  className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
-                  aria-label="Scroll tabs left"
-                >
-                  <ChevronLeft size={16} />
-                </button>
+                reach the hidden tabs with a tap instead of a swipe.
+                Gated on isDesktop (a real viewport check), not just xl:hidden —
+                otherwise this and the desktop panels below would both mount
+                regardless of actual screen size, only one hidden by CSS. */}
+            {!isDesktop && (
+              <div className="row-start-2">
+                <div className="flex items-center gap-1 border-b border-transparent/60">
+                  <button
+                    type="button"
+                    onClick={() => scrollContentTabs(-1)}
+                    disabled={!canScrollTabsLeft}
+                    className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
+                    aria-label="Scroll tabs left"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
 
-                <div
-                  ref={tabStripRef}
-                  onScroll={updateTabScrollState}
-                  className="flex items-center gap-1 overflow-x-auto scrollbar-none flex-1 min-w-0"
-                >
-                  {LEARN_PAGE_CONTENT_TABS.map((tab) => {
-                    const Icon = tab.icon;
-                    const isActive = activeContentTab === tab.id;
-                    return (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        onClick={() => setActiveContentTab(tab.id)}
-                        className={`flex flex-col items-center gap-1 px-3.5 py-2 min-h-[44px] text-[11px] font-bold uppercase tracking-wide transition cursor-pointer border-0 border-b-2 outline-none shrink-0 bg-transparent ${
-                          isActive
-                            ? "text-primary border-primary"
-                            : "text-foreground border-transparent hover:text-foreground"
-                        }`}
-                      >
-                        <Icon size={18} />
-                        <span>{tab.label}</span>
-                      </button>
-                    );
-                  })}
+                  <div
+                    ref={tabStripRef}
+                    onScroll={updateTabScrollState}
+                    className="flex items-center gap-1 overflow-x-auto scrollbar-none flex-1 min-w-0"
+                  >
+                    {LEARN_PAGE_CONTENT_TABS.map((tab) => {
+                      const Icon = tab.icon;
+                      const isActive = activeContentTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setActiveContentTab(tab.id)}
+                          className={`flex flex-col items-center gap-1 px-3.5 py-2 min-h-[44px] text-[11px] font-bold uppercase tracking-wide transition cursor-pointer border-0 border-b-2 outline-none shrink-0 bg-transparent ${
+                            isActive
+                              ? "text-primary border-primary"
+                              : "text-foreground border-transparent hover:text-foreground"
+                          }`}
+                        >
+                          <Icon size={18} />
+                          <span>{tab.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => scrollContentTabs(1)}
+                    disabled={!canScrollTabsRight}
+                    className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
+                    aria-label="Scroll tabs right"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => scrollContentTabs(1)}
-                  disabled={!canScrollTabsRight}
-                  className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
-                  aria-label="Scroll tabs right"
-                >
-                  <ChevronRight size={16} />
-                </button>
               </div>
-            </div>
+            )}
 
             {/* SHARED CONTENT PANEL — mobile & tablet only. Exactly one branch
                 renders at a time based on activeContentTab: true conditional
@@ -565,113 +580,122 @@ export default function LearnPage() {
                 siblings. This is the one container every tab — Overview,
                 Transcript, Resources, Notes, Query, Feedback, and Quiz alike —
                 renders into below xl. Nothing else moves when it changes. */}
-            <div className="row-start-3 xl:hidden min-w-0">
-              {activeContentTab === "overview" && overviewPanel}
+            {!isDesktop && (
+              <div className="row-start-3 min-w-0">
+                {activeContentTab === "overview" && overviewPanel}
 
-              {activeContentTab === "transcript" && (
-                <TranscriptPanel
-                  segments={transcriptSegments}
-                  status={transcriptStatus}
-                  currentTime={currentTimestamp}
-                  onSeek={handleTranscriptSeek}
-                />
-              )}
+                {activeContentTab === "transcript" && (
+                  <TranscriptPanel
+                    segments={transcriptSegments}
+                    status={transcriptStatus}
+                    currentTime={currentTimestamp}
+                    onSeek={handleTranscriptSeek}
+                  />
+                )}
 
-              {activeContentTab === "resources" && resourcesPanel}
+                {activeContentTab === "resources" && resourcesPanel}
 
-              {activeContentTab === "notes" && (
-                <StickyNotesPanel
-                  lessonId={selectedLesson?.id}
-                  currentTimestamp={currentTimestamp}
-                  onSeek={handleTranscriptSeek}
-                />
-              )}
+                {activeContentTab === "notes" && (
+                  <StickyNotesPanel
+                    lessonId={selectedLesson?.id}
+                    currentTimestamp={currentTimestamp}
+                    onSeek={handleTranscriptSeek}
+                  />
+                )}
 
-              {activeContentTab === "query" && askInstructorCard}
+                {activeContentTab === "query" && askInstructorCard}
 
-              {activeContentTab === "feedback" && feedbackPanel}
+                {activeContentTab === "feedback" && feedbackPanel}
 
-              {activeContentTab === "quiz" && quizPanel}
-            </div>
+                {activeContentTab === "quiz" && quizPanel}
+              </div>
+            )}
 
             {/* Desktop (xl+): no tab switching — every section stays mounted and
                 visible at once, stacked, each in its own row (unchanged from
-                before this refactor). */}
-            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-3">{overviewPanel}</div>
+                before this refactor). Gated on isDesktop so these don't also
+                mount (just CSS-hidden) on mobile/tablet viewports. */}
+            {isDesktop && (
+              <>
+                <div className="min-w-0 xl:col-start-1 xl:row-start-3">{overviewPanel}</div>
 
-            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-4">
-              <TranscriptPanel
-                segments={transcriptSegments}
-                status={transcriptStatus}
-                currentTime={currentTimestamp}
-                onSeek={handleTranscriptSeek}
-              />
-            </div>
+                <div className="min-w-0 xl:col-start-1 xl:row-start-4">
+                  <TranscriptPanel
+                    segments={transcriptSegments}
+                    status={transcriptStatus}
+                    currentTime={currentTimestamp}
+                    onSeek={handleTranscriptSeek}
+                  />
+                </div>
 
-            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-5">{resourcesPanel}</div>
+                <div className="min-w-0 xl:col-start-1 xl:row-start-5">{resourcesPanel}</div>
 
-            <div
-              className={`hidden xl:flex xl:flex-col xl:gap-6 min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-8 xl:sticky xl:top-24 xl:h-fit transition-[width] duration-300 ease-in-out ${
-                rightPanelOpen ? "w-full xl:w-[360px]" : "w-full xl:w-12"
-              }`}
-            >
-              {rightPanelOpen ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setRightPanelOpen(false)}
-                    className="self-end flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-xl text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground bg-background/60 hover:bg-muted border border-transparent transition cursor-pointer"
-                    title="Hide side panel"
-                    aria-label="Hide side panel"
-                  >
-                    <PanelRightClose size={14} />
-                    <span>Hide</span>
-                  </button>
-                  <div className="order-2">
-                    <StickyNotesPanel
-                      lessonId={selectedLesson?.id}
-                      currentTimestamp={currentTimestamp}
-                      onSeek={handleTranscriptSeek}
-                    />
-                  </div>
-                  <div className="order-1">{askInstructorCard}</div>
-                  <div className="order-3">{feedbackPanel}</div>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setRightPanelOpen(true)}
-                  className="flex flex-col items-center gap-3 w-12 rounded-2xl border border-transparent/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl py-4 hover:border-primary/40 hover:bg-background text-muted-foreground hover:text-primary transition cursor-pointer"
-                  title="Show side panel"
-                  aria-label="Show side panel"
+                <div
+                  className={`flex flex-col gap-6 min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-8 xl:sticky xl:top-24 xl:h-fit transition-[width] duration-300 ease-in-out ${
+                    rightPanelOpen ? "w-full xl:w-[360px]" : "w-full xl:w-12"
+                  }`}
                 >
-                  <PanelRightOpen size={16} className="shrink-0" />
-                  <span className="text-[9px] font-black uppercase tracking-widest [writing-mode:vertical-rl]">
-                    Panel
-                  </span>
-                </button>
-              )}
-            </div>
+                  {rightPanelOpen ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setRightPanelOpen(false)}
+                        className="self-end flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-xl text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground bg-background/60 hover:bg-muted border border-transparent transition cursor-pointer"
+                        title="Hide side panel"
+                        aria-label="Hide side panel"
+                      >
+                        <PanelRightClose size={14} />
+                        <span>Hide</span>
+                      </button>
+                      <div className="order-2">
+                        <StickyNotesPanel
+                          lessonId={selectedLesson?.id}
+                          currentTimestamp={currentTimestamp}
+                          onSeek={handleTranscriptSeek}
+                        />
+                      </div>
+                      <div className="order-1">{askInstructorCard}</div>
+                      <div className="order-3">{feedbackPanel}</div>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setRightPanelOpen(true)}
+                      className="flex flex-col items-center gap-3 w-12 rounded-2xl border border-transparent/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl py-4 hover:border-primary/40 hover:bg-background text-muted-foreground hover:text-primary transition cursor-pointer"
+                      title="Show side panel"
+                      aria-label="Show side panel"
+                    >
+                      <PanelRightOpen size={16} className="shrink-0" />
+                      <span className="text-[9px] font-black uppercase tracking-widest [writing-mode:vertical-rl]">
+                        Panel
+                      </span>
+                    </button>
+                  )}
+                </div>
 
-            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-6">{quizPanel}</div>
+                <div className="min-w-0 xl:col-start-1 xl:row-start-6">{quizPanel}</div>
+              </>
+            )}
 
             {/* COURSE CONTENT — embedded module/lesson navigator, mobile & tablet
                 only (below xl). Desktop keeps the fixed sidebar, so this would be
                 a duplicate navigator there. Always visible, not tab-gated. */}
-            <div className="min-w-0 row-start-4 xl:hidden">
-              <CourseContentAccordion
-                modules={course.modules || []}
-                activeModuleId={activeModuleId}
-                onToggleModule={toggleMobileModule}
-                selectedLessonId={selectedLesson?.id}
-                onSelectLesson={(lesson, module) => selectLesson({ ...lesson, moduleId: module.id })}
-                courseProgress={courseProgress}
-                completedLessons={courseProgressDetail.completedLessons}
-                totalLessons={courseProgressDetail.totalLessons}
-                collapsed={mobileContentCollapsed}
-                onToggleCollapsed={() => setMobileContentCollapsed((prev) => !prev)}
-              />
-            </div>
+            {!isDesktop && (
+              <div className="min-w-0 row-start-4">
+                <CourseContentAccordion
+                  modules={course.modules || []}
+                  activeModuleId={activeModuleId}
+                  onToggleModule={toggleMobileModule}
+                  selectedLessonId={selectedLesson?.id}
+                  onSelectLesson={(lesson, module) => selectLesson({ ...lesson, moduleId: module.id })}
+                  courseProgress={courseProgress}
+                  completedLessons={courseProgressDetail.completedLessons}
+                  totalLessons={courseProgressDetail.totalLessons}
+                  collapsed={mobileContentCollapsed}
+                  onToggleCollapsed={() => setMobileContentCollapsed((prev) => !prev)}
+                />
+              </div>
+            )}
 
             {/* COURSE INFO — desktop only. On mobile this duplicates what's already
                 in the header (back arrow) and Course Content (progress %), and it
