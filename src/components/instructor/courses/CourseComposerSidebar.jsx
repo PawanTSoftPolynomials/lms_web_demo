@@ -50,6 +50,7 @@ import { useReorderLessons } from "@/hooks/queries/instructor/useReorderLessons"
 import { useReorderTopics } from "@/hooks/queries/instructor/useReorderTopics";
 import { useReorderContents } from "@/hooks/queries/instructor/useReorderContents";
 import { useUpdateQuizOrder } from "@/hooks/queries/instructor/useUpdateQuizOrder";
+import { useReorderQuizzes } from "@/hooks/queries/instructor/useReorderQuizzes";
 import { swapSiblingOrder } from "@/lib/reorderSiblings";
 import { useToast } from "@/components/ui/ToastProvider";
 
@@ -235,6 +236,7 @@ function ParentContentRows({
   const { duplicate } = useDuplicateContent();
   const reorderContents = useReorderContents();
   const updateQuizOrder = useUpdateQuizOrder();
+  const reorderQuizzes = useReorderQuizzes();
   const { showToast } = useToast();
 
   // One merged, order-sorted list — this is what makes a quiz occupy a real
@@ -262,9 +264,9 @@ function ParentContentRows({
       if (contentUpdates.length > 0) {
         await reorderContents.mutateAsync({ parent, contents: contentUpdates });
       }
-      await Promise.all(
-        quizUpdates.map((q) => updateQuizOrder.mutateAsync({ quizId: q.id, order: q.order }))
-      );
+      if (quizUpdates.length > 0) {
+        await reorderQuizzes.mutateAsync({ quizzes: quizUpdates });
+      }
     } catch {
       showToast("Failed to reorder", "error");
     }

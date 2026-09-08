@@ -1252,8 +1252,9 @@ export default function CourseDetailsPage() {
       handleSelectQuiz(duplicatedQuiz, mod, lesson, topic, { startEditing: false });
     } else {
       try {
+        const { order, id: _copiedId, _id: _copiedMongoId, quizQuestions, ...quizFieldsToCopy } = quiz;
         await api.post("/quizzes", {
-          ...quiz,
+          ...quizFieldsToCopy,
           title: `${quiz.title || "Quiz"} (Copy)`,
           courseId,
           moduleId: mod?.id || null,
