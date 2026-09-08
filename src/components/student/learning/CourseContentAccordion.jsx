@@ -156,7 +156,8 @@ export default function CourseContentAccordion({
             const lessonCount = module.lessons?.length || 0;
             const modDirectContents = module.contents || [];
             const modDirectQuizzes = module.quizzes || [];
-            const hasDirectItems = modDirectContents.length > 0 || modDirectQuizzes.length > 0;
+            const modDirectAssignments = module.assignments || [];
+            const hasDirectItems = modDirectContents.length > 0 || modDirectQuizzes.length > 0 || modDirectAssignments.length > 0;
 
             const hasCompletionData = (module.lessons || []).some(
               (l) => l.completed !== undefined || l.isCompleted !== undefined
@@ -241,6 +242,27 @@ export default function CourseContentAccordion({
                           {q.completed ? "Passed" : "Direct Quiz"}
                         </span>
                       </div>
+                    ))}
+
+                    {/* Direct Module Assignments */}
+                    {modDirectAssignments.map((a) => (
+                      <Link
+                        key={a.id}
+                        href={`/student/assignments/${a.id}`}
+                        className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20 text-xs cursor-pointer my-1 transition block"
+                      >
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          {a.completed ? (
+                            <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                          ) : (
+                            <ClipboardList size={14} className="text-amber-400 shrink-0" />
+                          )}
+                          <span className="truncate font-medium text-foreground">{a.title || "Module Assignment"}</span>
+                        </div>
+                        <span className="text-[8.5px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 shrink-0">
+                          {a.completed ? "Submitted" : "Direct Assignment"}
+                        </span>
+                      </Link>
                     ))}
 
                     {/* Module Lessons */}

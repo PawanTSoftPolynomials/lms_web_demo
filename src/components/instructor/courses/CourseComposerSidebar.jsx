@@ -323,14 +323,86 @@ function ParentContentRows({
 
 import { Lock } from "lucide-react";
 
+function AssignmentRows({
+  assignments = [],
+  composerMode,
+  composeAssignmentId,
+  onSelectAssignment,
+  onDeleteAssignment,
+  role = "INSTRUCTOR",
+  mod = null,
+  lesson = null,
+  topic = null,
+}) {
+  if (!assignments || assignments.length === 0) return null;
+
+  return (
+    <div className="mb-1 space-y-0.5">
+      {assignments.map((asgn, aIdx) => {
+        const isAsgnActive = composerMode === "assignment" && composeAssignmentId === asgn.id;
+
+        return (
+          <div key={asgn.id || `asgn-${aIdx}`}>
+            <div
+              className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
+                isAsgnActive
+                  ? "bg-amber-500/15 border-amber-500 text-amber-600 dark:text-amber-400 font-bold"
+                  : "border-transparent text-amber-600/90 dark:text-amber-400/90 hover:bg-background/60"
+              }`}
+              onClick={() => onSelectAssignment?.(asgn, mod, lesson, topic)}
+            >
+              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                {asgn.completed ? (
+                  <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                ) : (
+                  <ClipboardList size={13} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                )}
+                <span className="truncate text-caption font-semibold">{asgn.title || "Assignment"}</span>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                {asgn.marks ? (
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 shrink-0">
+                    {asgn.marks} Marks
+                  </span>
+                ) : null}
+                {role === "INSTRUCTOR" && (
+                  <RowMenu
+                    groupName="quiz"
+                    items={[
+                      {
+                        label: "Edit Assignment",
+                        icon: Pencil,
+                        onSelect: () => onSelectAssignment?.(asgn, mod, lesson, topic, { startEditing: true }),
+                      },
+                      { separator: true },
+                      {
+                        label: "Delete Assignment",
+                        icon: Trash2,
+                        destructive: true,
+                        onSelect: (e) => onDeleteAssignment?.(e, asgn, mod, lesson, topic),
+                      },
+                    ]}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function CourseComposerSidebar({
   modules = [],
   courseQuizzes = [],
+  courseAssignments = [],
   composerMode,
   composeModuleId,
   composeLessonId,
   composeTopicId,
   composeQuizId,
+  composeAssignmentId,
   selectedCellId,
   isOpen = true,
   onToggleOpen,
@@ -338,6 +410,8 @@ export function CourseComposerSidebar({
   onSelectQuiz,
   onDuplicateQuiz,
   onDeleteQuiz,
+  onSelectAssignment,
+  onDeleteAssignment,
   onSelectLesson,
   onSelectModule,
   onSelectTopic,
@@ -354,6 +428,10 @@ export function CourseComposerSidebar({
   onAddQuizToModule,
   onAddQuizToLesson,
   onAddQuizToTopic,
+  onAddAssignmentToCourse,
+  onAddAssignmentToModule,
+  onAddAssignmentToLesson,
+  onAddAssignmentToTopic,
   onAddModule,
   onAddTopic,
   onAddContentToTopic,
@@ -485,6 +563,7 @@ export function CourseComposerSidebar({
             items={[
               { label: "Add Content", icon: Plus, onSelect: () => onAddContentToCourse?.() },
               { label: "Add Course Quiz", icon: HelpCircle, onSelect: () => onAddQuizToCourse?.() },
+              { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToCourse?.() },
             ]}
           />
         )}
@@ -569,6 +648,16 @@ export function CourseComposerSidebar({
         </div>
       )}
 
+      {/* Course-Level Assignments (when present) */}
+      <AssignmentRows
+        assignments={courseAssignments}
+        composerMode={composerMode}
+        composeAssignmentId={composeAssignmentId}
+        onSelectAssignment={onSelectAssignment}
+        onDeleteAssignment={onDeleteAssignment}
+        role={role}
+      />
+
       {/* Modules Tree */}
       <div className="flex-1 min-h-0 overflow-y-auto space-y-0.5 pr-1 text-xs">
         {modules.length === 0 ? (
@@ -628,6 +717,7 @@ export function CourseComposerSidebar({
                         { label: "Add Lesson", icon: Plus, onSelect: () => onAddLesson?.(mod.id) },
                         { label: "Add Content", icon: Plus, onSelect: () => onAddContentToModule?.(mod) },
                         { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToModule?.(mod) },
+                        { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToModule?.(mod) },
                         { separator: true },
                         { label: "Move Up", icon: ArrowUp, disabled: mIdx === 0, onSelect: () => handleMoveModule(mod, "up") },
                         { label: "Move Down", icon: ArrowDown, disabled: mIdx === modules.length - 1, onSelect: () => handleMoveModule(mod, "down") },
@@ -643,7 +733,7 @@ export function CourseComposerSidebar({
                   )}
                 </div>
 
-                {/* Module Children: Module Content + Module Quizzes + Lessons */}
+                {/* Module Children: Module Content + Module Quizzes + Module Assignments + Lessons */}
                 <Collapsible open={moduleOpen}>
                   <div className="ml-3.5 pl-3 py-0.5 space-y-0.5 border-l border-border/70">
                     {/* Module-Level Content Cells */}
@@ -656,6 +746,17 @@ export function CourseComposerSidebar({
                       role={role}
                       isDraftMode={isDraftMode}
                       draftContents={mod.contents}
+                    />
+
+                    {/* Module Assignments (when present) */}
+                    <AssignmentRows
+                      assignments={mod.assignments}
+                      composerMode={composerMode}
+                      composeAssignmentId={composeAssignmentId}
+                      onSelectAssignment={onSelectAssignment}
+                      onDeleteAssignment={onDeleteAssignment}
+                      role={role}
+                      mod={mod}
                     />
 
                     {/* Module Quizzes (when present) */}
@@ -792,6 +893,7 @@ export function CourseComposerSidebar({
                                     { label: "Add Topic", icon: Plus, onSelect: () => onAddTopic?.(lesson.id) },
                                     { label: "Add Content", icon: Plus, onSelect: () => onAddContentToLesson?.(lesson, mod) },
                                     { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToLesson?.(lesson, mod) },
+                                    { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToLesson?.(lesson, mod) },
                                     { separator: true },
                                     { label: "Move Up", icon: ArrowUp, disabled: lIdx === 0, onSelect: () => handleMoveLesson(mod, lesson.id, "up") },
                                     { label: "Move Down", icon: ArrowDown, disabled: lIdx === modLessons.length - 1, onSelect: () => handleMoveLesson(mod, lesson.id, "down") },
@@ -807,7 +909,7 @@ export function CourseComposerSidebar({
                               )}
                             </div>
 
-                            {/* Lesson Content + Lesson Quizzes + Topics */}
+                            {/* Lesson Content + Lesson Quizzes + Lesson Assignments + Topics */}
                             <Collapsible open={lessonOpen}>
                               <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-border/60">
                                 {/* Lesson-Level Content Cells */}
@@ -820,6 +922,18 @@ export function CourseComposerSidebar({
                                   role={role}
                                   isDraftMode={isDraftMode}
                                   draftContents={lesson.contents}
+                                />
+
+                                {/* Lesson Assignments (when present) */}
+                                <AssignmentRows
+                                  assignments={lesson.assignments}
+                                  composerMode={composerMode}
+                                  composeAssignmentId={composeAssignmentId}
+                                  onSelectAssignment={onSelectAssignment}
+                                  onDeleteAssignment={onDeleteAssignment}
+                                  role={role}
+                                  mod={mod}
+                                  lesson={lesson}
                                 />
 
                                 {/* Lesson Quizzes (when present) */}
@@ -951,6 +1065,7 @@ export function CourseComposerSidebar({
                                                 { label: "Edit Topic", icon: Pencil, onSelect: () => onEditTopic?.(topic, lesson.id, mod.id) },
                                                 { label: "Add Content", icon: Plus, onSelect: () => onAddContentToTopic?.(topic.id, lesson.id, mod.id) },
                                                 { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToTopic?.(topic, lesson, mod) },
+                                                { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToTopic?.(topic, lesson, mod) },
                                                 { separator: true },
                                                 { label: "Move Up", icon: ArrowUp, disabled: tIdx === 0, onSelect: () => handleMoveTopic(lesson, topic.id, "up") },
                                                 { label: "Move Down", icon: ArrowDown, disabled: tIdx === lessonTopics.length - 1, onSelect: () => handleMoveTopic(lesson, topic.id, "down") },
@@ -966,9 +1081,21 @@ export function CourseComposerSidebar({
                                           )}
                                         </div>
 
-                                        {/* Topic Quizzes + Contents */}
+                                        {/* Topic Quizzes + Topic Assignments + Contents */}
                                         <Collapsible open={topicOpen}>
                                           <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-border/60">
+                                            {/* Topic Assignments (when present) */}
+                                            <AssignmentRows
+                                              assignments={topic.assignments}
+                                              composerMode={composerMode}
+                                              composeAssignmentId={composeAssignmentId}
+                                              onSelectAssignment={onSelectAssignment}
+                                              onDeleteAssignment={onDeleteAssignment}
+                                              role={role}
+                                              mod={mod}
+                                              lesson={lesson}
+                                              topic={topic}
+                                            />
                                             {(topic.quizzes || []).length > 0 && (
                                               <div className="mb-1 space-y-0.5">
                                                 {(topic.quizzes || []).map((quiz, qIdx) => {
