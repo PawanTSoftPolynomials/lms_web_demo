@@ -11,6 +11,7 @@ import {
   getNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
+  clearAllNotifications,
 } from "@/services/notification.service";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
@@ -219,9 +220,21 @@ export function NotificationProvider({ children }) {
     }
   };
 
-  const clearAll = () => {
-    setNotifications([]);
-    localStorage.setItem("lms_notifications", JSON.stringify([]));
+  const clearAll = async () => {
+    try {
+      if (user) {
+        await clearAllNotifications();
+        // The cached /notifications query still holds the pre-clear list —
+        // overwrite it so a later remount (which re-reads this cache within
+        // its staleTime window) doesn't resurrect what we just deleted.
+        queryClient.setQueryData([QUERY_KEYS.NOTIFICATIONS], []);
+      }
+    } catch (err) {
+      console.error("Failed to clear notifications on backend:", err);
+    } finally {
+      setNotifications([]);
+      localStorage.setItem("lms_notifications", JSON.stringify([]));
+    }
   };
 
   const markAsRead = async (id) => {

@@ -6,10 +6,11 @@ import { formatDistanceToNow } from "date-fns";
 import { BookOpen, Clock, Users, Pencil, ArrowRight, Loader2 } from "lucide-react";
 
 import ActionMenu from "@/components/menus/ActionMenu";
-import { useConfirm } from "@/context/ConfirmContext";
+import { useConfirm, useAlert } from "@/context/ConfirmContext";
 import { useDeleteCourse } from "@/hooks/queries/instructor/useDeleteCourse";
 import { exportCourse } from "@/services/course.service";
 import { getDisplayUrl } from "@/lib/blob";
+import { useToast } from "@/components/ui/ToastProvider";
 
 const STATUS_STYLE = {
   PUBLISHED: { label: "Published", dot: "bg-emerald-400" },
@@ -28,6 +29,8 @@ const LEVEL_STYLE = {
 export default function CourseGridCard({ course }) {
   const router = useRouter();
   const confirm = useConfirm();
+  const showAlert = useAlert();
+  const { showToast } = useToast();
   const [exporting, setExporting] = useState(false);
 
   const deleteCourseMutation = useDeleteCourse();
@@ -79,8 +82,19 @@ export default function CourseGridCard({ course }) {
     if (!confirmed) return;
     try {
       await deleteCourseMutation.mutateAsync(course.id);
+      showToast("Course deleted successfully", "success");
     } catch (err) {
       console.error("Delete failed:", err);
+      const errRes = err?.response?.data;
+      if (errRes?.code === "COURSE_HAS_STUDENT_DATA" || errRes?.hasStudentData) {
+        await showAlert({
+          title: "Course Cannot Be Deleted",
+          message: `"${course.title}" contains student or historical data (enrollments, progress, quiz submissions, or certificates). Archive it instead from the course page to preserve that data.`,
+          confirmText: "Understood",
+        });
+      } else {
+        showToast(errRes?.message || err?.message || "Failed to delete course", "error");
+      }
     }
   };
 

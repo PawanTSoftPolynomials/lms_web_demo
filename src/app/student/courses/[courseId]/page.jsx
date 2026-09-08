@@ -169,6 +169,7 @@ export default function CourseDetailsPage({ params }) {
                 modules={modules.filter((m) =>
                   (m.lessons || []).some((l) => l.id === activeLessonObj.id)
                 )}
+                role="STUDENT"
                 onSelectModule={(mod) => handleSelectModule(mod)}
               />
             )}

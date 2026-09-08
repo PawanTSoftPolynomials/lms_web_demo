@@ -26,7 +26,7 @@ const STATUS_META = {
 };
 
 const toolbarControlClass =
-  "h-9 bg-card border border-border text-xs px-3 rounded-xl outline-none text-foreground focus:border-primary/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-card [&>option]:text-foreground";
+  "h-9 !bg-card border border-border text-xs !px-3 !py-0 rounded-xl outline-none text-foreground focus:border-primary/60 transition disabled:opacity-40 disabled:cursor-not-allowed [&>option]:bg-card [&>option]:text-foreground";
 
 const timeAgo = (iso) => {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -256,7 +256,7 @@ function QAContent() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search questions, students, lessons..."
-          className="w-full h-11 bg-card border border-border text-sm pl-10 pr-4 rounded-xl outline-none text-foreground placeholder-slate-500 focus:border-primary/60 transition"
+          className="w-full h-11 bg-card border border-border text-sm !pl-10 !pr-4 rounded-xl outline-none text-foreground placeholder-slate-500 focus:border-primary/60 transition"
         />
       </div>
 

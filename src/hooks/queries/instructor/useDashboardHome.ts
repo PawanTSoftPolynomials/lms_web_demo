@@ -9,7 +9,8 @@ import {
   type CreateGoalPayload,
   type UpdateGoalPayload,
 } from "@/services/instructor/teachingGoals.service";
-import { getCourses } from "@/services/course.service";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { getCourses, getCourseStatusCounts } from "@/services/course.service";
 import { getModules } from "@/services/module.service";
 import { getQuizzes } from "@/services/quiz.service";
 import { getAssignments } from "@/services/assignment.service";
@@ -80,16 +81,23 @@ const useRawAssignments = () =>
     ...defaultQueryOptions,
   });
 
+/**
+ * Calendar and notifications are fetched under the app-wide canonical keys
+ * rather than dashboard-private ones. NotificationContext and MiniCalendar
+ * already read [CALENDAR] / [NOTIFICATIONS]; keeping a separate
+ * "instructor-home/raw" key here meant React Query could not dedupe, so the
+ * dashboard issued a second request for data already in the cache.
+ */
 const useRawCalendarEvents = () =>
   useQuery({
-    queryKey: ["instructor-home", "raw", "calendar"],
+    queryKey: [QUERY_KEYS.CALENDAR],
     queryFn: async () => asArray<RawCalendarEvent>(await getCalendarEvents()),
     ...defaultQueryOptions,
   });
 
 const useRawNotifications = () =>
   useQuery({
-    queryKey: ["instructor-home", "raw", "notifications"],
+    queryKey: [QUERY_KEYS.NOTIFICATIONS],
     queryFn: async () => asArray<RawNotification>(await getRawNotifications()),
     ...defaultQueryOptions,
     staleTime: 1000 * 60 * 2,
@@ -112,29 +120,55 @@ const useRawConversations = () =>
 const useDashboardSummary = () =>
   useQuery({ queryKey: ["instructor-home", "raw", "summary"], queryFn: getDashboardSummary, ...defaultQueryOptions });
 
+/**
+ * Server-computed summary counts. Every field is a single number produced by a
+ * COUNT in the database — this replaces counting the length of a fetched list,
+ * which was silently wrong because GET /courses is paginated at 10 by default.
+ */
+const useCourseStatusCounts = () =>
+  useQuery({
+    queryKey: [QUERY_KEYS.INSTRUCTOR_COURSE_STATS],
+    queryFn: getCourseStatusCounts,
+    ...defaultQueryOptions,
+  });
+
 /* ------------------------------- Derived hooks --------------------------- */
 
+/**
+ * The KPI strip.
+ *
+ * Course count, student count and published-quiz count now come from
+ * GET /courses/stats/mine, which returns three numbers computed by the
+ * database. Previously they were derived as `courses.length` and a JS sum over
+ * `_count.enrollments` across the fetched course array — which capped at 10,
+ * because GET /courses is paginated with a default limit of 10 and the real
+ * `pagination.total` was discarded by the service layer. An instructor with
+ * more than 10 courses saw silently wrong numbers on both tiles.
+ *
+ * Fetching the full quiz list purely to count published ones is likewise gone.
+ */
 export function useDashboardStats() {
-  const courses = useRawCourses();
+  const counts = useCourseStatusCounts();
   const assignments = useRawAssignments();
   const calendarEvents = useRawCalendarEvents();
   const notifications = useRawNotifications();
   const conversations = useRawConversations();
-  const quizzes = useRawQuizzes();
 
   const isLoading =
-    courses.isLoading || assignments.isLoading || calendarEvents.isLoading || notifications.isLoading || conversations.isLoading || quizzes.isLoading;
+    counts.isLoading || assignments.isLoading || calendarEvents.isLoading || notifications.isLoading || conversations.isLoading;
   const data = useMemo(
     () =>
       deriveDashboardStats({
-        courses: courses.data ?? [],
+        courseCount: counts.data?.total ?? 0,
+        draftCourseCount: counts.data?.draft ?? 0,
+        studentCount: counts.data?.students ?? 0,
+        activeQuizCount: counts.data?.activeQuizzes ?? 0,
         assignments: assignments.data ?? [],
         calendarEvents: calendarEvents.data ?? [],
         notifications: notifications.data ?? [],
         conversations: conversations.data ?? [],
-        quizzes: quizzes.data ?? [],
       }),
-    [courses.data, assignments.data, calendarEvents.data, notifications.data, conversations.data, quizzes.data]
+    [counts.data, assignments.data, calendarEvents.data, notifications.data, conversations.data]
   );
 
   return { data, isLoading };

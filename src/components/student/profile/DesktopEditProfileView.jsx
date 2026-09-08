@@ -294,7 +294,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
       </div>
 
       {/* 1. HERO PROFILE HEADER CARD */}
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-slate-900 via-[#0B0F17] to-slate-950 p-6 md:p-8 shadow-2xl">
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-[var(--card)] via-[var(--surface-muted)] to-[var(--card)] p-6 md:p-8 shadow-2xl">
         {/* Ambient Glow */}
         <div className="absolute top-0 right-0 -mt-8 -mr-8 h-64 w-64 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
 
@@ -460,7 +460,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
+                    className="w-full bg-background border border-border rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
@@ -476,7 +476,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                     type="email"
                     value={profile?.email || "pt349031@gmail.com"}
                     disabled
-                    className="w-full bg-background/60 border border-border/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-muted-foreground outline-none cursor-not-allowed"
+                    className="w-full bg-background/60 border border-border/80 rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-muted-foreground outline-none cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -494,7 +494,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                     value={formData.phoneNumber}
                     onChange={handleChange}
                     placeholder="+91 98765 43210"
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
+                    className="w-full bg-background border border-border rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
@@ -521,7 +521,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-8 py-2.5 text-sm text-foreground outline-none focus:border-primary transition appearance-none cursor-pointer"
+                    className="w-full bg-background border border-border rounded-xl !pl-10 !pr-8 py-2.5 text-sm text-foreground outline-none focus:border-primary transition appearance-none cursor-pointer"
                   >
                     {GENDER_OPTIONS.map((g) => (
                       <option key={g} value={g} className="bg-background text-foreground">
@@ -548,7 +548,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                     value={formData.address}
                     onChange={handleChange}
                     placeholder="Near kalaram mandir, Samadhi ward, Chandrapur, Maharashtra, India"
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition resize-none"
+                    className="w-full bg-background border border-border rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition resize-none"
                   />
                 </div>
               </div>
@@ -587,7 +587,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                     name="education"
                     value={formData.education}
                     onChange={handleChange}
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-8 py-2.5 text-sm text-foreground outline-none focus:border-primary transition appearance-none cursor-pointer"
+                    className="w-full bg-background border border-border rounded-xl !pl-10 !pr-8 py-2.5 text-sm text-foreground outline-none focus:border-primary transition appearance-none cursor-pointer"
                   >
                     {EDUCATION_OPTIONS.map((edu) => (
                       <option key={edu} value={edu} className="bg-background text-foreground">
@@ -613,7 +613,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                     name="institution"
                     value={formData.institution}
                     onChange={handleChange}
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
+                    className="w-full bg-background border border-border rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
@@ -630,7 +630,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                     name="graduationYear"
                     value={formData.graduationYear}
                     onChange={handleChange}
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
+                    className="w-full bg-background border border-border rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
@@ -647,7 +647,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                     name="guardianName"
                     value={formData.guardianName}
                     onChange={handleChange}
-                    className="w-full bg-background border border-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
+                    className="w-full bg-background border border-border rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary transition"
                   />
                 </div>
               </div>
@@ -663,7 +663,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
                     type="text"
                     value={memberSinceStr}
                     disabled
-                    className="w-full bg-background/60 border border-border/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-muted-foreground outline-none cursor-not-allowed"
+                    className="w-full bg-background/60 border border-border/80 rounded-xl !pl-10 !pr-3.5 py-2.5 text-sm text-muted-foreground outline-none cursor-not-allowed"
                   />
                 </div>
               </div>

@@ -23,3 +23,11 @@ export const markAllNotificationsAsRead = async () => {
     const { data } = await api.patch("/notifications/read-all");
     return data.data;
 };
+
+/**
+ * Clear (delete) all of the current user's notifications
+ */
+export const clearAllNotifications = async () => {
+    const { data } = await api.delete("/notifications");
+    return data.data;
+};

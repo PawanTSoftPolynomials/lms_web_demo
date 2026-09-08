@@ -169,7 +169,7 @@ function MessagesPageContent() {
               placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-background border border-border rounded-xl pl-9 pr-4 py-2 text-xs text-foreground outline-none focus:border-indigo-500 focus:bg-card transition"
+              className="w-full bg-background border border-border rounded-xl !pl-9 !pr-4 py-2 text-xs text-foreground outline-none focus:border-indigo-500 focus:bg-card transition"
             />
           </div>
         </div>

@@ -16,7 +16,7 @@ export default function StudentStatCard({ stat, isLoading, variant = "desktop" }
         ) : (
           <p className="text-sm font-black text-foreground leading-none">{stat.value}</p>
         )}
-        <p className="text-[8.5px] text-muted-foreground font-semibold leading-tight mt-1">{stat.label}</p>
+        <p className="text-[10px] text-muted-foreground font-semibold leading-tight mt-1">{stat.label}</p>
       </div>
     );
   }
@@ -28,7 +28,7 @@ export default function StudentStatCard({ stat, isLoading, variant = "desktop" }
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="text-muted-foreground text-[9px] font-bold uppercase tracking-wider truncate">{stat.label}</p>
+        <p className="text-muted-foreground text-[10.5px] font-bold uppercase tracking-wider truncate">{stat.label}</p>
         {isLoading ? (
           <div className="h-5 w-10 bg-muted rounded animate-pulse mt-1.5" />
         ) : (
@@ -43,11 +43,11 @@ export default function StudentStatCard({ stat, isLoading, variant = "desktop" }
             />
           </div>
         ) : stat.href ? (
-          <Link href={stat.href} className="text-[9px] font-bold text-primary hover:text-orange-300 transition truncate block mt-1.5">
+          <Link href={stat.href} className="text-[10.5px] font-bold text-primary hover:text-orange-300 transition truncate block mt-1.5">
             {stat.hint} &rarr;
           </Link>
         ) : (
-          <p className="text-[9px] text-muted-foreground font-medium truncate mt-1.5">{stat.hint}</p>
+          <p className="text-[10.5px] text-muted-foreground font-medium truncate mt-1.5">{stat.hint}</p>
         )}
       </div>
     </div>

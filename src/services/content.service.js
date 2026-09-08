@@ -1,7 +1,9 @@
 import api from "@/lib/axios";
 
-export const getContents = async (topicId) => {
-  const response = await api.get(`/contents?topicId=${topicId}`);
+export const getContents = async (parent) => {
+  const { parentType, parentId } = parent || {};
+  const query = parentId ? `?${parentType}Id=${parentId}` : "";
+  const response = await api.get(`/contents${query}`);
   return response.data?.data ?? response.data ?? [];
 };
 

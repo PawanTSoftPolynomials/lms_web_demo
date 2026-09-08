@@ -12,7 +12,7 @@ import { useCreateContent, useUpdateContent, useDeleteContent } from "../content
 import { CellShell } from "../CellShell";
 import { CELL_TYPES } from "../cellTypes";
 import { getErrorMessage } from "../getErrorMessage";
-import type { CellActionProps, ContentRow, CreateCellFormProps } from "../types";
+import { getContentParent, toParentField, type CellActionProps, type ContentRow, type CreateCellFormProps } from "../types";
 
 const CELL_TYPE = CELL_TYPES.find((c) => c.id === "link")!;
 
@@ -86,7 +86,8 @@ export function LinkCell({
     try {
       await updateContent.mutateAsync({
         contentId: content.id,
-        contentData: { title, externalUrl, topicId: content.topicId },
+        contentData: { title, externalUrl },
+        parent: getContentParent(content),
       });
       setMode("view");
     } catch (error) {
@@ -103,7 +104,7 @@ export function LinkCell({
     if (!confirmed) return;
 
     try {
-      await deleteContent.mutateAsync({ contentId: content.id, topicId: content.topicId });
+      await deleteContent.mutateAsync({ contentId: content.id, parent: getContentParent(content) });
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to delete this link."), "error", "Delete failed");
     }
@@ -236,7 +237,7 @@ export function LinkCell({
   );
 }
 
-export function CreateLinkForm({ topicId, order, onCreated, onCancel }: CreateCellFormProps) {
+export function CreateLinkForm({ parent, order, onCreated, onCancel }: CreateCellFormProps) {
   const [title, setTitle] = useState("");
   const [externalUrl, setExternalUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -270,12 +271,12 @@ export function CreateLinkForm({ topicId, order, onCreated, onCancel }: CreateCe
   };
 
   const handleCreate = async () => {
-    if (!topicId) {
+    if (!parent?.parentId) {
       showToast("Please select or create a lesson in the left sidebar first.", "error", "Lesson Required");
       return;
     }
     try {
-      await createContent.mutateAsync({ topicId, type: "LINK", order, title, externalUrl });
+      await createContent.mutateAsync({ ...toParentField(parent), type: "LINK", order, title, externalUrl });
       onCreated();
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to add this link."), "error", "Add failed");

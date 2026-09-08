@@ -78,11 +78,16 @@ export default function CourseDetailsPage() {
   const { showToast } = useToast();
 
   // React Query Hooks
+  // This page renders the syllabus from useModules() below — `course.modules`
+  // was fetched and never read, meaning the entire tree (every content cell
+  // body, every quiz question and answer key) was transferred and discarded on
+  // every visit. Only course metadata and course-level `quizzes` are used here,
+  // and course-level quizzes are outside the omitted `modules` relation.
   const {
     data: course,
     isLoading: courseLoading,
     isError: courseError,
-  } = useInstructorCourse(courseId);
+  } = useInstructorCourse(courseId, { shallow: true });
 
   const {
     data: modules = [],
@@ -114,6 +119,7 @@ export default function CourseDetailsPage() {
   const [composeQuizId, setComposeQuizId] = useState(null);
   const [selectedQuizState, setSelectedQuizState] = useState(null);
   const [quizStartEditing, setQuizStartEditing] = useState(false);
+  const [pendingQuizOrder, setPendingQuizOrder] = useState(null);
   const [selectedCellId, setSelectedCellId] = useState(null);
 
   // Edit Mode for Metadata Headers
@@ -551,6 +557,9 @@ export default function CourseDetailsPage() {
 
   // Auto-open signal for Add Content picker
   const [autoOpenAddSignal, setAutoOpenAddSignal] = useState(0);
+  const [courseContentAutoOpenSignal, setCourseContentAutoOpenSignal] = useState(0);
+  const [moduleContentAutoOpenSignal, setModuleContentAutoOpenSignal] = useState(0);
+  const [lessonContentAutoOpenSignal, setLessonContentAutoOpenSignal] = useState(0);
 
   // Mobile Drawer State
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -797,7 +806,7 @@ export default function CourseDetailsPage() {
     setMobileSidebarOpen(false);
   };
 
-  const handleAddCourseQuiz = () => {
+  const handleAddCourseQuiz = (order) => {
     setComposeModuleId(null);
     setComposeLessonId(null);
     setComposeTopicId(null);
@@ -807,10 +816,11 @@ export default function CourseDetailsPage() {
     setComposerMode("quiz");
     setQuizStartEditing(true);
     setSelectedCellId(null);
+    setPendingQuizOrder(order ?? null);
     setMobileSidebarOpen(false);
   };
 
-  const handleAddModuleQuiz = (mod) => {
+  const handleAddModuleQuiz = (mod, order) => {
     const targetModuleId = mod?.id || mod?._id || composeModuleId;
     setComposeModuleId(targetModuleId);
     setComposeLessonId(null);
@@ -821,10 +831,11 @@ export default function CourseDetailsPage() {
     setComposerMode("quiz");
     setQuizStartEditing(true);
     setSelectedCellId(null);
+    setPendingQuizOrder(order ?? null);
     setMobileSidebarOpen(false);
   };
 
-  const handleAddLessonQuiz = (lesson, mod = null) => {
+  const handleAddLessonQuiz = (lesson, mod = null, order) => {
     const targetModuleId = mod?.id || mod?._id || composeModuleId;
     setComposeModuleId(targetModuleId || null);
     setComposeLessonId(lesson?.id || lesson?._id || null);
@@ -835,10 +846,11 @@ export default function CourseDetailsPage() {
     setComposerMode("quiz");
     setQuizStartEditing(true);
     setSelectedCellId(null);
+    setPendingQuizOrder(order ?? null);
     setMobileSidebarOpen(false);
   };
 
-  const handleAddTopicQuiz = (topic, lesson = null, mod = null) => {
+  const handleAddTopicQuiz = (topic, lesson = null, mod = null, order) => {
     const targetLessonId = lesson?.id || lesson?._id || composeLessonId;
     const targetModuleId = mod?.id || mod?._id || composeModuleId;
     setComposeModuleId(targetModuleId || null);
@@ -850,6 +862,7 @@ export default function CourseDetailsPage() {
     setComposerMode("quiz");
     setQuizStartEditing(true);
     setSelectedCellId(null);
+    setPendingQuizOrder(order ?? null);
     setMobileSidebarOpen(false);
   };
 
@@ -1078,8 +1091,10 @@ export default function CourseDetailsPage() {
             moduleId: composeModuleId || null,
             lessonId: composeLessonId || null,
             topicId: composeTopicId || null,
+            order: pendingQuizOrder ?? undefined,
             questions: updatedQuizData.questions || [],
           });
+          setPendingQuizOrder(null);
 
           if (updatedQuizData.questions?.length > 0) {
             try {
@@ -1234,8 +1249,9 @@ export default function CourseDetailsPage() {
       handleSelectQuiz(duplicatedQuiz, mod, lesson, topic, { startEditing: false });
     } else {
       try {
+        const { order, id: _copiedId, _id: _copiedMongoId, quizQuestions, ...quizFieldsToCopy } = quiz;
         await api.post("/quizzes", {
-          ...quiz,
+          ...quizFieldsToCopy,
           title: `${quiz.title || "Quiz"} (Copy)`,
           courseId,
           moduleId: mod?.id || null,
@@ -1384,6 +1400,22 @@ export default function CourseDetailsPage() {
     setComposerMode("topic");
     setAutoOpenAddSignal((n) => n + 1);
     setMobileSidebarOpen(false);
+  };
+
+  const handleAddContentToCourse = () => {
+    handleSelectCourseOverview();
+    setCourseContentAutoOpenSignal((n) => n + 1);
+  };
+
+  const handleAddContentToModule = (mod) => {
+    handleSelectModule(mod);
+    setModuleContentAutoOpenSignal((n) => n + 1);
+  };
+
+  const handleAddContentToLesson = (lesson, mod = null) => {
+    handleSelectLesson(lesson.id);
+    if (mod?.id) setComposeModuleId(mod.id);
+    setLessonContentAutoOpenSignal((n) => n + 1);
   };
 
   const handleEntityCreated = ({ entity, parentId, moduleId, created }) => {
@@ -1584,6 +1616,43 @@ export default function CourseDetailsPage() {
     } catch (err) {
       showToast("Failed to delete content", "error");
     }
+  };
+
+  // Course/Module/Lesson-level content cells are hidden while isDraftMode
+  // is true (see CourseOverviewView/ModuleOverviewView/LessonOverviewView),
+  // so these three sidebar handlers only ever need the live-API path —
+  // unlike handleDeleteContent above, no draftModules branch is needed.
+  const handleDeleteContentAtParent = async (e, content, parent) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this content?")) return;
+    try {
+      await deleteContentMutation.mutateAsync({ contentId: content.id, parent });
+      showToast("Content deleted successfully", "success");
+      if (selectedCellId === content.id) setSelectedCellId(null);
+    } catch (err) {
+      showToast("Failed to delete content", "error");
+    }
+  };
+
+  const handleDeleteCourseContent = (e, content) =>
+    handleDeleteContentAtParent(e, content, { parentType: "course", parentId: courseId });
+  const handleDeleteModuleContent = (e, content, mod) =>
+    handleDeleteContentAtParent(e, content, { parentType: "module", parentId: mod.id });
+  const handleDeleteLessonContent = (e, content, lesson) =>
+    handleDeleteContentAtParent(e, content, { parentType: "lesson", parentId: lesson.id });
+
+  const handleSelectCourseContent = (content) => {
+    handleSelectCourseOverview();
+    setSelectedCellId(content.id);
+  };
+  const handleSelectModuleContent = (content, mod) => {
+    handleSelectModule(mod);
+    setSelectedCellId(content.id);
+  };
+  const handleSelectLessonContent = (content, lesson, mod) => {
+    handleSelectLesson(lesson.id);
+    if (mod?.id) setComposeModuleId(mod.id);
+    setSelectedCellId(content.id);
   };
 
   const handleSaveCourse = async () => {
@@ -1839,6 +1908,13 @@ export default function CourseDetailsPage() {
             onSelectModule={handleSelectModule}
             onSelectTopic={handleSelectTopic}
             onSelectContent={handleSelectContent}
+            onSelectCourseContent={handleSelectCourseContent}
+            onSelectModuleContent={handleSelectModuleContent}
+            onSelectLessonContent={handleSelectLessonContent}
+            onDeleteCourseContent={handleDeleteCourseContent}
+            onDeleteModuleContent={handleDeleteModuleContent}
+            onDeleteLessonContent={handleDeleteLessonContent}
+            courseId={courseId}
             onAddModule={() => openEntityModal({ entity: "module", mode: "create", courseId })}
             onEditModule={(mod) => openEntityModal({ entity: "module", mode: "edit", entityData: mod })}
             onAddLesson={(targetModuleId) =>
@@ -1853,7 +1929,10 @@ export default function CourseDetailsPage() {
             onEditTopic={(topic, lessonId, moduleId) =>
               openEntityModal({ entity: "topic", mode: "edit", entityData: topic, parentId: lessonId, moduleId })
             }
-            onAddContent={handleAddContentFromSidebar}
+            onAddContentToTopic={handleAddContentFromSidebar}
+            onAddContentToCourse={handleAddContentToCourse}
+            onAddContentToModule={handleAddContentToModule}
+            onAddContentToLesson={handleAddContentToLesson}
             onDeleteLesson={handleDeleteLesson}
             onDeleteModule={handleDeleteModule}
             onDeleteTopic={handleDeleteTopic}
@@ -1924,7 +2003,11 @@ export default function CourseDetailsPage() {
                 modules={effectiveModules}
                 onSelectModule={handleSelectModule}
                 onSelectQuiz={handleSelectQuiz}
+                onAddQuiz={(order) => handleAddCourseQuiz(order)}
                 onAddModule={() => openEntityModal({ entity: "module", mode: "create", courseId })}
+                isDraftMode={isDraftMode}
+                contentAutoOpenSignal={courseContentAutoOpenSignal}
+                onContentAutoOpenConsumed={() => setCourseContentAutoOpenSignal(0)}
               />
             )}
 
@@ -1970,11 +2053,15 @@ export default function CourseDetailsPage() {
                 topics={composingLesson?.topics || []}
                 onSelectTopic={handleSelectTopic}
                 onAddTopic={() => openEntityModal({ entity: "topic", mode: "create", parentId: composeLessonId, moduleId: composeModuleId })}
-                onAddContent={handleAddContentFromSidebar}
+                onAddContentToTopic={handleAddContentFromSidebar}
                 onEditTopic={(topic) => openEntityModal({ entity: "topic", mode: "edit", entityId: topic.id, initialData: topic, parentId: composeLessonId, moduleId: composeModuleId })}
                 onDeleteTopic={(e, topic, lId) => handleDeleteTopic(e, topic, lId || composeLessonId)}
                 parentModule={activeModuleObj}
                 onSelectLesson={handleSelectLesson}
+                isDraftMode={isDraftMode}
+                contentAutoOpenSignal={lessonContentAutoOpenSignal}
+                onContentAutoOpenConsumed={() => setLessonContentAutoOpenSignal(0)}
+                onAddQuiz={(order) => handleAddLessonQuiz(composingLesson, composingModule, order)}
               />
             )}
 
@@ -1989,16 +2076,21 @@ export default function CourseDetailsPage() {
                 onDeleteLesson={handleDeleteLesson}
                 allModules={effectiveModules}
                 onSelectModule={handleSelectModule}
+                isDraftMode={isDraftMode}
+                contentAutoOpenSignal={moduleContentAutoOpenSignal}
+                onContentAutoOpenConsumed={() => setModuleContentAutoOpenSignal(0)}
+                onAddQuiz={(order) => handleAddModuleQuiz(activeModuleObj, order)}
               />
             )}
 
             {composerMode === "topic" && (
               <LessonComposerPanel
-                topicId={composeTopicId}
+                parent={{ parentType: "topic", parentId: composeTopicId }}
                 selectedCellId={selectedCellId}
                 onSelectCell={setSelectedCellId}
                 autoOpenAddSignal={autoOpenAddSignal}
-                onAddQuiz={composingTopic ? () => handleAddTopicQuiz(composingTopic, composingLesson, composingModule) : undefined}
+                onAutoOpenConsumed={() => setAutoOpenAddSignal(0)}
+                onAddQuiz={composingTopic ? (order) => handleAddTopicQuiz(composingTopic, composingLesson, composingModule, order) : undefined}
                 draftContents={isDraftMode ? composingTopic?.contents || [] : undefined}
                 isDraftMode={isDraftMode}
                 onUpdateDraftContents={(newContents) => {

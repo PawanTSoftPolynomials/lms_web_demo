@@ -22,16 +22,16 @@ import { CreateVideoForm } from "./cells/VideoCell";
 import { CreateFileForm } from "./cells/DocumentCell";
 import { CreateInteractiveForm } from "./cells/InteractiveCell";
 import type { CellTypeId } from "./cellTypes";
-import type { CreateCellFormProps } from "./types";
+import type { ContentParent, CreateCellFormProps } from "./types";
 
 interface AddCellModalProps {
-  topicId: string;
+  parent: ContentParent;
   /** Pre-computed `max(existing order) + 1`, shared by whichever type ends up being added. */
   order: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Picking the Quiz tile hands off here instead of opening an in-panel form — a Quiz isn't a Content row (see cellTypes.ts). Omit to hide the Quiz option. */
-  onAddQuiz?: () => void;
+  /** Picking the Quiz tile hands off here instead of opening an in-panel form — a Quiz isn't a Content row (see cellTypes.ts). Receives the same insertion `order` the picker would otherwise use for a Content row, so a quiz added via "Add Above"/"Add Below" lands at that position. Omit to hide the Quiz option. */
+  onAddQuiz?: (order: number) => void;
 }
 
 /** Form definitions for simple cell types */
@@ -87,7 +87,7 @@ export const VISIBLE_CELL_OPTIONS = [
   },
 ];
 
-export function AddCellModal({ topicId, order, open, onOpenChange, onAddQuiz }: AddCellModalProps) {
+export function AddCellModal({ parent, order, open, onOpenChange, onAddQuiz }: AddCellModalProps) {
   const [selectedId, setSelectedId] = useState<CellTypeId | null>(null);
   
   // Document 2-step choice: PDF vs DOC/DOCX
@@ -122,7 +122,7 @@ export function AddCellModal({ topicId, order, open, onOpenChange, onAddQuiz }: 
 
   const handleSelectOption = (id: CellTypeId) => {
     if (id === "quiz") {
-      onAddQuiz?.();
+      onAddQuiz?.(order);
       close();
       return;
     }
@@ -252,12 +252,12 @@ export function AddCellModal({ topicId, order, open, onOpenChange, onAddQuiz }: 
           </>
         ) : SimpleForm ? (
           <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-            <SimpleForm topicId={topicId} order={order} onCreated={close} onCancel={() => setSelectedId(null)} />
+            <SimpleForm parent={parent} order={order} onCreated={close} onCancel={() => setSelectedId(null)} />
           </div>
         ) : isDocument ? (
           <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
             <CreateFileForm
-              topicId={topicId}
+              parent={parent}
               order={order}
               cellType={{
                 id: "document",
@@ -275,7 +275,7 @@ export function AddCellModal({ topicId, order, open, onOpenChange, onAddQuiz }: 
         ) : isPresentation ? (
           <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
             <CreateFileForm
-              topicId={topicId}
+              parent={parent}
               order={order}
               cellType={{
                 id: "presentation",

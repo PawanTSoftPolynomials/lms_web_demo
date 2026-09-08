@@ -20,10 +20,10 @@ export function useUpdateContent() {
             ),
 
         onSuccess: (_, variables) => {
-            // refetchType: "all" forces an immediate background refetch even
-            // for queries with no currently-mounted observer — otherwise the
-            // data is only marked stale and won't actually refresh until
-            // that page is hard-reloaded.
+            const parentType = variables.parent?.parentType
+                ?? (variables.contentData?.topicId ? "topic" : undefined);
+            const parentId = variables.parent?.parentId ?? variables.contentData?.topicId;
+
             queryClient.invalidateQueries({
                 queryKey: [
                     QUERY_KEYS.CONTENT,
@@ -35,7 +35,8 @@ export function useUpdateContent() {
             queryClient.invalidateQueries({
                 queryKey: [
                     QUERY_KEYS.CONTENTS,
-                    variables.contentData.topicId,
+                    parentType,
+                    parentId,
                 ],
                 refetchType: "all",
             });

@@ -188,7 +188,10 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
   const { data: quizData } = useQuiz(quizId, { enabled: !!quizId });
   
   const courseId = parsedIds.courseId || moduleData?.courseId || lessonData?.module?.courseId || quizData?.courseId;
-  const { data: course } = useInstructorCourse(courseId, { enabled: !!courseId });
+  // Breadcrumbs read only course.title / course.id, so this skips the whole
+  // modules -> lessons -> topics -> contents tree. The navbar renders on every
+  // instructor content page, so this was the widest-reaching over-fetch.
+  const { data: course } = useInstructorCourse(courseId, { shallow: true });
 
   // Generate breadcrumb objects dynamically
   const getBreadcrumbs = () => {

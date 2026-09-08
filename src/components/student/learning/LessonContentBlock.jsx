@@ -11,7 +11,7 @@ export default function LessonContentBlock({ item, videoPlayerRef, ...videoPlaye
   // leftover empty space below it that this was written to avoid for video.
   const isVideo = item?.type === "VIDEO";
   return (
-    <div data-topic-anchor={item?.topicId || undefined} className={isVideo ? "h-full" : undefined}>
+    <div className={isVideo ? "h-full" : undefined}>
       <VideoPlayer ref={videoPlayerRef} content={item} {...videoPlayerProps} />
     </div>
   );

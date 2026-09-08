@@ -39,7 +39,7 @@ export default function FeedbackPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-black text-foreground tracking-tight">Feedback</h1>
+        <h1 className="text-xl font-black text-foreground tracking-tight">Reviews</h1>
         <p className="text-xs text-muted-foreground mt-1">Student ratings and reviews across your courses.</p>
       </div>
 

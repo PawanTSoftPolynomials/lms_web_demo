@@ -51,14 +51,23 @@ export const getInstructorCoursesTable = async (filters = {}) => {
 };
 
 /**
- * Get Course By ID
+ * Get Course By ID.
+ *
+ * @param {string}  courseId
+ * @param {object}  [options]
+ * @param {boolean} [options.shallow=false]
+ *   Request course-level data only (no modules -> lessons -> topics -> contents
+ *   tree, no per-level quiz questions). Use it wherever the view renders course
+ *   metadata but not the syllabus — the full tree carries every content cell
+ *   body and every quiz answer key. Defaults to the full payload.
  */
 export const getCourseById = async (
-    courseId
+    courseId,
+    { shallow = false } = {}
 ) => {
     try {
         const { data } = await api.get(
-            `/courses/${courseId}`
+            `/courses/${courseId}${shallow ? "?include=meta" : ""}`
         );
         return data.data ?? data;
     } catch (error) {

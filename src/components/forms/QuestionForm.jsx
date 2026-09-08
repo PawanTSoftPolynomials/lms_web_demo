@@ -56,7 +56,10 @@ export default function QuestionForm({
   // Queries for dynamic breadcrumbs & title headers
   const { data: quiz } = useQuiz(quizId, { enabled: !!quizId });
   const finalCourseId = courseId || quiz?.courseId;
-  useInstructorCourse(finalCourseId, { enabled: !!finalCourseId });
+  // Result is intentionally unused — this only warms the cache the navbar's
+  // breadcrumb reads. Shallow, so it warms the same key the navbar now uses
+  // and doesn't pull the full course tree to render a title.
+  useInstructorCourse(finalCourseId, { shallow: true });
 
   // Form State
   const [formData, setFormData] = useState(INITIAL_FORM);

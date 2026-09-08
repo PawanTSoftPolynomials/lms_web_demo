@@ -113,7 +113,7 @@ export default function WorkUploadDocumentsPage() {
     <Card className="mx-auto max-w-4xl bg-card border border-border p-6 sm:p-8 rounded-2xl shadow-2xl space-y-6">
       <div>
         <h1 className="text-3xl font-black text-foreground tracking-tight">Upload Documents</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Attach PDFs, presentations, documents, archives, or videos to a topic.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Attach PDFs, presentations, documents, or archives to a topic.</p>
       </div>
 
       <CourseModuleLessonSelect
@@ -137,8 +137,8 @@ export default function WorkUploadDocumentsPage() {
 
           <label className="flex items-center gap-2 w-fit px-4 py-2.5 rounded-xl border border-dashed border-transparent bg-background text-xs text-foreground hover:border-primary cursor-pointer transition">
             {uploading ? <Loader2 size={14} className="animate-spin" /> : <UploadCloud size={14} />}
-            {uploading ? "Uploading..." : "Choose files (PDF, PPT, DOCX, ZIP, Video)"}
-            <input type="file" multiple className="hidden" onChange={handleUpload} disabled={uploading} accept=".pdf,.ppt,.pptx,.doc,.docx,.zip,.mp4,.mov,.webm" />
+            {uploading ? "Uploading..." : "Choose files (PDF, PPT, DOCX, ZIP)"}
+            <input type="file" multiple className="hidden" onChange={handleUpload} disabled={uploading} accept=".pdf,.ppt,.pptx,.doc,.docx,.zip" />
           </label>
 
           <DataTable columns={columns} rows={contents} isLoading={isLoading} emptyLabel="No documents uploaded to this topic yet." />

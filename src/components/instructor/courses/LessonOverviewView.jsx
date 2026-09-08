@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useState } from "react";
 import {
   BookOpen,
   Plus,
@@ -11,6 +12,7 @@ import {
   Layers
 } from "lucide-react";
 import { CourseComposerItemCard } from "./CourseComposerItemCard";
+import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
 
 export function LessonOverviewView({
   lesson,
@@ -23,13 +25,25 @@ export function LessonOverviewView({
   topics = [],
   onSelectTopic,
   onAddTopic,
-  onAddContent,
+  onAddContentToTopic,
   onEditTopic,
   onDuplicateTopic,
   onDeleteTopic,
   parentModule = null,
   onSelectLesson,
+  isDraftMode = false,
+  role = "INSTRUCTOR",
+  contentAutoOpenSignal: externalContentAutoOpenSignal = 0,
+  onContentAutoOpenConsumed,
+  onAddQuiz,
 }) {
+  const [localContentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
+  const contentAutoOpenSignal = externalContentAutoOpenSignal + localContentAutoOpenSignal;
+  const handleContentAutoOpenConsumed = () => {
+    setContentAutoOpenSignal(0);
+    onContentAutoOpenConsumed?.();
+  };
+
   if (!lesson) return null;
 
   // Resolve ordering of lessons inside the parent module
@@ -142,6 +156,29 @@ export function LessonOverviewView({
         )}
       </div>
 
+      {/* Lesson-Level Content Cells */}
+      {role === "INSTRUCTOR" && !isDraftMode && (
+        <div className="pt-4 border-t border-border space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-foreground">Lesson Content</h3>
+            <button
+              type="button"
+              onClick={() => setContentAutoOpenSignal((n) => n + 1)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-purple-500/40 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 text-xs font-bold transition cursor-pointer"
+            >
+              <Plus size={14} />
+              Add Content
+            </button>
+          </div>
+          <LessonComposerPanel
+            parent={{ parentType: "lesson", parentId: lesson.id }}
+            autoOpenAddSignal={contentAutoOpenSignal}
+            onAutoOpenConsumed={handleContentAutoOpenConsumed}
+            onAddQuiz={onAddQuiz}
+          />
+        </div>
+      )}
+
       {/* TOPICS SECTION (SMALL CARDS GRID MATCHING LESSONS) */}
       <div className="pt-4 border-t border-border space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
@@ -199,7 +236,7 @@ export function LessonOverviewView({
                   label: "Add Content",
                   icon: Plus,
                   highlight: true,
-                  onSelect: () => onAddContent?.(topic.id, lesson.id, parentModule?.id),
+                  onSelect: () => onAddContentToTopic?.(topic.id, lesson.id, parentModule?.id),
                 },
                 onDuplicateTopic && {
                   label: "Duplicate Topic",

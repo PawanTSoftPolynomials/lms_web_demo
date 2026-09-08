@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+    experimental: {
+        // Without this, Turbopack/webpack was emitting a separate ~330KB
+        // recharts chunk per route that imports it (verified via `next build`:
+        // 4 identical 329,038-byte chunks) instead of one shared chunk.
+        optimizePackageImports: ["recharts"],
+    },
     images: {
         remotePatterns: [
             {
