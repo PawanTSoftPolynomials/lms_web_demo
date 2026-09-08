@@ -75,6 +75,8 @@ export const QUERY_KEYS = {
 
     INSTRUCTOR_COURSES: "instructor-courses",
     INSTRUCTOR_COURSES_TABLE: "instructor-courses-table",
+    /** Server-computed summary counts (GET /courses/stats/mine) — never a list. */
+    INSTRUCTOR_COURSE_STATS: "instructor-course-stats",
     INSTRUCTOR_COURSE: "instructor-course",
 
     MODULES: "modules",

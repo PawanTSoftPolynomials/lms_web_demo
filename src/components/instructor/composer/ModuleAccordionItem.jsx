@@ -190,18 +190,21 @@ export default function ModuleAccordionItem({
               />
             </div>
           ) : (
-            <div className="flex items-center justify-between pt-1 border-t border-border/40">
+            // Both of these perform an action, so they carry a button surface
+            // rather than sitting as plain muted text the way the lesson names
+            // above them (which navigate) do.
+            <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-border/40">
               <button
                 type="button"
                 onClick={() => setAddingLesson(true)}
-                className="flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                className="flex items-center gap-1.5 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-foreground hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
               >
                 <Plus size={12} /> Add Lesson
               </button>
               <button
                 type="button"
                 onClick={() => onOpenAiAssistant && onOpenAiAssistant("LESSON", { moduleId: mod.id, moduleTitle: mod.title })}
-                className="flex items-center gap-1 px-2 py-1 text-xs font-semibold text-primary hover:text-orange-300"
+                className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors cursor-pointer"
               >
                 <Sparkles size={11} /> AI Lesson
               </button>
@@ -227,7 +230,7 @@ export default function ModuleAccordionItem({
             <button
               type="button"
               onClick={() => setEditOpen(false)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground hover:text-foreground bg-muted hover:bg-slate-750 border border-transparent/60 rounded-lg transition"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground bg-muted hover:bg-border border border-border rounded-lg transition cursor-pointer"
             >
               <X size={12} /> Cancel
             </button>
@@ -235,7 +238,7 @@ export default function ModuleAccordionItem({
               type="button"
               onClick={saveEdit}
               disabled={updateModule.isPending}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground bg-emerald-600 hover:bg-emerald-700 rounded-lg transition disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 rounded-lg transition disabled:opacity-50 cursor-pointer"
             >
               <Check size={12} /> {updateModule.isPending ? "Saving…" : "Done"}
             </button>

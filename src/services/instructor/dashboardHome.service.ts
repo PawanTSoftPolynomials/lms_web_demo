@@ -264,18 +264,21 @@ export async function getDashboardSummary(): Promise<RawDashboardSummary | null>
  * live inside Course Cards / Analytics instead, not here.
  */
 export function deriveDashboardStats(raw: {
-  courses: RawCourse[];
+  /** Server-computed counts (GET /courses/stats/mine) — not list lengths. */
+  courseCount: number;
+  draftCourseCount?: number;
+  studentCount: number;
+  activeQuizCount: number;
   assignments: RawAssignment[];
   calendarEvents: RawCalendarEvent[];
   notifications: RawNotification[];
   conversations: RawConversation[];
-  quizzes?: RawQuiz[];
 }): DashboardStat[] {
-  const totalCourses = raw.courses.length;
-  const draftCourses = raw.courses.filter(isDraftCourse).length;
-  const students = raw.courses.reduce((sum, c) => sum + (c._count?.enrollments ?? c.studentsCount ?? 0), 0);
+  const totalCourses = raw.courseCount;
+  const draftCourses = raw.draftCourseCount ?? 0;
+  const students = raw.studentCount;
+  const activeQuizzes = raw.activeQuizCount;
   const pendingReviews = raw.assignments.reduce((sum, a) => sum + (a.pendingSubmissionsCount ?? 0), 0);
-  const activeQuizzes = raw.quizzes ? raw.quizzes.filter(q => q.isPublished).length : 0;
 
   const { count: todaysClassesCount, next: nextClass } = deriveTodaysClassesSummary(raw.calendarEvents);
   const unreadMessages = raw.conversations.reduce((sum, c) => sum + (c.unread ?? 0), 0);

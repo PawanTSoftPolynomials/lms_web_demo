@@ -79,11 +79,16 @@ export default function CourseDetailsPage() {
   const { showToast } = useToast();
 
   // React Query Hooks
+  // This page renders the syllabus from useModules() below — `course.modules`
+  // was fetched and never read, meaning the entire tree (every content cell
+  // body, every quiz question and answer key) was transferred and discarded on
+  // every visit. Only course metadata and course-level `quizzes` are used here,
+  // and course-level quizzes are outside the omitted `modules` relation.
   const {
     data: course,
     isLoading: courseLoading,
     isError: courseError,
-  } = useInstructorCourse(courseId);
+  } = useInstructorCourse(courseId, { shallow: true });
 
   const {
     data: modules = [],

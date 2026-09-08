@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import dynamic from "next/dynamic";
-import useAuth from "@/hooks/useAuth";
 import { TooltipProvider } from "@/components/ui/shadcn/tooltip";
 
 // import { WelcomeHeroCard } from "@/components/instructor/dashboard/WelcomeHeroCard";
@@ -22,23 +20,7 @@ import {
   useRecentSubmissions,
   useGradeDistribution,
   useEngagementAnalytics,
-  useNeedsAttention,
-  useAnnouncementsFeed,
 } from "@/hooks/queries/instructor/useDashboardHome";
-import { useMyLessonQueries } from "@/hooks/queries/instructor/useLessonQueries";
-import {
-  ChevronRight,
-  Radio,
-  Plus,
-  FolderPlus,
-  Video,
-  Megaphone,
-  BookOpen,
-  Users,
-  CalendarClock,
-  ClipboardCheck,
-  GraduationCap,
-} from "lucide-react";
 
 // Dynamically imported so recharts is bundled once via this shared
 // dynamic() boundary instead of duplicated into this route's own chunk.
@@ -48,9 +30,12 @@ const PerformancePieChart = dynamic(
 );
 
 export default function InstructorDashboardHomePage() {
-  const { user } = useAuth();
-
-  // Data fetching
+  // Data fetching.
+  // useNeedsAttention / useAnnouncementsFeed / useMyLessonQueries were called
+  // here but their results were never read by any JSX below. Between them they
+  // cost three requests per dashboard load — including GET /modules, which
+  // returns every module -> lesson -> topic for all of the instructor's courses
+  // with no pagination, making it the heaviest payload on the page.
   const stats = useDashboardStats();
   const schedule = useUpcomingClasses();
   const activities = useRecentActivities();
@@ -58,9 +43,6 @@ export default function InstructorDashboardHomePage() {
   const submissions = useRecentSubmissions();
   const grades = useGradeDistribution();
   const engagement = useEngagementAnalytics();
-  const needsAttention = useNeedsAttention();
-  const announcements = useAnnouncementsFeed();
-  const qa = useMyLessonQueries();
 
   // Extract needed KPIs from the stats payload
   const totalCourses = stats.data?.find(s => s.id === "active-courses")?.value || 0;

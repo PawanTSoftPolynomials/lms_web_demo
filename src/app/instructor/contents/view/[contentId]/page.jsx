@@ -106,7 +106,8 @@ export default function ContentDetailsPage() {
   const moduleId = params.moduleId || lesson?.moduleId;
   const courseId = params.courseId || moduleData?.courseId;
 
-  const { data: course }       = useInstructorCourse(courseId, { enabled: !!courseId });
+  // Only course.title is rendered here, so the syllabus tree is skipped.
+  const { data: course }       = useInstructorCourse(courseId, { shallow: true });
   const { data: contents = [] }= useContents(topicId, { enabled: !!topicId });
   const deleteContentMutation  = useDeleteContent();
 
