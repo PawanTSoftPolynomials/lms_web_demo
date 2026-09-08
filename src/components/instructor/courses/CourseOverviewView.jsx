@@ -4,7 +4,6 @@ import { useState } from "react";
 import { UploadButton } from "@/components/instructor/courses/UploadButton";
 import { getDisplayUrl } from "@/lib/blob";
 import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
-import InstructorStudentProgressWidget from "@/components/instructor/courses/InstructorStudentProgressWidget";
 
 export function CourseOverviewView({
   course,
@@ -292,13 +291,6 @@ export function CourseOverviewView({
                       );
                     })}
                   </div>
-                </div>
-              )}
-
-              {/* Instructor Student Progress Analytics Widget */}
-              {role === "INSTRUCTOR" && course?.id && (
-                <div className="pt-4 border-t border-border/80">
-                  <InstructorStudentProgressWidget courseId={course.id} />
                 </div>
               )}
 

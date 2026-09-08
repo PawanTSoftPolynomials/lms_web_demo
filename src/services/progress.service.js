@@ -23,18 +23,20 @@ export const completeLesson = async (lessonId, completed = true) => {
 };
 
 /**
- * Fetch detailed progress for a course (Student)
+ * Fetch detailed progress for a course (Student or Instructor viewing a student)
  */
-export const getCourseProgress = async (courseId) => {
-  const { data } = await api.get(`/progress/courses/${courseId}`);
+export const getCourseProgress = async (courseId, studentId = null) => {
+  const url = studentId ? `/progress/courses/${courseId}?studentId=${studentId}` : `/progress/courses/${courseId}`;
+  const { data } = await api.get(url);
   return data.data ?? data;
 };
 
 /**
- * Fetch overall progress across enrolled courses (Student)
+ * Fetch overall progress across enrolled courses (Student or Instructor viewing a student)
  */
-export const getOverallProgress = async () => {
-  const { data } = await api.get("/progress");
+export const getOverallProgress = async (studentId = null) => {
+  const url = studentId ? `/progress?studentId=${studentId}` : "/progress";
+  const { data } = await api.get(url);
   return data.data ?? data;
 };
 
