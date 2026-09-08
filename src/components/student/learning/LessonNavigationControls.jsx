@@ -1,8 +1,8 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-// Previous/Complete/Next controls, generalized over the navigation unit via
+// Previous/Next controls, generalized over the navigation unit via
 // `unitLabel` ("Topic" for the primary topic-scoped pathway, "Lesson" for
 // the zero-Topic fallback) so both callers share one component instead of
 // forking near-identical copies. `variant="compact"` is the mobile row
@@ -16,11 +16,42 @@ export default function LessonNavigationControls({
   nextItem,
   nextGroupTitle,
   currentTitle,
-  isCompleted,
   onSelectPrevious,
   onSelectNext,
-  onMarkComplete,
 }) {
+  if (variant === "corners") {
+    // Floats over the content it navigates rather than sitting in its own
+    // bar, so each button carries its own solid/blurred chip — legible over
+    // arbitrary scrolled content (video, text, images) underneath it.
+    return (
+      <div className="w-full flex items-center justify-between gap-2">
+        <button
+          type="button"
+          disabled={!previousItem}
+          onClick={onSelectPrevious}
+          className={`pointer-events-auto flex items-center gap-1 px-3 py-1.5 min-h-[36px] rounded-full border border-border bg-card/90 backdrop-blur-sm shadow-md font-bold text-[10px] uppercase tracking-wide text-foreground hover:border-primary hover:text-primary transition cursor-pointer ${
+            !previousItem ? "opacity-30 cursor-not-allowed hover:border-border hover:text-foreground" : ""
+          }`}
+        >
+          <ChevronLeft size={14} />
+          <span>Prev</span>
+        </button>
+
+        <button
+          type="button"
+          disabled={!nextItem}
+          onClick={onSelectNext}
+          className={`pointer-events-auto flex items-center gap-1 px-3 py-1.5 min-h-[36px] rounded-full bg-primary hover:bg-orange-600 shadow-md font-bold text-[10px] uppercase tracking-wide text-slate-950 transition cursor-pointer ${
+            !nextItem ? "opacity-40 cursor-not-allowed bg-primary/40 text-muted-foreground" : ""
+          }`}
+        >
+          <span>Next</span>
+          <ChevronRight size={14} />
+        </button>
+      </div>
+    );
+  }
+
   if (variant === "compact") {
     return (
       <div className="flex items-center gap-1.5 xl:hidden">
@@ -34,20 +65,6 @@ export default function LessonNavigationControls({
         >
           <ChevronLeft size={14} />
           <span>Prev</span>
-        </button>
-
-        <button
-          type="button"
-          disabled={isCompleted}
-          onClick={onMarkComplete}
-          className={`relative flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-xl border font-bold text-[10px] uppercase tracking-wide transition before:content-[''] before:absolute before:-inset-y-[8px] before:inset-x-0 ${
-            isCompleted
-              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 cursor-default"
-              : "border-emerald-500/30 text-emerald-400 hover:border-emerald-400 hover:text-emerald-300 cursor-pointer bg-transparent"
-          }`}
-        >
-          <CheckCircle2 size={14} />
-          <span>{isCompleted ? "Completed" : "Complete"}</span>
         </button>
 
         <button

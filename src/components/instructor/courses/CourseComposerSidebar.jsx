@@ -211,7 +211,6 @@ function TopicContentRows({
   onSelectContent,
   onDeleteContent,
   role = "INSTRUCTOR",
-  completedLessonIds = [],
   isDraftMode = false,
 }) {
   const { data: apiContents = [], isLoading: isApiLoading, isError: isApiError } = useContents(isDraftMode ? "" : topic.id);
@@ -310,8 +309,6 @@ function TopicContentRows({
   );
 }
 
-import { CheckCircle2, Lock } from "lucide-react";
-
 export function CourseComposerSidebar({
   modules = [],
   courseQuizzes = [],
@@ -347,7 +344,6 @@ export function CourseComposerSidebar({
   onDeleteTopic,
   onDeleteContent,
   role = "INSTRUCTOR",
-  completedLessonIds = [],
   isDraftMode = false,
 }) {
   const [expandedModules, setExpandedModules] = useState({});
@@ -678,52 +674,36 @@ export function CourseComposerSidebar({
                         const lessonHasActiveChild = !isLessonActive && composeLessonId === lesson.id;
                         const lessonTopics = lesson.topics || [];
                         const lessonQuizzes = lesson.quizzes || [];
-                        const isCompleted = completedLessonIds.includes(lesson.id);
-                        const isLessonLocked = role === "STUDENT" && Boolean(lesson.locked);
 
                         return (
                           <div key={lesson.id}>
                             {/* Lesson Row */}
                             <div
-                              className={`group/lesson flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg transition-colors border-l-2 ${
-                                isLessonLocked
-                                  ? "cursor-not-allowed opacity-50 border-transparent text-muted-foreground"
-                                  : "cursor-pointer"
-                              } ${
-                                isLessonLocked
-                                  ? ""
-                                  : isLessonActive
+                              className={`group/lesson flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg transition-colors border-l-2 cursor-pointer ${
+                                isLessonActive
                                   ? "bg-primary/15 border-primary text-primary font-bold"
                                   : lessonHasActiveChild
                                   ? "bg-background/30 border-primary/30 text-foreground"
                                   : "border-transparent text-muted-foreground hover:text-slate-50 hover:bg-background/50"
                               }`}
-                              onClick={() => !isLessonLocked && onSelectLesson(lesson.id)}
-                              title={isLessonLocked ? "Complete the previous lesson to unlock" : undefined}
+                              onClick={() => onSelectLesson(lesson.id)}
                             >
                               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    if (!isLessonLocked) toggleLesson(lesson.id);
+                                    toggleLesson(lesson.id);
                                   }}
                                   className="p-0.5 text-muted-foreground hover:text-slate-50 transition cursor-pointer shrink-0"
                                   aria-label={lessonOpen ? "Collapse lesson" : "Expand lesson"}
-                                  disabled={isLessonLocked}
                                 >
                                   <ChevronRight
                                     size={12}
                                     className={`transition-transform duration-200 ${lessonOpen ? "rotate-90 text-primary" : ""}`}
                                   />
                                 </button>
-                                {isLessonLocked ? (
-                                  <Lock size={12} className="shrink-0 text-muted-foreground" />
-                                ) : isCompleted ? (
-                                  <CheckCircle2 size={12} className="shrink-0 text-emerald-400" />
-                                ) : (
-                                  <BookOpen size={12} className={`shrink-0 ${isLessonActive ? "text-primary" : "text-muted-foreground"}`} />
-                                )}
+                                <BookOpen size={12} className={`shrink-0 ${isLessonActive ? "text-primary" : "text-muted-foreground"}`} />
                                 <span className="text-[8.5px] font-black text-slate-600 tabular-nums shrink-0">
                                   L{lIdx + 1}
                                 </span>
@@ -856,11 +836,7 @@ export function CourseComposerSidebar({
                                                 className={`transition-transform duration-200 ${topicOpen ? "rotate-90 text-primary" : ""}`}
                                               />
                                             </button>
-                                            {topic.completed ? (
-                                              <CheckCircle2 size={12} className="shrink-0 text-emerald-400" />
-                                            ) : (
-                                              <TopicIcon size={12} className={`shrink-0 ${isTopicActive ? "text-primary" : topicMeta.color}`} />
-                                            )}
+                                            <TopicIcon size={12} className={`shrink-0 ${isTopicActive ? "text-primary" : topicMeta.color}`} />
                                             <span className="truncate text-[11px] leading-snug" title={topic.title}>
                                               {displayTitle}
                                             </span>

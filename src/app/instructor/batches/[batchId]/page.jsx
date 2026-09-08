@@ -24,13 +24,10 @@ import {
   Link2,
   BookOpenCheck,
   UserCheck,
-  UserX,
   BookOpen,
   Plus,
   Calendar,
-  TrendingUp,
   Flame,
-  AlertTriangle,
   Pencil,
   Eye,
 } from "lucide-react";
@@ -62,13 +59,6 @@ const TrendSparkline = dynamic(() => import("@/components/instructor/batches/Tre
   loading: () => <div className="h-16 animate-pulse bg-muted/50 rounded-xl" />,
 });
 
-const STUDENT_STATUS_STYLES = {
-  "Top Performer": "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  "On Track": "bg-sky-500/10 text-sky-400 border-sky-500/20",
-  Struggling: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-  "Not Started": "bg-muted text-muted-foreground border-transparent",
-};
-
 const BATCH_STATUS_STYLES = {
   ACTIVE: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   COMPLETED: "bg-sky-500/10 text-sky-400 border-sky-500/20",
@@ -76,7 +66,6 @@ const BATCH_STATUS_STYLES = {
 };
 
 const ACTIVITY_ICON = {
-  LESSON_COMPLETED: { icon: CheckCircle2, color: "text-emerald-400" },
   ASSIGNMENT_SUBMITTED: { icon: Upload, color: "text-sky-400" },
   QUIZ_SCORED: { icon: Award, color: "text-primary" },
 };
@@ -139,15 +128,6 @@ function SummaryTile({ icon: Icon, label, value, color }) {
 }
 
 function activityText(item) {
-  if (item.type === "LESSON_COMPLETED") {
-    return (
-      <>
-        <span className="font-bold text-foreground">{item.studentName}</span> completed{" "}
-        <span className="text-foreground">{item.title}</span>
-        {item.subtitle ? <span className="text-muted-foreground"> in {item.subtitle}</span> : null}
-      </>
-    );
-  }
   if (item.type === "ASSIGNMENT_SUBMITTED") {
     return (
       <>
@@ -586,18 +566,6 @@ export default function BatchDetailPage() {
       ),
     },
     {
-      key: "progress",
-      header: "Progress",
-      render: (row) => (
-        <div className="flex items-center gap-2 min-w-[100px]">
-          <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
-            <div className="h-full rounded-full bg-gradient-to-r from-orange-500 to-pink-500" style={{ width: `${row.progress}%` }} />
-          </div>
-          <span className="text-[10.5px] font-bold text-foreground w-8 text-right">{row.progress}%</span>
-        </div>
-      ),
-    },
-    {
       key: "attendanceRate",
       header: "Attendance",
       align: "center",
@@ -608,15 +576,6 @@ export default function BatchDetailPage() {
       header: "Quiz Avg",
       align: "center",
       render: (row) => (row.quizAverage != null ? `${row.quizAverage}%` : "N/A"),
-    },
-    {
-      key: "status",
-      header: "Status",
-      render: (row) => (
-        <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${STUDENT_STATUS_STYLES[row.status] || STUDENT_STATUS_STYLES["Not Started"]}`}>
-          {row.status}
-        </span>
-      ),
     },
     {
       key: "actions",
@@ -702,14 +661,6 @@ export default function BatchDetailPage() {
           bottomText={dashboard ? `${dashboard.studentSummary.active} active` : "Enrolled in batch"}
         />
         <KpiTile
-          label="Completion"
-          value={`${performanceBatch?.completion ?? 0}%`}
-          icon={TrendingUp}
-          iconBg="bg-primary/10"
-          iconColor="text-primary"
-          bottomText="Overall progress"
-        />
-        <KpiTile
           label="Avg Quiz"
           value={performanceBatch?.avgQuizScore != null ? `${performanceBatch.avgQuizScore}%` : "N/A"}
           icon={Award}
@@ -725,14 +676,6 @@ export default function BatchDetailPage() {
           iconColor="text-rose-400"
           bottomText="Batch health"
         />
-        <KpiTile
-          label="Need Help"
-          value={dashboard?.studentSummary.needHelp ?? 0}
-          icon={AlertTriangle}
-          iconBg="bg-amber-500/10"
-          iconColor="text-amber-400"
-          bottomText="Low progress"
-        />
       </div>
 
       {/* Two-column dashboard layout */}
@@ -745,7 +688,7 @@ export default function BatchDetailPage() {
             ) : !dashboard || dashboard.recentActivity.length === 0 ? (
               <div className="py-8 text-center">
                 <p className="text-xs font-bold text-muted-foreground">No activity yet.</p>
-                <p className="text-[10.5px] text-slate-600 mt-1">Lesson completions, submissions, and quiz scores will show up here.</p>
+                <p className="text-[10.5px] text-slate-600 mt-1">Assignment submissions and quiz scores will show up here.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -873,7 +816,6 @@ export default function BatchDetailPage() {
           {performanceBatch && (
             <Section title="Batch Performance" icon={Award} iconBg="bg-pink-500/10" iconColor="text-pink-400">
               <div className="space-y-3">
-                <TrendSparkline label="Completion Trend" data={performanceBatch.trend.completion} color="#f2c7c7" />
                 <TrendSparkline label="Quiz Trend" data={performanceBatch.trend.quiz} color="#38bdf8" />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
@@ -896,8 +838,6 @@ export default function BatchDetailPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <SummaryTile icon={Users} label="Total" value={dashboard.studentSummary.total} color="text-muted-foreground" />
                 <SummaryTile icon={UserCheck} label="Active" value={dashboard.studentSummary.active} color="text-emerald-400" />
-                <SummaryTile icon={CheckCircle2} label="Completed" value={dashboard.studentSummary.completed} color="text-sky-400" />
-                <SummaryTile icon={UserX} label="Need Help" value={dashboard.studentSummary.needHelp} color="text-rose-400" />
               </div>
             </Section>
           )}

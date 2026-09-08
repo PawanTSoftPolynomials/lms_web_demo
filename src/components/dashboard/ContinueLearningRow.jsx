@@ -13,8 +13,6 @@ export default function ContinueLearningRow({ enrollment, accentIdx }) {
   const router = useRouter();
   const course = enrollment.course || {};
   const courseId = enrollment.courseId || course.id;
-  const progress = enrollment.progress ?? 0;
-  const completedLessons = enrollment.completedLessons ?? 0;
   const totalLessons = course.lessons ?? 0;
   const accent = ROW_ACCENTS[accentIdx % ROW_ACCENTS.length];
 
@@ -42,11 +40,8 @@ export default function ContinueLearningRow({ enrollment, accentIdx }) {
             <h4 className="text-sm font-extrabold text-foreground truncate">{course.title || "Untitled Course"}</h4>
           </div>
           <p className="text-[11px] text-muted-foreground truncate mt-0.5">
-            {totalLessons > 0 ? `${completedLessons}/${totalLessons} lessons` : "Self-paced"} &middot; {progress}% complete
+            {totalLessons > 0 ? `${totalLessons} lesson${totalLessons === 1 ? "" : "s"}` : "Self-paced"}
           </p>
-          <div className="w-full max-w-[220px] h-1.5 rounded-full bg-muted overflow-hidden mt-1.5">
-            <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
-          </div>
         </div>
       </div>
     </div>

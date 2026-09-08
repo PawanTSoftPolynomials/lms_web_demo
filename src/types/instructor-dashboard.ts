@@ -128,6 +128,5 @@ export interface EngagementSeriesPoint {
   label: string;
   dailyActiveStudents: number;
   quizParticipation: number;
-  lessonCompletion: number;
   watchTimeMinutes: number;
 }

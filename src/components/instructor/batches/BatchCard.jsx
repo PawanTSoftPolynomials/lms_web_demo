@@ -72,17 +72,17 @@ export default function BatchCard({ batch }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 rounded-xl border border-border/70 bg-white/[0.015] py-3">
         <StatCell icon={Users} label="Students" value={batch.studentsCount} />
-        <StatCell icon={TrendingUp} label="Progress" value={`${batch.completion}%`} />
+        <StatCell icon={TrendingUp} label="Engagement" value={`${batch.engagementScore}%`} />
         <StatCell icon={health.icon} label="Health" value={health.label} valueClassName={health.classes} />
       </div>
 
       <div>
         <div className="mb-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-          <span>Course Progress</span>
-          <span className="text-foreground">{batch.completion}%</span>
+          <span>Engagement Score</span>
+          <span className="text-foreground">{batch.engagementScore}%</span>
         </div>
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${batch.completion}%` }} />
+          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${batch.engagementScore}%` }} />
         </div>
       </div>
 

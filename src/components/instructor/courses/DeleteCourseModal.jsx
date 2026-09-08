@@ -37,7 +37,7 @@ export function DeleteCourseModal({
           <div className="space-y-3 text-xs leading-relaxed text-foreground">
             <p className="font-bold text-foreground text-sm">{courseTitle}</p>
             <p>
-              This course contains student or historical data (enrollments, progress, quiz submissions, or certificates).
+              This course contains student or historical data (enrollments, quiz submissions, or certificates).
             </p>
             <p className="text-muted-foreground italic">
               Archive the course instead to preserve that historical data while removing it from active workflow.

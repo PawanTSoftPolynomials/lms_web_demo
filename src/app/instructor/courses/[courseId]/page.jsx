@@ -24,7 +24,6 @@ import { useDeleteTopic } from "@/hooks/queries/instructor/useDeleteTopic";
 import { useDeleteContent } from "@/hooks/queries/instructor/useDeleteContent";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { useConceptMastery } from "@/hooks/queries/instructor/useInstructorDashboard";
 import { useToast } from "@/components/ui/ToastProvider";
 import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
 import { validateCoursePublish, duplicateCourse } from "@/services/course.service";
@@ -102,8 +101,6 @@ export default function CourseDetailsPage() {
   const updateCourseMutation = useUpdateCourse();
   const updateLessonMutation = useUpdateLesson();
   const queryClient = useQueryClient();
-
-  const { data: conceptMasteryData = [] } = useConceptMastery(courseId);
 
   // Global View Mode: 'rendered' | 'edit'
   const [globalMode, setGlobalMode] = useState("rendered");

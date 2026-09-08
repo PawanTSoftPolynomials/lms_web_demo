@@ -50,7 +50,6 @@ export default function StudentEngagement({ courseId }) {
     return {
       name: item.day,
       active: item.activeStudents ?? 0,
-      lessons: item.lessonsCompleted ?? 0,
       quizzes: item.quizAttempts ?? 0,
     };
   });
@@ -108,15 +107,6 @@ export default function StudentEngagement({ courseId }) {
               stroke="var(--primary)"
               strokeWidth={3}
               dot={{ r: 4, stroke: 'var(--primary)', strokeWidth: 2 }}
-              activeDot={{ r: 6 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="lessons"
-              name="Course completed"
-              stroke="var(--foreground)"
-              strokeWidth={3}
-              dot={{ r: 4, stroke: 'var(--foreground)', strokeWidth: 2 }}
               activeDot={{ r: 6 }}
             />
             <Line

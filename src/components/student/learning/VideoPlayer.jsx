@@ -221,7 +221,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const isSlideShow = isHtmlLike && slides.length > 1;
 
     return (
-        <div className="overflow-hidden rounded-2xl border border-border bg-background flex flex-col w-full">
+        <div className={`overflow-hidden rounded-2xl border border-border bg-background flex flex-col w-full ${type === "VIDEO" ? "h-full" : ""}`}>
             {/* Header — skipped for VIDEO: the lesson title already shows above the
                 player, and the video's own thumbnail/embed carries its title too,
                 so this bar was just a third repeat of the same text. Also skipped
@@ -252,7 +252,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     isYoutube ? (
                         <div
                             ref={containerRef}
-                            className="relative aspect-video w-full max-h-[520px] bg-black overflow-hidden [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full"
+                            className="relative w-full h-full bg-black overflow-hidden [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full"
                         />
                     ) : (
                         <video
@@ -266,7 +266,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                             onTimeUpdate={(event) =>
                                 onTimeUpdate?.(Math.floor(event.currentTarget.currentTime))
                             }
-                            className="aspect-video w-full max-h-[520px] bg-black object-contain"
+                            className="w-full h-full bg-black object-contain"
                         />
                     )
                 )}

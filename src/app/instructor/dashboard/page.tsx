@@ -68,10 +68,15 @@ export default function InstructorDashboardHomePage() {
   const pendingReviews = stats.data?.find(s => s.id === "pending-reviews")?.value || 0;
   const activeQuizzes = stats.data?.find(s => s.id === "active-quizzes")?.value || 0;
 
+  // Share of the instructor's students who were active on a typical day in
+  // the series — real signal (daily active students / total students), not
+  // a fabricated percentage.
   const engagementData = engagement.data ?? [];
-  const avgEngagement = engagementData.length > 0
-    ? Math.round(engagementData.reduce((acc, point) => acc + (point.lessonCompletion || 0), 0) / engagementData.length)
+  const avgActiveStudents = engagementData.length > 0
+    ? engagementData.reduce((acc, point) => acc + (point.dailyActiveStudents || 0), 0) / engagementData.length
     : 0;
+  const totalStudentsNum = Number(totalStudents);
+  const avgEngagement = totalStudentsNum > 0 ? Math.round((avgActiveStudents / totalStudentsNum) * 100) : 0;
 
   return (
     <TooltipProvider>

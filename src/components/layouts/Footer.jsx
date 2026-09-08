@@ -37,7 +37,6 @@ export default function Footer() {
               <p>Courses</p>
               <p>Quizzes</p>
               <p>Certificates</p>
-              <p>Progress Tracking</p>
             </div>
           </div>
         </div>

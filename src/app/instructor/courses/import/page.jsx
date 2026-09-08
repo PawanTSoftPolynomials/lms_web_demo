@@ -85,7 +85,6 @@ const FALLBACK_TEMPLATE = {
     visibility: "PUBLIC",
     certificatesEnabled: true,
     discussionEnabled: true,
-    dripContentEnabled: false,
   },
   quizzes: [
     {
@@ -291,7 +290,6 @@ export default function CourseImportPage() {
           visibility: settings.visibility || "PUBLIC",
           certificatesEnabled: Boolean(settings.certificatesEnabled),
           discussionEnabled: settings.discussionEnabled !== false,
-          dripContentEnabled: Boolean(settings.dripContentEnabled),
         },
         quizzes,
         modules,
@@ -1279,7 +1277,7 @@ export default function CourseImportPage() {
                   <div className="p-3 bg-background border border-transparent rounded-xl">
                     <span className="font-bold text-indigo-400 font-mono block">settings</span>
                     <span className="text-muted-foreground block mt-0.5">
-                      visibility (PUBLIC | PRIVATE), certificatesEnabled (boolean), discussionEnabled (boolean), dripContentEnabled (boolean).
+                      visibility (PUBLIC | PRIVATE), certificatesEnabled (boolean), discussionEnabled (boolean).
                     </span>
                   </div>
 

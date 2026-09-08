@@ -21,7 +21,7 @@ export function exportBatchReportCsv(batch) {
     ["Courses", (batch.courseTitles || []).join(", ")],
     ["Status", batch.status],
     ["Students", batch.studentsCount],
-    ["Completion", `${batch.completion}%`],
+    ["Engagement Score", `${batch.engagementScore}%`],
     ["Avg Quiz Score", batch.avgQuizScore != null ? `${batch.avgQuizScore}%` : "N/A"],
     ["Assignment Submission Rate", batch.assignmentSubmissionRate != null ? `${batch.assignmentSubmissionRate}%` : "N/A"],
     ["Attendance", "N/A — not tracked"],
@@ -33,14 +33,12 @@ export function exportBatchReportCsv(batch) {
 
 /** Client-side CSV export of a batch's student roster (requires the full studentList from the batch dashboard). */
 export function exportBatchStudentListCsv(batchName, studentList) {
-  const headers = ["Name", "Email", "Progress", "Quiz Average", "Attendance", "Status"];
+  const headers = ["Name", "Email", "Quiz Average", "Attendance"];
   const rows = studentList.map((s) => [
     s.name,
     s.email,
-    `${s.progress}%`,
     s.quizAverage != null ? `${s.quizAverage}%` : "N/A",
     s.attendanceRate != null ? `${s.attendanceRate}%` : "N/A",
-    s.status,
   ]);
   downloadCsv(`${batchName}-students-${new Date().toISOString().split("T")[0]}.csv`, headers, rows);
 }

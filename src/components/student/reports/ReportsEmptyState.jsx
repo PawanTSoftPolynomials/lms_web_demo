@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { GraduationCap, BarChart3, HelpCircle, ClipboardList, Medal } from "lucide-react";
+import { GraduationCap, HelpCircle, ClipboardList, Medal } from "lucide-react";
 
 const PREVIEW_ITEMS = [
-  { label: "Progress", icon: BarChart3 },
   { label: "Quiz reports", icon: HelpCircle },
   { label: "Assignments", icon: ClipboardList },
   { label: "Certificates", icon: Medal },

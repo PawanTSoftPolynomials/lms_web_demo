@@ -1,19 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BookOpen, ClipboardCheck, ClipboardList, Medal } from "lucide-react";
+import { ClipboardCheck, ClipboardList, Medal } from "lucide-react";
 
 import Loader from "@/components/common/Loader";
 import PageHeader from "@/components/layouts/PageHeader";
 
 import ReportsTabStrip from "@/components/student/reports/ReportsTabStrip";
-import ReportStreakCard from "@/components/student/reports/ReportStreakCard";
 import ReportFilters from "@/components/student/reports/ReportFilters";
 import ReportSummaryCard from "@/components/student/reports/ReportSummaryCard";
 import ReportsEmptyState from "@/components/student/reports/ReportsEmptyState";
 
 import useDashboard from "@/hooks/queries/student/useDashboard";
-import useProgress from "@/hooks/queries/student/useProgress";
 import useQuizzes from "@/hooks/queries/student/useQuizzes";
 import useAssignments from "@/hooks/queries/student/useAssignments";
 import useCertificates from "@/hooks/queries/student/useCertificates";
@@ -24,10 +22,12 @@ export default function StudentReportsPage() {
   const [timeRange, setTimeRange] = useState("All Time");
 
   const { data: dashboardData, isLoading: dashboardLoading } = useDashboard();
-  const { data: progressData, isLoading: progressLoading } = useProgress();
 
-  const courses = progressData?.courses || [];
   const enrolledCourses = dashboardData?.enrolledCoursesList ?? [];
+  const courses = useMemo(
+    () => enrolledCourses.map((e) => ({ id: e.courseId, title: e.course?.title })),
+    [enrolledCourses]
+  );
   const selectedCourse =
     selectedCourseId !== "all" ? courses.find((c) => c.id === selectedCourseId) : null;
 
@@ -47,14 +47,11 @@ export default function StudentReportsPage() {
     return certificates.filter((c) => c.course?.title === selectedCourse.title);
   }, [certificates, selectedCourse]);
 
-  if (dashboardLoading || progressLoading) {
+  if (dashboardLoading) {
     return <Loader />;
   }
 
-  const stats = dashboardData?.stats || {};
-  const streak = stats.streak ?? 0;
   const hasEnrolledCourses = enrolledCourses.length > 0;
-  const displayCourse = selectedCourse || courses[0] || null;
 
   const attemptedQuizzes = quizzes.filter((q) => !!q.quizSubmissions?.[0]);
   const passedQuizzes = attemptedQuizzes.filter((q) => q.quizSubmissions[0].passed);
@@ -75,11 +72,9 @@ export default function StudentReportsPage() {
 
   return (
     <div className="space-y-4 pb-16">
-      <PageHeader title="Reports" subtitle="Your grades, quiz performance, and course completion at a glance." />
+      <PageHeader title="Reports" subtitle="Your grades, quiz performance, and assignments at a glance." />
 
       <ReportsTabStrip />
-
-      <ReportStreakCard streak={streak} />
 
       {!hasEnrolledCourses ? (
         <ReportsEmptyState />
@@ -94,15 +89,6 @@ export default function StudentReportsPage() {
           />
 
           <div className="space-y-2">
-            <ReportSummaryCard
-              icon={BookOpen}
-              title="Course Progress"
-              href="/student/progress"
-              primaryText={displayCourse ? displayCourse.title : "No enrolled course yet."}
-              secondaryText={displayCourse ? `${displayCourse.progress}% Complete` : undefined}
-              progress={displayCourse ? displayCourse.progress : undefined}
-            />
-
             <ReportSummaryCard
               icon={ClipboardCheck}
               title="Quiz Performance"

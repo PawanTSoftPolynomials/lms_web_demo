@@ -142,7 +142,6 @@ export interface RawConversation {
 interface RawEngagementDay {
   day?: string;
   activeStudents?: number;
-  lessonsCompleted?: number;
   quizAttempts?: number;
 }
 
@@ -155,8 +154,6 @@ interface RawDashboardSummary {
   quizzesCount?: number;
   pendingReviews?: number;
   pendingGrading?: number;
-  completionRate?: number;
-  avgCompletion?: number;
   averageRating?: number;
   avgRating?: number;
   studentEngagement?: RawEngagementDay[];
@@ -668,7 +665,8 @@ export function deriveInsights(raw: { assignments: RawAssignment[]; courses: Raw
  * Derived from the same /dashboard/instructor payload useDashboardSummary
  * already fetches (its `studentEngagement` field) — no separate network
  * call. Per-day watch time isn't tracked yet, so watchTimeMinutes is 0
- * rather than a fabricated number.
+ * rather than a fabricated number. Lesson-completion is no longer tracked
+ * anywhere in this schema, so it isn't part of this series either.
  */
 export function deriveEngagementAnalytics(
   summary: RawDashboardSummary | null | undefined
@@ -679,7 +677,6 @@ export function deriveEngagementAnalytics(
     label: point.day ?? "",
     dailyActiveStudents: point.activeStudents ?? 0,
     quizParticipation: point.quizAttempts ?? 0,
-    lessonCompletion: point.lessonsCompleted ?? 0,
     watchTimeMinutes: 0,
   }));
 }

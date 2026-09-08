@@ -7,10 +7,8 @@ import { Play, Bookmark as BookmarkIcon } from "lucide-react";
 export default function MobileContinueCard({ enrollment }) {
   const [bookmarked, setBookmarked] = useState(false);
   const course = enrollment.course || {};
-  const progress = enrollment.progress ?? 0;
-  const completedLessons = enrollment.completedLessons ?? 0;
   const totalLessons = course.lessons ?? 0;
-  const lessonLabel = totalLessons > 0 ? `Lesson ${Math.min(completedLessons + 1, totalLessons)} of ${totalLessons}` : "Self-paced";
+  const lessonLabel = totalLessons > 0 ? `${totalLessons} lesson${totalLessons === 1 ? "" : "s"}` : "Self-paced";
 
   return (
     <div className="rounded-2xl bg-card border border-border p-4">
@@ -34,13 +32,6 @@ export default function MobileContinueCard({ enrollment }) {
         >
           <BookmarkIcon size={15} className={bookmarked ? "fill-orange-400" : ""} />
         </button>
-      </div>
-
-      <div className="flex items-center gap-2 mt-3.5">
-        <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-          <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
-        </div>
-        <span className="text-xs font-black text-foreground shrink-0">{progress}%</span>
       </div>
 
       <Link

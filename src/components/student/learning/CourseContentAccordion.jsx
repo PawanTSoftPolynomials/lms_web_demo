@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, PlayCircle, CheckCircle2, Lock, Plus, Minus } from "lucide-react";
+import { ChevronDown, ChevronRight, PlayCircle, Plus, Minus } from "lucide-react";
 
 // How many module rows show before the list needs a "Show more" tap —
 // mirrors the 3-line clamp on the lesson description above it.
@@ -19,9 +19,6 @@ export default function CourseContentAccordion({
   onToggleModule,
   selectedLessonId,
   onSelectLesson,
-  courseProgress = 0,
-  completedLessons = 0,
-  totalLessons = 0,
   collapsed = false,
   onToggleCollapsed,
 }) {
@@ -36,41 +33,22 @@ export default function CourseContentAccordion({
 
   return (
     <div className="rounded-3xl border border-border/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl overflow-hidden">
-      {/* Overall course progress */}
-      <div className={`p-4 sm:p-5 space-y-2 ${collapsed ? "" : "border-b border-border/60"}`}>
+      <div className={`p-4 sm:p-5 ${collapsed ? "" : "border-b border-border/60"}`}>
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-xs font-black uppercase tracking-widest text-foreground">
             Course Content
           </h3>
-          <div className="flex items-center gap-3 shrink-0">
-            <span className="text-xs font-black text-primary">{courseProgress}%</span>
-            {onToggleCollapsed && (
-              <button
-                type="button"
-                onClick={onToggleCollapsed}
-                title={collapsed ? "Show Course Content" : "Hide Course Content"}
-                className="relative h-7 w-7 flex items-center justify-center rounded-full text-primary hover:text-orange-300 hover:bg-primary/10 transition cursor-pointer bg-transparent outline-none before:content-[''] before:absolute before:-inset-[9px]"
-              >
-                {collapsed ? <Plus size={14} /> : <Minus size={14} />}
-              </button>
-            )}
-          </div>
+          {onToggleCollapsed && (
+            <button
+              type="button"
+              onClick={onToggleCollapsed}
+              title={collapsed ? "Show Course Content" : "Hide Course Content"}
+              className="relative h-7 w-7 flex items-center justify-center rounded-full text-primary hover:text-orange-300 hover:bg-primary/10 transition cursor-pointer bg-transparent outline-none before:content-[''] before:absolute before:-inset-[9px]"
+            >
+              {collapsed ? <Plus size={14} /> : <Minus size={14} />}
+            </button>
+          )}
         </div>
-        {!collapsed && (
-          <>
-            <div className="bg-background border border-border rounded-full h-1.5 overflow-hidden relative">
-              <div
-                className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full transition-all duration-300"
-                style={{ width: `${courseProgress}%` }}
-              />
-            </div>
-            {totalLessons > 0 && (
-              <p className="text-[10px] text-muted-foreground font-semibold">
-                {completedLessons} / {totalLessons} lessons completed
-              </p>
-            )}
-          </>
-        )}
       </div>
 
       {/* Module accordion */}
@@ -78,76 +56,48 @@ export default function CourseContentAccordion({
       <div className="divide-y divide-slate-800/60">
         {visibleModules.map((module, moduleIndex) => {
           const expanded = module.id === activeModuleId;
-          const locked = Boolean(module.locked ?? module.isLocked);
           const lessonCount = module.lessons?.length || 0;
-          const hasCompletionData = (module.lessons || []).some(
-            (l) => l.completed !== undefined || l.isCompleted !== undefined
-          );
-          const moduleCompletedCount = (module.lessons || []).filter(
-            (l) => l.completed ?? l.isCompleted
-          ).length;
 
           return (
             <div key={module.id}>
               <button
                 type="button"
-                disabled={locked}
                 onClick={() => onToggleModule(module.id)}
-                className={`flex w-full items-center justify-between gap-3 px-4 sm:px-5 py-3.5 text-left transition min-h-[44px] cursor-pointer border-0 bg-transparent outline-none ${
-                  locked ? "cursor-not-allowed opacity-50" : "hover:bg-background/40"
-                }`}
+                className="flex w-full items-center justify-between gap-3 px-4 sm:px-5 py-3.5 text-left transition min-h-[44px] cursor-pointer border-0 bg-transparent outline-none hover:bg-background/40"
               >
                 <div className="min-w-0 flex-1">
                   <h4 className="text-xs font-bold text-foreground truncate">
                     Module {moduleIndex + 1}: {module.title}
                   </h4>
                   <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">
-                    {hasCompletionData
-                      ? `${moduleCompletedCount} / ${lessonCount} lessons`
-                      : `${lessonCount} ${lessonCount === 1 ? "lesson" : "lessons"}`}
+                    {lessonCount} {lessonCount === 1 ? "lesson" : "lessons"}
                   </p>
                 </div>
-                {locked ? (
-                  <Lock size={14} className="text-muted-foreground shrink-0" />
-                ) : expanded ? (
+                {expanded ? (
                   <ChevronDown size={16} className="text-muted-foreground shrink-0" />
                 ) : (
                   <ChevronRight size={16} className="text-muted-foreground shrink-0" />
                 )}
               </button>
 
-              {expanded && !locked && (
+              {expanded && (
                 <div className="space-y-1 pb-3 px-2 sm:px-3">
                   {(module.lessons || []).map((lesson, lessonIndex) => {
                     const isActive = lesson.id === selectedLessonId;
-                    const isCompleted = Boolean(lesson.completed ?? lesson.isCompleted);
-                    const isLessonLocked = Boolean(lesson.locked);
 
                     return (
                       <button
                         key={lesson.id}
                         type="button"
-                        disabled={isLessonLocked}
-                        onClick={() => !isLessonLocked && onSelectLesson(lesson, module)}
-                        title={isLessonLocked ? "Complete the previous lesson to unlock" : undefined}
-                        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all border-0 outline-none min-h-[44px] ${
-                          isLessonLocked
-                            ? "cursor-not-allowed opacity-50 text-muted-foreground bg-transparent"
-                            : "cursor-pointer"
-                        } ${
+                        onClick={() => onSelectLesson(lesson, module)}
+                        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all border-0 outline-none min-h-[44px] cursor-pointer ${
                           isActive
                             ? "bg-primary text-foreground font-medium shadow-lg shadow-orange-600/10"
-                            : !isLessonLocked
-                            ? "hover:bg-muted/40 text-foreground bg-transparent"
-                            : ""
+                            : "hover:bg-muted/40 text-foreground bg-transparent"
                         }`}
                       >
-                        {isLessonLocked ? (
-                          <Lock size={14} className="text-muted-foreground shrink-0" />
-                        ) : isActive ? (
+                        {isActive ? (
                           <PlayCircle size={15} className="text-foreground shrink-0" />
-                        ) : isCompleted ? (
-                          <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
                         ) : (
                           <span className="h-2 w-2 rounded-full bg-slate-700 shrink-0 ml-[3px] mr-[3px]" />
                         )}
@@ -156,9 +106,7 @@ export default function CourseContentAccordion({
                               {lessonIndex + 1}. {lesson.title}
                             </p>
                             <p className={`truncate text-[10px] ${isActive ? "text-orange-400" : "text-muted-foreground"}`}>
-                              {isLessonLocked
-                                ? "Locked"
-                                : lesson.topics?.length
+                              {lesson.topics?.length
                                 ? `${lesson.topics.length} Topics`
                                 : lesson.duration || ""}
                             </p>

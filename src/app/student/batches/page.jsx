@@ -2,14 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Layers, CheckCircle2, Users, TrendingUp, ClipboardList, Search } from "lucide-react";
+import { Layers, CheckCircle2, Users, ClipboardList, Search } from "lucide-react";
 
 import PageHeader from "@/components/layouts/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import KpiTile from "@/components/instructor/batches/KpiTile";
 import BatchCard from "@/components/student/batches/BatchCard";
 import { useMyBatches } from "@/hooks/queries/student/useBatches";
-import useDashboard from "@/hooks/queries/student/useDashboard";
 import useAssignments from "@/hooks/queries/student/useAssignments";
 import { BATCHES_PAGE_SIZE } from "@/features/student/constants/batchesConfig";
 import { normalizeAssignmentStatus } from "@/features/student/constants/assignmentsConfig";
@@ -59,14 +58,6 @@ export default function StudentBatchesPage() {
   const totalPages = Math.max(1, Math.ceil(filteredBatches.length / BATCHES_PAGE_SIZE));
   const pagedBatches = filteredBatches.slice((page - 1) * BATCHES_PAGE_SIZE, page * BATCHES_PAGE_SIZE);
 
-  const enrolledCoursesList = dashboardData?.enrolledCoursesList ?? [];
-  const avgProgress = useMemo(() => {
-    if (enrolledCoursesList.length === 0) return 0;
-    return Math.round(
-      enrolledCoursesList.reduce((sum, e) => sum + (e.progress ?? 0), 0) / enrolledCoursesList.length
-    );
-  }, [enrolledCoursesList]);
-
   const activeBatchesCount = batches.filter((b) => (b.status || "ACTIVE") === "ACTIVE").length;
   const totalClassmates = batches.reduce((sum, b) => sum + (b.studentsCount ?? 0), 0);
   const pendingAssignmentsCount = assignments.filter(isPendingAssignment).length;
@@ -75,7 +66,6 @@ export default function StudentBatchesPage() {
     { key: "total", label: "Total Batches", value: batches.length, icon: Layers, iconBg: "bg-purple-500/10", iconColor: "text-purple-400", bottomText: "All cohorts" },
     { key: "active", label: "Active Batches", value: activeBatchesCount, icon: CheckCircle2, iconBg: "bg-emerald-500/10", iconColor: "text-emerald-400", bottomText: "Currently running" },
     { key: "classmates", label: "Classmates", value: totalClassmates, icon: Users, iconBg: "bg-blue-500/10", iconColor: "text-blue-400", bottomText: "Across all batches" },
-    { key: "progress", label: "Avg. Progress", value: `${avgProgress}%`, icon: TrendingUp, iconBg: "bg-primary/10", iconColor: "text-primary", bottomText: "Across all courses" },
     { key: "assignments", label: "Assignments Due", value: pendingAssignmentsCount, icon: ClipboardList, iconBg: "bg-amber-500/10", iconColor: "text-amber-400", bottomText: "Pending" },
   ];
 

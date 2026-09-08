@@ -22,18 +22,6 @@ export const getStudentProfile = async () => {
 };
 
 /**
- * Get Student Progress
- */
-export const getStudentProgress = async () => {
-  try {
-    const { data } = await api.get("/progress");
-    return data.data ?? data;
-  } catch {
-    return getStudentDashboard();
-  }
-};
-
-/**
  * Get Student Certificates
  */
 export const getStudentCertificates = async () => {

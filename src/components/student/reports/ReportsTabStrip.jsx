@@ -7,7 +7,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const TABS = [
   { id: "overview", label: "Overview", href: "/student/reports" },
-  { id: "progress", label: "Progress", href: "/student/progress" },
   { id: "quiz", label: "Quiz", href: "/student/quizzes" },
   { id: "assignment", label: "Assignment", href: "/student/assignments" },
   { id: "certificates", label: "Certificates", href: "/student/certificates" },
