@@ -14,8 +14,7 @@ export default function LearnPageHeader({
   selectedLesson,
   topicTitle,
   course,
-  isStickyNotesOpen,
-  onToggleStickyNotes,
+  onOpenStickyNotes,
 }) {
   return (
     <header className="sticky top-0 bg-[#07080f]/80 backdrop-blur-md border-b border-[#1e2030]/40 py-3 px-4 sm:px-6 flex items-center justify-between z-30 select-none">
@@ -46,15 +45,10 @@ export default function LearnPageHeader({
 
       <button
         type="button"
-        onClick={onToggleStickyNotes}
-        className={`shrink-0 h-9 w-9 flex items-center justify-center rounded-full border transition cursor-pointer ${
-          isStickyNotesOpen
-            ? "bg-muted border-transparent text-primary"
-            : "border-border bg-background/60 text-muted-foreground hover:text-primary hover:border-primary/40"
-        }`}
-        title={isStickyNotesOpen ? "Hide Sticky Notes" : "Open Sticky Notes"}
-        aria-label={isStickyNotesOpen ? "Hide Sticky Notes" : "Open Sticky Notes"}
-        aria-pressed={isStickyNotesOpen}
+        onClick={onOpenStickyNotes}
+        className="shrink-0 h-9 w-9 flex items-center justify-center rounded-full border border-border bg-background/60 text-muted-foreground hover:text-primary hover:border-primary/40 transition cursor-pointer"
+        title="Sticky Notes"
+        aria-label="Open Sticky Notes"
       >
         <StickyNote size={16} />
       </button>

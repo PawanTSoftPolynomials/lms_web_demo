@@ -160,7 +160,7 @@ export const AuthProvider = ({ children }) => {
             ? "/admin/dashboard"
             : user.role === "INSTRUCTOR"
             ? "/instructor/dashboard"
-            : "/student/dashboard";
+            : "/student/my-courses";
         router.replace(returnTo || defaultDashboard);
       }
     }

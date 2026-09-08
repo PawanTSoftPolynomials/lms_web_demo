@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, ChevronRight, ChevronLeft,
-  MessageSquare, Star, Bookmark, BookmarkCheck,
+  MessageSquare, Star, Bookmark, BookmarkCheck, PanelRightClose,
   PanelLeftOpen,
 } from "lucide-react";
 
@@ -574,13 +574,9 @@ export default function LearnPage() {
           selectedLesson={selectedLesson}
           topicTitle={hasTopics ? currentTopic?.title : null}
           course={course}
-          isStickyNotesOpen={rightPanelOpen}
-          onToggleStickyNotes={() => {
-            setRightPanelOpen((prev) => {
-              const next = !prev;
-              if (next) setActiveContentTab("notes");
-              return next;
-            });
+          onOpenStickyNotes={() => {
+            setRightPanelOpen(true);
+            setActiveContentTab("notes");
           }}
         />
 
@@ -829,6 +825,16 @@ export default function LearnPage() {
                 back instead of a persistently reserved 48px-wide column. */}
             {rightPanelOpen && (
               <div className="hidden xl:flex xl:flex-col xl:gap-6 min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-7 xl:sticky xl:top-24 xl:h-fit w-full xl:w-[360px]">
+                <button
+                  type="button"
+                  onClick={() => setRightPanelOpen(false)}
+                  className="self-end flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-xl text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground bg-background/60 hover:bg-muted border border-transparent transition cursor-pointer"
+                  title="Hide side panel"
+                  aria-label="Hide side panel"
+                >
+                  <PanelRightClose size={14} />
+                  <span>Hide</span>
+                </button>
                 <div className="order-2">
                   <StickyNotesPanel
                     lessonId={selectedLesson?.id}

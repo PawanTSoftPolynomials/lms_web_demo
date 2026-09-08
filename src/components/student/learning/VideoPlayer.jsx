@@ -221,7 +221,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const isSlideShow = isHtmlLike && slides.length > 1;
 
     return (
-        <div className={`overflow-hidden rounded-2xl border border-border bg-background flex flex-col w-full ${type === "VIDEO" ? "h-full" : ""}`}>
+        <div className="overflow-hidden rounded-2xl border border-border bg-background flex flex-col w-full h-full">
             {/* Header — skipped for VIDEO: the lesson title already shows above the
                 player, and the video's own thumbnail/embed carries its title too,
                 so this bar was just a third repeat of the same text. Also skipped

@@ -82,7 +82,7 @@ export default function LoginPage() {
               sessionStorage.removeItem("intended_course_return");
             }
           }
-          router.replace(returnTo || "/student/dashboard");
+          router.replace(returnTo || "/student/my-courses");
           break;
         }
 

@@ -2,62 +2,76 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, Search } from "lucide-react";
+import { BookOpen, GraduationCap } from "lucide-react";
 
-import PageHeader from "@/components/layouts/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import Button from "@/components/ui/Button";
+import Pagination from "@/components/ui/Pagination";
 import MyCourseCard from "@/components/student/my-courses/MyCourseCard";
 import useMyCourses from "@/hooks/queries/student/useMyCourses";
-import { STATUS_OPTIONS, SORT_OPTIONS } from "@/features/student/constants/myCoursesConfig";
+import { useAuth } from "@/context/AuthContext";
+import { QUOTES } from "@/constants/dashboardQuotes";
+
+// Picked once per session (i.e. per login, not per page view/refresh) and
+// cached in sessionStorage — a plain random pick on every render would
+// change the quote on each navigation back to this page, which reads as
+// buggy rather than "a new thought each time you log in."
+function useMotivationalQuote() {
+  return useMemo(() => {
+    if (typeof window === "undefined") return QUOTES[0];
+    const stored = sessionStorage.getItem("my_courses_quote_index");
+    if (stored !== null) return QUOTES[Number(stored) % QUOTES.length];
+    const index = Math.floor(Math.random() * QUOTES.length);
+    sessionStorage.setItem("my_courses_quote_index", String(index));
+    return QUOTES[index];
+  }, []);
+}
 
 export default function MyCoursesPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const motivationalQuote = useMotivationalQuote();
   const { data: myEnrollments = [], isLoading, isError, refetch } = useMyCourses();
 
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [instructorFilter, setInstructorFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("recent");
+  const [yearFilter, setYearFilter] = useState("all");
 
-  const instructors = useMemo(
-    () => Array.from(new Set(myEnrollments.map((e) => e.course?.instructor).filter(Boolean))),
-    [myEnrollments]
-  );
+  // Years the student has an enrollment in, newest first — drives the Year filter.
+  const enrollmentYears = useMemo(() => {
+    const years = new Set(
+      myEnrollments
+        .map((e) => (e.enrolledAt ? new Date(e.enrolledAt).getFullYear() : null))
+        .filter(Boolean)
+    );
+    return Array.from(years).sort((a, b) => b - a);
+  }, [myEnrollments]);
 
-  const filteredCourses = useMemo(() => {
-    let list = [...myEnrollments];
+  const yearFilteredEnrollments = useMemo(() => {
+    if (yearFilter === "all") return myEnrollments;
+    return myEnrollments.filter(
+      (e) => e.enrolledAt && new Date(e.enrolledAt).getFullYear() === Number(yearFilter)
+    );
+  }, [myEnrollments, yearFilter]);
 
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      list = list.filter(
-        (e) =>
-          e.course?.title?.toLowerCase().includes(q) ||
-          e.course?.description?.toLowerCase().includes(q)
-      );
-    }
-    if (statusFilter === "in-progress") {
-      list = list.filter((e) => (e.progress ?? 0) < 100);
-    } else if (statusFilter === "completed") {
-      list = list.filter((e) => (e.progress ?? 0) >= 100);
-    }
-    if (instructorFilter !== "all") {
-      list = list.filter((e) => e.course?.instructor === instructorFilter);
-    }
+  // `/enrollments` returns everything at once (no server-side pagination), so
+  // paging happens client-side over the year-filtered list — same
+  // Pagination component the Instructor Courses page uses, just fed a local
+  // slice instead of a server page.
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const totalPages = Math.max(1, Math.ceil(yearFilteredEnrollments.length / limit));
+  const pagedEnrollments = yearFilteredEnrollments.slice((page - 1) * limit, page * limit);
 
-    if (sortBy === "progress") {
-      list.sort((a, b) => (b.progress ?? 0) - (a.progress ?? 0));
-    } else if (sortBy === "name") {
-      list.sort((a, b) => (a.course?.title || "").localeCompare(b.course?.title || ""));
-    }
-    return list;
-  }, [myEnrollments, search, statusFilter, instructorFilter, sortBy]);
+  // Snap back to the last valid page if the Year filter or an unenroll
+  // shrinks the list out from under the current page.
+  useEffect(() => {
+    setPage((p) => Math.min(p, totalPages));
+  }, [totalPages]);
 
   // Mobile carousel: tracks centered card for pagination dots
   const sliderRef = useRef(null);
   const scrollRaf = useRef(null);
   const [activeSlide, setActiveSlide] = useState(0);
-  const firstCourseId = filteredCourses[0]?.id || filteredCourses[0]?.courseId;
+  const firstCourseId = pagedEnrollments[0]?.id || pagedEnrollments[0]?.courseId;
 
   useEffect(() => {
     sliderRef.current?.scrollTo({ left: 0 });
@@ -89,65 +103,7 @@ export default function MyCoursesPage() {
   };
 
   return (
-    <div className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-4 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
-      <PageHeader
-        title={`My Courses${!isLoading && myEnrollments.length ? ` (${filteredCourses.length})` : ""}`}
-        subtitle="Track your progress and continue learning your enrolled courses."
-        className="mb-0 sm:mb-0"
-      >
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
-          <div className="relative w-full min-w-0 md:w-64">
-            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search your courses..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-border bg-card !pl-9 !pr-4 py-2 md:py-2.5 text-sm text-foreground placeholder-slate-500 outline-none transition focus:border-primary/60"
-            />
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0 overflow-x-auto scrollbar-none">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-border bg-card px-3 py-2 md:py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer hover:border-transparent transition [&>option]:bg-card [&>option]:text-foreground"
-            >
-              {STATUS_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={instructorFilter}
-              onChange={(e) => setInstructorFilter(e.target.value)}
-              className="rounded-xl border border-border bg-card px-3 py-2 md:py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer hover:border-transparent transition [&>option]:bg-card [&>option]:text-foreground"
-            >
-              <option value="all">All Instructors</option>
-              {instructors.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="rounded-xl border border-border bg-card px-3 py-2 md:py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer hover:border-transparent transition [&>option]:bg-card [&>option]:text-foreground"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </PageHeader>
-
+    <div className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-4 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-2 sm:pt-3 md:pt-4 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
       {isError ? (
         <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
           <p className="text-sm font-bold text-foreground">Unable to load your courses.</p>
@@ -165,10 +121,49 @@ export default function MyCoursesPage() {
         />
       ) : (
         <div className="flex flex-col flex-1 min-h-0 rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6">
-          <div className="md:max-h-[68vh] md:overflow-y-auto md:pr-1 md:-mr-1">
+          <div className="flex flex-col gap-2 md:flex-row md:items-stretch md:justify-between md:gap-4 mb-4 md:mb-6 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
+              <GraduationCap size={18} className="text-primary" />
+              <h2 className="text-base sm:text-lg font-bold text-foreground">Enrolled Courses</h2>
+            </div>
+
+            {/* Separate container for the welcome label — its own bordered
+                box (stretched to the row's full height, not just centered
+                within it) rather than bare text, with a per-login
+                motivational thought under the greeting. */}
+            <div className="flex-1 flex flex-col items-center justify-center gap-0.5 rounded-xl border border-border px-4 py-2 min-w-0 bg-[linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.55)),url('/images/wecomeLB.png')] bg-cover bg-center">
+              <p className="text-lg sm:text-xl font-black text-white truncate [text-shadow:0_1px_4px_rgba(0,0,0,0.85)]">
+                Welcome back, <span className="text-amber-300">{user?.name?.split(" ")[0] || "Student"}</span>{" "}
+                <span className="inline-block">👋</span>
+              </p>
+              <p className="text-xs text-white/80 italic truncate max-w-full [text-shadow:0_1px_3px_rgba(0,0,0,0.85)]">
+                &quot;{motivationalQuote}&quot;
+              </p>
+            </div>
+
+            {enrollmentYears.length > 0 && (
+              <select
+                value={yearFilter}
+                onChange={(e) => {
+                  setYearFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="rounded-xl border border-border bg-card px-3 py-2 md:py-2.5 text-xs font-semibold text-foreground outline-none cursor-pointer hover:border-transparent transition [&>option]:bg-card [&>option]:text-foreground shrink-0"
+              >
+                <option value="all">All Years</option>
+                {enrollmentYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <div className="md:flex-1 md:min-h-0 md:overflow-y-auto md:pr-1 md:-mr-1">
             <div
               ref={sliderRef}
-              onScroll={!isLoading && filteredCourses.length > 0 ? handleSliderScroll : undefined}
+              onScroll={!isLoading && pagedEnrollments.length > 0 ? handleSliderScroll : undefined}
               className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-6 md:pb-0 md:grid md:justify-center md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 md:overflow-visible md:snap-none"
             >
               {isLoading
@@ -178,13 +173,13 @@ export default function MyCoursesPage() {
                       className="w-[70%] shrink-0 max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-56 md:shrink h-52 md:h-64 rounded-2xl border border-slate-200 bg-white/10 animate-pulse"
                     />
                   ))
-                : filteredCourses.length === 0
+                : pagedEnrollments.length === 0
                 ? (
                   <div className="w-full col-span-full">
-                    <EmptyState title="No courses match your current filters." />
+                    <EmptyState title="No courses enrolled in the selected year." />
                   </div>
                 )
-                : filteredCourses.map((enrollment) => (
+                : pagedEnrollments.map((enrollment) => (
                     <div
                       key={enrollment.id || enrollment.courseId}
                       className="w-[70%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-56 md:shrink"
@@ -194,9 +189,9 @@ export default function MyCoursesPage() {
                   ))}
             </div>
 
-            {!isLoading && filteredCourses.length > 1 && (
+            {!isLoading && pagedEnrollments.length > 1 && (
               <div className="flex md:hidden items-center justify-center gap-1.5 pt-3" role="tablist" aria-label="Course slides">
-                {filteredCourses.map((enrollment, i) => (
+                {pagedEnrollments.map((enrollment, i) => (
                   <button
                     key={enrollment.id || i}
                     role="tab"
@@ -209,6 +204,20 @@ export default function MyCoursesPage() {
                   />
                 ))}
               </div>
+            )}
+
+            {!isLoading && myEnrollments.length > 0 && (
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                total={yearFilteredEnrollments.length}
+                limit={limit}
+                onPageChange={setPage}
+                onLimitChange={(next) => {
+                  setLimit(next);
+                  setPage(1);
+                }}
+              />
             )}
           </div>
         </div>
