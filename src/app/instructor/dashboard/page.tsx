@@ -57,7 +57,7 @@ export default function InstructorDashboardHomePage() {
 
   const engagementData = engagement.data ?? [];
   const avgEngagement = engagementData.length > 0
-    ? Math.round(engagementData.reduce((acc, point) => acc + (point.lessonCompletion || 0), 0) / engagementData.length)
+    ? Math.round(engagementData.reduce((acc, point) => acc + (point.activeStudentRate || 0), 0) / engagementData.length)
     : 0;
 
   return (

@@ -22,7 +22,7 @@ export default function Home() {
       {/* Scene 2: Explore by domain — compact, supporting */}
       <GoalCategoryDiscovery />
 
-      {/* Scene 3: Course discovery — one featured course + supporting grid */}
+      {/* Scene 3: Course discovery — supporting grid of real courses */}
       <CourseDiscovery />
 
       {/* Scene 4: Why Orange Tree is different — one unified product story */}

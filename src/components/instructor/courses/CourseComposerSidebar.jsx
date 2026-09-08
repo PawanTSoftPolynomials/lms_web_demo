@@ -7,6 +7,7 @@ import {
   ArrowDown,
   ArrowUp,
   BookOpen,
+  CheckCircle2,
   CheckSquare,
   ChevronRight,
   ClipboardList,
@@ -283,7 +284,11 @@ function ParentContentRows({
               }`}
             >
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                <Icon size={12} className={`shrink-0 ${isContentActive ? "text-primary" : meta.color}`} />
+                {content.completed ? (
+                  <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                ) : (
+                  <Icon size={12} className={`shrink-0 ${isContentActive ? "text-primary" : meta.color}`} />
+                )}
                 <span className="truncate text-body-small">
                   {content.title || `Untitled ${meta.label}`}
                 </span>
@@ -316,7 +321,7 @@ function ParentContentRows({
   );
 }
 
-import { CheckCircle2, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 
 export function CourseComposerSidebar({
   modules = [],
@@ -516,7 +521,11 @@ export function CourseComposerSidebar({
                   onClick={() => onSelectQuiz?.(quiz, null, null)}
                 >
                   <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                    <HelpCircle size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    {quiz.completed ? (
+                      <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                    ) : (
+                      <HelpCircle size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    )}
                     <span className="truncate text-caption font-semibold">{quiz.title || "Course Quiz"}</span>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
@@ -831,7 +840,11 @@ export function CourseComposerSidebar({
                                             onClick={() => onSelectQuiz?.(quiz, mod, lesson)}
                                           >
                                             <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                              <HelpCircle size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                              {quiz.completed ? (
+                                                <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                                              ) : (
+                                                <HelpCircle size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                              )}
                                               <span className="truncate text-caption font-semibold">{quiz.title || "Lesson Quiz"}</span>
                                             </div>
                                             <div className="flex items-center gap-1 shrink-0">
@@ -912,11 +925,19 @@ export function CourseComposerSidebar({
                                                 className={`transition-transform duration-200 ${topicOpen ? "rotate-90 text-primary" : ""}`}
                                               />
                                             </button>
-                                            <TopicIcon size={12} className={`shrink-0 ${isTopicActive ? "text-primary" : topicMeta.color}`} />
+                                            {topic.completed ? (
+                                              <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                                            ) : (
+                                              <TopicIcon size={12} className={`shrink-0 ${isTopicActive ? "text-primary" : topicMeta.color}`} />
+                                            )}
                                             <span className="truncate text-body-small" title={topic.title}>
                                               {displayTitle}
                                             </span>
-                                            {topicMeta.type !== "theory" && (
+                                            {topic.completed ? (
+                                              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border uppercase shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+                                                Done
+                                              </span>
+                                            ) : topicMeta.type !== "theory" && (
                                               <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border uppercase shrink-0 ${topicMeta.bgClass}`}>
                                                 {topicMeta.badge}
                                               </span>

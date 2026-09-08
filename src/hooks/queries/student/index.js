@@ -8,5 +8,7 @@ export { default as useStudentState } from "./useStudentState";
 export { default as useUpdateStudentState } from "./useUpdateStudentState";
 export { default as useEnrollCourse } from "./useEnrollCourse";
 export { default as useAdaptiveLearning } from "./useAdaptiveLearning";
+export { useCourseProgress, useOverallProgress } from "./useProgress";
+export { useCompleteContent, useCompleteLesson } from "./useCompleteContent";
 
 

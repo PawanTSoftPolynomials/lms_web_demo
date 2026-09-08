@@ -8,8 +8,6 @@ import {
   Search,
   Layers,
   Users,
-  TrendingUp,
-  AlertTriangle,
   SlidersHorizontal,
   RotateCcw,
   ChevronDown,
@@ -34,12 +32,6 @@ const STATUS_OPTIONS = [
   { value: "ARCHIVED", label: "Archived" },
 ];
 
-const COMPLETION_OPTIONS = [
-  { value: "", label: "Any Completion" },
-  { value: "75", label: "75%+" },
-  { value: "50", label: "50%+" },
-  { value: "25", label: "25%+" },
-];
 const STUDENT_COUNT_OPTIONS = [
   { value: "", label: "Any Size" },
   { value: "30", label: "30+ students" },
@@ -131,7 +123,7 @@ function CreateBatchForm({ courses, onClose }) {
 
 function BatchStatsRow({ stats }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <KpiTile
         label="Total Batches"
         value={stats.totalBatches}
@@ -148,38 +140,21 @@ function BatchStatsRow({ stats }) {
         iconColor="text-emerald-400"
         bottomText="Across all batches"
       />
-      <KpiTile
-        label="Avg. Progress"
-        value={`${stats.avgCompletion}%`}
-        icon={TrendingUp}
-        iconBg="bg-primary/10"
-        iconColor="text-primary"
-        bottomText="Overall progress"
-      />
-      <KpiTile
-        label="At-Risk Students"
-        value={stats.atRiskStudentsCount}
-        icon={AlertTriangle}
-        iconBg="bg-rose-500/10"
-        iconColor="text-rose-400"
-        bottomText="Needs attention"
-      />
     </div>
   );
 }
 
 /** Compact inline replacement for the old bordered WorkFilterBar panel — same
  * useWorkFilters() context/logic, just laid out as a single toolbar row. */
-function FilterToolbar({ minCompletion, setMinCompletion, minStudents, setMinStudents }) {
+function FilterToolbar({ minStudents, setMinStudents }) {
   const { filters, updateFilter, resetFilters } = useWorkFilters();
   const { data: courses = [] } = useInstructorCourses();
 
-  const hasAdvancedFilters = Boolean(minCompletion || minStudents);
+  const hasAdvancedFilters = Boolean(minStudents);
   const hasAnyFilter = hasAdvancedFilters || filters.courseId || filters.status || filters.startDate || filters.endDate;
 
   const handleReset = () => {
     resetFilters();
-    setMinCompletion("");
     setMinStudents("");
   };
 
@@ -234,20 +209,6 @@ function FilterToolbar({ minCompletion, setMinCompletion, minStudents, setMinStu
           <div className="space-y-3">
             <div>
               <label className="block text-[9.5px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">
-                Completion
-              </label>
-              <select
-                value={minCompletion}
-                onChange={(e) => setMinCompletion(e.target.value)}
-                className={`${toolbarControlClass} w-full`}
-              >
-                {COMPLETION_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-[9.5px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">
                 Batch Size
               </label>
               <select
@@ -284,7 +245,6 @@ function BatchesContent() {
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [minCompletion, setMinCompletion] = useState("");
   const [minStudents, setMinStudents] = useState("");
 
   // Debounced so each keystroke doesn't fire its own (fairly expensive,
@@ -305,20 +265,17 @@ function BatchesContent() {
   const stats = overview?.stats || {
     totalBatches: 0,
     totalStudents: 0,
-    avgCompletion: 0,
     newBatchesThisMonth: 0,
     pendingAssignmentReviews: 0,
-    atRiskStudentsCount: 0,
   };
 
   const filteredBatches = useMemo(() => {
     return batches.filter((b) => {
       if (appliedFilters.status && b.status !== appliedFilters.status) return false;
-      if (minCompletion && b.completion < Number(minCompletion)) return false;
       if (minStudents && b.studentsCount < Number(minStudents)) return false;
       return true;
     });
-  }, [batches, appliedFilters.status, minCompletion, minStudents]);
+  }, [batches, appliedFilters.status, minStudents]);
 
   return (
     <div className="space-y-7">
@@ -353,8 +310,6 @@ function BatchesContent() {
         </div>
 
         <FilterToolbar
-          minCompletion={minCompletion}
-          setMinCompletion={setMinCompletion}
           minStudents={minStudents}
           setMinStudents={setMinStudents}
         />

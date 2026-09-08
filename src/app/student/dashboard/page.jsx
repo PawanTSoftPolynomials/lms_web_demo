@@ -45,14 +45,8 @@ export default function StudentDashboardPage() {
 
   const dailyQuote = useMemo(() => QUOTES[new Date().getDate() % QUOTES.length], []);
 
-  const completedLessonsCount = stats.completedLessons ?? 0;
-  const totalLessonsCount = stats.totalLessons ?? 0;
-  const completionRate = totalLessonsCount > 0 ? Math.round((completedLessonsCount / totalLessonsCount) * 100) : 0;
-
   const statCards = getStatCards({
     enrolledCount: enrolledCourses.length,
-    completedLessonsCount,
-    completionRate,
     certificatesCount: stats.certificatesCount ?? 0,
   });
 

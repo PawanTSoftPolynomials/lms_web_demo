@@ -16,7 +16,6 @@ export const QUERY_KEYS = {
     PAYMENT_ORDERS: "payment-orders",
     UPCOMING_TASKS: "upcoming-tasks",
     STUDENT_PROFILE: "student-profile",
-    STUDENT_PROGRESS: "student-progress",
     STUDENT_CERTIFICATES: "student-certificates",
     STUDENT_STATE: "student-state",
     STUDENT_QUIZZES: "student-quizzes",
@@ -31,7 +30,6 @@ export const QUERY_KEYS = {
     ACHIEVEMENTS: "achievements",
     MY_ACHIEVEMENTS: "my-achievements",
     DASHBOARD: "dashboard",
-    PROGRESS: "progress",
     ENTRY_ASSESSMENT: "entry-assessment",
     CALENDAR: "calendar_events",
     NOTIFICATIONS: "notifications",
@@ -39,6 +37,8 @@ export const QUERY_KEYS = {
     LEARNING_PATH: "learning-path",
     COURSE_REVIEWS: "course-reviews",
     COURSE_REVIEW_STATS: "course-review-stats",
+    PROGRESS: "progress",
+    COURSE_PROGRESS: "course-progress",
 
     // ==========================
     // Admin

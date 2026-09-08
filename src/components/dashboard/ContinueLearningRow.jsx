@@ -15,9 +15,6 @@ export default function ContinueLearningRow({ enrollment, accentIdx }) {
   const [bookmarked, setBookmarked] = useState(false);
   const course = enrollment.course || {};
   const courseId = enrollment.courseId || course.id;
-  const progress = enrollment.progress ?? 0;
-  const completedLessons = enrollment.completedLessons ?? 0;
-  const totalLessons = course.lessons ?? 0;
   const accent = ROW_ACCENTS[accentIdx % ROW_ACCENTS.length];
 
   return (
@@ -30,11 +27,16 @@ export default function ContinueLearningRow({ enrollment, accentIdx }) {
           <div className="flex items-center gap-2 flex-wrap">
             <h4 className="text-h4 text-foreground truncate">{course.title || "Untitled Course"}</h4>
           </div>
-          <p className="text-[11px] text-muted-foreground truncate mt-0.5">
-            {totalLessons > 0 ? `${completedLessons}/${totalLessons} lessons` : "Self-paced"} &middot; {progress}% complete
-          </p>
-          <div className="w-full max-w-[220px] h-1.5 rounded-full bg-muted overflow-hidden mt-1.5">
-            <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
+          <div className="flex items-center gap-2 mt-1 max-w-[200px]">
+            <div className="flex-1 bg-background border border-border rounded-full h-1.5 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full transition-all duration-300"
+                style={{ width: `${enrollment.progressPercent ?? 0}%` }}
+              />
+            </div>
+            <span className="text-[10px] font-bold text-primary shrink-0">
+              {enrollment.progressPercent ?? 0}%
+            </span>
           </div>
         </div>
       </div>

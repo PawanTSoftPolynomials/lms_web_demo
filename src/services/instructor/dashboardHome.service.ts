@@ -142,7 +142,6 @@ export interface RawConversation {
 interface RawEngagementDay {
   day?: string;
   activeStudents?: number;
-  lessonsCompleted?: number;
   quizAttempts?: number;
 }
 
@@ -156,7 +155,6 @@ interface RawDashboardSummary {
   pendingReviews?: number;
   pendingGrading?: number;
   completionRate?: number;
-  avgCompletion?: number;
   averageRating?: number;
   avgRating?: number;
   studentEngagement?: RawEngagementDay[];
@@ -668,20 +666,27 @@ export function deriveInsights(raw: { assignments: RawAssignment[]; courses: Raw
  * Derived from the same /dashboard/instructor payload useDashboardSummary
  * already fetches (its `studentEngagement` field) — no separate network
  * call. Per-day watch time isn't tracked yet, so watchTimeMinutes is 0
- * rather than a fabricated number.
+ * rather than a fabricated number. There is no per-lesson completion signal
+ * from the backend, so `activeStudentRate` (active students that day as a
+ * % of the instructor's total enrolled students) stands in as the real,
+ * surviving engagement signal instead.
  */
 export function deriveEngagementAnalytics(
   summary: RawDashboardSummary | null | undefined
 ): EngagementSeriesPoint[] {
   const days = summary?.studentEngagement ?? [];
+  const totalStudents = summary?.totalStudents ?? summary?.studentsCount ?? 0;
 
-  return days.map((point) => ({
-    label: point.day ?? "",
-    dailyActiveStudents: point.activeStudents ?? 0,
-    quizParticipation: point.quizAttempts ?? 0,
-    lessonCompletion: point.lessonsCompleted ?? 0,
-    watchTimeMinutes: 0,
-  }));
+  return days.map((point) => {
+    const active = point.activeStudents ?? 0;
+    return {
+      label: point.day ?? "",
+      dailyActiveStudents: active,
+      quizParticipation: point.quizAttempts ?? 0,
+      activeStudentRate: totalStudents > 0 ? Math.round((active / totalStudents) * 100) : 0,
+      watchTimeMinutes: 0,
+    };
+  });
 }
 
 /* ----------------------------- Redesign Specific Derivations ------------------------------ */
@@ -700,7 +705,7 @@ export function deriveCourseProgressOverview(courses: RawCourse[]): CourseProgre
     courseName: c.title ?? "Untitled Course",
     batch: `Batch ${String.fromCharCode(65 + (idx % 3))}`, // Simulated batch
     students: c._count?.enrollments ?? c.studentsCount ?? 0,
-    progress: c.progress ?? c.completionRate ?? Math.floor(Math.random() * 40 + 40), // fallback random for mockup
+    progress: c.progress ?? c.completionRate ?? 0,
   }));
 }
 

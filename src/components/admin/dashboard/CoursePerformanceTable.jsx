@@ -9,12 +9,6 @@ const STATUS_STYLES = {
   ARCHIVED: "bg-rose-500/10 text-rose-400 border-rose-500/20",
 };
 
-function completionColor(rate) {
-  if (rate >= 75) return "bg-emerald-500";
-  if (rate >= 40) return "bg-amber-500";
-  return "bg-rose-500";
-}
-
 export function CoursePerformanceTable({ courses = [], isLoading }) {
   if (isLoading) {
     return <div className="h-48 animate-pulse bg-muted/50 rounded-2xl"></div>;
@@ -38,7 +32,6 @@ export function CoursePerformanceTable({ courses = [], isLoading }) {
             <tr className="border-b border-border text-caption uppercase text-muted-foreground">
               <th className="pb-3 font-medium">Course</th>
               <th className="pb-3 font-medium text-center">Students</th>
-              <th className="pb-3 font-medium text-center">Completion</th>
               <th className="pb-3 font-medium text-center">Rating</th>
               <th className="pb-3 font-medium">Status</th>
               <th className="pb-3 font-medium text-right">Actions</th>
@@ -47,7 +40,7 @@ export function CoursePerformanceTable({ courses = [], isLoading }) {
           <tbody className="divide-y divide-border">
             {courses.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-6 text-center text-xs text-muted-foreground">No courses available</td>
+                <td colSpan={5} className="py-6 text-center text-xs text-muted-foreground">No courses available</td>
               </tr>
             ) : (
               courses.map((course) => (
@@ -67,17 +60,6 @@ export function CoursePerformanceTable({ courses = [], isLoading }) {
                     <div className="flex items-center justify-center gap-1.5 text-foreground text-xs font-bold">
                       <Users size={14} className="text-muted-foreground" />
                       {course.students}
-                    </div>
-                  </td>
-                  <td className="py-4 px-2">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-14 h-1.5 rounded-full bg-muted overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${completionColor(course.completionRate)}`}
-                          style={{ width: `${Math.min(course.completionRate, 100)}%` }}
-                        />
-                      </div>
-                      <span className="text-[10px] font-bold text-muted-foreground w-7">{course.completionRate}%</span>
                     </div>
                   </td>
                   <td className="py-4 px-2 text-center">

@@ -1,31 +1,30 @@
 import { useQuery } from "@tanstack/react-query";
-
-import { getStudentProgress } from "@/services/student.service";
-
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { defaultQueryOptions } from "@/lib/queryOptions";
+import { getCourseProgress, getOverallProgress, getInstructorCourseProgress } from "@/services/progress.service";
 
-export default function useProgress() {
+export function useCourseProgress(courseId) {
   return useQuery({
-    queryKey: [QUERY_KEYS.STUDENT_PROGRESS],
-    queryFn: async () => {
-      const response = await getStudentProgress();
+    queryKey: [QUERY_KEYS.COURSE_PROGRESS, courseId],
+    queryFn: () => getCourseProgress(courseId),
+    enabled: !!courseId,
+    ...defaultQueryOptions
+  });
+}
 
-      const progressData = response?.stats || response?.data || response;
-      const courses = response?.courses || response?.enrolledCourses || response?.enrolledCoursesList || [];
+export function useOverallProgress() {
+  return useQuery({
+    queryKey: [QUERY_KEYS.PROGRESS],
+    queryFn: () => getOverallProgress(),
+    ...defaultQueryOptions
+  });
+}
 
-      return {
-        stats: progressData || {},
-        courses: courses.map((course) => ({
-          id: course?.course?.id || course?.id,
-          title: course?.course?.title || course?.title || "Untitled course",
-          instructor: course?.course?.instructor || course?.instructor || "N/A",
-          progress: course?.progress ?? course?.completionRate ?? 0,
-          completedLessons: course?.completedLessons ?? 0,
-          totalLessons: course?.totalLessons ?? course?.lessons ?? 0,
-        })),
-      };
-    },
-    ...defaultQueryOptions,
+export function useInstructorCourseProgress(courseId) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.INSTRUCTOR_COURSE, "progress", courseId],
+    queryFn: () => getInstructorCourseProgress(courseId),
+    enabled: !!courseId,
+    ...defaultQueryOptions
   });
 }

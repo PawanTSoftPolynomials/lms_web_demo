@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, BookOpen, Clock3, ChevronRight, ChevronLeft, PlayCircle,
-  CheckCircle2, MessageSquare, Star, Bookmark, BookmarkCheck, PanelRightOpen, PanelRightClose,
+  MessageSquare, Star, Bookmark, BookmarkCheck, PanelRightOpen, PanelRightClose,
 } from "lucide-react";
 
 import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel";
@@ -19,7 +19,6 @@ import LessonQuizPanel from "@/components/student/learning/LessonQuizPanel";
 import AskInstructorCard from "@/components/student/learning/AskInstructorCard";
 import LessonNavigationControls from "@/components/student/learning/LessonNavigationControls";
 import LearnPageHeader from "@/components/student/learning/LearnPageHeader";
-import ProgressBar from "@/components/student/courses/ProgressBar";
 
 import { groupLessonContentForDocumentView } from "@/lib/contentDocument";
 import { getDisplayUrl } from "@/lib/blob";
@@ -27,11 +26,8 @@ import { CourseStructureSidebar } from "@/components/instructor/courses/CourseCo
 import { normalizeCourseHierarchy } from "@/lib/courseMapper";
 import { LEARN_PAGE_CONTENT_TABS } from "@/features/student/constants/learnPageConfig";
 
-import useCompleteLesson from "@/hooks/queries/student/useCompleteLesson";
-import useMarkContentVisited from "@/hooks/queries/student/useMarkContentVisited";
-import { useCourse, useStudentState, useUpdateStudentState } from "@/hooks/queries/student";
+import { useCourse, useStudentState, useUpdateStudentState, useCourseProgress, useCompleteContent } from "@/hooks/queries/student";
 import useLessonBookmarkToggle from "@/hooks/queries/student/useLessonBookmarkToggle";
-import useProgress from "@/hooks/queries/student/useProgress";
 import useTranscript from "@/hooks/queries/student/useTranscript";
 import useTrackCourseAccess from "@/hooks/queries/student/useTrackCourseAccess";
 import useLearningStateSync from "@/hooks/queries/student/useLearningStateSync";
@@ -39,6 +35,7 @@ import useLessonNavigation from "@/hooks/queries/student/useLessonNavigation";
 
 import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
+import ProgressBar from "@/components/student/courses/ProgressBar";
 import { ChatWidget } from "@/components/chat";
 
 import useAuth from "@/hooks/useAuth";
@@ -51,23 +48,11 @@ export default function LearnPage() {
 
   const { data: rawCourseData, isLoading, isError } = useCourse(courseId);
   const course = useMemo(() => normalizeCourseHierarchy(rawCourseData) || {}, [rawCourseData]);
+  const { data: progressData } = useCourseProgress(courseId);
+  const completeContentMutation = useCompleteContent();
+
   const { data: stateData, isLoading: isStateLoading } = useStudentState();
   const updateStateMutation = useUpdateStudentState();
-  const completeLessonMutation = useCompleteLesson();
-  const markContentVisitedMutation = useMarkContentVisited();
-  const { data: progressData } = useProgress();
-  const courseProgress = useMemo(() => {
-    if (!progressData?.courses) return 0;
-    const match = progressData.courses.find((c) => c.id === courseId);
-    return match ? Math.round(match.progress) : 0;
-  }, [progressData, courseId]);
-  const courseProgressDetail = useMemo(() => {
-    const match = progressData?.courses?.find((c) => c.id === courseId);
-    return {
-      completedLessons: match?.completedLessons || 0,
-      totalLessons: match?.totalLessons || 0,
-    };
-  }, [progressData, courseId]);
 
   const { logout } = useAuth();
   const { toggleChat, isOpen: chatOpen, chatUnreadCount, setIsOpen } = useChat();
@@ -100,27 +85,15 @@ export default function LearnPage() {
     updateStateMutation,
   });
 
-  // Lesson list, completion, and prev/next/module derivations, plus the
-  // single gated entry point (selectLesson) every navigation control below
-  // routes through so a locked lesson can never become selected.
+  // Lesson list and prev/next/module derivations.
   const {
     lessons,
-    completedLessonIds,
     currentLessonIndex,
     previousLesson,
     nextLesson,
     nextModule,
     selectLesson,
   } = useLessonNavigation(course, selectedLesson, setSelectedLesson);
-
-  // Derived from completedLessonIds (freshly recomputed from course data on
-  // every refetch) rather than selectedLesson.completed directly —
-  // selectedLesson is a state snapshot taken at selection time, so it never
-  // picks up the completed:true flip that lands after markComplete's mutation
-  // invalidates and refetches the course query.
-  const isSelectedLessonCompleted = selectedLesson?.id
-    ? completedLessonIds.includes(selectedLesson.id)
-    : false;
 
   const [pendingTopicScroll, setPendingTopicScroll] = useState(null);
   const [videoDuration, setVideoDuration] = useState(0);
@@ -140,24 +113,85 @@ export default function LearnPage() {
 
   const { isLessonBookmarked, toggleLessonBookmark } = useLessonBookmarkToggle(selectedLesson, course);
 
-  // Stable across renders (depends only on the mutation's stable `mutate`
-  // reference) so LessonContentBlock's IntersectionObserver — keyed on this
-  // callback's identity — isn't torn down and resubscribed on every parent
-  // re-render (e.g. every currentTimestamp tick while a video is playing).
-  const handleContentVisited = useCallback(
-    (contentIds) => {
-      if (!contentIds || contentIds.length === 0) return;
-      markContentVisitedMutation.mutate(contentIds);
-    },
-    [markContentVisitedMutation.mutate]
-  );
+  const courseProgress = progressData?.progressPercent ?? 0;
 
-  // Watching a video to the end is a "visited" signal for that one piece of
-  // content, not an unconditional lesson completion — the lesson only
-  // auto-completes once every content block in it (video and non-video
-  // alike) has been visited. See handleContentVisited / LessonContentBlock.
+  const courseWithProgress = useMemo(() => {
+    if (!course) return course;
+    const completedLessonSet = new Set(progressData?.lessonProgresses || []);
+    const completedModuleSet = new Set(progressData?.moduleProgresses || []);
+    const completedTopicSet = new Set(progressData?.topicProgresses || []);
+    const completedQuizSet = new Set(progressData?.completedQuizIds || []);
+    const completedContentSet = new Set(progressData?.completedContentIds || []);
+    const completedAssignmentSet = new Set(progressData?.completedAssignmentIds || []);
+
+    return {
+      ...course,
+      progressPercent: courseProgress,
+      contents: (course.contents || []).map((c) => ({
+        ...c,
+        completed: completedContentSet.has(c.id),
+      })),
+      quizzes: (course.quizzes || []).map((q) => ({
+        ...q,
+        completed: completedQuizSet.has(q.id),
+      })),
+      assignments: (course.assignments || []).map((a) => ({
+        ...a,
+        completed: completedAssignmentSet.has(a.id),
+      })),
+      modules: (course.modules || []).map((m) => ({
+        ...m,
+        completed: completedModuleSet.has(m.id),
+        contents: (m.contents || []).map((c) => ({
+          ...c,
+          completed: completedContentSet.has(c.id),
+        })),
+        quizzes: (m.quizzes || []).map((q) => ({
+          ...q,
+          completed: completedQuizSet.has(q.id),
+        })),
+        lessons: (m.lessons || []).map((l) => ({
+          ...l,
+          completed: completedLessonSet.has(l.id),
+          contents: (l.contents || []).map((c) => ({
+            ...c,
+            completed: completedContentSet.has(c.id),
+          })),
+          quizzes: (l.quizzes || []).map((q) => ({
+            ...q,
+            completed: completedQuizSet.has(q.id),
+          })),
+          topics: (l.topics || []).map((t) => ({
+            ...t,
+            completed: completedTopicSet.has(t.id),
+            contents: (t.contents || []).map((c) => ({
+              ...c,
+              completed: completedContentSet.has(c.id),
+            })),
+            quizzes: (t.quizzes || []).map((q) => ({
+              ...q,
+              completed: completedQuizSet.has(q.id),
+            })),
+          })),
+        })),
+      })),
+    };
+  }, [course, progressData, courseProgress]);
+
+  const courseProgressDetail = useMemo(() => {
+    const totalLessons = lessons.length;
+    const completedLessonSet = new Set(progressData?.lessonProgresses || []);
+    const completedLessons = lessons.filter((l) => completedLessonSet.has(l.id)).length;
+    return { completedLessons, totalLessons };
+  }, [lessons, progressData]);
+
   const handleVideoEnded = () => {
-    handleContentVisited(documentGroupedContents?.[0]?.contentIds);
+    if (selectedLessonContents?.length > 0) {
+      const activeVideo = selectedLessonContents.find((c) => c.type === "VIDEO");
+      if (activeVideo?.id) {
+        completeContentMutation.mutate({ contentId: activeVideo.id, completed: true });
+      }
+    }
     if (nextLesson) {
       setSelectedLesson(nextLesson);
     }
@@ -206,11 +240,6 @@ export default function LearnPage() {
     () => groupLessonContentForDocumentView(selectedLessonContents),
     [selectedLessonContents]
   );
-
-  const markComplete = async () => {
-    if (!selectedLesson?.id) return;
-    completeLessonMutation.mutate({ lessonId: selectedLesson.id });
-  };
 
   const handleLogout = () => {
     logout();
@@ -315,7 +344,7 @@ export default function LearnPage() {
   );
 
   const quizPanel = (
-    <LessonQuizPanel quizzes={course?.quizzes || []} courseId={courseId} currentLessonId={selectedLesson?.id} />
+    <LessonQuizPanel quizzes={courseWithProgress?.quizzes || course?.quizzes || []} courseId={courseId} currentLessonId={selectedLesson?.id} />
   );
 
   return (
@@ -328,8 +357,7 @@ export default function LearnPage() {
       {/* ========================================================================= */}
       <div className={`hidden xl:block shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${courseSidebarOpen ? "w-full xl:w-[320px]" : "w-full xl:w-0"}`}>
         <CourseStructureSidebar
-          modules={course.modules || []}
-          completedLessonIds={completedLessonIds}
+          modules={courseWithProgress.modules || []}
           composerMode={selectedLesson ? "lesson" : "course"}
           composeLessonId={selectedLesson?.id}
           composeModuleId={selectedLesson?.moduleId}
@@ -444,27 +472,10 @@ export default function LearnPage() {
                     <span className="truncate">{selectedLesson?.title || "Loading Lesson..."}</span>
                   </h3>
                 </div>
-
-                {/* Mark as Complete Action — desktop only; mobile has a small
-                    version of this in the row below the player instead. */}
-                <button
-                  type="button"
-                  disabled={isSelectedLessonCompleted}
-                  onClick={markComplete}
-                  className={`hidden xl:inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl border text-xs font-black uppercase tracking-wider transition-all shadow-md shrink-0 self-start sm:self-auto ${
-                    isSelectedLessonCompleted
-                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 cursor-default"
-                      : "bg-background hover:bg-primary hover:text-slate-950 border-transparent hover:border-orange-400 text-foreground cursor-pointer"
-                  }`}
-                >
-                  <CheckCircle2 size={15} className={isSelectedLessonCompleted ? "text-emerald-400" : "text-emerald-400 group-hover:text-slate-950"} />
-                  <span>{isSelectedLessonCompleted ? "Completed" : "Mark Complete"}</span>
-                </button>
               </div>
 
               <LessonContentBlock
                 item={documentGroupedContents?.[0]}
-                onVisited={handleContentVisited}
                 videoPlayerRef={videoPlayerRef}
                 onTimeUpdate={setCurrentTimestamp}
                 onDurationChange={setVideoDuration}
@@ -480,26 +491,22 @@ export default function LearnPage() {
               {documentGroupedContents.length > 1 && (
                 <div className="space-y-4">
                   {documentGroupedContents.slice(1).map((item, idx) => (
-                    <LessonContentBlock key={item.id || idx} item={item} onVisited={handleContentVisited} />
+                    <LessonContentBlock key={item.id || idx} item={item} />
                   ))}
                 </div>
               )}
 
-              {/* Compact Previous / Complete / Next — mobile & tablet only, right
-                  under the player. Small on purpose: the video stays the focus,
-                  these are just quick actions, not another card competing for
-                  attention. Desktop keeps its own Mark Complete + fuller bar. */}
+              {/* Compact Previous / Next — mobile & tablet only, right under the
+                  player. Small on purpose: the video stays the focus, these are
+                  just quick actions, not another card competing for attention. */}
               <LessonNavigationControls
                 variant="compact"
                 previousLesson={previousLesson}
                 nextLesson={nextLesson}
-                isSelectedLessonCompleted={isSelectedLessonCompleted}
                 onSelectPrevious={() => {
                   if (previousLesson) setSelectedLesson(previousLesson);
                 }}
-                onMarkComplete={markComplete}
                 onSelectNext={() => {
-                  markComplete();
                   if (nextLesson) setSelectedLesson(nextLesson);
                 }}
               />
@@ -660,7 +667,8 @@ export default function LearnPage() {
                 a duplicate navigator there. Always visible, not tab-gated. */}
             <div className="min-w-0 row-start-4 xl:hidden">
               <CourseContentAccordion
-                modules={course.modules || []}
+                modules={courseWithProgress.modules || []}
+                course={courseWithProgress}
                 activeModuleId={activeModuleId}
                 onToggleModule={toggleMobileModule}
                 selectedLessonId={selectedLesson?.id}
@@ -746,7 +754,12 @@ export default function LearnPage() {
                   if (previousLesson) setSelectedLesson(previousLesson);
                 }}
                 onSelectNext={() => {
-                  markComplete();
+                  if (selectedLessonContents?.length > 0) {
+                    const activeVideo = selectedLessonContents.find((c) => c.type === "VIDEO");
+                    if (activeVideo?.id) {
+                      completeContentMutation.mutate({ contentId: activeVideo.id, completed: true });
+                    }
+                  }
                   if (nextLesson) setSelectedLesson(nextLesson);
                 }}
               />

@@ -7,10 +7,9 @@ import dynamic from "next/dynamic";
 
 import Card from "@/components/ui/Card";
 import Loader from "@/components/common/Loader";
-import ConceptMastery from "@/components/tables/ConceptMastery";
 
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
-import { useDashboardKPIs, useConceptMastery } from "@/hooks/queries/instructor/useInstructorDashboard";
+import { useDashboardKPIs } from "@/hooks/queries/instructor/useInstructorDashboard";
 
 // Dynamically imported so recharts (bundled once per dynamic() boundary
 // instead of once per static-import route) is shared across every
@@ -34,7 +33,6 @@ function InstructorAnalyticsContent() {
   }, [courses, selectedCourseId]);
 
   const { data: kpis = [] } = useDashboardKPIs(selectedCourseId);
-  const { data: conceptMasteryData = [] } = useConceptMastery(selectedCourseId);
 
   const activeCourse = courses.find((c) => c.id === selectedCourseId) || null;
   const videoKpi = kpis.find((k) => k.title === "Total Video Watch Time");
@@ -46,7 +44,7 @@ function InstructorAnalyticsContent() {
       <div className="rounded-2xl border border-transparent bg-background/60 p-5 shadow-sm flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="sr-only">Analytics</h1>
-          <p className="sr-only">Student engagement and concept mastery for {activeCourse?.title || "your course"}.</p>
+          <p className="sr-only">Student engagement for {activeCourse?.title || "your course"}.</p>
         </div>
         {courses.length > 0 && (
           <select
@@ -87,8 +85,6 @@ function InstructorAnalyticsContent() {
           )}
 
           <StudentEngagement courseId={selectedCourseId} />
-
-          <ConceptMastery data={conceptMasteryData} />
         </div>
       )}
     </div>

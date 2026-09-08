@@ -21,10 +21,9 @@ function StudentsDirectoryContent() {
 
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
   const [courseFilter, setCourseFilter] = useState('All');
   const [batchFilter, setBatchFilter] = useState('All');
-  const [activeTab, setActiveTab] = useState('Progress'); // Progress | Assignments | Certificates
+  const [activeTab, setActiveTab] = useState('Assignments'); // Assignments | Certificates
 
   const selectedCourse = courseFilter === 'All' ? null : courses.find((c) => c.id === courseFilter);
 
@@ -56,13 +55,12 @@ function StudentsDirectoryContent() {
                             (student.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                             (student.course || '').toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesStatus = statusFilter === 'All' || student.status === statusFilter;
       const matchesCourse = courseFilter === 'All' || student.course === selectedCourse?.title;
       // Batch isn't matched here — student records don't carry batch membership yet.
 
-      return isStudentRole && matchesSearch && matchesStatus && matchesCourse;
+      return isStudentRole && matchesSearch && matchesCourse;
     });
-  }, [students, searchQuery, statusFilter, courseFilter, selectedCourse]);
+  }, [students, searchQuery, courseFilter, selectedCourse]);
 
   // Selected student details object
   const selectedStudent = useMemo(() => {
@@ -134,7 +132,7 @@ function StudentsDirectoryContent() {
       </div>
 
       {selectedStudent ? (
-        /* DETAIL VIEW: Filtered Student List -> Student Details -> Progress -> Assignments -> Certificates */
+        /* DETAIL VIEW: Filtered Student List -> Student Details -> Assignments -> Certificates */
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 items-start">
           
           {/* Profile Sidebar Info */}
@@ -144,7 +142,6 @@ function StudentsDirectoryContent() {
                 {selectedStudent.name[0]}
               </div>
               <h2 className="text-sm font-black text-foreground">{selectedStudent.name}</h2>
-              <p className="text-[9px] font-extrabold text-primary uppercase tracking-wider mt-1">{selectedStudent.status}</p>
             </div>
 
             <div className="space-y-3.5 text-xs">
@@ -175,7 +172,7 @@ function StudentsDirectoryContent() {
             
             {/* Tabs Selector */}
             <div className="flex gap-4 border-b border-border pb-1">
-              {['Progress', 'Assignments', 'Certificates'].map((tab) => (
+              {['Assignments', 'Certificates'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -193,50 +190,6 @@ function StudentsDirectoryContent() {
 
             {/* Tab Contents */}
             <div>
-              {activeTab === 'Progress' && (
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="p-3 bg-white/[0.01] border border-border rounded-xl text-center">
-                      <p className="text-[9px] text-muted-foreground font-black uppercase">Overall Progress</p>
-                      <p className="text-lg font-black text-foreground mt-1">{selectedStudent.progress}%</p>
-                    </div>
-                    <div className="p-3 bg-white/[0.01] border border-border rounded-xl text-center">
-                      <p className="text-[9px] text-muted-foreground font-black uppercase">Assignments Done</p>
-                      <p className="text-lg font-black text-foreground mt-1">{selectedStudent.assignmentRate}%</p>
-                    </div>
-                    <div className="p-3 bg-white/[0.01] border border-border rounded-xl text-center">
-                      <p className="text-[9px] text-muted-foreground font-black uppercase">Attendance Rate</p>
-                      <p className="text-lg font-black text-foreground mt-1">
-                        {selectedStudent.attendanceRate != null ? `${selectedStudent.attendanceRate}%` : "N/A"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Modules detail */}
-                  <div className="space-y-3">
-                    <h3 className="text-xs font-black text-muted-foreground uppercase tracking-widest font-mono">Module Completion</h3>
-                    <div className="space-y-3">
-                      {selectedStudent.modules.map((mod, idx) => (
-                        <div key={idx} className="p-3.5 bg-white/[0.01] border border-white/5 rounded-xl space-y-2">
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="font-extrabold text-slate-250 truncate max-w-[350px]">{mod.name}</span>
-                            <span className={`text-[8.5px] font-black px-2 py-0.5 rounded ${
-                              mod.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-450' : 'bg-amber-500/10 text-amber-450'
-                            }`}>{mod.status}</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                              <div className="h-full bg-primary rounded-full" style={{ width: `${mod.progress}%` }} />
-                            </div>
-                            <span className="text-[9.5px] font-bold text-muted-foreground">{mod.progress}%</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {activeTab === 'Assignments' && (
                 <div className="space-y-3">
                   <h3 className="text-xs font-black text-muted-foreground uppercase tracking-widest font-mono mb-2">Assignment Grades</h3>
@@ -310,7 +263,7 @@ function StudentsDirectoryContent() {
         /* DIRECTORY LIST VIEW */
         <div className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-4">
           
-          {/* Controls: Search & Status Filters */}
+          {/* Controls: Search */}
           <div className="flex flex-col sm:flex-row gap-3 justify-between items-center">
             <div className="relative w-full sm:w-80">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-550">
@@ -325,21 +278,6 @@ function StudentsDirectoryContent() {
               />
             </div>
 
-            <div className="flex gap-1.5 overflow-x-auto w-full sm:w-auto scrollbar-none">
-              {['All', 'Not Started', 'Behind Average', 'Struggling', 'Attendance Alert', 'Top Performer'].map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => setStatusFilter(filter)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition whitespace-nowrap cursor-pointer ${
-                    statusFilter === filter
-                      ? 'bg-primary/10 border border-primary/20 text-orange-450'
-                      : 'bg-white/[0.02] border border-border text-muted-foreground hover:text-slate-350'
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Controls: Course & Batch Filters */}
@@ -387,8 +325,6 @@ function StudentsDirectoryContent() {
                 <tr className="border-b border-border text-[9.5px] font-black text-muted-foreground uppercase tracking-widest">
                   <th className="pb-3 pl-2">Name</th>
                   <th className="pb-3">Course</th>
-                  <th className="pb-3 text-center">Status</th>
-                  <th className="pb-3 text-center">Course Progress</th>
                   <th className="pb-3 text-center">Attendance</th>
                   <th className="pb-3 text-right pr-2">Action</th>
                 </tr>
@@ -396,7 +332,7 @@ function StudentsDirectoryContent() {
               <tbody className="divide-y divide-[#1A1F35]/50">
                 {filteredStudents.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="py-12 text-center text-muted-foreground">
+                    <td colSpan="4" className="py-12 text-center text-muted-foreground">
                       No students found matching your criteria.
                     </td>
                   </tr>
@@ -408,27 +344,6 @@ function StudentsDirectoryContent() {
                         <div className="text-[9.5px] text-muted-foreground font-semibold mt-0.5">{student.email}</div>
                       </td>
                       <td className="py-4 text-slate-350 font-semibold">{student.course}</td>
-                      <td className="py-4 text-center">
-                        <span className={`text-[7.5px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider inline-block ${
-                          student.status === 'Top Performer' 
-                            ? 'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20' 
-                            : student.status === 'Not Started'
-                            ? 'bg-muted text-muted-foreground border border-transparent/50'
-                            : student.status === 'Struggling' || student.status === 'Behind Average'
-                            ? 'bg-rose-500/10 text-rose-455 border border-rose-500/20' 
-                            : 'bg-amber-500/10 text-amber-450 border border-amber-500/20'
-                        }`}>
-                          {student.status}
-                        </span>
-                      </td>
-                      <td className="py-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="h-1.5 w-16 bg-white/5 rounded-full overflow-hidden hidden sm:block">
-                            <div className="h-full bg-primary rounded-full" style={{ width: `${student.progress}%` }} />
-                          </div>
-                          <span className="font-bold text-foreground">{student.progress}%</span>
-                        </div>
-                      </td>
                       <td className="py-4 text-center font-bold text-foreground">
                         {student.attendanceRate != null ? `${student.attendanceRate}%` : "N/A"}
                       </td>

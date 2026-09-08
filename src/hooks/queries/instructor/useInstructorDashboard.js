@@ -31,36 +31,6 @@ export function useStudentEngagement(courseId) {
   });
 }
 
-// Hook for course performance list
-export function useCoursePerformance(courseId) {
-  return useQuery({
-    queryKey: ['instructorDashboard', courseId],
-    queryFn: () => getInstructorDashboard(courseId),
-    select: (data) => data?.coursePerformance ?? [],
-    ...defaultOptions,
-  });
-}
-
-// Hook for concept mastery tables
-export function useConceptMastery(courseId) {
-  return useQuery({
-    queryKey: ['instructorDashboard', courseId],
-    queryFn: () => getInstructorDashboard(courseId),
-    select: (data) => data?.conceptMastery ?? [],
-    ...defaultOptions,
-  });
-}
-
-// Hook for recommended remedial tasks
-export function useRecommendations(courseId) {
-  return useQuery({
-    queryKey: ['instructorDashboard', courseId],
-    queryFn: () => getInstructorDashboard(courseId),
-    select: (data) => data?.recommendedActions ?? [],
-    ...defaultOptions,
-  });
-}
-
 // Hook for recent activity summary
 export function useRecentActivity(courseId) {
   return useQuery({
