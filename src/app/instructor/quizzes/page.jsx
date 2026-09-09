@@ -261,8 +261,8 @@ export default function QuizzesPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">Quizzes</h1>
-                <p className="mt-2 text-muted-foreground">Create and manage quizzes for your courses.</p>
+                <h1 className="sr-only">Quizzes</h1>
+                <p className="sr-only">Create and manage quizzes for your courses.</p>
               </div>
 
               <div className="flex items-center space-x-3">
@@ -579,7 +579,7 @@ export default function QuizzesPage() {
                     <span>&gt;</span>
                     <span className="text-primary">{selectedQuiz.title}</span>
                   </div>
-                  <h1 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">Quiz Questions</h1>
+                  <h1 className="sr-only">Quiz Questions</h1>
                   <div className="flex flex-wrap gap-2.5 items-center mt-2">
                     <span className="text-muted-foreground text-xs font-semibold">
                       Course: <span className="text-foreground font-bold">{selectedQuiz.course?.title || "Standalone"}</span>

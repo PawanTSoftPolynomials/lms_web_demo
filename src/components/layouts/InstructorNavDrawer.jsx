@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { ChevronDown, Settings, LifeBuoy, LogOut, X } from "lucide-react";
 
 import { useInstructorNavDrawer } from "@/context/InstructorNavDrawerContext";
@@ -49,12 +49,12 @@ function DrawerNavItem({ item, pathname, depth = 0, onNavigate }) {
         style={indent}
         className={`flex items-center gap-4 pr-4 py-3 rounded-xl transition-all duration-200 ${
           leafActive
-            ? "bg-primary text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]"
+            ? "bg-primary text-primary-foreground font-bold"
             : "text-foreground hover:text-foreground hover:bg-muted/50 font-semibold"
         }`}
       >
-        <Icon size={18} className={leafActive ? "text-slate-950" : "text-muted-foreground"} />
-        <span className="text-sm">{item.label}</span>
+        <Icon size={18} className={leafActive ? "text-primary-foreground" : "text-muted-foreground"} />
+        <span className="text-nav">{item.label}</span>
       </Link>
     );
   }
@@ -71,7 +71,7 @@ function DrawerNavItem({ item, pathname, depth = 0, onNavigate }) {
         }`}
       >
         <Icon size={18} className={active ? "text-primary" : "text-muted-foreground"} />
-        <span className="text-sm flex-1 text-left">{item.label}</span>
+        <span className="text-nav flex-1 text-left">{item.label}</span>
         <ChevronDown
           size={16}
           className={`text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`}
@@ -96,7 +96,6 @@ function DrawerNavItem({ item, pathname, depth = 0, onNavigate }) {
 // from the header's own icons, which are always visible on mobile.
 export default function InstructorNavDrawer() {
   const pathname = usePathname();
-  const router = useRouter();
   const { logout } = useAuth();
   const { isOpen, close } = useInstructorNavDrawer();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -120,8 +119,10 @@ export default function InstructorNavDrawer() {
   const handleLogout = () => {
     setShowLogoutModal(false);
     close();
+    // logout() itself clears auth state and redirects to the Landing Page —
+    // navigating here too would race it while cookies/user state are still
+    // present, which is what let the old redirect bounce back into the app.
     logout();
-    router.push("/login");
   };
 
   if (!isOpen) return null;
@@ -162,8 +163,8 @@ export default function InstructorNavDrawer() {
                     : "text-foreground hover:text-foreground hover:bg-muted/50 font-semibold"
                 }`}
               >
-                <Icon size={18} className={active ? "text-slate-950" : "text-muted-foreground"} />
-                <span className="text-sm">{item.label}</span>
+                <Icon size={18} className={active ? "text-primary-foreground" : "text-muted-foreground"} />
+                <span className="text-nav">{item.label}</span>
               </Link>
             );
           })}
@@ -178,7 +179,7 @@ export default function InstructorNavDrawer() {
             className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 font-semibold transition-all duration-200 cursor-pointer"
           >
             <LogOut size={18} className="text-rose-400" />
-            <span className="text-sm">Logout</span>
+            <span className="text-nav">Logout</span>
           </button>
         </nav>
       </div>

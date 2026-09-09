@@ -24,11 +24,6 @@ export function useCreateModule() {
             });
 
             queryClient.invalidateQueries({
-                queryKey: [QUERY_KEYS.INSTRUCTOR_COURSE, variables.courseId],
-                refetchType: "all",
-            });
-
-            queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES],
                 refetchType: "all",
             });

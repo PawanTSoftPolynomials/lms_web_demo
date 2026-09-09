@@ -23,7 +23,7 @@ export default function RecommendedCourseCard({ course }) {
             </span>
           )}
         </div>
-        <h4 className="text-xs font-extrabold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors mt-1">
+        <h4 className="text-h4 text-foreground line-clamp-2 group-hover:text-primary transition-colors mt-1">
           {course.title}
         </h4>
         <div className="flex items-center justify-between text-[10px] text-muted-foreground font-bold mt-1">

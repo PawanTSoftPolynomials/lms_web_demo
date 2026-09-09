@@ -57,13 +57,13 @@ export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkA
         aria-label="Notifications"
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition-all duration-200 cursor-pointer text-slate-300 ${
+        className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition-all duration-200 cursor-pointer ${
           open
             ? "bg-muted border-transparent text-foreground"
             : "bg-card border-border text-muted-foreground hover:bg-muted hover:text-foreground hover:border-border"
         }`}
       >
-        <Bell size={18} strokeWidth={2.5} aria-hidden="true" />
+        <Bell size={16} aria-hidden="true" />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-black text-foreground shadow-sm animate-pulse">
             {unreadCount > 99 ? "99+" : unreadCount}
@@ -93,7 +93,7 @@ export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkA
                 <button
                   type="button"
                   onClick={onMarkAllRead}
-                  className="flex items-center gap-1 text-primary hover:text-orange-300 transition cursor-pointer"
+                  className="flex items-center gap-1 text-primary hover:text-primary-hover transition cursor-pointer"
                   title="Mark all as read"
                 >
                   <CheckCheck size={13} />
@@ -204,11 +204,11 @@ export function ProfileMenu({ user, onLogout, profileHref = "/student/profile", 
         aria-label="Profile menu"
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`flex items-center gap-2 rounded-full border border-[#1A1F35] py-1.5 pl-1.5 pr-3 transition-all duration-200 hover:-translate-y-0.5 ${
-          open ? "bg-white/[0.08]" : "hover:bg-white/[0.06]"
+        className={`flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 transition-all duration-200 hover:-translate-y-0.5 ${
+          open ? "bg-muted" : "hover:bg-muted"
         }`}
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-[11px] font-black text-foreground shadow-[0_2px_8px_rgba(255,140,0,0.4)]">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[11px] font-black text-primary-foreground">
           {user?.name?.[0]?.toUpperCase() || "S"}
         </span>
         <span className="hidden max-w-[100px] truncate text-[13px] font-semibold text-foreground lg:inline">

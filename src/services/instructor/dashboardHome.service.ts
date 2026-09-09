@@ -154,6 +154,7 @@ interface RawDashboardSummary {
   quizzesCount?: number;
   pendingReviews?: number;
   pendingGrading?: number;
+  completionRate?: number;
   averageRating?: number;
   avgRating?: number;
   studentEngagement?: RawEngagementDay[];
@@ -675,6 +676,7 @@ export function deriveEngagementAnalytics(
   summary: RawDashboardSummary | null | undefined
 ): EngagementSeriesPoint[] {
   const days = summary?.studentEngagement ?? [];
+  const totalStudents = summary?.totalStudents ?? summary?.studentsCount ?? 0;
 
   return days.map((point) => ({
     label: point.day ?? "",
@@ -700,7 +702,7 @@ export function deriveCourseProgressOverview(courses: RawCourse[]): CourseProgre
     courseName: c.title ?? "Untitled Course",
     batch: `Batch ${String.fromCharCode(65 + (idx % 3))}`, // Simulated batch
     students: c._count?.enrollments ?? c.studentsCount ?? 0,
-    progress: c.progress ?? c.completionRate ?? Math.floor(Math.random() * 40 + 40), // fallback random for mockup
+    progress: c.progress ?? c.completionRate ?? 0,
   }));
 }
 

@@ -14,8 +14,7 @@ export default function Modal({
   // it should stay fully sharp/visible (no blur, no dimming tint).
   blurBackdrop = true,
 }) {
-  const [mounted, setMounted] =
-    useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -102,6 +101,7 @@ export default function Modal({
           </h2>
 
           <button
+            type="button"
             onClick={onClose}
             className="
     glass-button

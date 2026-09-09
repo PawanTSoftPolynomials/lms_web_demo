@@ -46,7 +46,8 @@ export function EntityFormModal({ state, onClose, onCreated }) {
 
   if (!state) return null;
 
-  const { entity, mode, courseId, parentId, moduleId, entityData } = state;
+  const { entity, mode, courseId, parentId, moduleId } = state;
+  const entityData = state.entityData || state.initialData || null;
   const title = TITLES[entity]?.[mode] ?? "";
 
   const handleSubmit = async (values) => {

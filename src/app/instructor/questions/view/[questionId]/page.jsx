@@ -100,7 +100,7 @@ export default function QuestionDetailsPage() {
                             </span>
                         </div>
 
-                        <h1 className="text-4xl font-bold text-foreground">
+                        <h1 className="sr-only">
                             Question Details
                         </h1>
                     </div>

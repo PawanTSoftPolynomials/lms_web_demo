@@ -1,6 +1,5 @@
-// Glass Campus buttons: a translucent glass surface (bg-secondary/bg-primary
-// at partial opacity) rather than a flat fill, using the glass-button
-// utility for the hover-lift/press-down mechanics + transition timing.
+import { Slot } from "@radix-ui/react-slot";
+
 const VARIANT_CLASSES = {
   primary:
     "btn-rainbow [--btn-rainbow-fill:var(--primary)] [--btn-rainbow-foreground:var(--primary-foreground)] text-primary-foreground",
@@ -20,17 +19,23 @@ export default function Button({
   variant = "primary",
   loading = false,
   disabled = false,
+  asChild = false,
   ...props
 }) {
+  // Landing-page callers (Hero, FinalCta) render this as their child element
+  // (e.g. a Link) instead of a native <button> — Radix Slot merges this
+  // component's classes/props onto that child rather than wrapping it.
+  const Comp = asChild ? Slot : "button";
+
   return (
-    <button
+    <Comp
       className={`
-        glass-button
         min-h-[44px]
         px-4
         py-2
-        rounded-[0.75rem]
+        rounded-lg
         font-medium
+        transition
         cursor-pointer
         disabled:opacity-50
         disabled:cursor-not-allowed
@@ -41,6 +46,6 @@ export default function Button({
       {...props}
     >
       {loading ? "Loading..." : children}
-    </button>
+    </Comp>
   );
 }

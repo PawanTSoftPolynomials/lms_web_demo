@@ -103,11 +103,28 @@ export default function AiComposerModal({
   const [step, setStep] = useState("INPUT");
   const generateAiMutation = useGenerateAiContent();
   const [loading, setLoading] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
   const [validationErrors, setValidationErrors] = useState([]);
   const [generatedDraft, setGeneratedDraft] = useState(null);
 
   const prevIsOpenRef = useRef(false);
+
+  // Real elapsed-time ticker for the generation status panel — the backend
+  // call is a single atomic request/response (no SSE/streaming progress
+  // events exist to report), so this shows genuine elapsed time rather than
+  // a fabricated progress percentage.
+  useEffect(() => {
+    if (!loading) {
+      setElapsedSeconds(0);
+      return;
+    }
+    const startedAt = Date.now();
+    const intervalId = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [loading]);
 
   // Sync initial scope, cascading parent, and order ONCE when modal opens
   useEffect(() => {
@@ -234,6 +251,18 @@ export default function AiComposerModal({
     if (selectedScope === "CONTENT") return "Describe the content block you want OTree AI to create...";
     if (selectedScope === "QUIZ") return "Describe what you want this quiz to assess...";
     return "Describe what you want OTree AI to generate...";
+  };
+
+  // Honest, scope-aware description of what the single in-flight AI request
+  // is actually producing — not a fabricated multi-step progress sequence,
+  // since the backend call is one atomic request with no intermediate events.
+  const getGenerationStageLabel = () => {
+    if (selectedScope === "MODULE") return "Drafting module structure, lessons, and topics...";
+    if (selectedScope === "LESSON") return "Drafting lesson structure and topics...";
+    if (selectedScope === "TOPIC") return "Drafting topic content...";
+    if (selectedScope === "CONTENT") return "Drafting content block...";
+    if (selectedScope === "QUIZ") return "Drafting quiz questions and answers...";
+    return "Generating with OTree AI...";
   };
 
   const prepareDraftAndNavigate = (canonical) => {
@@ -536,42 +565,47 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                   <select
                     value={selectedModuleId}
                     onChange={(e) => handleModuleChange(e.target.value)}
-                    className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                    className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                   >
                     {modules.length > 0 ? (
                       modules.map((m) => (
-                        <option key={m.id || m._id} value={m.id || m._id}>
+                        <option key={m.id || m._id} value={m.id || m._id} className="bg-card text-foreground">
                           Module: {m.title || "Untitled Module"}
                         </option>
                       ))
                     ) : (
-                      <option value="">No modules exist yet</option>
+                      <option value="" className="bg-card text-foreground">No modules exist yet</option>
                     )}
                   </select>
                 </div>
               )}
 
-              {/* TOPIC & LESSON QUIZ: 2-column Grid (Module | Lesson) */}
+              {/* TOPIC & LESSON QUIZ: Module + Lesson, stacked full-width */}
               {((selectedScope === "TOPIC") || (selectedScope === "QUIZ" && quizLevel === "LESSON")) && (
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-muted-foreground block">
                     Target location
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* Stacked full-width, not a 2-col grid: at the modal's compact
+                      width, halving it per select truncated real module/lesson
+                      titles (e.g. "Module 1: Spring Boot & RESTful Web
+                      Services") even after the h-9/padding fix — full width is
+                      what actually fits them. */}
+                  <div className="grid grid-cols-1 gap-2.5">
                     <div>
                       <select
                         value={selectedModuleId}
                         onChange={(e) => handleModuleChange(e.target.value)}
-                        className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {modules.length > 0 ? (
                           modules.map((m) => (
-                            <option key={m.id || m._id} value={m.id || m._id}>
+                            <option key={m.id || m._id} value={m.id || m._id} className="bg-card text-foreground">
                               Module: {m.title || "Untitled Module"}
                             </option>
                           ))
                         ) : (
-                          <option value="">No modules exist yet</option>
+                          <option value="" className="bg-card text-foreground">No modules exist yet</option>
                         )}
                       </select>
                     </div>
@@ -580,16 +614,16 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                       <select
                         value={selectedLessonId}
                         onChange={(e) => handleLessonChange(e.target.value)}
-                        className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {(activeModuleObj?.lessons || []).length > 0 ? (
                           (activeModuleObj?.lessons || []).map((l) => (
-                            <option key={l.id || l._id} value={l.id || l._id}>
+                            <option key={l.id || l._id} value={l.id || l._id} className="bg-card text-foreground">
                               Lesson: {l.title || "Untitled Lesson"}
                             </option>
                           ))
                         ) : (
-                          <option value="">No lessons in this module</option>
+                          <option value="" className="bg-card text-foreground">No lessons in this module</option>
                         )}
                       </select>
                     </div>
@@ -597,27 +631,32 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                 </div>
               )}
 
-              {/* CONTENT & TOPIC QUIZ: Top Row (Module | Lesson 2-col) + Bottom Row (Topic 100%) */}
+              {/* CONTENT & TOPIC QUIZ: Module + Lesson + Topic, all stacked full-width */}
               {((selectedScope === "CONTENT") || (selectedScope === "QUIZ" && quizLevel === "TOPIC")) && (
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-muted-foreground block">
                     Target location
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* Stacked full-width, not a 2-col grid: at the modal's compact
+                      width, halving it per select truncated real module/lesson
+                      titles (e.g. "Module 1: Spring Boot & RESTful Web
+                      Services") even after the h-9/padding fix — full width is
+                      what actually fits them. */}
+                  <div className="grid grid-cols-1 gap-2.5">
                     <div>
                       <select
                         value={selectedModuleId}
                         onChange={(e) => handleModuleChange(e.target.value)}
-                        className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {modules.length > 0 ? (
                           modules.map((m) => (
-                            <option key={m.id || m._id} value={m.id || m._id}>
+                            <option key={m.id || m._id} value={m.id || m._id} className="bg-card text-foreground">
                               Module: {m.title || "Untitled Module"}
                             </option>
                           ))
                         ) : (
-                          <option value="">No modules exist yet</option>
+                          <option value="" className="bg-card text-foreground">No modules exist yet</option>
                         )}
                       </select>
                     </div>
@@ -626,16 +665,16 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                       <select
                         value={selectedLessonId}
                         onChange={(e) => handleLessonChange(e.target.value)}
-                        className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {(activeModuleObj?.lessons || []).length > 0 ? (
                           (activeModuleObj?.lessons || []).map((l) => (
-                            <option key={l.id || l._id} value={l.id || l._id}>
+                            <option key={l.id || l._id} value={l.id || l._id} className="bg-card text-foreground">
                               Lesson: {l.title || "Untitled Lesson"}
                             </option>
                           ))
                         ) : (
-                          <option value="">No lessons in this module</option>
+                          <option value="" className="bg-card text-foreground">No lessons in this module</option>
                         )}
                       </select>
                     </div>
@@ -645,16 +684,16 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                     <select
                       value={selectedTopicId}
                       onChange={(e) => handleTopicChange(e.target.value)}
-                      className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-emerald-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                      className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-emerald-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                     >
                       {(activeLessonObj?.topics || []).length > 0 ? (
                         (activeLessonObj?.topics || []).map((t) => (
-                          <option key={t.id || t._id} value={t.id || t._id}>
+                          <option key={t.id || t._id} value={t.id || t._id} className="bg-card text-foreground">
                             Topic: {t.title || "Untitled Topic"}
                           </option>
                         ))
                       ) : (
-                        <option value="">No topics in this lesson</option>
+                        <option value="" className="bg-card text-foreground">No topics in this lesson</option>
                       )}
                     </select>
                   </div>
@@ -670,16 +709,16 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                   <select
                     value={selectedModuleId}
                     onChange={(e) => handleModuleChange(e.target.value)}
-                    className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                    className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                   >
                     {modules.length > 0 ? (
                       modules.map((m) => (
-                        <option key={m.id || m._id} value={m.id || m._id}>
+                        <option key={m.id || m._id} value={m.id || m._id} className="bg-card text-foreground">
                           Module: {m.title || "Untitled Module"}
                         </option>
                       ))
                     ) : (
-                      <option value="">No modules exist yet</option>
+                      <option value="" className="bg-card text-foreground">No modules exist yet</option>
                     )}
                   </select>
                 </div>
@@ -696,11 +735,11 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                   <select
                     value={selectedOrderValue}
                     onChange={(e) => setSelectedOrderValue(e.target.value)}
-                    className="w-full h-9 bg-background border border-border rounded-lg px-3 text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                    className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                   >
-                    <option value="AUTO_END">Auto / End</option>
+                    <option value="AUTO_END" className="bg-card text-foreground">Auto / End</option>
                     {siblingItems.map((item, i) => (
-                      <option key={item.id || item._id} value={`AFTER_${item.id || item._id}`}>
+                      <option key={item.id || item._id} value={`AFTER_${item.id || item._id}`} className="bg-card text-foreground">
                         After {i + 1} — {item.title || `Item ${i + 1}`}
                       </option>
                     ))}
@@ -722,6 +761,22 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                   className="w-full bg-background border border-border rounded-xl p-3 text-xs text-foreground placeholder-slate-500 focus:outline-none focus:border-primary/50 font-sans resize-none min-h-[85px]"
                 />
               </div>
+
+              {loading && (
+                <div className="flex items-center justify-between gap-3 p-3 bg-background border border-border rounded-xl">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <RefreshCw className="w-4 h-4 text-primary animate-spin shrink-0" />
+                    <span className="text-xs font-semibold text-foreground truncate">
+                      {elapsedSeconds >= 10
+                        ? "Still working — larger requests can take a bit longer..."
+                        : getGenerationStageLabel()}
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-mono text-muted-foreground shrink-0">
+                    {elapsedSeconds}s
+                  </span>
+                </div>
+              )}
             </>
           ) : (
             /* PREVIEW STEP (Requirement 24: Shows Destination & Re-order Result) */

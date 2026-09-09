@@ -11,6 +11,7 @@ import {
 import { useStudents } from '@/hooks/queries/instructor/useStudents';
 import { useInstructorCourses } from '@/hooks/queries/instructor/useInstructorCourses';
 import { useCourseBatches } from '@/hooks/queries/instructor/useBatches';
+import StudentProgressDetailView from '@/components/instructor/students/StudentProgressDetailView';
 
 function StudentsDirectoryContent() {
   const searchParams = useSearchParams();
@@ -118,10 +119,10 @@ function StudentsDirectoryContent() {
             </button>
           )}
           <div>
-            <h1 className="text-sm font-black text-muted-foreground uppercase tracking-widest font-mono">
+            <h1 className="sr-only">
               {selectedStudentId ? 'Student Profile' : 'Student Directory'}
             </h1>
-            <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">
+            <p className="sr-only">
               {selectedStudentId ? `Viewing ${selectedStudent?.name}` : `${filteredStudents.length} Students Active`}
             </p>
           </div>

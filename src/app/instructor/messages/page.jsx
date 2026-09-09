@@ -183,10 +183,10 @@ function MessagingCenterContent() {
       {/* HEADER */}
       <div className="flex items-center justify-between border-b border-border pb-4">
         <div>
-          <h1 className="text-sm font-black text-muted-foreground uppercase tracking-widest font-mono">
+          <h1 className="sr-only">
             Messaging Center
           </h1>
-          <p className="text-[10px] text-slate-550 font-semibold mt-0.5">
+          <p className="sr-only">
             Resolve student queries and coordinate learning activities with real-time API sync
           </p>
         </div>

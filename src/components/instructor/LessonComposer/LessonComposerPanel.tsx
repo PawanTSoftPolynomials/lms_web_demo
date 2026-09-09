@@ -32,6 +32,7 @@ import { VideoCell } from "./cells/VideoCell";
 import { LinkCell } from "./cells/LinkCell";
 import { DocumentCell } from "./cells/DocumentCell";
 import { InteractiveCell } from "./cells/InteractiveCell";
+import { AssignmentCell } from "./cells/AssignmentCell";
 import { useDuplicateContent, useUpdateContent } from "./contentMutations";
 import { CELL_TYPES, type ContentType } from "./cellTypes";
 import { detectHtmlCellVariant } from "./htmlCellVariant";
@@ -55,7 +56,7 @@ interface LessonComposerPanelProps {
 }
 
 /** Determines block badge representation (label & color variant) for target UI */
-function getBlockBadge(content: ContentRow): { text: string; variant: "heading" | "text" | "code" | "image" | "video" | "document" | "default" } {
+function getBlockBadge(content: ContentRow): { text: string; variant: "heading" | "text" | "code" | "image" | "video" | "document" | "assignment" | "default" } {
   switch (content.type) {
     case "HTML": {
       const variant = detectHtmlCellVariant(content.htmlContent);
@@ -85,6 +86,12 @@ function getBlockBadge(content: ContentRow): { text: string; variant: "heading" 
       return { text: "DOC", variant: "document" };
     case "PRESENTATION":
       return { text: "SLIDE", variant: "document" };
+    case "ASSIGNMENT":
+      // No badgeText — CellShell falls back to rendering the cell type's
+      // own icon (ClipboardCheck) instead of a cramped 4-letter initialism,
+      // which reads as a proper Assignment identity rather than a generic
+      // file abbreviation like "DOC"/"VID".
+      return { text: "", variant: "assignment" };
     case "CODE":
       return { text: "</>", variant: "code" };
     default:
@@ -147,6 +154,8 @@ function renderCell(content: ContentRow, actionProps: CellActionProps) {
           {...actionProps}
         />
       );
+    case "ASSIGNMENT":
+      return <AssignmentCell content={content} {...actionProps} />;
     default:
       if (content.htmlContent) {
         return <TextCell content={content} {...actionProps} />;

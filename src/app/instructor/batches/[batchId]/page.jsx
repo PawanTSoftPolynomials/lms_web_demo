@@ -669,7 +669,7 @@ export default function BatchDetailPage() {
           bottomText="Across batch"
         />
         <KpiTile
-          label="Engagement"
+          label="Health"
           value={performanceBatch?.engagementStatus ?? "No Data"}
           icon={Flame}
           iconBg="bg-rose-500/10"

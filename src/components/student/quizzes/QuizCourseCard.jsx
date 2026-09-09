@@ -12,7 +12,7 @@ export default function QuizCourseCard({ course, setViewingCourseId, setActiveTa
     >
       {/* Card Header */}
       <div className="pb-3 text-center border-b border-border/50">
-        <h3 className="text-sm sm:text-base font-black text-foreground tracking-tight leading-snug truncate" title={course.title}>
+        <h3 className="text-h4 text-foreground tracking-tight truncate" title={course.title}>
           {course.title}
         </h3>
         <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mt-1">

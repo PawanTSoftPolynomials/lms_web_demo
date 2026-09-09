@@ -26,12 +26,12 @@ export default function DataTable({
 
   if (isLoading && skeletonRows > 0) {
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse text-xs">
+      <div className="w-full overflow-x-auto scrollbar-thin">
+        <table className="w-full text-left border-collapse text-xs min-w-[600px]">
           <thead>
             <tr className={headerClass}>
               {columns.map((col) => (
-                <th key={col.key} className="pb-3 pt-1 px-2 first:pl-0 last:pr-0">{col.header}</th>
+                <th key={col.key} className="pb-3 pt-1 px-3 first:pl-0 last:pr-0 font-bold">{col.header}</th>
               ))}
             </tr>
           </thead>
@@ -39,7 +39,7 @@ export default function DataTable({
             {Array.from({ length: skeletonRows }).map((_, i) => (
               <tr key={i}>
                 {columns.map((col) => (
-                  <td key={col.key} className="py-3.5 px-2 first:pl-0 last:pr-0">
+                  <td key={col.key} className="py-3.5 px-3 first:pl-0 last:pr-0">
                     <div className="h-3.5 rounded bg-muted animate-pulse" style={{ width: `${60 + (i * 7) % 30}%` }} />
                   </td>
                 ))}
@@ -59,7 +59,7 @@ export default function DataTable({
     );
   }
 
-  if (rows.length === 0) {
+  if (!rows || rows.length === 0) {
     return (
       <div className="py-16 flex flex-col items-center justify-center gap-2 text-center">
         <Inbox size={22} className="text-slate-600" />
@@ -69,14 +69,16 @@ export default function DataTable({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse text-xs">
+    <div className="w-full overflow-x-auto scrollbar-thin">
+      <table className="w-full text-left border-collapse text-xs min-w-[600px]">
         <thead>
           <tr className={headerClass}>
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={`pb-3 pt-1 px-2 first:pl-0 last:pr-0 ${col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left"}`}
+                className={`pb-3 pt-1 px-3 first:pl-0 last:pr-0 font-bold ${
+                  col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left"
+                }`}
               >
                 {col.header}
               </th>

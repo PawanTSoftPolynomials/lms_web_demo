@@ -10,6 +10,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Music,
+    Paperclip,
 } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
 
@@ -402,6 +403,30 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                             />
                         </div>
                     )
+                )}
+
+                {/* ASSIGNMENT (descriptive assignment instructions, not a quiz) */}
+                {type === "ASSIGNMENT" && (
+                    <div className="p-4 sm:p-8 space-y-4">
+                        {htmlContent ? (
+                            <p className="whitespace-pre-wrap text-sm sm:text-base text-foreground/90 select-text">
+                                {unescapeFromContentApi(htmlContent)}
+                            </p>
+                        ) : (
+                            <p className="text-sm text-muted-foreground italic">No description provided.</p>
+                        )}
+                        {fileUrl && (
+                            <a
+                                href={displayFileUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-2 rounded-xl border border-border bg-muted px-4 py-2.5 min-h-[44px] text-xs font-bold text-primary hover:bg-background transition"
+                            >
+                                <Paperclip className="h-4 w-4" />
+                                View Attachment
+                            </a>
+                        )}
+                    </div>
                 )}
 
                 {/* EXTERNAL LINK */}

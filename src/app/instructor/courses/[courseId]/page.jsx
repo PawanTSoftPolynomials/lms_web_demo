@@ -27,7 +27,7 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useToast } from "@/components/ui/ToastProvider";
 import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
 import { validateCoursePublish, duplicateCourse } from "@/services/course.service";
-import { createQuiz as createQuizService, updateQuiz as updateQuizService, deleteQuiz as deleteQuizService, getQuizById as getQuizByIdService } from "@/services/quiz.service";
+import { createQuiz as createQuizService, updateQuiz as updateQuizService, deleteQuiz as deleteQuizService } from "@/services/quiz.service";
 import {
   bulkCreateQuestions as bulkCreateQuestionsService,
   updateRepositoryQuestion,
@@ -68,6 +68,33 @@ function findHierarchyByTopicId(modules, topicId) {
     }
   }
   return { module: null, lesson: null, topic: null };
+}
+
+/** Immutably replaces the module in `modules` matching moduleId, via `updateModule`. */
+function withModule(modules, moduleId, updateModule) {
+  return modules.map((mod) =>
+    String(mod.id || mod._id) === String(moduleId) ? updateModule(mod) : mod
+  );
+}
+
+/** Immutably replaces the lesson within `mod.lessons` matching lessonId, via `updateLesson`. */
+function withLessonIn(mod, lessonId, updateLesson) {
+  return {
+    ...mod,
+    lessons: (mod.lessons || []).map((les) =>
+      String(les.id || les._id) === String(lessonId) ? updateLesson(les) : les
+    ),
+  };
+}
+
+/** Immutably replaces the topic within `les.topics` matching topicId, via `updateTopic`. */
+function withTopicIn(les, topicId, updateTopic) {
+  return {
+    ...les,
+    topics: (les.topics || []).map((top) =>
+      String(top.id || top._id) === String(topicId) ? updateTopic(top) : top
+    ),
+  };
 }
 
 export default function CourseDetailsPage() {
@@ -250,26 +277,95 @@ export default function CourseDetailsPage() {
 
       if (!isDraftMode) {
         // Transactional Backend Application (Requirement: Atomicity & Single Operation)
-        await api.post("/api/ai/apply", {
+        const targetModuleId = contextData.moduleId || composeModuleId;
+        const targetLessonId = contextData.lessonId || composeLessonId;
+        const targetTopicId = contextData.topicId || composeTopicId;
+        const quizLevel = contextData.quizLevel || "COURSE";
+
+        const { data: applyResponse } = await api.post("/api/ai/apply", {
           scope,
           generatedData,
           context: {
             courseId,
-            moduleId: contextData.moduleId || composeModuleId,
-            lessonId: contextData.lessonId || composeLessonId,
-            topicId: contextData.topicId || composeTopicId,
+            moduleId: targetModuleId,
+            lessonId: targetLessonId,
+            topicId: targetTopicId,
             position: pos,
-            quizLevel: contextData.quizLevel || "COURSE",
+            quizLevel,
           },
         });
 
-        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
-        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MODULES] });
-        await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
-        if (contextData.topicId || composeTopicId) {
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CONTENTS, contextData.topicId || composeTopicId] });
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TOPIC, contextData.topicId || composeTopicId] });
+        // The apply response IS the created entity (Module/Lesson/Topic/
+        // Content[]/Quiz row) — enough to splice straight into the Course
+        // Map cache immediately instead of waiting on the invalidation below
+        // to round-trip. Its own nested children (a fresh module's lessons,
+        // a fresh quiz's questions, ...) arrive shortly after via that same
+        // (now-parallelized) refetch, since the apply response doesn't
+        // include them (see courseImporter.service.js — each nested row is
+        // its own separate tx.create()).
+        const createdEntity = applyResponse?.data;
+        const patchModules = (updater) =>
+          queryClient.setQueryData([QUERY_KEYS.MODULES, courseId], (old) =>
+            Array.isArray(old) ? updater(old) : old
+          );
+
+        if (scope === "MODULE" && createdEntity?.id) {
+          patchModules((mods) => [...mods, { ...createdEntity, lessons: [], quizzes: [] }]);
+        } else if (scope === "LESSON" && createdEntity?.id && targetModuleId) {
+          patchModules((mods) =>
+            withModule(mods, targetModuleId, (mod) =>
+              ({ ...mod, lessons: [...(mod.lessons || []), { ...createdEntity, topics: [], quizzes: [] }] })
+            )
+          );
+        } else if (scope === "TOPIC" && createdEntity?.id && targetModuleId && targetLessonId) {
+          patchModules((mods) =>
+            withModule(mods, targetModuleId, (mod) =>
+              withLessonIn(mod, targetLessonId, (les) =>
+                ({ ...les, topics: [...(les.topics || []), { ...createdEntity, contents: [] }] })
+              )
+            )
+          );
+        } else if (scope === "CONTENT" && targetTopicId) {
+          const createdContents = Array.isArray(createdEntity) ? createdEntity : createdEntity ? [createdEntity] : [];
+          if (createdContents.length > 0 && targetModuleId && targetLessonId) {
+            patchModules((mods) =>
+              withModule(mods, targetModuleId, (mod) =>
+                withLessonIn(mod, targetLessonId, (les) =>
+                  withTopicIn(les, targetTopicId, (top) =>
+                    ({ ...top, contents: [...(top.contents || []), ...createdContents] })
+                  )
+                )
+              )
+            );
+            queryClient.setQueryData([QUERY_KEYS.CONTENTS, targetTopicId], (old) =>
+              Array.isArray(old) ? [...old, ...createdContents] : old
+            );
+          }
+        } else if (scope === "QUIZ" && createdEntity?.id) {
+          // course.quizzes (QUERY_KEYS.COURSE) is the source of truth
+          // effectiveModules falls back to for every quiz level — getModules()
+          // never includes a quizzes relation on Module/Lesson/Topic, so
+          // patching mod/lesson/topic.quizzes on the MODULES cache always
+          // started from an empty array and replaced the visible list
+          // instead of joining it. Appending here, regardless of level,
+          // fixes all four (Course/Module/Lesson/Topic) the same way.
+          const newQuiz = { ...createdEntity, questions: [] };
+          queryClient.setQueryData([QUERY_KEYS.COURSE, courseId], (old) =>
+            old ? { ...old, quizzes: [...(old.quizzes || []), newQuiz] } : old
+          );
         }
+
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] }),
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MODULES, courseId] }),
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] }),
+          ...(contextData.topicId || composeTopicId
+            ? [
+                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CONTENTS, contextData.topicId || composeTopicId] }),
+                queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.TOPIC, contextData.topicId || composeTopicId] }),
+              ]
+            : []),
+        ]);
         showToast(`${scope} created from AI!`, "success");
         return;
       }
@@ -512,11 +608,8 @@ export default function CourseDetailsPage() {
         const newQuizData = {
           title: quizTitle,
           description: quizDesc,
-          // AI-generated quizzes stay formal assessments, preserving the
-          // timed behavior they had before quiz tags existed.
-          quizTag: "FINAL",
           passingScore: Number(generatedData.passingScore) || 70,
-          timeLimit: Number(generatedData.timeLimit) > 0 ? Number(generatedData.timeLimit) : null,
+          timeLimit: Number(generatedData.timeLimit) || 15,
           isPublished: true,
           questions: formattedQuestions,
         };
@@ -778,6 +871,7 @@ export default function CourseDetailsPage() {
     setSelectedQuizState(null);
     setQuizStartEditing(false);
     setSelectedCellId(null);
+    setAutoOpenAddSignal(0);
     setMobileSidebarOpen(false);
   };
 
@@ -932,11 +1026,8 @@ export default function CourseDetailsPage() {
           id: `draft-quiz-${isTopicQuiz ? "topic" : isLessonQuiz ? "lesson" : "mod"}-${Date.now()}`,
           title: updatedQuizData.title || (isTopicQuiz ? "Topic Quiz" : isLessonQuiz ? "Lesson Quiz" : "Module Quiz"),
           description: updatedQuizData.description || "",
-          quizTag: updatedQuizData.quizTag,
           passingScore: Number(updatedQuizData.passingScore) || 70,
-          // No `|| 30` fallback: null means the instructor chose no timer,
-          // and re-inflating it here would defeat that before it ever saved.
-          timeLimit: updatedQuizData.timeLimit ?? null,
+          timeLimit: Number(updatedQuizData.timeLimit) || 30,
           isPublished: updatedQuizData.isPublished !== false,
           moduleId: composeModuleId,
           lessonId: composeLessonId || null,
@@ -1090,9 +1181,8 @@ export default function CourseDetailsPage() {
           const resQuiz = await createQuizService({
             title: updatedQuizData.title || (composeTopicId ? "Topic Quiz" : composeLessonId ? "Lesson Quiz" : "Module Quiz"),
             description: updatedQuizData.description || "",
-            quizTag: updatedQuizData.quizTag,
             passingScore: Number(updatedQuizData.passingScore) || 70,
-            timeLimit: updatedQuizData.timeLimit ?? null,
+            timeLimit: Number(updatedQuizData.timeLimit) || 30,
             isPublished: updatedQuizData.isPublished !== false,
             courseId,
             moduleId: composeModuleId || null,
@@ -1112,22 +1202,26 @@ export default function CourseDetailsPage() {
             }
           }
 
-          let freshQuiz = resQuiz;
-          try {
-            freshQuiz = await getQuizByIdService(resQuiz.id);
-          } catch (fetchErr) {
-            freshQuiz = { ...resQuiz, questions: updatedQuizData.questions || [] };
-          }
+          // Reflect the new quiz in the Course Map immediately from this
+          // response. course.quizzes (QUERY_KEYS.COURSE) — not mod/lesson/
+          // topic.quizzes on the MODULES cache — is the actual source of
+          // truth effectiveModules falls back to, since getModules() never
+          // includes a quizzes relation at any level. Writing into
+          // mod/lesson/topic.quizzes there always started from an empty
+          // array, so each new quiz replaced the visible list instead of
+          // joining it. Appending to course.quizzes works identically for
+          // Course/Module/Lesson/Topic — effectiveModules' existing
+          // moduleId/lessonId/topicId filtering places each quiz correctly.
+          const newQuiz = { ...resQuiz, questions: updatedQuizData.questions || [] };
+          queryClient.setQueryData([QUERY_KEYS.COURSE, courseId], (old) =>
+            old ? { ...old, quizzes: [...(old.quizzes || []), newQuiz] } : old
+          );
 
-          await Promise.allSettled([
-            queryClient.refetchQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] }),
-            queryClient.refetchQueries({ queryKey: [QUERY_KEYS.COURSE, courseId, "meta"] }),
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] }),
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.QUIZZES] }),
-          ]);
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
 
-          showToast(composeTopicId ? "Topic quiz created successfully!" : composeLessonId ? "Lesson quiz created successfully!" : "Module quiz created successfully!", "success");
-          setSelectedQuizState(freshQuiz);
+          showToast(composeTopicId ? "Topic quiz created successfully!" : composeLessonId ? "Lesson quiz created successfully!" : composeModuleId ? "Module quiz created successfully!" : "Course quiz created successfully!", "success");
+          setSelectedQuizState(resQuiz);
           setComposeQuizId(resQuiz.id);
           setQuizMode("view");
           setQuizStartEditing(false);
@@ -1141,11 +1235,8 @@ export default function CourseDetailsPage() {
           const resQuiz = await updateQuizService(targetId, {
             title: updatedQuizData.title,
             description: updatedQuizData.description,
-            quizTag: updatedQuizData.quizTag,
             passingScore: Number(updatedQuizData.passingScore),
-            // Number(null) is 0, not null — and 0 would reach the API as a
-            // real time limit rather than "untimed".
-            timeLimit: updatedQuizData.timeLimit ?? null,
+            timeLimit: Number(updatedQuizData.timeLimit),
             isPublished: updatedQuizData.isPublished,
             courseId,
             moduleId: composeModuleId || selectedQuizState.moduleId || null,
@@ -1165,22 +1256,11 @@ export default function CourseDetailsPage() {
             showToast(qErr?.response?.data?.message || "Quiz updated, but some questions failed to save.", "error");
           }
 
-          let freshQuiz = updatedQuiz;
-          try {
-            freshQuiz = await getQuizByIdService(targetId);
-          } catch (fetchErr) {
-            freshQuiz = updatedQuiz;
-          }
-
-          await Promise.allSettled([
-            queryClient.refetchQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] }),
-            queryClient.refetchQueries({ queryKey: [QUERY_KEYS.COURSE, courseId, "meta"] }),
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] }),
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.QUIZZES] }),
-          ]);
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
+          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
 
           showToast("Quiz updated successfully!", "success");
-          setSelectedQuizState(freshQuiz);
+          setSelectedQuizState(updatedQuiz);
           setQuizMode("view");
           setQuizStartEditing(false);
         } catch (err) {
@@ -1382,6 +1462,8 @@ export default function CourseDetailsPage() {
     setComposeTopicId(null);
     setComposeQuizId(null);
     setComposerMode("lesson");
+    setSelectedCellId(null);
+    setAutoOpenAddSignal(0);
 
     const { lesson: foundLesson, module: foundModule } = findModuleAndLessonById(effectiveModules, lessonId);
     if (foundLesson) {
@@ -1403,6 +1485,8 @@ export default function CourseDetailsPage() {
     setComposeTopicId(null);
     setComposeQuizId(null);
     setComposerMode("module");
+    setSelectedCellId(null);
+    setAutoOpenAddSignal(0);
     setMobileSidebarOpen(false);
   };
 
@@ -1412,6 +1496,18 @@ export default function CourseDetailsPage() {
     setComposeModuleId(moduleId);
     setComposeQuizId(null);
     setComposerMode("topic");
+    setSelectedCellId(null);
+    // Root-cause fix: without this, a stale autoOpenAddSignal left over from
+    // an earlier "+ Add Content" click (anywhere, anytime this session)
+    // survives here, and since LessonComposerPanel remounts fresh every time
+    // composerMode re-enters "topic" (its handledAutoOpenSignal ref resets
+    // to undefined on remount while this counter never resets on its own),
+    // the panel's mount effect misreads that leftover signal as a brand-new
+    // request and immediately pops "Add New Content Cell" over this existing
+    // topic's real content. Clearing it here — before the panel mounts —
+    // ensures a plain "select existing topic" click never carries forward an
+    // unconsumed create-content request.
+    setAutoOpenAddSignal(0);
     setMobileSidebarOpen(false);
   };
 
@@ -1422,6 +1518,10 @@ export default function CourseDetailsPage() {
     setComposeQuizId(null);
     setComposerMode("topic");
     setSelectedCellId(content.id);
+    // Same fix as handleSelectTopic: clear any leftover auto-open signal so
+    // this fresh LessonComposerPanel mount doesn't misread it as a request
+    // to open the create modal instead of showing the clicked content.
+    setAutoOpenAddSignal(0);
     setMobileSidebarOpen(false);
   };
 
@@ -1430,6 +1530,7 @@ export default function CourseDetailsPage() {
     if (lessonId) setComposeLessonId(lessonId);
     if (moduleId) setComposeModuleId(moduleId);
     setComposerMode("topic");
+    setSelectedCellId(null);
     setAutoOpenAddSignal((n) => n + 1);
     setMobileSidebarOpen(false);
   };
@@ -1467,6 +1568,7 @@ export default function CourseDetailsPage() {
       setComposeLessonId(parentId);
       setComposeTopicId(created.id);
       setComposerMode("topic");
+      setAutoOpenAddSignal(0);
     }
   };
 
@@ -1752,6 +1854,34 @@ export default function CourseDetailsPage() {
   const handleOpenPublishModal = async () => {
     setPublishModalOpen(true);
     setIsValidatingPublish(true);
+
+    if (isDraftMode || courseId === "draft" || courseId === "new") {
+      const errors = [];
+      const title = courseForm.title || draftData?.metadata?.title;
+      const desc = courseForm.description || draftData?.metadata?.description;
+      const mods = draftModules || [];
+
+      if (!title || !title.trim()) {
+        errors.push({ code: "MISSING_TITLE", message: "Course title is required." });
+      }
+      if (!desc || !desc.trim()) {
+        errors.push({ code: "MISSING_DESCRIPTION", message: "Course description is required." });
+      }
+      if (mods.length === 0) {
+        errors.push({ code: "NO_MODULES", message: "At least one module is required." });
+      } else {
+        const hasLessons = mods.some((m) => m.lessons && m.lessons.length > 0);
+        if (!hasLessons) {
+          errors.push({ code: "EMPTY_MODULE", message: "At least one module must contain lessons." });
+        }
+      }
+
+      const canPublish = !errors.some((e) => e.code === "MISSING_TITLE" || e.code === "NO_MODULES" || e.code === "EMPTY_MODULE");
+      setPublishValidation({ canPublish, errors });
+      setIsValidatingPublish(false);
+      return;
+    }
+
     try {
       const valData = await validateCoursePublish(courseId);
       setPublishValidation(valData);
@@ -1764,12 +1894,58 @@ export default function CourseDetailsPage() {
 
   const handleConfirmPublish = async () => {
     try {
+      if (isDraftMode || courseId === "draft" || courseId === "new") {
+        if (!draftData || !draftData.jobId) {
+          showToast("No active course draft found to publish.", "error");
+          return;
+        }
+        setIsSavingDraft(true);
+
+        const updatedCanonicalJson = {
+          ...(draftData.canonicalJson || {}),
+          metadata: {
+            ...(draftData.canonicalJson?.metadata || {}),
+            title: courseForm.title || draftData.metadata?.title || "Imported Course",
+            description: courseForm.description || draftData.metadata?.description || "",
+            category: courseForm.category || draftData.metadata?.category || "General",
+            level: courseForm.level || draftData.metadata?.level || "BEGINNER",
+            thumbnailUrl: courseForm.thumbnailUrl || draftData.metadata?.thumbnailUrl || null,
+          },
+          settings: draftData.settings || {},
+          quizzes: draftQuizzes.length > 0 ? draftQuizzes : (draftData.quizzes || draftData.canonicalJson?.quizzes || []),
+          modules: draftModules,
+          assetMap: draftData.assetMap || {}
+        };
+
+        const response = await api.post(`/course-import/jobs/${draftData.jobId}/import`, {
+          canonicalJson: updatedCanonicalJson
+        });
+
+        const createdCourse = response.data?.data;
+        const persistedCourseId = createdCourse?.courseId || createdCourse?.id;
+
+        if (!persistedCourseId) {
+          throw new Error("Failed to save course before publishing.");
+        }
+
+        sessionStorage.removeItem("imported_course_draft");
+
+        await publishCourseMutation.mutateAsync(persistedCourseId);
+
+        setPublishModalOpen(false);
+        showToast("Course saved & published successfully!", "success", "Published");
+        router.push(`/instructor/courses/${persistedCourseId}`);
+        return;
+      }
+
       await publishCourseMutation.mutateAsync(courseId);
       setPublishModalOpen(false);
       showToast("Course published successfully!", "success", "Published");
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || "Failed to publish course";
       showToast(msg, "error");
+    } finally {
+      setIsSavingDraft(false);
     }
   };
 
@@ -2102,8 +2278,8 @@ export default function CourseDetailsPage() {
                 module={activeModuleObj}
                 onSelectLesson={handleSelectLesson}
                 onAddLesson={(modId) => openEntityModal({ entity: "lesson", mode: "create", parentId: modId })}
-                onEditModule={(mod) => openEntityModal({ entity: "module", mode: "edit", entityId: mod.id, initialData: mod, courseId })}
-                onEditLesson={(les) => openEntityModal({ entity: "lesson", mode: "edit", entityId: les.id, initialData: les, parentId: activeModuleObj.id })}
+                onEditModule={(mod) => openEntityModal({ entity: "module", mode: "edit", entityData: mod, courseId })}
+                onEditLesson={(les) => openEntityModal({ entity: "lesson", mode: "edit", entityData: les, parentId: activeModuleObj.id })}
                 onAddTopic={(lesId) => openEntityModal({ entity: "topic", mode: "create", parentId: lesId, moduleId: activeModuleObj.id })}
                 onDeleteLesson={handleDeleteLesson}
                 allModules={effectiveModules}

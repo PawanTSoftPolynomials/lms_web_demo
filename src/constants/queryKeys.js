@@ -37,6 +37,8 @@ export const QUERY_KEYS = {
     LEARNING_PATH: "learning-path",
     COURSE_REVIEWS: "course-reviews",
     COURSE_REVIEW_STATS: "course-review-stats",
+    PROGRESS: "progress",
+    COURSE_PROGRESS: "course-progress",
 
     // ==========================
     // Admin

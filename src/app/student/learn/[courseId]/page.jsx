@@ -12,6 +12,10 @@ import {
 import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel";
 import CourseContentAccordion from "@/components/student/learning/CourseContentAccordion";
 import LessonContentBlock from "@/components/student/learning/LessonContentBlock";
+import ContentCompletionBar from "@/components/student/learning/ContentCompletionBar";
+import LessonOverviewPanel from "@/components/student/learning/LessonOverviewPanel";
+import LessonResourcesPanel from "@/components/student/learning/LessonResourcesPanel";
+import LessonQuizPanel from "@/components/student/learning/LessonQuizPanel";
 import QuizExperience from "@/components/student/attempt/QuizExperience";
 import AskInstructorCard from "@/components/student/learning/AskInstructorCard";
 import LessonNavigationControls from "@/components/student/learning/LessonNavigationControls";
@@ -20,9 +24,16 @@ import LearnPageHeader from "@/components/student/learning/LearnPageHeader";
 import { groupLessonContentForDocumentView } from "@/lib/contentDocument";
 import { CourseStructureSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
 import { normalizeCourseHierarchy } from "@/lib/courseMapper";
+import { buildProgressIndex, decorateCourseWithProgress, isItemComplete } from "@/lib/progressIndex";
 import { LEARN_PAGE_CONTENT_TABS } from "@/features/student/constants/learnPageConfig";
 
-import { useCourse, useStudentState, useUpdateStudentState } from "@/hooks/queries/student";
+import {
+  useCourse,
+  useStudentState,
+  useUpdateStudentState,
+  useCourseProgress,
+  useCompleteContent,
+} from "@/hooks/queries/student";
 import useLessonBookmarkToggle from "@/hooks/queries/student/useLessonBookmarkToggle";
 import useTrackCourseAccess from "@/hooks/queries/student/useTrackCourseAccess";
 import useLearningStateSync from "@/hooks/queries/student/useLearningStateSync";
@@ -35,6 +46,23 @@ import { ChatWidget } from "@/components/chat";
 
 import useChat from "@/hooks/useChat";
 import useMediaQuery from "@/hooks/useMediaQuery";
+import { useToast } from "@/components/ui/ToastProvider";
+
+/**
+ * The real Content row ids behind one displayed block.
+ *
+ * Blocks coming through groupLessonContentForDocumentView carry `contentIds`
+ * (a merged HTML document stands for several rows); a block picked straight
+ * off the course tree — a Course- or Module-direct item chosen in the sidebar,
+ * which never goes through that grouping — carries only its own id. Progress
+ * is keyed on these ids, so this is what both the completion request and the
+ * completion lookup must use, never the block's display identity.
+ */
+function contentIdsOf(item) {
+  if (!item) return [];
+  const ids = Array.isArray(item.contentIds) && item.contentIds.length > 0 ? item.contentIds : [item.id];
+  return ids.filter(Boolean);
+}
 
 export default function LearnPage() {
   const { courseId } = useParams();
@@ -42,10 +70,30 @@ export default function LearnPage() {
 
   const { data: rawCourseData, isLoading, isError } = useCourse(courseId);
   const course = useMemo(() => normalizeCourseHierarchy(rawCourseData) || {}, [rawCourseData]);
+  // Progress is advisory to this page: the player must stay fully usable when
+  // the roll-up is unavailable, so a failed/pending progress query degrades to
+  // "no indicators" rather than blocking or erroring the learning experience.
+  const { data: progressData, isError: isProgressError } = useCourseProgress(courseId);
+  const completeContentMutation = useCompleteContent();
+
+  // Single flattened view of the backend roll-up. Null while loading or on
+  // failure — every consumer below treats null as "don't render indicators".
+  const progressIndex = useMemo(() => buildProgressIndex(progressData), [progressData]);
+
+  // The same course tree the player renders from, decorated with the backend's
+  // completion flags so the sidebar, the accordion and the quiz panel all agree.
+  const courseWithProgress = useMemo(
+    () => decorateCourseWithProgress(course, progressIndex) || course,
+    [course, progressIndex]
+  );
+
+  const courseSummary = progressIndex?.course ?? null;
+
   const { data: stateData, isLoading: isStateLoading } = useStudentState();
   const updateStateMutation = useUpdateStudentState();
 
   const { setIsOpen } = useChat();
+  const { showToast } = useToast();
 
   // Real viewport check backing the mobile/tablet-only blocks below — mirrors
   // Tailwind's xl breakpoint (1280px) so exactly one of the isDesktop-gated
@@ -226,6 +274,18 @@ export default function LearnPage() {
   // documentGroupedContents); safe to reference here since this is only
   // ever called later, as the video's onEnded callback.
   const handleVideoEnded = () => {
+    // Mark the block that actually just finished — not "the first VIDEO in the
+    // lesson", which marks the wrong row whenever a lesson holds more than one.
+    // Quiz blocks complete through their own submission flow, never here.
+    const finished = activeBlock;
+    if (finished?.kind === "content" && finished.item?.id) {
+      // contentIds (not the block's representative id) so a merged document
+      // block marks every underlying Content row — see useCompleteContent.
+      completeContentMutation.mutate({
+        contentIds: contentIdsOf(finished.item),
+        completed: true,
+      });
+    }
     goToNextBlock();
   };
 
@@ -419,27 +479,64 @@ export default function LearnPage() {
   // What the player actually shows — a standalone course/module-level pick
   // takes priority over the normal Lesson/Topic block sequence.
   const activeBlock = manualOverride || playerBlocks[blockIndex];
+
+  // Course Map sidebar highlighting — mirrors the instructor Composer's
+  // composerMode/composeXId contract (see CourseComposerSidebar), derived
+  // from whatever's actually on screen rather than tracked as separate
+  // state. A manualOverride (course/module-level pick) has no Lesson/Topic
+  // of its own, so it reports its own scope and clears lesson/topic; the
+  // normal Lesson/Topic sequence still reports the current lesson's module
+  // so that ancestor row stays expanded.
+  const sidebarComposerMode = manualOverride
+    ? manualOverride.scope // "module" | "course"
+    : hasTopics
+    ? "topic"
+    : "lesson";
+  const sidebarComposeModuleId = manualOverride
+    ? (manualOverride.scope === "module" ? manualOverride.moduleId : null)
+    : selectedLesson?.moduleId ?? null;
+  const sidebarComposeLessonId = manualOverride ? null : selectedLesson?.id ?? null;
+  const sidebarComposeTopicId = manualOverride ? null : hasTopics ? selectedTopicId : null;
+  const sidebarComposeQuizId = activeBlock?.kind === "quiz" ? activeBlock.item.id : null;
+  const sidebarSelectedCellId = activeBlock?.kind === "content" ? activeBlock.item.id : null;
+
   const resultReturnTo = `/student/learn/${courseId}${selectedLesson?.id ? `?lessonId=${selectedLesson.id}` : ""}`;
 
-  // Course Map sidebar highlighting: mirrors the Instructor Composer's own
-  // composerMode/composeXId scheme (CourseComposerSidebar) so the row for
-  // whatever the student is actually watching — and every ancestor row
-  // above it (Module/Lesson/Topic) — lights up together as one variant of
-  // the same primary color, instead of just the Lesson row as before.
-  // composerMode here means "which level directly contains the active
-  // block" (never "quiz" on this side — see the isQuizActive fallback in
-  // CourseComposerSidebar for why a quiz nested under a topic/lesson/module
-  // still needs that container's own mode, not a separate "quiz" mode).
-  const sidebarComposerMode = manualOverride
-    ? manualOverride.scope === "module" ? "module" : "course"
-    : hasTopics ? "topic" : selectedLesson ? "lesson" : "course";
-  const sidebarComposeModuleId = manualOverride
-    ? manualOverride.scope === "module" ? manualOverride.moduleId : null
-    : selectedLesson?.moduleId;
-  const sidebarComposeLessonId = manualOverride ? null : selectedLesson?.id;
-  const sidebarComposeTopicId = manualOverride ? null : selectedTopicId;
-  const sidebarSelectedCellId = activeBlock?.kind === "content" ? activeBlock.item.id : null;
-  const sidebarComposeQuizId = activeBlock?.kind === "quiz" ? activeBlock.item.id : null;
+  // ---- Completion state for the block currently on screen -------------------
+  // Read straight out of the backend roll-up. A merged document block counts as
+  // complete only when every Content row behind it is, because the backend
+  // counts each of those rows in its own denominator. This is a lookup of the
+  // server's per-item flags, not a calculation of progress.
+  const activeContentIds = activeBlock?.kind === "content" ? contentIdsOf(activeBlock.item) : [];
+  const activeContentCompleted =
+    activeContentIds.length > 0 && activeContentIds.every((id) => isItemComplete(progressIndex, id));
+
+  // A Quiz reports the same backend flag in the same strip, but never offers a
+  // way to set it: `completed` for a Quiz means the backend recorded a passing
+  // QuizSubmission, so it is earned by passing, not by asserting it here.
+  const activeQuizId = activeBlock?.kind === "quiz" ? activeBlock.item?.id : null;
+  const activeQuizCompleted = Boolean(activeQuizId) && isItemComplete(progressIndex, activeQuizId);
+
+  // Hidden entirely until the roll-up is known: without it we cannot say
+  // whether this item is already complete, and showing "Mark as Complete" on a
+  // finished item (or vice versa) would misreport the student's own state.
+  const showCompletionBar =
+    Boolean(progressIndex) && (activeContentIds.length > 0 || Boolean(activeQuizId));
+
+  const handleMarkComplete = () => {
+    // The mutation's own pending flag is the guard against double submission;
+    // the button is disabled from the same flag.
+    if (completeContentMutation.isPending || activeContentCompleted || activeContentIds.length === 0) return;
+
+    completeContentMutation.mutate(
+      { contentIds: activeContentIds, completed: true },
+      {
+        // No optimistic write: the item flips to Completed only after the
+        // invalidated COURSE_PROGRESS query comes back saying so.
+        onError: () => showToast("Could not mark this item complete. Please try again.", "error"),
+      }
+    );
+  };
 
   // Each tab's content is defined exactly once here, then referenced both by
   // the mobile shared content panel (conditional render, one at a time) and
@@ -483,6 +580,10 @@ export default function LearnPage() {
     </div>
   );
 
+  const quizPanel = (
+    <LessonQuizPanel quizzes={courseWithProgress?.quizzes || course?.quizzes || []} courseId={courseId} currentLessonId={selectedLesson?.id} />
+  );
+
   return (
     <div className="h-full bg-[#07080f] text-foreground flex overflow-x-hidden font-sans relative">
 
@@ -493,9 +594,10 @@ export default function LearnPage() {
       {/* ========================================================================= */}
       <div className={`hidden xl:block shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${courseSidebarOpen ? "w-full xl:w-[320px]" : "w-full xl:w-0"}`}>
         <CourseStructureSidebar
-          modules={course.modules || []}
+          modules={courseWithProgress.modules || []}
           courseId={courseId}
-          courseQuizzes={course.quizzes || []}
+          courseQuizzes={courseWithProgress.quizzes || []}
+          progress={progressIndex}
           maxHeightClassName="max-h-full"
           composerMode={sidebarComposerMode}
           composeLessonId={sidebarComposeLessonId}
@@ -558,9 +660,15 @@ export default function LearnPage() {
           selectedLesson={selectedLesson}
           topicTitle={hasTopics ? currentTopic?.title : null}
           course={course}
-          onOpenStickyNotes={() => {
-            setRightPanelOpen(true);
-            setActiveContentTab("notes");
+          courseProgress={courseSummary}
+          isProgressUnavailable={isProgressError}
+          isStickyNotesOpen={rightPanelOpen}
+          onToggleStickyNotes={() => {
+            setRightPanelOpen((prev) => {
+              const next = !prev;
+              if (next) setActiveContentTab("notes");
+              return next;
+            });
           }}
         />
 
@@ -690,6 +798,23 @@ export default function LearnPage() {
                 </div>
                 )}
               </div>
+
+              {/* COMPLETION — the one place the student marks the block on
+                  screen complete, and the one place its completed state is
+                  shown in the workspace. Sits below the player frame (not
+                  inside it) so it never collides with the floating Prev/Next
+                  overlay, and applies to whatever the frame is showing:
+                  Course-, Module-, Lesson- or Topic-direct Content alike. */}
+              {showCompletionBar && (
+                <ContentCompletionBar
+                  completed={activeQuizId ? activeQuizCompleted : activeContentCompleted}
+                  isPending={completeContentMutation.isPending}
+                  isVideo={!activeQuizId && activeBlock?.item?.type === "VIDEO"}
+                  readOnly={Boolean(activeQuizId)}
+                  readOnlyHint="Pass this quiz to complete it."
+                  onMarkComplete={handleMarkComplete}
+                />
+              )}
             </div>
 
             {/* CONTENT TAB STRIP — mobile & tablet only. Desktop shows every
@@ -805,11 +930,23 @@ export default function LearnPage() {
                 a duplicate navigator there. Always visible, not tab-gated. */}
             <div className="min-w-0 row-start-4 xl:hidden">
               <CourseContentAccordion
-                modules={course.modules || []}
+                modules={courseWithProgress.modules || []}
+                course={courseWithProgress}
+                progress={progressIndex}
                 activeModuleId={activeModuleId}
                 onToggleModule={toggleMobileModule}
                 selectedLessonId={selectedLesson?.id}
                 onSelectLesson={(lesson, module) => selectLesson({ ...lesson, moduleId: module.id })}
+                // Routes through the same two handlers the desktop sidebar
+                // uses, so a mobile tap lands on exactly the same block the
+                // desktop tree would have opened.
+                onSelectItem={(item, kind) => {
+                  if (kind === "ASSIGNMENT") {
+                    router.push(`/student/assignments/${item.id}`);
+                    return;
+                  }
+                  jumpToBlock(item.id);
+                }}
                 collapsed={mobileContentCollapsed}
                 onToggleCollapsed={() => setMobileContentCollapsed((prev) => !prev)}
               />

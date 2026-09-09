@@ -57,8 +57,8 @@ export default function WorkNotesPage() {
   return (
     <Card className="mx-auto max-w-5xl bg-card border border-border p-6 sm:p-8 rounded-2xl shadow-2xl space-y-6">
       <div>
-        <h1 className="text-3xl font-black text-foreground tracking-tight">Notes</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Write private lesson notes with rich formatting, images, and file attachments.</p>
+        <h1 className="sr-only">Notes</h1>
+        <p className="sr-only">Write private lesson notes with rich formatting, images, and file attachments.</p>
       </div>
 
       <CourseModuleLessonSelect

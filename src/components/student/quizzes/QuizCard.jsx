@@ -13,7 +13,7 @@ export default function QuizCard({ quiz }) {
       {/* Header: Title & Status Badge */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-black text-foreground tracking-tight truncate" title={quiz.title}>
+          <h3 className="text-h4 text-foreground tracking-tight line-clamp-2" title={quiz.title}>
             {quiz.title}
           </h3>
           <p className="text-xs text-muted-foreground line-clamp-2 mt-1 leading-relaxed">

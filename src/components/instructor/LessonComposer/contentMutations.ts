@@ -20,6 +20,7 @@ export interface CreateContentVariables {
   htmlContent?: string;
   externalUrl?: string;
   duration?: number;
+  data?: Record<string, unknown> | null;
 }
 
 export interface UpdateContentVariables {

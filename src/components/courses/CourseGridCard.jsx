@@ -102,6 +102,7 @@ export default function CourseGridCard({ course }) {
     { label: exporting ? "Exporting…" : "Export ZIP", onClick: handleExport },
     { label: "Delete Course", onClick: handleDelete },
   ];
+
   return (
     <div
       onClick={() => router.push(`/instructor/courses/${course.id}`)}
@@ -113,9 +114,9 @@ export default function CourseGridCard({ course }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={getDisplayUrl(course.thumbnailUrl)}
-            alt=""
+            alt={course.title || "Course thumbnail"}
             loading="lazy"
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           />
         ) : (
           <div className="relative flex h-full w-full items-center justify-center">
@@ -179,7 +180,7 @@ export default function CourseGridCard({ course }) {
       </div>
 
       {exporting && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-[32px] bg-background/80 backdrop-blur-sm">
+        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-background/80 backdrop-blur-sm">
           <Loader2 size={24} className="animate-spin text-primary" />
         </div>
       )}

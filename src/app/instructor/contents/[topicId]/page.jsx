@@ -73,11 +73,11 @@ export default function TopicContentsPage() {
             {/* Header */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
                 <div>
-                    <h1 className="text-4xl font-bold">
+                    <h1 className="sr-only">
                         Contents
                     </h1>
 
-                    <p className="mt-2 text-muted-foreground">
+                    <p className="sr-only">
                         Manage topic contents.
                     </p>
                 </div>

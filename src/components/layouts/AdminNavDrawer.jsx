@@ -83,7 +83,6 @@ function DrawerNavItem({ item, pathname, depth = 0, onNavigate }) {
 
 export default function AdminNavDrawer() {
   const pathname = usePathname();
-  const router = useRouter();
   const { logout } = useAuth();
   const { isOpen, close } = useAdminNavDrawer();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -107,8 +106,10 @@ export default function AdminNavDrawer() {
   const handleLogout = () => {
     setShowLogoutModal(false);
     close();
+    // logout() itself clears auth state and redirects to the Landing Page —
+    // navigating here too would race it while cookies/user state are still
+    // present, which is what let the old redirect bounce back into the app.
     logout();
-    router.push("/login");
   };
 
   if (!isOpen) return null;
@@ -149,8 +150,8 @@ export default function AdminNavDrawer() {
                     : "text-foreground hover:text-foreground hover:bg-muted/50 font-semibold"
                 }`}
               >
-                <Icon size={18} className={active ? "text-slate-950" : "text-muted-foreground"} />
-                <span className="text-sm">{item.label}</span>
+                <Icon size={18} className={active ? "text-primary-foreground" : "text-muted-foreground"} />
+                <span className="text-nav">{item.label}</span>
               </Link>
             );
           })}
@@ -165,7 +166,7 @@ export default function AdminNavDrawer() {
             className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 font-semibold transition-all duration-200 cursor-pointer"
           >
             <LogOut size={18} className="text-rose-400" />
-            <span className="text-sm">Logout</span>
+            <span className="text-nav">Logout</span>
           </button>
         </nav>
       </div>

@@ -1,41 +1,29 @@
 'use client';
 
-const variants = {
-  Excellent: {
-    bg: 'bg-emerald-500/10',
-    border: 'border-emerald-500/20',
-    text: 'text-emerald-400',
-    dot: 'bg-emerald-400',
-  },
-  Good: {
-    bg: 'bg-blue-500/10',
-    border: 'border-blue-500/20',
-    text: 'text-blue-400',
-    dot: 'bg-blue-400',
-  },
-  'Needs Review': {
-    bg: 'bg-amber-500/10',
-    border: 'border-amber-500/20',
-    text: 'text-amber-400',
-    dot: 'bg-amber-400',
-  },
-  Critical: {
-    bg: 'bg-red-500/10',
-    border: 'border-red-500/20',
-    text: 'text-red-400',
-    dot: 'bg-red-400',
-  },
+import { Badge } from '@/components/ui/shadcn/badge';
+
+const STATUS_VARIANT = {
+  Excellent: 'success',
+  Good: 'info',
+  'Needs Review': 'warning',
+  Critical: 'destructive',
+};
+
+const DOT_CLASS = {
+  Excellent: 'bg-success',
+  Good: 'bg-info',
+  'Needs Review': 'bg-warning',
+  Critical: 'bg-destructive',
 };
 
 export default function HealthBadge({ status }) {
-  const style = variants[status] || variants.Good;
+  const variant = STATUS_VARIANT[status] || STATUS_VARIANT.Good;
+  const dot = DOT_CLASS[status] || DOT_CLASS.Good;
 
   return (
-    <span
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold backdrop-blur-sm ${style.bg} ${style.border} ${style.text}`}
-    >
-      <span className={`h-2 w-2 rounded-full ${style.dot}`} />
+    <Badge variant={variant} className="normal-case tracking-normal font-semibold py-1">
+      <span className={`h-2 w-2 rounded-full ${dot}`} />
       {status}
-    </span>
+    </Badge>
   );
 }

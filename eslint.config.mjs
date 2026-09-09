@@ -21,6 +21,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Retired feature source kept for restoration only — never built or linted.
+    "backup/**",
   ]),
 ]);
 

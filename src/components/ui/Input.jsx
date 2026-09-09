@@ -2,10 +2,11 @@ export default function Input({
   label,
   error,
   className = "",
+  disabled = false,
   ...props
 }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5 w-full">
       {label && (
         <label className="text-sm text-foreground">
           {label}
@@ -13,8 +14,8 @@ export default function Input({
       )}
 
       <input
+        disabled={disabled}
         className={`
-          glass-input
           w-full
           rounded-lg
           border
@@ -23,6 +24,8 @@ export default function Input({
           px-4
           py-3
           outline-none
+          transition-all
+          hover:border-border-strong
           focus:border-primary
           ${className}
         `}
@@ -30,7 +33,7 @@ export default function Input({
       />
 
       {error && (
-        <p className="text-sm text-destructive">
+        <p className="text-2xs font-semibold text-destructive mt-1">
           {error}
         </p>
       )}

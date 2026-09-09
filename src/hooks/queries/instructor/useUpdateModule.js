@@ -43,14 +43,6 @@ export function useUpdateModule() {
 
             queryClient.invalidateQueries({
                 queryKey: [
-                    QUERY_KEYS.INSTRUCTOR_COURSE,
-                    variables.moduleData.courseId,
-                ],
-                refetchType: "all",
-            });
-
-            queryClient.invalidateQueries({
-                queryKey: [
                     QUERY_KEYS.INSTRUCTOR_COURSES,
                 ],
                 refetchType: "all",

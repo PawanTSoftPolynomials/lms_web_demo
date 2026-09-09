@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BookOpen, Search } from "lucide-react";
@@ -15,11 +15,22 @@ const INITIAL_FILTERS = { search: "", status: "", category: "", level: "", sortB
 export default function InstructorCoursesPage() {
   const router = useRouter();
   const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data, isLoading, isError, refetch } = useInstructorCoursesTable(filters);
 
-  const courses = data?.courses || [];
+  const rawCourses = data?.courses || [];
   const pagination = data?.pagination || { page: 1, limit: 12, total: 0, totalPages: 1 };
+
+  const courses = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return rawCourses;
+    return rawCourses.filter((course) => {
+      const titleMatch = course.title?.toLowerCase().includes(q);
+      const descMatch = course.description?.toLowerCase().includes(q);
+      return titleMatch || descMatch;
+    });
+  }, [rawCourses, searchQuery]);
 
   const set = (key) => (value) => setFilters((f) => ({ ...f, [key]: value, page: key === "page" ? value : 1 }));
 
@@ -61,7 +72,7 @@ export default function InstructorCoursesPage() {
   };
 
   return (
-    <div className="-m-3 sm:-m-6 -mt-8 sm:-mt-12 md:-mt-16 -mx-8 sm:-mx-12 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
+    <div className="-m-3 sm:-m-6 -mt-8 sm:-mt-12 md:-mt-16 -mx-8 sm:-mx-12 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
       {isError ? (
         <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
           <p className="text-sm font-bold text-foreground">Unable to load courses.</p>
@@ -77,7 +88,7 @@ export default function InstructorCoursesPage() {
           <div className="mx-auto w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           <p className="text-xs font-bold text-muted-foreground">Loading courses...</p>
         </div>
-      ) : courses.length === 0 && pagination.total === 0 && !filters.search && !filters.status && !filters.category && !filters.level ? (
+      ) : courses.length === 0 && pagination.total === 0 && !searchQuery && !filters.status && !filters.category && !filters.level ? (
         <EmptyState
           icon={BookOpen}
           title="No Courses Yet"
@@ -89,8 +100,8 @@ export default function InstructorCoursesPage() {
         <div className="flex flex-col flex-1 min-h-0 rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4 mb-4 md:mb-6 shrink-0">
             <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center md:flex-wrap">
-              <div className="relative w-full min-w-0 md:max-w-xs">
-                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <div className="relative w-full min-w-0 md:w-[320px]">
+                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none z-10" />
                 <input
                   type="text"
                   placeholder="Search courses..."
@@ -111,7 +122,7 @@ export default function InstructorCoursesPage() {
               </Link>
               <button
                 onClick={() => router.push("/instructor/courses/create")}
-                className="btn-rainbow [--btn-rainbow-fill:var(--primary)] inline-flex items-center justify-center rounded-lg px-3 md:px-5 py-2 md:py-2.5 text-xs font-bold text-primary-foreground transition whitespace-nowrap"
+                className="inline-flex items-center justify-center rounded-lg bg-primary px-3 md:px-5 py-2 md:py-2.5 text-xs font-bold text-primary-foreground transition hover:bg-primary-hover whitespace-nowrap"
               >
                 <span className="md:hidden">+ Create</span>
                 <span className="hidden md:inline">+ Create Course</span>
@@ -132,7 +143,7 @@ export default function InstructorCoursesPage() {
             >
               {courses.length === 0 ? (
                 <div className="w-full col-span-full">
-                  <EmptyState title="No courses match the current filters." />
+                  <EmptyState title={searchQuery ? `No courses match "${searchQuery.trim()}".` : "No courses match the current filters."} />
                 </div>
               ) : (
                 courses.map((course, index) => <CourseGridCard key={course.id} course={course} index={index} />)

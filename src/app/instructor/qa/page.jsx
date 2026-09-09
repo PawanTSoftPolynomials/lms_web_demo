@@ -245,8 +245,8 @@ function QAContent() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-black text-foreground tracking-tight">Q&amp;A</h1>
-        <p className="text-xs text-muted-foreground mt-1">Student doubts raised across every lesson in your courses.</p>
+        <h1 className="sr-only">Q&amp;A</h1>
+        <p className="sr-only">Student doubts raised across every lesson in your courses.</p>
       </div>
 
       <div className="relative">

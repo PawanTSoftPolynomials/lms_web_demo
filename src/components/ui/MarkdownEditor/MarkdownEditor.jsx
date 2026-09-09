@@ -96,7 +96,7 @@ export default function MarkdownEditor({
   };
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col overflow-hidden rounded-lg border border-transparent bg-background h-full min-h-[260px]">
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden rounded-lg border border-transparent bg-background h-full min-h-[330px] sm:min-h-[260px]">
       <div className="shrink-0">
         <MarkdownToolbar onAction={handleAction} />
       </div>

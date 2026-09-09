@@ -1,11 +1,13 @@
 "use client";
 
 import {useEffect, useState} from "react";
+import { Image as ImageIcon, UploadCloud } from "lucide-react";
 
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { getDisplayUrl } from "@/lib/blob";
+import { uploadFileToBlob } from "@/services/blobUpload.service";
 
 const INITIAL_FORM = {
     title: "",
@@ -39,6 +41,27 @@ export default function CourseForm({
 
     const [validationErrors, setValidationErrors] =
         useState({});
+
+    const [imageError, setImageError] = useState(false);
+    const [uploading, setUploading] = useState(false);
+
+    const handleFileUpload = async (file) => {
+        if (!file) return;
+        setUploading(true);
+        try {
+            const result = await uploadFileToBlob(file);
+            setFormData((prev) => ({ ...prev, thumbnailUrl: result.url || result.fileUrl }));
+            setImageError(false);
+        } catch (error) {
+            console.error("Thumbnail upload failed:", error);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    useEffect(() => {
+        setImageError(false);
+    }, [formData.thumbnailUrl]);
 
     useEffect(() => {
         if (initialValues) {
@@ -218,15 +241,32 @@ export default function CourseForm({
                     </select>
                 </div>
 
-                <Input
-                    label="Thumbnail URL (optional)"
-                    name="thumbnailUrl"
-                    value={
-                        formData.thumbnailUrl
-                    }
-                    onChange={handleChange}
-                    placeholder="https://..."
-                />
+                <div>
+                    <label className="block mb-2 text-sm font-medium text-foreground">
+                        Thumbnail URL (optional)
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                        <div className="flex-1">
+                            <Input
+                                name="thumbnailUrl"
+                                value={formData.thumbnailUrl}
+                                onChange={handleChange}
+                                placeholder="Paste image URL or click Upload Image..."
+                            />
+                        </div>
+                        <label className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-foreground bg-muted hover:bg-muted/80 border border-border rounded-xl cursor-pointer transition shrink-0 h-[46px]">
+                            <UploadCloud size={16} />
+                            {uploading ? "Uploading..." : "Upload Image"}
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                disabled={uploading}
+                                onChange={(e) => handleFileUpload(e.target.files?.[0])}
+                            />
+                        </label>
+                    </div>
+                </div>
 
                 {formData.thumbnailUrl && (
                     <div className="mt-3">
@@ -234,12 +274,24 @@ export default function CourseForm({
                             Thumbnail Preview
                         </label>
 
-                        <div className="aspect-video h-48 w-auto max-w-md bg-background rounded-xl overflow-hidden border border-transparent/60 shadow-luxury-md">
-                            <img
-                                src={getDisplayUrl(formData.thumbnailUrl)}
-                                alt="Thumbnail Preview"
-                                className="h-full w-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
-                            />
+                        <div className="w-full max-w-sm aspect-video bg-background rounded-xl overflow-hidden border border-border shadow-md flex items-center justify-center">
+                            {imageError ? (
+                                <div className="p-4 flex flex-col items-center justify-center text-center space-y-1 bg-muted/20">
+                                    <ImageIcon className="w-6 h-6 text-muted-foreground/60 mb-1" />
+                                    <span className="text-xs text-muted-foreground font-medium max-w-xs">
+                                        {formData.thumbnailUrl.includes("chatgpt.com")
+                                            ? "ChatGPT attachment URLs are private session links. Please download the image to your computer and use the 'Upload Image' button."
+                                            : "Unable to preview image. Please verify the link or use 'Upload Image' to select a file from your device."}
+                                    </span>
+                                </div>
+                            ) : (
+                                <img
+                                    src={getDisplayUrl(formData.thumbnailUrl)}
+                                    alt="Thumbnail Preview"
+                                    onError={() => setImageError(true)}
+                                    className="h-full w-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
+                                />
+                            )}
                         </div>
                     </div>
                 )}

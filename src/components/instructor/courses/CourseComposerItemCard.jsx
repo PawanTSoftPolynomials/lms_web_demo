@@ -78,7 +78,7 @@ export function CourseComposerItemCard({
 
       {/* Middle: Title & Subtitle */}
       <div className="my-2 space-y-1">
-        <h4 className={`text-sm font-bold text-foreground line-clamp-2 ${hoverTextClass} transition`}>
+        <h4 className={`text-h4 text-foreground line-clamp-2 ${hoverTextClass} transition`}>
           {title}
         </h4>
         {subtitle && (

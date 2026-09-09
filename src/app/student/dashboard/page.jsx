@@ -267,8 +267,8 @@ export default function StudentDashboardPage() {
             {/* Continue Learning */}
             <div className="rounded-2xl bg-card border border-border p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-black text-foreground">Continue Learning</h3>
-                <Link href="/student/my-courses" className="text-[11px] text-primary font-bold hover:text-orange-300">
+                <h3 className="text-h3 text-foreground">Continue Learning</h3>
+                <Link href="/student/my-courses" className="text-[11px] text-primary font-bold hover:text-primary-hover">
                   View all courses &rarr;
                 </Link>
               </div>
@@ -283,7 +283,7 @@ export default function StudentDashboardPage() {
                 <div className="py-10 text-center border border-dashed border-border rounded-xl">
                   <p className="text-xs text-muted-foreground">You have not enrolled in any courses yet.</p>
                   <Link href="/student/courses" className="inline-block mt-3">
-                    <button className="px-5 py-2.5 bg-primary hover:bg-orange-600 text-slate-950 rounded-xl text-xs font-black uppercase tracking-widest transition cursor-pointer">
+                    <button className="px-5 py-2.5 bg-primary hover:bg-primary-hover text-primary-foreground rounded-xl text-xs font-black uppercase tracking-widest transition cursor-pointer">
                       Explore Courses
                     </button>
                   </Link>
@@ -322,11 +322,11 @@ export default function StudentDashboardPage() {
             {/* Recent Achievements */}
             <div className="rounded-2xl bg-card border border-border p-5">
               <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
-                <h3 className="text-sm font-black text-foreground flex items-center gap-2">
+                <h3 className="text-h3 text-foreground flex items-center gap-2">
                   <Trophy size={14} className="text-amber-400" />
                   Recent Achievements
                 </h3>
-                <Link href="/student/achievements" className="text-[11px] text-primary font-bold hover:text-orange-300">
+                <Link href="/student/achievements" className="text-[11px] text-primary font-bold hover:text-primary-hover">
                   View all
                 </Link>
               </div>

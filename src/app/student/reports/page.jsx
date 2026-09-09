@@ -22,7 +22,6 @@ export default function StudentReportsPage() {
   const [timeRange, setTimeRange] = useState("All Time");
 
   const { data: dashboardData, isLoading: dashboardLoading } = useDashboard();
-
   const enrolledCourses = dashboardData?.enrolledCoursesList ?? [];
   const courses = useMemo(
     () => enrolledCourses.map((e) => ({ id: e.courseId, title: e.course?.title })),

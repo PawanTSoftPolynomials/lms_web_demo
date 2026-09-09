@@ -236,7 +236,7 @@ export default function GlobalSearch({ role = "student" }) {
             aria-modal="true"
             aria-label="Global search"
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-xl overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0D0D18]/95 shadow-2xl backdrop-blur-xl"
+            className="w-full max-w-xl overflow-hidden rounded-2xl border border-white/[0.08] bg-popover/95 shadow-2xl"
           >
             <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-3.5">
               <Search size={18} className="shrink-0 text-muted-foreground" aria-hidden="true" />

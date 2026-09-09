@@ -3,6 +3,7 @@
 import { useState, type ComponentType } from "react";
 import {
   ArrowLeft,
+  ClipboardCheck,
   File,
   FileText,
   HelpCircle,
@@ -21,6 +22,7 @@ import { CreateImageForm } from "./cells/ImageCell";
 import { CreateVideoForm } from "./cells/VideoCell";
 import { CreateFileForm } from "./cells/DocumentCell";
 import { CreateInteractiveForm } from "./cells/InteractiveCell";
+import { CreateAssignmentForm } from "./cells/AssignmentCell";
 import type { CellTypeId } from "./cellTypes";
 import type { ContentParent, CreateCellFormProps } from "./types";
 
@@ -40,6 +42,7 @@ const SIMPLE_FORMS: Partial<Record<CellTypeId, ComponentType<CreateCellFormProps
   image: CreateImageForm,
   video: CreateVideoForm,
   interactive: CreateInteractiveForm,
+  assignment: CreateAssignmentForm,
 };
 
 export const VISIBLE_CELL_OPTIONS = [
@@ -78,6 +81,12 @@ export const VISIBLE_CELL_OPTIONS = [
     label: "Interactive",
     sublabel: "iframe embed",
     icon: MonitorPlay,
+  },
+  {
+    id: "assignment" as CellTypeId,
+    label: "Assignment",
+    sublabel: "Instructions & upload",
+    icon: ClipboardCheck,
   },
   {
     id: "quiz" as CellTypeId,

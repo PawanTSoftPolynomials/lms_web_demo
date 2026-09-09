@@ -78,8 +78,8 @@ export default function InstructorAnnouncementsPage() {
             <ArrowLeft size={16} />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground tracking-tight leading-none">Send Announcement</h1>
-            <p className="text-xs text-muted-foreground mt-1.5">Broadcast real-time push announcements to enrolled students</p>
+            <h1 className="sr-only">Send Announcement</h1>
+            <p className="sr-only">Broadcast real-time push announcements to enrolled students</p>
           </div>
         </div>
       </div>

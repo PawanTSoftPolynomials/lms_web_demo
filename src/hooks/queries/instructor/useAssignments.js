@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   getInstructorAssignments,
-  createAssignment,
   updateAssignment,
   deleteAssignment,
 } from "@/services/assignment.service";
@@ -16,18 +15,6 @@ export function useInstructorAssignments(courseId) {
     queryKey: [QUERY_KEYS.ASSESSMENTS, courseId],
     queryFn: () => getInstructorAssignments(courseId),
     ...defaultQueryOptions,
-  });
-}
-
-export function useCreateAssignment() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: createAssignment,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ASSESSMENTS] });
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
-    },
   });
 }
 

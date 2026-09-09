@@ -19,8 +19,6 @@ import {
   Tag,
   Check,
   ClipboardList,
-  FileEdit,
-  FileCheck2,
 } from "lucide-react";
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 import { useModules } from "@/hooks/queries/instructor/useModules";
@@ -207,24 +205,12 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
         </div>
 
         {showImportShortcuts && (
-          <div className="grid gap-3 sm:grid-cols-3 mt-5">
+          <div className="grid gap-3 sm:grid-cols-1 mt-5">
             <Link
               href="/instructor/work/quiz"
               className="flex items-center gap-2 px-4 py-3 rounded-xl bg-background/80 border border-border hover:border-primary/40 text-xs font-bold text-foreground transition"
             >
               <ClipboardList size={14} className="text-orange-450" /> Import into Quiz
-            </Link>
-            <Link
-              href="/instructor/work/assessment"
-              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-background/80 border border-border hover:border-primary/40 text-xs font-bold text-foreground transition"
-            >
-              <FileEdit size={14} className="text-orange-450" /> Import into Assessment
-            </Link>
-            <Link
-              href="/instructor/work/test"
-              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-background/80 border border-border hover:border-primary/40 text-xs font-bold text-foreground transition"
-            >
-              <FileCheck2 size={14} className="text-orange-450" /> Import into Test
             </Link>
           </div>
         )}

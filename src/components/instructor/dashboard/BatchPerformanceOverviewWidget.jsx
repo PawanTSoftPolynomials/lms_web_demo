@@ -45,19 +45,6 @@ function BatchCard({ batch }) {
         {batch.studentsCount} Students
       </div>
 
-      <div className="mb-3">
-        <div className="flex items-center justify-between text-[9px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
-          <span>Engagement</span>
-          <span className="text-foreground">{batch.engagementScore}%</span>
-        </div>
-        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-orange-500 to-pink-500"
-            style={{ width: `${batch.engagementScore}%` }}
-          />
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-2.5 border-t border-border">
         <MetricPill label="Avg Quiz" value={batch.avgQuizScore != null ? `${batch.avgQuizScore}%` : "N/A"} />
         <MetricPill label="Assignments" value={batch.assignmentSubmissionRate != null ? `${batch.assignmentSubmissionRate}%` : "N/A"} />
@@ -89,7 +76,7 @@ export function BatchPerformanceOverviewWidget() {
 
   const batches = overview?.batches || [];
   const comparison = overview?.comparison || { bestBatch: null, needsAttentionBatch: null };
-  const stats = overview?.stats || { totalBatches: 0, totalStudents: 0, avgEngagement: 0, avgAttendance: null };
+  const stats = overview?.stats || { totalBatches: 0, totalStudents: 0, avgAttendance: null };
 
   const handleCourseChange = (value) => {
     setCourseId(value);
@@ -151,7 +138,47 @@ export function BatchPerformanceOverviewWidget() {
       </div>
 
       {isLoading ? (
-        <div className="h-40 animate-pulse bg-muted/50 rounded-xl" />
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="p-4 rounded-xl border border-border bg-[#141930]">
+                <div className="min-w-0 mb-3 space-y-1.5">
+                  <div className="h-3 w-24 rounded bg-muted/50 animate-pulse" />
+                  <div className="h-2.5 w-32 rounded bg-muted/50 animate-pulse" />
+                </div>
+
+                <div className="h-2.5 w-20 rounded bg-muted/50 animate-pulse mb-3" />
+
+                <div className="mb-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="h-2 w-16 rounded bg-muted/50 animate-pulse" />
+                    <div className="h-2 w-6 rounded bg-muted/50 animate-pulse" />
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-muted/50 animate-pulse" />
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 py-2.5 border-t border-border">
+                  {Array.from({ length: 3 }).map((__, j) => (
+                    <div key={j} className="h-6 rounded bg-muted/50 animate-pulse" />
+                  ))}
+                </div>
+
+                <div className="flex justify-center pt-2 border-t border-border">
+                  <div className="h-3.5 w-20 rounded-full bg-muted/50 animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4 pt-4 border-t border-border">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex flex-col items-center gap-1">
+                <div className="h-2 w-14 rounded bg-muted/50 animate-pulse" />
+                <div className="h-3 w-8 rounded bg-muted/50 animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </>
       ) : batches.length === 0 ? (
         <div className="py-10 text-center">
           <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-3">
@@ -222,10 +249,9 @@ export function BatchPerformanceOverviewWidget() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-border">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4 pt-4 border-t border-border">
             <MetricPill label="Total Batches" value={stats.totalBatches} />
             <MetricPill label="Total Students" value={stats.totalStudents} />
-            <MetricPill label="Avg Engagement" value={`${stats.avgEngagement}%`} />
             <MetricPill label="Avg Attendance" value={stats.avgAttendance != null ? `${stats.avgAttendance}%` : "N/A"} />
           </div>
         </>

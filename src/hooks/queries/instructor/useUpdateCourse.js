@@ -19,28 +19,32 @@ export function useUpdateCourse() {
                 courseData
             ),
 
-        onSuccess: (_, variables) => {
+        onSuccess: (response, variables) => {
+            // The backend PUT response already carries the freshly-updated
+            // course (course.controller.js's updateCourse returns { data: course }),
+            // but it's a bare prisma.course.update() with no `include` — no
+            // modules/quizzes/creator/store/etc relations. Merge it into
+            // whatever's already cached (from getCourseById's richer include)
+            // instead of replacing the entry outright, so the Composer reflects
+            // the new title/description the instant this resolves — no wait on
+            // a follow-up refetch — without dropping the relational fields only
+            // getCourseById ever populated.
+            const updatedCourse = response?.data;
+            if (updatedCourse) {
+                queryClient.setQueryData(
+                    [QUERY_KEYS.COURSE, variables.courseId],
+                    (old) => (old ? { ...old, ...updatedCourse } : updatedCourse)
+                );
+            }
+
+            // List/dashboard views aren't shown mid-edit, so a background
+            // refresh (rather than a synchronous cache write) is fine here.
             queryClient.invalidateQueries({
-                queryKey: [
-                    QUERY_KEYS.INSTRUCTOR_COURSES,
-                ],
+                queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES],
             });
 
             queryClient.invalidateQueries({
-                queryKey: [
-                    QUERY_KEYS.INSTRUCTOR_COURSE,
-                    variables.courseId,
-                ],
-            });
-
-            queryClient.invalidateQueries({
-                queryKey: [
-                    QUERY_KEYS.INSTRUCTOR_DASHBOARD,
-                ],
-            });
-
-            queryClient.invalidateQueries({
-                queryKey: [QUERY_KEYS.COURSE, variables.courseId],
+                queryKey: [QUERY_KEYS.INSTRUCTOR_DASHBOARD],
             });
         },
     });

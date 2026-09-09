@@ -33,9 +33,9 @@ export default function CourseBuyButton({ courseId, courseTitle }) {
     return (
       <button
         onClick={() => router.push(`/student/learn/${courseId}`)}
-        className="block text-center w-full rounded-xl bg-primary hover:bg-orange-600 text-slate-950 font-black uppercase tracking-widest text-xs py-4 transition cursor-pointer"
+        className="block text-center w-full rounded-xl bg-primary hover:brightness-110 text-primary-foreground font-bold text-sm py-3.5 shadow-xs transition cursor-pointer active:scale-[0.99]"
       >
-        Continue Learning
+        Continue Learning →
       </button>
     );
   }
@@ -45,12 +45,12 @@ export default function CourseBuyButton({ courseId, courseTitle }) {
       <button
         onClick={handleBuy}
         disabled={isProcessing}
-        className="block text-center w-full rounded-xl bg-primary hover:bg-orange-600 disabled:opacity-75 text-slate-950 font-black uppercase tracking-widest text-xs py-4 transition cursor-pointer"
+        className="block text-center w-full rounded-xl bg-primary hover:brightness-110 disabled:opacity-75 text-primary-foreground font-bold text-sm py-3.5 shadow-xs transition cursor-pointer active:scale-[0.99]"
       >
-        {getButtonLabel("Buy Course")}
+        {getButtonLabel("Buy Course Now")}
       </button>
       {errorMsg && (
-        <p className="text-red-400 text-xs font-semibold mt-1 text-center animate-in fade-in duration-150">
+        <p className="text-destructive text-xs font-semibold mt-1 text-center animate-in fade-in duration-150">
           {errorMsg}
         </p>
       )}

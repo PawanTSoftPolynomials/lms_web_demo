@@ -3,6 +3,37 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+html {
+  /* `hidden` (not `clip`) establishes a scroll container on the root and
+     breaks `position: sticky` for every descendant — including the landing
+     navbar. `clip` prevents the same horizontal overflow without that
+     side effect. */
+  overflow-x: clip;
+}
+
+body {
+  font-family: var(--font-ui);
+  overflow-x: clip;
+}
+
+.learning-content,
+.prose,
+.md-prose,
+.slide-prose {
+  font-family: var(--font-content);
+}
+
+.learning-content code,
+.learning-content pre,
+.prose code,
+.prose pre,
+.md-prose code,
+.md-prose pre,
+.slide-prose code,
+.slide-prose pre {
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
 /* `prose` documents (imported lesson content, instructor notes, etc.) can
    contain tables wider than the viewport — let the table itself scroll
    horizontally instead of overflowing the page. */
@@ -13,6 +44,10 @@
 }
 
 @theme {
+  --font-display: var(--font-bricolage-grotesque), "Bricolage Grotesque", system-ui, sans-serif;
+  --font-sans: var(--font-instrument-sans), "Instrument Sans", system-ui, -apple-system, sans-serif;
+  --font-serif: var(--font-source-serif-4), "Source Serif 4", Georgia, serif;
+
   --color-slate-50: #fdfdfd;
   --color-slate-100: #f1f1f5;
   --color-slate-200: #e2e2ec;
@@ -197,12 +232,16 @@
 
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-text-secondary: var(--text-secondary);
 
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-subtle: var(--primary-subtle);
   --color-primary-foreground: var(--primary-foreground);
 
   --color-secondary: var(--secondary);
@@ -220,6 +259,10 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
 }
 
 body {
@@ -234,7 +277,8 @@ body {
    built with one-off hardcoded hex utility classes (bg-[#0D1021], border-[#1A1F35], ...) instead
    of the semantic tokens above, so switching theme mode has no visible effect on those elements.
    Rather than rewriting every file, this repaints those exact classes wherever they appear by
-   pointing them at the equivalent semantic token. */
+   pointing them at the equivalent semantic token. Kept as a stopgap for files not yet migrated
+   to semantic classes directly (Phase 2 migration is ongoing, see design-audit report). */
 [class~="bg-[#05070E]"] { background-color: var(--background); }
 [class~="bg-[#05070E]/50"] { background-color: color-mix(in oklab, var(--background) 50%, transparent); }
 [class~="bg-[#060913]"] { background-color: var(--background); }
@@ -284,7 +328,7 @@ body {
 }
 
 /* Soft ambient card/panel shadow used across the app (Card.jsx and others), tinted by
-   --shadow-color (set per light/dark mode above). */
+   --shadow-color (set per light/dark mode above). Restrained by design — no glow, no blur. */
 @utility shadow-luxury-sm {
   box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.06),
     0 4px 16px -6px hsl(var(--shadow-color) / 0.18);

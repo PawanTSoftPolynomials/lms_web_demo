@@ -143,10 +143,10 @@ export default function ImportQuestionsToQuizPage({ params }) {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">
+            <h1 className="sr-only">
               Import Questions From Repository
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="sr-only">
               Select questions from your question bank to link with quiz: <span className="font-semibold text-foreground">{quiz?.title || "Quiz"}</span>
             </p>
           </div>

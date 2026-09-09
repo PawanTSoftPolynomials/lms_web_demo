@@ -178,20 +178,21 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
 
   const parsedIds = getIdsFromPathname();
   
-  // Queries with React Query dynamic enabling
-  const { data: moduleData } = useModule(parsedIds.moduleId, { enabled: !!parsedIds.moduleId });
-  const { data: lessonData } = useLesson(parsedIds.lessonId, { enabled: !!parsedIds.lessonId });
-  const { data: contentData } = useContent(parsedIds.contentId, { enabled: !!parsedIds.contentId });
-  const { data: questionData } = useQuestion(parsedIds.questionId, { enabled: !!parsedIds.questionId });
+  // Queries with React Query dynamic enabling (Instructor role only)
+  const isInstructorRole = role === "INSTRUCTOR";
+  const { data: moduleData } = useModule(parsedIds.moduleId, { enabled: !!parsedIds.moduleId && isInstructorRole });
+  const { data: lessonData } = useLesson(parsedIds.lessonId, { enabled: !!parsedIds.lessonId && isInstructorRole });
+  const { data: contentData } = useContent(parsedIds.contentId, { enabled: !!parsedIds.contentId && isInstructorRole });
+  const { data: questionData } = useQuestion(parsedIds.questionId, { enabled: !!parsedIds.questionId && isInstructorRole });
   
   const quizId = parsedIds.quizId || questionData?.quizId;
-  const { data: quizData } = useQuiz(quizId, { enabled: !!quizId });
+  const { data: quizData } = useQuiz(quizId, { enabled: !!quizId && isInstructorRole });
   
   const courseId = parsedIds.courseId || moduleData?.courseId || lessonData?.module?.courseId || quizData?.courseId;
   // Breadcrumbs read only course.title / course.id, so this skips the whole
   // modules -> lessons -> topics -> contents tree. The navbar renders on every
   // instructor content page, so this was the widest-reaching over-fetch.
-  const { data: course } = useInstructorCourse(courseId, { shallow: true });
+  const { data: course } = useInstructorCourse(courseId, { enabled: !!courseId && isInstructorRole, shallow: true });
 
   // Generate breadcrumb objects dynamically
   const getBreadcrumbs = () => {
@@ -364,8 +365,10 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleLogout = () => {
+    // logout() itself clears auth state and redirects to the Landing Page —
+    // navigating here too would race it while cookies/user state are still
+    // present, which is what let the old redirect bounce back into the app.
     logout();
-    router.push("/login");
   };
 
   const handleMarkAllRead = () => {

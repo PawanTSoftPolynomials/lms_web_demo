@@ -21,7 +21,6 @@ const isPendingAssignment = (a) => {
 export default function StudentBatchesPage() {
   const router = useRouter();
   const { data: batches = [], isLoading, isError } = useMyBatches();
-  const { data: dashboardData } = useDashboard();
   const { data: assignments = [] } = useAssignments();
 
   const [search, setSearch] = useState("");

@@ -12,6 +12,18 @@ const API_ORIGIN = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
  */
 export function getDisplayUrl(url) {
   if (!url || typeof url !== "string") return "";
+
+  // Convert Google Drive view/share links to direct image CDN links
+  const driveFileMatch = url.match(/drive\.google\.com\/file\/d\/([^\/\?#]+)/);
+  if (driveFileMatch && driveFileMatch[1]) {
+    return `https://lh3.googleusercontent.com/d/${driveFileMatch[1]}`;
+  }
+
+  const driveIdMatch = url.match(/drive\.google\.com\/open\?id=([^&]+)/);
+  if (driveIdMatch && driveIdMatch[1]) {
+    return `https://lh3.googleusercontent.com/d/${driveIdMatch[1]}`;
+  }
+
   if (url.includes("/api/blob-proxy")) {
     return url;
   }

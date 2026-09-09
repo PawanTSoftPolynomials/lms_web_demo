@@ -7,6 +7,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import MarkdownEditor from "@/components/ui/MarkdownEditor/MarkdownEditor";
 import { htmlToMarkdown } from "@/lib/htmlToMarkdown";
+import { canPublishEntity } from "@/lib/publishGate";
 
 const INITIAL_FORM = {
     title: "",
@@ -25,7 +26,7 @@ export default function LessonForm({
     const [formData, setFormData] =
         useState(INITIAL_FORM);
 
-    const canPublish = contentsCount > 0;
+    const canPublish = canPublishEntity(contentsCount, initialValues);
 
     useEffect(() => {
         if (initialValues) {
@@ -58,10 +59,8 @@ export default function LessonForm({
     };
 
     const formBody = (
-            <form
-                onSubmit={handleSubmit}
-                className="space-y-6"
-            >
+        <form onSubmit={handleSubmit} className="flex-1 min-h-0 flex flex-col justify-between">
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-5 pr-1 pb-2">
                 <Input
                     label="Lesson Title"
                     name="title"
@@ -103,26 +102,27 @@ export default function LessonForm({
                     </div>
                     {!canPublish && (
                         <p className="text-xs text-amber-400/90 pl-7">
-                            Add at least one content item before you can publish this lesson.
+                            Add at least one topic, content item, quiz or assignment before you can publish this lesson.
                         </p>
                     )}
                 </div>
+            </div>
 
-                <div className="flex justify-end">
-                    <Button
-                        type="submit"
-                        disabled={loading}
-                    >
-                        {loading
-                            ? mode === "create"
-                                ? "Creating..."
-                                : "Updating..."
-                            : mode === "create"
-                                ? "Create Lesson"
-                                : "Update Lesson"}
-                    </Button>
-                </div>
-            </form>
+            <div className="pt-4 shrink-0 border-t border-border flex justify-end">
+                <Button
+                    type="submit"
+                    disabled={loading}
+                >
+                    {loading
+                        ? mode === "create"
+                            ? "Creating..."
+                            : "Updating..."
+                        : mode === "create"
+                            ? "Create Lesson"
+                            : "Update Lesson"}
+                </Button>
+            </div>
+        </form>
     );
 
     if (compact) {

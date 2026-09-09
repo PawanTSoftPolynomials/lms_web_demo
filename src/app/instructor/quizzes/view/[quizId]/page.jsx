@@ -76,7 +76,7 @@ export default function QuizDetailsPage() {
         return (
             <Card>
                 <div className="py-16 text-center">
-                    <h2 className="text-2xl font-semibold">Quiz Not Found</h2>
+                    <h2 className="text-h1 text-foreground">Quiz Not Found</h2>
                     <p className="mt-2 text-muted-foreground">Unable to load this quiz.</p>
                 </div>
             </Card>
@@ -102,7 +102,7 @@ export default function QuizDetailsPage() {
                             Quiz
                         </span>
 
-                        <h1 className="mt-4 text-3xl font-bold text-foreground">
+                        <h1 className="mt-4 text-h1 text-foreground">
                             {quiz.title}
                         </h1>
 

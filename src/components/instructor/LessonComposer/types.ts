@@ -19,6 +19,8 @@ export interface ContentRow {
   body?: string | null;
   externalUrl?: string | null;
   duration?: number | null;
+  /** Free-form JSON metadata (backend `Content.data`) — currently only populated by the Assignment cell, which stores `{ originalFileName }` for its uploaded attachment (see AssignmentCell.tsx). */
+  data?: Record<string, unknown> | null;
 }
 
 /** Which hierarchy level a Content Cell is attached to. */
@@ -60,7 +62,7 @@ export interface CellActionProps {
   onDuplicate?: () => void;
   isDuplicating?: boolean;
   badgeText?: string;
-  badgeVariant?: "heading" | "text" | "code" | "image" | "video" | "document" | "default";
+  badgeVariant?: "heading" | "text" | "code" | "image" | "video" | "document" | "assignment" | "default";
   onSettingsSelect?: () => void;
   /** Opens the existing Add Content picker pre-targeted to insert immediately above/below this block — see blockOrder.ts. */
   onAddAbove?: () => void;

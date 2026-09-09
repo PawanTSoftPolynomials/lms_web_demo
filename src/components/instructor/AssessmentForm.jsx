@@ -24,9 +24,13 @@ const INITIAL_FORM = {
 };
 
 /**
- * Shared "Assessment" (backend: Assignment model) create/edit form — used by
- * both the global /instructor/assignments page and the Work module's
- * Create Assessment page, so the form logic exists in exactly one place.
+ * "Assessment" (backend: Assignment model) edit form — used by the global
+ * /instructor/assignments page to edit assignments that already exist.
+ * Creation now happens only as an "Assignment" content cell in the Course
+ * Composer (see LessonComposer/cells/AssignmentCell.tsx), which persists a
+ * plain Content row rather than an Assignment record, so this form's
+ * `mode="create"` path is no longer reachable from the UI but is kept as-is
+ * since it's still exercised by `mode="edit"`.
  */
 export default function AssessmentForm({
   mode = "create",

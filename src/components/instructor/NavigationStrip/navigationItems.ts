@@ -6,8 +6,6 @@ import {
   ClipboardList,
   Compass,
   Database,
-  FileCheck2,
-  FileEdit,
   HelpCircle,
   Home,
   Layers,
@@ -16,7 +14,6 @@ import {
   NotebookPen,
   Newspaper,
   TrendingUp,
-  UploadCloud,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -48,7 +45,7 @@ export interface NavItem {
 export const PRIMARY_NAV_ITEMS: NavItem[] = [
   { label: "Home", href: "/instructor/dashboard", icon: Home, primaryOnMobile: true },
   {
-    label: "Learning",
+    label: "Teaching",
     icon: BookOpen,
     primaryOnMobile: true,
     children: [
@@ -65,10 +62,7 @@ export const PRIMARY_NAV_ITEMS: NavItem[] = [
         icon: Briefcase,
         children: [
           { label: "Create Quiz", href: "/instructor/work/quiz", icon: ClipboardList },
-          { label: "Create Assessment", href: "/instructor/work/assessment", icon: FileEdit },
-          { label: "Create Test", href: "/instructor/work/test", icon: FileCheck2 },
           { label: "Question Repository", href: "/instructor/work/questions", icon: Database },
-          { label: "Upload Documents", href: "/instructor/work/documents", icon: UploadCloud },
           { label: "Notes", href: "/instructor/work/notes", icon: NotebookPen },
         ],
       },
