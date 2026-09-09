@@ -62,3 +62,74 @@ export function deriveUpcomingEvents(events) {
     .sort((a, b) => a.date.localeCompare(b.date) || (a.startTime ?? "").localeCompare(b.startTime ?? ""))
     .slice(0, 6);
 }
+
+/* --------------------------- Admin review queue --------------------------- */
+
+/**
+ * Everything on the platform that is waiting on an admin decision, ordered by
+ * urgency. Derived entirely from the course list the admin already fetches
+ * (GET /courses returns `store`, `status` and `_count` for an ADMIN caller),
+ * so this costs no extra request.
+ *
+ * The three checks map onto the admin's actual remit — an instructor cannot
+ * publish a course or set a price, so these can only be cleared here:
+ *
+ *   1. PUBLISHED but not purchasable. A course is buyable only when a Store
+ *      row exists AND price > 0 AND isFree is false. A published course that
+ *      fails that is visible to students and impossible to buy, which is the
+ *      most expensive state on the platform and invisible on every other
+ *      screen.
+ *   2. PUBLISHED with no modules — live, and empty.
+ *   3. DRAFT awaiting review — the ordinary approval queue.
+ */
+const isPublished = (c) => c.status === "PUBLISHED" || c.status === "Published";
+const isDraft = (c) => c.status === "DRAFT" || c.status === "Draft";
+
+/** Mirrors the purchasability rule the student Store and checkout enforce. */
+export function isPurchasable(course) {
+  const store = course?.store;
+  if (!store) return false;
+  if (store.isFree) return true;
+  return Number(store.price) > 0;
+}
+
+export function deriveAdminReviewQueue(courses = []) {
+  const list = Array.isArray(courses) ? courses : [];
+
+  const unpriced = list.filter((c) => isPublished(c) && !isPurchasable(c));
+  const empty = list.filter((c) => isPublished(c) && (c._count?.modules ?? 0) === 0);
+  const drafts = list.filter(isDraft);
+
+  const items = [
+    {
+      id: "adm-unpriced",
+      label: `${unpriced.length} published ${unpriced.length === 1 ? "course has" : "courses have"} no valid price`,
+      detail: "Visible to students but impossible to buy",
+      count: unpriced.length,
+      severity: "high",
+      href: "/admin/courses?status=PUBLISHED",
+      courses: unpriced.slice(0, 3),
+    },
+    {
+      id: "adm-empty",
+      label: `${empty.length} published ${empty.length === 1 ? "course has" : "courses have"} no content`,
+      detail: "Published with zero modules",
+      count: empty.length,
+      severity: "high",
+      href: "/admin/courses?status=PUBLISHED",
+      courses: empty.slice(0, 3),
+    },
+    {
+      id: "adm-drafts",
+      label: `${drafts.length} draft ${drafts.length === 1 ? "course" : "courses"} awaiting review`,
+      detail: "Submitted by instructors, not yet published",
+      count: drafts.length,
+      severity: "medium",
+      href: "/admin/courses?status=DRAFT",
+      courses: drafts.slice(0, 3),
+    },
+  ];
+
+  const rank = { high: 0, medium: 1, low: 2 };
+  return items.filter((i) => i.count > 0).sort((a, b) => rank[a.severity] - rank[b.severity]);
+}

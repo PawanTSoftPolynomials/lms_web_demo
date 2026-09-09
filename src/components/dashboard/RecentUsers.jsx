@@ -1,46 +1,49 @@
 "use client";
 
-import Card from "@/components/ui/Card";
+import Link from "next/link";
 import UserAvatar from "@/components/admin/users/UserAvatar";
 
-export default function RecentUsers({
-  users = [],
-}) {
+/**
+ * The newest sign-ups, so an admin can see who just arrived.
+ *
+ * The role is a read-only indicator rendered as plain muted text — it was a
+ * filled pill, which reads as something you can press.
+ */
+export default function RecentUsers({ users = [], isLoading }) {
+  if (isLoading) {
+    return <div className="h-full min-h-[13rem] animate-pulse rounded-2xl bg-muted" />;
+  }
+
   return (
-    <Card className="h-full">
-      <h2 className="text-lg font-semibold mb-6">
-        Recent Users
-      </h2>
-
-      <div className="space-y-4">
-        {users.map((user) => (
-          <div
-            key={user.id}
-            className="flex items-center justify-between border-b border-border pb-4 last:border-none"
-          >
-            <div className="flex items-center gap-3">
-              <UserAvatar
-                name={user.name}
-                size="sm"
-              />
-
-              <div>
-                <p className="font-medium">
-                  {user.name}
-                </p>
-
-                <p className="text-sm text-muted-foreground">
-                  {user.email}
-                </p>
-              </div>
-            </div>
-
-            <span className="text-xs bg-primary/15 text-primary px-2 py-1 rounded-full">
-              {user.role}
-            </span>
-          </div>
-        ))}
+    <section className="flex h-full flex-col rounded-2xl border border-card-border bg-card p-5">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-sm font-semibold tracking-tight text-foreground">Recent sign-ups</h2>
+        <Link
+          href="/admin/students"
+          className="inline-flex min-h-11 shrink-0 items-center text-xs font-medium text-link hover:text-link-hover hover:underline"
+        >
+          View all
+        </Link>
       </div>
-    </Card>
+
+      {users.length === 0 ? (
+        <p className="mt-6 text-sm text-muted-foreground">No one has signed up yet.</p>
+      ) : (
+        <ul className="mt-4 space-y-3.5">
+          {users.slice(0, 5).map((user) => (
+            <li key={user.id} className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <UserAvatar name={user.name} size="sm" />
+                <div className="min-w-0">
+                  <p className="truncate text-sm text-foreground">{user.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                </div>
+              </div>
+              <span className="shrink-0 text-xs text-muted-foreground">{user.role}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

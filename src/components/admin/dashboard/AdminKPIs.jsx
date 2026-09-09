@@ -1,92 +1,88 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Users, GraduationCap, UserCog, Layers } from "lucide-react";
+import { BookOpen, GraduationCap, UserCog, Layers } from "lucide-react";
 
+/**
+ * The four platform numbers worth scanning, each a link to the screen it
+ * summarises.
+ *
+ * Whole tiles are anchors now: the bordered, hoverable box does what its
+ * affordance promises instead of hiding a small "View ->" inside a box that
+ * looked clickable in its entirety.
+ *
+ * "Total Users" is gone as a fifth tile — it is students + instructors + admins,
+ * so it restated two tiles sitting beside it and had no screen of its own to
+ * link to. The delta lines ("+3 today") stay, since a count plus its movement
+ * is the one thing a platform overview should say.
+ */
 export function AdminKPIs({
   coursesCount = 0,
   studentsCount = 0,
   instructorsCount = 0,
   enrollmentsCount = 0,
-  usersCount = 0,
   trends = {},
 }) {
   const {
     newCoursesThisMonth = 0,
     newStudentsToday = 0,
     newEnrollmentsToday = 0,
-    newUsersToday = 0,
   } = trends;
 
   const kpis = [
     {
-      label: "Total Courses",
+      label: "Courses",
       value: coursesCount,
       icon: BookOpen,
-      iconBg: "bg-primary/10",
-      iconColor: "text-primary",
       href: "/admin/courses",
-      delta: newCoursesThisMonth > 0 ? `+${newCoursesThisMonth} this month` : null,
+      caption: newCoursesThisMonth > 0 ? `+${newCoursesThisMonth} this month` : "Across all instructors",
     },
     {
-      label: "Total Students",
+      label: "Students",
       value: studentsCount,
       icon: GraduationCap,
-      iconBg: "bg-primary/10",
-      iconColor: "text-primary",
       href: "/admin/students",
-      delta: newStudentsToday > 0 ? `+${newStudentsToday} today` : null,
+      caption: newStudentsToday > 0 ? `+${newStudentsToday} today` : "Registered learners",
     },
     {
-      label: "Total Instructors",
+      label: "Instructors",
       value: instructorsCount,
       icon: UserCog,
-      iconBg: "bg-primary/10",
-      iconColor: "text-primary",
       href: "/admin/instructors",
+      caption: "Authoring courses",
     },
     {
       label: "Enrollments",
       value: enrollmentsCount,
       icon: Layers,
-      iconBg: "bg-primary/10",
-      iconColor: "text-primary",
       href: "/admin/enrollments",
-      delta: newEnrollmentsToday > 0 ? `+${newEnrollmentsToday} today` : null,
-    },
-    {
-      label: "Total Users",
-      value: usersCount,
-      icon: Users,
-      iconBg: "bg-primary/10",
-      iconColor: "text-primary",
-      delta: newUsersToday > 0 ? `+${newUsersToday} today` : null,
+      caption: newEnrollmentsToday > 0 ? `+${newEnrollmentsToday} today` : "Total across the platform",
     },
   ];
 
   return (
-    <div className="flex flex-wrap md:flex-nowrap items-center gap-[2.4px] w-full">
-      {kpis.map((kpi, i) => (
-        <div key={i} className="flex-1 min-w-[140px] flex items-center gap-3 rounded-2xl bg-card border border-border p-3 shadow-sm hover:border-primary/50 transition">
-          <div className={`p-2 rounded-xl ${kpi.iconBg} shrink-0`}>
-            <kpi.icon size={16} className={kpi.iconColor} />
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {kpis.map((kpi) => (
+        <Link
+          key={kpi.label}
+          href={kpi.href}
+          className="group rounded-2xl border border-card-border bg-card p-4 transition hover:border-link/40 hover:bg-muted/40"
+        >
+          <div className="flex items-center gap-2">
+            <kpi.icon size={15} className="shrink-0 text-muted-foreground" aria-hidden />
+            <p className="truncate text-xs font-medium text-muted-foreground">{kpi.label}</p>
           </div>
 
-          <div className="min-w-0">
-            <p className="text-muted-foreground text-[10.5px] font-bold uppercase tracking-wider truncate">{kpi.label}</p>
-            <div className="flex items-end gap-1.5 mt-0.5">
-              <p className="text-lg font-black text-foreground leading-none">{kpi.value}</p>
-              {kpi.href && (
-                <Link href={kpi.href} className="text-[10.5px] text-primary font-bold hover:opacity-80 truncate block">
-                  View &rarr;
-                </Link>
-              )}
-            </div>
-            {kpi.delta && (
-              <p className="text-[10.5px] text-emerald-400 font-bold mt-0.5 truncate">{kpi.delta}</p>
-            )}
-          </div>
-        </div>
+          <p className="mt-2 text-2xl font-semibold leading-none tracking-tight text-foreground">
+            {kpi.value}
+          </p>
+
+          {/* Wraps rather than truncates — a tile is ~170px wide in the
+              two-column mobile grid. */}
+          <p className="mt-2 text-[11px] leading-snug text-muted-foreground group-hover:text-link">
+            {kpi.caption}
+          </p>
+        </Link>
       ))}
     </div>
   );

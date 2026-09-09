@@ -15,13 +15,13 @@
  *
  *   npm run dev                       # in another terminal
  *   npx playwright install chromium   # once
- *   node scripts/ui-smoke.js INSTRUCTOR ./ui-shots /instructor/dashboard:home
+ *   node scripts/ui-smoke.mjs INSTRUCTOR ./ui-shots /instructor/dashboard:home
  *
  * Args: <ROLE> <outDir> <route[:screenshot-name]>...
  */
-const fs = require("fs");
-const path = require("path");
-const { chromium } = require("playwright");
+import fs from "node:fs";
+import path from "node:path";
+import { chromium } from "playwright";
 
 const BASE = process.env.BASE_URL || "http://localhost:3000";
 
@@ -106,6 +106,38 @@ const SUMMARY = {
   totalUsers: 1240, totalCourses: 48, totalRevenue: 284000, activeEnrollments: 892,
 };
 
+const ADMIN_DASHBOARD = {
+  totalUsers: 1240, totalStudents: 1150, totalInstructors: 84,
+  activeUsers: 1198, blockedUsers: 3,
+  totalCourses: 48, publishedCourses: 31, draftCourses: 17, totalEnrollments: 892,
+  recentUsers: [
+    { id: "u1", name: "Priya Sharma", email: "priya@example.com", role: "STUDENT", status: "ACTIVE" },
+    { id: "u2", name: "Dr. Anil Kapoor", email: "anil@example.com", role: "INSTRUCTOR", status: "ACTIVE" },
+    { id: "u3", name: "Arjun Mehta", email: "arjun@example.com", role: "STUDENT", status: "ACTIVE" },
+    { id: "u4", name: "Neha Iyer", email: "neha@example.com", role: "STUDENT", status: "ACTIVE" },
+  ],
+  trends: { newStudentsToday: 6, newCoursesThisMonth: 4, newEnrollmentsToday: 23, newUsersToday: 8 },
+  todaySnapshot: { newUsersToday: 8, newEnrollmentsToday: 23, coursesPublishedToday: 1, certificatesIssuedToday: 5 },
+  coursePerformance: [
+    { id: "c1", title: "Data Structures in Python", category: "Computer Science", level: "Intermediate", status: "PUBLISHED", students: 128, avgRating: 4.6, completionRate: 62 },
+    { id: "c2", title: "Applied Statistics for Analysts", category: "Mathematics", level: "Beginner", status: "PUBLISHED", students: 86, avgRating: 4.1, completionRate: 48 },
+    { id: "c3", title: "Systems Design Fundamentals", category: "Engineering", level: "Advanced", status: "DRAFT", students: 0, avgRating: 0, completionRate: 0 },
+    { id: "c4", title: "Introduction to Machine Learning", category: "Computer Science", level: "Intermediate", status: "DRAFT", students: 12, avgRating: 3.8, completionRate: 11 },
+  ],
+  topInstructor: { id: "i1", name: "Dr. Anil Kapoor", email: "anil@example.com", coursesCount: 6, studentsCount: 310, avgRating: 4.5 },
+};
+
+const ENROLLMENTS = [
+  { id: "en1", enrolledAt: iso(-0.2), student: { user: { name: "Priya Sharma" } }, course: { title: "Data Structures in Python" } },
+  { id: "en2", enrolledAt: iso(-0.9), student: { user: { name: "Arjun Mehta" } }, course: { title: "Applied Statistics for Analysts" } },
+  { id: "en3", enrolledAt: iso(-1.6), student: { user: { name: "Neha Iyer" } }, course: { title: "Data Structures in Python" } },
+];
+
+const CERTIFICATES = [
+  { id: "ce1", issuedAt: iso(-0.5), student: { user: { name: "Rahul Verma" } }, course: { title: "Applied Statistics for Analysts" } },
+  { id: "ce2", issuedAt: iso(-2.1), student: { user: { name: "Priya Sharma" } }, course: { title: "Data Structures in Python" } },
+];
+
 function fixtureFor(pathname, search, role) {
   const p = pathname.replace(/\/+$/, "") || "/";
   const wrap = (data, extra) => ({ success: true, data, ...(extra || {}) });
@@ -129,7 +161,10 @@ function fixtureFor(pathname, search, role) {
   if (p.endsWith("/notifications")) return wrap(NOTIFICATIONS);
   if (p.endsWith("/conversations")) return wrap([{ id: "cv1", name: "Priya Sharma", unread: 2, lastMessage: "Thanks!" }]);
   if (p.endsWith("/results")) return wrap(RESULTS);
-  if (p.endsWith("/dashboard/instructor") || p.endsWith("/dashboard/admin")) return wrap(SUMMARY);
+  if (p.endsWith("/dashboard/admin")) return wrap(ADMIN_DASHBOARD);
+  if (p.endsWith("/dashboard/instructor")) return wrap(SUMMARY);
+  if (p.endsWith("/enrollments")) return wrap(ENROLLMENTS);
+  if (p.endsWith("/certificates")) return wrap(CERTIFICATES);
   if (p.endsWith("/announcements")) return wrap([]);
   if (p.endsWith("/teaching-goals")) return wrap([]);
   if (p.endsWith("/users")) return wrap([], { pagination: { total: 0 } });
@@ -162,7 +197,7 @@ async function main() {
       { name: "role", value: role, url: BASE },
     ]);
     await context.addInitScript((u) => {
-      try { localStorage.setItem("user", JSON.stringify(u)); } catch (e) {}
+      try { localStorage.setItem("user", JSON.stringify(u)); } catch { /* private mode */ }
     }, USER[role]);
 
     // Stub every off-origin request (the API).

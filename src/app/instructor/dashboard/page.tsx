@@ -6,9 +6,9 @@ import { useAuth } from "@/context/AuthContext";
 import CourseGridCard from "@/components/courses/CourseGridCard";
 import { BookOpen } from "lucide-react";
 
-import { HomeHeader } from "@/components/instructor/dashboard/HomeHeader";
+import { AttentionList } from "@/components/dashboard/AttentionList";
+import { HomeHeader } from "@/components/dashboard/HomeHeader";
 import { InstructorKPIs } from "@/components/instructor/dashboard/InstructorKPIs";
-import { NeedsAttentionPanel } from "@/components/instructor/dashboard/NeedsAttentionPanel";
 import { ContinueEditingCard } from "@/components/instructor/dashboard/ContinueEditingCard";
 import { RecentSubmissionsList } from "@/components/instructor/dashboard/RecentSubmissionsList";
 import { RecentActivitiesSidebar } from "@/components/instructor/dashboard/RecentActivitiesSidebar";
@@ -66,10 +66,14 @@ export default function InstructorDashboardHomePage() {
   return (
     <div className="flex flex-col gap-6 py-2">
       <HomeHeader
-        instructorName={user?.name}
-        pendingReviews={pendingReviews}
-        draftCourses={draftCourses}
-        studentsCount={totalStudents}
+        name={user?.name}
+        summary={[
+          pendingReviews > 0 ? `${pendingReviews} to review` : "",
+          draftCourses > 0 ? `${draftCourses} draft${draftCourses === 1 ? "" : "s"}` : "",
+          totalStudents > 0 ? `${totalStudents} student${totalStudents === 1 ? "" : "s"}` : "",
+        ]}
+        actionLabel="New course"
+        actionHref="/instructor/courses/create"
       />
 
       <InstructorKPIs
@@ -79,7 +83,11 @@ export default function InstructorDashboardHomePage() {
         activeQuizzes={activeQuizzes}
       />
 
-      <NeedsAttentionPanel actions={attention.data} isLoading={attention.isLoading} />
+      <AttentionList
+        items={attention.data}
+        isLoading={attention.isLoading}
+        emptyDescription="Nothing is waiting on you. Good time to build out a course."
+      />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <ContinueEditingCard item={continueEditing.data} isLoading={continueEditing.isLoading} />
