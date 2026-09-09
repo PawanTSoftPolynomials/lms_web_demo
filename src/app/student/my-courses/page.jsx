@@ -9,28 +9,9 @@ import Button from "@/components/ui/Button";
 import Pagination from "@/components/ui/Pagination";
 import MyCourseCard from "@/components/student/my-courses/MyCourseCard";
 import useMyCourses from "@/hooks/queries/student/useMyCourses";
-import { useAuth } from "@/context/AuthContext";
-import { QUOTES } from "@/constants/dashboardQuotes";
-
-// Picked once per session (i.e. per login, not per page view/refresh) and
-// cached in sessionStorage — a plain random pick on every render would
-// change the quote on each navigation back to this page, which reads as
-// buggy rather than "a new thought each time you log in."
-function useMotivationalQuote() {
-  return useMemo(() => {
-    if (typeof window === "undefined") return QUOTES[0];
-    const stored = sessionStorage.getItem("my_courses_quote_index");
-    if (stored !== null) return QUOTES[Number(stored) % QUOTES.length];
-    const index = Math.floor(Math.random() * QUOTES.length);
-    sessionStorage.setItem("my_courses_quote_index", String(index));
-    return QUOTES[index];
-  }, []);
-}
 
 export default function MyCoursesPage() {
   const router = useRouter();
-  const { user } = useAuth();
-  const motivationalQuote = useMotivationalQuote();
   const { data: myEnrollments = [], isLoading, isError, refetch } = useMyCourses();
 
   const [yearFilter, setYearFilter] = useState("all");
@@ -103,7 +84,7 @@ export default function MyCoursesPage() {
   };
 
   return (
-    <div className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-4 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-2 sm:pt-3 md:pt-4 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
+    <div className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-4 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
       {isError ? (
         <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
           <p className="text-sm font-bold text-foreground">Unable to load your courses.</p>
@@ -121,24 +102,10 @@ export default function MyCoursesPage() {
         />
       ) : (
         <div className="flex flex-col flex-1 min-h-0 rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6">
-          <div className="flex flex-col gap-2 md:flex-row md:items-stretch md:justify-between md:gap-4 mb-4 md:mb-6 shrink-0">
-            <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4 mb-4 md:mb-6 shrink-0">
+            <div className="flex items-center gap-2">
               <GraduationCap size={18} className="text-primary" />
               <h2 className="text-base sm:text-lg font-bold text-foreground">Enrolled Courses</h2>
-            </div>
-
-            {/* Separate container for the welcome label — its own bordered
-                box (stretched to the row's full height, not just centered
-                within it) rather than bare text, with a per-login
-                motivational thought under the greeting. */}
-            <div className="flex-1 flex flex-col items-center justify-center gap-0.5 rounded-xl border border-border px-4 py-2 min-w-0 bg-[linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.55)),url('/images/wecomeLB.png')] bg-cover bg-center">
-              <p className="text-lg sm:text-xl font-black text-white truncate [text-shadow:0_1px_4px_rgba(0,0,0,0.85)]">
-                Welcome back, <span className="text-amber-300">{user?.name?.split(" ")[0] || "Student"}</span>{" "}
-                <span className="inline-block">👋</span>
-              </p>
-              <p className="text-xs text-white/80 italic truncate max-w-full [text-shadow:0_1px_3px_rgba(0,0,0,0.85)]">
-                &quot;{motivationalQuote}&quot;
-              </p>
             </div>
 
             {enrollmentYears.length > 0 && (

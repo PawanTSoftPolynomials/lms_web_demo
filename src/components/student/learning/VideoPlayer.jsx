@@ -220,8 +220,16 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const slides = isHtmlLike ? parseSlides(htmlContent) : [];
     const isSlideShow = isHtmlLike && slides.length > 1;
 
+    // Only VIDEO needs to fill (and be clipped to) the player frame exactly —
+    // it's a fixed-aspect embed with nothing more to reveal. Every other
+    // type (a long document, a tall embedded image, multi-slide HTML, etc.)
+    // must be free to grow past the frame's height instead of being cropped
+    // by it, so the scrollable frame around this component (see the Content
+    // Player Frame in the learn page) can actually scroll to the rest of it.
+    const fillsFrame = type === "VIDEO";
+
     return (
-        <div className="overflow-hidden rounded-2xl border border-border bg-background flex flex-col w-full h-full">
+        <div className={`overflow-hidden rounded-2xl border border-border bg-background flex flex-col w-full ${fillsFrame ? "h-full" : "min-h-full"}`}>
             {/* Header — skipped for VIDEO: the lesson title already shows above the
                 player, and the video's own thumbnail/embed carries its title too,
                 so this bar was just a third repeat of the same text. Also skipped

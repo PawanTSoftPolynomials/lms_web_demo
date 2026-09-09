@@ -10,13 +10,8 @@ import {
 } from "lucide-react";
 
 import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel";
-import TranscriptPanel from "@/components/student/learning/TranscriptPanel";
-import LessonTabs from "@/components/student/learning/LessonTabs";
 import CourseContentAccordion from "@/components/student/learning/CourseContentAccordion";
 import LessonContentBlock from "@/components/student/learning/LessonContentBlock";
-import LessonOverviewPanel from "@/components/student/learning/LessonOverviewPanel";
-import LessonResourcesPanel from "@/components/student/learning/LessonResourcesPanel";
-import LessonQuizPanel from "@/components/student/learning/LessonQuizPanel";
 import QuizExperience from "@/components/student/attempt/QuizExperience";
 import AskInstructorCard from "@/components/student/learning/AskInstructorCard";
 import LessonNavigationControls from "@/components/student/learning/LessonNavigationControls";
@@ -29,7 +24,6 @@ import { LEARN_PAGE_CONTENT_TABS } from "@/features/student/constants/learnPageC
 
 import { useCourse, useStudentState, useUpdateStudentState } from "@/hooks/queries/student";
 import useLessonBookmarkToggle from "@/hooks/queries/student/useLessonBookmarkToggle";
-import useTranscript from "@/hooks/queries/student/useTranscript";
 import useTrackCourseAccess from "@/hooks/queries/student/useTrackCourseAccess";
 import useLearningStateSync from "@/hooks/queries/student/useLearningStateSync";
 import useLessonNavigation from "@/hooks/queries/student/useLessonNavigation";
@@ -201,13 +195,15 @@ export default function LearnPage() {
     }
   }, [selectedLesson?.id, selectedTopicId, hasTopics]);
 
-  const [videoDuration, setVideoDuration] = useState(0);
+  const [, setVideoDuration] = useState(0);
 
   // Course-level / module-level content or quiz selected from the sidebar —
   // these aren't scoped to any Lesson/Topic, so they're shown standalone in
   // the player instead of being threaded into the Prev/Next block sequence.
-  // Any normal Lesson/Topic/Module navigation clears it.
-  const [manualOverride, setManualOverride] = useState(null); // { kind: "content" | "quiz", item } | null
+  // Any normal Lesson/Topic/Module navigation clears it. `scope`/`moduleId`
+  // (set only for module-level picks) exist purely so the Course Map
+  // sidebar can highlight the right ancestor row — see sidebarComposerMode.
+  const [manualOverride, setManualOverride] = useState(null); // { kind: "content" | "quiz", item, scope?: "module" | "course", moduleId? } | null
 
   // Embedded (non-drawer) Course Content accordion state — independent of the
   // desktop sidebar so only one module is expanded at a time on mobile/tablet,
@@ -218,9 +214,9 @@ export default function LearnPage() {
   };
   const [mobileContentCollapsed, setMobileContentCollapsed] = useState(false);
 
-  // Mobile tab strip (Overview/Transcript/Notes/Resources/Query/Feedback/Quiz) —
-  // desktop shows the same content stacked, unconditionally, via xl: overrides.
-  const [activeContentTab, setActiveContentTab] = useState("overview");
+  // Mobile tab strip (Notes/Query/Feedback) — desktop shows the same content
+  // stacked, unconditionally, via xl: overrides.
+  const [activeContentTab, setActiveContentTab] = useState("notes");
 
   const { isLessonBookmarked, toggleLessonBookmark } = useLessonBookmarkToggle(selectedLesson, course);
 
@@ -382,37 +378,11 @@ export default function LearnPage() {
     if (topic?.id) setSelectedTopicId(topic.id);
   };
 
-  const { segments: transcriptSegments, status: transcriptStatus } = useTranscript(selectedLesson?.id);
-
-  // useTranscript is Lesson-keyed and returns segments for whichever single
-  // video the backend associates with that Lesson — a pre-existing
-  // simplification. When a Lesson has more than one Topic containing a
-  // video, we can no longer be sure the fetched transcript matches the
-  // Topic currently on screen; showing it anyway would let a student read
-  // and seek a transcript against the wrong video. Suppress it in that
-  // ambiguous case only — single-video Lessons (the common case) are
-  // unaffected.
-  const lessonVideoTopicCount = useMemo(() => {
-    return (selectedLesson?.topics || []).filter((topic) =>
-      (topic.contents || []).some((content) => content.type === "VIDEO")
-    ).length;
-  }, [selectedLesson]);
-  const transcriptAmbiguous = hasTopics && lessonVideoTopicCount > 1;
-  const effectiveTranscriptSegments = transcriptAmbiguous ? [] : transcriptSegments;
-  const effectiveTranscriptStatus = transcriptAmbiguous ? "unavailable" : transcriptStatus;
-
+  // Still used by Sticky Notes (both the mobile tab and the desktop side
+  // panel) to jump the video to a note's timestamp.
   const handleTranscriptSeek = (seconds) => {
     videoPlayerRef.current?.seekTo(seconds);
   };
-
-  // HTML-type rows are the lesson's written document body (rendered inline
-  // by the content viewer above, not listed here) — Resources only lists
-  // genuine downloadable files.
-  const instructorAttachments = useMemo(() => {
-    return selectedLessonContents.filter(
-      (c) => c.type === "FILE" || c.type === "DOCUMENT" || Boolean(c.fileUrl)
-    );
-  }, [selectedLessonContents]);
 
   // Tap-to-scroll controls for the tab strip, so reaching hidden tabs doesn't
   // require a swipe gesture.
@@ -451,16 +421,30 @@ export default function LearnPage() {
   const activeBlock = manualOverride || playerBlocks[blockIndex];
   const resultReturnTo = `/student/learn/${courseId}${selectedLesson?.id ? `?lessonId=${selectedLesson.id}` : ""}`;
 
+  // Course Map sidebar highlighting: mirrors the Instructor Composer's own
+  // composerMode/composeXId scheme (CourseComposerSidebar) so the row for
+  // whatever the student is actually watching — and every ancestor row
+  // above it (Module/Lesson/Topic) — lights up together as one variant of
+  // the same primary color, instead of just the Lesson row as before.
+  // composerMode here means "which level directly contains the active
+  // block" (never "quiz" on this side — see the isQuizActive fallback in
+  // CourseComposerSidebar for why a quiz nested under a topic/lesson/module
+  // still needs that container's own mode, not a separate "quiz" mode).
+  const sidebarComposerMode = manualOverride
+    ? manualOverride.scope === "module" ? "module" : "course"
+    : hasTopics ? "topic" : selectedLesson ? "lesson" : "course";
+  const sidebarComposeModuleId = manualOverride
+    ? manualOverride.scope === "module" ? manualOverride.moduleId : null
+    : selectedLesson?.moduleId;
+  const sidebarComposeLessonId = manualOverride ? null : selectedLesson?.id;
+  const sidebarComposeTopicId = manualOverride ? null : selectedTopicId;
+  const sidebarSelectedCellId = activeBlock?.kind === "content" ? activeBlock.item.id : null;
+  const sidebarComposeQuizId = activeBlock?.kind === "quiz" ? activeBlock.item.id : null;
+
   // Each tab's content is defined exactly once here, then referenced both by
   // the mobile shared content panel (conditional render, one at a time) and
   // by the desktop stacked layout (all shown at once) — so there is a single
   // source of truth per tab, not two copies that can drift out of sync.
-  const overviewPanel = (
-    <LessonOverviewPanel lesson={selectedLesson} initialTime={initialTime} videoDuration={videoDuration} />
-  );
-
-  const resourcesPanel = <LessonResourcesPanel attachments={instructorAttachments} />;
-
   const askInstructorCard = <AskInstructorCard course={course} setIsOpen={setIsOpen} />;
 
   const feedbackPanel = (
@@ -499,10 +483,6 @@ export default function LearnPage() {
     </div>
   );
 
-  const quizPanel = (
-    <LessonQuizPanel quizzes={course?.quizzes || []} courseId={courseId} currentLessonId={selectedLesson?.id} />
-  );
-
   return (
     <div className="h-full bg-[#07080f] text-foreground flex overflow-x-hidden font-sans relative">
 
@@ -517,10 +497,12 @@ export default function LearnPage() {
           courseId={courseId}
           courseQuizzes={course.quizzes || []}
           maxHeightClassName="max-h-full"
-          composerMode={hasTopics ? "topic" : selectedLesson ? "lesson" : "course"}
-          composeLessonId={selectedLesson?.id}
-          composeModuleId={selectedLesson?.moduleId}
-          composeTopicId={selectedTopicId}
+          composerMode={sidebarComposerMode}
+          composeLessonId={sidebarComposeLessonId}
+          composeModuleId={sidebarComposeModuleId}
+          composeTopicId={sidebarComposeTopicId}
+          composeQuizId={sidebarComposeQuizId}
+          selectedCellId={sidebarSelectedCellId}
           isOpen={courseSidebarOpen}
           onToggleOpen={() => setCourseSidebarOpen(false)}
           onSelectCourseOverview={() => router.push(`/student/courses/${courseId}`)}
@@ -546,17 +528,19 @@ export default function LearnPage() {
           onSelectLessonContent={(content, lesson) => {
             jumpToBlock(content.id, { lesson });
           }}
-          onSelectModuleContent={(content) => {
-            setManualOverride({ kind: "content", item: content });
+          onSelectModuleContent={(content, mod) => {
+            setManualOverride({ kind: "content", item: content, scope: "module", moduleId: mod?.id });
           }}
           onSelectCourseContent={(content) => {
-            setManualOverride({ kind: "content", item: content });
+            setManualOverride({ kind: "content", item: content, scope: "course" });
           }}
           onSelectQuiz={(quiz, mod, lesson, topic) => {
             if (lesson) {
               jumpToBlock(quiz.id, { lesson, topic });
+            } else if (mod) {
+              setManualOverride({ kind: "quiz", item: quiz, scope: "module", moduleId: mod.id });
             } else {
-              setManualOverride({ kind: "quiz", item: quiz });
+              setManualOverride({ kind: "quiz", item: quiz, scope: "course" });
             }
           }}
           role="STUDENT"
@@ -770,24 +754,11 @@ export default function LearnPage() {
             {/* SHARED CONTENT PANEL — mobile & tablet only. Exactly one branch
                 renders at a time based on activeContentTab: true conditional
                 rendering (if/else), not a CSS show/hide toggle across parallel
-                siblings. This is the one container every tab — Overview,
-                Transcript, Resources, Notes, Query, Feedback, and Quiz alike —
-                renders into below xl. Nothing else moves when it changes. */}
+                siblings. This is the one container every tab — Notes, Query,
+                and Feedback alike — renders into below xl. Nothing else moves
+                when it changes. */}
             {!isDesktop && (
               <div className="row-start-3 min-w-0">
-                {activeContentTab === "overview" && overviewPanel}
-
-              {activeContentTab === "transcript" && (
-                <TranscriptPanel
-                  segments={effectiveTranscriptSegments}
-                  status={effectiveTranscriptStatus}
-                  currentTime={currentTimestamp}
-                  onSeek={handleTranscriptSeek}
-                />
-              )}
-
-                {activeContentTab === "resources" && resourcesPanel}
-
                 {activeContentTab === "notes" && (
                   <StickyNotesPanel
                     lessonId={selectedLesson?.id}
@@ -799,32 +770,14 @@ export default function LearnPage() {
                 {activeContentTab === "query" && askInstructorCard}
 
                 {activeContentTab === "feedback" && feedbackPanel}
-
-                {activeContentTab === "quiz" && quizPanel}
               </div>
             )}
-
-            {/* Desktop (xl+): no tab switching — every section stays mounted and
-                visible at once, stacked, each in its own row (unchanged from
-                before this refactor). */}
-            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-2">{overviewPanel}</div>
-
-            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-3">
-              <TranscriptPanel
-                segments={effectiveTranscriptSegments}
-                status={effectiveTranscriptStatus}
-                currentTime={currentTimestamp}
-                onSeek={handleTranscriptSeek}
-              />
-            </div>
-
-            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-4">{resourcesPanel}</div>
 
             {/* Collapsed state renders no grid column at all (see grid-cols
                 above) — the player and stacked panels get the full width
                 back instead of a persistently reserved 48px-wide column. */}
             {rightPanelOpen && (
-              <div className="hidden xl:flex xl:flex-col xl:gap-6 min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-7 xl:sticky xl:top-24 xl:h-fit w-full xl:w-[360px]">
+              <div className="hidden xl:flex xl:flex-col xl:gap-6 min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-2 xl:sticky xl:top-24 xl:h-fit w-full xl:w-[360px]">
                 <button
                   type="button"
                   onClick={() => setRightPanelOpen(false)}
@@ -847,8 +800,6 @@ export default function LearnPage() {
               </div>
             )}
 
-            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-5">{quizPanel}</div>
-
             {/* COURSE CONTENT — embedded module/lesson navigator, mobile & tablet
                 only (below xl). Desktop keeps the fixed sidebar, so this would be
                 a duplicate navigator there. Always visible, not tab-gated. */}
@@ -864,22 +815,11 @@ export default function LearnPage() {
               />
             </div>
 
-            {/* LESSON TABS — desktop only. Quiz was removed from inside this
-                component (see comment above); what's left (bookmark, personal
-                scratchpad notes) isn't part of the 7-tab set, so it stays as
-                supplementary reference material rather than a tab of its own. */}
-            <div className="hidden xl:block pt-6 border-t border-transparent/80 min-w-0 xl:col-start-1 xl:row-start-6">
-              <LessonTabs
-                lesson={selectedLesson}
-                course={course}
-              />
-            </div>
-
             {/* PREVIOUS / NEXT LESSON — desktop only. Always jumps a whole Topic/
                 Module, unlike the in-player floating Prev/Next (which steps
                 through the current Topic's blocks first) — "Continue to Next
                 Module" lives here where there's room for the fuller label. */}
-            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-7">
+            <div className="hidden xl:block pt-6 border-t border-transparent/80 min-w-0 xl:col-start-1 xl:row-start-2">
               <LessonNavigationControls
                 variant="full"
                 unitLabel={hasTopics ? "Topic" : "Lesson"}

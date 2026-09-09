@@ -301,7 +301,15 @@ function ParentContentRows({
       ) : (
         mergedRows.map((row, rIdx) => {
           if (row.kind === "quiz") {
-            const isQuizActive = composerMode === "quiz" && composeQuizId === row.id;
+            // `composerMode === "quiz"` covers the Instructor Composer's
+            // dedicated quiz-editor screen (composerMode switches globally
+            // to "quiz" there, so `isActive` — scoped per parent level —
+            // is never true in that case). `isActive` covers the Student
+            // side instead, where composerMode stays the containing level
+            // (module/lesson/topic) so that level's row also lights up as
+            // part of the same active path — see the learn page's
+            // selectedCellId/composeQuizId wiring.
+            const isQuizActive = (composerMode === "quiz" || isActive) && composeQuizId === row.id;
             const questions = row.questions || (row.quizQuestions || []).map((qq) => qq.question) || [];
 
             return (
@@ -311,7 +319,7 @@ function ParentContentRows({
                 title={row.title || "Quiz"}
                 className={`group/content flex items-center justify-between gap-2 pl-2 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
                   isQuizActive
-                    ? "bg-emerald-500/15 text-emerald-400 font-semibold"
+                    ? "bg-primary/15 text-primary font-semibold"
                     : "text-emerald-300/80 hover:text-emerald-300 hover:bg-background/70"
                 }`}
               >
