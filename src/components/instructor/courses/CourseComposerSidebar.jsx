@@ -55,6 +55,40 @@ import { swapSiblingOrder } from "@/lib/reorderSiblings";
 import { useToast } from "@/components/ui/ToastProvider";
 
 /**
+ * Quiz rows are coloured by their tag, so practice and graded assessments are
+ * distinguishable in the tree without opening either — sky for Self-Test,
+ * purple for Final Quiz, matching the badges in QuizOverviewView.
+ *
+ * Each colour is stated twice, because the two themes need opposite ends of
+ * the ramp: light theme sits on a white background (--background: #FFFFFF)
+ * and needs deep shades, while dark theme needs the pale ones. The unprefixed
+ * class is the light value — `.dark` is the opt-in variant here
+ * (see `@custom-variant dark` in globals.css), so light is the default.
+ *
+ * Written as complete class strings rather than interpolated colour names:
+ * Tailwind scans source text, so `text-${colour}-400` would never be emitted.
+ */
+const QUIZ_TAG_STYLES = {
+  SELF_TEST: {
+    label: "Self-Test",
+    active: "bg-sky-500/10 text-sky-800 dark:bg-sky-500/15 dark:text-sky-400 font-semibold",
+    idle: "text-sky-700 hover:text-sky-900 hover:bg-sky-500/10 dark:text-sky-300/80 dark:hover:text-sky-300 dark:hover:bg-background/70",
+    icon: "text-sky-600 dark:text-sky-400",
+    badge: "bg-sky-500/15 text-sky-800 dark:bg-sky-500/20 dark:text-sky-300",
+  },
+  FINAL: {
+    label: "Final Quiz",
+    active: "bg-purple-500/10 text-purple-800 dark:bg-purple-500/15 dark:text-purple-400 font-semibold",
+    idle: "text-purple-700 hover:text-purple-900 hover:bg-purple-500/10 dark:text-purple-300/80 dark:hover:text-purple-300 dark:hover:bg-background/70",
+    icon: "text-purple-600 dark:text-purple-400",
+    badge: "bg-purple-500/15 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300",
+  },
+};
+
+/** Falls back to Final Quiz, mirroring the Quiz.quizTag column default. */
+const getQuizTagStyle = (quizTag) => QUIZ_TAG_STYLES[quizTag] || QUIZ_TAG_STYLES.FINAL;
+
+/**
  * Classifies topic title into Theory, MCQs, Assignment, Home Task, or Revision Checklist.
  */
 function getTopicTypeMeta(title = "") {
@@ -227,6 +261,10 @@ function ParentContentRows({
   role = "INSTRUCTOR",
   isDraftMode = false,
   draftContents,
+  extraItems = [],
+  renderExtraItem,
+  emptyMessage = null,
+  className = "",
 }) {
   const { data: apiContents = [], isLoading: isApiLoading, isError: isApiError } = useContents(isDraftMode ? undefined : parent);
 
@@ -239,19 +277,23 @@ function ParentContentRows({
   const reorderQuizzes = useReorderQuizzes();
   const { showToast } = useToast();
 
-  // One merged, order-sorted list — this is what makes a quiz occupy a real
-  // position among its sibling content cells instead of always rendering in
-  // its own separate block. Ties (possible only via Add Above/Below on a
-  // content cell, which shifts sibling content rows but not quiz rows in
-  // the same scope — a known, non-fatal limitation, see the design spec)
-  // are broken deterministically: content sorts first.
+  // Unified, order- and createdAt-sorted list — merges content cells, quizzes,
+  // and any parent-level children (like lessons in modules or topics in lessons)
+  // so items appear in the exact order created or authored.
   const mergedRows = [
     ...contents.map((c) => ({ ...c, kind: "content" })),
     ...quizzes.map((q) => ({ ...q, kind: "quiz" })),
+    ...extraItems.map((item) => ({ ...item, kind: item.kind || "extra" })),
   ].sort((a, b) => {
-    const orderDiff = (a.order ?? 0) - (b.order ?? 0);
-    if (orderDiff !== 0) return orderDiff;
-    return a.kind === b.kind ? 0 : a.kind === "content" ? -1 : 1;
+    const orderA = a.order ?? 0;
+    const orderB = b.order ?? 0;
+    if (orderA !== orderB) return orderA - orderB;
+    if (a.createdAt && b.createdAt) {
+      const diff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      if (diff !== 0) return diff;
+    }
+    const rank = (k) => (k === "content" ? 1 : k === "extra" || k === "lesson" || k === "topic" ? 2 : 3);
+    return rank(a.kind) - rank(b.kind);
   });
 
   const handleMove = async (id, direction) => {
@@ -284,45 +326,56 @@ function ParentContentRows({
     }
   };
 
+  const containerClass = className || (parent?.parentType === "course"
+    ? "mt-0.5 mb-1 ml-3 pl-3 py-0.5 space-y-0.5 border-l border-primary/20"
+    : "space-y-0.5");
+
   return (
-    <div className="mt-0.5 mb-1 ml-3 pl-3 py-0.5 space-y-0.5 border-l border-primary/20">
+    <div className={containerClass}>
       {isLoading ? (
-        <div className="flex items-center gap-1.5 py-1.5 px-2 text-[10px] text-muted-foreground">
+        <div className="flex items-center gap-1.5 py-1.5 px-2 text-[12px] text-muted-foreground">
           <Loader2 size={11} className="animate-spin shrink-0" />
           Loading contents…
         </div>
       ) : isError ? (
-        <div className="flex items-center gap-1.5 py-1.5 px-2 text-[10px] text-red-400/80">
+        <div className="flex items-center gap-1.5 py-1.5 px-2 text-[12px] text-red-400/80">
           <AlertCircle size={11} className="shrink-0" />
           Failed to load contents.
         </div>
       ) : mergedRows.length === 0 ? (
-        <div className="py-1.5 px-2 text-[10px] text-muted-foreground italic">No content yet.</div>
+        emptyMessage ? (
+          <div className="py-1.5 px-2 text-[12px] text-muted-foreground italic">
+            {emptyMessage}
+          </div>
+        ) : null
       ) : (
         mergedRows.map((row, rIdx) => {
+          if (row.kind === "extra" || row.kind === "lesson" || row.kind === "topic") {
+            return renderExtraItem ? renderExtraItem(row, rIdx) : null;
+          }
           if (row.kind === "quiz") {
             const isQuizActive = composerMode === "quiz" && composeQuizId === row.id;
             const questions = row.questions || (row.quizQuestions || []).map((qq) => qq.question) || [];
+            const tagStyle = getQuizTagStyle(row.quizTag);
 
             return (
               <div
                 key={row.id}
                 onClick={() => onSelectQuiz?.(row)}
-                title={row.title || "Quiz"}
+                // Colour alone shouldn't carry the tag — name it in the tooltip too.
+                title={`${row.title || "Quiz"} — ${tagStyle.label}`}
                 className={`group/content flex items-center justify-between gap-2 pl-2 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                  isQuizActive
-                    ? "bg-emerald-500/15 text-emerald-400 font-semibold"
-                    : "text-emerald-300/80 hover:text-emerald-300 hover:bg-background/70"
+                  isQuizActive ? tagStyle.active : tagStyle.idle
                 }`}
               >
                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                  <HelpCircle size={12} className="shrink-0 text-emerald-400" />
-                  <span className="truncate text-[10.5px] leading-snug">
+                  <HelpCircle size={12} className={`shrink-0 ${tagStyle.icon}`} />
+                  <span className="truncate text-[12.5px] leading-snug">
                     {row.title || "Untitled Quiz"}
                   </span>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
+                  <span className={`text-[11px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 ${tagStyle.badge}`}>
                     {questions.length} Qs
                   </span>
                   {role === "INSTRUCTOR" && (
@@ -368,7 +421,7 @@ function ParentContentRows({
             >
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                 <Icon size={12} className={`shrink-0 ${isContentActive ? "text-primary" : meta.color}`} />
-                <span className="truncate text-[10.5px] leading-snug">
+                <span className="truncate text-[12.5px] leading-snug">
                   {content.title || `Untitled ${meta.label}`}
                 </span>
               </div>
@@ -511,7 +564,7 @@ export function CourseComposerSidebar({
     <aside className="sidebar-panel rounded-2xl border border-border bg-background p-4 shadow-xl flex flex-col h-full max-h-[calc(100vh-7rem)] overflow-hidden text-foreground">
       {/* Panel Title */}
       <div className="flex items-center justify-between gap-2 mb-1 shrink-0">
-        <div className="font-black text-xs uppercase tracking-widest text-foreground flex items-center gap-2">
+        <div className="font-black text-sm uppercase tracking-widest text-foreground flex items-center gap-2">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-accent, #f97316)" strokeWidth="2">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
           </svg>
@@ -529,7 +582,7 @@ export function CourseComposerSidebar({
       </div>
 
       {/* Compact subtitle */}
-      <div className="text-[10.5px] text-muted-foreground mb-3 pb-3 border-b border-border/80">
+      <div className="text-[12.5px] text-muted-foreground mb-3 pb-3 border-b border-border/80">
         Course structure
       </div>
 
@@ -537,7 +590,7 @@ export function CourseComposerSidebar({
       {role === "INSTRUCTOR" && (
         <button
           type="button"
-          className="w-full py-2 mb-3 flex items-center justify-center gap-1.5 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold transition cursor-pointer shrink-0"
+          className="w-full py-2 mb-3 flex items-center justify-center gap-1.5 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-bold transition cursor-pointer shrink-0"
           onClick={onAddModule}
         >
           <Plus size={14} />
@@ -548,7 +601,7 @@ export function CourseComposerSidebar({
       {/* Course Overview Root Item */}
       <div className="flex items-center justify-between gap-1 mb-1 shrink-0 group/module">
         <div
-          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl transition cursor-pointer text-xs flex-1 border-l-[3px] ${
+          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl transition cursor-pointer text-sm flex-1 border-l-[3px] ${
             composerMode === "course"
               ? "bg-primary/15 border-primary text-primary font-bold"
               : "border-transparent text-foreground hover:bg-background"
@@ -589,9 +642,9 @@ export function CourseComposerSidebar({
       )}
 
       {/* Modules Tree */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-0.5 pr-1 text-xs">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-0.5 pr-1 text-sm">
         {modules.length === 0 ? (
-          <div className="py-8 text-center text-muted-foreground text-xs italic">
+          <div className="py-8 text-center text-muted-foreground text-sm italic">
             No modules available in this course.
           </div>
         ) : (
@@ -631,10 +684,10 @@ export function CourseComposerSidebar({
                       />
                     </button>
                     <Layers size={14} className={`shrink-0 ${isModuleActive ? "text-primary" : "text-primary/80"}`} />
-                    <span className="text-[9px] font-black text-muted-foreground tabular-nums shrink-0">
+                    <span className="text-[11px] font-black text-muted-foreground tabular-nums shrink-0">
                       M{mIdx + 1}
                     </span>
-                    <span className="truncate text-xs font-bold" title={mod.title}>
+                    <span className="truncate text-sm font-bold" title={mod.title}>
                       {mod.title}
                     </span>
                   </div>
@@ -665,7 +718,7 @@ export function CourseComposerSidebar({
                 {/* Module Children: Module Content + Module Quizzes + Lessons */}
                 <Collapsible open={moduleOpen}>
                   <div className="ml-3.5 pl-3 py-0.5 space-y-0.5 border-l border-border/70">
-                    {/* Module-Level Content Cells (module-level quizzes are merged into this list) */}
+                    {/* Unified Module Items (contents, quizzes, and lessons sorted by creation/order) */}
                     <ParentContentRows
                       parent={{ parentType: "module", parentId: mod.id }}
                       isActive={composerMode === "module" && composeModuleId === mod.id}
@@ -681,14 +734,10 @@ export function CourseComposerSidebar({
                       role={role}
                       isDraftMode={isDraftMode}
                       draftContents={mod.contents}
-                    />
-
-                    {modLessons.length === 0 ? (
-                      <div className="py-1.5 px-2 text-[10px] text-muted-foreground italic">
-                        No lessons in this module.
-                      </div>
-                    ) : (
-                      modLessons.map((lesson, lIdx) => {
+                      extraItems={modLessons.map((lesson, lIdx) => ({ ...lesson, kind: "lesson", lIdx }))}
+                      emptyMessage={modLessons.length === 0 ? "No lessons in this module." : null}
+                      renderExtraItem={(lesson) => {
+                        const lIdx = lesson.lIdx;
                         const lessonOpen = isLessonOpen(lesson.id);
                         const isLessonActive = composerMode === "lesson" && composeLessonId === lesson.id;
                         const lessonHasActiveChild = !isLessonActive && composeLessonId === lesson.id;
@@ -740,10 +789,10 @@ export function CourseComposerSidebar({
                                 ) : (
                                   <BookOpen size={12} className={`shrink-0 ${isLessonActive ? "text-primary" : "text-muted-foreground"}`} />
                                 )}
-                                <span className="text-[8.5px] font-black text-slate-600 tabular-nums shrink-0">
+                                <span className="text-[10.5px] font-black text-slate-600 tabular-nums shrink-0">
                                   L{lIdx + 1}
                                 </span>
-                                <span className="truncate text-[11px] leading-snug" title={lesson.title}>
+                                <span className="truncate text-[13px] leading-snug" title={lesson.title}>
                                   {lesson.title}
                                 </span>
                               </div>
@@ -774,7 +823,7 @@ export function CourseComposerSidebar({
                             {/* Lesson Content + Lesson Quizzes + Topics */}
                             <Collapsible open={lessonOpen}>
                               <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-border/60">
-                                {/* Lesson-Level Content Cells (lesson-level quizzes are merged into this list) */}
+                                {/* Unified Lesson Items (contents, quizzes, and topics sorted by creation/order) */}
                                 <ParentContentRows
                                   parent={{ parentType: "lesson", parentId: lesson.id }}
                                   isActive={composerMode === "lesson" && composeLessonId === lesson.id}
@@ -790,14 +839,10 @@ export function CourseComposerSidebar({
                                   role={role}
                                   isDraftMode={isDraftMode}
                                   draftContents={lesson.contents}
-                                />
-
-                                {lessonTopics.length === 0 ? (
-                                  <div className="py-1.5 px-2 text-[10px] text-muted-foreground italic">
-                                    No topics in this lesson.
-                                  </div>
-                                ) : (
-                                  lessonTopics.map((topic, tIdx) => {
+                                  extraItems={lessonTopics.map((topic, tIdx) => ({ ...topic, kind: "topic", tIdx }))}
+                                  emptyMessage={lessonTopics.length === 0 ? "No topics in this lesson." : null}
+                                  renderExtraItem={(topic) => {
+                                    const tIdx = topic.tIdx;
                                     const topicOpen = isTopicOpen(topic.id);
                                     const isTopicActive = composerMode === "topic" && composeTopicId === topic.id;
                                     const topicMeta = getTopicTypeMeta(topic.title);
@@ -831,11 +876,11 @@ export function CourseComposerSidebar({
                                               />
                                             </button>
                                             <TopicIcon size={12} className={`shrink-0 ${isTopicActive ? "text-primary" : topicMeta.color}`} />
-                                            <span className="truncate text-[11px] leading-snug" title={topic.title}>
+                                            <span className="truncate text-[13px] leading-snug" title={topic.title}>
                                               {displayTitle}
                                             </span>
                                             {topicMeta.type !== "theory" && (
-                                              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border uppercase shrink-0 ${topicMeta.bgClass}`}>
+                                              <span className={`text-[11px] font-mono font-bold px-1.5 py-0.2 rounded border uppercase shrink-0 ${topicMeta.bgClass}`}>
                                                 {topicMeta.badge}
                                               </span>
                                             )}
@@ -884,14 +929,14 @@ export function CourseComposerSidebar({
                                         </Collapsible>
                                       </div>
                                     );
-                                  })
-                                )}
+                                  }}
+                                />
                               </div>
                             </Collapsible>
                           </div>
                         );
-                      })
-                    )}
+                      }}
+                    />
                   </div>
                 </Collapsible>
               </div>
