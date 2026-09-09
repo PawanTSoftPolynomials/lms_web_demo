@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/axios";
@@ -110,7 +110,6 @@ export default function CourseDetailsPage() {
   const { data: conceptMasteryData = [] } = useConceptMastery(courseId);
 
   // Global View Mode: 'rendered' | 'edit'
-  const [globalMode, setGlobalMode] = useState("rendered");
 
   // Active Workspace Selection: 'course' | 'lesson' | 'module' | 'topic' | 'quiz'
   const [composerMode, setComposerMode] = useState("course");
@@ -735,6 +734,35 @@ export default function CourseDetailsPage() {
         quizzes: effectiveCourseQuizzes,
       } : null)
     : (course ? { ...course, quizzes: effectiveCourseQuizzes } : null);
+
+  // What the server currently holds, in the shape courseForm uses — the two
+  // are compared to decide whether the header offers a Save at all.
+  const savedCourseForm = useMemo(
+    () => ({
+      title: course?.title || "",
+      subtitle: course?.subtitle || course?.shortDescription || "",
+      description: course?.description || "",
+      category: course?.category || "",
+      level: course?.level || "Beginner",
+      thumbnailUrl: course?.thumbnailUrl || "",
+      duration: course?.duration || "",
+      audience: course?.audience || "",
+      author: course?.author || course?.creator?.name || "",
+    }),
+    [course]
+  );
+
+  // An imported draft has never been written, so it always has something to
+  // save. A real course only does once its meta drifts from the saved record;
+  // courseForm starts empty and is filled by the sync effect, so an unfilled
+  // form counts as clean rather than as a full set of changes.
+  const hasUnsavedChanges = isDraftMode
+    ? true
+    : Boolean(course) &&
+      Object.keys(courseForm).length > 0 &&
+      Object.keys(savedCourseForm).some(
+        (key) => (courseForm[key] ?? "") !== savedCourseForm[key]
+      );
 
   const effectiveModules = (isDraftMode ? draftModules : (modules || [])).map((mod) => {
     const rawModQuizzes = (mod.quizzes && mod.quizzes.length > 0)
@@ -1898,23 +1926,22 @@ export default function CourseDetailsPage() {
       }`;
 
   return (
-    <div className="space-y-4 pb-16 animate-fade-in duration-300">
+    // The shared dashboard shell pads its main by p-2/sm:p-6/md:p-16; the
+    // composer pulls most of that top padding back so the course header sits
+    // just under the navbar instead of below a band of empty space.
+    <div className="-mt-1 sm:-mt-4 md:-mt-12 space-y-4 pb-16 animate-fade-in duration-300">
       {/* 1. APP HEADER */}
       <CourseComposerHeader
         course={effectiveCourse}
         courseId={courseId}
-        globalMode={globalMode}
-        onToggleGlobalMode={() => setGlobalMode(globalMode === "rendered" ? "edit" : "rendered")}
         onSaveCourse={handleSaveCourse}
+        hasUnsavedChanges={hasUnsavedChanges}
         onImportCourse={() => router.push("/instructor/courses/import")}
         onOpenAskAi={() => handleOpenAskAi()}
         isSaving={isDraftMode ? isSavingDraft : updateCourseMutation.isPending}
         onPublishClick={handleConfirmPublish}
         onUnpublishClick={handleOpenUnpublishModal}
-        onDuplicateClick={handleDuplicateCourse}
-        onArchiveClick={handleConfirmArchiveCourse}
         onRestoreClick={handleConfirmRestoreCourse}
-        onDeleteClick={handleOpenDeleteModal}
         onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
       />
 
@@ -2033,7 +2060,7 @@ export default function CourseDetailsPage() {
                 course={effectiveCourse}
                 courseForm={courseForm}
                 setCourseForm={setCourseForm}
-                isEditing={isEditingCourse || globalMode === "edit"}
+                isEditing={isEditingCourse}
                 setIsEditing={setIsEditingCourse}
                 onSaveCourseMeta={async () => {
                   if (isDraftMode) {
@@ -2080,7 +2107,7 @@ export default function CourseDetailsPage() {
                 lesson={composingLesson}
                 lessonForm={lessonForm}
                 setLessonForm={setLessonForm}
-                isEditing={isEditingLesson || globalMode === "edit"}
+                isEditing={isEditingLesson}
                 setIsEditing={setIsEditingLesson}
                 onSaveLessonMeta={async () => {
                   if (isDraftMode) {
