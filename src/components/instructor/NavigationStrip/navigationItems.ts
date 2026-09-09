@@ -6,7 +6,7 @@ import {
   // Briefcase,
   // CalendarDays,
   // ClipboardList,
-  // Database,
+  Database,
   // FileCheck2,
   // FileEdit,
   HelpCircle,
@@ -69,6 +69,11 @@ export const PRIMARY_NAV_ITEMS: NavItem[] = [
       //     { label: "Notes", href: "/instructor/work/notes", icon: NotebookPen },
       //   ],
       // },
+      // Points at /instructor/questions, not the /instructor/work/questions
+      // copy listed in the disabled Work block above. Both render the same
+      // QuestionRepositoryView, but this is the route that owns the
+      // edit/[questionId] and view/[questionId] pages under it.
+      { label: "Question Repository", href: "/instructor/questions", icon: Database },
       { label: "Q&A", href: "/instructor/qa", icon: HelpCircle },
     ],
   },
