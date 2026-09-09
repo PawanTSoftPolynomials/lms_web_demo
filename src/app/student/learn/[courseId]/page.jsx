@@ -14,6 +14,7 @@ import TranscriptPanel from "@/components/student/learning/TranscriptPanel";
 import LessonTabs from "@/components/student/learning/LessonTabs";
 import CourseContentAccordion from "@/components/student/learning/CourseContentAccordion";
 import LessonContentBlock from "@/components/student/learning/LessonContentBlock";
+import ContentCompletionBar from "@/components/student/learning/ContentCompletionBar";
 import LessonOverviewPanel from "@/components/student/learning/LessonOverviewPanel";
 import LessonResourcesPanel from "@/components/student/learning/LessonResourcesPanel";
 import LessonQuizPanel from "@/components/student/learning/LessonQuizPanel";
@@ -25,7 +26,7 @@ import LearnPageHeader from "@/components/student/learning/LearnPageHeader";
 import { groupLessonContentForDocumentView } from "@/lib/contentDocument";
 import { CourseStructureSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
 import { normalizeCourseHierarchy } from "@/lib/courseMapper";
-import { buildProgressIndex, decorateCourseWithProgress } from "@/lib/progressIndex";
+import { buildProgressIndex, decorateCourseWithProgress, isItemComplete } from "@/lib/progressIndex";
 import { LEARN_PAGE_CONTENT_TABS } from "@/features/student/constants/learnPageConfig";
 
 import {
@@ -48,6 +49,23 @@ import { ChatWidget } from "@/components/chat";
 
 import useChat from "@/hooks/useChat";
 import useMediaQuery from "@/hooks/useMediaQuery";
+import { useToast } from "@/components/ui/ToastProvider";
+
+/**
+ * The real Content row ids behind one displayed block.
+ *
+ * Blocks coming through groupLessonContentForDocumentView carry `contentIds`
+ * (a merged HTML document stands for several rows); a block picked straight
+ * off the course tree — a Course- or Module-direct item chosen in the sidebar,
+ * which never goes through that grouping — carries only its own id. Progress
+ * is keyed on these ids, so this is what both the completion request and the
+ * completion lookup must use, never the block's display identity.
+ */
+function contentIdsOf(item) {
+  if (!item) return [];
+  const ids = Array.isArray(item.contentIds) && item.contentIds.length > 0 ? item.contentIds : [item.id];
+  return ids.filter(Boolean);
+}
 
 export default function LearnPage() {
   const { courseId } = useParams();
@@ -78,6 +96,7 @@ export default function LearnPage() {
   const updateStateMutation = useUpdateStudentState();
 
   const { setIsOpen } = useChat();
+  const { showToast } = useToast();
 
   // Real viewport check backing the mobile/tablet-only blocks below — mirrors
   // Tailwind's xl breakpoint (1280px) so exactly one of the isDesktop-gated
@@ -261,7 +280,12 @@ export default function LearnPage() {
     // Quiz blocks complete through their own submission flow, never here.
     const finished = activeBlock;
     if (finished?.kind === "content" && finished.item?.id) {
-      completeContentMutation.mutate({ contentId: finished.item.id, completed: true });
+      // contentIds (not the block's representative id) so a merged document
+      // block marks every underlying Content row — see useCompleteContent.
+      completeContentMutation.mutate({
+        contentIds: contentIdsOf(finished.item),
+        completed: true,
+      });
     }
     goToNextBlock();
   };
@@ -483,6 +507,42 @@ export default function LearnPage() {
   // takes priority over the normal Lesson/Topic block sequence.
   const activeBlock = manualOverride || playerBlocks[blockIndex];
   const resultReturnTo = `/student/learn/${courseId}${selectedLesson?.id ? `?lessonId=${selectedLesson.id}` : ""}`;
+
+  // ---- Completion state for the block currently on screen -------------------
+  // Read straight out of the backend roll-up. A merged document block counts as
+  // complete only when every Content row behind it is, because the backend
+  // counts each of those rows in its own denominator. This is a lookup of the
+  // server's per-item flags, not a calculation of progress.
+  const activeContentIds = activeBlock?.kind === "content" ? contentIdsOf(activeBlock.item) : [];
+  const activeContentCompleted =
+    activeContentIds.length > 0 && activeContentIds.every((id) => isItemComplete(progressIndex, id));
+
+  // A Quiz reports the same backend flag in the same strip, but never offers a
+  // way to set it: `completed` for a Quiz means the backend recorded a passing
+  // QuizSubmission, so it is earned by passing, not by asserting it here.
+  const activeQuizId = activeBlock?.kind === "quiz" ? activeBlock.item?.id : null;
+  const activeQuizCompleted = Boolean(activeQuizId) && isItemComplete(progressIndex, activeQuizId);
+
+  // Hidden entirely until the roll-up is known: without it we cannot say
+  // whether this item is already complete, and showing "Mark as Complete" on a
+  // finished item (or vice versa) would misreport the student's own state.
+  const showCompletionBar =
+    Boolean(progressIndex) && (activeContentIds.length > 0 || Boolean(activeQuizId));
+
+  const handleMarkComplete = () => {
+    // The mutation's own pending flag is the guard against double submission;
+    // the button is disabled from the same flag.
+    if (completeContentMutation.isPending || activeContentCompleted || activeContentIds.length === 0) return;
+
+    completeContentMutation.mutate(
+      { contentIds: activeContentIds, completed: true },
+      {
+        // No optimistic write: the item flips to Completed only after the
+        // invalidated COURSE_PROGRESS query comes back saying so.
+        onError: () => showToast("Could not mark this item complete. Please try again.", "error"),
+      }
+    );
+  };
 
   // Each tab's content is defined exactly once here, then referenced both by
   // the mobile shared content panel (conditional render, one at a time) and
@@ -746,6 +806,23 @@ export default function LearnPage() {
                 </div>
                 )}
               </div>
+
+              {/* COMPLETION — the one place the student marks the block on
+                  screen complete, and the one place its completed state is
+                  shown in the workspace. Sits below the player frame (not
+                  inside it) so it never collides with the floating Prev/Next
+                  overlay, and applies to whatever the frame is showing:
+                  Course-, Module-, Lesson- or Topic-direct Content alike. */}
+              {showCompletionBar && (
+                <ContentCompletionBar
+                  completed={activeQuizId ? activeQuizCompleted : activeContentCompleted}
+                  isPending={completeContentMutation.isPending}
+                  isVideo={!activeQuizId && activeBlock?.item?.type === "VIDEO"}
+                  readOnly={Boolean(activeQuizId)}
+                  readOnlyHint="Pass this quiz to complete it."
+                  onMarkComplete={handleMarkComplete}
+                />
+              )}
             </div>
 
             {/* CONTENT TAB STRIP — mobile & tablet only. Desktop shows every

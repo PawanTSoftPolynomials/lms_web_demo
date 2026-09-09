@@ -136,23 +136,10 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo }) {
             ),
         };
 
-        // TEMP DIAGNOSTIC — remove after investigation
-        console.log("[Adaptive TRACE] SUBMIT_PAYLOAD", {
-            answers: submitPayload.answers,
-            t: performance.now(),
-        });
-
         submitQuizMutation.mutate(
             submitPayload,
             {
-                onSuccess: (data) => {
-                    // TEMP DIAGNOSTIC — remove after investigation
-                    console.log("[Adaptive TRACE] SUBMIT_RESPONSE", {
-                        submissionId: data?.id,
-                        answers: data?.answers,
-                        t: performance.now(),
-                    });
-
+                onSuccess: () => {
                     setShowSubmitModal(false);
 
                     router.push(
