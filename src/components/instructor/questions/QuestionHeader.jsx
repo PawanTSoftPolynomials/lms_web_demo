@@ -199,7 +199,7 @@ export default function QuestionHeader({ quiz, onImport }) {
                     </p>
 
                     <h3 className="mt-2 text-3xl font-bold text-blue-400">
-                        {quiz.timeLimit || 0} min
+                        {Number(quiz.timeLimit) > 0 ? `${quiz.timeLimit} min` : "No timer"}
                     </h3>
                 </div>
             </div>

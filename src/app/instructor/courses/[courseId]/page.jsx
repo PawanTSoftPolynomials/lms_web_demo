@@ -28,7 +28,7 @@ import { useConceptMastery } from "@/hooks/queries/instructor/useInstructorDashb
 import { useToast } from "@/components/ui/ToastProvider";
 import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
 import { validateCoursePublish, duplicateCourse } from "@/services/course.service";
-import { createQuiz as createQuizService, updateQuiz as updateQuizService, deleteQuiz as deleteQuizService } from "@/services/quiz.service";
+import { createQuiz as createQuizService, updateQuiz as updateQuizService, deleteQuiz as deleteQuizService, getQuizById as getQuizByIdService } from "@/services/quiz.service";
 import {
   bulkCreateQuestions as bulkCreateQuestionsService,
   updateRepositoryQuestion,
@@ -515,8 +515,11 @@ export default function CourseDetailsPage() {
         const newQuizData = {
           title: quizTitle,
           description: quizDesc,
+          // AI-generated quizzes stay formal assessments, preserving the
+          // timed behavior they had before quiz tags existed.
+          quizTag: "FINAL",
           passingScore: Number(generatedData.passingScore) || 70,
-          timeLimit: Number(generatedData.timeLimit) || 15,
+          timeLimit: Number(generatedData.timeLimit) > 0 ? Number(generatedData.timeLimit) : null,
           isPublished: true,
           questions: formattedQuestions,
         };
@@ -932,8 +935,11 @@ export default function CourseDetailsPage() {
           id: `draft-quiz-${isTopicQuiz ? "topic" : isLessonQuiz ? "lesson" : "mod"}-${Date.now()}`,
           title: updatedQuizData.title || (isTopicQuiz ? "Topic Quiz" : isLessonQuiz ? "Lesson Quiz" : "Module Quiz"),
           description: updatedQuizData.description || "",
+          quizTag: updatedQuizData.quizTag,
           passingScore: Number(updatedQuizData.passingScore) || 70,
-          timeLimit: Number(updatedQuizData.timeLimit) || 30,
+          // No `|| 30` fallback: null means the instructor chose no timer,
+          // and re-inflating it here would defeat that before it ever saved.
+          timeLimit: updatedQuizData.timeLimit ?? null,
           isPublished: updatedQuizData.isPublished !== false,
           moduleId: composeModuleId,
           lessonId: composeLessonId || null,
@@ -1087,8 +1093,9 @@ export default function CourseDetailsPage() {
           const resQuiz = await createQuizService({
             title: updatedQuizData.title || (composeTopicId ? "Topic Quiz" : composeLessonId ? "Lesson Quiz" : "Module Quiz"),
             description: updatedQuizData.description || "",
+            quizTag: updatedQuizData.quizTag,
             passingScore: Number(updatedQuizData.passingScore) || 70,
-            timeLimit: Number(updatedQuizData.timeLimit) || 30,
+            timeLimit: updatedQuizData.timeLimit ?? null,
             isPublished: updatedQuizData.isPublished !== false,
             courseId,
             moduleId: composeModuleId || null,
@@ -1108,11 +1115,22 @@ export default function CourseDetailsPage() {
             }
           }
 
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
+          let freshQuiz = resQuiz;
+          try {
+            freshQuiz = await getQuizByIdService(resQuiz.id);
+          } catch (fetchErr) {
+            freshQuiz = { ...resQuiz, questions: updatedQuizData.questions || [] };
+          }
+
+          await Promise.allSettled([
+            queryClient.refetchQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] }),
+            queryClient.refetchQueries({ queryKey: [QUERY_KEYS.COURSE, courseId, "meta"] }),
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] }),
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.QUIZZES] }),
+          ]);
 
           showToast(composeTopicId ? "Topic quiz created successfully!" : composeLessonId ? "Lesson quiz created successfully!" : "Module quiz created successfully!", "success");
-          setSelectedQuizState(resQuiz);
+          setSelectedQuizState(freshQuiz);
           setComposeQuizId(resQuiz.id);
           setQuizMode("view");
           setQuizStartEditing(false);
@@ -1126,8 +1144,11 @@ export default function CourseDetailsPage() {
           const resQuiz = await updateQuizService(targetId, {
             title: updatedQuizData.title,
             description: updatedQuizData.description,
+            quizTag: updatedQuizData.quizTag,
             passingScore: Number(updatedQuizData.passingScore),
-            timeLimit: Number(updatedQuizData.timeLimit),
+            // Number(null) is 0, not null — and 0 would reach the API as a
+            // real time limit rather than "untimed".
+            timeLimit: updatedQuizData.timeLimit ?? null,
             isPublished: updatedQuizData.isPublished,
             courseId,
             moduleId: composeModuleId || selectedQuizState.moduleId || null,
@@ -1147,11 +1168,22 @@ export default function CourseDetailsPage() {
             showToast(qErr?.response?.data?.message || "Quiz updated, but some questions failed to save.", "error");
           }
 
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] });
-          await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
+          let freshQuiz = updatedQuiz;
+          try {
+            freshQuiz = await getQuizByIdService(targetId);
+          } catch (fetchErr) {
+            freshQuiz = updatedQuiz;
+          }
+
+          await Promise.allSettled([
+            queryClient.refetchQueries({ queryKey: [QUERY_KEYS.COURSE, courseId] }),
+            queryClient.refetchQueries({ queryKey: [QUERY_KEYS.COURSE, courseId, "meta"] }),
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] }),
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.QUIZZES] }),
+          ]);
 
           showToast("Quiz updated successfully!", "success");
-          setSelectedQuizState(updatedQuiz);
+          setSelectedQuizState(freshQuiz);
           setQuizMode("view");
           setQuizStartEditing(false);
         } catch (err) {

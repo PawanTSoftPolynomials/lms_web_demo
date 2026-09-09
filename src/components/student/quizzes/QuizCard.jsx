@@ -64,7 +64,7 @@ export default function QuizCard({ quiz }) {
             <Clock size={11} className="text-primary" /> Duration
           </span>
           <span className="font-extrabold text-foreground mt-1">
-            {quiz.timeLimit ?? quiz.duration ?? 15} min
+            {Number(quiz.timeLimit) > 0 ? `${quiz.timeLimit} min` : "No timer"}
           </span>
         </div>
       </div>
