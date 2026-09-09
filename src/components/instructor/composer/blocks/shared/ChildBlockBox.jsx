@@ -154,7 +154,7 @@ export default function ChildBlockBox({ child, containerRef, onMove, onResize, o
     >
       <ChildPreview child={child} onUrlChange={onUrlChange} />
 
-      <div className="absolute -top-7 left-0 flex items-center gap-1 opacity-0 group-hover/child:opacity-100 focus-within:opacity-100 transition-opacity">
+      <div className="absolute -top-7 left-0 flex items-center gap-1 [@media(hover:hover)]:opacity-0 group-hover/child:opacity-100 focus-within:opacity-100 transition-opacity">
         <button
           type="button"
           onPointerDown={(e) => beginDrag(e, "move")}
@@ -197,7 +197,7 @@ export default function ChildBlockBox({ child, containerRef, onMove, onResize, o
       <div
         onPointerDown={(e) => beginDrag(e, "resize")}
         title="Drag to resize"
-        className="absolute -right-1.5 -bottom-1.5 w-3.5 h-3.5 rounded-sm bg-primary border border-white cursor-se-resize opacity-0 group-hover/child:opacity-100"
+        className="absolute -right-1.5 -bottom-1.5 w-3.5 h-3.5 rounded-sm bg-primary border border-white cursor-se-resize [@media(hover:hover)]:opacity-0 group-hover/child:opacity-100"
       />
     </div>
   );

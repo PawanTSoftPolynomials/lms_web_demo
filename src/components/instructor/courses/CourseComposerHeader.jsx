@@ -47,7 +47,7 @@ export function CourseComposerHeader({
       <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
-          className="menu-toggle-btn lg:hidden inline-flex shrink-0 items-center justify-center p-2 rounded-xl border border-border bg-background text-foreground hover:text-foreground cursor-pointer"
+          className="menu-toggle-btn lg:hidden inline-flex shrink-0 items-center justify-center h-11 w-11 rounded-xl border border-border bg-background text-foreground hover:text-foreground cursor-pointer"
           id="toggleSidebarBtn"
           onClick={onToggleSidebar}
           title="Toggle Sidebar"
@@ -86,7 +86,7 @@ export function CourseComposerHeader({
           <button
             type="button"
             onClick={onOpenAskAi}
-            className="btn shrink-0 rounded-xl bg-primary font-extrabold text-xs px-3.5 py-1.5 transition flex items-center gap-1.5 cursor-pointer"
+            className="btn shrink-0 rounded-xl bg-primary font-extrabold text-xs px-3.5 py-2.5 sm:py-1.5 transition flex items-center gap-1.5 cursor-pointer"
             style={{ "--btn-rainbow-fill": "#7C3AED" }}
             title="Ask OTree AI Assistant"
           >
@@ -99,7 +99,7 @@ export function CourseComposerHeader({
         {!isArchived && (
           <button
             type="button"
-            className="btn shrink-0 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-bold px-3 py-1.5 transition cursor-pointer disabled:opacity-50"
+            className="btn shrink-0 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-bold px-3 py-2.5 sm:py-1.5 transition cursor-pointer disabled:opacity-50"
             onClick={onSaveCourse}
             disabled={isSaving}
             title="Persist current course changes"
@@ -111,7 +111,7 @@ export function CourseComposerHeader({
         {/* Preview / Mode toggle */}
         <button
           type="button"
-          className={`btn shrink-0 rounded-xl border px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+          className={`btn shrink-0 rounded-xl border px-3 py-2.5 sm:py-1.5 text-xs font-bold transition cursor-pointer ${
             globalMode === "edit"
               ? "border-purple-500/40 bg-purple-500/15 text-purple-300"
               : "border-border bg-background text-foreground hover:bg-muted"
@@ -217,7 +217,7 @@ export function CourseComposerHeader({
         {isDraft && (
           <button
             type="button"
-            className="btn w-full sm:w-auto shrink-0 rounded-xl bg-primary hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-4 py-1.5 transition shadow-md cursor-pointer"
+            className="btn w-full sm:w-auto shrink-0 rounded-xl bg-primary hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-4 py-2.5 sm:py-1.5 transition shadow-md cursor-pointer"
             onClick={onPublishClick}
           >
             Publish
@@ -227,7 +227,7 @@ export function CourseComposerHeader({
         {isPublished && (
           <button
             type="button"
-            className="btn w-full sm:w-auto shrink-0 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-bold text-xs px-3.5 py-1.5 transition cursor-pointer"
+            className="btn w-full sm:w-auto shrink-0 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-bold text-xs px-3.5 py-2.5 sm:py-1.5 transition cursor-pointer"
             onClick={onUnpublishClick}
           >
             Unpublish
@@ -237,7 +237,7 @@ export function CourseComposerHeader({
         {isArchived && onRestoreClick && (
           <button
             type="button"
-            className="btn w-full sm:w-auto shrink-0 rounded-xl border border-purple-500/40 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-bold text-xs px-3.5 py-1.5 transition cursor-pointer flex items-center justify-center sm:justify-start gap-1.5"
+            className="btn w-full sm:w-auto shrink-0 rounded-xl border border-purple-500/40 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-bold text-xs px-3.5 py-2.5 sm:py-1.5 transition cursor-pointer flex items-center justify-center sm:justify-start gap-1.5"
             onClick={onRestoreClick}
           >
             <Archive size={13} />

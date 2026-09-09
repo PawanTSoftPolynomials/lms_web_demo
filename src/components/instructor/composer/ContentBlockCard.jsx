@@ -212,7 +212,7 @@ export default function ContentBlockCard({
 
       <div
         className={`flex items-center justify-between gap-2 mb-2 transition-opacity ${
-          showHeader ? "" : "opacity-0 group-hover:opacity-100 focus-within:opacity-100"
+          showHeader ? "" : "[@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-within:opacity-100"
         }`}
       >
         <div className="flex items-center gap-2 min-w-0">
