@@ -56,8 +56,9 @@ export const updateStudent = async (studentId, studentData) => {
 /**
  * Get Student Learning State (Journey State)
  */
-export const getStudentState = async () => {
-  const { data } = await api.get("/students/state");
+export const getStudentState = async (courseId) => {
+  const params = courseId ? { courseId } : undefined;
+  const { data } = await api.get("/students/state", { params });
   return data.data ?? data;
 };
 

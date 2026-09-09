@@ -55,6 +55,38 @@ import { useReorderQuizzes } from "@/hooks/queries/instructor/useReorderQuizzes"
 import { swapSiblingOrder } from "@/lib/reorderSiblings";
 import { useToast } from "@/components/ui/ToastProvider";
 
+function NodeBadge({ progress, nodeId, node: nodeProp }) {
+  const indexNode = nodeId && progress?.nodes?.get ? progress.nodes.get(nodeId) : (progress?.nodes && nodeId ? progress.nodes[nodeId] : null);
+  const node = indexNode || nodeProp;
+
+  const percent = typeof indexNode?.progressPercent === 'number'
+    ? indexNode.progressPercent
+    : (typeof nodeProp?.progressPercent === 'number' ? nodeProp.progressPercent : (typeof node?.progressPercent === 'number' ? node.progressPercent : null));
+
+  if (percent === null || percent === undefined) return null;
+
+  const totalItems = indexNode?.totalItems ?? nodeProp?.totalItems ?? node?.totalItems ?? 0;
+  const completedItems = indexNode?.completedItems ?? nodeProp?.completedItems ?? node?.completedItems ?? 0;
+  const applicable = indexNode?.applicable ?? nodeProp?.applicable ?? node?.applicable;
+
+  if (applicable === false && totalItems === 0) return null;
+
+  const completed = indexNode?.completed ?? nodeProp?.completed ?? node?.completed ?? (percent === 100);
+
+  return (
+    <span
+      className={`shrink-0 text-[9px] font-black tabular-nums px-1.5 py-0.5 rounded border ${
+        completed
+          ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-500"
+          : "bg-background border-border text-muted-foreground"
+      }`}
+      title={`${completedItems} of ${totalItems} items complete`}
+    >
+      {percent}%
+    </span>
+  );
+}
+
 /**
  * Classifies topic title into Theory, MCQs, Assignment, Home Task, or Revision Checklist.
  */
@@ -338,7 +370,7 @@ function ParentContentRows({
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
-                    {questions.length} Qs
+                    {row.questionCount ?? questions.length} Qs
                   </span>
                   {role === "INSTRUCTOR" && (
                     <RowMenu
@@ -662,7 +694,8 @@ export function CourseComposerSidebar({
           onClick={onSelectCourseOverview}
         >
           <Home size={14} className={composerMode === "course" ? "text-primary shrink-0" : "text-muted-foreground shrink-0"} />
-          <span className="truncate font-semibold">Course Overview</span>
+          <span className="truncate font-semibold flex-1">Course Overview</span>
+          <NodeBadge progress={progress} nodeId={courseId || modules[0]?.courseId} node={progress?.course} />
         </div>
         {role === "INSTRUCTOR" && (
           <RowMenu
@@ -752,9 +785,10 @@ export function CourseComposerSidebar({
                     <span className="text-[9px] font-black text-muted-foreground tabular-nums shrink-0">
                       M{mIdx + 1}
                     </span>
-                    <span className="truncate text-h4" title={mod.title}>
+                    <span className="truncate text-h4 flex-1" title={mod.title}>
                       {mod.title}
                     </span>
+                    <NodeBadge progress={progress} nodeId={mod.id} node={mod} />
                   </div>
 
 
@@ -858,9 +892,10 @@ export function CourseComposerSidebar({
                                 <span className="text-[8.5px] font-black text-slate-600 tabular-nums shrink-0">
                                   L{lIdx + 1}
                                 </span>
-                                <span className="truncate text-body-small" title={lesson.title}>
+                                <span className="truncate text-body-small flex-1" title={lesson.title}>
                                   {lesson.title}
                                 </span>
+                                <NodeBadge progress={progress} nodeId={lesson.id} node={lesson} />
                               </div>
 
 
@@ -964,9 +999,10 @@ export function CourseComposerSidebar({
                                             ) : (
                                               <TopicIcon size={12} className={`shrink-0 ${isTopicActive ? "text-primary" : topicMeta.color}`} />
                                             )}
-                                            <span className="truncate text-body-small" title={topic.title}>
+                                            <span className="truncate text-body-small flex-1" title={topic.title}>
                                               {displayTitle}
                                             </span>
+                                            <NodeBadge progress={progress} nodeId={topic.id} node={topic} />
                                             {topic.completed ? (
                                               <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border uppercase shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
                                                 Done
