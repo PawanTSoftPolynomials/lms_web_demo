@@ -1181,6 +1181,7 @@ export default function CourseDetailsPage() {
           const resQuiz = await createQuizService({
             title: updatedQuizData.title || (composeTopicId ? "Topic Quiz" : composeLessonId ? "Lesson Quiz" : "Module Quiz"),
             description: updatedQuizData.description || "",
+            quizTag: updatedQuizData.quizTag,
             passingScore: Number(updatedQuizData.passingScore) || 70,
             timeLimit: Number(updatedQuizData.timeLimit) || 30,
             isPublished: updatedQuizData.isPublished !== false,

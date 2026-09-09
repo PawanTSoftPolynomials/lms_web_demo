@@ -24,7 +24,7 @@ import LearnPageHeader from "@/components/student/learning/LearnPageHeader";
 import { groupLessonContentForDocumentView } from "@/lib/contentDocument";
 import { CourseStructureSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
 import { normalizeCourseHierarchy } from "@/lib/courseMapper";
-import { buildProgressIndex, decorateCourseWithProgress, isItemComplete } from "@/lib/progressIndex";
+import { buildProgressIndex, decorateCourseWithProgress, isItemComplete, getNodeProgress } from "@/lib/progressIndex";
 import { LEARN_PAGE_CONTENT_TABS } from "@/features/student/constants/learnPageConfig";
 
 import {
@@ -73,7 +73,7 @@ export default function LearnPage() {
   // Progress is advisory to this page: the player must stay fully usable when
   // the roll-up is unavailable, so a failed/pending progress query degrades to
   // "no indicators" rather than blocking or erroring the learning experience.
-  const { data: progressData, isError: isProgressError } = useCourseProgress(courseId);
+  const { data: progressData, isError: isProgressError, refetch: refetchProgress } = useCourseProgress(courseId);
   const completeContentMutation = useCompleteContent();
 
   // Single flattened view of the backend roll-up. Null while loading or on
@@ -129,13 +129,12 @@ export default function LearnPage() {
     updateStateMutation,
   });
 
-  // Lesson list and prev/next/module derivations, plus the single entry
-  // point (selectLesson) every navigation control below routes through.
+  // Lesson list, plus the single entry point (selectLesson) every navigation
+  // control below routes through. previousLesson/nextLesson aren't used for
+  // Prev/Next crossing any more — courseUnits below now owns "what's
+  // adjacent" for the whole course, zero-Topic Lessons included.
   const {
     lessons,
-    previousLesson,
-    nextLesson,
-    nextModule,
     selectLesson,
   } = useLessonNavigation(course, selectedLesson, setSelectedLesson);
 
@@ -146,13 +145,19 @@ export default function LearnPage() {
   // lesson-wide bar and content flatten further down instead.
   const hasTopics = (selectedLesson?.topics?.length ?? 0) > 0;
 
-  const {
-    currentTopic,
-    previousTopic,
-    nextTopic,
-    nextLessonForTopic,
-    selectTopic,
-  } = useTopicNavigation(course, selectedLesson, selectedTopicId, setSelectedLesson, setSelectedTopicId, lessons);
+  // previousTopic/nextTopic/selectTopic aren't used for Prev/Next crossing
+  // any more — courseUnits below now owns "what's adjacent" for the whole
+  // course, Topics included. currentTopic is still read for display
+  // (topicTitle in the header) and for the current Topic's own completion
+  // gate id.
+  const { currentTopic } = useTopicNavigation(
+    course,
+    selectedLesson,
+    selectedTopicId,
+    setSelectedLesson,
+    setSelectedTopicId,
+    lessons
+  );
 
   // Whenever the selected Lesson changes to one whose Topics don't include
   // the currently selected Topic, default to that Lesson's first Topic.
@@ -245,13 +250,14 @@ export default function LearnPage() {
 
   const [, setVideoDuration] = useState(0);
 
-  // Course-level / module-level content or quiz selected from the sidebar —
-  // these aren't scoped to any Lesson/Topic, so they're shown standalone in
-  // the player instead of being threaded into the Prev/Next block sequence.
-  // Any normal Lesson/Topic/Module navigation clears it. `scope`/`moduleId`
-  // (set only for module-level picks) exist purely so the Course Map
-  // sidebar can highlight the right ancestor row — see sidebarComposerMode.
-  const [manualOverride, setManualOverride] = useState(null); // { kind: "content" | "quiz", item, scope?: "module" | "course", moduleId? } | null
+  // Which non-Topic/-Lesson unit (Course-direct content/quiz, a Module's own
+  // direct content/quiz, or a Lesson's own quiz when that Lesson also has
+  // Topics) the player is showing, if any — see courseUnits below for the
+  // full whole-course sequence this participates in. `blockIndex` here is
+  // this unit's own local position, kept separate from the Topic/Lesson
+  // pathway's `blockIndex` state below so the two never fight over the same
+  // counter. Any normal Lesson/Topic/Module sidebar pick clears it.
+  const [extraUnit, setExtraUnit] = useState(null); // { key, blockIndex } | null
 
   // Embedded (non-drawer) Course Content accordion state — independent of the
   // desktop sidebar so only one module is expanded at a time on mobile/tablet,
@@ -273,18 +279,30 @@ export default function LearnPage() {
   // get skipped straight to the next Topic. Defined further down (after
   // documentGroupedContents); safe to reference here since this is only
   // ever called later, as the video's onEnded callback.
-  const handleVideoEnded = () => {
+  const handleVideoEnded = async () => {
     // Mark the block that actually just finished — not "the first VIDEO in the
     // lesson", which marks the wrong row whenever a lesson holds more than one.
     // Quiz blocks complete through their own submission flow, never here.
     const finished = activeBlock;
     if (finished?.kind === "content" && finished.item?.id) {
-      // contentIds (not the block's representative id) so a merged document
-      // block marks every underlying Content row — see useCompleteContent.
-      completeContentMutation.mutate({
-        contentIds: contentIdsOf(finished.item),
-        completed: true,
-      });
+      try {
+        // contentIds (not the block's representative id) so a merged document
+        // block marks every underlying Content row — see useCompleteContent.
+        // Awaited, then the progress roll-up is explicitly refetched, before
+        // advancing: goToNextBlock can fall through into goToNextUnit's
+        // completion gate below, which reads progressIndex — advancing on the
+        // still-stale pre-completion snapshot would wrongly block a student
+        // who just finished the last item in the unit.
+        await completeContentMutation.mutateAsync({
+          contentIds: contentIdsOf(finished.item),
+          completed: true,
+        });
+        await refetchProgress();
+      } catch {
+        // Completion write failed — fall through and let the gate re-check
+        // with whatever progress data is actually available rather than
+        // stranding the student on a video that already finished playing.
+      }
     }
     goToNextBlock();
   };
@@ -352,10 +370,12 @@ export default function LearnPage() {
     return selectedLesson?.quizzes || [];
   }, [selectedLesson, selectedTopicId, hasTopics]);
 
-  // The full one-at-a-time sequence the player steps through — content
-  // blocks and this scope's quizzes merged and order-sorted, mirroring
-  // ParentContentRows' own merge in the instructor sidebar (ties broken
-  // content-first, since ties are only possible via manual reordering).
+  // The full one-at-a-time sequence the player steps through for the
+  // Topic/Lesson pathway — content blocks and this scope's quizzes merged
+  // and order-sorted, mirroring ParentContentRows' own merge in the
+  // instructor sidebar (ties broken content-first, since ties are only
+  // possible via manual reordering). A Course/Module-level unit's blocks
+  // come straight from courseUnits below instead.
   const playerBlocks = useMemo(() => {
     const contentBlocks = documentGroupedContents.map((item) => ({ kind: "content", item }));
     const quizBlocks = activeQuizzes.map((quiz) => ({ kind: "quiz", item: quiz }));
@@ -366,50 +386,202 @@ export default function LearnPage() {
     });
   }, [documentGroupedContents, activeQuizzes]);
 
-  // Single source of truth for what "Previous/Next" do, shared by both
-  // LessonNavigationControls instances (compact + full) — Topic-scoped when
-  // the lesson has Topics, otherwise identical to Lesson-level navigation.
-  const goToPreviousUnit = () => {
-    if (hasTopics) {
-      if (previousTopic) selectTopic(previousTopic);
-    } else if (previousLesson) {
-      setSelectedLesson(previousLesson);
+  // ---- Whole-course Prev/Next sequence -------------------------------------
+  // Every stop the player can land on, in the order a student progresses
+  // through the whole course: a Course's own direct content, then for each
+  // Module in turn (its own direct content, then for each Lesson in turn —
+  // its own direct content only when it ALSO has Topics [rare: Composer v2
+  // content is Lesson-only, so a real Lesson normally has either Topics or
+  // its own content, never both], each Topic in order, then the Lesson's
+  // own quiz), then the Module's own quiz — then the Course's own quiz,
+  // last of all. A level with nothing of its own contributes no unit, so a
+  // course that only uses Topics degrades to exactly the sequence Prev/Next
+  // already walked before this. Topic and zero-Topic-Lesson entries are
+  // `placeholder: true` — their real blocks still come from
+  // documentGroupedContents/activeQuizzes above, driven by the existing
+  // selectedLesson/selectedTopicId state; this array only needs to know
+  // they exist, in order, so crossing past them into a Module/Course-level
+  // unit (and back) works.
+  const courseUnits = useMemo(() => {
+    const byOrder = (list) => [...(list || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    const contentUnit = (key, scope, contents) => {
+      const grouped = groupLessonContentForDocumentView(byOrder(contents));
+      return grouped.length > 0 ? { key, scope, blocks: grouped.map((item) => ({ kind: "content", item })) } : null;
+    };
+    const quizUnit = (key, scope, quizzes) => {
+      const sorted = byOrder(quizzes);
+      return sorted.length > 0 ? { key, scope, blocks: sorted.map((item) => ({ kind: "quiz", item })) } : null;
+    };
+
+    const units = [];
+    const noScope = { moduleId: null, lessonId: null, topicId: null };
+    const courseContent = contentUnit("course-content", noScope, course.contents);
+    if (courseContent) units.push(courseContent);
+
+    for (const mod of course.modules || []) {
+      const moduleScope = { moduleId: mod.id, lessonId: null, topicId: null };
+      const moduleContent = contentUnit(`module-content:${mod.id}`, moduleScope, mod.contents);
+      if (moduleContent) units.push(moduleContent);
+
+      for (const lesson of mod.lessons || []) {
+        const lessonScope = { moduleId: mod.id, lessonId: lesson.id, topicId: null };
+        const lessonHasTopics = (lesson.topics?.length ?? 0) > 0;
+
+        if (lessonHasTopics) {
+          const lessonContent = contentUnit(`lesson-content:${lesson.id}`, lessonScope, lesson.contents);
+          if (lessonContent) units.push(lessonContent);
+
+          for (const topic of lesson.topics) {
+            units.push({
+              key: `topic:${topic.id}`,
+              scope: { ...lessonScope, topicId: topic.id },
+              placeholder: true,
+            });
+          }
+
+          const lessonQuiz = quizUnit(`lesson-quiz:${lesson.id}`, lessonScope, lesson.quizzes);
+          if (lessonQuiz) units.push(lessonQuiz);
+        } else {
+          units.push({ key: `lesson:${lesson.id}`, scope: lessonScope, placeholder: true });
+        }
+      }
+
+      const moduleQuiz = quizUnit(`module-quiz:${mod.id}`, moduleScope, mod.quizzes);
+      if (moduleQuiz) units.push(moduleQuiz);
     }
+
+    const courseQuiz = quizUnit("course-quiz", noScope, course.quizzes);
+    if (courseQuiz) units.push(courseQuiz);
+
+    return units;
+  }, [course]);
+
+  // Where the placeholder (Topic / zero-Topic-Lesson) pathway currently is,
+  // as a courseUnits key — used only to find this position's neighbors for
+  // crossing purposes; the pathway's own state (selectedLesson/
+  // selectedTopicId) still drives everything it actually renders.
+  const placeholderUnitKey = hasTopics ? `topic:${currentTopic?.id}` : `lesson:${selectedLesson?.id}`;
+  const currentUnitKey = extraUnit?.key ?? placeholderUnitKey;
+  const currentUnitIndex = courseUnits.findIndex((u) => u.key === currentUnitKey);
+  const activeExtraUnitDef = extraUnit ? courseUnits.find((u) => u.key === extraUnit.key) || null : null;
+
+  // What the player is actually stepping through right now: an extra unit's
+  // own blocks when one is active, otherwise the Topic/Lesson pathway's.
+  const activeUnitBlocks = extraUnit ? (activeExtraUnitDef?.blocks || []) : playerBlocks;
+
+  // A node the backend has no completion data for yet (progress still
+  // loading/unavailable) never blocks advancement — only a confirmed
+  // "not complete" from the roll-up does, matching the advisory-progress
+  // principle above. A node with no trackable items of its own
+  // (`applicable === false`, e.g. an empty topic) can never actually
+  // become `completed` in the roll-up, so it can't block either — mirrors
+  // progressRollup.js's own rule that empty containers don't block their
+  // parent's completion.
+  const canLeaveUnit = (nodeId) => {
+    const summary = getNodeProgress(progressIndex, nodeId);
+    if (!summary) return true;
+    if (summary.applicable === false) return true;
+    return summary.completed === true;
   };
 
-  const goToNextUnit = () => {
-    if (hasTopics) {
-      if (nextTopic) selectTopic(nextTopic);
-    } else if (nextLesson) {
-      setSelectedLesson(nextLesson);
-    }
+  const GATE_MESSAGES = {
+    topicId: "Complete every item in this topic and submit its quiz before moving to the next topic.",
+    lessonId: "Complete every topic and lesson-level item in this lesson before moving to the next lesson.",
+    moduleId: "Complete every lesson and module-level item in this module before moving to the next module.",
   };
 
-  // In-player Prev/Next (the floating buttons over the content itself): the
-  // player shows one block at a time, so these step through
-  // documentGroupedContents first and only fall through to
-  // goToPreviousUnit/goToNextUnit — i.e. skip to the previous/next Topic —
-  // once there's no earlier/later block in the current one. The separate
-  // full-width Previous/Next bar further down the page keeps its existing
-  // always-jump-a-Topic behavior unchanged; it's explicitly labeled as
-  // Topic/Module navigation, not block-by-block.
-  const goToPreviousBlock = () => {
-    if (blockIndex > 0) {
-      setBlockIndex((prev) => prev - 1);
+  // Lands the player on a given courseUnits entry. A Topic or zero-Topic
+  // Lesson hands off to the existing selectedLesson/selectedTopicId pathway
+  // (unchanged — still owns rendering + resume/sidebar/Sticky-Notes sync for
+  // those); anything else (Course-direct, a Module's own content/quiz, or a
+  // Lesson's own quiz) becomes the active extra unit. `atEnd` lands on the
+  // unit's last block (Prev) instead of its first; `targetItemId` (a sidebar
+  // click) lands on that specific item's block.
+  const enterUnit = (unit, { atEnd = false, targetItemId = null } = {}) => {
+    if (!unit) return;
+    const resolvedIndex = targetItemId
+      ? Math.max(0, (unit.blocks || []).findIndex((b) => b.item.id === targetItemId))
+      : atEnd
+      ? Math.max(0, (unit.blocks?.length || 1) - 1)
+      : 0;
+
+    if (unit.placeholder) {
+      setExtraUnit(null);
+      if (unit.scope.lessonId && unit.scope.lessonId !== selectedLesson?.id) {
+        const lessonMatch = lessons.find((l) => l.id === unit.scope.lessonId);
+        if (lessonMatch) selectLesson(lessonMatch);
+      }
+      setSelectedTopicId(unit.scope.topicId || null);
+      if (atEnd) landOnLastBlockRef.current = true;
+      else if (targetItemId) pendingBlockTargetIdRef.current = targetItemId;
       return;
     }
-    // Only signal "land on the last block" when a previous unit genuinely
-    // exists to land in — otherwise the flag would leak into whatever
-    // later, unrelated unit change happens to fire this same reset effect.
-    const hasPreviousUnit = hasTopics ? Boolean(previousTopic) : Boolean(previousLesson);
-    if (hasPreviousUnit) {
-      landOnLastBlockRef.current = true;
+
+    // A Lesson-scoped extra unit (lesson-content/lesson-quiz) still points
+    // selectedLesson at the right Lesson, so Sticky Notes, the bookmark
+    // toggle and resume-state persistence stay correctly scoped.
+    if (unit.scope.lessonId && unit.scope.lessonId !== selectedLesson?.id) {
+      const lessonMatch = lessons.find((l) => l.id === unit.scope.lessonId);
+      if (lessonMatch) selectLesson(lessonMatch);
+    }
+    setExtraUnit({ key: unit.key, blockIndex: resolvedIndex });
+  };
+
+  // Only the forward direction is gated; a student can always go back to
+  // review earlier material. Crossing out of a Topic requires that Topic
+  // complete; crossing out of a Lesson (whether from its last Topic, its own
+  // quiz, or — for a zero-Topic Lesson — its own content) additionally
+  // requires the whole Lesson complete; crossing out of a Module likewise
+  // requires the whole Module complete. Same rule as the instructor's spec,
+  // generalized to every level courseUnits now covers, not just Topics —
+  // checked finest-scope-first so the most specific message wins.
+  const goToNextUnit = () => {
+    const current = courseUnits[currentUnitIndex];
+    const target = courseUnits[currentUnitIndex + 1];
+    if (!current || !target) return;
+
+    for (const level of ["topicId", "lessonId", "moduleId"]) {
+      const currentId = current.scope[level];
+      if (!currentId || currentId === target.scope[level]) continue;
+      if (!canLeaveUnit(currentId)) {
+        showToast(GATE_MESSAGES[level], "error");
+        return;
+      }
+    }
+
+    enterUnit(target);
+  };
+
+  const goToPreviousUnit = () => {
+    const target = courseUnits[currentUnitIndex - 1];
+    if (!target) return;
+    enterUnit(target, { atEnd: true });
+  };
+
+  // In-player Prev/Next (the floating buttons over the content itself): step
+  // through the active unit's own blocks first, only falling through to
+  // goToPreviousUnit/goToNextUnit — i.e. cross into the previous/next unit —
+  // once there's no earlier/later block in the current one.
+  const goToPreviousBlock = () => {
+    if (extraUnit) {
+      if (extraUnit.blockIndex > 0) {
+        setExtraUnit((prev) => ({ ...prev, blockIndex: prev.blockIndex - 1 }));
+        return;
+      }
+    } else if (blockIndex > 0) {
+      setBlockIndex((prev) => prev - 1);
+      return;
     }
     goToPreviousUnit();
   };
 
   const goToNextBlock = () => {
-    if (blockIndex < playerBlocks.length - 1) {
+    if (extraUnit) {
+      if (extraUnit.blockIndex < activeUnitBlocks.length - 1) {
+        setExtraUnit((prev) => ({ ...prev, blockIndex: prev.blockIndex + 1 }));
+        return;
+      }
+    } else if (blockIndex < playerBlocks.length - 1) {
       setBlockIndex((prev) => prev + 1);
       return;
     }
@@ -417,14 +589,15 @@ export default function LearnPage() {
   };
 
   // Jumps the player straight to a specific content/quiz row selected from
-  // the sidebar (Topic/Lesson-scoped only — course/module-level selections
-  // go through manualOverride instead, not this). A click on a row already
-  // within the on-screen unit resolves its index immediately; a click that
-  // also crosses a unit boundary stashes the target id in
-  // pendingBlockTargetIdRef for the unit-change reset effect to resolve
-  // once playerBlocks has been recomputed for the newly-selected unit.
+  // the sidebar, for the Topic/Lesson pathway only (Course/Module-level and
+  // Lesson-quiz selections go through enterUnit directly instead — see the
+  // sidebar handlers below). A click on a row already within the on-screen
+  // unit resolves its index immediately; a click that also crosses a unit
+  // boundary stashes the target id in pendingBlockTargetIdRef for the
+  // unit-change reset effect to resolve once playerBlocks has been
+  // recomputed for the newly-selected unit.
   const jumpToBlock = (targetId, { lesson, topic } = {}) => {
-    setManualOverride(null);
+    setExtraUnit(null);
     const alreadyOnUnit =
       lesson?.id === selectedLesson?.id && (topic ? topic.id === selectedTopicId : true);
     if (alreadyOnUnit) {
@@ -476,27 +649,33 @@ export default function LearnPage() {
     return <Card className="text-foreground">Course not found.</Card>;
   }
 
-  // What the player actually shows — a standalone course/module-level pick
-  // takes priority over the normal Lesson/Topic block sequence.
-  const activeBlock = manualOverride || playerBlocks[blockIndex];
+  // What the player actually shows — whatever block the active unit
+  // (extraUnit, or the Topic/Lesson pathway) is currently on.
+  const activeBlockIndex = extraUnit ? extraUnit.blockIndex : blockIndex;
+  const activeBlock = activeUnitBlocks[activeBlockIndex];
 
   // Course Map sidebar highlighting — mirrors the instructor Composer's
   // composerMode/composeXId contract (see CourseComposerSidebar), derived
   // from whatever's actually on screen rather than tracked as separate
-  // state. A manualOverride (course/module-level pick) has no Lesson/Topic
-  // of its own, so it reports its own scope and clears lesson/topic; the
-  // normal Lesson/Topic sequence still reports the current lesson's module
-  // so that ancestor row stays expanded.
-  const sidebarComposerMode = manualOverride
-    ? manualOverride.scope // "module" | "course"
+  // state. An extra unit (Course/Module-direct, or a Lesson's own quiz) has
+  // its own scope to report; the Topic/Lesson pathway still reports the
+  // current lesson's module so that ancestor row stays expanded.
+  const sidebarComposerMode = activeExtraUnitDef
+    ? activeExtraUnitDef.scope.lessonId
+      ? "lesson"
+      : activeExtraUnitDef.scope.moduleId
+      ? "module"
+      : "course"
     : hasTopics
     ? "topic"
     : "lesson";
-  const sidebarComposeModuleId = manualOverride
-    ? (manualOverride.scope === "module" ? manualOverride.moduleId : null)
+  const sidebarComposeModuleId = activeExtraUnitDef
+    ? activeExtraUnitDef.scope.moduleId
     : selectedLesson?.moduleId ?? null;
-  const sidebarComposeLessonId = manualOverride ? null : selectedLesson?.id ?? null;
-  const sidebarComposeTopicId = manualOverride ? null : hasTopics ? selectedTopicId : null;
+  const sidebarComposeLessonId = activeExtraUnitDef
+    ? activeExtraUnitDef.scope.lessonId
+    : selectedLesson?.id ?? null;
+  const sidebarComposeTopicId = activeExtraUnitDef ? null : hasTopics ? selectedTopicId : null;
   const sidebarComposeQuizId = activeBlock?.kind === "quiz" ? activeBlock.item.id : null;
   const sidebarSelectedCellId = activeBlock?.kind === "content" ? activeBlock.item.id : null;
 
@@ -609,16 +788,16 @@ export default function LearnPage() {
           onToggleOpen={() => setCourseSidebarOpen(false)}
           onSelectCourseOverview={() => router.push(`/student/courses/${courseId}`)}
           onSelectLesson={(lessonId) => {
-            setManualOverride(null);
+            setExtraUnit(null);
             const match = lessons.find((l) => l.id === lessonId);
             selectLesson(match);
           }}
           onSelectModule={(mod) => {
-            setManualOverride(null);
+            setExtraUnit(null);
             selectLesson(mod.lessons?.[0]);
           }}
           onSelectTopic={(topicId, lessonId) => {
-            setManualOverride(null);
+            setExtraUnit(null);
             const match = lessons.find((l) => l.id === lessonId);
             if (!match) return;
             selectLesson(match);
@@ -628,21 +807,35 @@ export default function LearnPage() {
             jumpToBlock(content.id, { lesson, topic });
           }}
           onSelectLessonContent={(content, lesson) => {
-            jumpToBlock(content.id, { lesson });
+            // A Lesson's own direct content is only ever a distinct
+            // courseUnits entry when that Lesson also has Topics (see
+            // courseUnits above) — otherwise it *is* the Topic/Lesson
+            // pathway's own content, reached the normal way.
+            if ((lesson?.topics?.length ?? 0) > 0) {
+              enterUnit(courseUnits.find((u) => u.key === `lesson-content:${lesson.id}`), { targetItemId: content.id });
+            } else {
+              jumpToBlock(content.id, { lesson });
+            }
           }}
           onSelectModuleContent={(content, mod) => {
-            setManualOverride({ kind: "content", item: content, scope: "module", moduleId: mod?.id });
+            enterUnit(courseUnits.find((u) => u.key === `module-content:${mod?.id}`), { targetItemId: content.id });
           }}
           onSelectCourseContent={(content) => {
-            setManualOverride({ kind: "content", item: content, scope: "course" });
+            enterUnit(courseUnits.find((u) => u.key === "course-content"), { targetItemId: content.id });
           }}
           onSelectQuiz={(quiz, mod, lesson, topic) => {
-            if (lesson) {
+            if (topic) {
               jumpToBlock(quiz.id, { lesson, topic });
+            } else if (lesson) {
+              if ((lesson.topics?.length ?? 0) > 0) {
+                enterUnit(courseUnits.find((u) => u.key === `lesson-quiz:${lesson.id}`), { targetItemId: quiz.id });
+              } else {
+                jumpToBlock(quiz.id, { lesson });
+              }
             } else if (mod) {
-              setManualOverride({ kind: "quiz", item: quiz, scope: "module", moduleId: mod.id });
+              enterUnit(courseUnits.find((u) => u.key === `module-quiz:${mod.id}`), { targetItemId: quiz.id });
             } else {
-              setManualOverride({ kind: "quiz", item: quiz, scope: "course" });
+              enterUnit(courseUnits.find((u) => u.key === "course-quiz"), { targetItemId: quiz.id });
             }
           }}
           role="STUDENT"
@@ -745,19 +938,19 @@ export default function LearnPage() {
                   </button>
                 )}
 
-                {/* One block at a time — Next/Prev below step to the rest of
-                    this Topic's blocks (content and quizzes merged in order)
-                    before moving to the next/previous Topic. A standalone
-                    course/module-level pick (manualOverride) takes over the
-                    whole frame instead, with no Prev/Next of its own — see
-                    activeBlock above. initialTime (resume position) only
-                    applies to the first block of the normal sequence. */}
+                {/* One block at a time — Next/Prev below step through the
+                    active unit's blocks (content and quizzes merged in
+                    order) before crossing into the previous/next unit,
+                    anywhere in the whole course — see activeUnitBlocks/
+                    courseUnits above. initialTime (resume position) only
+                    applies to the first block of the normal Topic/Lesson
+                    sequence. */}
                 <div className="flex-1 overflow-y-auto min-h-0">
                   {activeBlock?.kind === "quiz" ? (
                     <div className="p-4 sm:p-5">
                       <QuizExperience
                         quizId={activeBlock.item.id}
-                        onBack={manualOverride ? () => setManualOverride(null) : goToPreviousBlock}
+                        onBack={goToPreviousBlock}
                         resultReturnTo={resultReturnTo}
                       />
                     </div>
@@ -767,8 +960,8 @@ export default function LearnPage() {
                       videoPlayerRef={videoPlayerRef}
                       onTimeUpdate={setCurrentTimestamp}
                       onDurationChange={setVideoDuration}
-                      onEnded={manualOverride ? undefined : handleVideoEnded}
-                      initialTime={!manualOverride && blockIndex === 0 ? initialTime : 0}
+                      onEnded={handleVideoEnded}
+                      initialTime={!extraUnit && blockIndex === 0 ? initialTime : 0}
                     />
                   )}
                 </div>
@@ -780,23 +973,28 @@ export default function LearnPage() {
                     or clicks on the content beneath it. Hidden until the player
                     is hovered (or a button inside gets keyboard focus) — video-
                     player-style controls, not a bar that's always sitting there.
-                    Hidden entirely for a standalone course/module-level pick,
-                    which isn't part of any Prev/Next sequence. */}
-                {!manualOverride && (
+                    Always shown now — Course/Module-level units are stops in
+                    the same whole-course sequence, not a standalone dead end. */}
                 <div className="absolute inset-x-3 bottom-3 flex items-center justify-between pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
                   <LessonNavigationControls
                     variant="corners"
-                    unitLabel={hasTopics ? "Topic" : "Lesson"}
-                    previousItem={blockIndex > 0 || (hasTopics ? Boolean(previousTopic) : Boolean(previousLesson))}
-                    nextItem={
-                      blockIndex < playerBlocks.length - 1 ||
-                      (hasTopics ? Boolean(nextTopic) : Boolean(nextLesson))
+                    unitLabel={
+                      activeExtraUnitDef
+                        ? activeExtraUnitDef.key.startsWith("course")
+                          ? "Course"
+                          : activeExtraUnitDef.key.startsWith("module")
+                          ? "Module"
+                          : "Lesson"
+                        : hasTopics
+                        ? "Topic"
+                        : "Lesson"
                     }
+                    previousItem={activeBlockIndex > 0 || currentUnitIndex > 0}
+                    nextItem={activeBlockIndex < activeUnitBlocks.length - 1 || currentUnitIndex < courseUnits.length - 1}
                     onSelectPrevious={goToPreviousBlock}
                     onSelectNext={goToNextBlock}
                   />
                 </div>
-                )}
               </div>
 
               {/* COMPLETION — the one place the student marks the block on
@@ -949,23 +1147,6 @@ export default function LearnPage() {
                 }}
                 collapsed={mobileContentCollapsed}
                 onToggleCollapsed={() => setMobileContentCollapsed((prev) => !prev)}
-              />
-            </div>
-
-            {/* PREVIOUS / NEXT LESSON — desktop only. Always jumps a whole Topic/
-                Module, unlike the in-player floating Prev/Next (which steps
-                through the current Topic's blocks first) — "Continue to Next
-                Module" lives here where there's room for the fuller label. */}
-            <div className="hidden xl:block pt-6 border-t border-transparent/80 min-w-0 xl:col-start-1 xl:row-start-2">
-              <LessonNavigationControls
-                variant="full"
-                unitLabel={hasTopics ? "Topic" : "Lesson"}
-                previousItem={hasTopics ? previousTopic : previousLesson}
-                nextItem={hasTopics ? nextTopic : nextLesson}
-                nextGroupTitle={hasTopics ? nextLessonForTopic?.title : nextModule?.title}
-                currentTitle={hasTopics ? currentTopic?.title : selectedLesson?.title}
-                onSelectPrevious={goToPreviousUnit}
-                onSelectNext={goToNextUnit}
               />
             </div>
 

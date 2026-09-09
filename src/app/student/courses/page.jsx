@@ -1,15 +1,10 @@
 "use client";
 
-import {useState} from "react";
-
 import Loader from "@/components/common/Loader";
 import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
 
-import CourseFilters from "@/components/student/courses/CourseFilters";
-import CourseGrid from "@/components/student/courses/CourseGrid";
-import CourseStats from "@/components/student/courses/CourseStats";
-import CourseToolbar from "@/components/student/courses/CourseToolbar";
+import StoreCourseGrid from "@/components/student/store/StoreCourseGrid";
 
 import useCourses from "@/hooks/queries/student/useCourses";
 import useMyCourses from "@/hooks/queries/student/useMyCourses";
@@ -19,29 +14,17 @@ export default function StudentCoursesPage() {
     const {data: courses = [], isLoading, isError} = useCourses();
     const {data: myEnrollments = []} = useMyCourses();
 
-    const [search, setSearch] = useState("");
-    const [category, setCategory] = useState("");
-    const [level, setLevel] = useState("");
-
-    const {categories, levels, filteredCourses} = useAvailableCourseFilters({
+    // Only the enrolled-exclusion half of this hook is used here — search/
+    // category/level faceting was removed from this page, so those params
+    // are passed as no-ops. The Store page (its other caller) still uses
+    // the full filtering.
+    const {availableCourses} = useAvailableCourseFilters({
         courses,
         myEnrollments,
-        search,
-        category,
-        level,
+        search: "",
+        category: "",
+        level: "",
     });
-
-    const activeFilters = [
-        search,
-        category,
-        level,
-    ].filter(Boolean).length;
-
-    const handleResetFilters = () => {
-        setSearch("");
-        setCategory("");
-        setLevel("");
-    };
 
     if (isLoading) {
         return <Loader/>;
@@ -66,30 +49,12 @@ export default function StudentCoursesPage() {
             <PageHeader
                 title="Browse Courses"
                 subtitle="Discover courses and start learning."
-            />
-
-            <CourseStats courses={courses}/>
-
-            <CourseToolbar
-                totalCourses={filteredCourses.length}
-                activeFilters={activeFilters}
-                onResetFilters={handleResetFilters}
-            />
-
-            <CourseFilters
-                search={search}
-                onSearchChange={setSearch}
-                category={category}
-                onCategoryChange={setCategory}
-                level={level}
-                onLevelChange={setLevel}
-                categories={categories}
-                levels={levels}
+                className="items-center text-center"
             />
 
             <div className="flex flex-col flex-1 min-h-0 rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6">
-                <CourseGrid courses={filteredCourses} enrollments={myEnrollments}/>
+                <StoreCourseGrid courses={availableCourses}/>
             </div>
         </div>
     );
-}
+}
