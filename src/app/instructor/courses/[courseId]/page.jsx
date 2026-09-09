@@ -570,6 +570,15 @@ export default function CourseDetailsPage() {
   // Mobile Drawer State
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
+  // The drawer covers the workspace, so let it own the scroll while it is up —
+  // without this the page behind scrolls under the user's finger.
+  useEffect(() => {
+    if (!mobileSidebarOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previous; };
+  }, [mobileSidebarOpen]);
+
   // Desktop Course Map collapse state
   const [isCourseMapOpen, setIsCourseMapOpen] = useState(true);
 
@@ -1890,6 +1899,17 @@ export default function CourseDetailsPage() {
   const isPublished = effectiveCourse.status === "PUBLISHED";
 
   const courseMapEffectivelyOpen = mobileSidebarOpen || isCourseMapOpen;
+
+  // On mobile the Course Map is an overlay drawer sitting on top of the
+  // workspace. Anything that changes what the workspace shows has to dismiss
+  // it, or the selection lands behind the drawer and reads as a dead tap.
+  // Actions that open a modal are deliberately not wrapped: Modal renders at
+  // z-9999, well above the drawer, and staying in the tree is the right
+  // behaviour when adding or renaming a sibling.
+  const closingDrawer = (fn) => (...args) => {
+    setMobileSidebarOpen(false);
+    return fn?.(...args);
+  };
   const sidebarWrapperClassName = mobileSidebarOpen
     ? "fixed inset-y-0 left-0 z-50 w-80 bg-background p-4 shadow-2xl block shrink-0 overflow-y-auto"
     : `hidden lg:block shrink-0 lg:sticky lg:top-24 transition-[width] duration-300 ease-in-out ${
@@ -1919,6 +1939,17 @@ export default function CourseDetailsPage() {
 
       {/* 2. MAIN WORKSPACE CONTAINER */}
       <div className="relative flex flex-col lg:flex-row gap-5 items-start">
+        {/* Drawer backdrop — sits under the drawer (z-50) and over everything
+            else, so a tap outside dismisses instead of falling through to the
+            workspace. lg:hidden keeps it away from the desktop rail entirely. */}
+        {mobileSidebarOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            onClick={() => setMobileSidebarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
         {/* Left Sidebar Panel */}
         <div className={sidebarWrapperClassName}>
           <CourseComposerSidebar
@@ -1932,20 +1963,23 @@ export default function CourseDetailsPage() {
             selectedCellId={selectedCellId}
             isOpen={courseMapEffectivelyOpen}
             onToggleOpen={() => {
-              setMobileSidebarOpen(false);
-              setIsCourseMapOpen((v) => !v);
+              // The mobile drawer and the desktop rail are separate things.
+              // Doing both left the desktop map collapsed after a mobile
+              // dismiss, which looked like the map had vanished.
+              if (mobileSidebarOpen) setMobileSidebarOpen(false);
+              else setIsCourseMapOpen((v) => !v);
             }}
-            onSelectCourseOverview={handleSelectCourseOverview}
-            onSelectQuiz={handleSelectQuiz}
+            onSelectCourseOverview={closingDrawer(handleSelectCourseOverview)}
+            onSelectQuiz={closingDrawer(handleSelectQuiz)}
             onDuplicateQuiz={handleDuplicateQuiz}
             onDeleteQuiz={handleDeleteQuiz}
-            onSelectLesson={handleSelectLesson}
-            onSelectModule={handleSelectModule}
-            onSelectTopic={handleSelectTopic}
-            onSelectContent={handleSelectContent}
-            onSelectCourseContent={handleSelectCourseContent}
-            onSelectModuleContent={handleSelectModuleContent}
-            onSelectLessonContent={handleSelectLessonContent}
+            onSelectLesson={closingDrawer(handleSelectLesson)}
+            onSelectModule={closingDrawer(handleSelectModule)}
+            onSelectTopic={closingDrawer(handleSelectTopic)}
+            onSelectContent={closingDrawer(handleSelectContent)}
+            onSelectCourseContent={closingDrawer(handleSelectCourseContent)}
+            onSelectModuleContent={closingDrawer(handleSelectModuleContent)}
+            onSelectLessonContent={closingDrawer(handleSelectLessonContent)}
             onDeleteCourseContent={handleDeleteCourseContent}
             onDeleteModuleContent={handleDeleteModuleContent}
             onDeleteLessonContent={handleDeleteLessonContent}
@@ -1955,10 +1989,10 @@ export default function CourseDetailsPage() {
             onAddLesson={(targetModuleId) =>
               openEntityModal({ entity: "lesson", mode: "create", parentId: targetModuleId || composeModuleId || modules[0]?.id })
             }
-            onAddQuizToCourse={handleAddCourseQuiz}
-            onAddQuizToModule={handleAddModuleQuiz}
-            onAddQuizToLesson={handleAddLessonQuiz}
-            onAddQuizToTopic={handleAddTopicQuiz}
+            onAddQuizToCourse={closingDrawer(handleAddCourseQuiz)}
+            onAddQuizToModule={closingDrawer(handleAddModuleQuiz)}
+            onAddQuizToLesson={closingDrawer(handleAddLessonQuiz)}
+            onAddQuizToTopic={closingDrawer(handleAddTopicQuiz)}
             onEditLesson={(lesson, moduleId) => openEntityModal({ entity: "lesson", mode: "edit", entityData: lesson, parentId: moduleId })}
             onAddTopic={(lessonId) => openEntityModal({ entity: "topic", mode: "create", parentId: lessonId })}
             onEditTopic={(topic, lessonId, moduleId) =>

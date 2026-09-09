@@ -560,8 +560,10 @@ export function CourseComposerSidebar({
     return null;
   }
 
+  // The 7rem max-height is the desktop header offset; in the full-height
+  // mobile drawer it only left dead space at the bottom, so it starts at lg.
   return (
-    <aside className="sidebar-panel rounded-2xl border border-border bg-background p-4 shadow-xl flex flex-col h-full max-h-[calc(100vh-7rem)] overflow-hidden text-foreground">
+    <aside className="sidebar-panel rounded-2xl border border-border bg-background p-4 shadow-xl flex flex-col h-full max-h-full lg:max-h-[calc(100vh-7rem)] overflow-hidden text-foreground">
       {/* Panel Title */}
       <div className="flex items-center justify-between gap-2 mb-1 shrink-0">
         <div className="font-black text-sm uppercase tracking-widest text-foreground flex items-center gap-2">
