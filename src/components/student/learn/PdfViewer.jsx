@@ -313,7 +313,13 @@ export default function PdfViewer({
       {/* PDF CANVAS VIEWPORT CONTAINER */}
       <div
         ref={viewportRef}
-        className="relative w-full h-[82vh] min-h-[560px] max-h-[950px] overflow-auto bg-[#060913] p-2 sm:p-3.5 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80"
+        /* The fixed 82vh height with a 560px floor is a reading-pane size that
+           only makes sense once the page is large enough to read. Fitted into
+           a phone-width column the page is ~300px tall, so that floor wrapped
+           it in roughly as much empty backdrop again. Below sm the viewport is
+           content-height instead, capped at 70vh so a zoomed page still
+           scrolls here rather than stretching the block. */
+        className="relative w-full h-auto min-h-0 max-h-[70vh] sm:h-[82vh] sm:min-h-[560px] sm:max-h-[950px] overflow-auto bg-[#060913] p-2 sm:p-3.5 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80"
       >
         {/* Loading Overlay */}
         {loading && (
