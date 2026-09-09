@@ -70,7 +70,9 @@ export default function LoginPage() {
           break;
 
         case "INSTRUCTOR":
-          router.replace("/instructor/dashboard");
+          // Instructors land on My Courses (the "Teaching" section) rather than
+          // the dashboard — courses are the first thing they act on.
+          router.replace("/instructor/courses");
           break;
 
         case "STUDENT": {

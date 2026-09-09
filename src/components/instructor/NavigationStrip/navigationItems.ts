@@ -26,7 +26,7 @@ export interface NavSubItem {
   label: string;
   href?: string;
   icon: LucideIcon;
-  // One further level of nesting — currently only "Work" (under "Learning")
+  // One further level of nesting — currently only "Work" (under "Teaching")
   // uses this, to keep its own grouping instead of flattening into its parent.
   children?: NavSubItem[];
 }
@@ -43,13 +43,13 @@ export interface NavItem {
  * The top navigation strip, grouped into 5 sections so it fits the top bar
  * without wrapping: Home stays a flat link, everything else lives inside a
  * section dropdown. "Work" keeps its own sub-grouping (nested one level
- * deeper under "Learning") rather than flattening its 6 items into the
+ * deeper under "Teaching") rather than flattening its 6 items into the
  * section directly.
  */
 export const PRIMARY_NAV_ITEMS: NavItem[] = [
   { label: "Home", href: "/instructor/dashboard", icon: Home, primaryOnMobile: true },
   {
-    label: "Learning",
+    label: "Teaching",
     icon: BookOpen,
     primaryOnMobile: true,
     children: [
