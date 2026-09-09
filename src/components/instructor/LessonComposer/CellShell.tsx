@@ -78,14 +78,23 @@ export function CellShell({
   // layout, fades in on hover, and — since touch has no hover — also stays
   // visible while `isSelected` or actively `edit`ing.
   const showControls = isSelected || mode === "edit";
+  // Reveal-on-hover is gated behind `(hover: hover)` so it only applies to
+  // devices that actually have a pointer. Unconditionally, these controls were
+  // opacity-0 AND pointer-events-none on touch, where no hover ever fires —
+  // which left a phone with no way to edit, duplicate or delete a cell at all.
+  const HOVER_ONLY_HIDDEN =
+    "[@media(hover:hover)]:opacity-0 [@media(hover:hover)]:pointer-events-none";
   const hoverVisible = cn(
-    "opacity-0 pointer-events-none transition-opacity duration-150",
-    "group-hover:opacity-100 group-hover:pointer-events-auto",
+    "transition-opacity duration-150",
+    HOVER_ONLY_HIDDEN,
+    "[@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-hover:pointer-events-auto",
     showControls && "opacity-100 pointer-events-auto"
   );
   const addControlsVisible = cn(
-    "opacity-0 pointer-events-none transition-opacity duration-150",
-    "group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto",
+    "transition-opacity duration-150",
+    HOVER_ONLY_HIDDEN,
+    "[@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-hover:pointer-events-auto",
+    "[@media(hover:hover)]:group-focus-within:opacity-100 [@media(hover:hover)]:group-focus-within:pointer-events-auto",
     mode === "edit" && "opacity-100 pointer-events-auto"
   );
 
@@ -128,10 +137,12 @@ export function CellShell({
       )}
 
       {/* Drag Handle & Type Badge */}
-      <div className="flex items-center gap-2 shrink-0 pt-0.5">
+      <div className="flex items-center gap-2 shrink-0 sm:pt-0.5">
+        {/* Dragging is a pointer gesture with no touch equivalent here, so the
+            handle is desktop-only rather than occupying a row on a phone. */}
         <div
           className={cn(
-            "flex h-8 w-4 items-center justify-center text-muted-foreground cursor-grab active:cursor-grabbing transition",
+            "hidden sm:flex h-8 w-4 items-center justify-center text-muted-foreground cursor-grab active:cursor-grabbing transition",
             hoverVisible
           )}
           title="Drag to reorder"
@@ -141,9 +152,13 @@ export function CellShell({
 
         <div
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-lg font-extrabold text-xs border shadow-sm shrink-0 transition-opacity",
+            "flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-lg font-extrabold text-xs border shadow-sm shrink-0 transition-opacity",
             badgeClass,
-            isTextOrHeading && mode === "view" && !showControls ? "opacity-0 group-hover:opacity-100" : "opacity-100"
+            // Same hover trap as the action controls: on touch this made the
+            // type badge permanently invisible.
+            isTextOrHeading && mode === "view" && !showControls
+              ? cn(HOVER_ONLY_HIDDEN, "[@media(hover:hover)]:group-hover:opacity-100")
+              : "opacity-100"
           )}
         >
           {badgeText ? (
@@ -155,10 +170,12 @@ export function CellShell({
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0 space-y-2">
-        {/* Header Metadata — shown for named/file blocks OR when editing */}
+      <div className="flex-1 min-w-0 space-y-1.5 sm:space-y-2">
+        {/* Header Metadata — shown for named/file blocks OR when editing.
+            Tighter on mobile so the cell's actual content, not its chrome,
+            gets the vertical space. */}
         {(title || !isTextOrHeading || mode === "edit") && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border/60 pb-1.5 sm:pb-2">
             {/* flex-1 so the title claims the leftover space instead of being
                 squeezed by the shrink-0 action cluster next to it. */}
             <div className="min-w-0 flex-1">

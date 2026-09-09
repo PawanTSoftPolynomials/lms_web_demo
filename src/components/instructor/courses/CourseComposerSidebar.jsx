@@ -189,11 +189,14 @@ function Collapsible({ open, children }) {
 // Tailwind needs each full class name literally present in this file to
 // generate it — a template-interpolated `group-hover/${groupName}` would
 // never match, hence this static lookup instead of building the string.
+// The opacity-0 is gated behind `(hover: hover)`. A touch device never fires
+// hover, so an unconditional opacity-0 left every row's kebab menu invisible
+// on a phone — present and tappable, but with nothing to aim at.
 const HOVER_VISIBLE_CLASSES = {
-  module: "opacity-0 group-hover/module:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
-  lesson: "opacity-0 group-hover/lesson:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
-  topic: "opacity-0 group-hover/topic:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
-  content: "opacity-0 group-hover/content:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
+  module: "[@media(hover:hover)]:opacity-0 group-hover/module:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
+  lesson: "[@media(hover:hover)]:opacity-0 group-hover/lesson:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
+  topic: "[@media(hover:hover)]:opacity-0 group-hover/topic:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
+  content: "[@media(hover:hover)]:opacity-0 group-hover/content:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
 };
 
 /** A single, subtle settings/kebab icon — the one action affordance per row, visible on hover/focus. */
