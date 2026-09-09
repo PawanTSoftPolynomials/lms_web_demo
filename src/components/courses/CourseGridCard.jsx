@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { BookOpen, Clock, Users, Pencil, ArrowRight } from "lucide-react";
@@ -34,11 +35,6 @@ export default function CourseGridCard({ course }) {
 
   const statusStyle = STATUS_STYLE[course.status] || STATUS_STYLE.DRAFT;
   const studentsCount = course._count?.enrollments ?? 0;
-
-  const goTo = (path) => (e) => {
-    e.stopPropagation();
-    router.push(path);
-  };
 
   const handleDelete = async () => {
     const confirmed = await confirm({
@@ -128,20 +124,22 @@ export default function CourseGridCard({ course }) {
         </div>
 
         <div className="mt-auto pt-3 border-t border-border flex items-center justify-between">
-          <button
-            onClick={goTo(`/instructor/courses/edit/${course.id}`)}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition"
+          <Link
+            href={`/instructor/courses/edit/${course.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex min-h-11 items-center gap-1.5 text-[11px] font-medium text-link hover:text-link-hover hover:underline transition"
           >
             <Pencil size={11} />
             Edit
-          </button>
-          <button
-            onClick={goTo(`/instructor/courses/${course.id}`)}
-            className="inline-flex items-center gap-1 text-[11px] font-bold text-primary transition hover:opacity-80"
+          </Link>
+          <Link
+            href={`/instructor/courses/${course.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex min-h-11 items-center gap-1 text-[11px] font-semibold text-link hover:text-link-hover hover:underline transition"
           >
             View Course
             <ArrowRight size={13} />
-          </button>
+          </Link>
         </div>
       </div>
     </div>

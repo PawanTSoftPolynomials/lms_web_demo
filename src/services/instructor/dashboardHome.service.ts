@@ -52,13 +52,18 @@ export interface RawCourse {
   isPublished?: boolean;
   thumbnail?: string | null;
   imageUrl?: string | null;
+  /* Fields below are returned by GET /courses (Course model + attachCourseStats)
+     and consumed by CourseGridCard on the Home "My courses" grid. */
+  thumbnailUrl?: string | null;
+  level?: string | null;
+  stats?: { lessonsCount?: number };
   completionRate?: number;
   averageScore?: number;
   publishedLessonsCount?: number;
   pendingLessonsCount?: number;
   progress?: number;
   studentsCount?: number;
-  _count?: { enrollments?: number };
+  _count?: { enrollments?: number; lessons?: number };
 }
 
 export interface RawLesson {

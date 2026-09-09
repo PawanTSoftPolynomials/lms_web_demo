@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { defaultQueryOptions } from "@/lib/queryOptions";
@@ -60,12 +60,47 @@ const useRawCourses = () =>
     ...defaultQueryOptions,
   });
 
-const useRawModules = () =>
-  useQuery({
+/**
+ * True once the browser has been idle after the first paint (or after a short
+ * fallback delay where requestIdleCallback is unavailable).
+ *
+ * GET /modules returns every module -> lesson -> topic across every course the
+ * instructor owns, unpaginated, and is by a wide margin the heaviest request
+ * the dashboard can make. Nothing the page needs in order to *paint* comes
+ * from it, so it is held behind this flag: the dashboard renders from its
+ * small queries first, then fills in the module-derived pieces (Continue
+ * Editing, and the draft-lesson row of Needs Attention) once the page is
+ * interactive.
+ */
+function useIdleAfterPaint() {
+  const [idle, setIdle] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (typeof window.requestIdleCallback === "function") {
+      const handle = window.requestIdleCallback(() => setIdle(true), { timeout: 2000 });
+      return () => window.cancelIdleCallback(handle);
+    }
+
+    const handle = window.setTimeout(() => setIdle(true), 200);
+    return () => window.clearTimeout(handle);
+  }, []);
+
+  return idle;
+}
+
+const useRawModules = () => {
+  const idle = useIdleAfterPaint();
+
+  return useQuery({
     queryKey: ["instructor-home", "raw", "modules"],
     queryFn: async () => asArray<RawModule>(await getModules()),
     ...defaultQueryOptions,
+    // Deferred rather than dropped — see useIdleAfterPaint above.
+    enabled: idle,
   });
+};
 
 const useRawQuizzes = () =>
   useQuery({
@@ -187,8 +222,14 @@ export function useNeedsAttention() {
   const courses = useRawCourses();
   const calendarEvents = useRawCalendarEvents();
 
+  // modules is deliberately absent from this condition. It is deferred until
+  // after first paint (see useRawModules), so waiting on it here would hold the
+  // whole priority list behind the page's slowest request. Instead the list
+  // renders immediately from the four fast queries and the "draft lessons to
+  // publish" row appears on its own once modules lands — deriveNeedsAttention
+  // already filters out any row whose count is 0.
   const isLoading =
-    assignments.isLoading || quizzes.isLoading || modules.isLoading || courses.isLoading || calendarEvents.isLoading;
+    assignments.isLoading || quizzes.isLoading || courses.isLoading || calendarEvents.isLoading;
   const data = useMemo(
     () =>
       deriveNeedsAttention({
@@ -231,7 +272,12 @@ export function useDraftCourses() {
 export function useContinueEditing() {
   const modules = useRawModules();
   const data = useMemo(() => deriveContinueEditing(modules.data ?? []), [modules.data]);
-  return { data, isLoading: modules.isLoading };
+  // isPending, not isLoading: while the query is still deferred it is disabled,
+  // and a disabled query reports isLoading false with no data — which would flash
+  // the card's empty state before the fetch has even been allowed to start.
+  // isPending stays true across both the deferred window and the fetch itself,
+  // so the caller shows one uninterrupted skeleton.
+  return { data, isLoading: modules.isPending };
 }
 
 export function useAnnouncementsFeed() {
@@ -290,6 +336,20 @@ export function useEngagementAnalytics() {
   const summary = useDashboardSummary();
   const data = useMemo(() => deriveEngagementAnalytics(summary.data), [summary.data]);
   return { data, isLoading: summary.isLoading };
+}
+
+/**
+ * The instructor's own courses, raw, for the Home "My courses" grid.
+ *
+ * Reuses the same ["instructor-home", "raw", "courses"] query the KPI strip and
+ * Needs Attention already read, so the grid costs no extra request. Returns the
+ * course objects untouched because CourseGridCard — shared with the My Courses
+ * page — expects the full server shape (thumbnailUrl, level, stats, _count),
+ * not the narrowed CourseProgressOverview projection below.
+ */
+export function useMyCourses() {
+  const courses = useRawCourses();
+  return { data: courses.data ?? [], isLoading: courses.isLoading };
 }
 
 export function useCourseProgressOverview() {

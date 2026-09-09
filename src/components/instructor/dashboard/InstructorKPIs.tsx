@@ -1,87 +1,87 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Users, ClipboardCheck, HelpCircle, LineChart, ArrowUpRight } from "lucide-react";
+import { BookOpen, Users, ClipboardCheck, HelpCircle } from "lucide-react";
 
+/**
+ * The four numbers worth scanning, each a link to the screen it summarises.
+ *
+ * Every tile navigates, so the whole tile is the anchor: the bordered, hoverable
+ * box now actually does the thing its affordance promises, instead of hiding a
+ * small "View ->" link inside a box that looked clickable in its entirety.
+ *
+ * "Average class engagement" used to sit here as a fifth tile. It was rendering
+ * `avg(lessonsCompleted per day)` with a "%" appended — a raw count formatted as
+ * a percentage — and it cost a whole extra request (GET /dashboard/instructor)
+ * to produce. Per-course engagement lives in Analytics, where it can be shown
+ * against a denominator that makes it mean something.
+ */
 export function InstructorKPIs({
   coursesCount = 0,
   studentsCount = 0,
   pendingAssignments = 0,
   activeQuizzes = 0,
-  engagementPercentage = 0,
+}: {
+  coursesCount?: number;
+  studentsCount?: number;
+  pendingAssignments?: number;
+  activeQuizzes?: number;
 }) {
   const kpis = [
     {
-      label: "My Courses",
+      label: "My courses",
       value: coursesCount,
       icon: BookOpen,
-      iconBg: "bg-primary/10",
-      iconColor: "text-primary",
-      bottomText: "View all courses",
+      caption: "Draft, published & archived",
       href: "/instructor/courses",
-      showArrow: true,
     },
     {
-      label: "Total Students",
+      label: "Students",
       value: studentsCount,
       icon: Users,
-      iconBg: "bg-primary/10",
-      iconColor: "text-primary",
-      bottomText: "Across all courses",
+      caption: "Enrolled across all courses",
+      href: "/instructor/students",
     },
     {
-      label: "Assignments",
+      label: "To review",
       value: pendingAssignments,
       icon: ClipboardCheck,
-      iconBg: "bg-primary/10",
-      iconColor: "text-primary",
-      bottomText: "Pending to grade",
+      caption: "Submissions awaiting a grade",
+      href: "/instructor/assignments",
     },
     {
-      label: "Quizzes",
+      label: "Active quizzes",
       value: activeQuizzes,
       icon: HelpCircle,
-      iconBg: "bg-primary/10",
-      iconColor: "text-primary",
-      bottomText: "Active quizzes",
-    },
-    {
-      label: "Average Class Engagement",
-      value: `${engagementPercentage}%`,
-      icon: LineChart,
-      iconBg: "bg-primary/10",
-      iconColor: "text-primary",
-      bottomText: "This month",
-      trend: "up",
+      caption: "Published and open to students",
+      href: "/instructor/quizzes",
     },
   ];
 
   return (
-    <div className="flex flex-wrap md:flex-nowrap items-center gap-[2.4px] w-full">
-      {kpis.map((kpi, i) => (
-        <div key={i} className="flex-1 min-w-[140px] flex items-center gap-3 rounded-2xl bg-card border border-border p-3 shadow-sm hover:border-primary/50 transition">
-          <div className={`p-2 rounded-xl ${kpi.iconBg} shrink-0`}>
-            <kpi.icon size={16} className={kpi.iconColor} />
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {kpis.map((kpi) => (
+        <Link
+          key={kpi.label}
+          href={kpi.href}
+          className="group rounded-2xl border border-card-border bg-card p-4 transition hover:border-link/40 hover:bg-muted/40"
+        >
+          <div className="flex items-center gap-2">
+            <kpi.icon size={15} className="shrink-0 text-muted-foreground" aria-hidden />
+            <p className="truncate text-xs font-medium text-muted-foreground">{kpi.label}</p>
           </div>
-          
-          <div className="min-w-0">
-            <p className="text-muted-foreground text-[10.5px] font-bold uppercase tracking-wider truncate">{kpi.label}</p>
-            <div className="flex items-end gap-1.5 mt-0.5">
-              <p className="text-lg font-black text-foreground leading-none">{kpi.value}</p>
-              
-              {kpi.href ? (
-                <Link href={kpi.href} className="text-[10.5px] text-primary font-bold hover:opacity-80 truncate block">
-                  View &rarr;
-                </Link>
-              ) : (
-                <p className="text-[10.5px] text-muted-foreground font-medium hidden xl:flex items-center">
-                  {kpi.trend === "up" && <ArrowUpRight size={10} className="text-primary mr-0.5" />}
-                  {kpi.bottomText}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
+
+          <p className="mt-2 text-2xl font-semibold leading-none tracking-tight text-foreground">
+            {kpi.value}
+          </p>
+
+          {/* Wraps rather than truncates: in the 2-column mobile grid a tile is
+              ~170px wide, and "Submissions awaiting a grade" clipped to one
+              line reads as "Submissions awaiting a...". */}
+          <p className="mt-2 text-[11px] leading-snug text-muted-foreground group-hover:text-link">
+            {kpi.caption}
+          </p>
+        </Link>
       ))}
     </div>
   );
