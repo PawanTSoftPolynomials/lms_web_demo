@@ -142,6 +142,35 @@ export function SlideColumnsView({ title, columns, backgroundColor = DEFAULT_SLI
           object-fit: contain;
           border-radius: 0.5rem;
         }
+
+        /* Every size above is a clamp() whose *floor* is an absolute rem
+           value. Those floors are what break the slide on a phone: the frame
+           is a fixed aspect-video box with overflow:hidden, but at 320px the
+           floors hold type at roughly 2.2x its proportional size, so the
+           content outgrows the box and the tail of it — the last columns of a
+           five-column slide — is simply clipped away.
+
+           Below the mobile breakpoint every size becomes a pure container
+           unit, so the slide scales as one piece exactly like a real slide
+           thumbnail: nothing is hidden, nothing is re-flowed, nothing is
+           clipped, and no scrolling is introduced. Each value is the one the
+           clamp already resolves to at the frame's 1000px max width, so the
+           proportions are identical to desktop — only the scale changes.
+
+           Scoped to a media query rather than replacing the clamps outright,
+           so desktop rendering is untouched. */
+        @media (max-width: 768px) {
+          .slide-inner {
+            padding: 3.2cqw;
+            gap: 1.4cqh;
+          }
+          .slide-title { font-size: 3.36cqw; }
+          .slide-body { gap: 2.4cqw; }
+          .slide-prose { font-size: 1.6cqw; }
+          .slide-prose h1, .slide-prose h2 { font-size: 2.4cqw; }
+          .slide-prose h3, .slide-prose h4, .slide-prose h5, .slide-prose h6 { font-size: 1.76cqw; }
+          .slide-prose blockquote { font-size: 1.28cqw; }
+        }
       `}</style>
 
       {isEmpty ? (
