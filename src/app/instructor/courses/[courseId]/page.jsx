@@ -2027,7 +2027,7 @@ export default function CourseDetailsPage() {
           </div>
 
           {/* Notebook Workspace Dynamic View */}
-          <div className="rounded-2xl border border-transparent bg-background/60 p-4 sm:p-6 shadow-xl">
+          <div className="rounded-2xl border border-transparent bg-background/60 p-2 sm:p-6 shadow-xl">
             {composerMode === "course" && (
               <CourseOverviewView
                 course={effectiveCourse}

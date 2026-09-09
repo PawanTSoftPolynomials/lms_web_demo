@@ -188,7 +188,13 @@ export function CellShell({
             </div>
 
             {/* Header Actions (PDF Navigation, Zoom, Download) & Block Action Menu */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap">
+            {/* Not shrink-0 below md. The PDF and presentation viewers inject
+                their whole control bar here (~291px of page nav, zoom and
+                Fit), and a shrink-0 wrapper sizes to that content instead of
+                to the column — which is what pushed the page to 411px wide at
+                a 320px viewport. Letting it shrink gives its flex-wrap a
+                constraint to wrap against. */}
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 md:shrink-0 flex-wrap justify-end">
               {headerActions}
 
               <div className={cn("flex items-center shrink-0", hoverVisible)}>
