@@ -26,6 +26,11 @@ export function useDeleteQuiz() {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES],
             });
+
+            // Invalidate course queries so the sidebar updates when a quiz is deleted
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.COURSE],
+            });
         },
     });
 }

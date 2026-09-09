@@ -1,14 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
-import { BookOpen, Clock, Users, Pencil, ArrowRight, Loader2 } from "lucide-react";
+import { BookOpen, Clock, Users, Pencil, ArrowRight } from "lucide-react";
 
 import ActionMenu from "@/components/menus/ActionMenu";
 import { useConfirm, useAlert } from "@/context/ConfirmContext";
 import { useDeleteCourse } from "@/hooks/queries/instructor/useDeleteCourse";
-import { exportCourse } from "@/services/course.service";
 import { getDisplayUrl } from "@/lib/blob";
 import { useToast } from "@/components/ui/ToastProvider";
 
@@ -25,13 +23,12 @@ const LEVEL_STYLE = {
 };
 
 /** My Courses grid card — banner, meta row, tag pills, edit/view actions, and a
- *  kebab menu for export/delete. */
+ *  kebab menu for delete. */
 export default function CourseGridCard({ course }) {
   const router = useRouter();
   const confirm = useConfirm();
   const showAlert = useAlert();
   const { showToast } = useToast();
-  const [exporting, setExporting] = useState(false);
 
   const deleteCourseMutation = useDeleteCourse();
 
@@ -41,35 +38,6 @@ export default function CourseGridCard({ course }) {
   const goTo = (path) => (e) => {
     e.stopPropagation();
     router.push(path);
-  };
-
-  const handleExport = async () => {
-    if (exporting) return;
-    setExporting(true);
-    try {
-      const res = await exportCourse(course.id);
-      const blob = new Blob([res.data], { type: "application/zip" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-
-      let filename = `course-${course.id}.zip`;
-      const cd = res.headers["content-disposition"];
-      if (cd) {
-        const match = cd.match(/filename="?([^"]+)"?/);
-        if (match && match[1]) filename = match[1];
-      }
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Export failed:", err);
-      alert(err?.response?.data?.message || err?.message || "Failed to export course ZIP.");
-    } finally {
-      setExporting(false);
-    }
   };
 
   const handleDelete = async () => {
@@ -99,7 +67,6 @@ export default function CourseGridCard({ course }) {
   };
 
   const menuItems = [
-    { label: exporting ? "Exporting…" : "Export ZIP", onClick: handleExport },
     { label: "Delete Course", onClick: handleDelete },
   ];
   return (
@@ -177,12 +144,6 @@ export default function CourseGridCard({ course }) {
           </button>
         </div>
       </div>
-
-      {exporting && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-[32px] bg-background/80 backdrop-blur-sm">
-          <Loader2 size={24} className="animate-spin text-primary" />
-        </div>
-      )}
     </div>
   );
 }

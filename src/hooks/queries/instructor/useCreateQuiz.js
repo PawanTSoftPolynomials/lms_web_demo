@@ -25,6 +25,11 @@ export function useCreateQuiz() {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES],
             });
+
+            // Also invalidate the specific course to refresh course.quizzes in the composer
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.COURSE, variables.courseId],
+            });
         },
     });
 }
