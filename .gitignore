@@ -47,4 +47,4 @@ next-env.d.ts
 .worktrees/
 
 # Backup files / removed legacy features
-/backup/
+/.backup/
