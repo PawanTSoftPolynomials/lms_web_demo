@@ -98,8 +98,8 @@ function getTopicTypeMeta(title = "") {
       type: "mcq",
       badge: "MCQs",
       icon: HelpCircle,
-      color: "text-emerald-400",
-      bgClass: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+      color: "text-emerald-700 dark:text-emerald-400",
+      bgClass: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
     };
   }
   if (t.includes("assignment")) {
@@ -107,8 +107,8 @@ function getTopicTypeMeta(title = "") {
       type: "assignment",
       badge: "Assignment",
       icon: ClipboardList,
-      color: "text-amber-400",
-      bgClass: "bg-amber-500/10 text-amber-400 border-amber-500/30",
+      color: "text-amber-700 dark:text-amber-400",
+      bgClass: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30",
     };
   }
   if (t.includes("home task") || t.includes("hometask") || t.includes("homework")) {
@@ -116,8 +116,8 @@ function getTopicTypeMeta(title = "") {
       type: "hometask",
       badge: "Home Task",
       icon: Target,
-      color: "text-purple-400",
-      bgClass: "bg-purple-500/10 text-purple-400 border-purple-500/30",
+      color: "text-purple-700 dark:text-purple-400",
+      bgClass: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30",
     };
   }
   if (t.includes("checklist") || t.includes("revision")) {
@@ -125,16 +125,16 @@ function getTopicTypeMeta(title = "") {
       type: "checklist",
       badge: "Checklist",
       icon: CheckSquare,
-      color: "text-sky-400",
-      bgClass: "bg-sky-500/10 text-sky-400 border-sky-500/30",
+      color: "text-sky-700 dark:text-sky-400",
+      bgClass: "bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/30",
     };
   }
   return {
     type: "theory",
     badge: "Theory",
     icon: BookOpen,
-    color: "text-blue-400",
-    bgClass: "bg-blue-500/10 text-blue-400 border-blue-500/30",
+    color: "text-blue-700 dark:text-blue-400",
+    bgClass: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30",
   };
 }
 
@@ -152,24 +152,24 @@ function formatTopicDisplayTitle(title = "", index = 0) {
  * meaningful icon instead of falling back silently.
  */
 const CONTENT_TYPE_META = {
-  VIDEO: { icon: Video, label: "Video", color: "text-red-400" },
-  AUDIO: { icon: Music2, label: "Audio", color: "text-teal-400" },
-  DOCUMENT: { icon: FileText, label: "Document", color: "text-blue-400" },
-  TEXT: { icon: AlignLeft, label: "Text", color: "text-blue-300" },
-  HTML: { icon: AlignLeft, label: "Text", color: "text-blue-300" },
-  IMAGE: { icon: ImageIcon, label: "Image", color: "text-purple-400" },
-  LINK: { icon: Link2, label: "Link", color: "text-green-400" },
-  EXTERNAL_LINK: { icon: Link2, label: "Link", color: "text-green-400" },
-  PRESENTATION: { icon: Presentation, label: "Presentation", color: "text-amber-400" },
-  SLIDE: { icon: Presentation, label: "Slide", color: "text-amber-400" },
-  PDF: { icon: File, label: "PDF", color: "text-sky-400" },
-  FILE: { icon: File, label: "File", color: "text-sky-400" },
-  CODE: { icon: Code2, label: "Code", color: "text-violet-400" },
-  CODING_EXERCISE: { icon: Code2, label: "Coding Exercise", color: "text-violet-400" },
-  ASSIGNMENT: { icon: ClipboardList, label: "Assignment", color: "text-amber-300" },
+  VIDEO: { icon: Video, label: "Video", color: "text-red-700 dark:text-red-400" },
+  AUDIO: { icon: Music2, label: "Audio", color: "text-teal-700 dark:text-teal-400" },
+  DOCUMENT: { icon: FileText, label: "Document", color: "text-blue-700 dark:text-blue-400" },
+  TEXT: { icon: AlignLeft, label: "Text", color: "text-blue-800 dark:text-blue-300" },
+  HTML: { icon: AlignLeft, label: "Text", color: "text-blue-800 dark:text-blue-300" },
+  IMAGE: { icon: ImageIcon, label: "Image", color: "text-purple-700 dark:text-purple-400" },
+  LINK: { icon: Link2, label: "Link", color: "text-green-700 dark:text-green-400" },
+  EXTERNAL_LINK: { icon: Link2, label: "Link", color: "text-green-700 dark:text-green-400" },
+  PRESENTATION: { icon: Presentation, label: "Presentation", color: "text-amber-700 dark:text-amber-400" },
+  SLIDE: { icon: Presentation, label: "Slide", color: "text-amber-700 dark:text-amber-400" },
+  PDF: { icon: File, label: "PDF", color: "text-sky-700 dark:text-sky-400" },
+  FILE: { icon: File, label: "File", color: "text-sky-700 dark:text-sky-400" },
+  CODE: { icon: Code2, label: "Code", color: "text-violet-700 dark:text-violet-400" },
+  CODING_EXERCISE: { icon: Code2, label: "Coding Exercise", color: "text-violet-700 dark:text-violet-400" },
+  ASSIGNMENT: { icon: ClipboardList, label: "Assignment", color: "text-amber-800 dark:text-amber-300" },
   SCORM: { icon: PackageOpen, label: "SCORM", color: "text-muted-foreground" },
-  INTERACTIVE_LAB: { icon: FlaskConical, label: "Interactive Lab", color: "text-pink-400" },
-  EMBED: { icon: MonitorPlay, label: "Embed", color: "text-indigo-400" },
+  INTERACTIVE_LAB: { icon: FlaskConical, label: "Interactive Lab", color: "text-pink-700 dark:text-pink-400" },
+  EMBED: { icon: MonitorPlay, label: "Embed", color: "text-indigo-700 dark:text-indigo-400" },
 };
 const DEFAULT_CONTENT_META = { icon: File, label: "Content", color: "text-muted-foreground" };
 
@@ -224,7 +224,7 @@ function RowMenu({ groupName, items }) {
                 onSelect={(e) => {
                   item.onSelect?.(e);
                 }}
-                className={`cursor-pointer ${item.destructive ? "text-red-400 hover:bg-red-950/40" : "hover:bg-background"}`}
+                className={`cursor-pointer ${item.destructive ? "text-red-700 dark:text-red-400 hover:bg-red-950/40" : "hover:bg-background"}`}
               >
                 <item.icon className="mr-2 size-3" />
                 {item.label}
@@ -338,7 +338,7 @@ function ParentContentRows({
           Loading contents…
         </div>
       ) : isError ? (
-        <div className="flex items-center gap-1.5 py-1.5 px-2 text-[12px] text-red-400/80">
+        <div className="flex items-center gap-1.5 py-1.5 px-2 text-[12px] text-red-700 dark:text-red-400/80">
           <AlertCircle size={11} className="shrink-0" />
           Failed to load contents.
         </div>
@@ -416,7 +416,7 @@ function ParentContentRows({
               className={`group/content flex items-center justify-between gap-2 pl-2 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
                 isContentActive
                   ? "bg-primary/15 text-primary font-semibold"
-                  : "text-muted-foreground hover:text-slate-50 hover:bg-background/70"
+                  : "text-foreground hover:text-slate-50 hover:bg-background/70"
               }`}
             >
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
@@ -761,7 +761,7 @@ export function CourseComposerSidebar({
                                   ? "bg-primary/15 border-primary text-primary font-bold"
                                   : lessonHasActiveChild
                                   ? "bg-background/30 border-primary/30 text-foreground"
-                                  : "border-transparent text-muted-foreground hover:text-slate-50 hover:bg-background/50"
+                                  : "border-transparent text-foreground hover:text-slate-50 hover:bg-background/50"
                               }`}
                               onClick={() => !isLessonLocked && onSelectLesson(lesson.id)}
                               title={isLessonLocked ? "Complete the previous lesson to unlock" : undefined}
@@ -785,11 +785,11 @@ export function CourseComposerSidebar({
                                 {isLessonLocked ? (
                                   <Lock size={12} className="shrink-0 text-muted-foreground" />
                                 ) : isCompleted ? (
-                                  <CheckCircle2 size={12} className="shrink-0 text-emerald-400" />
+                                  <CheckCircle2 size={12} className="shrink-0 text-emerald-700 dark:text-emerald-400" />
                                 ) : (
                                   <BookOpen size={12} className={`shrink-0 ${isLessonActive ? "text-primary" : "text-muted-foreground"}`} />
                                 )}
-                                <span className="text-[10.5px] font-black text-slate-600 tabular-nums shrink-0">
+                                <span className="text-[10.5px] font-black text-muted-foreground tabular-nums shrink-0">
                                   L{lIdx + 1}
                                 </span>
                                 <span className="truncate text-[13px] leading-snug" title={lesson.title}>
