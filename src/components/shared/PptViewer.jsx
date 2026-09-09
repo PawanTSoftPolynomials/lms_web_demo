@@ -66,10 +66,16 @@ export default function PptViewer({
       if (viewportRef.current) {
         const w = viewportRef.current.clientWidth || 960;
         const h = viewportRef.current.clientHeight || 540;
-        // Subtract small padding to prevent scrollbar overflow
+        // Subtract small padding to prevent scrollbar overflow.
+        // The floors used to be unconditional, which inverted the whole point
+        // of fitting: in a container narrower than 280px the slide was scaled
+        // to 280px and then overflowed its own viewport, clipping the first
+        // and last columns and putting a scrollbar inside the block. Floor at
+        // 1 instead, so a genuinely narrow container simply scales further
+        // down, and keep the fallback only for the pre-layout case.
         setContainerSize({
-          width: Math.max(w - 24, 280),
-          height: Math.max(h - 24, 240),
+          width: Math.max(w - 24, 1),
+          height: Math.max(h - 24, 1),
         });
       }
     };
@@ -345,7 +351,11 @@ export default function PptViewer({
       {/* SLIDE CANVAS VIEWPORT CONTAINER */}
       <div
         ref={viewportRef}
-        className="relative w-full h-[78vh] min-h-[520px] max-h-[900px] overflow-auto bg-[#060913] p-2 sm:p-4 flex justify-center items-center scroll-smooth rounded-2xl border border-border/80"
+        // A 16:9 slide scaled into a 320px column is ~170px tall, so the
+        // 520px floor left a phone showing mostly empty backdrop. Below sm the
+        // viewport is aspect-driven instead; the tall fixed height starts at
+        // sm, where it is a reasonable reading size again.
+        className="relative w-full aspect-video min-h-0 sm:aspect-auto sm:h-[78vh] sm:min-h-[520px] sm:max-h-[900px] overflow-auto bg-[#060913] p-2 sm:p-4 flex justify-center items-center scroll-smooth rounded-2xl border border-border/80"
       >
         {/* Loading Overlay */}
         {loadingStep && (
