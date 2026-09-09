@@ -89,13 +89,13 @@ export default function MyCoursesPage() {
   };
 
   return (
-    <div className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-4 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
+    <div className="-m-2 sm:-m-6 md:-m-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
       <PageHeader
         title={`My Courses${!isLoading && myEnrollments.length ? ` (${filteredCourses.length})` : ""}`}
         subtitle="Track your progress and continue learning your enrolled courses."
         className="mb-0 sm:mb-0"
       >
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
           <div className="relative w-full min-w-0 md:w-64">
             <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -107,7 +107,7 @@ export default function MyCoursesPage() {
             />
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 overflow-x-auto scrollbar-none">
+          <div className="flex min-w-0 items-center gap-2 overflow-x-auto scrollbar-none">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}

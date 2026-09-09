@@ -15,7 +15,7 @@ export default function PageHeader({
         className,
       )}
     >
-      <div className="select-none">
+      <div className="min-w-0 select-none">
         <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-foreground">
           {title}
         </h1>
@@ -25,7 +25,7 @@ export default function PageHeader({
         )}
       </div>
 
-      {children && <div className="flex flex-wrap gap-3">{children}</div>}
+      {children && <div className="flex min-w-0 flex-wrap gap-3">{children}</div>}
     </div>
   );
 }
