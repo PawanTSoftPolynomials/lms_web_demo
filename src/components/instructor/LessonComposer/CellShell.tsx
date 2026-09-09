@@ -126,7 +126,7 @@ export function CellShell({
             onAddAbove();
           }}
           className={cn(
-            "absolute -top-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[10px] font-bold text-muted-foreground shadow-md transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground cursor-pointer",
+            "absolute -top-3 left-1/2 z-10 hidden md:flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[10px] font-bold text-muted-foreground shadow-md transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground cursor-pointer",
             addControlsVisible
           )}
           title="Add block above"
@@ -200,14 +200,36 @@ export function CellShell({
                       aria-label="Block Settings & Actions"
                       title="Settings & Actions"
                     >
-                      <Settings size={14} />
+                      {/* The block menu reads as a ⋮ on mobile, where it is the
+                          only route to these actions; the desktop gear is
+                          left as-is. */}
+                      <MoreVertical size={14} className="md:hidden" />
+                      <Settings size={14} className="hidden md:block" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" collisionPadding={8}>
                     <DropdownMenuItem onSelect={onEdit} disabled={mode === "edit"}>
                       <Pencil className="size-3.5" />
                       Edit Block
                     </DropdownMenuItem>
+
+                    {/* Below md the floating Add Above/Below controls are
+                        hidden (they clutter and overlap a narrow column), so
+                        the same handlers are exposed here instead. Same
+                        insertion flow, different entry point. */}
+                    {onAddAbove && (
+                      <DropdownMenuItem className="md:hidden" onSelect={() => onAddAbove()}>
+                        <Plus className="size-3.5" />
+                        Add Above
+                      </DropdownMenuItem>
+                    )}
+                    {onAddBelow && (
+                      <DropdownMenuItem className="md:hidden" onSelect={() => onAddBelow()}>
+                        <Plus className="size-3.5" />
+                        Add Below
+                      </DropdownMenuItem>
+                    )}
+
                     {onSettingsSelect && (
                       <DropdownMenuItem onSelect={onSettingsSelect}>
                         <Settings className="size-3.5" />
@@ -246,14 +268,27 @@ export function CellShell({
                   aria-label="Block Settings & Actions"
                   title="Settings & Actions"
                 >
-                  <Settings size={12} />
+                  <MoreVertical size={12} className="md:hidden" />
+                  <Settings size={12} className="hidden md:block" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" collisionPadding={8}>
                 <DropdownMenuItem onSelect={onEdit}>
                   <Pencil className="size-3.5" />
                   Edit Block
                 </DropdownMenuItem>
+                {onAddAbove && (
+                  <DropdownMenuItem className="md:hidden" onSelect={() => onAddAbove()}>
+                    <Plus className="size-3.5" />
+                    Add Above
+                  </DropdownMenuItem>
+                )}
+                {onAddBelow && (
+                  <DropdownMenuItem className="md:hidden" onSelect={() => onAddBelow()}>
+                    <Plus className="size-3.5" />
+                    Add Below
+                  </DropdownMenuItem>
+                )}
                 {onSettingsSelect && (
                   <DropdownMenuItem onSelect={onSettingsSelect}>
                     <Settings className="size-3.5" />
@@ -292,7 +327,7 @@ export function CellShell({
             onAddBelow();
           }}
           className={cn(
-            "absolute -bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[10px] font-bold text-muted-foreground shadow-md transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground cursor-pointer",
+            "absolute -bottom-3 left-1/2 z-10 hidden md:flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[10px] font-bold text-muted-foreground shadow-md transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground cursor-pointer",
             addControlsVisible
           )}
           title="Add block below"
