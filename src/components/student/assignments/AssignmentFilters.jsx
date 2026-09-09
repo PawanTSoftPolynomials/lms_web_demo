@@ -47,7 +47,7 @@ export default function AssignmentFilters({
       onChange={(e) => setStatusFilter(e.target.value)}
       className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary [&>option]:bg-card [&>option]:text-foreground"
     >
-      <option value="">All Statuses</option>
+      <option value="">All Status</option>
       {ASSIGNMENT_STATUSES.map((status) => (
         <option key={status} value={status}>
           {status}

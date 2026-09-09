@@ -305,7 +305,7 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
             >
               <option value="ACTIVE">Active Only</option>
               <option value="ARCHIVED">Archived Only</option>
-              <option value="">All Statuses</option>
+              <option value="">All Status</option>
             </select>
           </div>
 

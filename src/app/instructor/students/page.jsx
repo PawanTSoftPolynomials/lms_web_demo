@@ -5,12 +5,12 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   Search,
-  AlertTriangle, ArrowLeft, Loader2, Info
+  AlertTriangle, ArrowLeft, Loader2 // Info dropped with the Batch filter hint
 } from 'lucide-react';
 
 import { useStudents } from '@/hooks/queries/instructor/useStudents';
 import { useInstructorCourses } from '@/hooks/queries/instructor/useInstructorCourses';
-import { useCourseBatches } from '@/hooks/queries/instructor/useBatches';
+// import { useCourseBatches } from '@/hooks/queries/instructor/useBatches'; // Batch filter removed
 
 function StudentsDirectoryContent() {
   const searchParams = useSearchParams();
@@ -23,21 +23,16 @@ function StudentsDirectoryContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [courseFilter, setCourseFilter] = useState('All');
-  const [batchFilter, setBatchFilter] = useState('All');
   const [activeTab, setActiveTab] = useState('Progress'); // Progress | Assignments | Certificates
 
   const selectedCourse = courseFilter === 'All' ? null : courses.find((c) => c.id === courseFilter);
 
-  // Batches for the selected course only — the API doesn't (yet) link a
-  // student record to a batch, so this list is informational/for future use
-  // rather than something we can filter the table by.
-  const { data: courseBatches = [], isLoading: loadingBatches } = useCourseBatches(
-    courseFilter !== 'All' ? courseFilter : undefined
-  );
+  // Batch state and the useCourseBatches lookup went with the Batch filter —
+  // batch rosters aren't linked to student records, so it could never narrow
+  // the list. See the commented-out select below.
 
   const handleCourseFilterChange = (value) => {
     setCourseFilter(value);
-    setBatchFilter('All');
   };
 
   // Parse studentId parameter from URL (drilldown from dashboard)
@@ -50,19 +45,27 @@ function StudentsDirectoryContent() {
 
   // Filter students list
   const filteredStudents = useMemo(() => {
+    const q = searchQuery.toLowerCase();
     return students.filter(student => {
       const isStudentRole = !student.role || student.role === 'STUDENT';
-      const matchesSearch = (student.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            (student.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            (student.course || '').toLowerCase().includes(searchQuery.toLowerCase());
+      // Search every course the student is enrolled in, not only the first one
+      // that happens to be shown in the Course column.
+      const courseTitles = (student.courses || []).map((c) => c.title || '');
+      const matchesSearch = (student.name || '').toLowerCase().includes(q) ||
+                            (student.email || '').toLowerCase().includes(q) ||
+                            (student.course || '').toLowerCase().includes(q) ||
+                            courseTitles.some((t) => t.toLowerCase().includes(q));
 
       const matchesStatus = statusFilter === 'All' || student.status === statusFilter;
-      const matchesCourse = courseFilter === 'All' || student.course === selectedCourse?.title;
-      // Batch isn't matched here — student records don't carry batch membership yet.
+      // Match on the full enrollment list by id. Comparing student.course (the
+      // first enrollment's title) against the selected course hid anyone whose
+      // first enrollment wasn't the one being filtered for.
+      const matchesCourse = courseFilter === 'All' ||
+                            (student.courseIds || []).includes(courseFilter);
 
       return isStudentRole && matchesSearch && matchesStatus && matchesCourse;
     });
-  }, [students, searchQuery, statusFilter, courseFilter, selectedCourse]);
+  }, [students, searchQuery, statusFilter, courseFilter]);
 
   // Selected student details object
   const selectedStudent = useMemo(() => {
@@ -195,7 +198,7 @@ function StudentsDirectoryContent() {
             <div>
               {activeTab === 'Progress' && (
                 <div className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="p-3 bg-white/[0.01] border border-border rounded-xl text-center">
                       <p className="text-[9px] text-muted-foreground font-black uppercase">Overall Progress</p>
                       <p className="text-lg font-black text-foreground mt-1">{selectedStudent.progress}%</p>
@@ -204,12 +207,14 @@ function StudentsDirectoryContent() {
                       <p className="text-[9px] text-muted-foreground font-black uppercase">Assignments Done</p>
                       <p className="text-lg font-black text-foreground mt-1">{selectedStudent.assignmentRate}%</p>
                     </div>
-                    <div className="p-3 bg-white/[0.01] border border-border rounded-xl text-center">
+                    {/* Attendance Rate tile hidden with the rest of the attendance UI.
+                        Uncomment this and change the grid back to sm:grid-cols-3. */}
+                    {/* <div className="p-3 bg-white/[0.01] border border-border rounded-xl text-center">
                       <p className="text-[9px] text-muted-foreground font-black uppercase">Attendance Rate</p>
                       <p className="text-lg font-black text-foreground mt-1">
                         {selectedStudent.attendanceRate != null ? `${selectedStudent.attendanceRate}%` : "N/A"}
                       </p>
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* Modules detail */}
@@ -326,7 +331,10 @@ function StudentsDirectoryContent() {
             </div>
 
             <div className="flex gap-1.5 overflow-x-auto w-full sm:w-auto scrollbar-none">
-              {['All', 'Not Started', 'Behind Average', 'Struggling', 'Attendance Alert', 'Top Performer'].map((filter) => (
+              {/* 'Attendance Alert' dropped alongside the Attendance column — it matched
+                  no student, since status is never set to it. Re-add it to this list if
+                  attendance tracking lands. */}
+              {['All', 'Not Started', 'Behind Average', 'Struggling', 'Top Performer'].map((filter) => (
                 <button
                   key={filter}
                   onClick={() => setStatusFilter(filter)}
@@ -358,7 +366,10 @@ function StudentsDirectoryContent() {
               </select>
             </div>
 
-            <div className="w-full sm:w-64">
+            {/* Batch filter removed — batch rosters aren't linked to student
+                records, so it never narrowed the list. Restore this block (and
+                the useCourseBatches call above) if that link is added. */}
+            {/* <div className="w-full sm:w-64">
               <label className="block text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Batch</label>
               <select
                 value={batchFilter}
@@ -371,13 +382,7 @@ function StudentsDirectoryContent() {
                   <option key={b.id} value={b.id}>{b.name}</option>
                 ))}
               </select>
-              {batchFilter !== 'All' && (
-                <p className="flex items-center gap-1 text-[9px] text-muted-foreground mt-1.5">
-                  <Info size={10} className="shrink-0" />
-                  Batch rosters aren&apos;t linked to students yet — this doesn&apos;t narrow the list below.
-                </p>
-              )}
-            </div>
+            </div> */}
           </div>
 
           {/* Directory Table */}
@@ -389,14 +394,17 @@ function StudentsDirectoryContent() {
                   <th className="pb-3">Course</th>
                   <th className="pb-3 text-center">Status</th>
                   <th className="pb-3 text-center">Course Progress</th>
-                  <th className="pb-3 text-center">Attendance</th>
+                  {/* Attendance column hidden — no attendance tracking exists yet, so it
+                      only ever rendered "N/A". Uncomment this and the matching <td>
+                      below (and set colSpan back to 6) to bring it back. */}
+                  {/* <th className="pb-3 text-center">Attendance</th> */}
                   <th className="pb-3 text-right pr-2">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1A1F35]/50">
                 {filteredStudents.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="py-12 text-center text-muted-foreground">
+                    <td colSpan="5" className="py-12 text-center text-muted-foreground">
                       No students found matching your criteria.
                     </td>
                   </tr>
@@ -407,7 +415,15 @@ function StudentsDirectoryContent() {
                         <div className="font-extrabold text-slate-250">{student.name}</div>
                         <div className="text-[9.5px] text-muted-foreground font-semibold mt-0.5">{student.email}</div>
                       </td>
-                      <td className="py-4 text-slate-350 font-semibold">{student.course}</td>
+                      {/* When filtering by a course, show that course rather than the
+                          student's first enrollment — otherwise a row matched on BGMI
+                          would display some unrelated course title. */}
+                      <td className="py-4 text-slate-350 font-semibold">
+                        {selectedCourse ? selectedCourse.title : student.course}
+                        {!selectedCourse && (student.courses?.length || 0) > 1 && (
+                          <span className="text-muted-foreground font-medium"> +{student.courses.length - 1}</span>
+                        )}
+                      </td>
                       <td className="py-4 text-center">
                         <span className={`text-[7.5px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider inline-block ${
                           student.status === 'Top Performer' 
@@ -429,9 +445,9 @@ function StudentsDirectoryContent() {
                           <span className="font-bold text-foreground">{student.progress}%</span>
                         </div>
                       </td>
-                      <td className="py-4 text-center font-bold text-foreground">
+                      {/* <td className="py-4 text-center font-bold text-foreground">
                         {student.attendanceRate != null ? `${student.attendanceRate}%` : "N/A"}
-                      </td>
+                      </td> */}
                       <td className="py-4 text-right pr-2">
                         <button
                           onClick={() => handleSelectStudent(student.id)}
