@@ -1,4 +1,7 @@
+import { notFound } from "next/navigation";
+
 import { getCourseById } from "@/services/course.service";
+import { getCourseReviews } from "@/services/review.service";
 import Link from "next/link";
 import CourseBuyButton from "@/components/student/course-details/CourseBuyButton";
 import { getDisplayUrl } from "@/lib/blob";
@@ -19,24 +22,71 @@ import {
 export default async function CoursePage({ params }) {
   const { courseId } = await params;
 
-  const course = await getCourseById(courseId);
+  // getCourseById throws on 404 and on any network/API failure. Without this
+  // the whole route 500s with a raw error page — a dead link or a deleted
+  // course should be a "not found", not a crash.
+  let course;
+  try {
+    course = await getCourseById(courseId);
+  } catch {
+    notFound();
+  }
+  if (!course) notFound();
+
+  // Real reviews for this course. Guarded on its own so a reviews outage
+  // degrades to "no reviews yet" instead of taking the whole page down.
+  let reviews = [];
+  try {
+    const fetched = await getCourseReviews(courseId);
+    reviews = Array.isArray(fetched) ? fetched : [];
+  } catch {
+    reviews = [];
+  }
 
   // Dynamic calculations
   const lessonsCount = course.modules?.reduce((acc, m) => acc + (m.lessons?.length ?? 0), 0) ?? 0;
-  const duration = lessonsCount > 0 ? `${Math.max(1, Math.round((lessonsCount * 25) / 60))} hours` : "12 hours";
+  // Prefer what the instructor actually set; estimate from lesson count only
+  // as a second choice. It used to claim a flat "12 hours" for any course with
+  // no lessons yet.
+  const duration = course.estimatedLearningHours
+    ? `${course.estimatedLearningHours} hours`
+    : lessonsCount > 0
+      ? `${Math.max(1, Math.round((lessonsCount * 25) / 60))} hours`
+      : "Not set";
   const worksheetsCount = course.assignments?.length ?? 0;
   const quizzesCount = course.quizzes?.length ?? 0;
 
+  // A course is buyable only with a Store row that is either explicitly free or
+  // carries a real price. A missing Store, or price 0 without isFree, means the
+  // checkout would fail — so no price is shown and no purchase is offered.
+  // Real rating / review figures. stats.avgRating and _count.reviews come back
+  // from GET /courses/:id; the page used to print a fixed "4.8 (15 student
+  // ratings)" on every course regardless.
+  const reviewCount = reviews.length || (course._count?.reviews ?? 0);
+  const avgRating = reviews.length
+    ? reviews.reduce((sum, r) => sum + (r.rating ?? 0), 0) / reviews.length
+    : Number(course.stats?.avgRating ?? 0);
+  const teacher = course.creator?.teacherProfile ?? null;
+
+  const store = course.store;
+  const isPurchasable = Boolean(store) && (store.isFree || Number(store.price) > 0);
+  const payable = store && store.discountPrice > 0 ? store.discountPrice : store?.price;
+  const priceLabel = !isPurchasable
+    ? "Pricing unavailable"
+    : store.isFree
+      ? "Free"
+      : `₹${Number(payable).toLocaleString("en-IN")}`;
+
   return (
-    <div className="min-h-screen bg-[#030712] text-foreground selection:bg-primary/30 selection:text-primary">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/30 selection:text-primary">
       <div className="max-w-7xl mx-auto px-6 py-10">
         
         {/* 1. Breadcrumbs Nav */}
         <nav className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-6 flex items-center gap-2">
           <Link href="/" className="hover:text-foreground transition">Home</Link>
-          <ChevronRight size={10} className="text-slate-600" />
+          <ChevronRight size={10} className="text-muted-foreground" />
           <Link href="/student/courses" className="hover:text-foreground transition">Courses</Link>
-          <ChevronRight size={10} className="text-slate-600" />
+          <ChevronRight size={10} className="text-muted-foreground" />
           <span className="text-primary">{course.title}</span>
         </nav>
 
@@ -61,10 +111,14 @@ export default async function CoursePage({ params }) {
                   <Clock size={12} className="text-primary" />
                   <span>{duration}</span>
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-xl border border-transparent bg-background/60 px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-foreground">
-                  <Star size={12} className="text-amber-400 fill-amber-400" />
-                  <span>4.8 (15 student ratings)</span>
-                </span>
+                {reviewCount > 0 && (
+                  <span className="inline-flex items-center gap-1.5 rounded-xl border border-transparent bg-background/60 px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-foreground">
+                    <Star size={12} className="text-amber-400 fill-amber-400" />
+                    <span>
+                      {avgRating.toFixed(1)} ({reviewCount} student {reviewCount === 1 ? "rating" : "ratings"})
+                    </span>
+                  </span>
+                )}
                 <span className="inline-flex items-center gap-1.5 rounded-xl border border-transparent bg-background/60 px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-foreground">
                   <BarChart2 size={12} className="text-purple-400" />
                   <span>{course.level || "Intermediate"} Difficulty</span>
@@ -87,35 +141,43 @@ export default async function CoursePage({ params }) {
                   <User size={28} />
                 </div>
                 <div>
-                  <h4 className="text-base font-bold text-foreground">{course.creator?.name ?? "John Doe"}</h4>
+                  <h4 className="text-base font-bold text-foreground">{course.creator?.name ?? "Instructor"}</h4>
                   <p className="text-[10px] font-extrabold text-primary uppercase tracking-widest mt-0.5">Lead Syllabus Instructor</p>
                 </div>
               </div>
-              <p className="text-muted-foreground text-xs leading-relaxed">
-                Experienced educator with years of teaching and industry experience. Passionate about helping students understand complex concepts in a simple way.
-              </p>
+              {teacher?.bio && (
+                <p className="text-muted-foreground text-xs leading-relaxed">{teacher.bio}</p>
+              )}
 
-              <div className="border-t border-transparent/80 my-4" />
+              {(teacher?.experience || teacher?.qualification || teacher?.specialization || reviewCount > 0) && (
+                <div className="border-t border-transparent/80 my-4" />
+              )}
 
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-                <div>
-                  <p className="text-[8px] font-black uppercase text-muted-foreground tracking-wider">Experience</p>
-                  <p className="mt-1 text-xs font-bold text-foreground">8+ years</p>
-                </div>
-                <div>
-                  <p className="text-[8px] font-black uppercase text-muted-foreground tracking-wider">Rating</p>
-                  <p className="mt-1 text-xs font-bold text-foreground">4.8/5</p>
-                </div>
-                <div>
-                  <p className="text-[8px] font-black uppercase text-muted-foreground tracking-wider">Education</p>
-                  <p className="mt-1 text-xs font-bold text-foreground">M.Tech</p>
-                </div>
-                <div>
-                  <p className="text-[8px] font-black uppercase text-muted-foreground tracking-wider">Students</p>
-                  <p className="mt-1 text-xs font-bold text-foreground">12K+</p>
-                </div>
-              </div>
+              {/* Only the credentials this instructor has actually filled in on
+                  their TeacherProfile. The grid used to hard-code "8+ years",
+                  "4.8/5", "M.Tech" and "12K+" for every instructor on the
+                  platform. */}
+              {(() => {
+                const facts = [
+                  teacher?.experience ? { label: "Experience", value: `${teacher.experience}+ years` } : null,
+                  reviewCount > 0 ? { label: "Rating", value: `${avgRating.toFixed(1)}/5` } : null,
+                  teacher?.qualification ? { label: "Education", value: teacher.qualification } : null,
+                  teacher?.specialization ? { label: "Specialization", value: teacher.specialization } : null,
+                ].filter(Boolean);
+
+                if (facts.length === 0) return null;
+
+                return (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                    {facts.map((fact) => (
+                      <div key={fact.label}>
+                        <p className="text-[8px] font-black uppercase text-muted-foreground tracking-wider">{fact.label}</p>
+                        <p className="mt-1 text-xs font-bold text-foreground">{fact.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Course Overview Card */}
@@ -145,8 +207,8 @@ export default async function CoursePage({ params }) {
                     <span className="text-[9px] font-extrabold uppercase tracking-wide">Students</span>
                     <GraduationCap size={14} className="text-purple-400" />
                   </div>
-                  <p className="text-xl font-bold text-foreground mt-1">{course.enrollments?.length ?? 0}</p>
-                  <p className="text-[8px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">Completed</p>
+                  <p className="text-xl font-bold text-foreground mt-1">{course._count?.enrollments ?? course.enrollments?.length ?? 0}</p>
+                  <p className="text-[8px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">Enrolled</p>
                 </div>
 
                 <div className="rounded-xl border border-transparent/60 bg-background p-4">
@@ -154,8 +216,13 @@ export default async function CoursePage({ params }) {
                     <span className="text-[9px] font-extrabold uppercase tracking-wide">Avg. Rating</span>
                     <Star size={14} className="text-amber-400" />
                   </div>
-                  <p className="text-xl font-bold text-foreground mt-1">4.8<span className="text-xs text-muted-foreground font-medium">/5</span></p>
-                  <p className="text-[8px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">(15 ratings)</p>
+                  <p className="text-xl font-bold text-foreground mt-1">
+                    {reviewCount > 0 ? avgRating.toFixed(1) : "—"}
+                    {reviewCount > 0 && <span className="text-xs text-muted-foreground font-medium">/5</span>}
+                  </p>
+                  <p className="text-[8px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">
+                    {reviewCount > 0 ? `(${reviewCount} ${reviewCount === 1 ? "rating" : "ratings"})` : "No ratings yet"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -177,39 +244,36 @@ export default async function CoursePage({ params }) {
                   <p className="text-xs font-bold text-foreground mt-1">{duration}</p>
                 </div>
                 <div>
-                  <p className="text-[8px] font-black uppercase text-muted-foreground tracking-wider">Pre-requisite</p>
-                  <p className="text-xs font-bold text-foreground mt-1">Basic Math/CS Intro</p>
+                  <p className="text-[8px] font-black uppercase text-muted-foreground tracking-wider">Language</p>
+                  <p className="text-xs font-bold text-foreground mt-1">{course.language || "English"}</p>
                 </div>
                 <div>
-                  <p className="text-[8px] font-black uppercase text-muted-foreground tracking-wider">Aim at the end</p>
-                  <p className="text-xs font-bold text-foreground mt-1">Problem solving skills</p>
+                  <p className="text-[8px] font-black uppercase text-muted-foreground tracking-wider">Lessons</p>
+                  <p className="text-xs font-bold text-foreground mt-1">{lessonsCount}</p>
                 </div>
                 <div>
                   <p className="text-[8px] font-black uppercase text-muted-foreground tracking-wider">Certificate</p>
-                  <p className="text-xs font-bold text-foreground mt-1">Yes, on completion</p>
+                  <p className="text-xs font-bold text-foreground mt-1">
+                    {course.certificatesEnabled ? "Yes, on completion" : "Not offered"}
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* What You'll Learn Checklist Card */}
-            <div className="rounded-2xl border border-transparent bg-background/60 p-6 shadow-sm">
-              <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-5">What You'll Learn</h3>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {[
-                  "Improve logical thinking",
-                  "Understand patterns and sequences",
-                  "Solve real-life problems",
-                  "Strengthen analytical skills",
-                  "Enhance decision making",
-                  "Ace reasoning-based assessments"
-                ].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-xs font-semibold text-slate-350">
-                    <CheckCircle2 size={14} className="text-primary shrink-0" />
-                    <span>{item}</span>
-                  </div>
-                ))}
+            {Array.isArray(course.tags) && course.tags.length > 0 && (
+              <div className="rounded-2xl border border-transparent bg-background/60 p-6 shadow-sm">
+                <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-5">What You&apos;ll Learn</h3>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {course.tags.map((item) => (
+                    <div key={item} className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                      <CheckCircle2 size={14} className="text-primary shrink-0" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
           </div>
 
@@ -235,18 +299,26 @@ export default async function CoursePage({ params }) {
               {/* Price Details */}
               <div className="space-y-1">
                 <h3 className="text-3xl font-black text-foreground">
-                  {course.store
-                    ? `₹${(course.store.discountPrice > 0 ? course.store.discountPrice : course.store.price).toLocaleString("en-IN")}`
-                    : "₹4,999.00"}
+                  {priceLabel}
                 </h3>
-                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Full Access Price</p>
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                  {isPurchasable ? "Full Access Price" : "Not available for purchase yet"}
+                </p>
               </div>
 
-              <CourseBuyButton courseId={course.id} courseTitle={course.title} />
-              
-              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider text-center">
-                Instant access to lessons, quizzes, and live feeds
-              </p>
+              {isPurchasable ? (
+                <>
+                  <CourseBuyButton courseId={course.id} courseTitle={course.title} />
+
+                  <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider text-center">
+                    Instant access to lessons, quizzes, and live feeds
+                  </p>
+                </>
+              ) : (
+                <p className="text-xs text-muted-foreground text-center">
+                  This course has not been priced yet. Please check back soon.
+                </p>
+              )}
 
               <div className="border-t border-transparent/80 pt-4 space-y-2.5 text-xs font-semibold text-muted-foreground">
                 <div className="flex justify-between">
@@ -268,53 +340,55 @@ export default async function CoursePage({ params }) {
             <div className="rounded-2xl border border-transparent bg-background/60 p-5 shadow-sm space-y-4">
               <div className="flex justify-between items-center mb-1">
                 <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">Student Reviews</h3>
-                <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-lg text-[10px] font-black">
-                  <Star size={10} className="fill-amber-400" />
-                  <span>4.8</span>
-                </span>
+                {reviewCount > 0 && (
+                  <span className="inline-flex items-center gap-1 text-amber-400 text-[10px] font-black">
+                    <Star size={10} className="fill-amber-400" />
+                    <span>{avgRating.toFixed(1)}</span>
+                  </span>
+                )}
               </div>
 
-              <div className="space-y-4">
-                {[
-                  {
-                    name: "John Doe",
-                    review: "Dan's explanation of dynamic configurations finally demystified Next.js caching",
-                    time: "2 days ago"
-                  },
-                  {
-                    name: "Sarah Williams",
-                    review: "Best course for enterprise level Next.js applications.",
-                    time: "1 week ago"
-                  },
-                  {
-                    name: "Michael Brown",
-                    review: "Very practical and easy to follow.",
-                    time: "2 weeks ago"
-                  }
-                ].map((rev, idx) => (
-                  <div key={idx} className="space-y-1.5 text-left border-b border-transparent/40 pb-3 last:border-0 last:pb-0">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-foreground">{rev.name}</span>
-                      <span className="text-[8px] text-muted-foreground font-semibold">{rev.time}</span>
-                    </div>
-                    
-                    {/* 5-star rating */}
-                    <div className="flex gap-0.5 text-amber-400">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} size={10} className="fill-amber-400" />
-                      ))}
-                    </div>
+              {/* Real reviews from GET /reviews?courseId=. This block used to
+                  render three invented testimonials — "John Doe", "Sarah
+                  Williams", "Michael Brown" — quoting Next.js, on every course
+                  on the platform. */}
+              {reviews.length === 0 ? (
+                <p className="text-[10px] text-muted-foreground leading-relaxed font-medium">
+                  No reviews yet. Be the first to review this course once you have enrolled.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.slice(0, 3).map((rev) => (
+                    <div key={rev.id} className="space-y-1.5 text-left border-b border-transparent/40 pb-3 last:border-0 last:pb-0">
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="text-xs font-bold text-foreground truncate">
+                          {rev.student?.user?.name ?? "Student"}
+                        </span>
+                        <span className="text-[8px] text-muted-foreground font-semibold shrink-0">
+                          {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : ""}
+                        </span>
+                      </div>
 
-                    <p className="text-[10px] text-muted-foreground leading-relaxed font-medium">
-                      "{rev.review}"
-                    </p>
-                  </div>
-                ))}
-              </div>
+                      <div className="flex gap-0.5 text-amber-400">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={10}
+                            className={star <= (rev.rating ?? 0) ? "fill-amber-400" : "text-muted-foreground"}
+                          />
+                        ))}
+                      </div>
 
-              <button className="w-full text-center py-2.5 rounded-xl border border-transparent hover:bg-muted text-[10px] font-black uppercase tracking-widest text-foreground transition">
-                View All Reviews
-              </button>
+                      {rev.review && (
+                        <p className="text-[10px] text-muted-foreground leading-relaxed font-medium">
+                          &ldquo;{rev.review}&rdquo;
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
             </div>
 
           </div>

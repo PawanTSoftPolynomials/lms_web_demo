@@ -24,6 +24,8 @@ import path from "node:path";
 import { chromium } from "playwright";
 
 const BASE = process.env.BASE_URL || "http://localhost:3000";
+// next-themes stores the choice under "theme" and puts the class on <html>.
+const THEME = process.env.THEME === "dark" ? "dark" : "light";
 
 const VIEWPORTS = [
   { name: "mobile", width: 390, height: 844, isMobile: true },
@@ -34,6 +36,7 @@ const VIEWPORTS = [
 const USER = {
   INSTRUCTOR: { id: "ui_instr", name: "Ayan Kulkarni", email: "ayan@example.com", role: "INSTRUCTOR" },
   ADMIN: { id: "ui_admin", name: "Ayan Kulkarni", email: "ayan@example.com", role: "ADMIN" },
+  STUDENT: { id: "ui_student", name: "Ayan Kulkarni", email: "ayan@example.com", role: "STUDENT" },
 };
 
 const iso = (d) => new Date(Date.now() + d * 86400000).toISOString();
@@ -196,9 +199,15 @@ async function main() {
       { name: "accessToken", value: "ui-test-stub", url: BASE },
       { name: "role", value: role, url: BASE },
     ]);
-    await context.addInitScript((u) => {
-      try { localStorage.setItem("user", JSON.stringify(u)); } catch { /* private mode */ }
-    }, USER[role]);
+    await context.addInitScript(
+      ({ u, theme }) => {
+        try {
+          localStorage.setItem("user", JSON.stringify(u));
+          localStorage.setItem("theme", theme);
+        } catch { /* private mode */ }
+      },
+      { u: USER[role], theme: THEME }
+    );
 
     // Stub every off-origin request (the API).
     await context.route("**/*", async (route) => {
@@ -259,7 +268,7 @@ async function main() {
           return { scrollWidth: de.scrollWidth, clientWidth: vw, offenders: offenders.slice(0, 10), smallTargets: smallTargets.slice(0, 14) };
         });
 
-        const file = path.join(outDir, `${r.name}__${vp.name}.png`);
+        const file = path.join(outDir, `${r.name}__${vp.name}${THEME === "dark" ? "__dark" : ""}.png`);
         await page.screenshot({ path: file, fullPage: true });
 
         report.push({
