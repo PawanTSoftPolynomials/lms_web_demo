@@ -39,11 +39,11 @@ export default function CourseContentAccordion({
       {/* Overall course progress */}
       <div className={`p-4 sm:p-5 space-y-2 ${collapsed ? "" : "border-b border-border/60"}`}>
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-xs font-black uppercase tracking-widest text-foreground">
+          <h3 className="text-sm font-black uppercase tracking-widest text-foreground">
             Course Content
           </h3>
           <div className="flex items-center gap-3 shrink-0">
-            <span className="text-xs font-black text-primary">{courseProgress}%</span>
+            <span className="text-sm font-black text-primary">{courseProgress}%</span>
             {onToggleCollapsed && (
               <button
                 type="button"
@@ -65,7 +65,7 @@ export default function CourseContentAccordion({
               />
             </div>
             {totalLessons > 0 && (
-              <p className="text-[10px] text-muted-foreground font-semibold">
+              <p className="text-[12px] text-muted-foreground font-semibold">
                 {completedLessons} / {totalLessons} lessons completed
               </p>
             )}
@@ -98,10 +98,10 @@ export default function CourseContentAccordion({
                 }`}
               >
                 <div className="min-w-0 flex-1">
-                  <h4 className="text-xs font-bold text-foreground truncate">
+                  <h4 className="text-sm font-bold text-foreground truncate">
                     Module {moduleIndex + 1}: {module.title}
                   </h4>
-                  <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">
+                  <p className="text-[12px] text-muted-foreground font-semibold mt-0.5">
                     {hasCompletionData
                       ? `${moduleCompletedCount} / ${lessonCount} lessons`
                       : `${lessonCount} ${lessonCount === 1 ? "lesson" : "lessons"}`}
@@ -147,15 +147,15 @@ export default function CourseContentAccordion({
                         ) : isActive ? (
                           <PlayCircle size={15} className="text-foreground shrink-0" />
                         ) : isCompleted ? (
-                          <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
+                          <CheckCircle2 size={15} className="text-emerald-700 dark:text-emerald-400 shrink-0" />
                         ) : (
                           <span className="h-2 w-2 rounded-full bg-slate-700 shrink-0 ml-[3px] mr-[3px]" />
                         )}
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs font-medium">
+                            <p className="truncate text-sm font-medium">
                               {lessonIndex + 1}. {lesson.title}
                             </p>
-                            <p className={`truncate text-[10px] ${isActive ? "text-orange-400" : "text-muted-foreground"}`}>
+                            <p className={`truncate text-[12px] ${isActive ? "text-orange-700 dark:text-orange-400" : "text-muted-foreground"}`}>
                               {isLessonLocked
                                 ? "Locked"
                                 : lesson.topics?.length
@@ -168,7 +168,7 @@ export default function CourseContentAccordion({
                     })}
 
                   {lessonCount === 0 && (
-                    <div className="px-3 py-2 text-xs text-muted-foreground italic">
+                    <div className="px-3 py-2 text-sm text-muted-foreground italic">
                       No lessons available
                     </div>
                   )}
@@ -182,7 +182,7 @@ export default function CourseContentAccordion({
           <button
             type="button"
             onClick={() => setModulesExpanded((prev) => !prev)}
-            className="w-full px-4 sm:px-5 py-3 min-h-[44px] text-[10px] font-black uppercase tracking-wider text-primary hover:text-orange-300 transition cursor-pointer border-0 bg-transparent outline-none"
+            className="w-full px-4 sm:px-5 py-3 min-h-[44px] text-[12px] font-black uppercase tracking-wider text-primary hover:text-orange-300 transition cursor-pointer border-0 bg-transparent outline-none"
           >
             {modulesExpanded ? "Show Less" : `Show ${hiddenModuleCount} More ${hiddenModuleCount === 1 ? "Module" : "Modules"}`}
           </button>
