@@ -1,21 +1,23 @@
 import {
-  BarChart3,
+  // Commented-out icons below belong to the disabled Work, Batches,
+  // Schedule & Communication and Insights entries (see PRIMARY_NAV_ITEMS).
+  // BarChart3,
   BookOpen,
-  Briefcase,
-  CalendarDays,
-  ClipboardList,
-  Database,
-  FileCheck2,
-  FileEdit,
+  // Briefcase,
+  // CalendarDays,
+  // ClipboardList,
+  // Database,
+  // FileCheck2,
+  // FileEdit,
   HelpCircle,
   Home,
-  Layers,
-  Megaphone,
-  MessageSquareText,
-  NotebookPen,
-  Newspaper,
-  TrendingUp,
-  UploadCloud,
+  // Layers,
+  // Megaphone,
+  // MessageSquareText,
+  // NotebookPen,
+  // Newspaper,
+  // TrendingUp,
+  // UploadCloud,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -52,48 +54,52 @@ export const PRIMARY_NAV_ITEMS: NavItem[] = [
     primaryOnMobile: true,
     children: [
       { label: "My Courses", href: "/instructor/courses", icon: BookOpen },
-      {
-        label: "Work",
-        icon: Briefcase,
-        children: [
-          { label: "Create Quiz", href: "/instructor/work/quiz", icon: ClipboardList },
-          { label: "Create Assessment", href: "/instructor/work/assessment", icon: FileEdit },
-          { label: "Create Test", href: "/instructor/work/test", icon: FileCheck2 },
-          { label: "Question Repository", href: "/instructor/work/questions", icon: Database },
-          { label: "Upload Documents", href: "/instructor/work/documents", icon: UploadCloud },
-          { label: "Notes", href: "/instructor/work/notes", icon: NotebookPen },
-        ],
-      },
+      // Work section — hidden from the nav for now. To bring it back, uncomment
+      // this block and its icon imports at the top of the file. The routes
+      // under /instructor/work are untouched and still reachable by URL.
+      // {
+      //   label: "Work",
+      //   icon: Briefcase,
+      //   children: [
+      //     { label: "Create Quiz", href: "/instructor/work/quiz", icon: ClipboardList },
+      //     { label: "Create Assessment", href: "/instructor/work/assessment", icon: FileEdit },
+      //     { label: "Create Test", href: "/instructor/work/test", icon: FileCheck2 },
+      //     { label: "Question Repository", href: "/instructor/work/questions", icon: Database },
+      //     { label: "Upload Documents", href: "/instructor/work/documents", icon: UploadCloud },
+      //     { label: "Notes", href: "/instructor/work/notes", icon: NotebookPen },
+      //   ],
+      // },
       { label: "Q&A", href: "/instructor/qa", icon: HelpCircle },
     ],
   },
-  {
-    label: "People & Classes",
-    icon: Users,
-    primaryOnMobile: true,
-    children: [
-      { label: "Students", href: "/instructor/students", icon: Users },
-      { label: "Batches", href: "/instructor/batches", icon: Layers },
-    ],
-  },
-  {
-    label: "Schedule & Communication",
-    icon: CalendarDays,
-    primaryOnMobile: true,
-    children: [
-      { label: "Calendar", href: "/instructor/calendar", icon: CalendarDays },
-      { label: "News", href: "/instructor/news", icon: Newspaper },
-      { label: "Announcements", href: "/instructor/announcements", icon: Megaphone },
-      { label: "Reviews", href: "/instructor/feedback", icon: MessageSquareText },
-    ],
-  },
-  {
-    label: "Insights",
-    icon: BarChart3,
-    primaryOnMobile: true,
-    children: [
-      { label: "Analytics", href: "/instructor/analytics", icon: BarChart3 },
-      { label: "Results", href: "/instructor/results", icon: TrendingUp },
-    ],
-  },
+  // Was a "People & Classes" section. With Batches hidden it held Students
+  // alone, so it is a flat link now — a dropdown with one child is a click of
+  // pure ceremony. Restoring Batches means turning this back into a section
+  // with both children, and uncommenting the Layers import.
+  // { label: "Batches", href: "/instructor/batches", icon: Layers },
+  { label: "Students", href: "/instructor/students", icon: Users, primaryOnMobile: true },
+  // Schedule & Communication and Insights sections — hidden from the nav for
+  // now, same as Work above. To bring either back, uncomment its block and the
+  // matching icon imports at the top of the file. Every route underneath is
+  // untouched and still reachable by URL.
+  // {
+  //   label: "Schedule & Communication",
+  //   icon: CalendarDays,
+  //   primaryOnMobile: true,
+  //   children: [
+  //     { label: "Calendar", href: "/instructor/calendar", icon: CalendarDays },
+  //     { label: "News", href: "/instructor/news", icon: Newspaper },
+  //     { label: "Announcements", href: "/instructor/announcements", icon: Megaphone },
+  //     { label: "Reviews", href: "/instructor/feedback", icon: MessageSquareText },
+  //   ],
+  // },
+  // {
+  //   label: "Insights",
+  //   icon: BarChart3,
+  //   primaryOnMobile: true,
+  //   children: [
+  //     { label: "Analytics", href: "/instructor/analytics", icon: BarChart3 },
+  //     { label: "Results", href: "/instructor/results", icon: TrendingUp },
+  //   ],
+  // },
 ];
