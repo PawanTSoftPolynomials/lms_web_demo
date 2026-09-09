@@ -64,18 +64,24 @@ export default function PptViewer({
 
     const updateContainerDimensions = () => {
       if (viewportRef.current) {
-        const w = viewportRef.current.clientWidth || 960;
-        const h = viewportRef.current.clientHeight || 540;
-        // Subtract small padding to prevent scrollbar overflow.
-        // The floors used to be unconditional, which inverted the whole point
-        // of fitting: in a container narrower than 280px the slide was scaled
-        // to 280px and then overflowed its own viewport, clipping the first
-        // and last columns and putting a scrollbar inside the block. Floor at
-        // 1 instead, so a genuinely narrow container simply scales further
-        // down, and keep the fallback only for the pre-layout case.
+        const el = viewportRef.current;
+        const cs = window.getComputedStyle(el);
+        // Measure the real content box. clientWidth/Height include padding, and
+        // this used to subtract a hardcoded 24px for it — wrong whenever the
+        // padding is not 12px a side, and on mobile it is 0. Over-subtracting
+        // from an aspect-video box also skews it wider than 16:9, which made
+        // *height* the binding constraint and left the slide narrower than the
+        // space it had.
+        const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+        const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+        const w = (el.clientWidth || 960) - padX;
+        const h = (el.clientHeight || 540) - padY;
+        // Floor at 1, not at a fixed minimum: an unconditional floor inverted
+        // the whole point of fitting, scaling the slide *up* past a narrow
+        // container so it overflowed and lost its first and last columns.
         setContainerSize({
-          width: Math.max(w - 24, 1),
-          height: Math.max(h - 24, 1),
+          width: Math.max(w, 1),
+          height: Math.max(h, 1),
         });
       }
     };
@@ -355,7 +361,7 @@ export default function PptViewer({
         // 520px floor left a phone showing mostly empty backdrop. Below sm the
         // viewport is aspect-driven instead; the tall fixed height starts at
         // sm, where it is a reasonable reading size again.
-        className="relative w-full aspect-video min-h-0 sm:aspect-auto sm:h-[78vh] sm:min-h-[520px] sm:max-h-[900px] overflow-auto bg-[#060913] p-2 sm:p-4 flex justify-center items-center scroll-smooth rounded-2xl border border-border/80"
+        className="relative w-full aspect-video min-h-0 sm:aspect-auto sm:h-[78vh] sm:min-h-[520px] sm:max-h-[900px] overflow-auto bg-[#060913] p-0 sm:p-4 flex justify-center items-center scroll-smooth rounded-2xl border border-border/80"
       >
         {/* Loading Overlay */}
         {loadingStep && (
