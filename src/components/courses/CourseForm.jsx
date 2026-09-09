@@ -1,6 +1,7 @@
 "use client";
 
 import {useEffect, useState} from "react";
+import {useRouter} from "next/navigation";
 
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
@@ -33,8 +34,11 @@ export default function CourseForm({
                                        initialValues = null,
                                        loading = false,
                                        onSubmit,
+                                       onCancel,
                                        submitError = "",
                                    }) {
+    const router = useRouter();
+
     const [formData, setFormData] =
         useState(INITIAL_FORM);
 
@@ -107,6 +111,16 @@ export default function CourseForm({
         };
         
         onSubmit?.(payload);
+    };
+
+    // Callers pass the page to return to; falling back to history keeps the
+    // button useful anywhere the form is dropped in without one.
+    const handleCancel = () => {
+        if (onCancel) {
+            onCancel();
+            return;
+        }
+        router.back();
     };
 
     return (
@@ -326,6 +340,15 @@ export default function CourseForm({
                 </div>
 
                 <div className="flex justify-end gap-4 pt-4">
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={handleCancel}
+                        disabled={loading}
+                    >
+                        Cancel
+                    </Button>
+
                     <Button
                         type="submit"
                         disabled={loading}

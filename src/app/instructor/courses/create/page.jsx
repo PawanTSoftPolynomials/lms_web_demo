@@ -39,6 +39,9 @@ export default function CreateCoursePage() {
                 createCourseMutation.isPending
             }
             onSubmit={handleSubmit}
+            onCancel={() =>
+                router.push("/instructor/courses")
+            }
             submitError={submitError}
         />
     );
