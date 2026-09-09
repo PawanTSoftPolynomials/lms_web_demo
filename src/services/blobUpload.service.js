@@ -11,6 +11,11 @@ export const uploadFileToBlob = async (file, options = {}) => {
 
   const formData = new FormData();
   formData.append("file", file);
+  // Declares which upload path this is. A STUDENT is only permitted
+  // "assignment-submission"; instructor/admin uploads leave it unset.
+  if (options.purpose) {
+    formData.append("purpose", options.purpose);
+  }
 
   const res = await fetch("/api/upload", {
     method: "POST",

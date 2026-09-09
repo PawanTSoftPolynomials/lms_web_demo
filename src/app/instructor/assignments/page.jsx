@@ -12,6 +12,7 @@ import Loader from "@/components/common/Loader";
 import AssessmentForm from "@/components/instructor/AssessmentForm";
 
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
+import AssignmentSubmissionsPanel from "@/components/instructor/assignments/AssignmentSubmissionsPanel";
 import {
   useInstructorAssignments,
   useUpdateAssignment,
@@ -24,6 +25,8 @@ export default function InstructorAssignmentsPage() {
 
   const [courseFilter, setCourseFilter] = useState("all");
   const [editingAssignment, setEditingAssignment] = useState(null);
+  // Which assignment's student submissions are expanded, if any.
+  const [openSubmissionsId, setOpenSubmissionsId] = useState(null);
 
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -153,7 +156,8 @@ export default function InstructorAssignmentsPage() {
           ) : (
             <div className="grid gap-4">
               {filteredAssignments.map((a) => (
-                <Card key={a.id} className="p-5 border border-slate-850 bg-background/40 hover:border-transparent transition duration-300 flex flex-col justify-between md:flex-row md:items-center gap-4">
+                <Card key={a.id} className="p-5 border border-slate-850 bg-background/40 hover:border-transparent transition duration-300 flex flex-col gap-4">
+                  <div className="flex flex-col justify-between md:flex-row md:items-center gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <span className="rounded bg-primary/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-primary border border-primary/20">
@@ -200,6 +204,28 @@ export default function InstructorAssignmentsPage() {
                     >
                       <Trash2 size={13} />
                     </button>
+                  </div>
+                  </div>
+
+                  {/* Student submissions — the actual PDFs students uploaded. */}
+                  <div className="border-t border-border/60 pt-3">
+                    <button
+                      type="button"
+                      onClick={() => setOpenSubmissionsId((prev) => (prev === a.id ? null : a.id))}
+                      className="min-h-[36px] inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-[11px] font-bold text-foreground transition cursor-pointer hover:border-primary/40 hover:text-primary"
+                      aria-expanded={openSubmissionsId === a.id}
+                    >
+                      {openSubmissionsId === a.id ? "Hide Submissions" : "View Submissions"}
+                      {a.pendingSubmissionsCount > 0 && (
+                        <span className="rounded-full bg-primary/15 border border-primary/25 px-1.5 py-0.5 text-[9px] font-black text-primary">
+                          {a.pendingSubmissionsCount} ungraded
+                        </span>
+                      )}
+                    </button>
+                    <AssignmentSubmissionsPanel
+                      assignmentId={a.id}
+                      open={openSubmissionsId === a.id}
+                    />
                   </div>
                 </Card>
               ))}
