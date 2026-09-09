@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { CheckCircle2, Loader2, Upload, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2, Upload, X } from "lucide-react";
 
 import { Button } from "@/components/ui/shadcn/button";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -38,6 +38,10 @@ export function VideoCell({
   const [videoUrl, setVideoUrl] = useState(content.videoUrl ?? "");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  // A <video> whose source will not decode collapses into the browser's own
+  // broken-media box on a black background, which reads as a broken page
+  // rather than a broken file. Track the failure so we can say which it is.
+  const [playbackFailed, setPlaybackFailed] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const updateContent = useUpdateContent();
@@ -91,6 +95,9 @@ export function VideoCell({
         contentData: { title, videoUrl },
         parent: getContentParent(content),
       });
+      // A new source deserves a fresh attempt — otherwise fixing a bad URL
+      // would still show the previous failure.
+      setPlaybackFailed(false);
       setMode("view");
     } catch (error) {
       showToast(getErrorMessage(error, "Failed to save this video."), "error", "Save failed");
@@ -235,7 +242,11 @@ export function VideoCell({
               time, so it sizes itself to its own natural dimensions instead
               of being forced into a 16:9 box — forcing one there just
               letterboxes non-16:9 footage into a tiny, mostly-black frame. */}
-          <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-xl border border-border bg-black shadow-lg">
+          <div
+            className={`mx-auto w-full max-w-2xl overflow-hidden rounded-xl border border-border shadow-lg ${
+              playbackFailed && !embedUrl ? "bg-card" : "bg-black"
+            }`}
+          >
             {embedUrl ? (
               <div className="relative aspect-video w-full">
                 <iframe
@@ -246,11 +257,25 @@ export function VideoCell({
                   className="absolute inset-0 h-full w-full rounded-xl border-0"
                 />
               </div>
+            ) : playbackFailed ? (
+              /* Named as a source problem, not rendered as a broken page. The
+                 URL is shown because it is usually the thing that is wrong. */
+              <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
+                <AlertTriangle className="size-6 text-amber-600 dark:text-amber-400" />
+                <p className="text-sm font-semibold text-foreground">This video couldn&apos;t be played</p>
+                <p className="text-xs text-muted-foreground">
+                  The file may be missing, still uploading, or not a format this browser supports.
+                </p>
+                <code className="mt-1 block max-w-full truncate rounded bg-muted px-2 py-1 text-[11px] text-muted-foreground">
+                  {content.videoUrl}
+                </code>
+              </div>
             ) : (
               <video
                 src={getDisplayUrl(content.videoUrl)}
                 controls
                 preload="metadata"
+                onError={() => setPlaybackFailed(true)}
                 className="block w-full h-auto max-h-[70vh] rounded-xl"
               />
             )}
