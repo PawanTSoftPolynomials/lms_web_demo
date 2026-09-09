@@ -47,7 +47,7 @@ export default function QuizPage() {
 
               <div className="mt-3 flex gap-4 text-xs text-foreground font-semibold">
                 <span>Passing Score: {quiz.passingScore}%</span>
-                <span>Time Limit: {quiz.timeLimit} min</span>
+                <span>{Number(quiz.timeLimit) > 0 ? `Time Limit: ${quiz.timeLimit} min` : "No timer"}</span>
               </div>
 
               <Link

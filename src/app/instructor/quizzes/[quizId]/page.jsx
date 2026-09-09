@@ -154,7 +154,7 @@ export default function InstructorQuizDetailPage({ params }) {
             </div>
             <div>
               <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-mono">Duration</span>
-              <p className="text-xl font-bold text-emerald-400">{quiz.timeLimit || 30} mins</p>
+              <p className="text-xl font-bold text-emerald-400">{Number(quiz.timeLimit) > 0 ? `${quiz.timeLimit} mins` : "No timer"}</p>
             </div>
             <div>
               <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-mono">Passing Score</span>

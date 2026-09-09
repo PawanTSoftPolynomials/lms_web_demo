@@ -14,6 +14,12 @@ export default function QuizHeader({
 
     const questionCount = quiz.questions?.length ?? 0;
 
+    // No fallback duration. A quiz with no time limit is untimed — inventing
+    // one here would start a countdown that force-submits the attempt.
+    const timeLimit = Number(quiz.timeLimit) > 0 ? Number(quiz.timeLimit) : null;
+
+    const quizTypeLabel = quiz.quizTag === "SELF_TEST" ? "Self-Test" : "Final Quiz";
+
     return (
         <div className="flex items-center gap-3 rounded-xl border border-border bg-background/80 px-4 py-2.5">
             {onBack ? (
@@ -45,17 +51,20 @@ export default function QuizHeader({
                 </h1>
 
                 <p className="text-[11px] text-muted-foreground">
-                    Quiz Assessment &bull; {questionCount}{" "}
+                    {quizTypeLabel} &bull; {questionCount}{" "}
                     {questionCount === 1 ? "Question" : "Questions"}
+                    {timeLimit === null && <> &bull; No timer</>}
                 </p>
             </div>
 
-            <div className="shrink-0 border-l border-border pl-3">
-                <QuizTimer
-                    duration={quiz?.timeLimit || quiz?.duration || 15}
-                    onTimeUp={onTimeUp}
-                />
-            </div>
+            {timeLimit !== null && (
+                <div className="shrink-0 border-l border-border pl-3">
+                    <QuizTimer
+                        duration={timeLimit}
+                        onTimeUp={onTimeUp}
+                    />
+                </div>
+            )}
         </div>
     );
 }

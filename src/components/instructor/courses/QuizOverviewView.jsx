@@ -37,6 +37,39 @@ function getOptionText(opt) {
 
 const optionToText = getOptionText;
 
+// A quiz's tag is independent of its scope/level: Lesson + Self-Test and
+// Lesson + Final Quiz are both valid. Self-Test is never timed.
+export const QUIZ_TAG_LABELS = {
+  SELF_TEST: "Self-Test",
+  FINAL: "Final Quiz",
+};
+
+const QUIZ_TAG_OPTIONS = [
+  { value: "SELF_TEST", label: "Self-Test", hint: "Practice — no timer" },
+  { value: "FINAL", label: "Final Quiz", hint: "Formal assessment" },
+];
+
+const DEFAULT_TIME_LIMIT = 30;
+
+// Both edit entry points (opening a quiz, and cancelling out of an edit) seed
+// the form the same way. Note there is no timeLimit fallback: a null limit
+// means "untimed" and must survive a round trip through this form.
+function quizFormFromQuiz(quiz) {
+  const timeLimit = Number(quiz.timeLimit) > 0 ? Number(quiz.timeLimit) : null;
+
+  return {
+    title: quiz.title || "",
+    description: quiz.description || "",
+    // Rows cached from before quiz tags existed read as the formal
+    // assessment they were authored as.
+    quizTag: quiz.quizTag === "SELF_TEST" ? "SELF_TEST" : "FINAL",
+    timerEnabled: timeLimit !== null,
+    timeLimit,
+    passingScore: quiz.passingScore !== undefined && quiz.passingScore !== null ? quiz.passingScore : 50,
+    isPublished: quiz.isPublished !== false,
+  };
+}
+
 export function QuizOverviewView({
   quiz,
   quizMode = "view",
@@ -53,11 +86,15 @@ export function QuizOverviewView({
   // mode has no equivalent since it lists every question at once.
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
-  // Editable Quiz Metadata
+  // Editable Quiz Metadata. `timerEnabled` is UI-only: it separates "this
+  // Final Quiz is deliberately untimed" from "the minutes box is empty",
+  // both of which save timeLimit as null.
   const [quizForm, setQuizForm] = useState({
     title: "",
     description: "",
-    timeLimit: 30,
+    quizTag: "",
+    timerEnabled: false,
+    timeLimit: null,
     passingScore: 70,
     isPublished: true,
   });
@@ -74,7 +111,11 @@ export function QuizOverviewView({
       setQuizForm({
         title: topicTitle ? `Quiz - ${topicTitle}` : lessonTitle ? `Quiz - ${lessonTitle}` : moduleTitle ? `Quiz - ${moduleTitle}` : "Course Quiz",
         description: "",
-        timeLimit: 30,
+        // Deliberately unselected — the instructor must choose practice or
+        // assessment rather than inherit a default.
+        quizTag: "",
+        timerEnabled: false,
+        timeLimit: null,
         passingScore: 70,
         isPublished: true,
       });
@@ -89,13 +130,7 @@ export function QuizOverviewView({
 
   useEffect(() => {
     if (quiz && quizMode !== "create") {
-      setQuizForm({
-        title: quiz.title || "",
-        description: quiz.description || "",
-        timeLimit: quiz.timeLimit !== undefined && quiz.timeLimit !== null ? quiz.timeLimit : 30,
-        passingScore: quiz.passingScore !== undefined && quiz.passingScore !== null ? quiz.passingScore : 50,
-        isPublished: quiz.isPublished !== false,
-      });
+      setQuizForm(quizFormFromQuiz(quiz));
 
       const rawQuestions = quiz.questions || (quiz.quizQuestions || []).map((qq) => ({
         ...qq.question,
@@ -146,13 +181,7 @@ export function QuizOverviewView({
       setIsEditing(false);
       // Reset state to original quiz prop
       if (quiz) {
-        setQuizForm({
-          title: quiz.title || "",
-          description: quiz.description || "",
-          timeLimit: quiz.timeLimit !== undefined && quiz.timeLimit !== null ? quiz.timeLimit : 30,
-          passingScore: quiz.passingScore !== undefined && quiz.passingScore !== null ? quiz.passingScore : 50,
-          isPublished: quiz.isPublished !== false,
-        });
+        setQuizForm(quizFormFromQuiz(quiz));
       }
     }
   };
@@ -319,6 +348,11 @@ export function QuizOverviewView({
       return;
     }
 
+    if (!quizForm.quizTag) {
+      setError("Select a quiz tag — Self-Test or Final Quiz.");
+      return;
+    }
+
     for (let i = 0; i < questions.length; i++) {
       if (!questions[i].question.trim()) {
         setError(`Question #${i + 1} cannot have empty question text.`);
@@ -327,11 +361,20 @@ export function QuizOverviewView({
       }
     }
 
+    // Only a Final Quiz with the timer switched on carries a limit. Everything
+    // else is null, never 0 — 0 and null both mean "untimed" here, and letting
+    // 0 through would leave "0 mins" showing up in read views.
+    const effectiveTimeLimit =
+      quizForm.quizTag === "FINAL" && quizForm.timerEnabled && Number(quizForm.timeLimit) > 0
+        ? Number(quizForm.timeLimit)
+        : null;
+
     const updatedQuiz = {
       ...quiz,
       title: quizForm.title.trim(),
       description: quizForm.description.trim(),
-      timeLimit: Number(quizForm.timeLimit) || 0,
+      quizTag: quizForm.quizTag,
+      timeLimit: effectiveTimeLimit,
       passingScore: Number(quizForm.passingScore) || 0,
       isPublished: quizForm.isPublished,
       questions: questions.map((q, idx) => ({
@@ -357,6 +400,21 @@ export function QuizOverviewView({
             <HelpCircle size={12} />
             {topicTitle ? `Topic Quiz — ${topicTitle}` : lessonTitle ? `Lesson Quiz — ${lessonTitle}` : moduleTitle ? `Module Quiz — ${moduleTitle}` : "Course-Level Quiz"}
           </span>
+
+          {/* Tag sits beside the scope badge, not inside it — the two are
+              independent (Lesson + Self-Test is as valid as Lesson + Final). */}
+          {quizForm.quizTag && (
+            <span
+              className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
+                quizForm.quizTag === "SELF_TEST"
+                  ? "bg-sky-500/10 text-sky-400 border-sky-500/20"
+                  : "bg-purple-500/10 text-purple-400 border-purple-500/20"
+              }`}
+            >
+              {QUIZ_TAG_LABELS[quizForm.quizTag]}
+            </span>
+          )}
+
           <span
             className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
               quizForm.isPublished
@@ -458,7 +516,7 @@ export function QuizOverviewView({
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-mono text-muted-foreground block">Time Limit</span>
-                  <span className="font-bold text-foreground text-sm">{quizForm.timeLimit ? `${quizForm.timeLimit} mins` : "No limit"}</span>
+                  <span className="font-bold text-foreground text-sm">{Number(quizForm.timeLimit) > 0 ? `${quizForm.timeLimit} mins` : "No timer"}</span>
                 </div>
               </div>
             </div>
@@ -581,18 +639,7 @@ export function QuizOverviewView({
                 />
               </div>
 
-              <div className="grid md:grid-cols-3 gap-2">
-                <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-foreground">Time (Mins)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={quizForm.timeLimit}
-                    onChange={(e) => setQuizForm((prev) => ({ ...prev, timeLimit: e.target.value }))}
-                    className="w-full rounded-xl border border-transparent bg-background px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500"
-                  />
-                </div>
-
+              <div className="grid md:grid-cols-2 gap-2">
                 <div className="space-y-1">
                   <label className="text-[11px] font-semibold text-foreground">Passing %</label>
                   <input
@@ -617,6 +664,103 @@ export function QuizOverviewView({
                   </label>
                 </div>
               </div>
+            </div>
+
+            {/* Quiz Tag, and the time limit it governs. A Self-Test never has
+                a timer, so its control is removed outright rather than
+                disabled — a greyed-out "30" still reads as "30 minutes". */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Quiz Tag *</label>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {QUIZ_TAG_OPTIONS.map((opt) => {
+                    const selected = quizForm.quizTag === opt.value;
+
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() =>
+                          setQuizForm((prev) => ({
+                            ...prev,
+                            quizTag: opt.value,
+                            // Switching to Self-Test drops the timer here as
+                            // well as server-side, so the form never shows a
+                            // limit the save will discard.
+                            ...(opt.value === "SELF_TEST"
+                              ? { timerEnabled: false, timeLimit: null }
+                              : {}),
+                          }))
+                        }
+                        aria-pressed={selected}
+                        className={`rounded-xl border px-3 py-2 text-left transition cursor-pointer ${
+                          selected
+                            ? "border-emerald-500 bg-emerald-500/10"
+                            : "border-border bg-background hover:border-emerald-500/40"
+                        }`}
+                      >
+                        <span className={`block text-[11px] font-bold ${selected ? "text-emerald-400" : "text-foreground"}`}>
+                          {opt.label}
+                        </span>
+                        <span className="block text-[9.5px] text-muted-foreground">{opt.hint}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {!quizForm.quizTag && (
+                  <p className="text-[10px] text-muted-foreground">
+                    Choose one before saving.
+                  </p>
+                )}
+              </div>
+
+              {quizForm.quizTag === "FINAL" && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground">Time Limit</label>
+
+                  <label className="flex items-center gap-1.5 p-2 rounded-xl border border-border bg-background cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={quizForm.timerEnabled}
+                      onChange={(e) =>
+                        setQuizForm((prev) => ({
+                          ...prev,
+                          timerEnabled: e.target.checked,
+                          timeLimit: e.target.checked
+                            ? (Number(prev.timeLimit) > 0 ? prev.timeLimit : DEFAULT_TIME_LIMIT)
+                            : null,
+                        }))
+                      }
+                      className="accent-emerald-500 h-3.5 w-3.5"
+                    />
+                    <span className="text-[10.5px] font-semibold text-foreground">Enable time limit</span>
+                  </label>
+
+                  {quizForm.timerEnabled && (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        value={quizForm.timeLimit ?? ""}
+                        onChange={(e) => setQuizForm((prev) => ({ ...prev, timeLimit: e.target.value }))}
+                        className="w-24 rounded-xl border border-transparent bg-background px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500"
+                      />
+                      <span className="text-[10.5px] text-muted-foreground">minutes</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {quizForm.quizTag === "SELF_TEST" && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground">Time Limit</label>
+                  <p className="p-2 rounded-xl border border-border bg-background text-[10.5px] text-muted-foreground">
+                    Self-Test quizzes are never timed. Learners can take this as long as they need.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-1">

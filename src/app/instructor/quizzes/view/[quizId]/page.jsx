@@ -155,7 +155,7 @@ export default function QuizDetailsPage() {
                 <Card className="text-center">
                     <p className="text-sm text-muted-foreground">Time Limit</p>
                     <h3 className="mt-3 text-3xl font-bold text-primary">
-                        {quiz.timeLimit || 0} mins
+                        {Number(quiz.timeLimit) > 0 ? `${quiz.timeLimit} mins` : "No timer"}
                     </h3>
                 </Card>
 

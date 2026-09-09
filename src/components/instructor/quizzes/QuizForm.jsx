@@ -7,12 +7,23 @@ import Button from "@/components/ui/Button";
 import { useModules } from "@/hooks/queries/instructor/useModules";
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 
+const QUIZ_TAG_OPTIONS = [
+    { value: "SELF_TEST", label: "Self-Test — practice, never timed" },
+    { value: "FINAL", label: "Final Quiz — formal assessment" },
+];
+
+const DEFAULT_TIME_LIMIT = 30;
+
 const INITIAL_FORM = {
     courseId: "",
     moduleId: "",
     title: "",
     description: "",
-    timeLimit: 30,
+    // Unselected on purpose — the instructor picks practice or assessment.
+    quizTag: "",
+    // UI-only: distinguishes "deliberately untimed" from "minutes box empty".
+    timerEnabled: false,
+    timeLimit: null,
     passingScore: 50,
     startDate: "",
     dueDate: "",
@@ -40,6 +51,7 @@ export default function QuizForm({
 }) {
     const [formData, setFormData] = useState({ ...INITIAL_FORM, courseId: lockedCourseId || "" });
     const [submitAction, setSubmitAction] = useState("draft");
+    const [tagError, setTagError] = useState("");
 
     // Course → Module: when a course is locked (e.g. "create quiz for this
     // course" entry point), the course select is replaced with a read-only
@@ -51,9 +63,15 @@ export default function QuizForm({
 
     useEffect(() => {
         if (initialValues) {
+            const timeLimit = Number(initialValues.timeLimit) > 0 ? Number(initialValues.timeLimit) : null;
+
             setFormData({
                 ...INITIAL_FORM,
                 ...initialValues,
+                // Quizzes authored before tags existed were formal assessments.
+                quizTag: initialValues.quizTag === "SELF_TEST" ? "SELF_TEST" : "FINAL",
+                timerEnabled: timeLimit !== null,
+                timeLimit,
                 startDate: formatDateForInput(initialValues.startDate || initialValues.availableFrom),
                 dueDate: formatDateForInput(initialValues.dueDate || initialValues.availableUntil),
             });
@@ -65,20 +83,47 @@ export default function QuizForm({
 
         setFormData((prev) => ({
             ...prev,
-            [name]: name === "timeLimit" || name === "passingScore" ? Number(value) : value,
+            // timeLimit is coerced at submit, not here — Number("") is 0, which
+            // would read as a real (zero-minute) limit while typing.
+            [name]: name === "passingScore" ? Number(value) : value,
             ...(name === "courseId" ? { moduleId: "" } : {}),
+        }));
+    };
+
+    const handleSelectTag = (quizTag) => {
+        setTagError("");
+        setFormData((prev) => ({
+            ...prev,
+            quizTag,
+            // A Self-Test is never timed, so drop any limit as the tag changes.
+            ...(quizTag === "SELF_TEST" ? { timerEnabled: false, timeLimit: null } : {}),
         }));
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
+        if (!formData.quizTag) {
+            setTagError("Select a quiz tag — Self-Test or Final Quiz.");
+            return;
+        }
+
+        // Only a Final Quiz with the timer switched on carries a limit.
+        const timeLimit =
+            formData.quizTag === "FINAL" && formData.timerEnabled && Number(formData.timeLimit) > 0
+                ? Number(formData.timeLimit)
+                : null;
+
         const payload = {
             ...formData,
+            timeLimit,
             moduleId: formData.moduleId || null,
             startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
             dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
         };
+
+        // UI-only field — the API schema rejects unknown keys.
+        delete payload.timerEnabled;
 
         onSubmit?.(payload, submitAction);
     };
@@ -166,16 +211,77 @@ export default function QuizForm({
                     />
                 </div>
 
+                {/* Quiz Tag — independent of the quiz's course/module scope
+                    above. Governs whether a time limit exists at all. */}
+                <div className="space-y-2">
+                    <label className="text-sm text-foreground">Quiz Tag *</label>
+
+                    <select
+                        name="quizTag"
+                        value={formData.quizTag}
+                        onChange={(e) => handleSelectTag(e.target.value)}
+                        required
+                        className="w-full rounded-lg border border-transparent bg-muted px-4 py-3 outline-none focus:border-primary"
+                    >
+                        <option value="" disabled>Select a quiz tag...</option>
+                        {QUIZ_TAG_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                    </select>
+
+                    {tagError && <p className="text-xs text-red-400">{tagError}</p>}
+                </div>
+
                 {/* Duration & Score */}
                 <div className="grid gap-6 md:grid-cols-2">
-                    <Input
-                        label="Time Limit (Minutes)"
-                        name="timeLimit"
-                        type="number"
-                        min="1"
-                        value={formData.timeLimit}
-                        onChange={handleChange}
-                    />
+                    {/* A Self-Test never has a timer, so the control is absent
+                        rather than disabled — a greyed-out "30" would still
+                        read as "this quiz is 30 minutes long". */}
+                    {formData.quizTag === "SELF_TEST" ? (
+                        <div className="space-y-2">
+                            <label className="text-sm text-foreground">Time Limit</label>
+                            <p className="rounded-lg border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
+                                Self-Test quizzes are never timed.
+                            </p>
+                        </div>
+                    ) : formData.quizTag === "FINAL" ? (
+                        <div className="space-y-2">
+                            <label className="text-sm text-foreground">Time Limit</label>
+
+                            <label className="flex items-center gap-2.5 rounded-lg border border-border bg-background px-4 py-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.timerEnabled}
+                                    onChange={(e) =>
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            timerEnabled: e.target.checked,
+                                            timeLimit: e.target.checked
+                                                ? (Number(prev.timeLimit) > 0 ? prev.timeLimit : DEFAULT_TIME_LIMIT)
+                                                : null,
+                                        }))
+                                    }
+                                    className="h-4 w-4 rounded border-transparent bg-background text-primary cursor-pointer"
+                                />
+                                <span className="text-xs font-semibold text-foreground select-none">
+                                    Enable time limit
+                                </span>
+                            </label>
+
+                            {formData.timerEnabled && (
+                                <Input
+                                    label="Minutes"
+                                    name="timeLimit"
+                                    type="number"
+                                    min="1"
+                                    value={formData.timeLimit ?? ""}
+                                    onChange={handleChange}
+                                />
+                            )}
+                        </div>
+                    ) : (
+                        <div />
+                    )}
 
                     <Input
                         label="Passing Score (%)"

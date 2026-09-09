@@ -62,7 +62,7 @@ export default function QuizRow({
                     <Clock className="h-4 w-4 text-primary"/>
 
                     <span>
-            {quiz.timeLimit} min
+            {Number(quiz.timeLimit) > 0 ? `${quiz.timeLimit} min` : "No timer"}
           </span>
                 </div>
             </td>
