@@ -170,8 +170,9 @@ export default function ChatInput() {
           rounded-full
           bg-primary
           p-3
-          text-primary-foreground
-          hover:bg-primary-hover
+          text-foreground
+          shadow-[0_4px_15px_rgba(249,115,22,0.3)]
+          hover:shadow-[0_4px_20px_rgba(249,115,22,0.45)]
           hover:scale-105
           active:scale-95
           transition-all

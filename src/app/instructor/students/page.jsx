@@ -24,7 +24,7 @@ function StudentsDirectoryContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [courseFilter, setCourseFilter] = useState('All');
   const [batchFilter, setBatchFilter] = useState('All');
-  const [activeTab, setActiveTab] = useState('Progress'); // Progress | Assignments | Certificates
+  const [activeTab, setActiveTab] = useState('Assignments'); // Assignments | Certificates
 
   const selectedCourse = courseFilter === 'All' ? null : courses.find((c) => c.id === courseFilter);
 
@@ -173,7 +173,7 @@ function StudentsDirectoryContent() {
             
             {/* Tabs Selector */}
             <div className="flex gap-4 border-b border-border pb-1">
-              {['Progress', 'Assignments', 'Certificates'].map((tab) => (
+              {['Assignments', 'Certificates'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -191,10 +191,6 @@ function StudentsDirectoryContent() {
 
             {/* Tab Contents */}
             <div>
-              {activeTab === 'Progress' && (
-                <StudentProgressDetailView studentId={selectedStudent.id} studentName={selectedStudent.name} />
-              )}
-
               {activeTab === 'Assignments' && (
                 <div className="space-y-3">
                   <h3 className="text-xs font-black text-muted-foreground uppercase tracking-widest font-mono mb-2">Assignment Grades</h3>
@@ -282,7 +278,6 @@ function StudentsDirectoryContent() {
                 className="w-full bg-white/[0.02] border border-border text-xs !pl-8 !pr-3.5 py-2 rounded-xl outline-none text-foreground placeholder-slate-500 focus:border-transparent transition"
               />
             </div>
-
           </div>
 
           {/* Controls: Course & Batch Filters */}

@@ -34,9 +34,10 @@ export default function Footer() {
               Account
             </h3>
 
-            <div className="flex flex-col gap-2.5 text-muted-foreground">
-              <Link href="/login" className="transition-colors hover:text-primary">Login</Link>
-              <Link href="/register" className="transition-colors hover:text-primary">Get Started</Link>
+            <div className="flex flex-col gap-2 text-muted-foreground">
+              <p>Courses</p>
+              <p>Quizzes</p>
+              <p>Certificates</p>
             </div>
           </div>
         </div>

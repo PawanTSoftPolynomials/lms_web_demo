@@ -37,9 +37,6 @@ export default function AdminStudentsPage() {
     const [search, setSearch] =
         useState("");
 
-    const [status, setStatus] =
-        useState("");
-
     const [roleModalTarget, setRoleModalTarget] =
         useState(null);
 
@@ -59,21 +56,12 @@ export default function AdminStudentsPage() {
                                 search.toLowerCase()
                             );
 
-                    const matchesStatus =
-                        !status ||
-                        student.status ===
-                        status;
-
-                    return (
-                        matchesSearch &&
-                        matchesStatus
-                    );
+                    return matchesSearch;
                 }
             );
         }, [
             students,
             search,
-            status,
         ]);
 
     const handleDelete = async (student) => {
@@ -132,10 +120,6 @@ export default function AdminStudentsPage() {
                     search={search}
                     onSearchChange={
                         setSearch
-                    }
-                    status={status}
-                    onStatusChange={
-                        setStatus
                     }
                     onRefresh={refetch}
                 />

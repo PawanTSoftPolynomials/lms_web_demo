@@ -1,0 +1,142 @@
+/**
+ * Flattens the authoritative Progress hierarchy returned by
+ * `GET /progress/courses/:courseId` into id-keyed lookups.
+ *
+ * The backend already computes every percentage and every completion flag —
+ * bottom-up, in one transaction, over the same applicable-item set it derived
+ * the course total from. Nothing here recomputes any of that: this module only
+ * changes the SHAPE of the response (nested tree -> flat Maps) so a deeply
+ * nested renderer can ask "is this id complete?" without walking the tree on
+ * every row.
+ *
+ * Deriving completion in the frontend instead would let the sidebar disagree
+ * with the course percentage shown two panels away, which is exactly what the
+ * server-side roll-up exists to prevent.
+ */
+
+/**
+ * Per-node roll-up, keyed by Course / Module / Lesson / Topic id.
+ *
+ * `applicable` is the backend's own "this node has items that count" flag. It
+ * is NOT the same as `totalItems > 0` for a Course, and callers should prefer
+ * it over inventing an emptiness rule of their own.
+ */
+function nodeSummary(node) {
+  return {
+    id: node.id,
+    title: node.title,
+    completed: node.completed === true,
+    progressPercent: node.progressPercent ?? 0,
+    completedItems: node.completedItems ?? 0,
+    totalItems: node.totalItems ?? 0,
+    // The course root carries no `applicable` flag — it is applicable exactly
+    // when it has any tracked item at all.
+    applicable: node.applicable ?? (node.totalItems ?? 0) > 0,
+  };
+}
+
+/**
+ * @param {object|null|undefined} progressData
+ *   The `data` payload of GET /progress/courses/:courseId.
+ * @returns {{
+ *   nodes: Map<string, object>,
+ *   items: Map<string, object>,
+ *   course: object|null,
+ * }|null} `null` when progress is unavailable, so callers can render the
+ *   learning experience unchanged rather than showing a misleading 0%.
+ */
+export function buildProgressIndex(progressData) {
+  const hierarchy = progressData?.hierarchy;
+  if (!hierarchy) return null;
+
+  const nodes = new Map();
+  const items = new Map();
+
+  // Direct (non-inherited) learning items owned by one node. Every item the
+  // backend counts arrives pre-tagged with `kind` and `completed`.
+  const indexDirectItems = (node) => {
+    for (const item of [
+      ...(node.contents || []),
+      ...(node.quizzes || []),
+      ...(node.assignments || []),
+    ]) {
+      if (item?.id) items.set(item.id, item);
+    }
+  };
+
+  const indexNode = (node) => {
+    if (!node?.id) return;
+    nodes.set(node.id, nodeSummary(node));
+    indexDirectItems(node);
+  };
+
+  indexNode(hierarchy);
+
+  for (const mod of hierarchy.modules || []) {
+    indexNode(mod);
+    for (const lesson of mod.lessons || []) {
+      indexNode(lesson);
+      for (const topic of lesson.topics || []) {
+        indexNode(topic);
+      }
+    }
+  }
+
+  return { nodes, items, course: nodes.get(hierarchy.id) || nodeSummary(hierarchy) };
+}
+
+/** True only when the backend says this specific item is complete. */
+export function isItemComplete(progressIndex, itemId) {
+  if (!progressIndex || !itemId) return false;
+  return progressIndex.items.get(itemId)?.completed === true;
+}
+
+/** The backend's roll-up for a Course/Module/Lesson/Topic id, or null. */
+export function getNodeProgress(progressIndex, nodeId) {
+  if (!progressIndex || !nodeId) return null;
+  return progressIndex.nodes.get(nodeId) || null;
+}
+
+/**
+ * Decorates a course tree (as returned by `useCourse` + `normalizeCourseHierarchy`)
+ * with the backend's completion flags, so components that render from the course
+ * tree show the same state as the ones reading the index directly.
+ *
+ * Returns the tree untouched when progress is unavailable.
+ */
+export function decorateCourseWithProgress(course, progressIndex) {
+  if (!course || !progressIndex) return course;
+
+  const withItem = (item) => ({
+    ...item,
+    completed: isItemComplete(progressIndex, item.id),
+  });
+
+  const withNode = (entity, extra = {}) => {
+    const summary = getNodeProgress(progressIndex, entity.id);
+    return {
+      ...entity,
+      completed: summary?.completed ?? false,
+      progressPercent: summary?.progressPercent ?? 0,
+      completedItems: summary?.completedItems ?? 0,
+      totalItems: summary?.totalItems ?? 0,
+      applicable: summary?.applicable ?? false,
+      contents: (entity.contents || []).map(withItem),
+      quizzes: (entity.quizzes || []).map(withItem),
+      assignments: (entity.assignments || []).map(withItem),
+      ...extra,
+    };
+  };
+
+  return withNode(course, {
+    modules: (course.modules || []).map((mod) =>
+      withNode(mod, {
+        lessons: (mod.lessons || []).map((lesson) =>
+          withNode(lesson, {
+            topics: (lesson.topics || []).map((topic) => withNode(topic)),
+          })
+        ),
+      })
+    ),
+  });
+}

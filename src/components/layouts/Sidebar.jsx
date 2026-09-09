@@ -138,7 +138,7 @@ export default function Sidebar({
                       onClick={() => setMobileExpandedMenu(isExpanded ? null : item.title)}
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 cursor-pointer ${
                         isActive || isExpanded
-                          ? 'bg-primary text-primary-foreground font-bold'
+                          ? 'bg-primary text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 font-medium'
                       }`}
                     >
@@ -164,7 +164,7 @@ export default function Sidebar({
                       onClick={() => setOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 ${
                         isActive
-                          ? 'bg-primary text-primary-foreground font-bold'
+                          ? 'bg-primary text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 font-medium'
                       }`}
                     >
@@ -297,7 +297,7 @@ export default function Sidebar({
                       cursor-pointer
                       ${
                         isActive || isExpanded
-                          ? 'bg-primary text-primary-foreground font-bold'
+                          ? 'bg-primary text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 font-medium'
                       }
                     `}
@@ -336,7 +336,7 @@ export default function Sidebar({
                       transition-all duration-200
                       ${
                         isActive
-                          ? 'bg-primary text-primary-foreground font-bold'
+                          ? 'bg-primary text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 font-medium'
                       }
                     `}

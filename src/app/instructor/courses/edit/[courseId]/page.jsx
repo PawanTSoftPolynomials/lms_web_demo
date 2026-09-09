@@ -16,11 +16,14 @@ export default function EditCoursePage() {
     const router = useRouter();
     const [submitError, setSubmitError] = useState("");
 
+    // This form edits course-level fields only (title, description, status,
+    // category…) and never touches the syllabus, so it does not need the
+    // modules -> lessons -> topics -> contents tree.
     const {
         data: course,
         isLoading,
         isError,
-    } = useInstructorCourse(courseId);
+    } = useInstructorCourse(courseId, { shallow: true });
 
     const updateCourseMutation =
         useUpdateCourse();

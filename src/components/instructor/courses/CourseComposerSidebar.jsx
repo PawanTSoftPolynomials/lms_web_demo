@@ -50,6 +50,8 @@ import { useReorderModules } from "@/hooks/queries/instructor/useReorderModules"
 import { useReorderLessons } from "@/hooks/queries/instructor/useReorderLessons";
 import { useReorderTopics } from "@/hooks/queries/instructor/useReorderTopics";
 import { useReorderContents } from "@/hooks/queries/instructor/useReorderContents";
+import { useUpdateQuizOrder } from "@/hooks/queries/instructor/useUpdateQuizOrder";
+import { useReorderQuizzes } from "@/hooks/queries/instructor/useReorderQuizzes";
 import { swapSiblingOrder } from "@/lib/reorderSiblings";
 import { useToast } from "@/components/ui/ToastProvider";
 
@@ -211,12 +213,53 @@ function RowMenu({ groupName, items }) {
  * LessonComposer/types.ts's ContentParent), so this is one component
  * reused at all 4 levels rather than a parallel per-level implementation.
  */
+/**
+ * Compact per-node completion readout for a Module / Lesson / Topic row.
+ *
+ * Renders nothing unless the Student-side `progress` index knows this node —
+ * so the Composer, which passes no index, is visually unchanged. Every number
+ * shown is the backend's; nothing is derived from the rendered children, which
+ * is what keeps a Module's badge from disagreeing with the course total.
+ */
+function NodeProgressBadge({ progress, nodeId, hideWhenComplete = false }) {
+  const node = progress?.nodes?.get(nodeId);
+  if (!node) return null;
+
+  // A node with nothing tracked under it is not "0% done" — it has no
+  // denominator at all, so a percentage would be actively misleading.
+  if (!node.applicable || node.totalItems === 0) return null;
+
+  // Topic rows already carry their own "Done" pill; a 100% badge beside it
+  // would say the same thing twice.
+  if (hideWhenComplete && node.completed) return null;
+
+  return (
+    <span
+      className={`shrink-0 text-[9px] font-black tabular-nums px-1.5 py-0.5 rounded border ${
+        node.completed
+          ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-500"
+          : "bg-background border-border text-muted-foreground"
+      }`}
+      title={`${node.completedItems} of ${node.totalItems} items complete`}
+    >
+      {node.progressPercent}%
+    </span>
+  );
+}
+
 function ParentContentRows({
   parent,
   isActive,
   selectedCellId,
   onSelectContent,
   onDeleteContent,
+  progress = null,
+  quizzes = [],
+  composerMode,
+  composeQuizId,
+  onSelectQuiz,
+  onDuplicateQuiz,
+  onDeleteQuiz,
   role = "INSTRUCTOR",
   isDraftMode = false,
   draftContents,
@@ -228,23 +271,57 @@ function ParentContentRows({
   const isError = isDraftMode ? false : isApiError;
   const { duplicate } = useDuplicateContent();
   const reorderContents = useReorderContents();
+  const updateQuizOrder = useUpdateQuizOrder();
+  const reorderQuizzes = useReorderQuizzes();
   const { showToast } = useToast();
 
-  const handleMove = async (contentId, direction) => {
-    const plan = swapSiblingOrder(contents, contentId, direction);
+  // One merged, order-sorted list — this is what makes a quiz occupy a real
+  // position among its sibling content cells instead of always rendering in
+  // its own separate block. Ties (possible only via Add Above/Below on a
+  // content cell, which shifts sibling content rows but not quiz rows in
+  // the same scope — a known, non-fatal limitation, see the design spec)
+  // are broken deterministically: content sorts first.
+  // Content rows come from useContents(), not from the decorated course tree,
+  // so their completion has to be looked up here. Quizzes arrive already
+  // decorated when the caller passed a decorated tree; the same lookup is
+  // applied anyway so both row kinds resolve through one authority.
+  const markComplete = (row) => {
+    const known = progress?.items?.get(row.id);
+    return known ? { ...row, completed: known.completed === true } : row;
+  };
+
+  const mergedRows = [
+    ...contents.map((c) => markComplete({ ...c, kind: "content" })),
+    ...quizzes.map((q) => markComplete({ ...q, kind: "quiz" })),
+  ].sort((a, b) => {
+    const orderDiff = (a.order ?? 0) - (b.order ?? 0);
+    if (orderDiff !== 0) return orderDiff;
+    return a.kind === b.kind ? 0 : a.kind === "content" ? -1 : 1;
+  });
+
+  const handleMove = async (id, direction) => {
+    const plan = swapSiblingOrder(mergedRows, id, direction);
     if (!plan) return;
+    const kindOf = (rowId) => mergedRows.find((r) => r.id === rowId)?.kind;
+    const contentUpdates = plan.filter((p) => kindOf(p.id) === "content");
+    const quizUpdates = plan.filter((p) => kindOf(p.id) === "quiz");
     try {
-      await reorderContents.mutateAsync({ parent, contents: plan });
+      if (contentUpdates.length > 0) {
+        await reorderContents.mutateAsync({ parent, contents: contentUpdates });
+      }
+      if (quizUpdates.length > 0) {
+        await reorderQuizzes.mutateAsync({ quizzes: quizUpdates });
+      }
     } catch {
-      showToast("Failed to reorder content", "error");
+      showToast("Failed to reorder", "error");
     }
   };
 
   const handleDuplicate = async (content) => {
-    const validOrders = contents
-      .map((c) => (typeof c.order === "number" && c.order > 0 ? c.order : 0))
+    const validOrders = mergedRows
+      .map((r) => (typeof r.order === "number" && r.order > 0 ? r.order : 0))
       .filter((o) => o > 0);
-    const nextOrder = validOrders.length > 0 ? Math.max(...validOrders) + 1 : contents.length + 1;
+    const nextOrder = validOrders.length > 0 ? Math.max(...validOrders) + 1 : mergedRows.length + 1;
     try {
       await duplicate(content, nextOrder);
     } catch {
@@ -264,10 +341,65 @@ function ParentContentRows({
           <AlertCircle size={11} className="shrink-0" />
           Failed to load contents.
         </div>
-      ) : contents.length === 0 ? (
+      ) : mergedRows.length === 0 ? (
         <div className="py-1.5 px-2 text-[10px] text-muted-foreground italic">No content yet.</div>
       ) : (
-        contents.map((content, cIdx) => {
+        mergedRows.map((row, rIdx) => {
+          if (row.kind === "quiz") {
+            const isQuizActive = composerMode === "quiz" && composeQuizId === row.id;
+            const questions = row.questions || (row.quizQuestions || []).map((qq) => qq.question) || [];
+
+            return (
+              <div
+                key={row.id}
+                onClick={() => onSelectQuiz?.(row)}
+                title={row.title || "Quiz"}
+                className={`group/content flex items-center justify-between gap-2 pl-2 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
+                  isQuizActive
+                    ? "bg-emerald-500/15 text-emerald-400 font-semibold"
+                    : "text-emerald-300/80 hover:text-emerald-300 hover:bg-background/70"
+                }`}
+              >
+                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                  {row.completed ? (
+                    <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                  ) : (
+                    <HelpCircle size={12} className="shrink-0 text-emerald-400" />
+                  )}
+                  <span className="truncate text-[10.5px] leading-snug">
+                    {row.title || "Untitled Quiz"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
+                    {questions.length} Qs
+                  </span>
+                  {role === "INSTRUCTOR" && (
+                    <RowMenu
+                      groupName="content"
+                      items={[
+                        { label: "Edit Quiz", icon: Pencil, onSelect: () => onSelectQuiz?.(row, { startEditing: true }) },
+                        { label: "Preview Quiz", icon: Eye, onSelect: () => onSelectQuiz?.(row, { startEditing: false }) },
+                        { label: "Duplicate Quiz", icon: Copy, onSelect: () => onDuplicateQuiz?.(row) },
+                        { separator: true },
+                        { label: "Move Up", icon: ArrowUp, disabled: rIdx === 0, onSelect: () => handleMove(row.id, "up") },
+                        { label: "Move Down", icon: ArrowDown, disabled: rIdx === mergedRows.length - 1, onSelect: () => handleMove(row.id, "down") },
+                        { separator: true },
+                        {
+                          label: "Delete Quiz",
+                          icon: Trash2,
+                          destructive: true,
+                          onSelect: (e) => onDeleteQuiz?.(e, row),
+                        },
+                      ]}
+                    />
+                  )}
+                </div>
+              </div>
+            );
+          }
+
+          const content = row;
           const meta = CONTENT_TYPE_META[content.type] || DEFAULT_CONTENT_META;
           const Icon = meta.icon;
           const isContentActive = isActive && selectedCellId === content.id;
@@ -301,8 +433,8 @@ function ParentContentRows({
                     { label: "Edit Content", icon: Pencil, onSelect: () => onSelectContent?.(content) },
                     { label: "Duplicate Content", icon: Copy, onSelect: () => handleDuplicate(content) },
                     { separator: true },
-                    { label: "Move Up", icon: ArrowUp, disabled: cIdx === 0, onSelect: () => handleMove(content.id, "up") },
-                    { label: "Move Down", icon: ArrowDown, disabled: cIdx === contents.length - 1, onSelect: () => handleMove(content.id, "down") },
+                    { label: "Move Up", icon: ArrowUp, disabled: rIdx === 0, onSelect: () => handleMove(content.id, "up") },
+                    { label: "Move Down", icon: ArrowDown, disabled: rIdx === mergedRows.length - 1, onSelect: () => handleMove(content.id, "down") },
                     { separator: true },
                     {
                       label: "Delete Content",
@@ -446,8 +578,17 @@ export function CourseComposerSidebar({
   onDeleteTopic,
   onDeleteContent,
   role = "INSTRUCTOR",
-  completedLessonIds = [],
   isDraftMode = false,
+  // Flattened backend progress roll-up (see lib/progressIndex). Student-only:
+  // the Composer passes nothing, so every progress affordance below is absent
+  // for INSTRUCTOR and the instructor rendering is unchanged.
+  progress = null,
+  // Callers whose own layout already constrains this sidebar's height (e.g.
+  // the Student learn page's fixed h-full shell) pass "max-h-full" here so
+  // the panel fills exactly the space it's given instead of also being
+  // capped against the raw viewport — which, under a layout that isn't just
+  // "top nav + padded page", leaves dead space at the bottom.
+  maxHeightClassName = "max-h-[calc(100vh-7rem)]",
 }) {
   const [expandedModules, setExpandedModules] = useState({});
   const [expandedLessons, setExpandedLessons] = useState({});
@@ -507,7 +648,7 @@ export function CourseComposerSidebar({
   }
 
   return (
-    <aside className="sidebar-panel rounded-2xl border border-border bg-background p-4 shadow-xl flex flex-col h-full max-h-[calc(100vh-7rem)] overflow-hidden text-foreground">
+    <aside className={`sidebar-panel rounded-2xl border border-border bg-background p-4 shadow-xl flex flex-col h-full ${maxHeightClassName} overflow-hidden text-foreground`}>
       {/* Panel Title */}
       <div className="flex items-center justify-between gap-2 mb-1 shrink-0">
         <div className="font-black text-xs uppercase tracking-widest text-foreground flex items-center gap-2">
@@ -569,7 +710,7 @@ export function CourseComposerSidebar({
         )}
       </div>
 
-      {/* Course-Level Content Cells */}
+      {/* Course-Level Content Cells (course-level quizzes are merged into this list) */}
       {(courseId || modules[0]?.courseId) && (
         <ParentContentRows
           parent={{ parentType: "course", parentId: courseId || modules[0]?.courseId }}
@@ -577,75 +718,16 @@ export function CourseComposerSidebar({
           selectedCellId={selectedCellId}
           onSelectContent={(content) => onSelectCourseContent?.(content)}
           onDeleteContent={(e, content) => onDeleteCourseContent?.(e, content)}
+          quizzes={courseQuizzes}
+          composerMode={composerMode}
+          composeQuizId={composeQuizId}
+          onSelectQuiz={(quiz, opts) => onSelectQuiz?.(quiz, null, null, null, opts)}
+          onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, null, null, null)}
+          onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, null, null, null)}
           role={role}
+          progress={progress}
           isDraftMode={isDraftMode}
         />
-      )}
-
-      {/* Course-Level Quizzes (when present) */}
-      {courseQuizzes.length > 0 && (
-        <div className="mb-2 space-y-0.5 pl-1">
-          {courseQuizzes.map((quiz, qIdx) => {
-            const isQuizActive = composerMode === "quiz" && composeQuizId === quiz.id;
-            const questions = quiz.questions || (quiz.quizQuestions || []).map((qq) => qq.question) || [];
-
-            return (
-              <div key={quiz.id || `c-quiz-${qIdx}`}>
-                <div
-                  className={`flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl transition cursor-pointer text-xs border-l-[3px] ${
-                    isQuizActive
-                      ? "bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold"
-                      : "border-transparent text-emerald-600/90 dark:text-emerald-400/90 hover:bg-background"
-                  }`}
-                  onClick={() => onSelectQuiz?.(quiz, null, null)}
-                >
-                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                    {quiz.completed ? (
-                      <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
-                    ) : (
-                      <HelpCircle size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    )}
-                    <span className="truncate text-caption font-semibold">{quiz.title || "Course Quiz"}</span>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
-                      {questions.length} Qs
-                    </span>
-                    {role === "INSTRUCTOR" && (
-                      <RowMenu
-                        groupName="quiz"
-                        items={[
-                          {
-                            label: "Edit Quiz",
-                            icon: Pencil,
-                            onSelect: () => onSelectQuiz?.(quiz, null, null, { startEditing: true }),
-                          },
-                          {
-                            label: "Preview Quiz",
-                            icon: Eye,
-                            onSelect: () => onSelectQuiz?.(quiz, null, null, { startEditing: false }),
-                          },
-                          {
-                            label: "Duplicate Quiz",
-                            icon: Copy,
-                            onSelect: () => onDuplicateQuiz?.(quiz, null, null),
-                          },
-                          { separator: true },
-                          {
-                            label: "Delete Quiz",
-                            icon: Trash2,
-                            destructive: true,
-                            onSelect: (e) => onDeleteQuiz?.(e, quiz, null, null),
-                          },
-                        ]}
-                      />
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
       )}
 
       {/* Course-Level Assignments (when present) */}
@@ -709,6 +791,8 @@ export function CourseComposerSidebar({
                     </span>
                   </div>
 
+                  <NodeProgressBadge progress={progress} nodeId={mod.id} />
+
                   {role === "INSTRUCTOR" && (
                     <RowMenu
                       groupName="module"
@@ -736,14 +820,21 @@ export function CourseComposerSidebar({
                 {/* Module Children: Module Content + Module Quizzes + Module Assignments + Lessons */}
                 <Collapsible open={moduleOpen}>
                   <div className="ml-3.5 pl-3 py-0.5 space-y-0.5 border-l border-border/70">
-                    {/* Module-Level Content Cells */}
+                    {/* Module-Level Content Cells (module-level quizzes are merged into this list) */}
                     <ParentContentRows
                       parent={{ parentType: "module", parentId: mod.id }}
                       isActive={composerMode === "module" && composeModuleId === mod.id}
                       selectedCellId={selectedCellId}
                       onSelectContent={(content) => onSelectModuleContent?.(content, mod)}
                       onDeleteContent={(e, content) => onDeleteModuleContent?.(e, content, mod)}
+                      quizzes={modQuizzes}
+                      composerMode={composerMode}
+                      composeQuizId={composeQuizId}
+                      onSelectQuiz={(quiz, opts) => onSelectQuiz?.(quiz, mod, null, null, opts)}
+                      onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, mod, null, null)}
+                      onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, mod, null, null)}
                       role={role}
+                      progress={progress}
                       isDraftMode={isDraftMode}
                       draftContents={mod.contents}
                     />
@@ -758,68 +849,6 @@ export function CourseComposerSidebar({
                       role={role}
                       mod={mod}
                     />
-
-                    {/* Module Quizzes (when present) */}
-                    {modQuizzes.length > 0 && (
-                      <div className="mb-1 space-y-0.5">
-                        {modQuizzes.map((quiz, qIdx) => {
-                          const isQuizActive = composerMode === "quiz" && composeQuizId === quiz.id;
-                          const questions = quiz.questions || (quiz.quizQuestions || []).map((qq) => qq.question) || [];
-
-                          return (
-                            <div key={quiz.id || `m-quiz-${qIdx}`}>
-                              <div
-                                className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
-                                  isQuizActive
-                                    ? "bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold"
-                                    : "border-transparent text-emerald-600/90 dark:text-emerald-400/90 hover:bg-background/60"
-                                }`}
-                                onClick={() => onSelectQuiz?.(quiz, mod, null)}
-                              >
-                                <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                  <HelpCircle size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                                  <span className="truncate text-caption font-semibold">{quiz.title || "Module Quiz"}</span>
-                                </div>
-                                <div className="flex items-center gap-1 shrink-0">
-                                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
-                                    {questions.length} Qs
-                                  </span>
-                                  {role === "INSTRUCTOR" && (
-                                    <RowMenu
-                                      groupName="quiz"
-                                      items={[
-                                        {
-                                          label: "Edit Quiz",
-                                          icon: Pencil,
-                                          onSelect: () => onSelectQuiz?.(quiz, mod, null, { startEditing: true }),
-                                        },
-                                        {
-                                          label: "Preview Quiz",
-                                          icon: Eye,
-                                          onSelect: () => onSelectQuiz?.(quiz, mod, null, { startEditing: false }),
-                                        },
-                                        {
-                                          label: "Duplicate Quiz",
-                                          icon: Copy,
-                                          onSelect: () => onDuplicateQuiz?.(quiz, mod, null),
-                                        },
-                                        { separator: true },
-                                        {
-                                          label: "Delete Quiz",
-                                          icon: Trash2,
-                                          destructive: true,
-                                          onSelect: (e) => onDeleteQuiz?.(e, quiz, mod, null),
-                                        },
-                                      ]}
-                                    />
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
                     {modLessons.length === 0 ? (
                       <div className="py-1.5 px-2 text-[10px] text-muted-foreground italic">
                         No lessons in this module.
@@ -831,52 +860,36 @@ export function CourseComposerSidebar({
                         const lessonHasActiveChild = !isLessonActive && composeLessonId === lesson.id;
                         const lessonTopics = lesson.topics || [];
                         const lessonQuizzes = lesson.quizzes || [];
-                        const isCompleted = completedLessonIds.includes(lesson.id);
-                        const isLessonLocked = role === "STUDENT" && Boolean(lesson.locked);
 
                         return (
                           <div key={lesson.id}>
                             {/* Lesson Row */}
                             <div
-                              className={`group/lesson flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg transition-colors border-l-2 ${
-                                isLessonLocked
-                                  ? "cursor-not-allowed opacity-50 border-transparent text-muted-foreground"
-                                  : "cursor-pointer"
-                              } ${
-                                isLessonLocked
-                                  ? ""
-                                  : isLessonActive
+                              className={`group/lesson flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg transition-colors border-l-2 cursor-pointer ${
+                                isLessonActive
                                   ? "bg-primary/15 border-primary text-primary font-bold"
                                   : lessonHasActiveChild
                                   ? "bg-background/30 border-primary/30 text-foreground"
                                   : "border-transparent text-foreground/85 hover:text-foreground hover:bg-background/50"
                               }`}
-                              onClick={() => !isLessonLocked && onSelectLesson(lesson.id)}
-                              title={isLessonLocked ? "Complete the previous lesson to unlock" : undefined}
+                              onClick={() => onSelectLesson(lesson.id)}
                             >
                               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    if (!isLessonLocked) toggleLesson(lesson.id);
+                                    toggleLesson(lesson.id);
                                   }}
                                   className="p-0.5 text-muted-foreground hover:text-slate-50 transition cursor-pointer shrink-0"
                                   aria-label={lessonOpen ? "Collapse lesson" : "Expand lesson"}
-                                  disabled={isLessonLocked}
                                 >
                                   <ChevronRight
                                     size={12}
                                     className={`transition-transform duration-200 ${lessonOpen ? "rotate-90 text-primary" : ""}`}
                                   />
                                 </button>
-                                {isLessonLocked ? (
-                                  <Lock size={12} className="shrink-0 text-muted-foreground" />
-                                ) : isCompleted ? (
-                                  <CheckCircle2 size={12} className="shrink-0 text-emerald-400" />
-                                ) : (
-                                  <BookOpen size={12} className={`shrink-0 ${isLessonActive ? "text-primary" : "text-muted-foreground"}`} />
-                                )}
+                                <BookOpen size={12} className={`shrink-0 ${isLessonActive ? "text-primary" : "text-muted-foreground"}`} />
                                 <span className="text-[8.5px] font-black text-slate-600 tabular-nums shrink-0">
                                   L{lIdx + 1}
                                 </span>
@@ -884,6 +897,8 @@ export function CourseComposerSidebar({
                                   {lesson.title}
                                 </span>
                               </div>
+
+                              <NodeProgressBadge progress={progress} nodeId={lesson.id} />
 
                               {role === "INSTRUCTOR" && (
                                 <RowMenu
@@ -912,14 +927,21 @@ export function CourseComposerSidebar({
                             {/* Lesson Content + Lesson Quizzes + Lesson Assignments + Topics */}
                             <Collapsible open={lessonOpen}>
                               <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-border/60">
-                                {/* Lesson-Level Content Cells */}
+                                {/* Lesson-Level Content Cells (lesson-level quizzes are merged into this list) */}
                                 <ParentContentRows
                                   parent={{ parentType: "lesson", parentId: lesson.id }}
                                   isActive={composerMode === "lesson" && composeLessonId === lesson.id}
                                   selectedCellId={selectedCellId}
                                   onSelectContent={(content) => onSelectLessonContent?.(content, lesson, mod)}
                                   onDeleteContent={(e, content) => onDeleteLessonContent?.(e, content, lesson, mod)}
+                                  quizzes={lessonQuizzes}
+                                  composerMode={composerMode}
+                                  composeQuizId={composeQuizId}
+                                  onSelectQuiz={(quiz, opts) => onSelectQuiz?.(quiz, mod, lesson, null, opts)}
+                                  onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, mod, lesson, null)}
+                                  onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, mod, lesson, null)}
                                   role={role}
+                                  progress={progress}
                                   isDraftMode={isDraftMode}
                                   draftContents={lesson.contents}
                                 />
@@ -935,72 +957,6 @@ export function CourseComposerSidebar({
                                   mod={mod}
                                   lesson={lesson}
                                 />
-
-                                {/* Lesson Quizzes (when present) */}
-                                {lessonQuizzes.length > 0 && (
-                                  <div className="mb-1 space-y-0.5">
-                                    {lessonQuizzes.map((quiz, qIdx) => {
-                                      const isQuizActive = composerMode === "quiz" && composeQuizId === quiz.id;
-                                      const questions = quiz.questions || (quiz.quizQuestions || []).map((qq) => qq.question) || [];
-
-                                      return (
-                                        <div key={quiz.id || `l-quiz-${qIdx}`}>
-                                          <div
-                                            className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
-                                              isQuizActive
-                                                ? "bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold"
-                                                : "border-transparent text-emerald-600/90 dark:text-emerald-400/90 hover:bg-background/60"
-                                            }`}
-                                            onClick={() => onSelectQuiz?.(quiz, mod, lesson)}
-                                          >
-                                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                              {quiz.completed ? (
-                                                <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
-                                              ) : (
-                                                <HelpCircle size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                                              )}
-                                              <span className="truncate text-caption font-semibold">{quiz.title || "Lesson Quiz"}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1 shrink-0">
-                                              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
-                                                {questions.length} Qs
-                                              </span>
-                                              {role === "INSTRUCTOR" && (
-                                                <RowMenu
-                                                  groupName="quiz"
-                                                  items={[
-                                                    {
-                                                      label: "Edit Quiz",
-                                                      icon: Pencil,
-                                                      onSelect: () => onSelectQuiz?.(quiz, mod, lesson, { startEditing: true }),
-                                                    },
-                                                    {
-                                                      label: "Preview Quiz",
-                                                      icon: Eye,
-                                                      onSelect: () => onSelectQuiz?.(quiz, mod, lesson, { startEditing: false }),
-                                                    },
-                                                    {
-                                                      label: "Duplicate Quiz",
-                                                      icon: Copy,
-                                                      onSelect: () => onDuplicateQuiz?.(quiz, mod, lesson),
-                                                    },
-                                                    { separator: true },
-                                                    {
-                                                      label: "Delete Quiz",
-                                                      icon: Trash2,
-                                                      destructive: true,
-                                                      onSelect: (e) => onDeleteQuiz?.(e, quiz, mod, lesson),
-                                                    },
-                                                  ]}
-                                                />
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                )}
                                 {lessonTopics.length === 0 ? (
                                   <div className="py-1.5 px-2 text-[10px] text-muted-foreground italic">
                                     No topics in this lesson.
@@ -1058,6 +1014,8 @@ export function CourseComposerSidebar({
                                             )}
                                           </div>
 
+                                          <NodeProgressBadge progress={progress} nodeId={topic.id} hideWhenComplete />
+
                                           {role === "INSTRUCTOR" && (
                                             <RowMenu
                                               groupName="topic"
@@ -1096,66 +1054,6 @@ export function CourseComposerSidebar({
                                               lesson={lesson}
                                               topic={topic}
                                             />
-                                            {(topic.quizzes || []).length > 0 && (
-                                              <div className="mb-1 space-y-0.5">
-                                                {(topic.quizzes || []).map((quiz, qIdx) => {
-                                                  const isQuizActive = composerMode === "quiz" && composeQuizId === quiz.id;
-                                                  const questions = quiz.questions || (quiz.quizQuestions || []).map((qq) => qq.question) || [];
-
-                                                  return (
-                                                    <div key={quiz.id || `t-quiz-${qIdx}`}>
-                                                      <div
-                                                        className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
-                                                          isQuizActive
-                                                            ? "bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold"
-                                                            : "border-transparent text-emerald-600/90 dark:text-emerald-400/90 hover:bg-background/60"
-                                                        }`}
-                                                        onClick={() => onSelectQuiz?.(quiz, mod, lesson, topic)}
-                                                      >
-                                                        <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                                          <HelpCircle size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                                                          <span className="truncate text-caption font-semibold">{quiz.title || "Topic Quiz"}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-1 shrink-0">
-                                                          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
-                                                            {questions.length} Qs
-                                                          </span>
-                                                          {role === "INSTRUCTOR" && (
-                                                            <RowMenu
-                                                              groupName="quiz"
-                                                              items={[
-                                                                {
-                                                                  label: "Edit Quiz",
-                                                                  icon: Pencil,
-                                                                  onSelect: () => onSelectQuiz?.(quiz, mod, lesson, topic, { startEditing: true }),
-                                                                },
-                                                                {
-                                                                  label: "Preview Quiz",
-                                                                  icon: Eye,
-                                                                  onSelect: () => onSelectQuiz?.(quiz, mod, lesson, topic, { startEditing: false }),
-                                                                },
-                                                                {
-                                                                  label: "Duplicate Quiz",
-                                                                  icon: Copy,
-                                                                  onSelect: () => onDuplicateQuiz?.(quiz, mod, lesson, topic),
-                                                                },
-                                                                { separator: true },
-                                                                {
-                                                                  label: "Delete Quiz",
-                                                                  icon: Trash2,
-                                                                  destructive: true,
-                                                                  onSelect: (e) => onDeleteQuiz?.(e, quiz, mod, lesson, topic),
-                                                                },
-                                                              ]}
-                                                            />
-                                                          )}
-                                                        </div>
-                                                      </div>
-                                                    </div>
-                                                  );
-                                                })}
-                                              </div>
-                                            )}
                                           </div>
                                           <ParentContentRows
                                             parent={{ parentType: "topic", parentId: topic.id }}
@@ -1163,7 +1061,14 @@ export function CourseComposerSidebar({
                                             selectedCellId={selectedCellId}
                                             onSelectContent={(content) => onSelectContent?.(content, topic, lesson, mod)}
                                             onDeleteContent={(e, content) => onDeleteContent?.(e, content, topic.id)}
+                                            quizzes={topic.quizzes || []}
+                                            composerMode={composerMode}
+                                            composeQuizId={composeQuizId}
+                                            onSelectQuiz={(quiz, opts) => onSelectQuiz?.(quiz, mod, lesson, topic, opts)}
+                                            onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, mod, lesson, topic)}
+                                            onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, mod, lesson, topic)}
                                             role={role}
+                                            progress={progress}
                                             isDraftMode={isDraftMode}
                                             draftContents={topic.contents}
                                           />

@@ -39,12 +39,6 @@ export default function StudentTable({
                             Course
                         </th>
                         <th className="px-6 py-4 font-medium">
-                            Progress
-                        </th>
-                        <th className="px-6 py-4 font-medium">
-                            Status
-                        </th>
-                        <th className="px-6 py-4 font-medium">
                             Joined
                         </th>
                         <th className="px-6 py-4 text-right font-medium">
@@ -123,26 +117,6 @@ export default function StudentTable({
 
                                 <span className="font-medium text-foreground">
                   {student.course || "-"}
-                </span>
-                            </div>
-
-                            <div>
-                                <p className="text-muted-foreground">
-                                    Progress
-                                </p>
-
-                                <span className="font-medium text-foreground">
-                  {student.progress ?? 0}%
-                </span>
-                            </div>
-
-                            <div className="col-span-2">
-                                <p className="text-muted-foreground">
-                                    Status
-                                </p>
-
-                                <span className="text-foreground">
-                  {student.status}
                 </span>
                             </div>
 

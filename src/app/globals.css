@@ -78,75 +78,64 @@ body {
   --color-pink-600: color-mix(in oklab, var(--secondary) 80%, black);
   --color-pink-700: color-mix(in oklab, var(--secondary) 60%, black);
 
-  --color-pink-400: color-mix(in oklab, var(--secondary) 80%, white);
-  --color-pink-500: var(--secondary);
-  --color-pink-600: color-mix(in oklab, var(--secondary) 80%, black);
-  --color-pink-700: color-mix(in oklab, var(--secondary) 60%, black);
-
-  /* Moderate, soft-rounded control radius (buttons, badges, inputs) — the
-     shared design-system radius per the Phase 2 audit. Card/panel/modal
-     radii live in their own --radius-card/--radius-panel below. */
-  --radius-xl: 0.75rem;
+  --radius-xl: 0.875rem;
   --radius-2xl: 1.125rem;
-  --radius-card: 1.25rem;
-  --radius-panel: 1.75rem;
-
-  /* Phase 4B — the one net-new size in the type scale. Absorbs the app's
-     8–13px arbitrary micro-text sprawl (table headers, eyebrow labels,
-     timestamps) into a single real token instead of one-off text-[Npx]
-     values. Everything text-xs and above already existed in Tailwind's
-     default scale and did not need a token here. */
-  --text-2xs: 0.6875rem;
-  --text-2xs--line-height: 1rem;
 }
 
 /* ==========================================================================
-   LIGHT MODE — matched from the user's reference video (instructor
-   dashboard mockup): soft cream page, near-white shadow-based cards
-   (no hard borders), dark-navy headings, a gold/olive accent for
-   progress bars and links. Colors sampled directly from video frames.
+   LIGHT MODE — document-like: white page, near-black body text, grey
+   secondary text, and a single restrained brand accent reserved for
+   actions. Navigation uses its own --link colour so an anchor never
+   reads as a button (and vice versa). No gradients, no glow.
    (default, no .dark class)
    ========================================================================== */
 :root {
   color-scheme: light;
 
-  --background: #F3EDE3;
-  --foreground: #23283D;
+  --background: #FFFFFF;
+  --foreground: #16181D;
 
-  --surface: #FEFCF8;
-  --surface-foreground: #23283D;
-  --surface-muted: #ECE4D5;
+  --surface: #FFFFFF;
+  --surface-foreground: #16181D;
+  --surface-muted: #F4F5F7;
 
-  --card: #FEFCF8;
-  --card-foreground: #23283D;
-  --card-border: #E7DFD1;
+  --card: #FFFFFF;
+  --card-foreground: #16181D;
+  --card-border: #E3E6EA;
 
-  --popover: #FEFCF8;
-  --popover-foreground: #23283D;
+  --popover: #FFFFFF;
+  --popover-foreground: #16181D;
 
-  --muted: #ECE4D5;
-  --muted-foreground: #6E7488;
+  --muted: #F4F5F7;
+  --muted-foreground: #5F6874;
 
-  --border: #E7DFD1;
-  --input: #FEFCF8;
-  --ring: #B8934A;
+  --border: #E3E6EA;
+  --input: #FFFFFF;
+  --ring: #9A5B18;
 
-  --primary: #B8934A;
-  --primary-foreground: #23283D;
+  /* Actions (buttons) — deep brand orange, AA-contrast against white text. */
+  --primary: #9A5B18;
+  --primary-foreground: #FFFFFF;
 
-  --secondary: #23283D;
+  --secondary: #16181D;
   --secondary-foreground: #FFFFFF;
 
-  --accent: #B8934A;
-  --accent-foreground: #23283D;
+  --accent: #9A5B18;
+  --accent-foreground: #FFFFFF;
 
-  --success: #20CD83;
+  /* Navigation (anchors) — deliberately a different hue from --primary so
+     "go somewhere" never looks like "do something". */
+  --link: #1A56AB;
+  --link-hover: #12408A;
+
+  --success: #10794B;
   --success-foreground: #FFFFFF;
-  --warning: #EB9D11;
-  --warning-foreground: #23283D;
-  --destructive: #E8604F;
+  --warning: #8A5A05;
+  --warning-foreground: #FFFFFF;
+  --destructive: #B4302A;
   --destructive-foreground: #FFFFFF;
-  --heading-color: #212945;
+
+  --heading-color: #0F1115;
 
   --shadow-color: 220 20% 20%;
 }
@@ -188,6 +177,11 @@ body {
   --accent: #58A6FF;
   --accent-foreground: #0D1117;
 
+  /* Navigation (anchors) — the blue carries links and wayfinding, kept
+     separate from the green that means "this performs an action". */
+  --link: #58A6FF;
+  --link-hover: #79B8FF;
+
   --success: #3FB950;
   --success-foreground: #0D1117;
   --warning: #D29922;
@@ -195,6 +189,8 @@ body {
   --destructive: #F85149;
   --destructive-foreground: #FFFFFF;
 
+  /* Off-white headings; hierarchy below them is carried by size/weight and
+     the muted/link tokens rather than by turning text into an accent. */
   --heading-color: #E6EDF3;
 
   --shadow-color: 220 20% 3%;
@@ -254,6 +250,9 @@ body {
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
 
+  --color-link: var(--link);
+  --color-link-hover: var(--link-hover);
+
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
@@ -264,9 +263,14 @@ body {
   --color-error-foreground: var(--error-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
+}
 
-  --color-learning-surface: var(--learning-surface);
-  --color-learning-surface-foreground: var(--learning-surface-foreground);
+body {
+  background-color: var(--background) !important;
+  background-image: none !important;
+  color: var(--foreground);
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Global chrome remap — most of the app's layout chrome (navbars, cards, panels, dropdowns) was
@@ -315,17 +319,12 @@ body {
 [class~="to-[#12182B]"] { --tw-gradient-to: var(--surface); }
 [class~="via-[#0D1021]"] { --tw-gradient-via: var(--surface); }
 
-/* Same idea, but for the (very common) literal Tailwind `bg-white` utility rather than
-   a one-off arbitrary hex — 54 files use it directly as their card/panel/modal fill,
-   bypassing --card/--surface entirely. Scoped to backgrounds only (not text-white,
-   border-white, ring-white, etc.), so this doesn't touch anything but container fills. */
-[class~="bg-white"] { background-color: var(--card); }
-
-/* Sidebar's hardcoded orange active-state glow (a literal rgba() box-shadow, not the
-   swappable --color-orange-* scale) — repainted to the current --primary so it follows
-   the active theme instead of staying orange under every mode. */
+/* Sidebar's hardcoded orange active-state glow (a literal rgba() box-shadow, not
+   the swappable --color-orange-* scale). The active nav item is now marked by its
+   fill and weight rather than a coloured halo — glow reads as decoration and, on
+   a navigation item, wrongly suggests a pressable button. */
 [class~="shadow-[0_2px_12px_rgba(249,115,22,0.35)]"] {
-  box-shadow: 0 2px 12px color-mix(in oklab, var(--primary) 35%, transparent);
+  box-shadow: none;
 }
 
 /* Soft ambient card/panel shadow used across the app (Card.jsx and others), tinted by
@@ -338,80 +337,6 @@ body {
 @utility shadow-luxury-md {
   box-shadow: 0 2px 4px hsl(var(--shadow-color) / 0.08),
     0 12px 32px -8px hsl(var(--shadow-color) / 0.28);
-}
-
-/* ==========================================================================
-   Surface utilities — flat, bordered, softly shadowed panels. Previously a
-   glassmorphism system (backdrop-filter: blur() on every card/modal/nav);
-   redefined here to the restrained, non-glass treatment the design system
-   now calls for. Class names kept as-is (glass-primary, glass-modal, ...)
-   since ~80 files already reference them — only what they DO changed, not
-   what they're called, so no consuming file needs to change.
-   ========================================================================== */
-
-/* Primary cards, section panels, major containers. */
-@utility glass-primary {
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.06), 0 4px 16px -6px hsl(var(--shadow-color) / 0.18);
-  border-radius: var(--radius-card);
-}
-
-/* Nested components inside a primary surface (a sub-panel, a stat tile
-   inside a card) — one step muted so it reads as "one level in". */
-@utility glass-secondary {
-  background: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-}
-
-/* Dropdowns, popovers, tooltips: anything that floats above the interface. */
-@utility glass-floating {
-  background: var(--popover);
-  border: 1px solid var(--border);
-  box-shadow: 0 8px 24px -6px hsl(var(--shadow-color) / 0.22);
-  border-radius: var(--radius-card);
-}
-
-/* Modals are the floating treatment plus the larger panel radius. */
-@utility glass-modal {
-  background: var(--popover);
-  border: 1px solid var(--border);
-  box-shadow: 0 12px 32px -8px hsl(var(--shadow-color) / 0.28);
-  border-radius: var(--radius-panel);
-}
-
-/* Top navigation bar. */
-@utility glass-nav {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-}
-
-/* Buttons — a hover lift/press-down for tactile feedback, no glow/gradient.
-   Pair with a background-color utility (bg-primary, bg-card, transparent, ...)
-   for the actual fill. */
-@utility glass-button {
-  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1), background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
-
-  &:hover {
-    transform: translateY(-1px);
-  }
-  &:active {
-    transform: translateY(0) scale(0.98);
-  }
-}
-
-/* Inputs — a soft focus ring instead of a hard outline. */
-@utility glass-input {
-  background: var(--input);
-  border: 1px solid var(--border);
-  transition: border-color 200ms ease, box-shadow 200ms ease;
-
-  &:focus, &:focus-within {
-    outline: none;
-    border-color: var(--ring);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 22%, transparent);
-  }
 }
 
 /* Horizontally-scrollable strips (action bars, tab strips, etc.):
@@ -427,89 +352,18 @@ body {
   }
 }
 
-/* ==========================================================================
-   Phase 4B — semantic typography roles (approved Phase 4A scale).
-   Small and intentional by design: each role bundles size + weight + leading
-   + tracking behind one class, built on Tailwind's existing scale/variables
-   rather than inventing a parallel system. Not every role in the audit
-   became a class here — `button` is already consistent via the shadcn
-   Button component's own size variants and needed no new utility; the
-   active/inactive weight distinction for nav items is intentionally left
-   out of `text-nav` so each nav component keeps controlling that itself.
-   ========================================================================== */
-@utility text-display {
-  font-size: var(--text-4xl);
-  font-weight: 800;
-  line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-tight);
-}
-
-@utility text-h1 {
-  font-size: var(--text-2xl);
-  font-weight: 800;
-  line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-tight);
-}
-
-@utility text-h2 {
-  font-size: var(--text-xl);
-  font-weight: 700;
-  line-height: var(--leading-snug);
-  letter-spacing: var(--tracking-tight);
-}
-
-@utility text-h3 {
-  font-size: var(--text-sm);
-  font-weight: 900;
-  line-height: var(--leading-snug);
-  letter-spacing: var(--tracking-tight);
-}
-
-@utility text-h4 {
-  font-size: var(--text-xs);
-  font-weight: 700;
-  line-height: var(--leading-snug);
-}
-
-@utility text-body {
-  font-size: var(--text-sm);
-  font-weight: 400;
-  line-height: var(--leading-relaxed);
-}
-
-@utility text-body-small {
-  font-size: var(--text-xs);
-  font-weight: 400;
-  line-height: var(--leading-snug);
-}
-
-@utility text-label {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  line-height: var(--leading-none);
-  letter-spacing: var(--tracking-wide);
-}
-
-@utility text-caption {
-  font-size: var(--text-2xs);
-  font-weight: 600;
-  line-height: var(--leading-none);
-  letter-spacing: var(--tracking-wide);
-}
-
-@utility text-nav {
-  font-size: var(--text-xs);
-  line-height: var(--leading-none);
-  letter-spacing: var(--tracking-wide);
-}
-
-/* Atmospheric background — flat token color, no gradient/glow. */
-body {
-  background-color: var(--background) !important;
-  background-image: none !important;
-  color: var(--foreground);
-  font-family: "Inter", sans-serif;
-  -webkit-font-smoothing: antialiased;
+/* Solid action button used by Button.jsx's primary/danger variants.
+   Previously this painted a 7-colour rainbow gradient into a 2px border gutter
+   plus a blurred rainbow glow on hover. The fill was already being flattened by
+   the `background-image: none` rule further down, but the glow still fired —
+   so a decorative rainbow halo appeared on every primary action in the app.
+   Now it is what it should be: a flat, themed, high-contrast action surface. */
+@utility btn-rainbow {
+  position: relative;
+  border: 1px solid transparent;
+  background-color: var(--btn-rainbow-fill, var(--primary));
+  background-image: none;
+  color: var(--btn-rainbow-foreground, var(--primary-foreground));
 }
 
 /* ==========================================================================
@@ -544,32 +398,47 @@ body {
    above so it repaints automatically per mode.
    ========================================================================== */
 
-.bg-card, .bg-popover, .card-photo-jellyfish {
-  background-color: var(--card) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 8px !important;
+/* Card/panel default. :where() keeps specificity at zero so a component that
+   deliberately wants no box (a borderless text cell in the composer, a plain
+   read-only row) can opt out with a normal utility class instead of fighting
+   !important. Elements that set nothing still get the standard card. */
+:where(.bg-card, .bg-surface, .bg-popover, .card-photo-jellyfish) {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
-input, select {
-  background-color: var(--surface-muted) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 6px !important;
-  color: var(--foreground) !important;
-  padding: 0.75rem 1rem !important;
+/* Form controls. Padding is NOT forced any more — it used to override the
+   composer's compact inline rename inputs (px-1.5 py-1) with 0.75rem/1rem,
+   which broke their layout. Utilities now win; bare inputs keep this default. */
+:where(input, select) {
+  background-color: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--foreground);
+  padding: 0.75rem 1rem;
 }
 
-input:focus, select:focus {
-  border-color: var(--primary) !important;
+:where(input, select):focus {
+  border-color: var(--primary);
   outline: none;
 }
 
-button, a.bg-primary, a.bg-secondary, a.bg-accent, a.bg-success, a.bg-warning, a.bg-destructive, .btn-rainbow {
-  border-radius: 6px !important;
-  box-shadow: none !important;
+/* Buttons look like actions. This no longer stamps a border + radius onto
+   *every* <button> in the app (which made icon-only and text-only controls
+   read as pressable chrome) — it is the fallback, and utilities override it. */
+:where(button, a.bg-primary, a.bg-secondary, a.bg-accent, a.bg-success, a.bg-warning, a.bg-destructive, .btn-rainbow) {
+  border-radius: 6px;
+  box-shadow: none;
   font-weight: 600;
   transition: background-color 0.15s ease, border-color 0.15s ease;
-  border: 1px solid transparent;
+}
+
+/* Anchors navigate: coloured with --link, never given button chrome. */
+:where(a:not([class*="bg-"]):not(.btn-rainbow)) {
+  color: inherit;
+  text-decoration: none;
 }
 
 button.bg-primary, a.bg-primary, .btn-rainbow {
@@ -581,9 +450,12 @@ button.bg-primary:hover, a.bg-primary:hover, .btn-rainbow:hover {
   background-color: color-mix(in srgb, var(--btn-rainbow-fill, var(--primary)) 88%, white) !important;
 }
 
+/* Progress-bar fills: a flat primary fill rather than a gradient, per the
+   "no unnecessary decoration" rule. Status colours are excluded so a red/green
+   progress state keeps its semantic meaning. */
 .bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {
-  background-image: linear-gradient(90deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, black) 100%) !important;
-  background-color: transparent !important;
+  background-image: none !important;
+  background-color: var(--primary) !important;
   border-radius: 9999px !important;
 }
 
@@ -619,18 +491,118 @@ button.bg-primary:hover, a.bg-primary:hover, .btn-rainbow:hover {
   border-color: color-mix(in oklab, var(--primary) 55%, var(--border)) !important;
 }
 
-/* Heading color, but never override an explicitly chosen status/semantic color
-   (e.g. green/red success-failure counts, amber warnings, "Danger Zone" red). */
-:is(h1, h2, h3, h4, .text-xl, .text-2xl, .text-3xl, .text-4xl, .text-5xl,
-  [class*="text-lg"][class*="font-semibold"],
-  [class*="text-lg"][class*="font-bold"]):not([class*="text-red-"]):not([class*="text-green-"]):not([class*="text-emerald-"]):not([class*="text-rose-"]):not([class*="text-amber-"]):not([class*="text-blue-"]):not([class*="text-yellow-"]):not([class*="text-orange-"]):not([class*="text-destructive"]):not([class*="text-success"]):not([class*="text-warning"]) {
-  color: var(--heading-color) !important;
+/* Default heading colour. Written with :where() so it carries ZERO specificity:
+   it applies when nothing else sets a colour, and any utility class (semantic
+   status colours, muted subheadings, link-coloured nav headings) overrides it
+   without needing !important. The previous version forced this colour on every
+   h1-h4 AND every .text-xl+ with !important, which made colour unusable as a
+   hierarchy signal and required a long :not() chain to claw back status colours. */
+:where(h1, h2, h3, h4, h5, h6) {
+  color: var(--heading-color);
+  text-wrap: balance;
 }
 
+/* ==========================================================================
+   TYPOGRAPHY SCALE
+   One ladder for the whole app, differentiated by size / weight / line-height
+   / colour / spacing rather than by borders or boxes. Identical in both
+   themes — only the token values underneath change.
+
+     .t-page-title  Page title        one per page
+     .t-section     Section heading   groups of content
+     .t-subhead     Subheading        inside a section
+     .t-body        Body copy         default reading text
+     .t-label       Label             names a control or field
+     .t-meta        Metadata/helper   timestamps, counts, hints
+   ========================================================================== */
+.t-page-title {
+  font-size: 1.75rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.021em;
+  color: var(--heading-color);
+}
+
+.t-section {
+  font-size: 1.125rem;
+  line-height: 1.35;
+  font-weight: 650;
+  letter-spacing: -0.012em;
+  color: var(--heading-color);
+}
+
+.t-subhead {
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: -0.006em;
+  color: var(--foreground);
+}
+
+.t-body {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  font-weight: 400;
+  color: var(--foreground);
+}
+
+.t-label {
+  font-size: 0.75rem;
+  line-height: 1.3;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.t-meta {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--muted-foreground);
+}
+
+/* ==========================================================================
+   AFFORDANCES — buttons act, anchors navigate, information is just text.
+
+   .nav-link   navigation: coloured with --link, underline on hover, no box
+   .info       read-only value: plain text, never a pill or bordered chip
+   ========================================================================== */
+.nav-link {
+  color: var(--link);
+  font-weight: 500;
+  text-decoration: none;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.nav-link:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.info {
+  color: var(--foreground);
+  background: none;
+  border: none;
+  padding: 0;
+  font-weight: 500;
+}
+.info-muted {
+  color: var(--muted-foreground);
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+/* Dark mode keeps the same flat fill — the glow that used to sit here read as
+   decoration rather than information. */
 .dark .bg-muted > div[class*="bg-"]:not([class*="bg-success"]):not([class*="bg-warning"]):not([class*="bg-destructive"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-yellow-"]):not([class*="bg-orange-"]):not([class*="bg-gradient-to-"]) {
-  background-image: linear-gradient(90deg, color-mix(in srgb, var(--primary) 75%, transparent), var(--primary)) !important;
-  background-color: transparent !important;
-  box-shadow: 0 0 12px color-mix(in oklab, var(--primary) 40%, transparent) !important;
+  background-image: none !important;
+  background-color: var(--primary) !important;
+  box-shadow: none !important;
 }
 
 /* Fix secondary text contrast for hardcoded classes in dark mode to meet WCAG AAA */
@@ -640,4 +612,3 @@ button.bg-primary:hover, a.bg-primary:hover, .btn-rainbow:hover {
 .dark .text-gray-600 {
   color: var(--muted-foreground) !important;
 }
-

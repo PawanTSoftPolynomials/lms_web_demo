@@ -262,18 +262,21 @@ export async function getDashboardSummary(): Promise<RawDashboardSummary | null>
  * live inside Course Cards / Analytics instead, not here.
  */
 export function deriveDashboardStats(raw: {
-  courses: RawCourse[];
+  /** Server-computed counts (GET /courses/stats/mine) — not list lengths. */
+  courseCount: number;
+  draftCourseCount?: number;
+  studentCount: number;
+  activeQuizCount: number;
   assignments: RawAssignment[];
   calendarEvents: RawCalendarEvent[];
   notifications: RawNotification[];
   conversations: RawConversation[];
-  quizzes?: RawQuiz[];
 }): DashboardStat[] {
-  const totalCourses = raw.courses.length;
-  const draftCourses = raw.courses.filter(isDraftCourse).length;
-  const students = raw.courses.reduce((sum, c) => sum + (c._count?.enrollments ?? c.studentsCount ?? 0), 0);
+  const totalCourses = raw.courseCount;
+  const draftCourses = raw.draftCourseCount ?? 0;
+  const students = raw.studentCount;
+  const activeQuizzes = raw.activeQuizCount;
   const pendingReviews = raw.assignments.reduce((sum, a) => sum + (a.pendingSubmissionsCount ?? 0), 0);
-  const activeQuizzes = raw.quizzes ? raw.quizzes.filter(q => q.isPublished).length : 0;
 
   const { count: todaysClassesCount, next: nextClass } = deriveTodaysClassesSummary(raw.calendarEvents);
   const unreadMessages = raw.conversations.reduce((sum, c) => sum + (c.unread ?? 0), 0);
@@ -666,10 +669,8 @@ export function deriveInsights(raw: { assignments: RawAssignment[]; courses: Raw
  * Derived from the same /dashboard/instructor payload useDashboardSummary
  * already fetches (its `studentEngagement` field) — no separate network
  * call. Per-day watch time isn't tracked yet, so watchTimeMinutes is 0
- * rather than a fabricated number. There is no per-lesson completion signal
- * from the backend, so `activeStudentRate` (active students that day as a
- * % of the instructor's total enrolled students) stands in as the real,
- * surviving engagement signal instead.
+ * rather than a fabricated number. Lesson-completion is no longer tracked
+ * anywhere in this schema, so it isn't part of this series either.
  */
 export function deriveEngagementAnalytics(
   summary: RawDashboardSummary | null | undefined
@@ -677,16 +678,12 @@ export function deriveEngagementAnalytics(
   const days = summary?.studentEngagement ?? [];
   const totalStudents = summary?.totalStudents ?? summary?.studentsCount ?? 0;
 
-  return days.map((point) => {
-    const active = point.activeStudents ?? 0;
-    return {
-      label: point.day ?? "",
-      dailyActiveStudents: active,
-      quizParticipation: point.quizAttempts ?? 0,
-      activeStudentRate: totalStudents > 0 ? Math.round((active / totalStudents) * 100) : 0,
-      watchTimeMinutes: 0,
-    };
-  });
+  return days.map((point) => ({
+    label: point.day ?? "",
+    dailyActiveStudents: point.activeStudents ?? 0,
+    quizParticipation: point.quizAttempts ?? 0,
+    watchTimeMinutes: 0,
+  }));
 }
 
 /* ----------------------------- Redesign Specific Derivations ------------------------------ */

@@ -144,6 +144,7 @@ export default function InstructorAnnouncementsPage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
+                className="bg-[#C1D3C6]! border-[#D9D9D9]! text-black!"
               />
 
               {/* Message */}

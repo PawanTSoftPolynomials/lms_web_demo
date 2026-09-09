@@ -8,6 +8,7 @@ import {
   Search,
   Layers,
   Users,
+  TrendingUp,
   SlidersHorizontal,
   RotateCcw,
   ChevronDown,
@@ -32,6 +33,12 @@ const STATUS_OPTIONS = [
   { value: "ARCHIVED", label: "Archived" },
 ];
 
+const ENGAGEMENT_OPTIONS = [
+  { value: "", label: "Any Engagement" },
+  { value: "75", label: "75%+" },
+  { value: "50", label: "50%+" },
+  { value: "25", label: "25%+" },
+];
 const STUDENT_COUNT_OPTIONS = [
   { value: "", label: "Any Size" },
   { value: "30", label: "30+ students" },
@@ -123,7 +130,7 @@ function CreateBatchForm({ courses, onClose }) {
 
 function BatchStatsRow({ stats }) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       <KpiTile
         label="Total Batches"
         value={stats.totalBatches}
@@ -140,21 +147,30 @@ function BatchStatsRow({ stats }) {
         iconColor="text-emerald-400"
         bottomText="Across all batches"
       />
+      <KpiTile
+        label="Avg. Engagement"
+        value={`${stats.avgEngagement}%`}
+        icon={TrendingUp}
+        iconBg="bg-primary/10"
+        iconColor="text-primary"
+        bottomText="Quiz & assignment activity"
+      />
     </div>
   );
 }
 
 /** Compact inline replacement for the old bordered WorkFilterBar panel — same
  * useWorkFilters() context/logic, just laid out as a single toolbar row. */
-function FilterToolbar({ minStudents, setMinStudents }) {
+function FilterToolbar({ minEngagement, setMinEngagement, minStudents, setMinStudents }) {
   const { filters, updateFilter, resetFilters } = useWorkFilters();
   const { data: courses = [] } = useInstructorCourses();
 
-  const hasAdvancedFilters = Boolean(minStudents);
+  const hasAdvancedFilters = Boolean(minEngagement || minStudents);
   const hasAnyFilter = hasAdvancedFilters || filters.courseId || filters.status || filters.startDate || filters.endDate;
 
   const handleReset = () => {
     resetFilters();
+    setMinEngagement("");
     setMinStudents("");
   };
 
@@ -209,6 +225,20 @@ function FilterToolbar({ minStudents, setMinStudents }) {
           <div className="space-y-3">
             <div>
               <label className="block text-[9.5px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">
+                Engagement
+              </label>
+              <select
+                value={minEngagement}
+                onChange={(e) => setMinEngagement(e.target.value)}
+                className={`${toolbarControlClass} w-full`}
+              >
+                {ENGAGEMENT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[9.5px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">
                 Batch Size
               </label>
               <select
@@ -245,6 +275,7 @@ function BatchesContent() {
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [minEngagement, setMinEngagement] = useState("");
   const [minStudents, setMinStudents] = useState("");
 
   // Debounced so each keystroke doesn't fire its own (fairly expensive,
@@ -265,6 +296,7 @@ function BatchesContent() {
   const stats = overview?.stats || {
     totalBatches: 0,
     totalStudents: 0,
+    avgEngagement: 0,
     newBatchesThisMonth: 0,
     pendingAssignmentReviews: 0,
   };
@@ -272,10 +304,11 @@ function BatchesContent() {
   const filteredBatches = useMemo(() => {
     return batches.filter((b) => {
       if (appliedFilters.status && b.status !== appliedFilters.status) return false;
+      if (minEngagement && b.engagementScore < Number(minEngagement)) return false;
       if (minStudents && b.studentsCount < Number(minStudents)) return false;
       return true;
     });
-  }, [batches, appliedFilters.status, minStudents]);
+  }, [batches, appliedFilters.status, minEngagement, minStudents]);
 
   return (
     <div className="space-y-7">
@@ -310,6 +343,8 @@ function BatchesContent() {
         </div>
 
         <FilterToolbar
+          minEngagement={minEngagement}
+          setMinEngagement={setMinEngagement}
           minStudents={minStudents}
           setMinStudents={setMinStudents}
         />

@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import dynamic from "next/dynamic";
-import useAuth from "@/hooks/useAuth";
 import { TooltipProvider } from "@/components/ui/shadcn/tooltip";
 
 // import { WelcomeHeroCard } from "@/components/instructor/dashboard/WelcomeHeroCard";
@@ -22,10 +20,7 @@ import {
   useRecentSubmissions,
   useGradeDistribution,
   useEngagementAnalytics,
-  useNeedsAttention,
-  useAnnouncementsFeed,
 } from "@/hooks/queries/instructor/useDashboardHome";
-import { useMyLessonQueries } from "@/hooks/queries/instructor/useLessonQueries";
 
 // Dynamically imported so recharts is bundled once via this shared
 // dynamic() boundary instead of duplicated into this route's own chunk.
@@ -35,9 +30,12 @@ const PerformancePieChart = dynamic(
 );
 
 export default function InstructorDashboardHomePage() {
-  const { user } = useAuth();
-
-  // Data fetching
+  // Data fetching.
+  // useNeedsAttention / useAnnouncementsFeed / useMyLessonQueries were called
+  // here but their results were never read by any JSX below. Between them they
+  // cost three requests per dashboard load — including GET /modules, which
+  // returns every module -> lesson -> topic for all of the instructor's courses
+  // with no pagination, making it the heaviest payload on the page.
   const stats = useDashboardStats();
   const schedule = useUpcomingClasses();
   const activities = useRecentActivities();
@@ -45,9 +43,6 @@ export default function InstructorDashboardHomePage() {
   const submissions = useRecentSubmissions();
   const grades = useGradeDistribution();
   const engagement = useEngagementAnalytics();
-  const needsAttention = useNeedsAttention();
-  const announcements = useAnnouncementsFeed();
-  const qa = useMyLessonQueries();
 
   // Extract needed KPIs from the stats payload
   const totalCourses = stats.data?.find(s => s.id === "active-courses")?.value || 0;
@@ -55,18 +50,21 @@ export default function InstructorDashboardHomePage() {
   const pendingReviews = stats.data?.find(s => s.id === "pending-reviews")?.value || 0;
   const activeQuizzes = stats.data?.find(s => s.id === "active-quizzes")?.value || 0;
 
+  // Share of the instructor's students who were active on a typical day in
+  // the series — real signal (daily active students / total students), not
+  // a fabricated percentage.
   const engagementData = engagement.data ?? [];
-  const avgEngagement = engagementData.length > 0
-    ? Math.round(engagementData.reduce((acc, point) => acc + (point.activeStudentRate || 0), 0) / engagementData.length)
+  const avgActiveStudents = engagementData.length > 0
+    ? engagementData.reduce((acc, point) => acc + (point.dailyActiveStudents || 0), 0) / engagementData.length
     : 0;
+  const totalStudentsNum = Number(totalStudents);
+  const avgEngagement = totalStudentsNum > 0 ? Math.round((avgActiveStudents / totalStudentsNum) * 100) : 0;
 
   return (
     <TooltipProvider>
       {/* ============================= UNIFIED RESPONSIVE LAYOUT ============================= */}
       <div className="-m-3 sm:-m-6 mt-0 sm:mt-0 -mx-4 sm:-mx-12 md:-mx-16 min-h-[calc(100vh-3.5rem)] bg-background p-3 sm:p-6 pt-0 sm:pt-0">
         <div className="flex flex-col max-w-[1600px] mx-auto">
-
-          <h1 className="sr-only">Dashboard</h1>
 
           <div className="mt-4 sm:mt-[3.2px] mb-[1.6px]">
             <InstructorKPIs

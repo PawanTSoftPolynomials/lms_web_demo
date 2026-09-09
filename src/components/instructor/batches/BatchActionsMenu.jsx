@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   MoreVertical,
   Eye,
+  Pencil,
   UserPlus,
   UserMinus,
   MessageSquare,
@@ -24,6 +25,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/shadcn/dropdown-menu";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import EditBatchModal from "@/components/instructor/batches/EditBatchModal";
 import { useUpdateBatchStatus, useDeleteBatch, useStartBatchConversation } from "@/hooks/queries/instructor/useBatches";
 import { getBatchDetailDashboard } from "@/services/batch.service";
 import { exportBatchReportCsv, exportBatchStudentListCsv } from "@/lib/exportBatches";
@@ -38,6 +40,7 @@ export default function BatchActionsMenu({ batch, stopPropagation = true, hideVi
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [exportingStudents, setExportingStudents] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const updateStatus = useUpdateBatchStatus();
   const deleteBatch = useDeleteBatch();
@@ -116,6 +119,10 @@ export default function BatchActionsMenu({ batch, stopPropagation = true, hideVi
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={wrap(() => setEditOpen(true))}>
+            <Pencil size={13} /> Edit Batch
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={wrap(handleMessageBatch)} disabled={startConversation.isPending}>
             {startConversation.isPending ? <Loader2 size={13} className="animate-spin" /> : <MessageSquare size={13} />}
             Message Batch
@@ -144,6 +151,10 @@ export default function BatchActionsMenu({ batch, stopPropagation = true, hideVi
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {editOpen && (
+        <EditBatchModal batchId={batch.id} open={editOpen} onClose={() => setEditOpen(false)} />
+      )}
 
       <ConfirmDialog
         open={confirmArchive}

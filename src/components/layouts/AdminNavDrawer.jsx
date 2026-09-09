@@ -146,7 +146,7 @@ export default function AdminNavDrawer() {
                 onClick={close}
                 className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 ${
                   active
-                    ? "bg-primary text-primary-foreground font-bold"
+                    ? "bg-primary text-slate-950 font-bold shadow-[0_2px_12px_rgba(249,115,22,0.35)]"
                     : "text-foreground hover:text-foreground hover:bg-muted/50 font-semibold"
                 }`}
               >

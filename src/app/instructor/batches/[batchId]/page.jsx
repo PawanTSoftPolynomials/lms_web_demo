@@ -27,7 +27,6 @@ import {
   BookOpen,
   Plus,
   Calendar,
-  TrendingUp,
   Flame,
   Pencil,
   Eye,
@@ -109,7 +108,7 @@ function Section({ title, icon: Icon, iconBg = "bg-primary/10", iconColor = "tex
               <Icon size={13} />
             </div>
           )}
-          <h3 className="text-[10.5px] font-black uppercase tracking-widest text-slate-350">{title}</h3>
+          <h3 className="text-[10.5px] font-black uppercase tracking-widest text-black">{title}</h3>
         </div>
         {action}
       </div>
@@ -660,14 +659,6 @@ export default function BatchDetailPage() {
           iconBg="bg-purple-500/10"
           iconColor="text-purple-400"
           bottomText={dashboard ? `${dashboard.studentSummary.active} active` : "Enrolled in batch"}
-        />
-        <KpiTile
-          label="Engagement"
-          value={`${performanceBatch?.engagementScore ?? 0}%`}
-          icon={TrendingUp}
-          iconBg="bg-primary/10"
-          iconColor="text-primary"
-          bottomText="Engagement score"
         />
         <KpiTile
           label="Avg Quiz"

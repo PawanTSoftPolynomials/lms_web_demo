@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
+import DashboardNavbar from "@/components/layouts/DashboardNavbar";
 import { useAuth } from "@/context/AuthContext";
 import { QaProvider } from "@/context/QaContext";
 import Loader from "@/components/common/Loader";
@@ -37,7 +38,21 @@ export default function Layout({ children }) {
   const isLearnPage = pathname?.includes("/student/learn/");
 
   if (isLearnPage) {
-    return <QaProvider>{children}</QaProvider>;
+    // Same top bar as every other Student page, but the learn page still
+    // owns its own fixed-viewport, internally-scrolling layout below it
+    // (not DashboardLayout's Sidebar/padded <main>/ChatWidget — the learn
+    // page already renders its own ChatWidget).
+    return (
+      <QaProvider>
+        <StudentNavDrawerProvider>
+          <div className="h-screen flex flex-col overflow-hidden">
+            <DashboardNavbar role="STUDENT" title="Learning Workspace" />
+            <div className="flex-1 min-h-0">{children}</div>
+          </div>
+          <StudentNavDrawer />
+        </StudentNavDrawerProvider>
+      </QaProvider>
+    );
   }
 
   return (

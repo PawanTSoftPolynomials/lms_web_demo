@@ -8,8 +8,6 @@ import {RotateCcw} from "lucide-react";
 export default function StudentToolbar({
                                            search,
                                            onSearchChange,
-                                           status,
-                                           onStatusChange,
                                            onRefresh,
                                        }) {
     return (
@@ -23,46 +21,6 @@ export default function StudentToolbar({
                     }
                     className="md:max-w-sm md:shrink-0"
                 />
-
-                <select
-                    value={status}
-                    onChange={(e) =>
-                        onStatusChange?.(e.target.value)
-                    }
-                    className="
-            rounded-lg
-            border
-            border-border
-            shrink-0
-            bg-background
-            px-4
-            py-2
-            text-sm
-            text-foreground
-            outline-none
-            focus:border-primary
-          "
-                >
-                    <option value="">
-                        All Status
-                    </option>
-
-                    <option value="Top Performer">
-                        Top Performer
-                    </option>
-
-                    <option value="Behind Average">
-                        Behind Average
-                    </option>
-
-                    <option value="Struggling">
-                        Struggling
-                    </option>
-
-                    <option value="Not Started">
-                        Not Started
-                    </option>
-                </select>
             </div>
 
             <Button

@@ -8,7 +8,7 @@ export default function Input({
   return (
     <div className="space-y-1.5 w-full">
       {label && (
-        <label className="text-xs font-bold text-foreground block">
+        <label className="text-sm text-foreground">
           {label}
         </label>
       )}
@@ -17,25 +17,16 @@ export default function Input({
         disabled={disabled}
         className={`
           w-full
-          rounded-xl
+          rounded-lg
           border
-          border-border/90
-          bg-background
-          text-foreground
-          placeholder:text-muted-foreground
-          px-3.5
-          py-2.5
-          text-xs sm:text-sm
-          shadow-2xs
+          border-transparent
+          bg-muted
+          px-4
+          py-3
           outline-none
           transition-all
           hover:border-border-strong
           focus:border-primary
-          focus:ring-2
-          focus:ring-primary/20
-          disabled:pointer-events-none
-          disabled:opacity-50
-          ${error ? "border-destructive focus:border-destructive focus:ring-destructive/20" : ""}
           ${className}
         `}
         {...props}

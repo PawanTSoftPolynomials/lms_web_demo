@@ -1,26 +1,122 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronRight, PlayCircle, CheckCircle2, Lock, Plus, Minus, FileText, HelpCircle, ClipboardList } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Circle,
+  ClipboardList,
+  FileText,
+  HelpCircle,
+  Minus,
+  PlayCircle,
+  Plus,
+} from "lucide-react";
 
 const VISIBLE_MODULE_LIMIT = 4;
+
+/**
+ * Percentage pill for a Module / Lesson / Topic row.
+ *
+ * Reads the backend roll-up only. A node with no tracked items renders
+ * nothing at all rather than "0%", which would read as the student having
+ * failed to start something that does not exist yet.
+ */
+function NodeBadge({ progress, nodeId }) {
+  const node = progress?.nodes?.get(nodeId);
+  if (!node || !node.applicable || node.totalItems === 0) return null;
+
+  return (
+    <span
+      className={`shrink-0 text-[9px] font-black tabular-nums px-1.5 py-0.5 rounded border ${
+        node.completed
+          ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-500"
+          : "bg-background border-border text-muted-foreground"
+      }`}
+      title={`${node.completedItems} of ${node.totalItems} items complete`}
+    >
+      {node.progressPercent}%
+    </span>
+  );
+}
+
+const ITEM_META = {
+  QUIZ: { icon: HelpCircle, className: "text-emerald-600 dark:text-emerald-400" },
+  ASSIGNMENT: { icon: ClipboardList, className: "text-amber-600 dark:text-amber-400" },
+  CONTENT: { icon: FileText, className: "text-muted-foreground" },
+};
+
+/**
+ * One learning item — a Content cell, a Quiz or an Assignment — at whatever
+ * level it hangs off. Completion is the backend's `completed` flag; this row
+ * never infers it from a submission of its own.
+ */
+function ItemRow({ item, kind, onSelect }) {
+  const meta = ITEM_META[kind] || ITEM_META.CONTENT;
+  const Icon = meta.icon;
+  const isComplete = item.completed === true;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect?.(item, kind)}
+      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition border-0 bg-transparent outline-none min-h-[40px] cursor-pointer hover:bg-muted/40"
+    >
+      {isComplete ? (
+        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+      ) : (
+        <Circle size={13} className="text-muted-foreground/50 shrink-0" />
+      )}
+      <Icon size={12} className={`${meta.className} shrink-0`} />
+      <span className="truncate text-[11px] font-medium text-foreground flex-1">
+        {item.title || "Untitled"}
+      </span>
+    </button>
+  );
+}
+
+/**
+ * Every direct (non-inherited) item owned by one node, in one block.
+ *
+ * Rendered at Course, Module, Lesson and Topic level — an item attached
+ * directly to a Module or a Lesson counts toward that node's progress, so
+ * hiding it would leave the student unable to reach something the percentage
+ * is already holding against them.
+ */
+function DirectItems({ node, onSelectItem }) {
+  const contents = node?.contents || [];
+  const quizzes = node?.quizzes || [];
+  const assignments = node?.assignments || [];
+  if (contents.length + quizzes.length + assignments.length === 0) return null;
+
+  return (
+    <div className="space-y-0.5">
+      {contents.map((c) => (
+        <ItemRow key={`c-${c.id}`} item={c} kind="CONTENT" onSelect={onSelectItem} />
+      ))}
+      {quizzes.map((q) => (
+        <ItemRow key={`q-${q.id}`} item={q} kind="QUIZ" onSelect={onSelectItem} />
+      ))}
+      {assignments.map((a) => (
+        <ItemRow key={`a-${a.id}`} item={a} kind="ASSIGNMENT" onSelect={onSelectItem} />
+      ))}
+    </div>
+  );
+}
 
 export default function CourseContentAccordion({
   modules = [],
   course = null,
+  progress = null,
   activeModuleId,
   onToggleModule,
   selectedLessonId,
   onSelectLesson,
-  courseProgress = 0,
-  completedLessons = 0,
-  totalLessons = 0,
+  onSelectItem,
   collapsed = false,
   onToggleCollapsed,
 }) {
-  const router = useRouter();
   const [modulesExpanded, setModulesExpanded] = useState(false);
 
   const activeModuleIndex = modules.findIndex((m) => m.id === activeModuleId);
@@ -29,24 +125,21 @@ export default function CourseContentAccordion({
   const visibleModules = showAllModules ? modules : modules.slice(0, VISIBLE_MODULE_LIMIT);
   const hiddenModuleCount = modules.length - visibleModules.length;
 
-  const courseDirectContents = course?.contents || [];
-  const courseDirectQuizzes = course?.quizzes || [];
-  const courseDirectAssignments = course?.assignments || [];
   const hasCourseDirectItems =
-    courseDirectContents.length > 0 ||
-    courseDirectQuizzes.length > 0 ||
-    courseDirectAssignments.length > 0;
+    (course?.contents?.length || 0) +
+      (course?.quizzes?.length || 0) +
+      (course?.assignments?.length || 0) >
+    0;
 
   return (
     <div className="rounded-3xl border border-border/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl overflow-hidden">
-      {/* Overall course progress */}
-      <div className={`p-4 sm:p-5 space-y-2 ${collapsed ? "" : "border-b border-border/60"}`}>
+      <div className={`p-4 sm:p-5 ${collapsed ? "" : "border-b border-border/60"}`}>
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-xs font-black uppercase tracking-widest text-foreground">
             Course Content
           </h3>
-          <div className="flex items-center gap-3 shrink-0">
-            <span className="text-xs font-black text-primary">{courseProgress}%</span>
+          <div className="flex items-center gap-2">
+            <NodeBadge progress={progress} nodeId={course?.id} />
             {onToggleCollapsed && (
               <button
                 type="button"
@@ -59,263 +152,120 @@ export default function CourseContentAccordion({
             )}
           </div>
         </div>
-        {!collapsed && (
-          <>
-            <div className="bg-background border border-border rounded-full h-1.5 overflow-hidden relative">
-              <div
-                className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full transition-all duration-300"
-                style={{ width: `${courseProgress}%` }}
-              />
-            </div>
-            {totalLessons > 0 && (
-              <p className="text-[10px] text-muted-foreground font-semibold">
-                {completedLessons} / {totalLessons} lessons completed
-              </p>
-            )}
-          </>
-        )}
       </div>
 
       {!collapsed && (
         <div className="divide-y divide-slate-800/60">
-          {/* Direct Course-Level Items (if present) */}
+          {/* Course-level direct items — these belong to no Module, so without
+              their own block at the root they would be unreachable here. */}
           {hasCourseDirectItems && (
-            <div className="p-3 sm:p-4 bg-background/20 space-y-1.5 border-b border-border/60">
-              <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground block mb-1">
-                Course Direct Items
-              </span>
-
-              {/* Course Content */}
-              {courseDirectContents.map((content) => (
-                <div
-                  key={content.id}
-                  className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 bg-background/60 border border-border/40 text-xs"
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    {content.completed ? (
-                      <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
-                    ) : (
-                      <FileText size={15} className="text-primary shrink-0" />
-                    )}
-                    <span className="truncate font-medium text-foreground">{content.title}</span>
-                  </div>
-                  <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
-                    Course Content
-                  </span>
-                </div>
-              ))}
-
-              {/* Course Quiz */}
-              {courseDirectQuizzes.map((quiz) => (
-                <div
-                  key={quiz.id}
-                  onClick={() => router.push(`/student/attempt/${quiz.id}`)}
-                  className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/20 text-xs cursor-pointer transition"
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    {quiz.completed ? (
-                      <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
-                    ) : (
-                      <HelpCircle size={15} className="text-emerald-400 shrink-0" />
-                    )}
-                    <span className="truncate font-medium text-foreground">{quiz.title}</span>
-                  </div>
-                  <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
-                    {quiz.completed ? "Passed" : "Course Quiz"}
-                  </span>
-                </div>
-              ))}
-
-              {/* Course Assignment */}
-              {courseDirectAssignments.map((asgn) => (
-                <Link
-                  key={asgn.id}
-                  href={`/student/assignments/${asgn.id}`}
-                  className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20 text-xs transition block"
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    {asgn.completed ? (
-                      <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
-                    ) : (
-                      <ClipboardList size={15} className="text-amber-400 shrink-0" />
-                    )}
-                    <span className="truncate font-medium text-foreground">{asgn.title}</span>
-                  </div>
-                  <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 shrink-0">
-                    {asgn.completed ? "Submitted" : "Course Assignment"}
-                  </span>
-                </Link>
-              ))}
+            <div className="px-2 sm:px-3 py-2">
+              <p className="px-3 pb-1 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                Course Materials
+              </p>
+              <DirectItems node={course} onSelectItem={onSelectItem} />
             </div>
           )}
 
-          {/* Module accordion */}
           {visibleModules.map((module, moduleIndex) => {
             const expanded = module.id === activeModuleId;
-            const locked = Boolean(module.locked ?? module.isLocked);
             const lessonCount = module.lessons?.length || 0;
-            const modDirectContents = module.contents || [];
-            const modDirectQuizzes = module.quizzes || [];
-            const modDirectAssignments = module.assignments || [];
-            const hasDirectItems = modDirectContents.length > 0 || modDirectQuizzes.length > 0 || modDirectAssignments.length > 0;
-
-            const hasCompletionData = (module.lessons || []).some(
-              (l) => l.completed !== undefined || l.isCompleted !== undefined
-            );
-            const moduleCompletedCount = (module.lessons || []).filter(
-              (l) => l.completed ?? l.isCompleted
-            ).length;
+            const hasModuleDirectItems =
+              (module.contents?.length || 0) +
+                (module.quizzes?.length || 0) +
+                (module.assignments?.length || 0) >
+              0;
 
             return (
               <div key={module.id}>
                 <button
                   type="button"
-                  disabled={locked}
                   onClick={() => onToggleModule(module.id)}
-                  className={`flex w-full items-center justify-between gap-3 px-4 sm:px-5 py-3.5 text-left transition min-h-[44px] cursor-pointer border-0 bg-transparent outline-none ${
-                    locked ? "cursor-not-allowed opacity-50" : "hover:bg-background/40"
-                  }`}
+                  className="flex w-full items-center justify-between gap-3 px-4 sm:px-5 py-3.5 text-left transition min-h-[44px] cursor-pointer border-0 bg-transparent outline-none hover:bg-background/40"
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-xs font-bold text-foreground truncate">
-                        Module {moduleIndex + 1}: {module.title}
-                      </h4>
-                      {module.completed && (
-                        <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
-                      )}
-                    </div>
+                    <h4 className="text-xs font-bold text-foreground truncate">
+                      Module {moduleIndex + 1}: {module.title}
+                    </h4>
                     <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">
-                      {hasCompletionData
-                        ? `${moduleCompletedCount} / ${lessonCount} lessons`
-                        : `${lessonCount} ${lessonCount === 1 ? "lesson" : "lessons"}`}
-                      {hasDirectItems ? " • +Direct items" : ""}
+                      {lessonCount} {lessonCount === 1 ? "lesson" : "lessons"}
                     </p>
                   </div>
-                  {locked ? (
-                    <Lock size={14} className="text-muted-foreground shrink-0" />
-                  ) : expanded ? (
+                  <NodeBadge progress={progress} nodeId={module.id} />
+                  {expanded ? (
                     <ChevronDown size={16} className="text-muted-foreground shrink-0" />
                   ) : (
                     <ChevronRight size={16} className="text-muted-foreground shrink-0" />
                   )}
                 </button>
 
-                {expanded && !locked && (
+                {expanded && (
                   <div className="space-y-1 pb-3 px-2 sm:px-3">
-                    {/* Direct Module Contents */}
-                    {modDirectContents.map((c) => (
-                      <div
-                        key={c.id}
-                        className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 bg-primary/5 border border-primary/15 text-xs my-1"
-                      >
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          {c.completed ? (
-                            <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
-                          ) : (
-                            <FileText size={14} className="text-primary shrink-0" />
-                          )}
-                          <span className="truncate font-medium text-foreground">{c.title || "Module Content"}</span>
-                        </div>
-                        <span className="text-[8.5px] font-mono font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">
-                          Direct Content
-                        </span>
-                      </div>
-                    ))}
+                    {/* Module-level direct items, above the lessons they sit beside. */}
+                    {hasModuleDirectItems && (
+                      <DirectItems node={module} onSelectItem={onSelectItem} />
+                    )}
 
-                    {/* Direct Module Quizzes */}
-                    {modDirectQuizzes.map((q) => (
-                      <div
-                        key={q.id}
-                        onClick={() => router.push(`/student/attempt/${q.id}`)}
-                        className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/20 text-xs cursor-pointer my-1 transition"
-                      >
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          {q.completed ? (
-                            <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
-                          ) : (
-                            <HelpCircle size={14} className="text-emerald-400 shrink-0" />
-                          )}
-                          <span className="truncate font-medium text-foreground">{q.title || "Module Quiz"}</span>
-                        </div>
-                        <span className="text-[8.5px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 shrink-0">
-                          {q.completed ? "Passed" : "Direct Quiz"}
-                        </span>
-                      </div>
-                    ))}
-
-                    {/* Direct Module Assignments */}
-                    {modDirectAssignments.map((a) => (
-                      <Link
-                        key={a.id}
-                        href={`/student/assignments/${a.id}`}
-                        className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20 text-xs cursor-pointer my-1 transition block"
-                      >
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          {a.completed ? (
-                            <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
-                          ) : (
-                            <ClipboardList size={14} className="text-amber-400 shrink-0" />
-                          )}
-                          <span className="truncate font-medium text-foreground">{a.title || "Module Assignment"}</span>
-                        </div>
-                        <span className="text-[8.5px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 shrink-0">
-                          {a.completed ? "Submitted" : "Direct Assignment"}
-                        </span>
-                      </Link>
-                    ))}
-
-                    {/* Module Lessons */}
                     {(module.lessons || []).map((lesson, lessonIndex) => {
                       const isActive = lesson.id === selectedLessonId;
-                      const isCompleted = Boolean(lesson.completed ?? lesson.isCompleted);
-                      const isLessonLocked = Boolean(lesson.locked);
+                      const topics = lesson.topics || [];
 
                       return (
-                        <button
-                          key={lesson.id}
-                          type="button"
-                          disabled={isLessonLocked}
-                          onClick={() => !isLessonLocked && onSelectLesson(lesson, module)}
-                          title={isLessonLocked ? "Complete the previous lesson to unlock" : undefined}
-                          className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all border-0 outline-none min-h-[44px] ${
-                            isLessonLocked
-                              ? "cursor-not-allowed opacity-50 text-muted-foreground bg-transparent"
-                              : "cursor-pointer"
-                          } ${
-                            isActive
-                              ? "bg-primary text-foreground font-medium shadow-lg shadow-orange-600/10"
-                              : !isLessonLocked
-                              ? "hover:bg-muted/40 text-foreground bg-transparent"
-                              : ""
-                          }`}
-                        >
-                          {isLessonLocked ? (
-                            <Lock size={14} className="text-muted-foreground shrink-0" />
-                          ) : isActive ? (
-                            <PlayCircle size={15} className="text-foreground shrink-0" />
-                          ) : isCompleted ? (
-                            <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
-                          ) : (
-                            <span className="h-2 w-2 rounded-full bg-slate-700 shrink-0 ml-[3px] mr-[3px]" />
+                        <div key={lesson.id}>
+                          <button
+                            type="button"
+                            onClick={() => onSelectLesson(lesson, module)}
+                            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all border-0 outline-none min-h-[44px] cursor-pointer ${
+                              isActive
+                                ? "bg-primary text-foreground font-medium shadow-lg shadow-orange-600/10"
+                                : "hover:bg-muted/40 text-foreground bg-transparent"
+                            }`}
+                          >
+                            {isActive ? (
+                              <PlayCircle size={15} className="text-foreground shrink-0" />
+                            ) : (
+                              <span className="h-2 w-2 rounded-full bg-slate-700 shrink-0 ml-[3px] mr-[3px]" />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-xs font-medium">
+                                {lessonIndex + 1}. {lesson.title}
+                              </p>
+                              <p
+                                className={`truncate text-[10px] ${
+                                  isActive ? "text-orange-400" : "text-muted-foreground"
+                                }`}
+                              >
+                                {topics.length ? `${topics.length} Topics` : lesson.duration || ""}
+                              </p>
+                            </div>
+                            <NodeBadge progress={progress} nodeId={lesson.id} />
+                          </button>
+
+                          {/* The active lesson opens to reveal its own direct
+                              items and its Topics, so every level of the
+                              hierarchy is reachable on mobile too. */}
+                          {isActive && (
+                            <div className="ml-4 pl-2 border-l border-border/60 space-y-0.5 mt-0.5">
+                              <DirectItems node={lesson} onSelectItem={onSelectItem} />
+
+                              {topics.map((topic) => (
+                                <div key={topic.id}>
+                                  <div className="flex items-center gap-2 px-3 pt-1.5 pb-0.5">
+                                    <span className="truncate text-[10px] font-black uppercase tracking-wider text-muted-foreground flex-1">
+                                      {topic.title}
+                                    </span>
+                                    <NodeBadge progress={progress} nodeId={topic.id} />
+                                  </div>
+                                  <DirectItems node={topic} onSelectItem={onSelectItem} />
+                                </div>
+                              ))}
+                            </div>
                           )}
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs font-medium">
-                              {lessonIndex + 1}. {lesson.title}
-                            </p>
-                            <p className={`truncate text-[10px] ${isActive ? "text-orange-400" : "text-muted-foreground"}`}>
-                              {isLessonLocked
-                                ? "Locked"
-                                : lesson.topics?.length
-                                ? `${lesson.topics.length} Topics`
-                                : lesson.duration || ""}
-                            </p>
-                          </div>
-                        </button>
+                        </div>
                       );
                     })}
 
-                    {lessonCount === 0 && !hasDirectItems && (
+                    {lessonCount === 0 && !hasModuleDirectItems && (
                       <div className="px-3 py-2 text-xs text-muted-foreground italic">
                         No lessons available
                       </div>
@@ -332,7 +282,9 @@ export default function CourseContentAccordion({
               onClick={() => setModulesExpanded((prev) => !prev)}
               className="w-full px-4 sm:px-5 py-3 min-h-[44px] text-[10px] font-black uppercase tracking-wider text-primary hover:text-orange-300 transition cursor-pointer border-0 bg-transparent outline-none"
             >
-              {modulesExpanded ? "Show Less" : `Show ${hiddenModuleCount} More ${hiddenModuleCount === 1 ? "Module" : "Modules"}`}
+              {modulesExpanded
+                ? "Show Less"
+                : `Show ${hiddenModuleCount} More ${hiddenModuleCount === 1 ? "Module" : "Modules"}`}
             </button>
           )}
         </div>

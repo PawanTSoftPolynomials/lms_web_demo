@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { FaBars } from "react-icons/fa";
 import { MessageSquare, ChevronRight, Menu } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
@@ -188,7 +189,10 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
   const { data: quizData } = useQuiz(quizId, { enabled: !!quizId && isInstructorRole });
   
   const courseId = parsedIds.courseId || moduleData?.courseId || lessonData?.module?.courseId || quizData?.courseId;
-  const { data: course } = useInstructorCourse(courseId, { enabled: !!courseId && isInstructorRole });
+  // Breadcrumbs read only course.title / course.id, so this skips the whole
+  // modules -> lessons -> topics -> contents tree. The navbar renders on every
+  // instructor content page, so this was the widest-reaching over-fetch.
+  const { data: course } = useInstructorCourse(courseId, { enabled: !!courseId && isInstructorRole, shallow: true });
 
   // Generate breadcrumb objects dynamically
   const getBreadcrumbs = () => {
@@ -419,7 +423,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     const openRoleNavDrawer = role === 'ADMIN' ? openAdminNavDrawer : openInstructorNavDrawer;
     return (
       <>
-      <header className="sticky top-0 z-40 bg-background border-b border-border text-foreground">
+      <header className="bg-background border-b border-border text-foreground">
         <div className="px-3 sm:px-6 py-3 flex items-center gap-2 sm:gap-4">
           <div className="flex items-center gap-6 shrink-0">
             {/* Mobile menu toggle — opens the role's nav drawer (see
@@ -435,10 +439,16 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
               <FaBars />
             </button>
 
-            {/* Logo — full wordmark from sm+; just the mark on mobile, where the
-                header is already tight (hamburger + search + 4 nav-icons). */}
-            <Link href={dashboardHref} className="flex items-center gap-2 font-black text-foreground hover:opacity-90">
-              <span className="text-2xl text-primary">🍊</span>
+            {/* Logo */}
+            <Link href={dashboardHref} className="flex items-center gap-2 hover:opacity-90">
+              <Image
+                src="/images/logo.jpeg"
+                alt="Orange Tree LMS"
+                width={48}
+                height={48}
+                className="h-11 w-11 rounded-lg object-cover"
+                priority
+              />
               <div className="hidden sm:flex flex-col">
                 <span className="text-sm tracking-wider font-extrabold text-primary leading-none">ORANGE TREE</span>
                 <span className="text-[9px] text-muted-foreground font-medium">Learn. Grow. Succeed.</span>
@@ -579,8 +589,15 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
                 >
                   <Menu size={20} aria-hidden="true" />
                 </button>
-                <Link href="/student/dashboard" className="flex items-center gap-2 shrink-0 font-black text-foreground hover:opacity-90">
-                  <span className="text-2xl text-primary">🍊</span>
+                <Link href="/student/dashboard" className="flex items-center gap-2 shrink-0 hover:opacity-90">
+                  <Image
+                    src="/images/logo.jpeg"
+                    alt="Orange Tree LMS"
+                    width={48}
+                    height={48}
+                    className="h-9 w-9 rounded-lg object-cover"
+                    priority
+                  />
                   <div className="hidden sm:flex flex-col">
                     <span className="text-sm tracking-wider font-extrabold text-primary leading-none">ORANGE TREE</span>
                     <span className="text-[9px] text-muted-foreground font-medium">Learn. Grow. Succeed.</span>

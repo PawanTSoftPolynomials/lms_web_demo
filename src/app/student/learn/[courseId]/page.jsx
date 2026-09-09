@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowLeft, BookOpen, Clock3, ChevronRight, ChevronLeft, PlayCircle,
-  MessageSquare, Star, Bookmark, BookmarkCheck, PanelRightOpen, PanelRightClose,
+  ArrowLeft, ChevronRight, ChevronLeft,
+  MessageSquare, Star, Bookmark, BookmarkCheck,
+  PanelLeftOpen,
 } from "lucide-react";
 
 import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel";
@@ -16,31 +17,37 @@ import LessonContentBlock from "@/components/student/learning/LessonContentBlock
 import LessonOverviewPanel from "@/components/student/learning/LessonOverviewPanel";
 import LessonResourcesPanel from "@/components/student/learning/LessonResourcesPanel";
 import LessonQuizPanel from "@/components/student/learning/LessonQuizPanel";
+import QuizExperience from "@/components/student/attempt/QuizExperience";
 import AskInstructorCard from "@/components/student/learning/AskInstructorCard";
 import LessonNavigationControls from "@/components/student/learning/LessonNavigationControls";
 import LearnPageHeader from "@/components/student/learning/LearnPageHeader";
 
 import { groupLessonContentForDocumentView } from "@/lib/contentDocument";
-import { getDisplayUrl } from "@/lib/blob";
 import { CourseStructureSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
 import { normalizeCourseHierarchy } from "@/lib/courseMapper";
+import { buildProgressIndex, decorateCourseWithProgress } from "@/lib/progressIndex";
 import { LEARN_PAGE_CONTENT_TABS } from "@/features/student/constants/learnPageConfig";
 
-import { useCourse, useStudentState, useUpdateStudentState, useCourseProgress, useCompleteContent } from "@/hooks/queries/student";
+import {
+  useCourse,
+  useStudentState,
+  useUpdateStudentState,
+  useCourseProgress,
+  useCompleteContent,
+} from "@/hooks/queries/student";
 import useLessonBookmarkToggle from "@/hooks/queries/student/useLessonBookmarkToggle";
 import useTranscript from "@/hooks/queries/student/useTranscript";
 import useTrackCourseAccess from "@/hooks/queries/student/useTrackCourseAccess";
 import useLearningStateSync from "@/hooks/queries/student/useLearningStateSync";
 import useLessonNavigation from "@/hooks/queries/student/useLessonNavigation";
+import useTopicNavigation from "@/hooks/queries/student/useTopicNavigation";
 
 import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
-import ProgressBar from "@/components/student/courses/ProgressBar";
 import { ChatWidget } from "@/components/chat";
 
-import useAuth from "@/hooks/useAuth";
 import useChat from "@/hooks/useChat";
-import { useNotification } from "@/context/NotificationContext";
+import useMediaQuery from "@/hooks/useMediaQuery";
 
 export default function LearnPage() {
   const { courseId } = useParams();
@@ -48,23 +55,44 @@ export default function LearnPage() {
 
   const { data: rawCourseData, isLoading, isError } = useCourse(courseId);
   const course = useMemo(() => normalizeCourseHierarchy(rawCourseData) || {}, [rawCourseData]);
-  const { data: progressData } = useCourseProgress(courseId);
+  // Progress is advisory to this page: the player must stay fully usable when
+  // the roll-up is unavailable, so a failed/pending progress query degrades to
+  // "no indicators" rather than blocking or erroring the learning experience.
+  const { data: progressData, isError: isProgressError } = useCourseProgress(courseId);
   const completeContentMutation = useCompleteContent();
+
+  // Single flattened view of the backend roll-up. Null while loading or on
+  // failure — every consumer below treats null as "don't render indicators".
+  const progressIndex = useMemo(() => buildProgressIndex(progressData), [progressData]);
+
+  // The same course tree the player renders from, decorated with the backend's
+  // completion flags so the sidebar, the accordion and the quiz panel all agree.
+  const courseWithProgress = useMemo(
+    () => decorateCourseWithProgress(course, progressIndex) || course,
+    [course, progressIndex]
+  );
+
+  const courseSummary = progressIndex?.course ?? null;
 
   const { data: stateData, isLoading: isStateLoading } = useStudentState();
   const updateStateMutation = useUpdateStudentState();
 
-  const { logout } = useAuth();
-  const { toggleChat, isOpen: chatOpen, chatUnreadCount, setIsOpen } = useChat();
-  const { notifications, markAllRead, markAsRead } = useNotification();
+  const { setIsOpen } = useChat();
 
-  // Course Content Sidebar toggle state
-  const [courseSidebarOpen, setCourseSidebarOpen] = useState(false);
+  // Real viewport check backing the mobile/tablet-only blocks below — mirrors
+  // Tailwind's xl breakpoint (1280px) so exactly one of the isDesktop-gated
+  // vs. xl:hidden/xl:block branches renders, not both.
+  const isDesktop = useMediaQuery("(min-width: 1280px)");
+
+  // Course Content Sidebar toggle state — open by default so the Course
+  // Index is what a student sees on first arriving at a lesson.
+  const [courseSidebarOpen, setCourseSidebarOpen] = useState(true);
 
   // Right-hand utility column (Ask Instructor / Sticky Notes / Feedback)
   // collapse state — desktop only, mirrors the left Course Map sidebar's
-  // collapse behavior.
-  const [rightPanelOpen, setRightPanelOpen] = useState(true);
+  // collapse behavior. Closed by default to match the Course Index being
+  // open on first arrival (avoids both wide panels competing for space).
+  const [rightPanelOpen, setRightPanelOpen] = useState(false);
 
   const videoPlayerRef = useRef(null);
 
@@ -85,18 +113,127 @@ export default function LearnPage() {
     updateStateMutation,
   });
 
-  // Lesson list and prev/next/module derivations.
+  // Lesson list and prev/next/module derivations, plus the single entry
+  // point (selectLesson) every navigation control below routes through.
   const {
     lessons,
-    currentLessonIndex,
     previousLesson,
     nextLesson,
     nextModule,
     selectLesson,
   } = useLessonNavigation(course, selectedLesson, setSelectedLesson);
 
-  const [pendingTopicScroll, setPendingTopicScroll] = useState(null);
+  const [selectedTopicId, setSelectedTopicId] = useState(null);
+
+  // Whether the current lesson uses the topic-scoped pathway at all — a
+  // legacy/edge-case lesson with zero Topics falls back to the old
+  // lesson-wide bar and content flatten further down instead.
+  const hasTopics = (selectedLesson?.topics?.length ?? 0) > 0;
+
+  const {
+    currentTopic,
+    previousTopic,
+    nextTopic,
+    nextLessonForTopic,
+    selectTopic,
+  } = useTopicNavigation(course, selectedLesson, selectedTopicId, setSelectedLesson, setSelectedTopicId, lessons);
+
+  // Whenever the selected Lesson changes to one whose Topics don't include
+  // the currently selected Topic, default to that Lesson's first Topic.
+  // Deliberately keyed only on selectedLesson?.id: when selectTopic crosses
+  // a Lesson boundary it sets selectedLesson and selectedTopicId together in
+  // the same handler (batched into one render), so by the time this effect
+  // runs, selectedTopicId already belongs to the new selectedLesson and this
+  // is a no-op — it only fires the reset for lesson-level navigation
+  // (sidebar lesson/module clicks, resume-from-URL/DB, zero-topic Next/Prev
+  // Lesson) that never touched selectedTopicId itself.
+  useEffect(() => {
+    if (!selectedLesson) return;
+    const topicsOfLesson = selectedLesson.topics || [];
+    const stillValid = topicsOfLesson.some((t) => t.id === selectedTopicId);
+    if (!stillValid) {
+      setSelectedTopicId(topicsOfLesson[0]?.id || null);
+    }
+  }, [selectedLesson?.id]);
+
+  // A content-unit switch (a different Topic, or a different zero-Topic
+  // Lesson) mounts a different (or no) video — the previous unit's
+  // playback position must not leak into the newly-selected unit's Sticky
+  // Notes timestamps or the debounced state-sync write. Must NOT fire
+  // while the very first unit is still settling (Lesson restored but its
+  // first Topic hasn't been auto-selected yet), so a just-restored resume
+  // position survives.
+  //
+  // Keyed on BOTH selectedLesson and selectedTopicId together, not
+  // selectedTopicId alone — a zero-Topic Lesson always reports
+  // selectedTopicId as null, so a null-only signal can't tell "still
+  // settling the very first unit" apart from "genuinely on a zero-Topic
+  // Lesson" apart from "genuinely on a *different* zero-Topic Lesson than
+  // last time." Three prior fix rounds each patched a selectedTopicId-only
+  // signal and each left one of those cases wrong — round 1 (unconditional
+  // reset) broke initial settle, round 2 (previous-value sentinel) missed
+  // a real-Topic -> zero-Topic-Lesson -> real-Topic sequence, round 3
+  // (monotonic attributed flag) missed real-Topic -> zero-Topic-Lesson
+  // directly (the guard's `selectedTopicId === null` early return skipped
+  // the reset on entry into a zero-Topic Lesson, not just before settle).
+  // A composite lesson+topic key sidesteps all three: "settling" is
+  // defined once (Lesson present, and either it has no Topics or its
+  // first Topic hasn't landed yet) rather than re-derived from a sentinel
+  // that means different things at different points in the transition.
+  const hasSettledInitialUnitRef = useRef(false);
+  const previousUnitKeyRef = useRef(null);
+
+  // The content player shows one block (video/document/quiz/etc.) at a time
+  // within the current unit — goToPreviousBlock/goToNextBlock below step
+  // through blockIndex before falling through to goToPreviousUnit/
+  // goToNextUnit. landOnLastBlockRef signals that a just-triggered unit
+  // change came from Prev at block 0 (not sidebar navigation or Next), so
+  // the reset below should land on the new unit's LAST block instead of its
+  // first — set only when there genuinely is a previous unit to land in, so
+  // it can never leak into an unrelated later unit change.
+  const [blockIndex, setBlockIndex] = useState(0);
+  const landOnLastBlockRef = useRef(false);
+  // Set by a sidebar click on a specific content/quiz row that also crosses
+  // a unit boundary (a different Topic/Lesson than the one on screen) — the
+  // reset below lands directly on that row's block instead of block 0, once
+  // playerBlocks has been recomputed for the newly-selected unit.
+  const pendingBlockTargetIdRef = useRef(null);
+
+  useEffect(() => {
+    if (!selectedLesson) return;
+    const stillWaitingForFirstTopic = hasTopics && selectedTopicId === null;
+    if (stillWaitingForFirstTopic) return;
+
+    const unitKey = `${selectedLesson.id}::${selectedTopicId ?? ""}`;
+    if (!hasSettledInitialUnitRef.current) {
+      hasSettledInitialUnitRef.current = true;
+      previousUnitKeyRef.current = unitKey;
+      return;
+    }
+    if (unitKey !== previousUnitKeyRef.current) {
+      setCurrentTimestamp(0);
+      if (landOnLastBlockRef.current) {
+        landOnLastBlockRef.current = false;
+        setBlockIndex(Math.max(0, playerBlocks.length - 1));
+      } else if (pendingBlockTargetIdRef.current) {
+        const targetId = pendingBlockTargetIdRef.current;
+        pendingBlockTargetIdRef.current = null;
+        const idx = playerBlocks.findIndex((b) => b.item.id === targetId);
+        setBlockIndex(idx >= 0 ? idx : 0);
+      } else {
+        setBlockIndex(0);
+      }
+      previousUnitKeyRef.current = unitKey;
+    }
+  }, [selectedLesson?.id, selectedTopicId, hasTopics]);
+
   const [videoDuration, setVideoDuration] = useState(0);
+
+  // Course-level / module-level content or quiz selected from the sidebar —
+  // these aren't scoped to any Lesson/Topic, so they're shown standalone in
+  // the player instead of being threaded into the Prev/Next block sequence.
+  // Any normal Lesson/Topic/Module navigation clears it.
+  const [manualOverride, setManualOverride] = useState(null); // { kind: "content" | "quiz", item } | null
 
   // Embedded (non-drawer) Course Content accordion state — independent of the
   // desktop sidebar so only one module is expanded at a time on mobile/tablet,
@@ -113,88 +250,20 @@ export default function LearnPage() {
 
   const { isLessonBookmarked, toggleLessonBookmark } = useLessonBookmarkToggle(selectedLesson, course);
 
-  const courseProgress = progressData?.progressPercent ?? 0;
-
-  const courseWithProgress = useMemo(() => {
-    if (!course) return course;
-    const completedLessonSet = new Set(progressData?.lessonProgresses || []);
-    const completedModuleSet = new Set(progressData?.moduleProgresses || []);
-    const completedTopicSet = new Set(progressData?.topicProgresses || []);
-    const completedQuizSet = new Set(progressData?.completedQuizIds || []);
-    const completedContentSet = new Set(progressData?.completedContentIds || []);
-    const completedAssignmentSet = new Set(progressData?.completedAssignmentIds || []);
-
-    return {
-      ...course,
-      progressPercent: courseProgress,
-      contents: (course.contents || []).map((c) => ({
-        ...c,
-        completed: completedContentSet.has(c.id),
-      })),
-      quizzes: (course.quizzes || []).map((q) => ({
-        ...q,
-        completed: completedQuizSet.has(q.id),
-      })),
-      assignments: (course.assignments || []).map((a) => ({
-        ...a,
-        completed: completedAssignmentSet.has(a.id),
-      })),
-      modules: (course.modules || []).map((m) => ({
-        ...m,
-        completed: completedModuleSet.has(m.id),
-        contents: (m.contents || []).map((c) => ({
-          ...c,
-          completed: completedContentSet.has(c.id),
-        })),
-        quizzes: (m.quizzes || []).map((q) => ({
-          ...q,
-          completed: completedQuizSet.has(q.id),
-        })),
-        lessons: (m.lessons || []).map((l) => ({
-          ...l,
-          completed: completedLessonSet.has(l.id),
-          contents: (l.contents || []).map((c) => ({
-            ...c,
-            completed: completedContentSet.has(c.id),
-          })),
-          quizzes: (l.quizzes || []).map((q) => ({
-            ...q,
-            completed: completedQuizSet.has(q.id),
-          })),
-          topics: (l.topics || []).map((t) => ({
-            ...t,
-            completed: completedTopicSet.has(t.id),
-            contents: (t.contents || []).map((c) => ({
-              ...c,
-              completed: completedContentSet.has(c.id),
-            })),
-            quizzes: (t.quizzes || []).map((q) => ({
-              ...q,
-              completed: completedQuizSet.has(q.id),
-            })),
-          })),
-        })),
-      })),
-    };
-  }, [course, progressData, courseProgress]);
-
-  const courseProgressDetail = useMemo(() => {
-    const totalLessons = lessons.length;
-    const completedLessonSet = new Set(progressData?.lessonProgresses || []);
-    const completedLessons = lessons.filter((l) => completedLessonSet.has(l.id)).length;
-    return { completedLessons, totalLessons };
-  }, [lessons, progressData]);
-
+  // Auto-advance one block once a video finishes playing — same step Next
+  // takes, so a video followed by another block in the same Topic doesn't
+  // get skipped straight to the next Topic. Defined further down (after
+  // documentGroupedContents); safe to reference here since this is only
+  // ever called later, as the video's onEnded callback.
   const handleVideoEnded = () => {
-    if (selectedLessonContents?.length > 0) {
-      const activeVideo = selectedLessonContents.find((c) => c.type === "VIDEO");
-      if (activeVideo?.id) {
-        completeContentMutation.mutate({ contentId: activeVideo.id, completed: true });
-      }
+    // Mark the block that actually just finished — not "the first VIDEO in the
+    // lesson", which marks the wrong row whenever a lesson holds more than one.
+    // Quiz blocks complete through their own submission flow, never here.
+    const finished = activeBlock;
+    if (finished?.kind === "content" && finished.item?.id) {
+      completeContentMutation.mutate({ contentId: finished.item.id, completed: true });
     }
-    if (nextLesson) {
-      setSelectedLesson(nextLesson);
-    }
+    goToNextBlock();
   };
 
   // Embedded Course Content accordion: keep the current lesson's module
@@ -214,39 +283,156 @@ export default function LearnPage() {
     }
   }, [courseId]);
 
-  // Scroll-to-topic: sidebar topic/content clicks set the target topicId here;
-  // once the (possibly newly-selected) lesson's content anchors are in the DOM,
-  // jump to the matching one.
-  useEffect(() => {
-    if (!pendingTopicScroll) return;
-    const el = document.querySelector(`[data-topic-anchor="${pendingTopicScroll}"]`);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-      setPendingTopicScroll(null);
-    }
-  }, [pendingTopicScroll, selectedLesson]);
-
-  // Content now nests under Topic (Lesson -> Topic -> Content), so flatten
-  // every topic's contents back into the flat list this page's UI expects.
+  // Content nests under Topic for legacy/imported lessons, but the current
+  // (Composer v2) authoring path attaches Content directly to the Lesson
+  // and drops Topics entirely — `lesson.contents` from the API, not
+  // `lesson.topics[].contents`. Prefer the Topic path when it has anything
+  // (the common case today); fall back to the Lesson's own `contents`
+  // otherwise, so a Composer v2 lesson isn't simply empty on this side.
   const selectedLessonContents = useMemo(() => {
-    return (selectedLesson?.topics || []).flatMap((topic) => topic.contents || []);
+    const fromTopics = (selectedLesson?.topics || []).flatMap((topic) => topic.contents || []);
+    return fromTopics.length > 0 ? fromTopics : (selectedLesson?.contents || []);
   }, [selectedLesson]);
 
+  // The primary content pane (video + document blocks) shows only the
+  // currently selected Topic's contents, not the whole Lesson's — that's
+  // the point of Topic-scoped navigation. A zero-Topic lesson has no Topic
+  // to scope to, so it falls back to the Lesson-wide list above unchanged.
+  const selectedTopicContents = useMemo(() => {
+    if (!hasTopics) return selectedLessonContents;
+    const effectiveTopicId = selectedTopicId ?? selectedLesson?.topics?.[0]?.id;
+    const topic = (selectedLesson?.topics || []).find((t) => t.id === effectiveTopicId);
+    return topic?.contents || [];
+  }, [selectedLesson, selectedTopicId, hasTopics, selectedLessonContents]);
+
   // Imported courses store each markdown block (heading/paragraph/table/...)
-  // as its own HTML content row — dozens per lesson. Merge consecutive HTML
-  // rows into one flowing document item instead of showing (or dropping) one
-  // generic card per block; every other content type is untouched.
+  // as its own HTML content row — dozens per lesson/topic. Merge consecutive
+  // HTML rows into one flowing document item instead of showing (or
+  // dropping) one generic card per block; every other content type is
+  // untouched.
   const documentGroupedContents = useMemo(
-    () => groupLessonContentForDocumentView(selectedLessonContents),
-    [selectedLessonContents]
+    () => groupLessonContentForDocumentView(selectedTopicContents),
+    [selectedTopicContents]
   );
 
-  const handleLogout = () => {
-    logout();
-    router.push("/login");
+  // Quizzes attached to the current scope (the active Topic when the Lesson
+  // uses Topics, the Lesson itself otherwise) — the instructor Composer
+  // sidebar merges a quiz into its siblings' content order rather than
+  // showing it in a separate section, so the player does the same: a quiz
+  // takes its real position among the blocks around it.
+  const activeQuizzes = useMemo(() => {
+    if (hasTopics) {
+      const effectiveTopicId = selectedTopicId ?? selectedLesson?.topics?.[0]?.id;
+      const topic = (selectedLesson?.topics || []).find((t) => t.id === effectiveTopicId);
+      return topic?.quizzes || [];
+    }
+    return selectedLesson?.quizzes || [];
+  }, [selectedLesson, selectedTopicId, hasTopics]);
+
+  // The full one-at-a-time sequence the player steps through — content
+  // blocks and this scope's quizzes merged and order-sorted, mirroring
+  // ParentContentRows' own merge in the instructor sidebar (ties broken
+  // content-first, since ties are only possible via manual reordering).
+  const playerBlocks = useMemo(() => {
+    const contentBlocks = documentGroupedContents.map((item) => ({ kind: "content", item }));
+    const quizBlocks = activeQuizzes.map((quiz) => ({ kind: "quiz", item: quiz }));
+    return [...contentBlocks, ...quizBlocks].sort((a, b) => {
+      const orderDiff = (a.item.order ?? 0) - (b.item.order ?? 0);
+      if (orderDiff !== 0) return orderDiff;
+      return a.kind === b.kind ? 0 : a.kind === "content" ? -1 : 1;
+    });
+  }, [documentGroupedContents, activeQuizzes]);
+
+  // Single source of truth for what "Previous/Next" do, shared by both
+  // LessonNavigationControls instances (compact + full) — Topic-scoped when
+  // the lesson has Topics, otherwise identical to Lesson-level navigation.
+  const goToPreviousUnit = () => {
+    if (hasTopics) {
+      if (previousTopic) selectTopic(previousTopic);
+    } else if (previousLesson) {
+      setSelectedLesson(previousLesson);
+    }
+  };
+
+  const goToNextUnit = () => {
+    if (hasTopics) {
+      if (nextTopic) selectTopic(nextTopic);
+    } else if (nextLesson) {
+      setSelectedLesson(nextLesson);
+    }
+  };
+
+  // In-player Prev/Next (the floating buttons over the content itself): the
+  // player shows one block at a time, so these step through
+  // documentGroupedContents first and only fall through to
+  // goToPreviousUnit/goToNextUnit — i.e. skip to the previous/next Topic —
+  // once there's no earlier/later block in the current one. The separate
+  // full-width Previous/Next bar further down the page keeps its existing
+  // always-jump-a-Topic behavior unchanged; it's explicitly labeled as
+  // Topic/Module navigation, not block-by-block.
+  const goToPreviousBlock = () => {
+    if (blockIndex > 0) {
+      setBlockIndex((prev) => prev - 1);
+      return;
+    }
+    // Only signal "land on the last block" when a previous unit genuinely
+    // exists to land in — otherwise the flag would leak into whatever
+    // later, unrelated unit change happens to fire this same reset effect.
+    const hasPreviousUnit = hasTopics ? Boolean(previousTopic) : Boolean(previousLesson);
+    if (hasPreviousUnit) {
+      landOnLastBlockRef.current = true;
+    }
+    goToPreviousUnit();
+  };
+
+  const goToNextBlock = () => {
+    if (blockIndex < playerBlocks.length - 1) {
+      setBlockIndex((prev) => prev + 1);
+      return;
+    }
+    goToNextUnit();
+  };
+
+  // Jumps the player straight to a specific content/quiz row selected from
+  // the sidebar (Topic/Lesson-scoped only — course/module-level selections
+  // go through manualOverride instead, not this). A click on a row already
+  // within the on-screen unit resolves its index immediately; a click that
+  // also crosses a unit boundary stashes the target id in
+  // pendingBlockTargetIdRef for the unit-change reset effect to resolve
+  // once playerBlocks has been recomputed for the newly-selected unit.
+  const jumpToBlock = (targetId, { lesson, topic } = {}) => {
+    setManualOverride(null);
+    const alreadyOnUnit =
+      lesson?.id === selectedLesson?.id && (topic ? topic.id === selectedTopicId : true);
+    if (alreadyOnUnit) {
+      const idx = playerBlocks.findIndex((b) => b.item.id === targetId);
+      setBlockIndex(idx >= 0 ? idx : 0);
+      return;
+    }
+    pendingBlockTargetIdRef.current = targetId;
+    const match = lesson?.id ? lessons.find((l) => l.id === lesson.id) : null;
+    if (match) selectLesson(match);
+    if (topic?.id) setSelectedTopicId(topic.id);
   };
 
   const { segments: transcriptSegments, status: transcriptStatus } = useTranscript(selectedLesson?.id);
+
+  // useTranscript is Lesson-keyed and returns segments for whichever single
+  // video the backend associates with that Lesson — a pre-existing
+  // simplification. When a Lesson has more than one Topic containing a
+  // video, we can no longer be sure the fetched transcript matches the
+  // Topic currently on screen; showing it anyway would let a student read
+  // and seek a transcript against the wrong video. Suppress it in that
+  // ambiguous case only — single-video Lessons (the common case) are
+  // unaffected.
+  const lessonVideoTopicCount = useMemo(() => {
+    return (selectedLesson?.topics || []).filter((topic) =>
+      (topic.contents || []).some((content) => content.type === "VIDEO")
+    ).length;
+  }, [selectedLesson]);
+  const transcriptAmbiguous = hasTopics && lessonVideoTopicCount > 1;
+  const effectiveTranscriptSegments = transcriptAmbiguous ? [] : transcriptSegments;
+  const effectiveTranscriptStatus = transcriptAmbiguous ? "unavailable" : transcriptStatus;
 
   const handleTranscriptSeek = (seconds) => {
     videoPlayerRef.current?.seekTo(seconds);
@@ -293,7 +479,10 @@ export default function LearnPage() {
     return <Card className="text-foreground">Course not found.</Card>;
   }
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  // What the player actually shows — a standalone course/module-level pick
+  // takes priority over the normal Lesson/Topic block sequence.
+  const activeBlock = manualOverride || playerBlocks[blockIndex];
+  const resultReturnTo = `/student/learn/${courseId}${selectedLesson?.id ? `?lessonId=${selectedLesson.id}` : ""}`;
 
   // Each tab's content is defined exactly once here, then referenced both by
   // the mobile shared content panel (conditional render, one at a time) and
@@ -348,7 +537,7 @@ export default function LearnPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#07080f] text-foreground flex overflow-x-hidden font-sans relative">
+    <div className="h-full bg-[#07080f] text-foreground flex overflow-x-hidden font-sans relative">
 
       {/* ========================================================================= */}
       {/* COURSE CONTENT SIDEBAR — desktop only (xl+). Below xl, Course Content is  */}
@@ -358,29 +547,51 @@ export default function LearnPage() {
       <div className={`hidden xl:block shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${courseSidebarOpen ? "w-full xl:w-[320px]" : "w-full xl:w-0"}`}>
         <CourseStructureSidebar
           modules={courseWithProgress.modules || []}
-          composerMode={selectedLesson ? "lesson" : "course"}
+          courseId={courseId}
+          courseQuizzes={courseWithProgress.quizzes || []}
+          progress={progressIndex}
+          maxHeightClassName="max-h-full"
+          composerMode={hasTopics ? "topic" : selectedLesson ? "lesson" : "course"}
           composeLessonId={selectedLesson?.id}
           composeModuleId={selectedLesson?.moduleId}
+          composeTopicId={selectedTopicId}
           isOpen={courseSidebarOpen}
           onToggleOpen={() => setCourseSidebarOpen(false)}
-          onSelectCourseOverview={() => {}}
+          onSelectCourseOverview={() => router.push(`/student/courses/${courseId}`)}
           onSelectLesson={(lessonId) => {
+            setManualOverride(null);
             const match = lessons.find((l) => l.id === lessonId);
             selectLesson(match);
           }}
           onSelectModule={(mod) => {
+            setManualOverride(null);
             selectLesson(mod.lessons?.[0]);
           }}
           onSelectTopic={(topicId, lessonId) => {
+            setManualOverride(null);
             const match = lessons.find((l) => l.id === lessonId);
             if (!match) return;
             selectLesson(match);
-            if (!match.locked) setPendingTopicScroll(topicId);
+            setSelectedTopicId(topicId);
           }}
           onSelectContent={(content, topic, lesson) => {
-            const match = lesson?.id ? lessons.find((l) => l.id === lesson.id) : null;
-            if (match) selectLesson(match);
-            if (topic?.id && !match?.locked) setPendingTopicScroll(topic.id);
+            jumpToBlock(content.id, { lesson, topic });
+          }}
+          onSelectLessonContent={(content, lesson) => {
+            jumpToBlock(content.id, { lesson });
+          }}
+          onSelectModuleContent={(content) => {
+            setManualOverride({ kind: "content", item: content });
+          }}
+          onSelectCourseContent={(content) => {
+            setManualOverride({ kind: "content", item: content });
+          }}
+          onSelectQuiz={(quiz, mod, lesson, topic) => {
+            if (lesson) {
+              jumpToBlock(quiz.id, { lesson, topic });
+            } else {
+              setManualOverride({ kind: "quiz", item: quiz });
+            }
           }}
           role="STUDENT"
         />
@@ -389,21 +600,24 @@ export default function LearnPage() {
       {/* ========================================================================= */}
       {/* MAIN WORKSPACE CONTENT */}
       {/* ========================================================================= */}
-      <div className="flex-1 flex flex-col h-screen overflow-y-auto bg-[#07080f] min-w-0">
+      <div className="flex-1 flex flex-col h-full overflow-y-auto bg-[#07080f] min-w-0">
 
         <LearnPageHeader
           courseSidebarOpen={courseSidebarOpen}
           onOpenSidebar={() => setCourseSidebarOpen(true)}
           selectedLesson={selectedLesson}
+          topicTitle={hasTopics ? currentTopic?.title : null}
           course={course}
-          chatOpen={chatOpen}
-          chatUnreadCount={chatUnreadCount}
-          onToggleChat={toggleChat}
-          notifications={notifications}
-          unreadCount={unreadCount}
-          onMarkAllRead={markAllRead}
-          onNotificationItemClick={(n) => markAsRead(n.id)}
-          onLogout={handleLogout}
+          courseProgress={courseSummary}
+          isProgressUnavailable={isProgressError}
+          isStickyNotesOpen={rightPanelOpen}
+          onToggleStickyNotes={() => {
+            setRightPanelOpen((prev) => {
+              const next = !prev;
+              if (next) setActiveContentTab("notes");
+              return next;
+            });
+          }}
         />
 
         {/* ========================================================== */}
@@ -423,12 +637,12 @@ export default function LearnPage() {
           */}
           <div
             className={`grid grid-cols-1 gap-6 lg:gap-8 transition-[grid-template-columns] duration-300 ease-in-out ${
-              rightPanelOpen ? "xl:grid-cols-[1fr_360px]" : "xl:grid-cols-[1fr_48px]"
+              rightPanelOpen ? "xl:grid-cols-[1fr_360px]" : "xl:grid-cols-1"
             }`}
           >
 
-            {/* VIDEO — the primary learning action: first below xl, row 2 of the left column on desktop */}
-            <div className="space-y-4 min-w-0 row-start-1 xl:col-start-1 xl:row-start-2">
+            {/* VIDEO — the primary learning action: first below xl, row 1 of the left column on desktop. */}
+            <div className="space-y-4 min-w-0 row-start-1 xl:col-start-1 xl:row-start-1">
               {/* Mobile-only utility row: back navigation + bookmark, no functionless "more" menu */}
               <div className="flex items-center justify-between xl:hidden -mt-1">
                 <Link
@@ -454,117 +668,144 @@ export default function LearnPage() {
                 </button>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-transparent/60 pb-3">
-                <div className="space-y-1 min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-black uppercase tracking-wider text-primary">
-                      Lesson {currentLessonIndex >= 0 ? currentLessonIndex + 1 : 1} of {lessons.length || 1}
-                    </span>
-                    {selectedLesson?.duration && selectedLesson.duration !== "N/A" && (
-                      <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
-                        <Clock3 size={11} className="text-primary" />
-                        {selectedLesson.duration}
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="text-sm sm:text-base font-black text-foreground flex items-center gap-2 tracking-wide truncate">
-                    <PlayCircle className="text-primary shrink-0" size={18} />
-                    <span className="truncate">{selectedLesson?.title || "Loading Lesson..."}</span>
-                  </h3>
+              {/* CONTENT PLAYER FRAME — fixed viewport-relative height (matches
+                  every screen size, not just desktop). Header stays pinned at
+                  top, the content body scrolls internally once a block (or
+                  several stacked blocks) exceeds the frame, and Prev/Next stay
+                  pinned at the bottom corners instead of pushing the page
+                  taller. Transcript/Resources stay outside this frame, below,
+                  in normal page flow. */}
+              <div className="group relative flex flex-col h-[75vh] min-h-[440px] max-h-[720px] rounded-2xl border border-border bg-card overflow-hidden">
+                {/* No dedicated header bar — lesson/topic name and the Sticky
+                    Notes trigger already live in the top bar above. Course
+                    Index reopen (desktop, sidebar collapsed only) floats over
+                    the top-left corner of the content instead, same treatment
+                    as Prev/Next below. */}
+                {!courseSidebarOpen && (
+                  <button
+                    type="button"
+                    onClick={() => setCourseSidebarOpen(true)}
+                    className="hidden xl:flex absolute top-3 left-3 z-10 items-center justify-center w-9 h-9 rounded-full border border-border bg-card/90 backdrop-blur-sm shadow-md text-muted-foreground hover:text-primary hover:border-primary/40 transition cursor-pointer"
+                    title="Show Course Index"
+                    aria-label="Show Course Index"
+                  >
+                    <PanelLeftOpen size={16} />
+                  </button>
+                )}
+
+                {/* One block at a time — Next/Prev below step to the rest of
+                    this Topic's blocks (content and quizzes merged in order)
+                    before moving to the next/previous Topic. A standalone
+                    course/module-level pick (manualOverride) takes over the
+                    whole frame instead, with no Prev/Next of its own — see
+                    activeBlock above. initialTime (resume position) only
+                    applies to the first block of the normal sequence. */}
+                <div className="flex-1 overflow-y-auto min-h-0">
+                  {activeBlock?.kind === "quiz" ? (
+                    <div className="p-4 sm:p-5">
+                      <QuizExperience
+                        quizId={activeBlock.item.id}
+                        onBack={manualOverride ? () => setManualOverride(null) : goToPreviousBlock}
+                        resultReturnTo={resultReturnTo}
+                      />
+                    </div>
+                  ) : (
+                    <LessonContentBlock
+                      item={activeBlock?.item}
+                      videoPlayerRef={videoPlayerRef}
+                      onTimeUpdate={setCurrentTimestamp}
+                      onDurationChange={setVideoDuration}
+                      onEnded={manualOverride ? undefined : handleVideoEnded}
+                      initialTime={!manualOverride && blockIndex === 0 ? initialTime : 0}
+                    />
+                  )}
                 </div>
+
+                {/* Previous / Next — floating over the bottom corners of the
+                    scrollable content instead of a dedicated footer bar, so the
+                    content area keeps that space. Pointer-events only on the
+                    buttons themselves, so the overlay never blocks scrolling
+                    or clicks on the content beneath it. Hidden until the player
+                    is hovered (or a button inside gets keyboard focus) — video-
+                    player-style controls, not a bar that's always sitting there.
+                    Hidden entirely for a standalone course/module-level pick,
+                    which isn't part of any Prev/Next sequence. */}
+                {!manualOverride && (
+                <div className="absolute inset-x-3 bottom-3 flex items-center justify-between pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+                  <LessonNavigationControls
+                    variant="corners"
+                    unitLabel={hasTopics ? "Topic" : "Lesson"}
+                    previousItem={blockIndex > 0 || (hasTopics ? Boolean(previousTopic) : Boolean(previousLesson))}
+                    nextItem={
+                      blockIndex < playerBlocks.length - 1 ||
+                      (hasTopics ? Boolean(nextTopic) : Boolean(nextLesson))
+                    }
+                    onSelectPrevious={goToPreviousBlock}
+                    onSelectNext={goToNextBlock}
+                  />
+                </div>
+                )}
               </div>
-
-              <LessonContentBlock
-                item={documentGroupedContents?.[0]}
-                videoPlayerRef={videoPlayerRef}
-                onTimeUpdate={setCurrentTimestamp}
-                onDurationChange={setVideoDuration}
-                onEnded={handleVideoEnded}
-                initialTime={initialTime}
-              />
-
-              {/* Remaining lesson content beyond the primary block above — e.g. a
-                  video intro followed by a full written lecture, or several
-                  documents/links in one lesson. Each keeps its own natural
-                  rendering (document flow, embedded file, link card) and simply
-                  stacks below rather than being dropped or shown as a card grid. */}
-              {documentGroupedContents.length > 1 && (
-                <div className="space-y-4">
-                  {documentGroupedContents.slice(1).map((item, idx) => (
-                    <LessonContentBlock key={item.id || idx} item={item} />
-                  ))}
-                </div>
-              )}
-
-              {/* Compact Previous / Next — mobile & tablet only, right under the
-                  player. Small on purpose: the video stays the focus, these are
-                  just quick actions, not another card competing for attention. */}
-              <LessonNavigationControls
-                variant="compact"
-                previousLesson={previousLesson}
-                nextLesson={nextLesson}
-                onSelectPrevious={() => {
-                  if (previousLesson) setSelectedLesson(previousLesson);
-                }}
-                onSelectNext={() => {
-                  if (nextLesson) setSelectedLesson(nextLesson);
-                }}
-              />
             </div>
 
             {/* CONTENT TAB STRIP — mobile & tablet only. Desktop shows every
                 section stacked at once (below), so switching tabs would just
                 add a tap for no benefit there. Left/right arrows let a student
-                reach the hidden tabs with a tap instead of a swipe. */}
-            <div className="row-start-2 xl:hidden">
-              <div className="flex items-center gap-1 border-b border-transparent/60">
-                <button
-                  type="button"
-                  onClick={() => scrollContentTabs(-1)}
-                  disabled={!canScrollTabsLeft}
-                  className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
-                  aria-label="Scroll tabs left"
-                >
-                  <ChevronLeft size={16} />
-                </button>
+                reach the hidden tabs with a tap instead of a swipe.
+                Gated on isDesktop (a real viewport check), not just xl:hidden —
+                otherwise this and the desktop panels below would both mount
+                regardless of actual screen size, only one hidden by CSS. */}
+            {!isDesktop && (
+              <div className="row-start-2">
+                <div className="flex items-center gap-1 border-b border-transparent/60">
+                  <button
+                    type="button"
+                    onClick={() => scrollContentTabs(-1)}
+                    disabled={!canScrollTabsLeft}
+                    className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
+                    aria-label="Scroll tabs left"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
 
-                <div
-                  ref={tabStripRef}
-                  onScroll={updateTabScrollState}
-                  className="flex items-center gap-1 overflow-x-auto scrollbar-none flex-1 min-w-0"
-                >
-                  {LEARN_PAGE_CONTENT_TABS.map((tab) => {
-                    const Icon = tab.icon;
-                    const isActive = activeContentTab === tab.id;
-                    return (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        onClick={() => setActiveContentTab(tab.id)}
-                        className={`flex flex-col items-center gap-1 px-3.5 py-2 min-h-[44px] text-[11px] font-bold uppercase tracking-wide transition cursor-pointer border-0 border-b-2 outline-none shrink-0 bg-transparent ${
-                          isActive
-                            ? "text-primary border-primary"
-                            : "text-foreground border-transparent hover:text-foreground"
-                        }`}
-                      >
-                        <Icon size={18} />
-                        <span>{tab.label}</span>
-                      </button>
-                    );
-                  })}
+                  <div
+                    ref={tabStripRef}
+                    onScroll={updateTabScrollState}
+                    className="flex items-center gap-1 overflow-x-auto scrollbar-none flex-1 min-w-0"
+                  >
+                    {LEARN_PAGE_CONTENT_TABS.map((tab) => {
+                      const Icon = tab.icon;
+                      const isActive = activeContentTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setActiveContentTab(tab.id)}
+                          className={`flex flex-col items-center gap-1 px-3.5 py-2 min-h-[44px] text-[11px] font-bold uppercase tracking-wide transition cursor-pointer border-0 border-b-2 outline-none shrink-0 bg-transparent ${
+                            isActive
+                              ? "text-primary border-primary"
+                              : "text-foreground border-transparent hover:text-foreground"
+                          }`}
+                        >
+                          <Icon size={18} />
+                          <span>{tab.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => scrollContentTabs(1)}
+                    disabled={!canScrollTabsRight}
+                    className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
+                    aria-label="Scroll tabs right"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => scrollContentTabs(1)}
-                  disabled={!canScrollTabsRight}
-                  className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
-                  aria-label="Scroll tabs right"
-                >
-                  <ChevronRight size={16} />
-                </button>
               </div>
-            </div>
+            )}
 
             {/* SHARED CONTENT PANEL — mobile & tablet only. Exactly one branch
                 renders at a time based on activeContentTab: true conditional
@@ -572,95 +813,71 @@ export default function LearnPage() {
                 siblings. This is the one container every tab — Overview,
                 Transcript, Resources, Notes, Query, Feedback, and Quiz alike —
                 renders into below xl. Nothing else moves when it changes. */}
-            <div className="row-start-3 xl:hidden min-w-0">
-              {activeContentTab === "overview" && overviewPanel}
+            {!isDesktop && (
+              <div className="row-start-3 min-w-0">
+                {activeContentTab === "overview" && overviewPanel}
 
               {activeContentTab === "transcript" && (
                 <TranscriptPanel
-                  segments={transcriptSegments}
-                  status={transcriptStatus}
+                  segments={effectiveTranscriptSegments}
+                  status={effectiveTranscriptStatus}
                   currentTime={currentTimestamp}
                   onSeek={handleTranscriptSeek}
                 />
               )}
 
-              {activeContentTab === "resources" && resourcesPanel}
+                {activeContentTab === "resources" && resourcesPanel}
 
-              {activeContentTab === "notes" && (
-                <StickyNotesPanel
-                  lessonId={selectedLesson?.id}
-                  currentTimestamp={currentTimestamp}
-                  onSeek={handleTranscriptSeek}
-                />
-              )}
+                {activeContentTab === "notes" && (
+                  <StickyNotesPanel
+                    lessonId={selectedLesson?.id}
+                    currentTimestamp={currentTimestamp}
+                    onSeek={handleTranscriptSeek}
+                  />
+                )}
 
-              {activeContentTab === "query" && askInstructorCard}
+                {activeContentTab === "query" && askInstructorCard}
 
-              {activeContentTab === "feedback" && feedbackPanel}
+                {activeContentTab === "feedback" && feedbackPanel}
 
-              {activeContentTab === "quiz" && quizPanel}
-            </div>
+                {activeContentTab === "quiz" && quizPanel}
+              </div>
+            )}
 
             {/* Desktop (xl+): no tab switching — every section stays mounted and
                 visible at once, stacked, each in its own row (unchanged from
                 before this refactor). */}
-            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-3">{overviewPanel}</div>
+            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-2">{overviewPanel}</div>
 
-            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-4">
+            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-3">
               <TranscriptPanel
-                segments={transcriptSegments}
-                status={transcriptStatus}
+                segments={effectiveTranscriptSegments}
+                status={effectiveTranscriptStatus}
                 currentTime={currentTimestamp}
                 onSeek={handleTranscriptSeek}
               />
             </div>
 
-            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-5">{resourcesPanel}</div>
+            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-4">{resourcesPanel}</div>
 
-            <div
-              className={`hidden xl:flex xl:flex-col xl:gap-6 min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-8 xl:sticky xl:top-24 xl:h-fit transition-[width] duration-300 ease-in-out ${
-                rightPanelOpen ? "w-full xl:w-[360px]" : "w-full xl:w-12"
-              }`}
-            >
-              {rightPanelOpen ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setRightPanelOpen(false)}
-                    className="self-end flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-xl text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground bg-background/60 hover:bg-muted border border-transparent transition cursor-pointer"
-                    title="Hide side panel"
-                    aria-label="Hide side panel"
-                  >
-                    <PanelRightClose size={14} />
-                    <span>Hide</span>
-                  </button>
-                  <div className="order-2">
-                    <StickyNotesPanel
-                      lessonId={selectedLesson?.id}
-                      currentTimestamp={currentTimestamp}
-                      onSeek={handleTranscriptSeek}
-                    />
-                  </div>
-                  <div className="order-1">{askInstructorCard}</div>
-                  <div className="order-3">{feedbackPanel}</div>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setRightPanelOpen(true)}
-                  className="flex flex-col items-center gap-3 w-12 rounded-2xl border border-transparent/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl py-4 hover:border-primary/40 hover:bg-background text-muted-foreground hover:text-primary transition cursor-pointer"
-                  title="Show side panel"
-                  aria-label="Show side panel"
-                >
-                  <PanelRightOpen size={16} className="shrink-0" />
-                  <span className="text-[9px] font-black uppercase tracking-widest [writing-mode:vertical-rl]">
-                    Panel
-                  </span>
-                </button>
-              )}
-            </div>
+            {/* Collapsed state renders no grid column at all (see grid-cols
+                above) — the player and stacked panels get the full width
+                back instead of a persistently reserved 48px-wide column. */}
+            {rightPanelOpen && (
+              <div className="hidden xl:flex xl:flex-col xl:gap-6 min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-7 xl:sticky xl:top-24 xl:h-fit w-full xl:w-[360px]">
+                <div className="order-2">
+                  <StickyNotesPanel
+                    lessonId={selectedLesson?.id}
+                    currentTimestamp={currentTimestamp}
+                    onSeek={handleTranscriptSeek}
+                  />
+                </div>
+                <div className="order-1">{askInstructorCard}</div>
+                <div className="order-3">{feedbackPanel}</div>
+              </div>
+            )}
 
-            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-6">{quizPanel}</div>
+            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-5">{quizPanel}</div>
 
             {/* COURSE CONTENT — embedded module/lesson navigator, mobile & tablet
                 only (below xl). Desktop keeps the fixed sidebar, so this would be
@@ -669,99 +886,51 @@ export default function LearnPage() {
               <CourseContentAccordion
                 modules={courseWithProgress.modules || []}
                 course={courseWithProgress}
+                progress={progressIndex}
                 activeModuleId={activeModuleId}
                 onToggleModule={toggleMobileModule}
                 selectedLessonId={selectedLesson?.id}
                 onSelectLesson={(lesson, module) => selectLesson({ ...lesson, moduleId: module.id })}
-                courseProgress={courseProgress}
-                completedLessons={courseProgressDetail.completedLessons}
-                totalLessons={courseProgressDetail.totalLessons}
+                // Routes through the same two handlers the desktop sidebar
+                // uses, so a mobile tap lands on exactly the same block the
+                // desktop tree would have opened.
+                onSelectItem={(item, kind) => {
+                  if (kind === "ASSIGNMENT") {
+                    router.push(`/student/assignments/${item.id}`);
+                    return;
+                  }
+                  jumpToBlock(item.id);
+                }}
                 collapsed={mobileContentCollapsed}
                 onToggleCollapsed={() => setMobileContentCollapsed((prev) => !prev)}
               />
-            </div>
-
-            {/* COURSE INFO — desktop only. On mobile this duplicates what's already
-                in the header (back arrow) and Course Content (progress %), and it
-                isn't part of the tabbed flow you're designing toward there. */}
-            <div className="hidden xl:block space-y-4 min-w-0 xl:col-start-1 xl:row-start-1">
-              <Link
-                href="/student/my-courses"
-                className="inline-flex items-center gap-2 text-xs text-muted-foreground transition hover:text-primary font-bold uppercase tracking-wider min-h-[36px]"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                Back to My Courses
-              </Link>
-
-              {/* Minimal inline progress bar */}
-              <div className="flex items-center gap-3 w-full sm:w-64 text-[10px] font-bold text-muted-foreground pb-1">
-                <span className="uppercase tracking-widest text-[9px]">Progress</span>
-                <div className="flex-1">
-                  <ProgressBar value={courseProgress} size="xs" variant="gradient" />
-                </div>
-                <span className="text-primary font-extrabold">{courseProgress}%</span>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 items-start">
-                {course.thumbnailUrl && (
-                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border border-transparent bg-background/60 flex-shrink-0 flex items-center justify-center">
-                    <img
-                      src={getDisplayUrl(course.thumbnailUrl)}
-                      alt={course.title}
-                      className="object-contain w-12 h-12 sm:w-14 sm:h-14"
-                    />
-                  </div>
-                )}
-                <div className="space-y-2 min-w-0 flex-1">
-                  <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-foreground tracking-wide leading-tight break-words">
-                    {course.title}
-                  </h1>
-                  <p className="text-xs text-muted-foreground leading-relaxed font-semibold break-words">
-                    {course.description}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-muted-foreground pt-1">
-                    <div className="flex items-center gap-1.5">
-                      <BookOpen className="h-4 w-4 text-primary" />
-                      <span>{course.modules?.length || 0} Modules</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* LESSON TABS — desktop only. Quiz was removed from inside this
                 component (see comment above); what's left (bookmark, personal
                 scratchpad notes) isn't part of the 7-tab set, so it stays as
                 supplementary reference material rather than a tab of its own. */}
-            <div className="hidden xl:block pt-6 border-t border-transparent/80 min-w-0 xl:col-start-1 xl:row-start-7">
+            <div className="hidden xl:block pt-6 border-t border-transparent/80 min-w-0 xl:col-start-1 xl:row-start-6">
               <LessonTabs
                 lesson={selectedLesson}
                 course={course}
               />
             </div>
 
-            {/* PREVIOUS / NEXT LESSON — desktop only. Mobile has the compact pair
-                right under the video player instead; "Continue to Next Module"
-                lives here where there's room for the fuller label. */}
-            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-8">
+            {/* PREVIOUS / NEXT LESSON — desktop only. Always jumps a whole Topic/
+                Module, unlike the in-player floating Prev/Next (which steps
+                through the current Topic's blocks first) — "Continue to Next
+                Module" lives here where there's room for the fuller label. */}
+            <div className="hidden xl:block min-w-0 xl:col-start-1 xl:row-start-7">
               <LessonNavigationControls
                 variant="full"
-                previousLesson={previousLesson}
-                nextLesson={nextLesson}
-                nextModule={nextModule}
-                selectedLesson={selectedLesson}
-                onSelectPrevious={() => {
-                  if (previousLesson) setSelectedLesson(previousLesson);
-                }}
-                onSelectNext={() => {
-                  if (selectedLessonContents?.length > 0) {
-                    const activeVideo = selectedLessonContents.find((c) => c.type === "VIDEO");
-                    if (activeVideo?.id) {
-                      completeContentMutation.mutate({ contentId: activeVideo.id, completed: true });
-                    }
-                  }
-                  if (nextLesson) setSelectedLesson(nextLesson);
-                }}
+                unitLabel={hasTopics ? "Topic" : "Lesson"}
+                previousItem={hasTopics ? previousTopic : previousLesson}
+                nextItem={hasTopics ? nextTopic : nextLesson}
+                nextGroupTitle={hasTopics ? nextLessonForTopic?.title : nextModule?.title}
+                currentTitle={hasTopics ? currentTopic?.title : selectedLesson?.title}
+                onSelectPrevious={goToPreviousUnit}
+                onSelectNext={goToNextUnit}
               />
             </div>
 

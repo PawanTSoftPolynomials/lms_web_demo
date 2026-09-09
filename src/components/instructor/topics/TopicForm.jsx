@@ -7,6 +7,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import MarkdownEditor from "@/components/ui/MarkdownEditor/MarkdownEditor";
 import { htmlToMarkdown } from "@/lib/htmlToMarkdown";
+import { canPublishEntity } from "@/lib/publishGate";
 
 const INITIAL_FORM = {
     title: "",
@@ -25,7 +26,7 @@ export default function TopicForm({
     const [formData, setFormData] =
         useState(INITIAL_FORM);
 
-    const canPublish = contentsCount > 0;
+    const canPublish = canPublishEntity(contentsCount, initialValues);
 
     useEffect(() => {
         if (initialValues) {
@@ -101,7 +102,7 @@ export default function TopicForm({
                     </div>
                     {!canPublish && (
                         <p className="text-xs text-amber-400/90 pl-7">
-                            Add at least one content item before you can publish this topic.
+                            Add at least one content item, quiz or assignment before you can publish this topic.
                         </p>
                     )}
                 </div>

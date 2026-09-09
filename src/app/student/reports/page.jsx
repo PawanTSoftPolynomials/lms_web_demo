@@ -12,7 +12,6 @@ import ReportSummaryCard from "@/components/student/reports/ReportSummaryCard";
 import ReportsEmptyState from "@/components/student/reports/ReportsEmptyState";
 
 import useDashboard from "@/hooks/queries/student/useDashboard";
-import useMyCourses from "@/hooks/queries/student/useMyCourses";
 import useQuizzes from "@/hooks/queries/student/useQuizzes";
 import useAssignments from "@/hooks/queries/student/useAssignments";
 import useCertificates from "@/hooks/queries/student/useCertificates";
@@ -23,17 +22,11 @@ export default function StudentReportsPage() {
   const [timeRange, setTimeRange] = useState("All Time");
 
   const { data: dashboardData, isLoading: dashboardLoading } = useDashboard();
-  const { data: myEnrollments = [], isLoading: enrollmentsLoading } = useMyCourses();
-
-  const courses = useMemo(
-    () =>
-      myEnrollments.map((e) => ({
-        id: e.course?.id || e.courseId,
-        title: e.course?.title || "Untitled course",
-      })),
-    [myEnrollments]
-  );
   const enrolledCourses = dashboardData?.enrolledCoursesList ?? [];
+  const courses = useMemo(
+    () => enrolledCourses.map((e) => ({ id: e.courseId, title: e.course?.title })),
+    [enrolledCourses]
+  );
   const selectedCourse =
     selectedCourseId !== "all" ? courses.find((c) => c.id === selectedCourseId) : null;
 
@@ -53,7 +46,7 @@ export default function StudentReportsPage() {
     return certificates.filter((c) => c.course?.title === selectedCourse.title);
   }, [certificates, selectedCourse]);
 
-  if (dashboardLoading || enrollmentsLoading) {
+  if (dashboardLoading) {
     return <Loader />;
   }
 
@@ -78,7 +71,7 @@ export default function StudentReportsPage() {
 
   return (
     <div className="space-y-4 pb-16">
-      <PageHeader title="Reports" subtitle="Your grades, quiz performance, and course completion at a glance." />
+      <PageHeader title="Reports" subtitle="Your grades, quiz performance, and assignments at a glance." />
 
       <ReportsTabStrip />
 

@@ -48,7 +48,7 @@ function DropdownMenuItem({
       data-variant={variant}
       className={cn(
         "relative flex cursor-pointer select-none items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold outline-none transition-colors",
-        "text-foreground focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "text-popover-foreground focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10",
         "data-[inset]:pl-8",
         className
@@ -67,7 +67,7 @@ function DropdownMenuCheckboxItem({
   return (
     <DropdownMenuPrimitive.CheckboxItem
       className={cn(
-        "relative flex cursor-pointer select-none items-center gap-2 rounded-lg py-2 pl-8 pr-2.5 text-xs font-semibold outline-none transition-colors text-foreground focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex cursor-pointer select-none items-center gap-2 rounded-lg py-2 pl-8 pr-2.5 text-xs font-semibold outline-none transition-colors text-popover-foreground focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className
       )}
       checked={checked}
@@ -91,7 +91,7 @@ function DropdownMenuRadioItem({
   return (
     <DropdownMenuPrimitive.RadioItem
       className={cn(
-        "relative flex cursor-pointer select-none items-center gap-2 rounded-lg py-2 pl-8 pr-2.5 text-xs font-semibold outline-none transition-colors text-foreground focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex cursor-pointer select-none items-center gap-2 rounded-lg py-2 pl-8 pr-2.5 text-xs font-semibold outline-none transition-colors text-popover-foreground focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className
       )}
       {...props}

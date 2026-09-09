@@ -42,5 +42,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-# Playwright MCP generated artifacts
-.playwright-mcp/
+
+# Git worktrees for isolated agent work
+.worktrees/

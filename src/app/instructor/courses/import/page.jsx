@@ -85,7 +85,6 @@ const FALLBACK_TEMPLATE = {
     visibility: "PUBLIC",
     certificatesEnabled: true,
     discussionEnabled: true,
-    dripContentEnabled: false,
   },
   quizzes: [
     {
@@ -291,7 +290,6 @@ export default function CourseImportPage() {
           visibility: settings.visibility || "PUBLIC",
           certificatesEnabled: Boolean(settings.certificatesEnabled),
           discussionEnabled: settings.discussionEnabled !== false,
-          dripContentEnabled: Boolean(settings.dripContentEnabled),
         },
         quizzes,
         modules,
@@ -667,11 +665,11 @@ export default function CourseImportPage() {
 
                   <div className="p-3.5 rounded-2xl bg-background border border-transparent/80 text-xs font-mono text-orange-300 flex items-center space-x-1.5 flex-wrap">
                     <span className="font-bold text-amber-400">Complete Course</span>
-                    <span className="text-slate-600">→</span>
+                    <span className="text-[#777777]">→</span>
                     <span>Modules</span>
-                    <span className="text-slate-600">→</span>
+                    <span className="text-[#777777]">→</span>
                     <span>Lessons</span>
-                    <span className="text-slate-600">→</span>
+                    <span className="text-[#777777]">→</span>
                     <span className="text-emerald-400">Quizzes</span>
                   </div>
                 </div>
@@ -774,13 +772,13 @@ export default function CourseImportPage() {
 
                   <div className="p-3.5 rounded-2xl bg-background border border-transparent text-xs font-mono text-indigo-300 flex items-center justify-center space-x-1.5 flex-wrap">
                     <span className="font-bold text-amber-400">Course</span>
-                    <span className="text-slate-600">→</span>
+                    <span className="text-[#777777]">→</span>
                     <span>Module</span>
-                    <span className="text-slate-600">→</span>
+                    <span className="text-[#777777]">→</span>
                     <span>Lesson</span>
-                    <span className="text-slate-600">→</span>
+                    <span className="text-[#777777]">→</span>
                     <span>Topic</span>
-                    <span className="text-slate-600">→</span>
+                    <span className="text-[#777777]">→</span>
                     <span className="text-emerald-400">Content</span>
                   </div>
                 </div>
@@ -1279,7 +1277,7 @@ export default function CourseImportPage() {
                   <div className="p-3 bg-background border border-transparent rounded-xl">
                     <span className="font-bold text-indigo-400 font-mono block">settings</span>
                     <span className="text-muted-foreground block mt-0.5">
-                      visibility (PUBLIC | PRIVATE), certificatesEnabled (boolean), discussionEnabled (boolean), dripContentEnabled (boolean).
+                      visibility (PUBLIC | PRIVATE), certificatesEnabled (boolean), discussionEnabled (boolean).
                     </span>
                   </div>
 

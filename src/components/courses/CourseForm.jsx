@@ -20,7 +20,6 @@ const INITIAL_FORM = {
     tags: "",
     certificatesEnabled: false,
     discussionEnabled: true,
-    dripContentEnabled: false,
     estimatedLearningHours: 0,
 };
 
@@ -86,7 +85,6 @@ export default function CourseForm({
                 tags: Array.isArray(initialValues.tags) ? initialValues.tags.join(", ") : (initialValues.tags ?? ""),
                 certificatesEnabled: initialValues.certificatesEnabled ?? false,
                 discussionEnabled: initialValues.discussionEnabled ?? true,
-                dripContentEnabled: initialValues.dripContentEnabled ?? false,
                 estimatedLearningHours: initialValues.estimatedLearningHours ?? 0,
             });
         }
@@ -363,17 +361,6 @@ export default function CourseForm({
                             className="w-4 h-4 rounded border-transparent bg-background text-primary focus:ring-orange-500/20"
                         />
                         <span className="text-sm text-foreground">Enable Course Discussions</span>
-                    </label>
-
-                    <label className="flex items-center gap-3 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            name="dripContentEnabled"
-                            checked={formData.dripContentEnabled}
-                            onChange={handleChange}
-                            className="w-4 h-4 rounded border-transparent bg-background text-primary focus:ring-orange-500/20"
-                        />
-                        <span className="text-sm text-foreground">Enable Drip Content (Scheduled delivery)</span>
                     </label>
                 </div>
 

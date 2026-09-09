@@ -7,6 +7,8 @@ import { Play, Bookmark as BookmarkIcon } from "lucide-react";
 export default function MobileContinueCard({ enrollment }) {
   const [bookmarked, setBookmarked] = useState(false);
   const course = enrollment.course || {};
+  const totalLessons = course.lessons ?? 0;
+  const lessonLabel = totalLessons > 0 ? `${totalLessons} lesson${totalLessons === 1 ? "" : "s"}` : "Self-paced";
 
   return (
     <div className="rounded-2xl bg-card border border-border p-4">

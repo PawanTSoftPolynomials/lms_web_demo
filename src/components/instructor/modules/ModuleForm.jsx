@@ -7,6 +7,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import MarkdownEditor from "@/components/ui/MarkdownEditor/MarkdownEditor";
 import { htmlToMarkdown } from "@/lib/htmlToMarkdown";
+import { canPublishEntity } from "@/lib/publishGate";
 
 const INITIAL_FORM = {
     title: "",
@@ -25,7 +26,7 @@ export default function ModuleForm({
     const [formData, setFormData] =
         useState(INITIAL_FORM);
 
-    const canPublish = lessonsCount > 0;
+    const canPublish = canPublishEntity(lessonsCount, initialValues);
 
     useEffect(() => {
         if (initialValues) {
@@ -101,7 +102,7 @@ export default function ModuleForm({
                     </div>
                     {!canPublish && (
                         <p className="text-xs text-amber-400/90 pl-7">
-                            Add at least one lesson before you can publish this module.
+                            Add at least one lesson, content item, quiz or assignment before you can publish this module.
                         </p>
                     )}
                 </div>

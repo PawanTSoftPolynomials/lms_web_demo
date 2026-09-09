@@ -175,7 +175,7 @@ export default function MyCoursesPage() {
                 ? Array.from({ length: 6 }).map((_, i) => (
                     <div
                       key={i}
-                      className="w-[90%] shrink-0 max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-80 md:shrink h-64 md:h-[26rem] rounded-2xl border border-slate-200 bg-white/10 animate-pulse"
+                      className="w-[70%] shrink-0 max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-56 md:shrink h-52 md:h-64 rounded-2xl border border-slate-200 bg-white/10 animate-pulse"
                     />
                   ))
                 : filteredCourses.length === 0
@@ -185,7 +185,12 @@ export default function MyCoursesPage() {
                   </div>
                 )
                 : filteredCourses.map((enrollment) => (
-                    <MyCourseCard key={enrollment.id || enrollment.courseId} enrollment={enrollment} />
+                    <div
+                      key={enrollment.id || enrollment.courseId}
+                      className="w-[70%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-56 md:shrink"
+                    >
+                      <MyCourseCard enrollment={enrollment} />
+                    </div>
                   ))}
             </div>
 

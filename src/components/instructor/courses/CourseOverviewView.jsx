@@ -16,6 +16,7 @@ export function CourseOverviewView({
   modules = [],
   onSelectModule,
   onSelectQuiz,
+  onAddQuiz,
   onAddModule,
   role = "INSTRUCTOR",
   onStartLearning,
@@ -252,6 +253,7 @@ export function CourseOverviewView({
                     parent={{ parentType: "course", parentId: course?.id }}
                     autoOpenAddSignal={contentAutoOpenSignal}
                     onAutoOpenConsumed={handleContentAutoOpenConsumed}
+                    onAddQuiz={onAddQuiz}
                   />
                 </div>
               )}
@@ -275,7 +277,7 @@ export function CourseOverviewView({
                           onClick={() => onSelectQuiz?.(quiz, null)}
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <h4 className="text-xs font-bold text-emerald-400 truncate">{quiz.title}</h4>
+                            <h4 className="text-xs font-bold text-[#6C7A6D] truncate">{quiz.title}</h4>
                             <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono shrink-0">
                               Pass: {quiz.passingScore}%
                             </span>

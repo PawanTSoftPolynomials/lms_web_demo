@@ -88,8 +88,8 @@ export default function ChatMessage({ message }) {
   const bubbleClass = isOnlyAttachments
     ? "relative w-full"
     : isMine
-      ? "rounded-2xl rounded-tr-none bg-primary text-primary-foreground px-4.5 py-3"
-      : "rounded-2xl rounded-tl-none border border-border/80 bg-background/60 text-foreground px-4.5 py-3";
+      ? "rounded-2xl rounded-tr-none bg-gradient-to-br from-orange-500 via-orange-600 to-pink-600 text-foreground shadow-[0_4px_15px_rgba(249,115,22,0.2)] px-4.5 py-3"
+      : "rounded-2xl rounded-tl-none border border-border/80 bg-background/60 backdrop-blur-sm text-foreground shadow-[0_4px_15px_rgba(0,0,0,0.1)] px-4.5 py-3";
 
   return (
     <motion.div

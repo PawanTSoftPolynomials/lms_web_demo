@@ -61,11 +61,9 @@ export default function DataTable({
 
   if (!rows || rows.length === 0) {
     return (
-      <div className="py-16 text-center flex flex-col items-center justify-center gap-2">
-        <div className="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center">
-          <Inbox size={20} />
-        </div>
-        <p className="text-xs text-muted-foreground font-medium">{emptyLabel}</p>
+      <div className="py-16 flex flex-col items-center justify-center gap-2 text-center">
+        <Inbox size={22} className="text-slate-600" />
+        <p className="text-xs font-bold text-muted-foreground">{emptyLabel}</p>
       </div>
     );
   }

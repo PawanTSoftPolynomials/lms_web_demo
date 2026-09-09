@@ -112,7 +112,6 @@ export function CourseOverviewTable({ courses, isLoading }: { courses: CoursePro
             <tr className="border-b border-border text-caption uppercase text-muted-foreground">
               <th className="pb-3 pr-2 font-medium whitespace-nowrap">Course</th>
               <th className="pb-3 px-2 font-medium text-center whitespace-nowrap">Students</th>
-              <th className="pb-3 px-2 font-medium whitespace-nowrap">Progress</th>
               <th className="pb-3 pl-2 font-medium text-right whitespace-nowrap">Actions</th>
             </tr>
           </thead>
@@ -143,17 +142,6 @@ export function CourseOverviewTable({ courses, isLoading }: { courses: CoursePro
                     <div className="flex items-center justify-center gap-1.5 text-foreground text-xs font-bold">
                       <Users size={14} className="text-muted-foreground" />
                       {course.students}
-                    </div>
-                  </td>
-                  <td className="py-4 px-2 w-1/3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-bold text-foreground w-8">{course.progress}%</span>
-                      <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary rounded-full"
-                          style={{ width: `${course.progress}%` }}
-                        />
-                      </div>
                     </div>
                   </td>
                   <td className="py-4 pl-4 text-right" onClick={(e) => e.stopPropagation()}>

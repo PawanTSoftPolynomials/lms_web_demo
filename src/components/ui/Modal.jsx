@@ -9,6 +9,10 @@ export default function Modal({
   title,
   children,
   size = "md",
+  // Additive, opt-out only — every existing caller keeps the blurred/dimmed
+  // backdrop unchanged. Pass false for a plain popup where the page behind
+  // it should stay fully sharp/visible (no blur, no dimming tint).
+  blurBackdrop = true,
 }) {
   const [mounted, setMounted] = useState(false);
 
@@ -39,26 +43,43 @@ export default function Modal({
 
   return createPortal(
     <div
-     className="
+     className={`
   fixed
   inset-0
   z-9999
   flex
   items-center
   justify-center
-  bg-background/80
-  backdrop-blur-sm
   animate-in
   fade-in
   duration-200
   p-3
   sm:p-6
-"
+  ${blurBackdrop ? "bg-background/80 backdrop-blur-sm" : "bg-transparent"}
+`}
       onClick={onClose}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
-        className={`w-full ${width[size]} max-h-[85vh] flex flex-col overflow-hidden rounded-2xl border border-border-strong bg-card shadow-lg animate-in zoom-in-95 duration-200`}
+        onClick={(e) =>
+          e.stopPropagation()
+        }
+        className={`
+  glass-modal
+  w-full
+  ${width[size]}
+  max-h-[85vh]
+  flex
+  flex-col
+  overflow-hidden
+  rounded-2xl
+  border
+  border-border
+  bg-background
+  shadow-[0_20px_80px_rgba(0,0,0,0.55)]
+  animate-in
+  zoom-in-95
+  duration-200
+`}
       >
         <div
           className="
@@ -82,8 +103,20 @@ export default function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground transition-all hover:bg-muted hover:text-foreground cursor-pointer shrink-0"
-            aria-label="Close modal"
+            className="
+    glass-button
+    flex
+    h-9
+    w-9
+    items-center
+    justify-center
+    rounded-xl
+    text-muted-foreground
+    transition-all
+    hover:bg-muted
+    hover:text-foreground
+    cursor-pointer
+  "
           >
             ✕
           </button>

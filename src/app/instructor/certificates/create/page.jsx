@@ -1,5 +1,8 @@
 "use client";
 
+import "@fontsource/poppins/400.css";
+import "@fontsource/poppins/500.css";
+import "@fontsource/poppins/700.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Award,
@@ -464,9 +467,9 @@ export default function CertificateTemplateBuilderPage() {
 
             <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-background/50 border border-transparent">
               <div>
-                <p className="text-sm font-bold text-foreground">Auto-issue on 100% course completion</p>
+                <p className="text-sm font-bold text-foreground">Auto-issue when eligible</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  The system automatically generates and issues this certificate the moment a student reaches 100% progress.
+                  The system automatically generates and issues this certificate once a student meets the course's completion requirements.
                 </p>
               </div>
               <button

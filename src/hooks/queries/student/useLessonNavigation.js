@@ -1,14 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import { useToast } from "@/components/ui/ToastProvider";
 
-// Lesson list + progress/position derivations for a course, plus the single
-// gated entry point (selectLesson) every lesson-navigation control routes
-// through so a locked (drip-content) lesson can never become selected.
+// Lesson list + position derivations for a course, plus the single entry
+// point (selectLesson) every lesson-navigation control routes through.
 export default function useLessonNavigation(course, selectedLesson, setSelectedLesson) {
-  const { showToast } = useToast();
-
   const lessons = useMemo(() => {
     const modules = course?.modules || [];
     return modules.flatMap((module) =>
@@ -19,11 +15,6 @@ export default function useLessonNavigation(course, selectedLesson, setSelectedL
       }))
     );
   }, [course]);
-
-  const completedLessonIds = useMemo(
-    () => lessons.filter((lesson) => lesson.completed).map((lesson) => lesson.id),
-    [lessons]
-  );
 
   const currentLessonIndex = useMemo(() => {
     return lessons.findIndex((l) => l.id === selectedLesson?.id);
@@ -49,16 +40,11 @@ export default function useLessonNavigation(course, selectedLesson, setSelectedL
 
   const selectLesson = (lesson) => {
     if (!lesson) return;
-    if (lesson.locked) {
-      showToast("Complete the previous lesson to unlock this one.", "info");
-      return;
-    }
     setSelectedLesson(lesson);
   };
 
   return {
     lessons,
-    completedLessonIds,
     currentLessonIndex,
     previousLesson,
     nextLesson,

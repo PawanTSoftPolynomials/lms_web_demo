@@ -21,6 +21,7 @@ export function exportBatchReportCsv(batch) {
     ["Courses", (batch.courseTitles || []).join(", ")],
     ["Status", batch.status],
     ["Students", batch.studentsCount],
+    ["Engagement Score", `${batch.engagementScore}%`],
     ["Avg Quiz Score", batch.avgQuizScore != null ? `${batch.avgQuizScore}%` : "N/A"],
     ["Assignment Submission Rate", batch.assignmentSubmissionRate != null ? `${batch.assignmentSubmissionRate}%` : "N/A"],
     ["Attendance", "N/A — not tracked"],
