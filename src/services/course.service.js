@@ -125,14 +125,6 @@ export const deleteCourse = async (
 };
 
 /**
- * Validate Course For Publish
- */
-export const validateCoursePublish = async (courseId) => {
-    const { data } = await api.get(`/courses/${courseId}/publish-validation`);
-    return data.data ?? data;
-};
-
-/**
  * Publish Course
  */
 export const publishCourse = async (courseId) => {

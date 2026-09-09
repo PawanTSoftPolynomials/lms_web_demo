@@ -27,7 +27,7 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useConceptMastery } from "@/hooks/queries/instructor/useInstructorDashboard";
 import { useToast } from "@/components/ui/ToastProvider";
 import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
-import { validateCoursePublish, duplicateCourse } from "@/services/course.service";
+import { duplicateCourse } from "@/services/course.service";
 import { createQuiz as createQuizService, updateQuiz as updateQuizService, deleteQuiz as deleteQuizService, getQuizById as getQuizByIdService } from "@/services/quiz.service";
 import {
   bulkCreateQuestions as bulkCreateQuestionsService,
@@ -43,7 +43,6 @@ import { ModuleOverviewView } from "@/components/instructor/courses/ModuleOvervi
 import { LessonOverviewView } from "@/components/instructor/courses/LessonOverviewView";
 import { QuizOverviewView } from "@/components/instructor/courses/QuizOverviewView";
 import { EntityFormModal } from "@/components/instructor/courses/EntityFormModal";
-import { PublishValidationModal } from "@/components/instructor/courses/PublishValidationModal";
 import { UnpublishModal } from "@/components/instructor/courses/UnpublishModal";
 import { DeleteCourseModal } from "@/components/instructor/courses/DeleteCourseModal";
 import AiComposerModal from "@/components/instructor/composer/AiComposerModal";
@@ -552,9 +551,6 @@ export default function CourseDetailsPage() {
   };
 
   // Lifecycle Modal States
-  const [publishModalOpen, setPublishModalOpen] = useState(false);
-  const [publishValidation, setPublishValidation] = useState(null);
-  const [isValidatingPublish, setIsValidatingPublish] = useState(false);
 
   const [unpublishModalOpen, setUnpublishModalOpen] = useState(false);
 
@@ -1760,24 +1756,9 @@ export default function CourseDetailsPage() {
 
   // --- LIFECYCLE ACTION HANDLERS ---
 
-  // 1. Publish Modal & Handler
-  const handleOpenPublishModal = async () => {
-    setPublishModalOpen(true);
-    setIsValidatingPublish(true);
-    try {
-      const valData = await validateCoursePublish(courseId);
-      setPublishValidation(valData);
-    } catch (err) {
-      showToast("Failed to validate course for publish", "error");
-    } finally {
-      setIsValidatingPublish(false);
-    }
-  };
-
   const handleConfirmPublish = async () => {
     try {
       await publishCourseMutation.mutateAsync(courseId);
-      setPublishModalOpen(false);
       showToast("Course published successfully!", "success", "Published");
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || "Failed to publish course";
@@ -1928,7 +1909,7 @@ export default function CourseDetailsPage() {
         onImportCourse={() => router.push("/instructor/courses/import")}
         onOpenAskAi={() => handleOpenAskAi()}
         isSaving={isDraftMode ? isSavingDraft : updateCourseMutation.isPending}
-        onPublishClick={handleOpenPublishModal}
+        onPublishClick={handleConfirmPublish}
         onUnpublishClick={handleOpenUnpublishModal}
         onDuplicateClick={handleDuplicateCourse}
         onArchiveClick={handleConfirmArchiveCourse}
@@ -2191,17 +2172,6 @@ export default function CourseDetailsPage() {
         state={entityModalState}
         onClose={closeEntityModal}
         onCreated={handleEntityCreated}
-      />
-
-      {/* Publish Validation Modal */}
-      <PublishValidationModal
-        isOpen={publishModalOpen}
-        onClose={() => setPublishModalOpen(false)}
-        onPublish={handleConfirmPublish}
-        validation={publishValidation}
-        isValidating={isValidatingPublish}
-        isPublishing={publishCourseMutation.isPending}
-        courseTitle={effectiveCourse?.title}
       />
 
       {/* Unpublish Confirmation Modal */}

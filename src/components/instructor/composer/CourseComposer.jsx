@@ -164,7 +164,8 @@ export default function CourseComposer({ courseId }) {
           <button
             type="button"
             onClick={() => openAiAssistant("COURSE")}
-            className="px-3 py-1.5 text-xs font-semibold text-slate-950 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 rounded-xl transition flex items-center gap-1.5 shadow-lg shadow-orange-500/10"
+            className="px-3 py-1.5 text-xs font-semibold bg-primary rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+            style={{ "--btn-rainbow-fill": "#7C3AED" }}
           >
             <Sparkles size={13} className="fill-current animate-pulse" />
             <span>Ask OTree AI</span>

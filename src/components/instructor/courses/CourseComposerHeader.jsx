@@ -86,7 +86,8 @@ export function CourseComposerHeader({
           <button
             type="button"
             onClick={onOpenAskAi}
-            className="btn shrink-0 rounded-xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-300 text-slate-950 font-extrabold text-xs px-3.5 py-1.5 transition flex items-center gap-1.5 shadow-md shadow-orange-500/10 cursor-pointer"
+            className="btn shrink-0 rounded-xl bg-primary font-extrabold text-xs px-3.5 py-1.5 transition flex items-center gap-1.5 cursor-pointer"
+            style={{ "--btn-rainbow-fill": "#7C3AED" }}
             title="Ask OTree AI Assistant"
           >
             <Sparkles size={14} className="fill-current animate-pulse shrink-0" />
