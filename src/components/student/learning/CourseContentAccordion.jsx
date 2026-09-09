@@ -52,7 +52,7 @@ const ITEM_META = {
  * level it hangs off. Completion is the backend's `completed` flag; this row
  * never infers it from a submission of its own.
  */
-function ItemRow({ item, kind, onSelect }) {
+function ItemRow({ item, kind, onSelect, scope }) {
   const meta = ITEM_META[kind] || ITEM_META.CONTENT;
   const Icon = meta.icon;
   const isComplete = item.completed === true;
@@ -60,7 +60,7 @@ function ItemRow({ item, kind, onSelect }) {
   return (
     <button
       type="button"
-      onClick={() => onSelect?.(item, kind)}
+      onClick={() => onSelect?.(item, kind, scope)}
       className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition border-0 bg-transparent outline-none min-h-[40px] cursor-pointer hover:bg-muted/40"
     >
       {isComplete ? (
@@ -84,7 +84,13 @@ function ItemRow({ item, kind, onSelect }) {
  * hiding it would leave the student unable to reach something the percentage
  * is already holding against them.
  */
-function DirectItems({ node, onSelectItem }) {
+/**
+ * `scope` names the Lesson/Topic an item hangs off, and is forwarded with every
+ * selection. The player's block sequence is Topic- or Lesson-scoped, so the
+ * handler cannot tell where an item belongs from its id alone — passing only
+ * the id is what made these rows do nothing when tapped.
+ */
+function DirectItems({ node, onSelectItem, scope }) {
   const contents = node?.contents || [];
   const quizzes = node?.quizzes || [];
   const assignments = node?.assignments || [];
@@ -93,13 +99,13 @@ function DirectItems({ node, onSelectItem }) {
   return (
     <div className="space-y-0.5">
       {contents.map((c) => (
-        <ItemRow key={`c-${c.id}`} item={c} kind="CONTENT" onSelect={onSelectItem} />
+        <ItemRow key={`c-${c.id}`} item={c} kind="CONTENT" onSelect={onSelectItem} scope={scope} />
       ))}
       {quizzes.map((q) => (
-        <ItemRow key={`q-${q.id}`} item={q} kind="QUIZ" onSelect={onSelectItem} />
+        <ItemRow key={`q-${q.id}`} item={q} kind="QUIZ" onSelect={onSelectItem} scope={scope} />
       ))}
       {assignments.map((a) => (
-        <ItemRow key={`a-${a.id}`} item={a} kind="ASSIGNMENT" onSelect={onSelectItem} />
+        <ItemRow key={`a-${a.id}`} item={a} kind="ASSIGNMENT" onSelect={onSelectItem} scope={scope} />
       ))}
     </div>
   );
@@ -163,7 +169,7 @@ export default function CourseContentAccordion({
               <p className="px-3 pb-1 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
                 Course Materials
               </p>
-              <DirectItems node={course} onSelectItem={onSelectItem} />
+              <DirectItems node={course} onSelectItem={onSelectItem} scope={{}} />
             </div>
           )}
 
@@ -191,7 +197,6 @@ export default function CourseContentAccordion({
                       {lessonCount} {lessonCount === 1 ? "lesson" : "lessons"}
                     </p>
                   </div>
-                  <NodeBadge progress={progress} nodeId={module.id} />
                   {expanded ? (
                     <ChevronDown size={16} className="text-muted-foreground shrink-0" />
                   ) : (
@@ -203,7 +208,7 @@ export default function CourseContentAccordion({
                   <div className="space-y-1 pb-3 px-2 sm:px-3">
                     {/* Module-level direct items, above the lessons they sit beside. */}
                     {hasModuleDirectItems && (
-                      <DirectItems node={module} onSelectItem={onSelectItem} />
+                      <DirectItems node={module} onSelectItem={onSelectItem} scope={{}} />
                     )}
 
                     {(module.lessons || []).map((lesson, lessonIndex) => {
@@ -238,7 +243,6 @@ export default function CourseContentAccordion({
                                 {topics.length ? `${topics.length} Topics` : lesson.duration || ""}
                               </p>
                             </div>
-                            <NodeBadge progress={progress} nodeId={lesson.id} />
                           </button>
 
                           {/* The active lesson opens to reveal its own direct
@@ -246,7 +250,7 @@ export default function CourseContentAccordion({
                               hierarchy is reachable on mobile too. */}
                           {isActive && (
                             <div className="ml-4 pl-2 border-l border-border/60 space-y-0.5 mt-0.5">
-                              <DirectItems node={lesson} onSelectItem={onSelectItem} />
+                              <DirectItems node={lesson} onSelectItem={onSelectItem} scope={{ lesson }} />
 
                               {topics.map((topic) => (
                                 <div key={topic.id}>
@@ -254,9 +258,8 @@ export default function CourseContentAccordion({
                                     <span className="truncate text-[10px] font-black uppercase tracking-wider text-muted-foreground flex-1">
                                       {topic.title}
                                     </span>
-                                    <NodeBadge progress={progress} nodeId={topic.id} />
                                   </div>
-                                  <DirectItems node={topic} onSelectItem={onSelectItem} />
+                                  <DirectItems node={topic} onSelectItem={onSelectItem} scope={{ lesson, topic }} />
                                 </div>
                               ))}
                             </div>

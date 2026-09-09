@@ -5,7 +5,16 @@ import { getDisplayUrl } from "@/lib/blob";
 
 const ALLOWED_ROLES = ["INSTRUCTOR", "ADMIN"];
 
-async function verifyAuth(request) {
+// A STUDENT may upload exactly one kind of file: the completed PDF that IS
+// their assignment submission. Everything about that path stays narrow — the
+// caller must ask for this purpose explicitly, the file must really be a PDF,
+// and it is written under its own prefix, never alongside instructor content.
+// Instructor/admin uploads are untouched by any of this.
+const STUDENT_UPLOAD_PURPOSE = "assignment-submission";
+const STUDENT_UPLOAD_PREFIX = "assignment-submissions";
+const STUDENT_MAX_BYTES = 20 * 1024 * 1024;
+
+async function verifyAuth(request, { purpose } = {}) {
   const cookieStore = await cookies();
   let token = cookieStore.get("accessToken")?.value;
 
@@ -30,25 +39,51 @@ async function verifyAuth(request) {
   }
 
   const { data } = await response.json();
-  if (!ALLOWED_ROLES.includes(data?.role)) {
-    throw new Error("Unauthorized: Role not permitted to upload files");
+  const role = data?.role;
+
+  if (ALLOWED_ROLES.includes(role)) return { role };
+
+  if (role === "STUDENT" && purpose === STUDENT_UPLOAD_PURPOSE) {
+    return { role };
+  }
+
+  throw new Error("Unauthorized: Role not permitted to upload files");
+}
+
+/** A student submission must genuinely be a PDF, by both declared type and extension. */
+function assertStudentPdf(file) {
+  const name = typeof file.name === "string" ? file.name : "";
+  const type = typeof file.type === "string" ? file.type : "";
+
+  if (type !== "application/pdf" || !/\.pdf$/i.test(name)) {
+    throw new Error("Only PDF files can be submitted for an assignment");
+  }
+  if (typeof file.size === "number" && file.size > STUDENT_MAX_BYTES) {
+    throw new Error("The submitted PDF must be 20MB or smaller");
   }
 }
 
 export async function POST(request) {
   try {
-    // 1. Verify Auth & Role
-    await verifyAuth(request);
-
-    // 2. Extract File
+    // 1. Extract the file first — the role check depends on what is being
+    //    uploaded, since a STUDENT is only permitted the submission path.
     const formData = await request.formData();
     const file = formData.get("file");
+    const purpose = formData.get("purpose");
+
+    // 2. Verify Auth & Role
+    const { role } = await verifyAuth(request, { purpose });
 
     if (!file || typeof file === "string") {
       return NextResponse.json(
         { error: "No file provided for upload" },
         { status: 400 }
       );
+    }
+
+    const isStudentSubmission = role === "STUDENT";
+    if (isStudentSubmission) {
+      assertStudentPdf(file);
     }
 
     // 3. Verify Server Secret Token for Vercel Blob
@@ -63,7 +98,8 @@ export async function POST(request) {
     }
 
     // 4. Put file into Vercel Blob Store (supports both public and private stores)
-    const pathname = `content-uploads/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+    const prefix = isStudentSubmission ? STUDENT_UPLOAD_PREFIX : "content-uploads";
+    const pathname = `${prefix}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
     let blob;
     try {
       blob = await put(pathname, file, {

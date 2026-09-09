@@ -27,6 +27,27 @@ const getGoogleSlidesEmbedUrl = (url) => {
     if (!url) return "";
     return url.replace(/\/edit(\?.*)?$/, "/embed").replace(/\/pub(\?.*)?$/, "/embed");
 };
+/**
+ * A human-readable name for an attached file. Prefers the original upload name
+ * recorded on the Content row and falls back to the last path segment of the
+ * stored URL, so the row never renders a blank label.
+ */
+const getAttachmentName = (content) => {
+    const recorded = content?.data?.originalName || content?.data?.fileName;
+    if (recorded) return recorded;
+    const raw = content?.fileUrl;
+    if (!raw) return "Attachment";
+    try {
+        const last = raw.split("?")[0].split("#")[0].split("/").pop();
+        if (!last) return "Attachment";
+        // Uploads are stored as "<epoch>-<original name>"; show the part a
+        // student would recognise rather than the storage key.
+        return decodeURIComponent(last).replace(/^\d{10,}-/, "");
+    } catch {
+        return "Attachment";
+    }
+};
+
 const parseSlides = (html) => {
     if (!html) return [];
     const sections = html.split(/<hr\s*\/?>|<!--\s*slide\s*-->/i);
@@ -405,27 +426,63 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     )
                 )}
 
-                {/* ASSIGNMENT (descriptive assignment instructions, not a quiz) */}
+                {/* ASSIGNMENT (descriptive assignment brief, not a quiz).
+                    Two clearly separated sections: the instructor's written
+                    instructions, then the instructor's reference file. The
+                    title already sits in the header bar above, so it is not
+                    repeated here. Completion for this block runs through the
+                    workspace's existing backend-authoritative completion
+                    strip, exactly as for every other Content type. */}
                 {type === "ASSIGNMENT" && (
-                    <div className="p-4 sm:p-8 space-y-4">
-                        {htmlContent ? (
-                            <p className="whitespace-pre-wrap text-sm sm:text-base text-foreground/90 select-text">
-                                {unescapeFromContentApi(htmlContent)}
+                    <div className="p-4 sm:p-6 md:p-8 max-w-3xl w-full mx-auto space-y-6">
+                        <section className="space-y-2">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                Assignment Instructions
                             </p>
-                        ) : (
-                            <p className="text-sm text-muted-foreground italic">No description provided.</p>
-                        )}
-                        {fileUrl && (
-                            <a
-                                href={displayFileUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-2 rounded-xl border border-border bg-muted px-4 py-2.5 min-h-[44px] text-xs font-bold text-primary hover:bg-background transition"
-                            >
-                                <Paperclip className="h-4 w-4" />
-                                View Attachment
-                            </a>
-                        )}
+                            {htmlContent ? (
+                                <p className="whitespace-pre-wrap break-words text-sm sm:text-base leading-relaxed text-foreground/90 select-text">
+                                    {unescapeFromContentApi(htmlContent)}
+                                </p>
+                            ) : (
+                                <p className="text-sm text-muted-foreground italic">
+                                    No instructions were provided for this assignment.
+                                </p>
+                            )}
+                        </section>
+
+                        <section className="space-y-2 border-t border-border pt-5">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                Reference Material
+                            </p>
+                            {fileUrl ? (
+                                <>
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-3 py-2.5">
+                                        <span className="flex items-center gap-2 min-w-0">
+                                            <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                            <span className="truncate text-xs font-semibold text-foreground">
+                                                {getAttachmentName(content)}
+                                            </span>
+                                        </span>
+                                        <a
+                                            href={displayFileUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="shrink-0 self-start sm:self-auto inline-flex items-center gap-2 rounded-xl border border-border bg-muted px-4 py-2.5 min-h-[44px] text-xs font-bold text-primary hover:bg-background transition"
+                                        >
+                                            <Paperclip className="h-4 w-4" />
+                                            View Attachment
+                                        </a>
+                                    </div>
+                                    <p className="text-[11px] font-semibold text-muted-foreground">
+                                        Provided by your instructor. This is not your submission.
+                                    </p>
+                                </>
+                            ) : (
+                                <p className="text-sm text-muted-foreground italic">
+                                    No reference material provided.
+                                </p>
+                            )}
+                        </section>
                     </div>
                 )}
 

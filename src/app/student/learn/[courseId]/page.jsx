@@ -13,6 +13,7 @@ import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel
 import CourseContentAccordion from "@/components/student/learning/CourseContentAccordion";
 import LessonContentBlock from "@/components/student/learning/LessonContentBlock";
 import ContentCompletionBar from "@/components/student/learning/ContentCompletionBar";
+import AssignmentWorkspacePanel from "@/components/student/learning/AssignmentWorkspacePanel";
 import LessonOverviewPanel from "@/components/student/learning/LessonOverviewPanel";
 import LessonResourcesPanel from "@/components/student/learning/LessonResourcesPanel";
 import LessonQuizPanel from "@/components/student/learning/LessonQuizPanel";
@@ -331,8 +332,7 @@ export default function LearnPage() {
   // (the common case today); fall back to the Lesson's own `contents`
   // otherwise, so a Composer v2 lesson isn't simply empty on this side.
   const selectedLessonContents = useMemo(() => {
-    const fromTopics = (selectedLesson?.topics || []).flatMap((topic) => topic.contents || []);
-    return fromTopics.length > 0 ? fromTopics : (selectedLesson?.contents || []);
+    return selectedLesson?.contents || [];
   }, [selectedLesson]);
 
   // The primary content pane (video + document blocks) shows only the
@@ -696,11 +696,59 @@ export default function LearnPage() {
   const activeQuizId = activeBlock?.kind === "quiz" ? activeBlock.item?.id : null;
   const activeQuizCompleted = Boolean(activeQuizId) && isItemComplete(progressIndex, activeQuizId);
 
+  // An Assignment is the same story: completion is earned by the backend
+  // accepting a submission, so the strip reports it and offers no action.
+  const activeAssignmentId = activeBlock?.kind === "assignment" ? activeBlock.item?.id : null;
+  const activeAssignmentCompleted =
+    Boolean(activeAssignmentId) && isItemComplete(progressIndex, activeAssignmentId);
+
+  const activeEarnedId = activeQuizId || activeAssignmentId;
+
   // Hidden entirely until the roll-up is known: without it we cannot say
   // whether this item is already complete, and showing "Mark as Complete" on a
   // finished item (or vice versa) would misreport the student's own state.
   const showCompletionBar =
-    Boolean(progressIndex) && (activeContentIds.length > 0 || Boolean(activeQuizId));
+    Boolean(progressIndex) && (activeContentIds.length > 0 || Boolean(activeEarnedId));
+
+  // Opens an Assignment in this workspace instead of navigating away, so the
+  // Course Map, the completion strip and the course percentage all stay on
+  // screen while the student works through it.
+  const openAssignment = (assignment) => {
+    if (!assignment?.id) return;
+    setManualOverride({ kind: "assignment", item: assignment });
+  };
+
+  /**
+   * The one entry point for opening any item the Course Map offers, at
+   * whatever level it hangs off. Every Course Map (desktop tree and mobile
+   * accordion) routes through this, so both open the same thing.
+   *
+   * The player's block sequence is scoped to the current Topic when the
+   * lesson uses Topics, and to the Lesson otherwise. An item only resolves
+   * through jumpToBlock when it is genuinely inside that scope; anything
+   * else — Course-direct, Module-direct, and a Lesson's OWN direct items in
+   * a lesson that also has Topics — is not in the sequence at all and opens
+   * standalone. Without that distinction those items stay in the Progress
+   * denominator while being unreachable, which is what made lesson-direct
+   * Content and lesson-direct Quizzes impossible to complete.
+   */
+  const openItem = (item, kind, ctx = {}) => {
+    if (!item?.id) return;
+    if (kind === "ASSIGNMENT") {
+      openAssignment(item);
+      return;
+    }
+
+    const { lesson, topic } = ctx;
+    const lessonUsesTopics = (lesson?.topics?.length ?? 0) > 0;
+    const inBlockSequence = Boolean(topic) || (Boolean(lesson) && !lessonUsesTopics);
+
+    if (inBlockSequence) {
+      jumpToBlock(item.id, { lesson, topic });
+      return;
+    }
+    setManualOverride({ kind: kind === "QUIZ" ? "quiz" : "content", item });
+  };
 
   const handleMarkComplete = () => {
     // The mutation's own pending flag is the guard against double submission;
@@ -776,6 +824,10 @@ export default function LearnPage() {
           modules={courseWithProgress.modules || []}
           courseId={courseId}
           courseQuizzes={courseWithProgress.quizzes || []}
+          // Course-direct assignments are counted by the roll-up, so the tree
+          // has to render them too or the student cannot reach what their
+          // percentage is already waiting on.
+          courseAssignments={courseWithProgress.assignments || []}
           progress={progressIndex}
           maxHeightClassName="max-h-full"
           composerMode={sidebarComposerMode}
@@ -946,7 +998,14 @@ export default function LearnPage() {
                     applies to the first block of the normal Topic/Lesson
                     sequence. */}
                 <div className="flex-1 overflow-y-auto min-h-0">
-                  {activeBlock?.kind === "quiz" ? (
+                  {activeBlock?.kind === "assignment" ? (
+                    <div className="p-4 sm:p-5">
+                      <AssignmentWorkspacePanel
+                        assignmentId={activeBlock.item.id}
+                        completed={activeAssignmentCompleted}
+                      />
+                    </div>
+                  ) : activeBlock?.kind === "quiz" ? (
                     <div className="p-4 sm:p-5">
                       <QuizExperience
                         quizId={activeBlock.item.id}
@@ -1005,11 +1064,21 @@ export default function LearnPage() {
                   Course-, Module-, Lesson- or Topic-direct Content alike. */}
               {showCompletionBar && (
                 <ContentCompletionBar
-                  completed={activeQuizId ? activeQuizCompleted : activeContentCompleted}
+                  completed={
+                    activeQuizId
+                      ? activeQuizCompleted
+                      : activeAssignmentId
+                        ? activeAssignmentCompleted
+                        : activeContentCompleted
+                  }
                   isPending={completeContentMutation.isPending}
-                  isVideo={!activeQuizId && activeBlock?.item?.type === "VIDEO"}
-                  readOnly={Boolean(activeQuizId)}
-                  readOnlyHint="Pass this quiz to complete it."
+                  isVideo={!activeEarnedId && activeBlock?.item?.type === "VIDEO"}
+                  readOnly={Boolean(activeEarnedId)}
+                  readOnlyHint={
+                    activeQuizId
+                      ? "Pass this quiz to complete it."
+                      : "Upload and submit your assignment PDF to complete it."
+                  }
                   onMarkComplete={handleMarkComplete}
                 />
               )}
@@ -1138,13 +1207,7 @@ export default function LearnPage() {
                 // Routes through the same two handlers the desktop sidebar
                 // uses, so a mobile tap lands on exactly the same block the
                 // desktop tree would have opened.
-                onSelectItem={(item, kind) => {
-                  if (kind === "ASSIGNMENT") {
-                    router.push(`/student/assignments/${item.id}`);
-                    return;
-                  }
-                  jumpToBlock(item.id);
-                }}
+                onSelectItem={(item, kind, ctx) => openItem(item, kind, ctx)}
                 collapsed={mobileContentCollapsed}
                 onToggleCollapsed={() => setMobileContentCollapsed((prev) => !prev)}
               />
