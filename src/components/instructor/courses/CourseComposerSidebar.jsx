@@ -213,40 +213,6 @@ function RowMenu({ groupName, items }) {
  * LessonComposer/types.ts's ContentParent), so this is one component
  * reused at all 4 levels rather than a parallel per-level implementation.
  */
-/**
- * Compact per-node completion readout for a Module / Lesson / Topic row.
- *
- * Renders nothing unless the Student-side `progress` index knows this node —
- * so the Composer, which passes no index, is visually unchanged. Every number
- * shown is the backend's; nothing is derived from the rendered children, which
- * is what keeps a Module's badge from disagreeing with the course total.
- */
-function NodeProgressBadge({ progress, nodeId, hideWhenComplete = false }) {
-  const node = progress?.nodes?.get(nodeId);
-  if (!node) return null;
-
-  // A node with nothing tracked under it is not "0% done" — it has no
-  // denominator at all, so a percentage would be actively misleading.
-  if (!node.applicable || node.totalItems === 0) return null;
-
-  // Topic rows already carry their own "Done" pill; a 100% badge beside it
-  // would say the same thing twice.
-  if (hideWhenComplete && node.completed) return null;
-
-  return (
-    <span
-      className={`shrink-0 text-[9px] font-black tabular-nums px-1.5 py-0.5 rounded border ${
-        node.completed
-          ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-500"
-          : "bg-background border-border text-muted-foreground"
-      }`}
-      title={`${node.completedItems} of ${node.totalItems} items complete`}
-    >
-      {node.progressPercent}%
-    </span>
-  );
-}
-
 function ParentContentRows({
   parent,
   isActive,
@@ -791,7 +757,6 @@ export function CourseComposerSidebar({
                     </span>
                   </div>
 
-                  <NodeProgressBadge progress={progress} nodeId={mod.id} />
 
                   {role === "INSTRUCTOR" && (
                     <RowMenu
@@ -898,7 +863,6 @@ export function CourseComposerSidebar({
                                 </span>
                               </div>
 
-                              <NodeProgressBadge progress={progress} nodeId={lesson.id} />
 
                               {role === "INSTRUCTOR" && (
                                 <RowMenu
@@ -1014,7 +978,6 @@ export function CourseComposerSidebar({
                                             )}
                                           </div>
 
-                                          <NodeProgressBadge progress={progress} nodeId={topic.id} hideWhenComplete />
 
                                           {role === "INSTRUCTOR" && (
                                             <RowMenu

@@ -315,8 +315,7 @@ export default function LearnPage() {
   // (the common case today); fall back to the Lesson's own `contents`
   // otherwise, so a Composer v2 lesson isn't simply empty on this side.
   const selectedLessonContents = useMemo(() => {
-    const fromTopics = (selectedLesson?.topics || []).flatMap((topic) => topic.contents || []);
-    return fromTopics.length > 0 ? fromTopics : (selectedLesson?.contents || []);
+    return selectedLesson?.contents || [];
   }, [selectedLesson]);
 
   // The primary content pane (video + document blocks) shows only the
@@ -546,6 +545,38 @@ export default function LearnPage() {
     setManualOverride({ kind: "assignment", item: assignment });
   };
 
+  /**
+   * The one entry point for opening any item the Course Map offers, at
+   * whatever level it hangs off. Every Course Map (desktop tree and mobile
+   * accordion) routes through this, so both open the same thing.
+   *
+   * The player's block sequence is scoped to the current Topic when the
+   * lesson uses Topics, and to the Lesson otherwise. An item only resolves
+   * through jumpToBlock when it is genuinely inside that scope; anything
+   * else — Course-direct, Module-direct, and a Lesson's OWN direct items in
+   * a lesson that also has Topics — is not in the sequence at all and opens
+   * standalone. Without that distinction those items stay in the Progress
+   * denominator while being unreachable, which is what made lesson-direct
+   * Content and lesson-direct Quizzes impossible to complete.
+   */
+  const openItem = (item, kind, ctx = {}) => {
+    if (!item?.id) return;
+    if (kind === "ASSIGNMENT") {
+      openAssignment(item);
+      return;
+    }
+
+    const { lesson, topic } = ctx;
+    const lessonUsesTopics = (lesson?.topics?.length ?? 0) > 0;
+    const inBlockSequence = Boolean(topic) || (Boolean(lesson) && !lessonUsesTopics);
+
+    if (inBlockSequence) {
+      jumpToBlock(item.id, { lesson, topic });
+      return;
+    }
+    setManualOverride({ kind: kind === "QUIZ" ? "quiz" : "content", item });
+  };
+
   const handleMarkComplete = () => {
     // The mutation's own pending flag is the guard against double submission;
     // the button is disabled from the same flag.
@@ -655,25 +686,11 @@ export default function LearnPage() {
             selectLesson(match);
             setSelectedTopicId(topicId);
           }}
-          onSelectContent={(content, topic, lesson) => {
-            jumpToBlock(content.id, { lesson, topic });
-          }}
-          onSelectLessonContent={(content, lesson) => {
-            jumpToBlock(content.id, { lesson });
-          }}
-          onSelectModuleContent={(content) => {
-            setManualOverride({ kind: "content", item: content });
-          }}
-          onSelectCourseContent={(content) => {
-            setManualOverride({ kind: "content", item: content });
-          }}
-          onSelectQuiz={(quiz, mod, lesson, topic) => {
-            if (lesson) {
-              jumpToBlock(quiz.id, { lesson, topic });
-            } else {
-              setManualOverride({ kind: "quiz", item: quiz });
-            }
-          }}
+          onSelectContent={(content, topic, lesson) => openItem(content, "CONTENT", { lesson, topic })}
+          onSelectLessonContent={(content, lesson) => openItem(content, "CONTENT", { lesson })}
+          onSelectModuleContent={(content) => openItem(content, "CONTENT")}
+          onSelectCourseContent={(content) => openItem(content, "CONTENT")}
+          onSelectQuiz={(quiz, mod, lesson, topic) => openItem(quiz, "QUIZ", { lesson, topic })}
           // An Assignment opens in this workspace at every level it can hang
           // off, so it never matters whether it belongs to the course, a
           // module, a lesson or a topic.
@@ -1013,13 +1030,7 @@ export default function LearnPage() {
                 // Routes through the same two handlers the desktop sidebar
                 // uses, so a mobile tap lands on exactly the same block the
                 // desktop tree would have opened.
-                onSelectItem={(item, kind) => {
-                  if (kind === "ASSIGNMENT") {
-                    openAssignment(item);
-                    return;
-                  }
-                  jumpToBlock(item.id);
-                }}
+                onSelectItem={(item, kind, ctx) => openItem(item, kind, ctx)}
                 collapsed={mobileContentCollapsed}
                 onToggleCollapsed={() => setMobileContentCollapsed((prev) => !prev)}
               />

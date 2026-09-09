@@ -93,9 +93,9 @@ export default function AssignmentSubmissionPanel({ assignment, completed = fals
   };
 
   return (
-    <div className="space-y-5">
+    <div className="max-w-3xl w-full mx-auto rounded-2xl border border-border bg-card">
       {/* ---- ASSIGNMENT BRIEF ---- */}
-      <section className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-3">
+      <section className="p-4 sm:p-6 space-y-3">
         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
           Assignment
         </p>
@@ -129,7 +129,7 @@ export default function AssignmentSubmissionPanel({ assignment, completed = fals
 
       {/* ---- INSTRUCTOR REFERENCE MATERIAL ---- */}
       {attachments.length > 0 && (
-        <section className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-3">
+        <section className="border-t border-border p-4 sm:p-6 space-y-3">
           <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Reference Material
@@ -165,7 +165,7 @@ export default function AssignmentSubmissionPanel({ assignment, completed = fals
       )}
 
       {/* ---- YOUR SUBMISSION ---- */}
-      <section className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4">
+      <section className="border-t border-border p-4 sm:p-6 space-y-4">
         <div>
           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Your Submission
@@ -262,10 +262,15 @@ export default function AssignmentSubmissionPanel({ assignment, completed = fals
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isBusy}
-            className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-background/40 px-4 py-3 text-xs font-bold text-foreground transition cursor-pointer hover:border-primary/50 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-border bg-background/40 px-4 py-7 sm:py-9 text-center transition cursor-pointer hover:border-primary/50 hover:bg-background/60 disabled:opacity-50 disabled:cursor-not-allowed group"
           >
-            <Upload size={15} className="shrink-0" />
-            {hasSubmitted ? "Upload a New Assignment PDF" : "Upload Assignment PDF"}
+            <Upload size={20} className="shrink-0 text-muted-foreground transition group-hover:text-primary" />
+            <span className="text-xs font-bold text-foreground transition group-hover:text-primary">
+              {hasSubmitted ? "Upload a New Assignment PDF" : "Upload Assignment PDF"}
+            </span>
+            <span className="text-[11px] font-semibold text-muted-foreground">
+              Choose your completed PDF
+            </span>
           </button>
         )}
 
@@ -274,12 +279,13 @@ export default function AssignmentSubmissionPanel({ assignment, completed = fals
           {hasSubmitted && " Submitting again replaces your previous PDF."}
         </p>
 
+        <div className="flex sm:justify-end">
         <button
           type="button"
           onClick={handleSubmit}
           disabled={isBusy || !selectedFile}
           aria-busy={isBusy}
-          className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-black uppercase tracking-wider text-slate-950 transition cursor-pointer shadow-md hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-xs font-black uppercase tracking-wider text-slate-950 transition cursor-pointer shadow-md hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isUploading ? (
             <>
@@ -295,6 +301,7 @@ export default function AssignmentSubmissionPanel({ assignment, completed = fals
             "Submit Assignment"
           )}
         </button>
+        </div>
       </section>
     </div>
   );

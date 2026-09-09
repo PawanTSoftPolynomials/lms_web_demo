@@ -71,11 +71,15 @@ export default function LearnPageHeader({
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block leading-none">
               Progress
             </span>
-            <span className="text-xs font-bold text-foreground leading-none">
+            {/* The backend denominator is every applicable Content, Quiz and
+                Assignment in the published tree, at all four levels — not
+                Content alone — so the count is labelled "items". Calling it
+                anything narrower would misdescribe what it counts. */}
+            <span className="text-xs font-bold text-foreground leading-none whitespace-nowrap">
               {percent}%
               <span className="text-muted-foreground font-semibold">
                 {" "}
-                · {courseProgress.completedItems}/{courseProgress.totalItems}
+                · {courseProgress.completedItems}/{courseProgress.totalItems} items
               </span>
             </span>
           </div>
