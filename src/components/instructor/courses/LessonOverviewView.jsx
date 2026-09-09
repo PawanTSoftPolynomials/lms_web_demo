@@ -54,7 +54,7 @@ export function LessonOverviewView({
   const displayTopics = topics.length > 0 ? topics : (lesson.topics || []);
 
   return (
-    <div className={`notebook-cell rounded-2xl border border-border bg-background p-5 sm:p-6 shadow-md space-y-6 ${isEditing ? "active-cell border-purple-500/50" : ""}`}>
+    <div className={`notebook-cell rounded-2xl border border-border bg-background p-3 sm:p-6 shadow-md space-y-6 ${isEditing ? "active-cell border-purple-500/50" : ""}`}>
       {/* Lesson Header Toolbar */}
       <div className="cell-header flex items-center justify-between border-b border-border/80 pb-3 flex-wrap gap-2">
         <div className="flex items-center gap-2">

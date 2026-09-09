@@ -47,7 +47,7 @@ export function ModuleOverviewView({
   const nextModule = currentModIdx >= 0 && currentModIdx < allModules.length - 1 ? allModules[currentModIdx + 1] : null;
 
   return (
-    <div className="notebook-cell rounded-2xl border border-border bg-background p-5 sm:p-6 shadow-md space-y-6">
+    <div className="notebook-cell rounded-2xl border border-border bg-background p-3 sm:p-6 shadow-md space-y-6">
       {/* Module Header Toolbar */}
       <div className="cell-header flex items-center justify-between border-b border-border/80 pb-3 flex-wrap gap-2">
         <div className="flex items-center gap-2">

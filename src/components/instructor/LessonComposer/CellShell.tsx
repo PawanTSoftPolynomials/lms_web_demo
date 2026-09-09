@@ -92,15 +92,20 @@ export function CellShell({
   return (
     <div
       className={cn(
-        "group relative flex items-start gap-3 transition-all duration-200",
+        // Stacks on mobile: side-by-side, the drag handle and index badge take
+        // ~44px of a phone-width column that has already been narrowed by the
+        // page, the overview card and this cell's own padding. What is left
+        // over is too narrow to render a video or an image in, so the badge
+        // row moves above the body below `sm` and the body gets the full width.
+        "group relative flex flex-col sm:flex-row items-stretch sm:items-start gap-2 sm:gap-3 transition-all duration-200",
         isTextOrHeading && mode === "view"
           ? "rounded-xl border border-transparent bg-transparent hover:border-border/80 hover:bg-background/40 p-2.5 sm:p-3.5"
           // Hover previously set `border-transparent/80`, which made the border
           // disappear on hover instead of strengthening it.
-          : "rounded-2xl border border-border bg-background/70 p-4 sm:p-5 shadow-sm hover:border-primary/40 hover:bg-background/90",
+          : "rounded-2xl border border-border bg-background/70 p-3 sm:p-5 shadow-sm hover:border-primary/40 hover:bg-background/90",
         // Edit focus ring follows --primary rather than a hardcoded orange, so
         // it stays correct in dark mode (where primary is green).
-        mode === "edit" && "rounded-2xl border-primary/50 bg-background/95 ring-2 ring-primary/50 p-4 sm:p-5"
+        mode === "edit" && "rounded-2xl border-primary/50 bg-background/95 ring-2 ring-primary/50 p-3 sm:p-5"
       )}
     >
       {/* Add Above — top center, fades in over the block's top edge */}
@@ -154,7 +159,9 @@ export function CellShell({
         {/* Header Metadata — shown for named/file blocks OR when editing */}
         {(title || !isTextOrHeading || mode === "edit") && (
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-2">
-            <div className="min-w-0">
+            {/* flex-1 so the title claims the leftover space instead of being
+                squeezed by the shrink-0 action cluster next to it. */}
+            <div className="min-w-0 flex-1">
               <h4 className="truncate text-xs font-bold text-foreground">
                 {title || (isTextOrHeading ? "Text Block" : "Untitled Block")}
               </h4>
