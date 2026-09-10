@@ -21,27 +21,27 @@ import {
  * to Instructor.
  */
 export const PRIMARY_NAV_ITEMS = [
-  { label: "Dashboard", href: "/student/dashboard", icon: Home, primaryOnMobile: true },
+  // { label: "Dashboard", href: "/student/dashboard", icon: Home, primaryOnMobile: true },
   { label: "Learning", href: "/student/my-courses", icon: BookOpen, primaryOnMobile: true },
   { label: "Explore", href: "/student/courses", icon: Compass, primaryOnMobile: true },
-  {
-    label: "Schedule & Communication",
-    icon: CalendarDays,
-    primaryOnMobile: true,
-    children: [
-      { label: "Calendar", href: "/student/calendar", icon: Calendar },
-      { label: "News", href: "/student/news", icon: Newspaper },
-      { label: "Announcements", href: "/student/announcements", icon: Megaphone },
-      { label: "Suggestions", href: "/student/feedback", icon: Lightbulb },
-    ],
-  },
-  {
-    label: "Insights",
-    icon: BarChart3,
-    primaryOnMobile: true,
-    children: [
-      { label: "Reports", href: "/student/reports", icon: BarChart3 },
-      { label: "Activity", href: "/student/activity", icon: Activity },
-    ],
-  },
+  // {
+  //   label: "Schedule & Communication",
+  //   icon: CalendarDays,
+  //   primaryOnMobile: true,
+  //   children: [
+  //     { label: "Calendar", href: "/student/calendar", icon: Calendar },
+  //     { label: "News", href: "/student/news", icon: Newspaper },
+  //     { label: "Announcements", href: "/student/announcements", icon: Megaphone },
+  //     { label: "Suggestions", href: "/student/feedback", icon: Lightbulb },
+  //   ],
+  // },
+  // {
+  //   label: "Insights",
+  //   icon: BarChart3,
+  //   primaryOnMobile: true,
+  //   children: [
+  //     { label: "Reports", href: "/student/reports", icon: BarChart3 },
+  //     { label: "Activity", href: "/student/activity", icon: Activity },
+  //   ],
+  // },
 ];
