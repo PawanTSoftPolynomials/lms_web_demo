@@ -29,19 +29,20 @@ export default function LessonNavigationControls({
           type="button"
           disabled={!previousItem}
           onClick={onSelectPrevious}
-          className={`pointer-events-auto flex items-center gap-1 px-3 py-1.5 min-h-[36px] rounded-full border border-border bg-card/90 backdrop-blur-sm shadow-md font-bold text-[10px] uppercase tracking-wide text-foreground hover:border-primary hover:text-primary transition cursor-pointer ${
+          className={`pointer-events-auto flex items-center gap-1 px-3 py-1.5 min-h-[36px] rounded-full border border-border bg-card/90 backdrop-blur-sm shadow-md font-bold text-[10px] uppercase tracking-wide text-foreground hover:border-primary hover:text-primary transition cursor-pointer max-xl:flex-1 max-xl:justify-center max-xl:gap-2 max-xl:rounded-xl max-xl:px-4 max-xl:py-3 max-xl:min-h-[44px] max-xl:text-xs max-xl:normal-case max-xl:tracking-normal ${
             !previousItem ? "opacity-30 cursor-not-allowed hover:border-border hover:text-foreground" : ""
           }`}
         >
-          <ChevronLeft size={14} />
-          <span>Prev</span>
+          <ChevronLeft size={14} className="shrink-0" />
+          <span className="xl:hidden">Previous</span>
+          <span className="hidden xl:inline">Prev</span>
         </button>
 
         <button
           type="button"
           disabled={!nextItem}
           onClick={onSelectNext}
-          className={`pointer-events-auto flex items-center gap-1 px-3 py-1.5 min-h-[36px] rounded-full bg-primary hover:bg-orange-600 shadow-md font-bold text-[10px] uppercase tracking-wide text-slate-950 transition cursor-pointer ${
+          className={`pointer-events-auto flex items-center gap-1 px-3 py-1.5 min-h-[36px] rounded-full bg-primary hover:bg-orange-600 shadow-md font-bold text-[10px] uppercase tracking-wide text-slate-950 transition cursor-pointer max-xl:flex-1 max-xl:justify-center max-xl:gap-2 max-xl:rounded-xl max-xl:px-4 max-xl:py-3 max-xl:min-h-[44px] max-xl:text-xs max-xl:normal-case max-xl:tracking-normal ${
             !nextItem ? "opacity-40 cursor-not-allowed bg-primary/40 text-muted-foreground" : ""
           }`}
         >

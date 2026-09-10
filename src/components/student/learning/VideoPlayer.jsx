@@ -256,7 +256,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const fillsFrame = type === "VIDEO";
 
     return (
-        <div className={`overflow-hidden rounded-2xl border border-border bg-background flex flex-col w-full ${fillsFrame ? "h-full" : "min-h-full"}`}>
+        <div className={`overflow-hidden rounded-2xl border border-border bg-background flex flex-col w-full ${fillsFrame ? "h-full" : "min-h-full max-xl:rounded-none max-xl:border-0 max-xl:bg-transparent"}`}>
             {/* Header — skipped for VIDEO: the lesson title already shows above the
                 player, and the video's own thumbnail/embed carries its title too,
                 so this bar was just a third repeat of the same text. Also skipped
@@ -265,7 +265,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                 an icon-only bar with nothing next to it isn't useful, and we don't
                 invent a fake title just to fill it. */}
             {type !== "VIDEO" && (content.title || isSlideShow) && (
-            <div className="border-b border-border px-4 sm:px-6 py-3.5 flex items-center justify-between bg-background min-h-[52px]">
+            <div className="border-b border-border px-4 sm:px-6 py-3.5 flex items-center justify-between bg-background min-h-[52px] max-xl:px-0 max-xl:bg-transparent">
                 <h2 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2 truncate pr-2">
                     {isSlideShow && <Presentation className="h-4 w-4 text-primary shrink-0" />}
                     {isTextLike && !isSlideShow && <BookOpen className="h-4 w-4 text-primary shrink-0" />}
@@ -281,7 +281,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
             )}
 
             {/* Content Area with fluid aspect ratio */}
-            <div className="relative w-full flex-1 flex flex-col bg-background">
+            <div className="relative w-full flex-1 flex flex-col bg-background max-xl:bg-transparent">
                 {/* VIDEO */}
                 {type === "VIDEO" && (
                     isYoutube ? (
@@ -326,7 +326,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                         ) : displayFileUrl ? (
                             <ExternalDocumentViewer fileUrl={displayFileUrl} title={content?.title} />
                         ) : htmlContent ? (
-                            <div className="p-4 sm:p-8 select-text">
+                            <div className="p-4 sm:p-8 select-text max-xl:px-0">
                                 <MarkdownRenderer
                                     source={unescapeFromContentApi(htmlContent || "")}
                                     emptyText="No document content provided."
@@ -441,7 +441,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                             </div>
                         </div>
                     ) : (
-                        <div className="p-4 sm:p-8 select-text">
+                        <div className="p-4 sm:p-8 select-text max-xl:px-0">
                             <MarkdownRenderer
                                 source={unescapeFromContentApi(htmlContent || "")}
                                 emptyText="No content yet."

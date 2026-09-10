@@ -1,6 +1,6 @@
 "use client";
 
-import { PanelLeftOpen, StickyNote } from "lucide-react";
+import { ListTree, PanelLeftOpen, StickyNote } from "lucide-react";
 import ProgressBar from "@/components/student/courses/ProgressBar";
 
 // Sticky sub-header for the learning workspace — course-map toggle, the
@@ -18,6 +18,11 @@ export default function LearnPageHeader({
   courseProgress,
   isProgressUnavailable,
   onOpenStickyNotes,
+  // Below xl the header identifies the course and the module being studied,
+  // and the course map is a drawer rather than a rail — the lesson's own
+  // title/number/topic live in the page body so the content leads.
+  moduleTitle,
+  onOpenCourseMap,
 }) {
   // Straight passthrough of the backend roll-up (see lib/progressIndex.js) —
   // `applicable` is the backend's own "this course has tracked items" flag,
@@ -40,14 +45,22 @@ export default function LearnPageHeader({
           </button>
         )}
         <div className="min-w-0">
-          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground truncate block">
+          <span className="hidden xl:block text-[10px] font-black uppercase tracking-widest text-muted-foreground truncate">
             LEARNING WORKSPACE
           </span>
-          <h2 className="text-sm font-bold text-foreground truncate">
+          <h2 className="hidden xl:block text-sm font-bold text-foreground truncate">
             {selectedLesson ? `Lesson: ${selectedLesson.title}` : course?.title || "Course Overview"}
           </h2>
           {topicTitle && (
-            <p className="text-xs text-muted-foreground truncate">Topic: {topicTitle}</p>
+            <p className="hidden xl:block text-xs text-muted-foreground truncate">Topic: {topicTitle}</p>
+          )}
+
+          {/* Below xl: course, then the module it belongs to. */}
+          <h2 className="xl:hidden text-sm font-bold text-foreground truncate">
+            {course?.title || "Course"}
+          </h2>
+          {moduleTitle && (
+            <p className="xl:hidden text-[11px] text-muted-foreground truncate">{moduleTitle}</p>
           )}
         </div>
       </div>
@@ -85,6 +98,18 @@ export default function LearnPageHeader({
           </div>
         </div>
       )}
+
+      {/* Course map, below xl only: one tap to the full hierarchy, rather than
+          a rail permanently taking the narrow screen's width. */}
+      <button
+        type="button"
+        onClick={onOpenCourseMap}
+        className="xl:hidden shrink-0 mr-2 inline-flex items-center gap-1.5 rounded-xl border border-primary/40 bg-primary/5 px-2.5 py-2 text-xs font-bold text-primary transition hover:bg-primary/10 cursor-pointer"
+        aria-label="Open course map"
+      >
+        <ListTree size={14} className="shrink-0" aria-hidden="true" />
+        Course Map
+      </button>
 
       <button
         type="button"
