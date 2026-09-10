@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronRight } from "lucide-react";
 import { UploadButton } from "@/components/instructor/courses/UploadButton";
 import { getDisplayUrl } from "@/lib/blob";
 import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
@@ -23,7 +24,13 @@ export function CourseOverviewView({
   isDraftMode = false,
   contentAutoOpenSignal: externalContentAutoOpenSignal = 0,
   onContentAutoOpenConsumed,
+  // Opt-in, student course-details only. Below lg that page composes its own
+  // hero and overview sections, so this view contributes only the module list
+  // there, restyled as a scannable mobile list. Off by default: Instructor
+  // rendering is unchanged.
+  mobileCompact = false,
 }) {
+  const hideOnMobile = mobileCompact ? "max-lg:hidden" : "";
   const [localContentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
   const contentAutoOpenSignal = externalContentAutoOpenSignal + localContentAutoOpenSignal;
   const handleContentAutoOpenConsumed = () => {
@@ -31,9 +38,9 @@ export function CourseOverviewView({
     onContentAutoOpenConsumed?.();
   };
   return (
-    <div className={`notebook-cell rounded-2xl border border-border bg-background p-3 sm:p-5 shadow-md ${isEditing ? "active-cell border-primary/50" : ""}`}>
+    <div className={`notebook-cell rounded-2xl border border-border bg-background p-3 sm:p-5 shadow-md ${isEditing ? "active-cell border-primary/50" : ""} ${mobileCompact ? "max-lg:rounded-none max-lg:border-0 max-lg:bg-transparent max-lg:p-0 max-lg:shadow-none" : ""}`}>
       {/* Left Action Bar */}
-      <div className="cell-actions-left mb-3">
+      <div className={`cell-actions-left mb-3 ${hideOnMobile}`}>
         <div style={{ fontSize: "0.75rem", color: "var(--text-muted, #94a3b8)", textAlign: "center" }}>
           Course Meta
         </div>
@@ -41,7 +48,7 @@ export function CourseOverviewView({
 
       <div className="cell-main space-y-4">
         {/* Cell Header Toolbar matching PageComponents.js */}
-        <div className="cell-header flex items-center justify-between border-b border-border/80 pb-2.5 mb-3">
+        <div className={`cell-header flex items-center justify-between border-b border-border/80 pb-2.5 mb-3 ${hideOnMobile}`}>
           <div>
             <span className="cell-badge rounded bg-primary/15 border border-primary/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary">
               Course Header
@@ -190,7 +197,7 @@ export function CourseOverviewView({
             </div>
           ) : (
             <div className="space-y-4">
-              <div>
+              <div className={hideOnMobile}>
                 <h3 className="text-xl font-bold text-foreground">{course?.title || "Untitled Course"}</h3>
                 {course?.subtitle && <p className="text-xs font-semibold text-primary italic mt-1">{course.subtitle}</p>}
                 <p className="text-xs text-foreground leading-relaxed mt-2">{course?.description || "No description provided."}</p>
@@ -208,7 +215,7 @@ export function CourseOverviewView({
                 const totalQuizzes = courseQuizCount + moduleQuizCount;
 
                 return (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border/80">
+                  <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border/80 ${hideOnMobile}`}>
                     <div className="p-3 rounded-xl bg-background/80 border border-border">
                       <span className="text-[10px] font-mono uppercase text-muted-foreground block">Modules</span>
                       <span className="text-base font-bold text-primary">{modules.length}</span>
@@ -229,7 +236,7 @@ export function CourseOverviewView({
                 );
               })()}
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1 text-[11px] font-medium text-foreground">
+              <div className={`grid grid-cols-2 md:grid-cols-4 gap-3 pt-1 text-[11px] font-medium text-foreground ${hideOnMobile}`}>
                 <div><strong className="text-muted-foreground">Author:</strong> {course?.creator?.name || "LMS Architect"}</div>
                 <div><strong className="text-muted-foreground">Category:</strong> {course?.category || "Software Development"}</div>
                 <div><strong className="text-muted-foreground">Audience:</strong> {course?.audience || "Developers"}</div>
@@ -297,9 +304,16 @@ export function CourseOverviewView({
               )}
 
               {/* Modules Header & Compact Card Grid */}
-              <div className="pt-4 border-t border-border/80 space-y-3">
+              <div className={`pt-4 border-t border-border/80 space-y-3 ${mobileCompact ? "max-lg:pt-0 max-lg:border-t-0" : ""}`}>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-foreground">Course Modules ({modules.length})</h3>
+                  <h3 className={`text-sm font-bold text-foreground ${mobileCompact ? "max-lg:text-base" : ""}`}>
+                    Course Modules <span className={hideOnMobile}>({modules.length})</span>
+                  </h3>
+                  {mobileCompact && (
+                    <span className="lg:hidden text-sm font-semibold text-muted-foreground">
+                      {modules.length} {modules.length === 1 ? "module" : "modules"}
+                    </span>
+                  )}
                   {onAddModule && (
                     <button
                       type="button"
@@ -324,19 +338,54 @@ export function CourseOverviewView({
                         onClick={() => onSelectModule(mod)}
                         className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-background/60 hover:bg-background hover:border-primary/40 cursor-pointer transition"
                       >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="text-xs font-mono font-black text-primary/90 bg-primary/10 px-2 py-1 rounded border border-primary/20 shrink-0">
+                        <div
+                          className={`flex items-center gap-3 min-w-0 ${
+                            mobileCompact ? "max-lg:items-start" : ""
+                          }`}
+                        >
+                          <span
+                            className={`text-xs font-mono font-black text-primary/90 bg-primary/10 px-2 py-1 rounded border border-primary/20 shrink-0 ${
+                              mobileCompact
+                                ? "max-lg:inline-flex max-lg:h-8 max-lg:w-8 max-lg:items-center max-lg:justify-center max-lg:rounded-lg max-lg:p-0"
+                                : ""
+                            }`}
+                          >
                             {padIdx}
                           </span>
                           <div className="min-w-0">
-                            <h4 className="text-xs font-bold text-foreground truncate">{mod.title || "Untitled Module"}</h4>
-                            <p className="text-[10.5px] text-muted-foreground font-mono mt-0.5">
+                            <h4
+                              className={`text-xs font-bold text-foreground truncate ${
+                                mobileCompact
+                                  ? "max-lg:text-sm max-lg:leading-snug max-lg:line-clamp-2 max-lg:whitespace-normal"
+                                  : ""
+                              }`}
+                            >
+                              {mod.title || "Untitled Module"}
+                            </h4>
+                            <p
+                              className={`text-[10.5px] text-muted-foreground font-mono mt-0.5 ${
+                                mobileCompact ? "max-lg:font-sans max-lg:text-[11.5px] max-lg:mt-0.5" : ""
+                              }`}
+                            >
                               {lessonCount} {lessonCount === 1 ? "Lesson" : "Lessons"} · {topicCount} {topicCount === 1 ? "Topic" : "Topics"}
                               {quizCount > 0 ? ` · ${quizCount} ${quizCount === 1 ? "Quiz" : "Quizzes"}` : ""}
                             </p>
                           </div>
                         </div>
-                        <span className="text-muted-foreground text-xs font-bold shrink-0 ml-2">→</span>
+                        <span
+                          className={`text-muted-foreground text-xs font-bold shrink-0 ml-2 ${
+                            mobileCompact ? "max-lg:hidden" : ""
+                          }`}
+                        >
+                          →
+                        </span>
+                        {mobileCompact && (
+                          <ChevronRight
+                            size={18}
+                            className="lg:hidden shrink-0 ml-2 text-muted-foreground"
+                            aria-hidden="true"
+                          />
+                        )}
                       </div>
                     );
                   })}

@@ -40,6 +40,8 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
 
   const instructorName = course.creator?.name;
 
+  const continueLabel = isComplete ? "Review" : "Continue Learning";
+
   const learnDestination = `/student/learn/${course.id}`;
   const detailsDestination = `/student/courses/${course.id}`;
   const primaryDestination = isEnrolled ? learnDestination : detailsDestination;
@@ -52,10 +54,10 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
   return (
     <div
       onClick={() => router.push(primaryDestination)}
-      className="bg-card group relative flex h-full w-[85%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-full md:shrink-0 flex-col overflow-hidden rounded-2xl border border-border shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
+      className="bg-card group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-border shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
     >
       {/* Flush image wrapper */}
-      <div className="relative h-32 md:h-36 shrink-0 w-full overflow-hidden bg-muted">
+      <div className="relative aspect-video shrink-0 w-full overflow-hidden bg-muted">
         {course.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -110,22 +112,31 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
           </span>
         </div>
 
-        <div className="mt-auto pt-3 border-t border-border flex items-center justify-between">
+        {/* Two peer actions on one row at every width: a neutral outline for
+            details, a primary-tinted one for resuming. The desktop grid sizes
+            its columns to at least 272px so the pair always fits on a single
+            line — nowrap is scoped to md and up because the narrowest phones
+            (320px) still need the labels free to wrap. */}
+        <div className="mt-auto pt-3 border-t border-border flex items-center gap-1.5">
           <button
             onClick={goTo(detailsDestination)}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition"
+            aria-label="View Course"
+            title="View Course"
+            className="inline-flex flex-auto items-center justify-center gap-1.5 rounded-md border border-border bg-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition md:whitespace-nowrap"
           >
-            <Eye size={11} />
+            <Eye size={11} aria-hidden="true" />
             View Course
           </button>
 
           {isEnrolled && (
             <button
               onClick={goTo(learnDestination)}
-              className="inline-flex items-center gap-1 text-[11px] font-bold text-primary transition hover:opacity-80"
+              aria-label={continueLabel}
+              title={continueLabel}
+              className="inline-flex flex-auto items-center justify-center gap-1 rounded-md border border-primary/40 bg-transparent px-2 py-1 text-[11px] font-bold text-primary hover:bg-primary/10 hover:border-primary/60 transition md:whitespace-nowrap"
             >
-              {isComplete ? "Review" : "Continue Learning"}
-              <ArrowRight size={13} />
+              {continueLabel}
+              <ArrowRight size={13} aria-hidden="true" />
             </button>
           )}
         </div>

@@ -204,7 +204,7 @@ export function ProfileMenu({ user, onLogout, profileHref = "/student/profile", 
         aria-label="Profile menu"
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 transition-all duration-200 hover:-translate-y-0.5 ${
+        className={`flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-1.5 lg:pr-3 transition-all duration-200 hover:-translate-y-0.5 ${
           open ? "bg-muted" : "hover:bg-muted"
         }`}
       >

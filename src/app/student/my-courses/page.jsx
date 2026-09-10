@@ -84,7 +84,7 @@ export default function MyCoursesPage() {
   };
 
   return (
-    <div className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-4 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
+    <div className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-2 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
       {isError ? (
         <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
           <p className="text-sm font-bold text-foreground">Unable to load your courses.</p>
@@ -131,14 +131,16 @@ export default function MyCoursesPage() {
             <div
               ref={sliderRef}
               onScroll={!isLoading && pagedEnrollments.length > 0 ? handleSliderScroll : undefined}
-              className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-6 md:pb-0 md:grid md:justify-center md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 md:overflow-visible md:snap-none"
+              className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-4 md:pb-0 md:grid md:justify-items-center md:grid-cols-[repeat(auto-fill,minmax(272px,288px))] md:overflow-visible md:snap-none"
             >
               {isLoading
                 ? Array.from({ length: 6 }).map((_, i) => (
                     <div
                       key={i}
-                      className="w-[70%] shrink-0 max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-56 md:shrink h-52 md:h-64 rounded-2xl border border-slate-200 bg-white/10 animate-pulse"
-                    />
+                      className="w-full shrink-0 px-[6%] md:px-0 md:w-full md:max-w-72 md:shrink"
+                    >
+                      <div className="h-72 md:h-72 rounded-2xl border border-slate-200 bg-white/10 animate-pulse" />
+                    </div>
                   ))
                 : pagedEnrollments.length === 0
                 ? (
@@ -149,7 +151,7 @@ export default function MyCoursesPage() {
                 : pagedEnrollments.map((enrollment) => (
                     <div
                       key={enrollment.id || enrollment.courseId}
-                      className="w-[70%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-56 md:shrink"
+                      className="w-full shrink-0 snap-center px-[6%] md:px-0 md:w-full md:max-w-72 md:shrink"
                     >
                       <MyCourseCard enrollment={enrollment} />
                     </div>
@@ -174,17 +176,19 @@ export default function MyCoursesPage() {
             )}
 
             {!isLoading && myEnrollments.length > 0 && (
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                total={yearFilteredEnrollments.length}
-                limit={limit}
-                onPageChange={setPage}
-                onLimitChange={(next) => {
-                  setLimit(next);
-                  setPage(1);
-                }}
-              />
+              <div className="hidden md:block">
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  total={yearFilteredEnrollments.length}
+                  limit={limit}
+                  onPageChange={setPage}
+                  onLimitChange={(next) => {
+                    setLimit(next);
+                    setPage(1);
+                  }}
+                />
+              </div>
             )}
           </div>
         </div>
