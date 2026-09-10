@@ -77,7 +77,7 @@ export default function InstructorWelcomeCard() {
           </p>
 
           <h1 className="mt-1.5 flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Hi {firstName}!
+            Hi {firstName} !
             <span className="inline-block origin-bottom-right animate-wave" aria-hidden="true">
               👋
             </span>
