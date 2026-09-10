@@ -8,6 +8,7 @@ import {
 import { useOverallProgress, useCourseProgress } from '@/hooks/queries/student/useProgress';
 import { useInstructorCourse } from '@/hooks/queries/instructor/useInstructorCourse';
 import { normalizeCourseHierarchy } from '@/lib/courseMapper';
+import { buildProgressIndex } from '@/lib/progressIndex';
 
 function CourseHierarchyTree({ courseId, studentId }) {
   const { data: rawCourseData, isLoading: courseLoading } = useInstructorCourse(courseId);
@@ -17,6 +18,67 @@ function CourseHierarchyTree({ courseId, studentId }) {
   const [expandedLessons, setExpandedLessons] = useState({});
 
   const course = useMemo(() => normalizeCourseHierarchy(rawCourseData) || null, [rawCourseData]);
+  const progressIndex = useMemo(() => buildProgressIndex(progressData), [progressData]);
+
+  const completedLessonSet = useMemo(() => {
+    const set = new Set(progressData?.lessonProgresses || []);
+    if (progressIndex?.nodes) {
+      for (const [id, node] of progressIndex.nodes.entries()) {
+        if (node.completed) set.add(id);
+      }
+    }
+    return set;
+  }, [progressData, progressIndex]);
+
+  const completedModuleSet = useMemo(() => {
+    const set = new Set(progressData?.moduleProgresses || []);
+    if (progressIndex?.nodes) {
+      for (const [id, node] of progressIndex.nodes.entries()) {
+        if (node.completed) set.add(id);
+      }
+    }
+    return set;
+  }, [progressData, progressIndex]);
+
+  const completedTopicSet = useMemo(() => {
+    const set = new Set(progressData?.topicProgresses || []);
+    if (progressIndex?.nodes) {
+      for (const [id, node] of progressIndex.nodes.entries()) {
+        if (node.completed) set.add(id);
+      }
+    }
+    return set;
+  }, [progressData, progressIndex]);
+
+  const completedQuizSet = useMemo(() => {
+    const set = new Set(progressData?.completedQuizIds || []);
+    if (progressIndex?.items) {
+      for (const [id, item] of progressIndex.items.entries()) {
+        if (item.kind === 'QUIZ' && item.completed) set.add(id);
+      }
+    }
+    return set;
+  }, [progressData, progressIndex]);
+
+  const completedContentSet = useMemo(() => {
+    const set = new Set(progressData?.completedContentIds || []);
+    if (progressIndex?.items) {
+      for (const [id, item] of progressIndex.items.entries()) {
+        if (item.kind === 'CONTENT' && item.completed) set.add(id);
+      }
+    }
+    return set;
+  }, [progressData, progressIndex]);
+
+  const completedAssignmentSet = useMemo(() => {
+    const set = new Set(progressData?.completedAssignmentIds || []);
+    if (progressIndex?.items) {
+      for (const [id, item] of progressIndex.items.entries()) {
+        if (item.kind === 'ASSIGNMENT' && item.completed) set.add(id);
+      }
+    }
+    return set;
+  }, [progressData, progressIndex]);
 
   const toggleModule = (modId) => {
     setExpandedModules((prev) => ({ ...prev, [modId]: !prev[modId] }));
@@ -42,13 +104,6 @@ function CourseHierarchyTree({ courseId, studentId }) {
       </div>
     );
   }
-
-  const completedLessonSet = new Set(progressData?.lessonProgresses || []);
-  const completedModuleSet = new Set(progressData?.moduleProgresses || []);
-  const completedTopicSet = new Set(progressData?.topicProgresses || []);
-  const completedQuizSet = new Set(progressData?.completedQuizIds || []);
-  const completedContentSet = new Set(progressData?.completedContentIds || []);
-  const completedAssignmentSet = new Set(progressData?.completedAssignmentIds || []);
 
   const courseDirectContents = course.contents || [];
   const courseDirectQuizzes = course.quizzes || [];

@@ -23,20 +23,34 @@ const VISIBLE_MODULE_LIMIT = 4;
  * nothing at all rather than "0%", which would read as the student having
  * failed to start something that does not exist yet.
  */
-function NodeBadge({ progress, nodeId }) {
-  const node = progress?.nodes?.get(nodeId);
-  if (!node || !node.applicable || node.totalItems === 0) return null;
+function NodeBadge({ progress, nodeId, node: nodeProp }) {
+  const indexNode = nodeId && progress?.nodes?.get ? progress.nodes.get(nodeId) : (progress?.nodes && nodeId ? progress.nodes[nodeId] : null);
+  const node = indexNode || nodeProp;
+
+  const percent = typeof indexNode?.progressPercent === 'number'
+    ? indexNode.progressPercent
+    : (typeof nodeProp?.progressPercent === 'number' ? nodeProp.progressPercent : (typeof node?.progressPercent === 'number' ? node.progressPercent : null));
+
+  if (percent === null || percent === undefined) return null;
+
+  const totalItems = indexNode?.totalItems ?? nodeProp?.totalItems ?? node?.totalItems ?? 0;
+  const completedItems = indexNode?.completedItems ?? nodeProp?.completedItems ?? node?.completedItems ?? 0;
+  const applicable = indexNode?.applicable ?? nodeProp?.applicable ?? node?.applicable;
+
+  if (applicable === false && totalItems === 0) return null;
+
+  const completed = indexNode?.completed ?? nodeProp?.completed ?? node?.completed ?? (percent === 100);
 
   return (
     <span
       className={`shrink-0 text-[9px] font-black tabular-nums px-1.5 py-0.5 rounded border ${
-        node.completed
+        completed
           ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-500"
           : "bg-background border-border text-muted-foreground"
       }`}
-      title={`${node.completedItems} of ${node.totalItems} items complete`}
+      title={`${completedItems} of ${totalItems} items complete`}
     >
-      {node.progressPercent}%
+      {percent}%
     </span>
   );
 }
@@ -145,7 +159,7 @@ export default function CourseContentAccordion({
             Course Content
           </h3>
           <div className="flex items-center gap-2">
-            <NodeBadge progress={progress} nodeId={course?.id} />
+            <NodeBadge progress={progress} nodeId={course?.id} node={course} />
             {onToggleCollapsed && (
               <button
                 type="button"
@@ -197,11 +211,14 @@ export default function CourseContentAccordion({
                       {lessonCount} {lessonCount === 1 ? "lesson" : "lessons"}
                     </p>
                   </div>
-                  {expanded ? (
-                    <ChevronDown size={16} className="text-muted-foreground shrink-0" />
-                  ) : (
-                    <ChevronRight size={16} className="text-muted-foreground shrink-0" />
-                  )}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <NodeBadge progress={progress} nodeId={module.id} node={module} />
+                    {expanded ? (
+                      <ChevronDown size={16} className="text-muted-foreground shrink-0" />
+                    ) : (
+                      <ChevronRight size={16} className="text-muted-foreground shrink-0" />
+                    )}
+                  </div>
                 </button>
 
                 {expanded && (
@@ -243,6 +260,7 @@ export default function CourseContentAccordion({
                                 {topics.length ? `${topics.length} Topics` : lesson.duration || ""}
                               </p>
                             </div>
+                            <NodeBadge progress={progress} nodeId={lesson.id} node={lesson} />
                           </button>
 
                           {/* The active lesson opens to reveal its own direct
@@ -254,10 +272,11 @@ export default function CourseContentAccordion({
 
                               {topics.map((topic) => (
                                 <div key={topic.id}>
-                                  <div className="flex items-center gap-2 px-3 pt-1.5 pb-0.5">
+                                  <div className="flex items-center justify-between gap-2 px-3 pt-1.5 pb-0.5">
                                     <span className="truncate text-[10px] font-black uppercase tracking-wider text-muted-foreground flex-1">
                                       {topic.title}
                                     </span>
+                                    <NodeBadge progress={progress} nodeId={topic.id} node={topic} />
                                   </div>
                                   <DirectItems node={topic} onSelectItem={onSelectItem} scope={{ lesson, topic }} />
                                 </div>

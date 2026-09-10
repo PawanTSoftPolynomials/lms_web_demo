@@ -90,7 +90,7 @@ export default function LearnPage() {
 
   const courseSummary = progressIndex?.course ?? null;
 
-  const { data: stateData, isLoading: isStateLoading } = useStudentState();
+  const { data: stateData, isLoading: isStateLoading } = useStudentState(courseId);
   const updateStateMutation = useUpdateStudentState();
 
   const { setIsOpen } = useChat();
