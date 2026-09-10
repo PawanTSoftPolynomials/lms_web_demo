@@ -20,6 +20,7 @@ import MarkdownRenderer from "@/components/ui/MarkdownEditor/MarkdownRenderer";
 import { unescapeFromContentApi, highlightCode } from "@/lib/markdown";
 import PdfViewer from "@/components/student/learn/PdfViewer";
 import PptViewer from "@/components/shared/PptViewer";
+import DocxViewer from "@/components/shared/DocxViewer";
 import ExternalDocumentViewer from "@/components/shared/ExternalDocumentViewer";
 
 const isGoogleSlidesUrl = (url) => Boolean(url?.includes("docs.google.com/presentation"));
@@ -69,11 +70,13 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const htmlContent = content?.htmlContent;
     const externalUrl = content?.externalUrl;
 
+    const effectiveVideoUrl = videoUrl || fileUrl || externalUrl;
+
     // Private Vercel Blob URLs 403 unless routed through /api/blob-proxy.
-    const displayVideoUrl = getDisplayUrl(videoUrl);
+    const displayVideoUrl = getDisplayUrl(effectiveVideoUrl);
     const displayFileUrl = getDisplayUrl(fileUrl);
 
-    const isYoutube = type === "VIDEO" && isYoutubeUrl(videoUrl);
+    const isYoutube = type === "VIDEO" && isYoutubeUrl(effectiveVideoUrl);
 
     const initialTimeRef = useRef(initialTime);
 
@@ -92,7 +95,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
     useEffect(() => {
         initialTimeRef.current = initialTime;
-    }, [videoUrl, initialTime]);
+    }, [effectiveVideoUrl, initialTime]);
 
     useImperativeHandle(
         ref,
@@ -112,9 +115,9 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
     // YouTube API Integration with responsive width & height
     useEffect(() => {
-        if (!isYoutube || !videoUrl) return;
+        if (!isYoutube || !effectiveVideoUrl) return;
 
-        const videoId = getYouTubeVideoId(videoUrl);
+        const videoId = getYouTubeVideoId(effectiveVideoUrl);
         if (!videoId) return;
 
         let player;
@@ -201,7 +204,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                 playerRef.current.destroy();
             }
         };
-    }, [videoUrl, isYoutube]);
+    }, [effectiveVideoUrl, isYoutube]);
 
     useEffect(() => {
         const videoEl = localVideoRef.current;
@@ -219,7 +222,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
             videoEl.addEventListener("loadedmetadata", applyInitialTime);
             return () => videoEl.removeEventListener("loadedmetadata", applyInitialTime);
         }
-    }, [videoUrl, isYoutube]);
+    }, [effectiveVideoUrl, isYoutube]);
 
     useEffect(() => {
         setSlideIndex(0);
@@ -237,10 +240,12 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         );
     }
 
-    const isHtmlLike = type === "HTML" || type === "PRESENTATION";
-    const isFileLike = type === "FILE" || type === "DOCUMENT";
-    const slides = isHtmlLike ? parseSlides(htmlContent) : [];
-    const isSlideShow = isHtmlLike && slides.length > 1;
+    const isFileLike = type === "FILE" || type === "DOCUMENT" || type === "PDF";
+    const isTextLike = type === "TEXT" || type === "HTML";
+    const isPresentationLike = type === "PRESENTATION" || type === "SLIDE";
+    const isHtmlLike = isTextLike || isPresentationLike;
+    const slides = isPresentationLike ? parseSlides(htmlContent) : [];
+    const isSlideShow = isPresentationLike && slides.length > 1;
 
     return (
         <div className={`overflow-hidden rounded-2xl border border-border bg-background flex flex-col w-full ${type === "VIDEO" ? "h-full" : ""}`}>
@@ -255,8 +260,8 @@ const VideoPlayer = forwardRef(function VideoPlayer(
             <div className="border-b border-border px-4 sm:px-6 py-3.5 flex items-center justify-between bg-background min-h-[52px]">
                 <h2 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2 truncate pr-2">
                     {isSlideShow && <Presentation className="h-4 w-4 text-primary shrink-0" />}
-                    {type === "HTML" && !isSlideShow && <BookOpen className="h-4 w-4 text-primary shrink-0" />}
-                    {type === "FILE" && <FileText className="h-4 w-4 text-primary shrink-0" />}
+                    {isTextLike && !isSlideShow && <BookOpen className="h-4 w-4 text-primary shrink-0" />}
+                    {isFileLike && <FileText className="h-4 w-4 text-primary shrink-0" />}
                     {content.title && <span className="truncate">{content.title}</span>}
                 </h2>
                 {isSlideShow && (
@@ -276,7 +281,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                             ref={containerRef}
                             className="relative w-full h-full bg-black overflow-hidden [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full"
                         />
-                    ) : (
+                    ) : displayVideoUrl ? (
                         <video
                             ref={localVideoRef}
                             controls
@@ -290,16 +295,36 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                             }
                             className="w-full h-full bg-black object-contain"
                         />
+                    ) : (
+                        <div className="flex h-80 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-[#0B101D] p-6 text-center">
+                            <PlayCircle className="h-10 w-10 text-amber-500 animate-pulse" />
+                            <h4 className="text-sm font-bold text-foreground">No Video Source Provided</h4>
+                            <p className="text-xs text-muted-foreground max-w-sm leading-relaxed">
+                                No video URL or video file was configured for this video item.
+                            </p>
+                        </div>
                     )
                 )}
 
-                {/* FILE / DOCUMENT (PDFs / PPTs / Docs / Resources) */}
+                {/* FILE / DOCUMENT / PDF (PDFs / PPTs / Docs / Resources) */}
                 {isFileLike && (
                     <div className="w-full">
-                        {displayFileUrl && displayFileUrl.toLowerCase().includes(".pdf") ? (
+                        {displayFileUrl && (displayFileUrl.toLowerCase().includes(".pdf") || displayFileUrl.toLowerCase().includes("/pdf")) ? (
                             <PdfViewer fileUrl={displayFileUrl} title={content?.title} />
-                        ) : displayFileUrl && (displayFileUrl.toLowerCase().includes(".ppt") || displayFileUrl.toLowerCase().includes(".pptx")) && (displayFileUrl.includes("blob.vercel-storage.com") || displayFileUrl.includes("/content-uploads/")) ? (
+                        ) : displayFileUrl && (displayFileUrl.toLowerCase().includes(".ppt") || displayFileUrl.toLowerCase().includes(".pptx")) ? (
                             <PptViewer fileUrl={displayFileUrl} title={content?.title} />
+                        ) : displayFileUrl && (displayFileUrl.toLowerCase().includes(".doc") || displayFileUrl.toLowerCase().includes(".docx")) ? (
+                            <DocxViewer fileUrl={displayFileUrl} title={content?.title} />
+                        ) : displayFileUrl ? (
+                            <ExternalDocumentViewer fileUrl={displayFileUrl} title={content?.title} />
+                        ) : htmlContent ? (
+                            <div className="p-4 sm:p-8 select-text">
+                                <MarkdownRenderer
+                                    source={unescapeFromContentApi(htmlContent || "")}
+                                    emptyText="No document content provided."
+                                    className="max-w-4xl mx-auto"
+                                />
+                            </div>
                         ) : (
                             <ExternalDocumentViewer fileUrl={displayFileUrl} title={content?.title} />
                         )}
@@ -331,8 +356,8 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     </div>
                 )}
 
-                {/* CODE */}
-                {type === "CODE" && (
+                {/* CODE / CODING_EXERCISE */}
+                {(type === "CODE" || type === "CODING_EXERCISE") && (
                     <pre className="m-4 sm:m-8 rounded-xl border border-border overflow-hidden text-xs sm:text-sm select-text">
                         <code
                             className={`hljs${content?.data?.language ? ` language-${content.data.language}` : ""}`}
@@ -365,8 +390,8 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     </div>
                 )}
 
-                {/* HTML / PRESENTATION */}
-                {isHtmlLike && (
+                {/* HTML / TEXT / PRESENTATION / SLIDE */}
+                {isHtmlLike && !isFileLike && (
                     isSlideShow ? (
                         <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px]">
                             <div 
