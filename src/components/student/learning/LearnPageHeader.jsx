@@ -17,7 +17,11 @@ export default function LearnPageHeader({
   course,
   courseProgress,
   isProgressUnavailable,
-  onOpenStickyNotes,
+  // The right-hand side panel (Ask Instructor / Sticky Notes / Feedback).
+  // These names must match what the learn page passes — a mismatch here
+  // left the button with no click handler, so it silently did nothing.
+  isStickyNotesOpen = false,
+  onToggleStickyNotes,
 }) {
   // Straight passthrough of the backend roll-up (see lib/progressIndex.js) —
   // `applicable` is the backend's own "this course has tracked items" flag,
@@ -86,14 +90,40 @@ export default function LearnPageHeader({
         </div>
       )}
 
+      {/* Side-panel toggle. globals.css gives every <button> an unlayered
+          border-radius / box-shadow / transition that beats Tailwind
+          utilities, so the pill radius and transition are set inline and the
+          gradient ring + glow live on inner spans the rule doesn't touch. */}
       <button
         type="button"
-        onClick={onOpenStickyNotes}
-        className="shrink-0 h-9 w-9 flex items-center justify-center rounded-full border border-border bg-background/60 text-muted-foreground hover:text-primary hover:border-primary/40 transition cursor-pointer"
-        title="Sticky Notes"
-        aria-label="Open Sticky Notes"
+        onClick={onToggleStickyNotes}
+        aria-pressed={isStickyNotesOpen}
+        style={{ borderRadius: 9999, transition: "transform 150ms ease" }}
+        className="group relative shrink-0 p-px cursor-pointer bg-gradient-to-br from-primary/80 via-border to-accent/60 motion-safe:active:scale-95"
+        title={isStickyNotesOpen ? "Hide side panel" : "Show side panel"}
+        aria-label={isStickyNotesOpen ? "Hide side panel" : "Show side panel"}
       >
-        <StickyNote size={16} />
+        <span
+          aria-hidden="true"
+          className={`pointer-events-none absolute -inset-1 rounded-full bg-primary/40 blur-md transition-opacity duration-300 ${
+            isStickyNotesOpen ? "opacity-70" : "opacity-0 group-hover:opacity-60"
+          }`}
+        />
+        <span
+          className={`relative flex h-9 items-center gap-2 rounded-full px-3 sm:px-3.5 text-xs font-bold tracking-wide transition-colors duration-200 ${
+            isStickyNotesOpen
+              ? "bg-primary text-primary-foreground"
+              : "bg-background text-foreground/80 group-hover:text-foreground"
+          }`}
+        >
+          <StickyNote
+            size={15}
+            className={`transition-transform duration-300 motion-safe:group-hover:-rotate-12 motion-safe:group-hover:scale-110 ${
+              isStickyNotesOpen ? "" : "text-primary"
+            }`}
+          />
+          <span className="hidden sm:inline">Notes</span>
+        </span>
       </button>
     </header>
   );

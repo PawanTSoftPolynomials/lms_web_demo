@@ -47,6 +47,15 @@ export const getAssignmentSubmissions = async (assignmentId) => {
   return data.data ?? data;
 };
 
+/** Instructor: grade one student submission for an assignment. */
+export const gradeAssignmentSubmission = async (assignmentId, submissionId, payload) => {
+  const { data } = await api.patch(
+    `/assignments/${assignmentId}/submissions/${submissionId}/grade`,
+    payload
+  );
+  return data.data ?? data;
+};
+
 /** Instructor-side assignment ("Assessment") CRUD — courseId is optional (all courses if omitted). */
 export const getInstructorAssignments = async (courseId) => {
   const url = courseId ? `/assignments?courseId=${courseId}` : "/assignments";

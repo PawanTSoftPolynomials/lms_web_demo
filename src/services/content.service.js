@@ -61,6 +61,39 @@ export const deleteContent = async (contentId) => {
   return response.data;
 };
 
+/** Student: their own submitted PDF for an ASSIGNMENT content block, or null. */
+export const getMyContentSubmission = async (contentId) => {
+  const response = await api.get(`/contents/${contentId}/submission`);
+  return response.data?.data ?? null;
+};
+
+/** Student: records an uploaded PDF (from uploadAssignmentSubmissionFile) against an ASSIGNMENT content block. */
+export const submitContentAssignment = async (contentId, payload) => {
+  const response = await api.post(`/contents/${contentId}/submit`, payload);
+  return response.data?.data ?? response.data;
+};
+
+/** Instructor: every ASSIGNMENT content block in their own courses, with ungraded counts. */
+export const getInstructorAssignmentContents = async () => {
+  const response = await api.get("/contents/assignments");
+  return response.data?.data ?? [];
+};
+
+/** Instructor: student submissions (with uploaded PDFs) for one ASSIGNMENT content block. */
+export const getContentSubmissions = async (contentId) => {
+  const response = await api.get(`/contents/${contentId}/submissions`);
+  return response.data?.data ?? response.data;
+};
+
+/** Instructor: grade one student submission for an ASSIGNMENT content block. */
+export const gradeContentSubmission = async (contentId, submissionId, payload) => {
+  const response = await api.patch(
+    `/contents/${contentId}/submissions/${submissionId}/grade`,
+    payload
+  );
+  return response.data?.data ?? response.data;
+};
+
 export const reorderContents = async (contents) => {
   const response = await api.patch("/contents/reorder", { contents });
   return response.data;

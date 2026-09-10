@@ -4,12 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowLeft, ChevronRight, ChevronLeft,
-  MessageSquare, Star, Bookmark, BookmarkCheck, PanelRightClose,
-  PanelLeftOpen,
+  ArrowLeft,
+  Bookmark, BookmarkCheck,
 } from "lucide-react";
 
-import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel";
 import CourseContentAccordion from "@/components/student/learning/CourseContentAccordion";
 import LessonContentBlock from "@/components/student/learning/LessonContentBlock";
 import ContentCompletionBar from "@/components/student/learning/ContentCompletionBar";
@@ -18,16 +16,16 @@ import LessonOverviewPanel from "@/components/student/learning/LessonOverviewPan
 import LessonResourcesPanel from "@/components/student/learning/LessonResourcesPanel";
 import LessonQuizPanel from "@/components/student/learning/LessonQuizPanel";
 import QuizExperience from "@/components/student/attempt/QuizExperience";
-import AskInstructorCard from "@/components/student/learning/AskInstructorCard";
+import LearnSidePanel from "@/components/student/learning/LearnSidePanel";
 import LessonNavigationControls from "@/components/student/learning/LessonNavigationControls";
 import LearnPageHeader from "@/components/student/learning/LearnPageHeader";
 
 import { groupLessonContentForDocumentView } from "@/lib/contentDocument";
+import { buildCourseUnits, findUnitContaining } from "@/lib/courseUnits";
 import { CourseStructureSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
 import { normalizeCourseHierarchy } from "@/lib/courseMapper";
 import { buildProgressIndex, decorateCourseWithProgress, isItemComplete, isItemSubmitted, getNodeProgress } from "@/lib/progressIndex";
 import { resolveResumeTarget } from "@/lib/resumeTarget";
-import { LEARN_PAGE_CONTENT_TABS } from "@/features/student/constants/learnPageConfig";
 
 import {
   useCourse,
@@ -46,7 +44,6 @@ import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
 import { ChatWidget } from "@/components/chat";
 
-import useChat from "@/hooks/useChat";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { useToast } from "@/components/ui/ToastProvider";
 
@@ -106,7 +103,6 @@ export default function LearnPage() {
   const { data: stateData, isLoading: isStateLoading } = useStudentState(courseId);
   const updateStateMutation = useUpdateStudentState();
 
-  const { setIsOpen } = useChat();
   const { showToast } = useToast();
 
   // Real viewport check backing the mobile/tablet-only blocks below — mirrors
@@ -276,6 +272,12 @@ export default function LearnPage() {
   // counter. Any normal Lesson/Topic/Module sidebar pick clears it.
   const [extraUnit, setExtraUnit] = useState(null); // { key, blockIndex } | null
 
+  // An Assignment row opened from the Course Map. Assignments aren't steps in
+  // the Prev/Next sequence, so one is shown over the current position until
+  // the student navigates anywhere else. (Replaces the removed manualOverride
+  // state that openItem still called, which threw on every such tap.)
+  const [openAssignmentItem, setOpenAssignmentItem] = useState(null);
+
   // Embedded (non-drawer) Course Content accordion state — independent of the
   // desktop sidebar so only one module is expanded at a time on mobile/tablet,
   // always the module containing the lesson currently playing.
@@ -403,74 +405,14 @@ export default function LearnPage() {
   }, [documentGroupedContents, activeQuizzes]);
 
   // ---- Whole-course Prev/Next sequence -------------------------------------
-  // Every stop the player can land on, in the order a student progresses
-  // through the whole course: a Course's own direct content, then for each
-  // Module in turn (its own direct content, then for each Lesson in turn —
-  // its own direct content only when it ALSO has Topics [rare: Composer v2
-  // content is Lesson-only, so a real Lesson normally has either Topics or
-  // its own content, never both], each Topic in order, then the Lesson's
-  // own quiz), then the Module's own quiz — then the Course's own quiz,
-  // last of all. A level with nothing of its own contributes no unit, so a
-  // course that only uses Topics degrades to exactly the sequence Prev/Next
-  // already walked before this. Topic and zero-Topic-Lesson entries are
-  // `placeholder: true` — their real blocks still come from
+  // Every stop the player can land on, in the same order the Course Map
+  // lists them — see lib/courseUnits.js. Topic and zero-Topic-Lesson entries
+  // are `placeholder: true`: their real blocks still come from
   // documentGroupedContents/activeQuizzes above, driven by the existing
   // selectedLesson/selectedTopicId state; this array only needs to know
-  // they exist, in order, so crossing past them into a Module/Course-level
-  // unit (and back) works.
-  const courseUnits = useMemo(() => {
-    const byOrder = (list) => [...(list || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-    const contentUnit = (key, scope, contents) => {
-      const grouped = groupLessonContentForDocumentView(byOrder(contents));
-      return grouped.length > 0 ? { key, scope, blocks: grouped.map((item) => ({ kind: "content", item })) } : null;
-    };
-    const quizUnit = (key, scope, quizzes) => {
-      const sorted = byOrder(quizzes);
-      return sorted.length > 0 ? { key, scope, blocks: sorted.map((item) => ({ kind: "quiz", item })) } : null;
-    };
-
-    const units = [];
-    const noScope = { moduleId: null, lessonId: null, topicId: null };
-    const courseContent = contentUnit("course-content", noScope, course.contents);
-    if (courseContent) units.push(courseContent);
-
-    for (const mod of course.modules || []) {
-      const moduleScope = { moduleId: mod.id, lessonId: null, topicId: null };
-      const moduleContent = contentUnit(`module-content:${mod.id}`, moduleScope, mod.contents);
-      if (moduleContent) units.push(moduleContent);
-
-      for (const lesson of mod.lessons || []) {
-        const lessonScope = { moduleId: mod.id, lessonId: lesson.id, topicId: null };
-        const lessonHasTopics = (lesson.topics?.length ?? 0) > 0;
-
-        if (lessonHasTopics) {
-          const lessonContent = contentUnit(`lesson-content:${lesson.id}`, lessonScope, lesson.contents);
-          if (lessonContent) units.push(lessonContent);
-
-          for (const topic of lesson.topics) {
-            units.push({
-              key: `topic:${topic.id}`,
-              scope: { ...lessonScope, topicId: topic.id },
-              placeholder: true,
-            });
-          }
-
-          const lessonQuiz = quizUnit(`lesson-quiz:${lesson.id}`, lessonScope, lesson.quizzes);
-          if (lessonQuiz) units.push(lessonQuiz);
-        } else {
-          units.push({ key: `lesson:${lesson.id}`, scope: lessonScope, placeholder: true });
-        }
-      }
-
-      const moduleQuiz = quizUnit(`module-quiz:${mod.id}`, moduleScope, mod.quizzes);
-      if (moduleQuiz) units.push(moduleQuiz);
-    }
-
-    const courseQuiz = quizUnit("course-quiz", noScope, course.quizzes);
-    if (courseQuiz) units.push(courseQuiz);
-
-    return units;
-  }, [course]);
+  // they exist, in order, so crossing past them into a Course/Module/Lesson-
+  // level unit (and back) works.
+  const courseUnits = useMemo(() => buildCourseUnits(course), [course]);
 
   // Where the placeholder (Topic / zero-Topic-Lesson) pathway currently is,
   // as a courseUnits key — used only to find this position's neighbors for
@@ -608,8 +550,14 @@ export default function LearnPage() {
       }
     }
 
+    setOpenAssignmentItem(null);
     const resolvedIndex = targetItemId
-      ? Math.max(0, (unit.blocks || []).findIndex((b) => b.item.id === targetItemId))
+      ? Math.max(
+          0,
+          (unit.blocks || []).findIndex(
+            (b) => b.item.id === targetItemId || b.item.contentIds?.includes(targetItemId)
+          )
+        )
       : atEnd
       ? Math.max(0, (unit.blocks?.length || 1) - 1)
       : 0;
@@ -669,6 +617,11 @@ export default function LearnPage() {
   // goToPreviousUnit/goToNextUnit — i.e. cross into the previous/next unit —
   // once there's no earlier/later block in the current one.
   const goToPreviousBlock = () => {
+    // Prev/Next from an opened Assignment returns to the position underneath.
+    if (openAssignmentItem) {
+      setOpenAssignmentItem(null);
+      return;
+    }
     if (extraUnit) {
       if (extraUnit.blockIndex > 0) {
         setExtraUnit((prev) => ({ ...prev, blockIndex: prev.blockIndex - 1 }));
@@ -688,6 +641,10 @@ export default function LearnPage() {
       return;
     }
 
+    if (openAssignmentItem) {
+      setOpenAssignmentItem(null);
+      return;
+    }
     if (extraUnit) {
       if (extraUnit.blockIndex < activeUnitBlocks.length - 1) {
         setExtraUnit((prev) => ({ ...prev, blockIndex: prev.blockIndex + 1 }));
@@ -710,6 +667,7 @@ export default function LearnPage() {
   // recomputed for the newly-selected unit.
   const jumpToBlock = (targetId, { lesson, topic } = {}) => {
     setExtraUnit(null);
+    setOpenAssignmentItem(null);
     const alreadyOnUnit =
       lesson?.id === selectedLesson?.id && (topic ? topic.id === selectedTopicId : true);
     if (alreadyOnUnit) {
@@ -752,7 +710,7 @@ export default function LearnPage() {
     }
 
     hasAppliedResumeTargetRef.current = true;
-    const { kind, id, lessonId, topicId, moduleId } = resumeTarget;
+    const { id, lessonId, topicId } = resumeTarget;
 
     if (topicId) {
       const lessonMatch = lessons.find((l) => l.id === lessonId);
@@ -765,22 +723,18 @@ export default function LearnPage() {
       const lessonMatch = lessons.find((l) => l.id === lessonId);
       const lessonHasTopics = (lessonMatch?.topics?.length ?? 0) > 0;
       if (lessonHasTopics) {
-        const unitKey = kind === "quiz" ? `lesson-quiz:${lessonId}` : `lesson-content:${lessonId}`;
-        enterUnit(courseUnits.find((u) => u.key === unitKey), { targetItemId: id });
+        // A topics-Lesson's own content/quiz run(s) — findUnitContaining
+        // (not a guessed key) since buildCourseUnits can split a level's
+        // own items into several runs interleaved with its children.
+        enterUnit(findUnitContaining(courseUnits, id), { targetItemId: id });
       } else {
         jumpToBlock(id, { lesson: lessonMatch });
       }
       return;
     }
 
-    if (moduleId) {
-      const unitKey = kind === "quiz" ? `module-quiz:${moduleId}` : `module-content:${moduleId}`;
-      enterUnit(courseUnits.find((u) => u.key === unitKey), { targetItemId: id });
-      return;
-    }
-
-    const unitKey = kind === "quiz" ? "course-quiz" : "course-content";
-    enterUnit(courseUnits.find((u) => u.key === unitKey), { targetItemId: id });
+    // Module-direct or Course-direct.
+    enterUnit(findUnitContaining(courseUnits, id), { targetItemId: id });
     // enterUnit/jumpToBlock intentionally omitted from deps — same
     // convention as the unit-change reset effect above: they close over
     // this render's state and aren't memoized, so listing them would just
@@ -794,30 +748,6 @@ export default function LearnPage() {
     videoPlayerRef.current?.seekTo(seconds);
   };
 
-  // Tap-to-scroll controls for the tab strip, so reaching hidden tabs doesn't
-  // require a swipe gesture.
-  const tabStripRef = useRef(null);
-  const [canScrollTabsLeft, setCanScrollTabsLeft] = useState(false);
-  const [canScrollTabsRight, setCanScrollTabsRight] = useState(false);
-
-  const updateTabScrollState = () => {
-    const el = tabStripRef.current;
-    if (!el) return;
-    setCanScrollTabsLeft(el.scrollLeft > 4);
-    setCanScrollTabsRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
-  };
-
-  useEffect(() => {
-    // isLoading gates whether the tab strip is even in the DOM yet (it's
-    // replaced by <Loader /> until the course loads), so re-measure once
-    // that flips instead of only once on this component's very first mount.
-    updateTabScrollState();
-  }, [isLoading, selectedLesson]);
-
-  const scrollContentTabs = (direction) => {
-    tabStripRef.current?.scrollBy({ left: direction * 160, behavior: "smooth" });
-  };
-
   if (isLoading) {
     return <Loader />;
   }
@@ -829,7 +759,9 @@ export default function LearnPage() {
   // What the player actually shows — whatever block the active unit
   // (extraUnit, or the Topic/Lesson pathway) is currently on.
   const activeBlockIndex = extraUnit ? extraUnit.blockIndex : blockIndex;
-  const activeBlock = activeUnitBlocks[activeBlockIndex];
+  const activeBlock = openAssignmentItem
+    ? { kind: "assignment", item: openAssignmentItem }
+    : activeUnitBlocks[activeBlockIndex];
 
   // Course Map sidebar highlighting — mirrors the instructor Composer's
   // composerMode/composeXId contract (see CourseComposerSidebar), derived
@@ -881,6 +813,11 @@ export default function LearnPage() {
 
   const activeEarnedId = activeQuizId || activeAssignmentId;
 
+  // A lesson-composer Assignment block (Content type ASSIGNMENT) is earned the
+  // same way: the backend completes it when the PDF submission is recorded.
+  const activeIsContentAssignment =
+    activeBlock?.kind === "content" && activeBlock.item?.type === "ASSIGNMENT";
+
   // Hidden entirely until the roll-up is known: without it we cannot say
   // whether this item is already complete, and showing "Mark as Complete" on a
   // finished item (or vice versa) would misreport the student's own state.
@@ -892,7 +829,7 @@ export default function LearnPage() {
   // screen while the student works through it.
   const openAssignment = (assignment) => {
     if (!assignment?.id) return;
-    setManualOverride({ kind: "assignment", item: assignment });
+    setOpenAssignmentItem(assignment);
   };
 
   /**
@@ -924,7 +861,9 @@ export default function LearnPage() {
       jumpToBlock(item.id, { lesson, topic });
       return;
     }
-    setManualOverride({ kind: kind === "QUIZ" ? "quiz" : "content", item });
+    // Course-, Module- and topic-Lesson-direct items each live in their own
+    // courseUnits entry — the same place the desktop Course Map sends them.
+    enterUnit(findUnitContaining(courseUnits, item.id), { targetItemId: item.id });
   };
 
   const handleMarkComplete = () => {
@@ -946,42 +885,24 @@ export default function LearnPage() {
   // the mobile shared content panel (conditional render, one at a time) and
   // by the desktop stacked layout (all shown at once) — so there is a single
   // source of truth per tab, not two copies that can drift out of sync.
-  const askInstructorCard = <AskInstructorCard course={course} setIsOpen={setIsOpen} />;
-
-  const feedbackPanel = (
-    <div className="space-y-4">
-      <Link
-        href={`/student/feedback?courseId=${course.id}`}
-        className="w-full flex items-center justify-between p-4 sm:p-5 rounded-3xl border border-transparent bg-background/40 hover:bg-background/60 hover:border-transparent/80 transition duration-300 group cursor-pointer text-left min-h-[44px]"
-      >
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-          <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-emerald-500/15 bg-emerald-500/5 text-emerald-400 shrink-0">
-            <MessageSquare size={18} className="stroke-[2.5]" />
-          </div>
-          <div className="min-w-0">
-            <h4 className="text-sm font-extrabold text-foreground group-hover:text-foreground transition truncate">Feedback</h4>
-            <p className="text-[10px] text-muted-foreground font-semibold mt-0.5 truncate">Share your feedback to help us improve.</p>
-          </div>
-        </div>
-        <ChevronRight size={14} className="text-slate-600 group-hover:text-primary transition-colors shrink-0 ml-2" />
-      </Link>
-
-      <Link
-        href={`/student/reviews?courseId=${course.id}`}
-        className="w-full flex items-center justify-between p-4 sm:p-5 rounded-3xl border border-transparent bg-background/40 hover:bg-background/60 hover:border-transparent/80 transition duration-300 group cursor-pointer text-left min-h-[44px]"
-      >
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-          <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-blue-500/15 bg-blue-500/5 text-blue-400 shrink-0">
-            <Star size={18} className="stroke-[2.5]" />
-          </div>
-          <div className="min-w-0">
-            <h4 className="text-sm font-extrabold text-foreground group-hover:text-foreground transition truncate">Reviews</h4>
-            <p className="text-[10px] text-muted-foreground font-semibold mt-0.5 truncate">Rate this course and see what others think.</p>
-          </div>
-        </div>
-        <ChevronRight size={14} className="text-slate-600 group-hover:text-primary transition-colors shrink-0 ml-2" />
-      </Link>
-    </div>
+  // The side panel (Ask instructor / Sticky notes / Feedback / Reviews) —
+  // one component for both the desktop column and the mobile/tablet stack.
+  // Questions are tied to the one item on screen — content block, quiz or
+  // assignment — and only ever listed back on that item.
+  const sidePanel = (
+    <LearnSidePanel
+      activeFeature={activeContentTab}
+      onChangeFeature={setActiveContentTab}
+      courseId={course.id}
+      lessonId={selectedLesson?.id ?? null}
+      askTarget={
+        activeBlock?.item?.id && ["content", "quiz", "assignment"].includes(activeBlock.kind)
+          ? { kind: activeBlock.kind, id: activeBlock.item.id, title: activeBlock.item.title }
+          : null
+      }
+      currentTimestamp={currentTimestamp}
+      onSeek={handleTranscriptSeek}
+    />
   );
 
   const quizPanel = (
@@ -1017,6 +938,8 @@ export default function LearnPage() {
           onToggleOpen={() => setCourseSidebarOpen(false)}
           onSelectCourseOverview={() => router.push(`/student/courses/${courseId}`)}
           onSelectLesson={(lessonId) => {
+            setExtraUnit(null);
+            setOpenAssignmentItem(null);
             const match = lessons.find((l) => l.id === lessonId);
             if (!match) return;
             runGated(firstUnitKeyFor({ moduleId: match.moduleId, lessonId: match.id }), () => {
@@ -1029,10 +952,13 @@ export default function LearnPage() {
             if (!firstLesson) return;
             runGated(firstUnitKeyFor({ moduleId: mod.id, lessonId: firstLesson.id }), () => {
               setExtraUnit(null);
-              selectLesson(firstLesson);
+              setOpenAssignmentItem(null);
+            selectLesson(firstLesson);
             });
           }}
           onSelectTopic={(topicId, lessonId) => {
+            setExtraUnit(null);
+            setOpenAssignmentItem(null);
             const match = lessons.find((l) => l.id === lessonId);
             if (!match) return;
             runGated(`topic:${topicId}`, () => {
@@ -1050,30 +976,25 @@ export default function LearnPage() {
             // courseUnits above) — otherwise it *is* the Topic/Lesson
             // pathway's own content, reached the normal way.
             if ((lesson?.topics?.length ?? 0) > 0) {
-              enterUnit(courseUnits.find((u) => u.key === `lesson-content:${lesson.id}`), { targetItemId: content.id });
+              enterUnit(findUnitContaining(courseUnits, content.id), { targetItemId: content.id });
             } else {
               jumpToBlock(content.id, { lesson });
             }
           }}
-          onSelectModuleContent={(content, mod) => {
-            enterUnit(courseUnits.find((u) => u.key === `module-content:${mod?.id}`), { targetItemId: content.id });
+          onSelectModuleContent={(content) => {
+            enterUnit(findUnitContaining(courseUnits, content.id), { targetItemId: content.id });
           }}
           onSelectCourseContent={(content) => {
-            enterUnit(courseUnits.find((u) => u.key === "course-content"), { targetItemId: content.id });
+            enterUnit(findUnitContaining(courseUnits, content.id), { targetItemId: content.id });
           }}
           onSelectQuiz={(quiz, mod, lesson, topic) => {
             if (topic) {
               jumpToBlock(quiz.id, { lesson, topic });
-            } else if (lesson) {
-              if ((lesson.topics?.length ?? 0) > 0) {
-                enterUnit(courseUnits.find((u) => u.key === `lesson-quiz:${lesson.id}`), { targetItemId: quiz.id });
-              } else {
-                jumpToBlock(quiz.id, { lesson });
-              }
-            } else if (mod) {
-              enterUnit(courseUnits.find((u) => u.key === `module-quiz:${mod.id}`), { targetItemId: quiz.id });
+            } else if (lesson && (lesson.topics?.length ?? 0) === 0) {
+              jumpToBlock(quiz.id, { lesson });
             } else {
-              enterUnit(courseUnits.find((u) => u.key === "course-quiz"), { targetItemId: quiz.id });
+              // A topic-Lesson's, Module's or Course's own quiz — its own unit.
+              enterUnit(findUnitContaining(courseUnits, quiz.id), { targetItemId: quiz.id });
             }
           }}
           role="STUDENT"
@@ -1161,22 +1082,9 @@ export default function LearnPage() {
                   pushing the page taller. Transcript/Resources stay outside
                   this frame, below, in normal page flow. */}
               <div className="group relative flex flex-col h-[calc(100vh-147px)] min-h-[440px] max-h-[900px] rounded-2xl border border-border bg-card overflow-hidden">
-                {/* No dedicated header bar — lesson/topic name and the Sticky
-                    Notes trigger already live in the top bar above. Course
-                    Index reopen (desktop, sidebar collapsed only) floats over
-                    the top-left corner of the content instead, same treatment
-                    as Prev/Next below. */}
-                {!courseSidebarOpen && (
-                  <button
-                    type="button"
-                    onClick={() => setCourseSidebarOpen(true)}
-                    className="hidden xl:flex absolute top-3 left-3 z-10 items-center justify-center w-9 h-9 rounded-full border border-border bg-card/90 backdrop-blur-sm shadow-md text-muted-foreground hover:text-primary hover:border-primary/40 transition cursor-pointer"
-                    title="Show Course Index"
-                    aria-label="Show Course Index"
-                  >
-                    <PanelLeftOpen size={16} />
-                  </button>
-                )}
+                {/* No dedicated header bar — lesson/topic name, the Course
+                    Index reopen and the side-panel toggle all live in the top
+                    bar above (LearnPageHeader). */}
 
                 {/* One block at a time — Next/Prev below step through the
                     active unit's blocks (content and quizzes merged in
@@ -1245,29 +1153,34 @@ export default function LearnPage() {
                     onSelectNext={goToNextBlock}
                   />
                 </div>
-
-                {/* COMPLETION — floats over the bottom-right corner of the
-                    player, revealed on hover/focus exactly like Prev/Next,
-                    instead of a persistent bar below the frame. Applies to
-                    whatever the frame is showing: Course-, Module-, Lesson-
-                    or Topic-direct Content alike. */}
-                {showCompletionBar && (
-                  <div className="absolute bottom-3 right-3 pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
-                    <ContentCompletionBar
-                      completed={
-                        activeQuizId
-                          ? activeQuizCompleted
-                          : activeAssignmentId
-                            ? activeAssignmentCompleted
-                            : activeContentCompleted
-                      }
-                      isPending={completeContentMutation.isPending}
-                      readOnly={Boolean(activeEarnedId)}
-                      onMarkComplete={handleMarkComplete}
-                    />
-                  </div>
-                )}
               </div>
+
+              {/* COMPLETION — the one place the student marks the block on
+                  screen complete, and the one place its completed state is
+                  shown in the workspace. Sits below the player frame (not
+                  inside it) so it never collides with the floating Prev/Next
+                  overlay, and applies to whatever the frame is showing:
+                  Course-, Module-, Lesson- or Topic-direct Content alike. */}
+              {showCompletionBar && (
+                <ContentCompletionBar
+                  completed={
+                    activeQuizId
+                      ? activeQuizCompleted
+                      : activeAssignmentId
+                        ? activeAssignmentCompleted
+                        : activeContentCompleted
+                  }
+                  isPending={completeContentMutation.isPending}
+                  isVideo={!activeEarnedId && activeBlock?.item?.type === "VIDEO"}
+                  readOnly={Boolean(activeEarnedId) || activeIsContentAssignment}
+                  readOnlyHint={
+                    activeQuizId
+                      ? "Pass this quiz to complete it."
+                      : "Submit your assignment (PDF or written answer) to complete it."
+                  }
+                  onMarkComplete={handleMarkComplete}
+                />
+              )}
             </div>
 
             {/* CONTENT TAB STRIP — mobile & tablet only. Desktop shows every
@@ -1277,104 +1190,17 @@ export default function LearnPage() {
                 Gated on isDesktop (a real viewport check), not just xl:hidden —
                 otherwise this and the desktop panels below would both mount
                 regardless of actual screen size, only one hidden by CSS. */}
-            {!isDesktop && (
-              <div className="row-start-2">
-                <div className="flex items-center gap-1 border-b border-transparent/60">
-                  <button
-                    type="button"
-                    onClick={() => scrollContentTabs(-1)}
-                    disabled={!canScrollTabsLeft}
-                    className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
-                    aria-label="Scroll tabs left"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
+            {/* SIDE PANEL — mobile & tablet: stacked under the player, spanning
+                the two rows the old tab strip + tab content used. Gated on
+                isDesktop (a real viewport check) so it and the desktop column
+                below never both mount. */}
+            {!isDesktop && <div className="row-start-2 row-span-2 min-w-0">{sidePanel}</div>}
 
-                  <div
-                    ref={tabStripRef}
-                    onScroll={updateTabScrollState}
-                    className="flex items-center gap-1 overflow-x-auto scrollbar-none flex-1 min-w-0"
-                  >
-                    {LEARN_PAGE_CONTENT_TABS.map((tab) => {
-                      const Icon = tab.icon;
-                      const isActive = activeContentTab === tab.id;
-                      return (
-                        <button
-                          key={tab.id}
-                          type="button"
-                          onClick={() => setActiveContentTab(tab.id)}
-                          className={`flex flex-col items-center gap-1 px-3.5 py-2 min-h-[44px] text-[11px] font-bold uppercase tracking-wide transition cursor-pointer border-0 border-b-2 outline-none shrink-0 bg-transparent ${
-                            isActive
-                              ? "text-primary border-primary"
-                              : "text-foreground border-transparent hover:text-foreground"
-                          }`}
-                        >
-                          <Icon size={18} />
-                          <span>{tab.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => scrollContentTabs(1)}
-                    disabled={!canScrollTabsRight}
-                    className="shrink-0 min-h-[44px] min-w-[36px] flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:pointer-events-none transition cursor-pointer border-0 bg-transparent outline-none"
-                    aria-label="Scroll tabs right"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* SHARED CONTENT PANEL — mobile & tablet only. Exactly one branch
-                renders at a time based on activeContentTab: true conditional
-                rendering (if/else), not a CSS show/hide toggle across parallel
-                siblings. This is the one container every tab — Notes, Query,
-                and Feedback alike — renders into below xl. Nothing else moves
-                when it changes. */}
-            {!isDesktop && (
-              <div className="row-start-3 min-w-0">
-                {activeContentTab === "notes" && (
-                  <StickyNotesPanel
-                    lessonId={selectedLesson?.id}
-                    currentTimestamp={currentTimestamp}
-                    onSeek={handleTranscriptSeek}
-                  />
-                )}
-
-                {activeContentTab === "query" && askInstructorCard}
-
-                {activeContentTab === "feedback" && feedbackPanel}
-              </div>
-            )}
-
-            {/* Collapsed state renders no grid column at all (see grid-cols
-                above) — the player and stacked panels get the full width
-                back instead of a persistently reserved 48px-wide column. */}
+            {/* Desktop column. Collapsed state renders no grid column at all
+                (see grid-cols above) — the player gets the full width back. */}
             {rightPanelOpen && (
-              <div className="hidden xl:flex xl:flex-col xl:gap-6 min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-2 xl:sticky xl:top-24 xl:h-fit w-full xl:w-[360px]">
-                <button
-                  type="button"
-                  onClick={() => setRightPanelOpen(false)}
-                  className="self-end flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-xl text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground bg-background/60 hover:bg-muted border border-transparent transition cursor-pointer"
-                  title="Hide side panel"
-                  aria-label="Hide side panel"
-                >
-                  <PanelRightClose size={14} />
-                  <span>Hide</span>
-                </button>
-                <div className="order-2">
-                  <StickyNotesPanel
-                    lessonId={selectedLesson?.id}
-                    currentTimestamp={currentTimestamp}
-                    onSeek={handleTranscriptSeek}
-                  />
-                </div>
-                <div className="order-1">{askInstructorCard}</div>
-                <div className="order-3">{feedbackPanel}</div>
+              <div className="hidden xl:block min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-2 xl:sticky xl:top-24 xl:h-fit w-full xl:w-[360px]">
+                {sidePanel}
               </div>
             )}
 

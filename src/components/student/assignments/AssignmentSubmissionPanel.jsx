@@ -8,13 +8,14 @@ import { uploadAssignmentSubmissionFile } from "@/services/assignment.service";
 import useSubmitAssignment from "@/hooks/queries/student/useSubmitAssignment";
 import { useToast } from "@/components/ui/ToastProvider";
 import Button from "@/components/ui/Button";
+import { getDisplayUrl } from "@/lib/blob";
 
 /**
  * The student's view of one Assignment: the instructor's brief, the
- * instructor's reference material, and the single PDF upload that IS the
- * submission.
+ * instructor's reference material, and the student's submission.
  *
- * There is exactly one way to submit — upload the completed work as a PDF.
+ * A submission is a PDF upload, a typed/pasted written answer, or both —
+ * each is optional, but at least one is required.
  * Completion is never asserted here: the item is complete when the backend
  * says so, which happens after POST /assignments/:id/submit records the
  * submission and the existing roll-up recomputes. `completed` is passed in
@@ -35,22 +36,33 @@ const isPdf = (file) =>
 export default function AssignmentSubmissionPanel({
   assignment,
   completed = false,
-  onNextContent,
-  showStatusLink = false,
+  // Lets a lesson-composer Assignment block (a Content row) submit through
+  // its own endpoint while reusing this panel; defaults to /assignments/:id.
+  submitMutation: submitMutationOverride,
+  showTitle = true,
 }) {
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  // Seeded with the saved answer so a resubmission can edit rather than retype.
+  const [textAnswer, setTextAnswer] = useState(assignment?.submission?.textAnswer || "");
   const { showToast } = useToast();
 
-  const submitMutation = useSubmitAssignment(assignment?.id);
+  const assignmentSubmitMutation = useSubmitAssignment(assignment?.id);
+  const submitMutation = submitMutationOverride || assignmentSubmitMutation;
 
   const submission = assignment?.submission || null;
-  const hasSubmitted = Boolean(submission?.fileUrl) || assignment?.status === "Submitted";
+  const hasSubmitted =
+    Boolean(submission) || ["Submitted", "Graded"].includes(assignment?.status);
+  // Assignment rows carry grade/feedback at the top level; content submissions on `submission`.
+  const grade = submission?.grade || assignment?.grade || null;
+  const feedback = submission?.feedback || assignment?.feedback || null;
   // Instructor-provided reference material — never the student's own answer.
   const attachments = Array.isArray(assignment?.attachments) ? assignment.attachments : [];
 
   const isBusy = isUploading || submitMutation.isPending;
+  const trimmedText = textAnswer.trim();
+  const canSubmit = Boolean(selectedFile) || trimmedText.length > 0;
 
   const pickFile = (file) => {
     if (!file) return;
@@ -69,23 +81,32 @@ export default function AssignmentSubmissionPanel({
 
   const handleSubmit = async () => {
     // Guard rather than trust the disabled attribute — nothing may be recorded
-    // without a real PDF, and no second request may start while one is running.
-    if (isBusy || !selectedFile || !isPdf(selectedFile)) return;
+    // without a PDF or a written answer, and no second request may start
+    // while one is running.
+    if (isBusy || !canSubmit) return;
+    if (selectedFile && !isPdf(selectedFile)) return;
 
-    setIsUploading(true);
-    let uploaded;
-    try {
-      // Upload first. Only a stored file yields the fileUrl the submit
-      // endpoint requires, so a failed upload can never mark this complete.
-      uploaded = await uploadAssignmentSubmissionFile(selectedFile);
-    } catch (error) {
+    let uploaded = null;
+    if (selectedFile) {
+      setIsUploading(true);
+      try {
+        // Upload first. Only a stored file yields a fileUrl, so a failed
+        // upload can never record (or complete) a submission.
+        uploaded = await uploadAssignmentSubmissionFile(selectedFile);
+      } catch (error) {
+        setIsUploading(false);
+        showToast(error?.message || "Could not upload your PDF. Please try again.", "error");
+        return;
+      }
       setIsUploading(false);
-      showToast(error?.message || "Could not upload your PDF. Please try again.", "error");
-      return;
     }
-    setIsUploading(false);
 
-    submitMutation.mutate(uploaded, {
+    const payload = {
+      ...(uploaded || {}),
+      ...(trimmedText ? { textAnswer: trimmedText } : {}),
+    };
+
+    submitMutation.mutate(payload, {
       onSuccess: () => {
         clearFile();
         showToast("Assignment submitted.", "success");
@@ -103,12 +124,16 @@ export default function AssignmentSubmissionPanel({
     <div className="max-w-3xl w-full mx-auto rounded-2xl border border-border bg-card">
       {/* ---- ASSIGNMENT BRIEF ---- */}
       <section className="p-4 sm:p-6 space-y-3">
-        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-          Assignment
-        </p>
-        <h2 className="text-lg sm:text-xl font-bold text-foreground text-balance">
-          {assignment?.title || "Assignment"}
-        </h2>
+        {showTitle && (
+          <>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Assignment
+            </p>
+            <h2 className="text-lg sm:text-xl font-bold text-foreground text-balance">
+              {assignment?.title || "Assignment"}
+            </h2>
+          </>
+        )}
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-semibold text-muted-foreground">
           {assignment?.dueDate && (
@@ -158,7 +183,7 @@ export default function AssignmentSubmissionPanel({
                   </span>
                 </span>
                 <a
-                  href={file.url}
+                  href={getDisplayUrl(file.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="shrink-0 self-start sm:self-auto min-h-[36px] inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-[11px] font-bold text-foreground transition hover:border-primary/40 hover:text-primary"
@@ -178,7 +203,7 @@ export default function AssignmentSubmissionPanel({
             Your Submission
           </p>
           <p className="mt-1 text-[11px] font-semibold text-muted-foreground">
-            Complete the assignment and upload your final answer as a PDF.
+            Upload your answer as a PDF, write it below, or both. At least one is required.
           </p>
         </div>
 
@@ -204,7 +229,8 @@ export default function AssignmentSubmissionPanel({
                 </span>
                 {submission.fileUrl && (
                   <a
-                    href={submission.fileUrl}
+                      // Private Blob URLs 403 unless routed through /api/blob-proxy.
+                    href={getDisplayUrl(submission.fileUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="shrink-0 self-start sm:self-auto min-h-[36px] inline-flex items-center rounded-lg border border-emerald-500/40 px-3 py-1.5 text-[11px] font-bold text-emerald-500 transition hover:bg-emerald-500/15"
@@ -212,6 +238,16 @@ export default function AssignmentSubmissionPanel({
                     View PDF
                   </a>
                 )}
+              </div>
+            )}
+            {submission?.textAnswer && (
+              <div className="rounded-lg border border-emerald-500/20 bg-background/40 px-3 py-2 max-h-40 overflow-y-auto">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">
+                  Written Answer
+                </p>
+                <p className="text-xs text-foreground whitespace-pre-wrap break-words">
+                  {submission.textAnswer}
+                </p>
               </div>
             )}
             {submission?.submittedAt && (
@@ -242,10 +278,22 @@ export default function AssignmentSubmissionPanel({
                 )}
               </div>
             )}
+            {grade && (
+              <div className="border-t border-emerald-500/20 pt-2 space-y-1">
+                <p className="text-xs font-bold text-foreground">
+                  Grade: <span className="text-emerald-500">{grade}</span>
+                </p>
+                {feedback && (
+                  <p className="text-[11px] font-semibold text-muted-foreground whitespace-pre-wrap break-words">
+                    {feedback}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
-        {/* Upload control — the one and only submission method. */}
+        {/* Option 1 — upload a PDF (optional). */}
         <input
           ref={fileInputRef}
           type="file"
@@ -306,14 +354,42 @@ export default function AssignmentSubmissionPanel({
 
         <p className="text-[10px] font-semibold text-muted-foreground">
           PDF only, up to 20MB.
-          {hasSubmitted && " Submitting again replaces your previous PDF."}
         </p>
+
+        {/* Option 2 — a typed or pasted written answer (optional). */}
+        <div className="space-y-1.5">
+          <label
+            htmlFor={`text-answer-${assignment?.id}`}
+            className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+          >
+            Written Answer
+          </label>
+          <textarea
+            id={`text-answer-${assignment?.id}`}
+            value={textAnswer}
+            onChange={(e) => setTextAnswer(e.target.value)}
+            disabled={isBusy}
+            maxLength={20000}
+            rows={6}
+            placeholder="Type or paste your answer here"
+            className="w-full rounded-xl border border-border bg-background/60 px-3 py-2.5 text-sm text-foreground leading-relaxed outline-none transition focus:border-primary resize-y disabled:opacity-50"
+          />
+          <p className="text-right text-[10px] font-mono text-muted-foreground">
+            {textAnswer.length.toLocaleString()} / 20,000
+          </p>
+        </div>
+
+        {hasSubmitted && (
+          <p className="text-[10px] font-semibold text-muted-foreground">
+            Submitting again replaces your previous submission — PDF and written answer.
+          </p>
+        )}
 
         <div className="flex sm:justify-end">
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={isBusy || !selectedFile}
+          disabled={isBusy || !canSubmit}
           aria-busy={isBusy}
           className="w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-xs font-black uppercase tracking-wider text-slate-950 transition cursor-pointer shadow-md hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >

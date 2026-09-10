@@ -10,7 +10,6 @@ import {
     ChevronLeft,
     ChevronRight,
     Music,
-    Paperclip,
 } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
 
@@ -22,6 +21,7 @@ import PdfViewer from "@/components/student/learn/PdfViewer";
 import PptViewer from "@/components/shared/PptViewer";
 import DocxViewer from "@/components/shared/DocxViewer";
 import ExternalDocumentViewer from "@/components/shared/ExternalDocumentViewer";
+import ContentAssignmentPanel from "@/components/student/learning/ContentAssignmentPanel";
 
 const isGoogleSlidesUrl = (url) => Boolean(url?.includes("docs.google.com/presentation"));
 const getGoogleSlidesEmbedUrl = (url) => {
@@ -452,62 +452,21 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                 )}
 
                 {/* ASSIGNMENT (descriptive assignment brief, not a quiz).
-                    Two clearly separated sections: the instructor's written
-                    instructions, then the instructor's reference file. The
-                    title already sits in the header bar above, so it is not
-                    repeated here. Completion for this block runs through the
-                    workspace's existing backend-authoritative completion
-                    strip, exactly as for every other Content type. */}
+                    The instructor's instructions and reference file, then the
+                    student's PDF upload. The title already sits in the header
+                    bar above, so it is not repeated here. Submitting records
+                    the PDF and the backend marks this block complete. */}
                 {type === "ASSIGNMENT" && (
-                    <div className="p-4 sm:p-6 md:p-8 max-w-3xl w-full mx-auto space-y-6">
-                        <section className="space-y-2">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                                Assignment Instructions
-                            </p>
-                            {htmlContent ? (
-                                <p className="whitespace-pre-wrap break-words text-sm sm:text-base leading-relaxed text-foreground/90 select-text">
-                                    {unescapeFromContentApi(htmlContent)}
-                                </p>
-                            ) : (
-                                <p className="text-sm text-muted-foreground italic">
-                                    No instructions were provided for this assignment.
-                                </p>
-                            )}
-                        </section>
-
-                        <section className="space-y-2 border-t border-border pt-5">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                                Reference Material
-                            </p>
-                            {fileUrl ? (
-                                <>
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-3 py-2.5">
-                                        <span className="flex items-center gap-2 min-w-0">
-                                            <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                            <span className="truncate text-xs font-semibold text-foreground">
-                                                {getAttachmentName(content)}
-                                            </span>
-                                        </span>
-                                        <a
-                                            href={displayFileUrl}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="shrink-0 self-start sm:self-auto inline-flex items-center gap-2 rounded-xl border border-border bg-muted px-4 py-2.5 min-h-[44px] text-xs font-bold text-primary hover:bg-background transition"
-                                        >
-                                            <Paperclip className="h-4 w-4" />
-                                            View Attachment
-                                        </a>
-                                    </div>
-                                    <p className="text-[11px] font-semibold text-muted-foreground">
-                                        Provided by your instructor. This is not your submission.
-                                    </p>
-                                </>
-                            ) : (
-                                <p className="text-sm text-muted-foreground italic">
-                                    No reference material provided.
-                                </p>
-                            )}
-                        </section>
+                    <div className="p-4 sm:p-6">
+                        <ContentAssignmentPanel
+                            contentId={content.id}
+                            instructions={htmlContent ? unescapeFromContentApi(htmlContent) : ""}
+                            attachments={
+                                fileUrl
+                                    ? [{ url: displayFileUrl, name: getAttachmentName(content) }]
+                                    : []
+                            }
+                        />
                     </div>
                 )}
 

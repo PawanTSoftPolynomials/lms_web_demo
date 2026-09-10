@@ -4,10 +4,10 @@ import QuestionRepositoryView from "@/components/instructor/questions/QuestionRe
 
 export default function QuestionRepositoryPage() {
   return (
-    <div className="min-h-screen bg-background p-6 md:p-10">
-      <div className="max-w-7xl mx-auto">
-        <QuestionRepositoryView />
-      </div>
+    // DashboardLayout's <main> already supplies the page padding — no extra
+    // wrapper padding here, or it stacks into a large gap under the navbar.
+    <div className="max-w-7xl mx-auto w-full">
+      <QuestionRepositoryView />
     </div>
   );
 }

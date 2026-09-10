@@ -213,6 +213,33 @@ export function LessonComposerPanel({
     onSelectCell?.(contentId);
   };
 
+  /**
+   * Bring the selected block into view.
+   *
+   * Picking a content cell in the Course Map only ever set `selectedCellId`,
+   * which draws a ring around the matching block — so selecting anything below
+   * the fold looked like the click did nothing at all. The panel also remounts
+   * on every composer-mode switch, so this covers arriving at a block from a
+   * collapsed part of the tree as well as re-selecting within an open topic.
+   *
+   * `block: "nearest"` keeps a block that is already on screen exactly where it
+   * is (clicking a block inside the panel shouldn't yank the page around); only
+   * an off-screen one actually scrolls. The rAF waits for this render's layout,
+   * since the node may have only just been mounted.
+   */
+  const cellRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    if (!effectiveSelectedId) return;
+    const node = cellRefs.current[effectiveSelectedId];
+    if (!node) return;
+
+    const raf = requestAnimationFrame(() => {
+      node.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [effectiveSelectedId, contents.length]);
+
   const openAddCell = (order: number) => {
     if (!parent?.parentId) {
       showToast(
@@ -356,9 +383,14 @@ export function LessonComposerPanel({
             return (
               <div
                 key={content.id}
+                ref={(node) => {
+                  cellRefs.current[content.id] = node;
+                }}
                 onClick={() => handleSelectCell(content.id)}
                 className={cn(
-                  "cursor-pointer transition-all duration-150 rounded-xl",
+                  // scroll-mt clears the composer's sticky header, so a block
+                  // scrolled to from the Course Map lands below it, not under it.
+                  "cursor-pointer transition-all duration-150 rounded-xl scroll-mt-24",
                   isHeadingBlock && "pt-4 sm:pt-6 border-t border-border/60 first:pt-0 first:border-t-0 mt-3 first:mt-0",
                   isSelected && "ring-2 ring-orange-500/80 ring-offset-2 ring-offset-slate-950"
                 )}

@@ -14,6 +14,8 @@ import { getCourses, getCourseStatusCounts } from "@/services/course.service";
 import { getModules } from "@/services/module.service";
 import { getQuizzes } from "@/services/quiz.service";
 import { getAssignments } from "@/services/assignment.service";
+import { getInstructorAssignmentContents } from "@/services/content.service";
+import { getResults } from "@/services/results.service";
 import { getCalendarEvents } from "@/services/calendar.service";
 import { getNotifications as getRawNotifications } from "@/services/notification.service";
 import { getConversations } from "@/features/chat/api/chat.api";
@@ -43,6 +45,7 @@ import {
   type RawNotification,
   type RawQuiz,
   type RawResult,
+  type RecentTestResult,
 } from "@/services/instructor/dashboardHome.service";
 
 const asArray = <T,>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);
@@ -125,7 +128,7 @@ const useDashboardSummary = () =>
  * COUNT in the database — this replaces counting the length of a fetched list,
  * which was silently wrong because GET /courses is paginated at 10 by default.
  */
-const useCourseStatusCounts = () =>
+export const useCourseStatusCounts = () =>
   useQuery({
     queryKey: [QUERY_KEYS.INSTRUCTOR_COURSE_STATS],
     queryFn: getCourseStatusCounts,
@@ -298,10 +301,42 @@ export function useCourseProgressOverview() {
   return { data, isLoading: courses.isLoading };
 }
 
+// Lesson-composer Assignment blocks (Content rows), each with its newest
+// submissions — same `submissions` shape as a standalone Assignment row.
+const useRawAssignmentContents = () =>
+  useQuery({
+    queryKey: ["instructor-home", "raw", "assignment-contents"],
+    queryFn: async () => asArray<RawAssignment>(await getInstructorAssignmentContents()),
+    ...defaultQueryOptions,
+  });
+
+// Final-test attempts only — Self-Tests are practice, not submissions.
+const useRawFinalTestResults = () =>
+  useQuery({
+    queryKey: ["instructor-home", "raw", "final-test-results"],
+    queryFn: async () => {
+      const response = await getResults({ quizTag: "FINAL" });
+      return asArray<RecentTestResult>(response?.studentResults ?? []);
+    },
+    ...defaultQueryOptions,
+  });
+
 export function useRecentSubmissions() {
   const assignments = useRawAssignments();
-  const data = useMemo(() => deriveRecentSubmissions(assignments.data ?? []), [assignments.data]);
-  return { data, isLoading: assignments.isLoading };
+  const assignmentContents = useRawAssignmentContents();
+  const finalTests = useRawFinalTestResults();
+  const data = useMemo(
+    () =>
+      deriveRecentSubmissions(
+        [...(assignments.data ?? []), ...(assignmentContents.data ?? [])],
+        finalTests.data ?? []
+      ),
+    [assignments.data, assignmentContents.data, finalTests.data]
+  );
+  return {
+    data,
+    isLoading: assignments.isLoading || assignmentContents.isLoading || finalTests.isLoading,
+  };
 }
 
 // Internal raw hook to fetch results

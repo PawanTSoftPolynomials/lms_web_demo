@@ -5,7 +5,7 @@ import {
   BookOpen,
   // Briefcase,
   // CalendarDays,
-  // ClipboardList,
+  ClipboardList,
   Database,
   // FileCheck2,
   // FileEdit,
@@ -54,6 +54,9 @@ export const PRIMARY_NAV_ITEMS: NavItem[] = [
     primaryOnMobile: true,
     children: [
       { label: "My Courses", href: "/instructor/courses", icon: BookOpen },
+      // Grading assignment submissions and reviewing Final test (MCQ) results.
+      // The route keeps its original /assignments path so existing links work.
+      { label: "Grading & Results", href: "/instructor/assignments", icon: ClipboardList },
       // Work section — hidden from the nav for now. To bring it back, uncomment
       // this block and its icon imports at the top of the file. The routes
       // under /instructor/work are untouched and still reachable by URL.
