@@ -7,6 +7,7 @@ import {
   ArrowDown,
   ArrowUp,
   BookOpen,
+  CheckCircle2,
   CheckSquare,
   ChevronRight,
   ClipboardList,
@@ -23,6 +24,7 @@ import {
   Layers,
   Link2,
   Loader2,
+  Lock,
   MonitorPlay,
   MoreVertical,
   Music2,
@@ -43,6 +45,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/shadcn/dropdown-menu";
+import { NodeBadge } from "@/components/student/learning/CourseContentAccordion";
+import { getNodeProgress } from "@/lib/progressIndex";
 import { useContents } from "@/hooks/queries/instructor/useContents";
 import { useDuplicateContent } from "@/components/instructor/LessonComposer/contentMutations";
 import { useReorderModules } from "@/hooks/queries/instructor/useReorderModules";
@@ -255,6 +259,7 @@ function ParentContentRows({
   selectedCellId,
   onSelectContent,
   onDeleteContent,
+  progress = null,
   quizzes = [],
   composerMode,
   composeQuizId,
@@ -357,7 +362,15 @@ function ParentContentRows({
             return renderExtraItem ? renderExtraItem(row, rIdx) : null;
           }
           if (row.kind === "quiz") {
-            const isQuizActive = composerMode === "quiz" && composeQuizId === row.id;
+            // `composerMode === "quiz"` covers the Instructor Composer's
+            // dedicated quiz-editor screen (composerMode switches globally
+            // to "quiz" there, so `isActive` — scoped per parent level —
+            // is never true in that case). `isActive` covers the Student
+            // side instead, where composerMode stays the containing level
+            // (module/lesson/topic) so that level's row also lights up as
+            // part of the same active path — see the learn page's
+            // selectedCellId/composeQuizId wiring.
+            const isQuizActive = (composerMode === "quiz" || isActive) && composeQuizId === row.id;
             const questions = row.questions || (row.quizQuestions || []).map((qq) => qq.question) || [];
             const tagStyle = getQuizTagStyle(row.quizTag);
 
@@ -456,16 +469,86 @@ function ParentContentRows({
   );
 }
 
-import { CheckCircle2, Lock } from "lucide-react";
+function AssignmentRows({
+  assignments = [],
+  composerMode,
+  composeAssignmentId,
+  onSelectAssignment,
+  onDeleteAssignment,
+  role = "INSTRUCTOR",
+  mod = null,
+  lesson = null,
+  topic = null,
+}) {
+  if (!assignments || assignments.length === 0) return null;
+
+  return (
+    <div className="mb-1 space-y-0.5">
+      {assignments.map((asgn, aIdx) => {
+        const isAsgnActive = composerMode === "assignment" && composeAssignmentId === asgn.id;
+
+        return (
+          <div key={asgn.id || `asgn-${aIdx}`}>
+            <div
+              className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
+                isAsgnActive
+                  ? "bg-amber-500/15 border-amber-500 text-amber-600 dark:text-amber-400 font-bold"
+                  : "border-transparent text-amber-600/90 dark:text-amber-400/90 hover:bg-background/60"
+              }`}
+              onClick={() => onSelectAssignment?.(asgn, mod, lesson, topic)}
+            >
+              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                {asgn.completed ? (
+                  <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                ) : (
+                  <ClipboardList size={13} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                )}
+                <span className="truncate text-caption font-semibold">{asgn.title || "Assignment"}</span>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                {asgn.marks ? (
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 shrink-0">
+                    {asgn.marks} Marks
+                  </span>
+                ) : null}
+                {role === "INSTRUCTOR" && (
+                  <RowMenu
+                    groupName="quiz"
+                    items={[
+                      {
+                        label: "Edit Assignment",
+                        icon: Pencil,
+                        onSelect: () => onSelectAssignment?.(asgn, mod, lesson, topic, { startEditing: true }),
+                      },
+                      { separator: true },
+                      {
+                        label: "Delete Assignment",
+                        icon: Trash2,
+                        destructive: true,
+                        onSelect: (e) => onDeleteAssignment?.(e, asgn, mod, lesson, topic),
+                      },
+                    ]}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export function CourseComposerSidebar({
   modules = [],
   courseQuizzes = [],
+  courseAssignments = [],
   composerMode,
   composeModuleId,
   composeLessonId,
   composeTopicId,
   composeQuizId,
+  composeAssignmentId,
   selectedCellId,
   isOpen = true,
   onToggleOpen,
@@ -473,6 +556,8 @@ export function CourseComposerSidebar({
   onSelectQuiz,
   onDuplicateQuiz,
   onDeleteQuiz,
+  onSelectAssignment,
+  onDeleteAssignment,
   onSelectLesson,
   onSelectModule,
   onSelectTopic,
@@ -489,6 +574,10 @@ export function CourseComposerSidebar({
   onAddQuizToModule,
   onAddQuizToLesson,
   onAddQuizToTopic,
+  onAddAssignmentToCourse,
+  onAddAssignmentToModule,
+  onAddAssignmentToLesson,
+  onAddAssignmentToTopic,
   onAddModule,
   onAddTopic,
   onAddContentToTopic,
@@ -503,8 +592,17 @@ export function CourseComposerSidebar({
   onDeleteTopic,
   onDeleteContent,
   role = "INSTRUCTOR",
-  completedLessonIds = [],
   isDraftMode = false,
+  // Flattened backend progress roll-up (see lib/progressIndex). Student-only:
+  // the Composer passes nothing, so every progress affordance below is absent
+  // for INSTRUCTOR and the instructor rendering is unchanged.
+  progress = null,
+  // Callers whose own layout already constrains this sidebar's height (e.g.
+  // the Student learn page's fixed h-full shell) pass "max-h-full" here so
+  // the panel fills exactly the space it's given instead of also being
+  // capped against the raw viewport — which, under a layout that isn't just
+  // "top nav + padded page", leaves dead space at the bottom.
+  maxHeightClassName = "max-h-[calc(100vh-7rem)]",
 }) {
   const [expandedModules, setExpandedModules] = useState({});
   const [expandedLessons, setExpandedLessons] = useState({});
@@ -618,7 +716,8 @@ export function CourseComposerSidebar({
           onClick={onSelectCourseOverview}
         >
           <Home size={14} className={composerMode === "course" ? "text-primary shrink-0" : "text-muted-foreground shrink-0"} />
-          <span className="truncate font-semibold">Course Overview</span>
+          <span className="truncate font-semibold flex-1">Course Overview</span>
+          <NodeBadge progress={progress} nodeId={courseId || modules[0]?.courseId} node={progress?.course} />
         </div>
         {role === "INSTRUCTOR" && (
           <RowMenu
@@ -626,6 +725,7 @@ export function CourseComposerSidebar({
             items={[
               { label: "Add Content", icon: Plus, onSelect: () => onAddContentToCourse?.() },
               { label: "Add Course Quiz", icon: HelpCircle, onSelect: () => onAddQuizToCourse?.() },
+              { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToCourse?.() },
             ]}
           />
         )}
@@ -649,9 +749,20 @@ export function CourseComposerSidebar({
           onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, null, null, null)}
           onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, null, null, null)}
           role={role}
+          progress={progress}
           isDraftMode={isDraftMode}
         />
       )}
+
+      {/* Course-Level Assignments (when present) */}
+      <AssignmentRows
+        assignments={courseAssignments}
+        composerMode={composerMode}
+        composeAssignmentId={composeAssignmentId}
+        onSelectAssignment={onSelectAssignment}
+        onDeleteAssignment={onDeleteAssignment}
+        role={role}
+      />
 
       {/* Modules Tree — no scroll container of its own; the region above scrolls. */}
       <div className="space-y-0.5 pr-1 text-sm">
@@ -702,7 +813,9 @@ export function CourseComposerSidebar({
                     <span className="truncate text-sm font-bold" title={mod.title}>
                       {mod.title}
                     </span>
+                    <NodeBadge progress={progress} nodeId={mod.id} node={mod} />
                   </div>
+
 
                   {role === "INSTRUCTOR" && (
                     <RowMenu
@@ -712,6 +825,7 @@ export function CourseComposerSidebar({
                         { label: "Add Lesson", icon: Plus, onSelect: () => onAddLesson?.(mod.id) },
                         { label: "Add Content", icon: Plus, onSelect: () => onAddContentToModule?.(mod) },
                         { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToModule?.(mod) },
+                        { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToModule?.(mod) },
                         { separator: true },
                         { label: "Move Up", icon: ArrowUp, disabled: mIdx === 0, onSelect: () => handleMoveModule(mod, "up") },
                         { label: "Move Down", icon: ArrowDown, disabled: mIdx === modules.length - 1, onSelect: () => handleMoveModule(mod, "down") },
@@ -727,7 +841,7 @@ export function CourseComposerSidebar({
                   )}
                 </div>
 
-                {/* Module Children: Module Content + Module Quizzes + Lessons */}
+                {/* Module Children: Module Content + Module Quizzes + Module Assignments + Lessons */}
                 <Collapsible open={moduleOpen}>
                   <div className="ml-3.5 pl-3 py-0.5 space-y-0.5 border-l border-border/70">
                     {/* Unified Module Items (contents, quizzes, and lessons sorted by creation/order) */}
@@ -744,6 +858,7 @@ export function CourseComposerSidebar({
                       onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, mod, null, null)}
                       onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, mod, null, null)}
                       role={role}
+                      progress={progress}
                       isDraftMode={isDraftMode}
                       draftContents={mod.contents}
                       extraItems={modLessons.map((lesson, lIdx) => ({ ...lesson, kind: "lesson", lIdx }))}
@@ -755,39 +870,31 @@ export function CourseComposerSidebar({
                         const lessonHasActiveChild = !isLessonActive && composeLessonId === lesson.id;
                         const lessonTopics = lesson.topics || [];
                         const lessonQuizzes = lesson.quizzes || [];
-                        const isCompleted = completedLessonIds.includes(lesson.id);
-                        const isLessonLocked = role === "STUDENT" && Boolean(lesson.locked);
+                        const isCompleted = getNodeProgress(progress, lesson.id)?.completed ?? false;
+                        const isLessonLocked = role !== "INSTRUCTOR" && lesson.isPublished === false;
 
                         return (
                           <div key={lesson.id}>
                             {/* Lesson Row */}
                             <div
-                              className={`group/lesson flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg transition-colors border-l-2 ${
-                                isLessonLocked
-                                  ? "cursor-not-allowed opacity-50 border-transparent text-muted-foreground"
-                                  : "cursor-pointer"
-                              } ${
-                                isLessonLocked
-                                  ? ""
-                                  : isLessonActive
+                              className={`group/lesson flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg transition-colors border-l-2 cursor-pointer ${
+                                isLessonActive
                                   ? "bg-primary/15 border-primary text-primary font-bold"
                                   : lessonHasActiveChild
                                   ? "bg-background/30 border-primary/30 text-foreground"
                                   : "border-transparent text-foreground hover:text-slate-50 hover:bg-background/50"
                               }`}
-                              onClick={() => !isLessonLocked && onSelectLesson(lesson.id)}
-                              title={isLessonLocked ? "Complete the previous lesson to unlock" : undefined}
+                              onClick={() => onSelectLesson(lesson.id)}
                             >
                               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    if (!isLessonLocked) toggleLesson(lesson.id);
+                                    toggleLesson(lesson.id);
                                   }}
                                   className="p-0.5 text-muted-foreground hover:text-slate-50 transition cursor-pointer shrink-0"
                                   aria-label={lessonOpen ? "Collapse lesson" : "Expand lesson"}
-                                  disabled={isLessonLocked}
                                 >
                                   <ChevronRight
                                     size={12}
@@ -807,7 +914,9 @@ export function CourseComposerSidebar({
                                 <span className="truncate text-[13px] leading-snug" title={lesson.title}>
                                   {lesson.title}
                                 </span>
+                                <NodeBadge progress={progress} nodeId={lesson.id} node={lesson} />
                               </div>
+
 
                               {role === "INSTRUCTOR" && (
                                 <RowMenu
@@ -817,6 +926,7 @@ export function CourseComposerSidebar({
                                     { label: "Add Topic", icon: Plus, onSelect: () => onAddTopic?.(lesson.id) },
                                     { label: "Add Content", icon: Plus, onSelect: () => onAddContentToLesson?.(lesson, mod) },
                                     { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToLesson?.(lesson, mod) },
+                                    { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToLesson?.(lesson, mod) },
                                     { separator: true },
                                     { label: "Move Up", icon: ArrowUp, disabled: lIdx === 0, onSelect: () => handleMoveLesson(mod, lesson.id, "up") },
                                     { label: "Move Down", icon: ArrowDown, disabled: lIdx === modLessons.length - 1, onSelect: () => handleMoveLesson(mod, lesson.id, "down") },
@@ -832,7 +942,7 @@ export function CourseComposerSidebar({
                               )}
                             </div>
 
-                            {/* Lesson Content + Lesson Quizzes + Topics */}
+                            {/* Lesson Content + Lesson Quizzes + Lesson Assignments + Topics */}
                             <Collapsible open={lessonOpen}>
                               <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-border/60">
                                 {/* Unified Lesson Items (contents, quizzes, and topics sorted by creation/order) */}
@@ -849,6 +959,7 @@ export function CourseComposerSidebar({
                                   onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, mod, lesson, null)}
                                   onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, mod, lesson, null)}
                                   role={role}
+                                  progress={progress}
                                   isDraftMode={isDraftMode}
                                   draftContents={lesson.contents}
                                   extraItems={lessonTopics.map((topic, tIdx) => ({ ...topic, kind: "topic", tIdx }))}
@@ -868,7 +979,7 @@ export function CourseComposerSidebar({
                                           className={`group/topic flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
                                             isTopicActive
                                               ? "bg-primary/15 text-primary font-semibold"
-                                              : "text-muted-foreground hover:text-slate-50 hover:bg-background/40"
+                                              : "text-foreground/75 hover:text-foreground hover:bg-background/40"
                                           }`}
                                           onClick={() => onSelectTopic?.(topic.id, lesson.id, mod.id)}
                                         >
@@ -898,6 +1009,7 @@ export function CourseComposerSidebar({
                                             )}
                                           </div>
 
+
                                           {role === "INSTRUCTOR" && (
                                             <RowMenu
                                               groupName="topic"
@@ -905,6 +1017,7 @@ export function CourseComposerSidebar({
                                                 { label: "Edit Topic", icon: Pencil, onSelect: () => onEditTopic?.(topic, lesson.id, mod.id) },
                                                 { label: "Add Content", icon: Plus, onSelect: () => onAddContentToTopic?.(topic.id, lesson.id, mod.id) },
                                                 { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToTopic?.(topic, lesson, mod) },
+                                                { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToTopic?.(topic, lesson, mod) },
                                                 { separator: true },
                                                 { label: "Move Up", icon: ArrowUp, disabled: tIdx === 0, onSelect: () => handleMoveTopic(lesson, topic.id, "up") },
                                                 { label: "Move Down", icon: ArrowDown, disabled: tIdx === lessonTopics.length - 1, onSelect: () => handleMoveTopic(lesson, topic.id, "down") },
@@ -920,8 +1033,22 @@ export function CourseComposerSidebar({
                                           )}
                                         </div>
 
-                                        {/* Topic Content Cells (topic-level quizzes are merged into this list) */}
+                                        {/* Topic Quizzes + Topic Assignments + Contents */}
                                         <Collapsible open={topicOpen}>
+                                          <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-border/60">
+                                            {/* Topic Assignments (when present) */}
+                                            <AssignmentRows
+                                              assignments={topic.assignments}
+                                              composerMode={composerMode}
+                                              composeAssignmentId={composeAssignmentId}
+                                              onSelectAssignment={onSelectAssignment}
+                                              onDeleteAssignment={onDeleteAssignment}
+                                              role={role}
+                                              mod={mod}
+                                              lesson={lesson}
+                                              topic={topic}
+                                            />
+                                          </div>
                                           <ParentContentRows
                                             parent={{ parentType: "topic", parentId: topic.id }}
                                             isActive={composerMode === "topic"}
@@ -935,6 +1062,7 @@ export function CourseComposerSidebar({
                                             onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, mod, lesson, topic)}
                                             onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, mod, lesson, topic)}
                                             role={role}
+                                            progress={progress}
                                             isDraftMode={isDraftMode}
                                             draftContents={topic.contents}
                                           />

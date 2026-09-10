@@ -2,6 +2,7 @@
 
 import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
+import { Image as ImageIcon, UploadCloud } from "lucide-react";
 
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";

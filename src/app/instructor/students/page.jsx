@@ -221,22 +221,26 @@ function StudentsDirectoryContent() {
                   <div className="space-y-3">
                     <h3 className="text-xs font-black text-muted-foreground uppercase tracking-widest font-mono">Module Completion</h3>
                     <div className="space-y-3">
-                      {selectedStudent.modules.map((mod, idx) => (
-                        <div key={idx} className="p-3.5 bg-white/[0.01] border border-white/5 rounded-xl space-y-2">
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="font-extrabold text-slate-250 truncate max-w-[350px]">{mod.name}</span>
-                            <span className={`text-[8.5px] font-black px-2 py-0.5 rounded ${
-                              mod.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-450' : 'bg-amber-500/10 text-amber-450'
-                            }`}>{mod.status}</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                              <div className="h-full bg-primary rounded-full" style={{ width: `${mod.progress}%` }} />
+                      {!selectedStudent.modules || selectedStudent.modules.length === 0 ? (
+                        <p className="text-xs text-muted-foreground py-6 text-center">Module-level completion data is not available yet</p>
+                      ) : (
+                        selectedStudent.modules.map((mod, idx) => (
+                          <div key={idx} className="p-3.5 bg-white/[0.01] border border-white/5 rounded-xl space-y-2">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="font-extrabold text-slate-250 truncate max-w-[350px]">{mod.name}</span>
+                              <span className={`text-[8.5px] font-black px-2 py-0.5 rounded ${
+                                mod.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-450' : 'bg-amber-500/10 text-amber-450'
+                              }`}>{mod.status}</span>
                             </div>
-                            <span className="text-[9.5px] font-bold text-muted-foreground">{mod.progress}%</span>
+                            <div className="flex items-center gap-3">
+                              <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                                <div className="h-full bg-primary rounded-full" style={{ width: `${mod.progress}%` }} />
+                              </div>
+                              <span className="text-[9.5px] font-bold text-muted-foreground">{mod.progress}%</span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>

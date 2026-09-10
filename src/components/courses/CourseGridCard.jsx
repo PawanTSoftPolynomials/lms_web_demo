@@ -143,12 +143,6 @@ export default function CourseGridCard({ course }) {
           </Link>
         </div>
       </div>
-
-      {exporting && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-background/80 backdrop-blur-sm">
-          <Loader2 size={24} className="animate-spin text-primary" />
-        </div>
-      )}
     </div>
   );
 }

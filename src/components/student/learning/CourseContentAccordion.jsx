@@ -23,7 +23,7 @@ const VISIBLE_MODULE_LIMIT = 4;
  * nothing at all rather than "0%", which would read as the student having
  * failed to start something that does not exist yet.
  */
-function NodeBadge({ progress, nodeId, node: nodeProp }) {
+export function NodeBadge({ progress, nodeId, node: nodeProp }) {
   const indexNode = nodeId && progress?.nodes?.get ? progress.nodes.get(nodeId) : (progress?.nodes && nodeId ? progress.nodes[nodeId] : null);
   const node = indexNode || nodeProp;
 
