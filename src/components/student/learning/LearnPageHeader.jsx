@@ -26,7 +26,7 @@ export default function LearnPageHeader({
   const percent = courseProgress?.progressPercent ?? 0;
 
   return (
-    <header className="sticky top-0 bg-[#07080f]/80 backdrop-blur-md border-b border-[#1e2030]/40 py-3 px-4 sm:px-6 flex items-center justify-between z-30 select-none">
+    <header className="sticky top-0 bg-[#07080f]/80 backdrop-blur-md border-b border-border py-3 px-4 sm:px-6 flex items-center justify-between z-30 select-none">
       <div className="flex items-center gap-3 min-w-0 flex-1">
         {!courseSidebarOpen && (
           <button

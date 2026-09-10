@@ -25,7 +25,8 @@ import LearnPageHeader from "@/components/student/learning/LearnPageHeader";
 import { groupLessonContentForDocumentView } from "@/lib/contentDocument";
 import { CourseStructureSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
 import { normalizeCourseHierarchy } from "@/lib/courseMapper";
-import { buildProgressIndex, decorateCourseWithProgress, isItemComplete, getNodeProgress } from "@/lib/progressIndex";
+import { buildProgressIndex, decorateCourseWithProgress, isItemComplete, isItemSubmitted, getNodeProgress } from "@/lib/progressIndex";
+import { resolveResumeTarget } from "@/lib/resumeTarget";
 import { LEARN_PAGE_CONTENT_TABS } from "@/features/student/constants/learnPageConfig";
 
 import {
@@ -74,12 +75,24 @@ export default function LearnPage() {
   // Progress is advisory to this page: the player must stay fully usable when
   // the roll-up is unavailable, so a failed/pending progress query degrades to
   // "no indicators" rather than blocking or erroring the learning experience.
-  const { data: progressData, isError: isProgressError, refetch: refetchProgress } = useCourseProgress(courseId);
+  const {
+    data: progressData,
+    isLoading: isProgressLoading,
+    isError: isProgressError,
+    refetch: refetchProgress,
+  } = useCourseProgress(courseId);
   const completeContentMutation = useCompleteContent();
 
   // Single flattened view of the backend roll-up. Null while loading or on
   // failure — every consumer below treats null as "don't render indicators".
   const progressIndex = useMemo(() => buildProgressIndex(progressData), [progressData]);
+
+  // Where Continue Learning (or any plain visit with no explicit ?lessonId=)
+  // should land — see resolveResumeTarget. useLearningStateSync below uses
+  // its lessonId to settle selectedLesson; the resume effect further down
+  // (after courseUnits/jumpToBlock/enterUnit exist) uses the rest of it to
+  // land on the exact Topic/Content/Quiz once that lesson is on screen.
+  const resumeTarget = useMemo(() => resolveResumeTarget(progressData), [progressData]);
 
   // The same course tree the player renders from, decorated with the backend's
   // completion flags so the sidebar, the accordion and the quiz panel all agree.
@@ -121,6 +134,7 @@ export default function LearnPage() {
     currentTimestamp,
     setCurrentTimestamp,
     initialTime,
+    stateRestored,
   } = useLearningStateSync({
     courseId,
     course,
@@ -128,6 +142,8 @@ export default function LearnPage() {
     stateData,
     isStateLoading,
     updateStateMutation,
+    resumeTarget,
+    isProgressLoading,
   });
 
   // Lesson list, plus the single entry point (selectLesson) every navigation
@@ -490,6 +506,88 @@ export default function LearnPage() {
     moduleId: "Complete every lesson and module-level item in this module before moving to the next module.",
   };
 
+  // Generalizes the single-boundary check goToNextUnit does (below) to an
+  // arbitrary sidebar jump: walks every boundary strictly before the target
+  // courseUnits entry, finest-scope-first per boundary, so a direct click on
+  // (say) Module 3 while Module 1 is still incomplete is blocked exactly
+  // like stepping there one Next at a time would be — same canLeaveUnit/
+  // GATE_MESSAGES, just applied cumulatively instead of to one neighbor.
+  // A target that's already reachable (everything before it is done, which
+  // is always true for anything at or behind wherever the student already
+  // is) returns null, so this never blocks reviewing earlier material.
+  const findBlockingGate = (targetUnitKey) => {
+    const targetIndex = courseUnits.findIndex((u) => u.key === targetUnitKey);
+    if (targetIndex <= 0) return null;
+
+    for (let i = 0; i < targetIndex; i++) {
+      const current = courseUnits[i];
+      const next = courseUnits[i + 1];
+      for (const level of ["topicId", "lessonId", "moduleId"]) {
+        const currentId = current.scope[level];
+        if (!currentId || currentId === next.scope[level]) continue;
+        if (!canLeaveUnit(currentId)) {
+          return GATE_MESSAGES[level];
+        }
+      }
+    }
+    return null;
+  };
+
+  // The courseUnits entry a sidebar click on a whole Module/Lesson row
+  // (rather than one specific item inside it) actually lands on, matching
+  // what onSelectModule/onSelectLesson below (and the reset effect they
+  // trigger) actually navigate to — a Lesson with Topics always lands on
+  // its first Topic, even for a legacy Lesson that also has its own
+  // lesson-content unit ahead of that Topic in course order.
+  const firstUnitKeyFor = ({ moduleId = null, lessonId = null } = {}) => {
+    if (lessonId) {
+      const firstTopicId = lessons.find((l) => l.id === lessonId)?.topics?.[0]?.id;
+      if (firstTopicId) return `topic:${firstTopicId}`;
+    }
+    const match = courseUnits.find(
+      (u) =>
+        (!moduleId || u.scope.moduleId === moduleId) &&
+        (!lessonId || u.scope.lessonId === lessonId)
+    );
+    return match?.key ?? null;
+  };
+
+  // Runs a sidebar navigation action only if its target isn't gated —
+  // shared by every sidebar entry point below so the toast + early-return
+  // shape is written once.
+  const runGated = (targetUnitKey, action) => {
+    const blockingMessage = findBlockingGate(targetUnitKey);
+    if (blockingMessage) {
+      showToast(blockingMessage, "error");
+      return;
+    }
+    action();
+  };
+
+  // One level finer than canLeaveUnit above: whether the single block
+  // currently on screen can be left for the next block in the SAME unit.
+  // A Quiz only needs an attempt on file here — passing is what canLeaveUnit
+  // requires to leave the unit entirely, not what's required to keep moving
+  // through the unit's own remaining blocks. Assignment blocks never occur
+  // in this sequence today (opening one goes through a separate, currently
+  // broken, standalone path), so there is nothing to gate for that kind yet.
+  const canLeaveBlock = (block) => {
+    if (!block || !progressIndex) return true;
+    if (block.kind === "content") {
+      const ids = contentIdsOf(block.item);
+      return ids.length === 0 || ids.every((id) => isItemComplete(progressIndex, id));
+    }
+    if (block.kind === "quiz") {
+      return isItemSubmitted(progressIndex, block.item?.id);
+    }
+    return true;
+  };
+
+  const BLOCK_GATE_MESSAGES = {
+    content: "Finish this content before moving to the next item.",
+    quiz: "Submit this quiz before moving to the next item.",
+  };
+
   // Lands the player on a given courseUnits entry. A Topic or zero-Topic
   // Lesson hands off to the existing selectedLesson/selectedTopicId pathway
   // (unchanged — still owns rendering + resume/sidebar/Sticky-Notes sync for
@@ -497,8 +595,19 @@ export default function LearnPage() {
   // Lesson's own quiz) becomes the active extra unit. `atEnd` lands on the
   // unit's last block (Prev) instead of its first; `targetItemId` (a sidebar
   // click) lands on that specific item's block.
-  const enterUnit = (unit, { atEnd = false, targetItemId = null } = {}) => {
+  const enterUnit = (unit, { atEnd = false, targetItemId = null, skipGate = false } = {}) => {
     if (!unit) return;
+
+    // skipGate is for goToPreviousUnit only — going back must always work,
+    // never re-litigated against completion state (see the comment there).
+    if (!skipGate) {
+      const blockingMessage = findBlockingGate(unit.key);
+      if (blockingMessage) {
+        showToast(blockingMessage, "error");
+        return;
+      }
+    }
+
     const resolvedIndex = targetItemId
       ? Math.max(0, (unit.blocks || []).findIndex((b) => b.item.id === targetItemId))
       : atEnd
@@ -534,28 +643,25 @@ export default function LearnPage() {
   // requires the whole Lesson complete; crossing out of a Module likewise
   // requires the whole Module complete. Same rule as the instructor's spec,
   // generalized to every level courseUnits now covers, not just Topics —
-  // checked finest-scope-first so the most specific message wins.
+  // checked finest-scope-first so the most specific message wins. enterUnit's
+  // own findBlockingGate check (walking every prior boundary) subsumes this
+  // single-neighbor case, so the gate itself now lives there.
   const goToNextUnit = () => {
-    const current = courseUnits[currentUnitIndex];
     const target = courseUnits[currentUnitIndex + 1];
-    if (!current || !target) return;
-
-    for (const level of ["topicId", "lessonId", "moduleId"]) {
-      const currentId = current.scope[level];
-      if (!currentId || currentId === target.scope[level]) continue;
-      if (!canLeaveUnit(currentId)) {
-        showToast(GATE_MESSAGES[level], "error");
-        return;
-      }
-    }
-
+    if (!target) return;
     enterUnit(target);
   };
 
+  // Only the forward direction is gated; a student can always go back to
+  // review earlier material — skipGate bypasses enterUnit's check
+  // unconditionally here rather than relying on "the previous unit's own
+  // prerequisites happen to already be satisfied", which stops holding the
+  // moment a student reached their current position via a not-yet-gated
+  // path (e.g. progress predating this feature).
   const goToPreviousUnit = () => {
     const target = courseUnits[currentUnitIndex - 1];
     if (!target) return;
-    enterUnit(target, { atEnd: true });
+    enterUnit(target, { atEnd: true, skipGate: true });
   };
 
   // In-player Prev/Next (the floating buttons over the content itself): step
@@ -576,6 +682,12 @@ export default function LearnPage() {
   };
 
   const goToNextBlock = () => {
+    const currentBlock = activeUnitBlocks[extraUnit ? extraUnit.blockIndex : blockIndex];
+    if (!canLeaveBlock(currentBlock)) {
+      showToast(BLOCK_GATE_MESSAGES[currentBlock.kind] || "Finish this item before moving on.", "error");
+      return;
+    }
+
     if (extraUnit) {
       if (extraUnit.blockIndex < activeUnitBlocks.length - 1) {
         setExtraUnit((prev) => ({ ...prev, blockIndex: prev.blockIndex + 1 }));
@@ -605,11 +717,76 @@ export default function LearnPage() {
       setBlockIndex(idx >= 0 ? idx : 0);
       return;
     }
-    pendingBlockTargetIdRef.current = targetId;
-    const match = lesson?.id ? lessons.find((l) => l.id === lesson.id) : null;
-    if (match) selectLesson(match);
-    if (topic?.id) setSelectedTopicId(topic.id);
+
+    const targetUnitKey = topic ? `topic:${topic.id}` : `lesson:${lesson?.id}`;
+    runGated(targetUnitKey, () => {
+      pendingBlockTargetIdRef.current = targetId;
+      const match = lesson?.id ? lessons.find((l) => l.id === lesson.id) : null;
+      if (match) selectLesson(match);
+      if (topic?.id) setSelectedTopicId(topic.id);
+    });
   };
+
+  // Once, on initial load with no explicit ?lessonId= (a Continue Learning
+  // click, or any bare visit to the course): lands the player on
+  // resumeTarget's exact Topic/Content/Quiz — useLearningStateSync above
+  // only gets as far as the right Lesson. Runs after that settles
+  // (stateRestored) and courseUnits exists, and only once per mount ever —
+  // nothing the student does afterward (sidebar clicks, Prev/Next, a fresh
+  // completion) may be re-overridden by this as progress keeps changing
+  // through the rest of the session. Reuses jumpToBlock/enterUnit exactly
+  // as a sidebar click would, so it's subject to the same gate — which a
+  // genuine resume target always clears, since everything before it was,
+  // by construction, already visited to get here.
+  const hasAppliedResumeTargetRef = useRef(false);
+  useEffect(() => {
+    if (hasAppliedResumeTargetRef.current) return;
+    if (!stateRestored || !resumeTarget || courseUnits.length === 0) return;
+
+    if (typeof window !== "undefined") {
+      const hasExplicitLessonParam = new URLSearchParams(window.location.search).get("lessonId");
+      if (hasExplicitLessonParam) {
+        hasAppliedResumeTargetRef.current = true;
+        return;
+      }
+    }
+
+    hasAppliedResumeTargetRef.current = true;
+    const { kind, id, lessonId, topicId, moduleId } = resumeTarget;
+
+    if (topicId) {
+      const lessonMatch = lessons.find((l) => l.id === lessonId);
+      const topicMatch = lessonMatch?.topics?.find((t) => t.id === topicId);
+      jumpToBlock(id, { lesson: lessonMatch, topic: topicMatch });
+      return;
+    }
+
+    if (lessonId) {
+      const lessonMatch = lessons.find((l) => l.id === lessonId);
+      const lessonHasTopics = (lessonMatch?.topics?.length ?? 0) > 0;
+      if (lessonHasTopics) {
+        const unitKey = kind === "quiz" ? `lesson-quiz:${lessonId}` : `lesson-content:${lessonId}`;
+        enterUnit(courseUnits.find((u) => u.key === unitKey), { targetItemId: id });
+      } else {
+        jumpToBlock(id, { lesson: lessonMatch });
+      }
+      return;
+    }
+
+    if (moduleId) {
+      const unitKey = kind === "quiz" ? `module-quiz:${moduleId}` : `module-content:${moduleId}`;
+      enterUnit(courseUnits.find((u) => u.key === unitKey), { targetItemId: id });
+      return;
+    }
+
+    const unitKey = kind === "quiz" ? "course-quiz" : "course-content";
+    enterUnit(courseUnits.find((u) => u.key === unitKey), { targetItemId: id });
+    // enterUnit/jumpToBlock intentionally omitted from deps — same
+    // convention as the unit-change reset effect above: they close over
+    // this render's state and aren't memoized, so listing them would just
+    // re-run this every render; the ref guard is what actually prevents
+    // re-application.
+  }, [stateRestored, resumeTarget, courseUnits, lessons]);
 
   // Still used by Sticky Notes (both the mobile tab and the desktop side
   // panel) to jump the video to a note's timestamp.
@@ -840,20 +1017,29 @@ export default function LearnPage() {
           onToggleOpen={() => setCourseSidebarOpen(false)}
           onSelectCourseOverview={() => router.push(`/student/courses/${courseId}`)}
           onSelectLesson={(lessonId) => {
-            setExtraUnit(null);
-            const match = lessons.find((l) => l.id === lessonId);
-            selectLesson(match);
-          }}
-          onSelectModule={(mod) => {
-            setExtraUnit(null);
-            selectLesson(mod.lessons?.[0]);
-          }}
-          onSelectTopic={(topicId, lessonId) => {
-            setExtraUnit(null);
             const match = lessons.find((l) => l.id === lessonId);
             if (!match) return;
-            selectLesson(match);
-            setSelectedTopicId(topicId);
+            runGated(firstUnitKeyFor({ moduleId: match.moduleId, lessonId: match.id }), () => {
+              setExtraUnit(null);
+              selectLesson(match);
+            });
+          }}
+          onSelectModule={(mod) => {
+            const firstLesson = mod.lessons?.[0];
+            if (!firstLesson) return;
+            runGated(firstUnitKeyFor({ moduleId: mod.id, lessonId: firstLesson.id }), () => {
+              setExtraUnit(null);
+              selectLesson(firstLesson);
+            });
+          }}
+          onSelectTopic={(topicId, lessonId) => {
+            const match = lessons.find((l) => l.id === lessonId);
+            if (!match) return;
+            runGated(`topic:${topicId}`, () => {
+              setExtraUnit(null);
+              selectLesson(match);
+              setSelectedTopicId(topicId);
+            });
           }}
           onSelectContent={(content, topic, lesson) => {
             jumpToBlock(content.id, { lesson, topic });
@@ -920,7 +1106,7 @@ export default function LearnPage() {
         {/* ========================================================== */}
         {/* FLUID RESPONSIVE WORKSPACE CONTAINER */}
         {/* ========================================================== */}
-        <div className="p-4 sm:p-6 md:p-8 min-w-0">
+        <div className="pr-[1.6px] sm:pr-[2.4px] md:pr-[3.2px] pb-[1.6px] sm:pb-[2.4px] md:pb-[3.2px] pt-[1.6px] sm:pt-[2.4px] md:pt-[3.2px] pl-[1.6px] sm:pl-[2.4px] md:pl-[3.2px] min-w-0">
           {/*
             Priority-driven order: below xl the student only sees one column, so every
             block that comes before the video costs them a scroll. DOM order follows
@@ -965,14 +1151,16 @@ export default function LearnPage() {
                 </button>
               </div>
 
-              {/* CONTENT PLAYER FRAME — fixed viewport-relative height (matches
-                  every screen size, not just desktop). Header stays pinned at
-                  top, the content body scrolls internally once a block (or
-                  several stacked blocks) exceeds the frame, and Prev/Next stay
-                  pinned at the bottom corners instead of pushing the page
-                  taller. Transcript/Resources stay outside this frame, below,
-                  in normal page flow. */}
-              <div className="group relative flex flex-col h-[75vh] min-h-[440px] max-h-[720px] rounded-2xl border border-border bg-card overflow-hidden">
+              {/* CONTENT PLAYER FRAME — height fills the viewport down to just
+                  under the screen's bottom edge (100vh minus the fixed
+                  DashboardNavbar + LearnPageHeader chrome above it), clamped
+                  by min/max so it never gets uselessly short or absurdly
+                  tall. The content body scrolls internally once a block (or
+                  several stacked blocks) exceeds the frame, and Prev/Next
+                  stay pinned to the vertical middle of the edges instead of
+                  pushing the page taller. Transcript/Resources stay outside
+                  this frame, below, in normal page flow. */}
+              <div className="group relative flex flex-col h-[calc(100vh-147px)] min-h-[440px] max-h-[900px] rounded-2xl border border-border bg-card overflow-hidden">
                 {/* No dedicated header bar — lesson/topic name and the Sticky
                     Notes trigger already live in the top bar above. Course
                     Index reopen (desktop, sidebar collapsed only) floats over
@@ -1003,6 +1191,7 @@ export default function LearnPage() {
                       <AssignmentWorkspacePanel
                         assignmentId={activeBlock.item.id}
                         completed={activeAssignmentCompleted}
+                        onNextContent={goToNextBlock}
                       />
                     </div>
                   ) : activeBlock?.kind === "quiz" ? (
@@ -1011,6 +1200,7 @@ export default function LearnPage() {
                         quizId={activeBlock.item.id}
                         onBack={goToPreviousBlock}
                         resultReturnTo={resultReturnTo}
+                        onNextContent={goToNextBlock}
                       />
                     </div>
                   ) : (
@@ -1025,16 +1215,17 @@ export default function LearnPage() {
                   )}
                 </div>
 
-                {/* Previous / Next — floating over the bottom corners of the
-                    scrollable content instead of a dedicated footer bar, so the
-                    content area keeps that space. Pointer-events only on the
-                    buttons themselves, so the overlay never blocks scrolling
-                    or clicks on the content beneath it. Hidden until the player
-                    is hovered (or a button inside gets keyboard focus) — video-
-                    player-style controls, not a bar that's always sitting there.
-                    Always shown now — Course/Module-level units are stops in
-                    the same whole-course sequence, not a standalone dead end. */}
-                <div className="absolute inset-x-3 bottom-3 flex items-center justify-between pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+                {/* Previous / Next — floating over the vertical middle of the
+                    scrollable content's left/right edges instead of a dedicated
+                    footer bar, so the content area keeps that space. Pointer-
+                    events only on the buttons themselves, so the overlay never
+                    blocks scrolling or clicks on the content beneath it. Hidden
+                    until the player is hovered (or a button inside gets keyboard
+                    focus) — video-player-style controls, not a bar that's
+                    always sitting there. Always shown now — Course/Module-level
+                    units are stops in the same whole-course sequence, not a
+                    standalone dead end. */}
+                <div className="absolute inset-3 flex items-center justify-between pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
                   <LessonNavigationControls
                     variant="corners"
                     unitLabel={
@@ -1054,34 +1245,29 @@ export default function LearnPage() {
                     onSelectNext={goToNextBlock}
                   />
                 </div>
-              </div>
 
-              {/* COMPLETION — the one place the student marks the block on
-                  screen complete, and the one place its completed state is
-                  shown in the workspace. Sits below the player frame (not
-                  inside it) so it never collides with the floating Prev/Next
-                  overlay, and applies to whatever the frame is showing:
-                  Course-, Module-, Lesson- or Topic-direct Content alike. */}
-              {showCompletionBar && (
-                <ContentCompletionBar
-                  completed={
-                    activeQuizId
-                      ? activeQuizCompleted
-                      : activeAssignmentId
-                        ? activeAssignmentCompleted
-                        : activeContentCompleted
-                  }
-                  isPending={completeContentMutation.isPending}
-                  isVideo={!activeEarnedId && activeBlock?.item?.type === "VIDEO"}
-                  readOnly={Boolean(activeEarnedId)}
-                  readOnlyHint={
-                    activeQuizId
-                      ? "Pass this quiz to complete it."
-                      : "Upload and submit your assignment PDF to complete it."
-                  }
-                  onMarkComplete={handleMarkComplete}
-                />
-              )}
+                {/* COMPLETION — floats over the bottom-right corner of the
+                    player, revealed on hover/focus exactly like Prev/Next,
+                    instead of a persistent bar below the frame. Applies to
+                    whatever the frame is showing: Course-, Module-, Lesson-
+                    or Topic-direct Content alike. */}
+                {showCompletionBar && (
+                  <div className="absolute bottom-3 right-3 pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+                    <ContentCompletionBar
+                      completed={
+                        activeQuizId
+                          ? activeQuizCompleted
+                          : activeAssignmentId
+                            ? activeAssignmentCompleted
+                            : activeContentCompleted
+                      }
+                      isPending={completeContentMutation.isPending}
+                      readOnly={Boolean(activeEarnedId)}
+                      onMarkComplete={handleMarkComplete}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* CONTENT TAB STRIP — mobile & tablet only. Desktop shows every
@@ -1203,7 +1389,12 @@ export default function LearnPage() {
                 activeModuleId={activeModuleId}
                 onToggleModule={toggleMobileModule}
                 selectedLessonId={selectedLesson?.id}
-                onSelectLesson={(lesson, module) => selectLesson({ ...lesson, moduleId: module.id })}
+                onSelectLesson={(lesson, module) => {
+                  if (!lesson?.id) return;
+                  runGated(firstUnitKeyFor({ moduleId: module.id, lessonId: lesson.id }), () => {
+                    selectLesson({ ...lesson, moduleId: module.id });
+                  });
+                }}
                 // Routes through the same two handlers the desktop sidebar
                 // uses, so a mobile tap lands on exactly the same block the
                 // desktop tree would have opened.

@@ -256,7 +256,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const fillsFrame = type === "VIDEO";
 
     return (
-        <div className={`overflow-hidden rounded-2xl border border-border bg-background flex flex-col w-full ${fillsFrame ? "h-full" : "min-h-full"}`}>
+        <div className={`bg-background flex flex-col w-full ${fillsFrame ? "h-full" : "min-h-full"}`}>
             {/* Header — skipped for VIDEO: the lesson title already shows above the
                 player, and the video's own thumbnail/embed carries its title too,
                 so this bar was just a third repeat of the same text. Also skipped
@@ -318,7 +318,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                 {isFileLike && (
                     <div className="w-full">
                         {displayFileUrl && (displayFileUrl.toLowerCase().includes(".pdf") || displayFileUrl.toLowerCase().includes("/pdf")) ? (
-                            <PdfViewer fileUrl={displayFileUrl} title={content?.title} />
+                            <PdfViewer fileUrl={displayFileUrl} title={content?.title} hideToolbar />
                         ) : displayFileUrl && (displayFileUrl.toLowerCase().includes(".ppt") || displayFileUrl.toLowerCase().includes(".pptx")) ? (
                             <PptViewer fileUrl={displayFileUrl} title={content?.title} />
                         ) : displayFileUrl && (displayFileUrl.toLowerCase().includes(".doc") || displayFileUrl.toLowerCase().includes(".docx")) ? (

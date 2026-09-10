@@ -29,24 +29,26 @@ export default function LessonNavigationControls({
           type="button"
           disabled={!previousItem}
           onClick={onSelectPrevious}
-          className={`pointer-events-auto flex items-center gap-1 px-3 py-1.5 min-h-[36px] rounded-full border border-border bg-card/90 backdrop-blur-sm shadow-md font-bold text-[10px] uppercase tracking-wide text-foreground hover:border-primary hover:text-primary transition cursor-pointer ${
+          title={`Previous ${unitLabel}`}
+          aria-label={`Previous ${unitLabel}`}
+          className={`pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card/90 backdrop-blur-sm shadow-md text-foreground hover:border-primary hover:text-primary transition cursor-pointer ${
             !previousItem ? "opacity-30 cursor-not-allowed hover:border-border hover:text-foreground" : ""
           }`}
         >
-          <ChevronLeft size={14} />
-          <span>Prev</span>
+          <ChevronLeft size={16} />
         </button>
 
         <button
           type="button"
           disabled={!nextItem}
           onClick={onSelectNext}
-          className={`pointer-events-auto flex items-center gap-1 px-3 py-1.5 min-h-[36px] rounded-full bg-primary hover:bg-orange-600 shadow-md font-bold text-[10px] uppercase tracking-wide text-slate-950 transition cursor-pointer ${
+          title={`Next ${unitLabel}`}
+          aria-label={`Next ${unitLabel}`}
+          className={`pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full bg-primary hover:bg-orange-600 shadow-md text-slate-950 transition cursor-pointer ${
             !nextItem ? "opacity-40 cursor-not-allowed bg-primary/40 text-muted-foreground" : ""
           }`}
         >
-          <span>Next</span>
-          <ChevronRight size={14} />
+          <ChevronRight size={16} />
         </button>
       </div>
     );

@@ -107,6 +107,22 @@ export default function PdfViewer({
     });
   };
 
+  // hideToolbar mode's page-turn control: a real click on the left/right
+  // half of the viewport, not an overlay element sitting on top of it — an
+  // earlier version used two absolutely-positioned buttons spanning the
+  // full viewport for this, which intercepted every wheel/touch-scroll
+  // gesture before it reached the scrollable viewport underneath, breaking
+  // scrolling on any page taller than the frame. A plain click handler on
+  // the scrollable div itself doesn't have that problem: the browser only
+  // fires "click" for a genuine tap/click (no drag/scroll in between), so
+  // wheel and touch-scroll pass through untouched.
+  const handleViewportClick = (e) => {
+    if (!hideToolbar || loading || error || !numPages) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickedRightHalf = e.clientX - rect.left > rect.width / 2;
+    changePage(clickedRightHalf ? 1 : -1);
+  };
+
   const handlePageInputChange = (e) => {
     setPageInput(e.target.value);
   };
@@ -313,13 +329,18 @@ export default function PdfViewer({
       {/* PDF CANVAS VIEWPORT CONTAINER */}
       <div
         ref={viewportRef}
+        onClick={handleViewportClick}
         /* The fixed 82vh height with a 560px floor is a reading-pane size that
            only makes sense once the page is large enough to read. Fitted into
            a phone-width column the page is ~300px tall, so that floor wrapped
            it in roughly as much empty backdrop again. Below sm the viewport is
            content-height instead, capped at 70vh so a zoomed page still
-           scrolls here rather than stretching the block. */
-        className="relative w-full h-auto min-h-0 max-h-[70vh] sm:h-[82vh] sm:min-h-[560px] sm:max-h-[950px] overflow-auto bg-[#060913] p-2 sm:p-3.5 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80"
+           scrolls here rather than stretching the block. cursor-pointer only
+           in hideToolbar mode, where a click turns the page (see
+           handleViewportClick) — otherwise this is just a scroll area. */
+        className={`relative w-full h-auto min-h-0 max-h-[70vh] sm:h-[82vh] sm:min-h-[560px] sm:max-h-[950px] overflow-auto bg-[#060913] p-2 sm:p-3.5 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80 ${
+          hideToolbar ? "cursor-pointer" : ""
+        }`}
       >
         {/* Loading Overlay */}
         {loading && (

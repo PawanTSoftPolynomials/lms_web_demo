@@ -6,7 +6,8 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 import { defaultQueryOptions } from "@/lib/queryOptions";
 
 export default function useQuizResult(
-    quizId
+    quizId,
+    { enabled = true } = {}
 ) {
     return useQuery({
         queryKey: [
@@ -15,7 +16,7 @@ export default function useQuizResult(
         ],
         queryFn: () =>
             getQuizResult(quizId),
-        enabled: !!quizId,
+        enabled: !!quizId && enabled,
         ...defaultQueryOptions,
         // Scoped override: a retake invalidates this query before the result
         // page remounts (useSubmitQuiz.js), so this specific query must

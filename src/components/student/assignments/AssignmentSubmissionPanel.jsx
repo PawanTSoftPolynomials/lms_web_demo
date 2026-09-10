@@ -1,11 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { CheckCircle2, FileText, Loader2, Paperclip, Upload, X } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, CheckCircle2, FileText, Loader2, Paperclip, Upload, X } from "lucide-react";
 
 import { uploadAssignmentSubmissionFile } from "@/services/assignment.service";
 import useSubmitAssignment from "@/hooks/queries/student/useSubmitAssignment";
 import { useToast } from "@/components/ui/ToastProvider";
+import Button from "@/components/ui/Button";
 
 /**
  * The student's view of one Assignment: the instructor's brief, the
@@ -30,7 +32,12 @@ function formatBytes(bytes) {
 const isPdf = (file) =>
   file?.type === "application/pdf" && /\.pdf$/i.test(file?.name || "");
 
-export default function AssignmentSubmissionPanel({ assignment, completed = false }) {
+export default function AssignmentSubmissionPanel({
+  assignment,
+  completed = false,
+  onNextContent,
+  showStatusLink = false,
+}) {
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -211,6 +218,29 @@ export default function AssignmentSubmissionPanel({ assignment, completed = fals
               <p className="text-[10px] font-semibold text-muted-foreground">
                 Submitted {new Date(submission.submittedAt).toLocaleString()}
               </p>
+            )}
+
+            {(showStatusLink || onNextContent) && (
+              <div className="flex flex-col gap-2 pt-1 sm:flex-row">
+                {showStatusLink && (
+                  <Link href={`/student/assignments/${assignment.id}`} className="flex-1">
+                    <Button type="button" variant="outline" className="w-full">
+                      View Assignment Status
+                    </Button>
+                  </Link>
+                )}
+
+                {onNextContent && (
+                  <Button
+                    type="button"
+                    onClick={onNextContent}
+                    className="flex flex-1 items-center justify-center gap-2"
+                  >
+                    Next Content
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             )}
           </div>
         )}

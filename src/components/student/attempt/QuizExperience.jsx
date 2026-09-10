@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import Loader from "@/components/common/Loader";
 import QuizHeader from "@/components/student/attempt/QuizHeader";
 import QuestionCard from "@/components/student/attempt/QuestionCard";
 import QuizNavigation from "@/components/student/attempt/QuizNavigation";
-import QuizQuestionPalette from "@/components/student/attempt/QuizQuestionPalette";
 import QuizSubmitModal from "@/components/student/attempt/QuizSubmitModal";
+import QuizResultSummary from "@/components/student/attempt/QuizResultSummary";
 import useQuiz from "@/hooks/queries/student/useQuiz";
 import useSubmitQuiz from "@/hooks/queries/student/useSubmitQuiz";
+import useQuizResult from "@/hooks/queries/student/useQuizResult";
+import { checkAnswerCorrectness } from "@/lib/quizAnswers";
 
 /**
  * The actual quiz-taking experience (timer, questions, navigation, submit) —
@@ -19,8 +20,8 @@ import useSubmitQuiz from "@/hooks/queries/student/useSubmitQuiz";
  * Presentation (page vs modal vs full-screen) is entirely the caller's job;
  * this component only knows about the quiz itself.
  */
-export default function QuizExperience({ quizId, onBack, resultReturnTo }) {
-    const router = useRouter();
+export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextContent }) {
+    const [isSubmitted, setIsSubmitted] = useState(false);
 
     const {
         data,
@@ -42,10 +43,6 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo }) {
 
     const [visitedIndices, setVisitedIndices] = useState(
         () => new Set([0])
-    );
-
-    const [bookmarkedIds, setBookmarkedIds] = useState(
-        () => new Set()
     );
 
     const [showSubmitModal, setShowSubmitModal] =
@@ -98,20 +95,6 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo }) {
         }));
     };
 
-    const handleToggleBookmark = () => {
-        if (!currentQuestion) return;
-
-        setBookmarkedIds((prev) => {
-            const next = new Set(prev);
-            if (next.has(currentQuestion.id)) {
-                next.delete(currentQuestion.id);
-            } else {
-                next.add(currentQuestion.id);
-            }
-            return next;
-        });
-    };
-
     const handleTimeUp = () => {
         setShowSubmitModal(true);
     };
@@ -141,12 +124,7 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo }) {
             {
                 onSuccess: () => {
                     setShowSubmitModal(false);
-
-                    router.push(
-                        resultReturnTo
-                            ? `/student/result/${quizId}?from=${encodeURIComponent(resultReturnTo)}`
-                            : `/student/result/${quizId}`
-                    );
+                    setIsSubmitted(true);
                 },
 
                 onError: (error) => {
@@ -158,6 +136,46 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo }) {
             }
         );
     };
+
+    // Fetches only once submitted — the result endpoint 404s on an
+    // unattempted quiz, and this is the same endpoint/shape the full
+    // /student/result page uses, including each question's correctAnswer
+    // (stripped from useQuiz above so a student can't see it mid-attempt).
+    const { data: resultData, isLoading: isResultLoading } = useQuizResult(quizId, {
+        enabled: isSubmitted,
+    });
+
+    const submissionResult = resultData?.data || resultData;
+
+    const parsedSubmissionAnswers = useMemo(() => {
+        if (!submissionResult?.answers) return [];
+        if (typeof submissionResult.answers === "string") {
+            try {
+                return JSON.parse(submissionResult.answers);
+            } catch {
+                return [];
+            }
+        }
+        return submissionResult.answers;
+    }, [submissionResult]);
+
+    const correctCount = useMemo(() => {
+        if (!submissionResult?.quiz?.questions) return 0;
+        return submissionResult.quiz.questions.filter((q) => {
+            const userAnswer = parsedSubmissionAnswers.find(
+                (a) => a.questionId === q.id
+            );
+            return checkAnswerCorrectness(
+                q.type || "MCQ_SINGLE",
+                userAnswer?.answer ?? userAnswer?.selectedOption,
+                q.correctAnswer
+            );
+        }).length;
+    }, [submissionResult, parsedSubmissionAnswers]);
+
+    const resultHref = resultReturnTo
+        ? `/student/result/${quizId}?from=${encodeURIComponent(resultReturnTo)}`
+        : `/student/result/${quizId}`;
 
     if (isLoading) {
         return <Loader />;
@@ -177,46 +195,46 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo }) {
         );
     }
 
+    if (isSubmitted) {
+        return (
+            <QuizResultSummary
+                quizTitle={quiz.title}
+                isLoading={isResultLoading || !submissionResult}
+                correctCount={correctCount}
+                totalQuestions={questions.length}
+                percentage={submissionResult?.percentage ?? 0}
+                passed={Boolean(submissionResult?.passed)}
+                resultHref={resultHref}
+                onNextContent={onNextContent}
+            />
+        );
+    }
+
     return (
         <>
-            <div className="space-y-3 lg:grid lg:grid-cols-[1fr_260px] lg:items-start lg:gap-4 lg:space-y-0">
-                <div className="space-y-3 min-w-0">
-                    <QuizHeader
-                        quiz={quiz}
-                        onBack={onBack}
-                        onTimeUp={handleTimeUp}
-                    />
+            <div className="space-y-3">
+                <QuizHeader
+                    quiz={quiz}
+                    onBack={onBack}
+                    onTimeUp={handleTimeUp}
+                    answeredCount={answeredQuestions}
+                />
 
-                    <QuestionCard
-                        question={currentQuestion}
-                        currentQuestion={currentQuestionIndex + 1}
-                        totalQuestions={questions.length}
-                        selectedAnswer={answers[currentQuestion?.id]}
-                        onSelectAnswer={handleSelectAnswer}
-                        isBookmarked={
-                            currentQuestion
-                                ? bookmarkedIds.has(currentQuestion.id)
-                                : false
-                        }
-                        onToggleBookmark={handleToggleBookmark}
-                    />
+                <QuestionCard
+                    question={currentQuestion}
+                    selectedAnswer={answers[currentQuestion?.id]}
+                    onSelectAnswer={handleSelectAnswer}
+                />
 
-                    <QuizNavigation
-                        currentQuestion={currentQuestionIndex + 1}
-                        totalQuestions={questions.length}
-                        canGoPrevious={currentQuestionIndex > 0}
-                        canGoNext={currentQuestionIndex < questions.length - 1}
-                        onPrevious={handlePrevious}
-                        onNext={handleNext}
-                        onSubmit={() => setShowSubmitModal(true)}
-                    />
-                </div>
-
-                <QuizQuestionPalette
+                <QuizNavigation
                     questions={questions}
                     currentQuestionIndex={currentQuestionIndex}
                     answers={answers}
                     visitedIndices={visitedIndices}
+                    canGoPrevious={currentQuestionIndex > 0}
+                    canGoNext={currentQuestionIndex < questions.length - 1}
+                    onPrevious={handlePrevious}
+                    onNext={handleNext}
                     onJumpTo={handleJumpToQuestion}
                     onSubmit={() => setShowSubmitModal(true)}
                     isSubmitting={submitQuizMutation.isPending}

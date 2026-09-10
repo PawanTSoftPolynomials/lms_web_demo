@@ -9,10 +9,12 @@ export default function QuizHeader({
                                        quiz,
                                        onBack,
                                        onTimeUp,
+                                       answeredCount = 0,
                                    }) {
     if (!quiz) return null;
 
     const questionCount = quiz.questions?.length ?? 0;
+    const unansweredCount = Math.max(0, questionCount - answeredCount);
 
     // No fallback duration. A quiz with no time limit is untimed — inventing
     // one here would start a countdown that force-submits the attempt.
@@ -55,6 +57,18 @@ export default function QuizHeader({
                     {questionCount === 1 ? "Question" : "Questions"}
                     {timeLimit === null && <> &bull; No timer</>}
                 </p>
+            </div>
+
+            <div className="hidden shrink-0 items-center gap-3 border-l border-border pl-3 sm:flex">
+                <div className="text-center">
+                    <p className="text-[11px] text-muted-foreground">Answered</p>
+                    <p className="text-sm font-bold text-emerald-400">{answeredCount}</p>
+                </div>
+
+                <div className="text-center">
+                    <p className="text-[11px] text-muted-foreground">Unanswered</p>
+                    <p className="text-sm font-bold text-amber-400">{unansweredCount}</p>
+                </div>
             </div>
 
             {timeLimit !== null && (
