@@ -43,6 +43,14 @@ function StudentsDirectoryContent() {
     }
   }, [searchParams]);
 
+  // Progress and status for a row: the student's standing in the selected
+  // course when the list is filtered to one, otherwise across all of this
+  // instructor's courses (the backend picks the most urgent status there).
+  const standingOf = (student) =>
+    courseFilter === 'All'
+      ? { progress: student.progress ?? 0, status: student.status || 'Not Started' }
+      : student.courseProgress?.[courseFilter] ?? { progress: 0, status: 'Not Started' };
+
   // Filter students list
   const filteredStudents = useMemo(() => {
     const q = searchQuery.toLowerCase();
@@ -56,7 +64,7 @@ function StudentsDirectoryContent() {
                             (student.course || '').toLowerCase().includes(q) ||
                             courseTitles.some((t) => t.toLowerCase().includes(q));
 
-      const matchesStatus = statusFilter === 'All' || student.status === statusFilter;
+      const matchesStatus = statusFilter === 'All' || standingOf(student).status === statusFilter;
       // Match on the full enrollment list by id. Comparing student.course (the
       // first enrollment's title) against the selected course hid anyone whose
       // first enrollment wasn't the one being filtered for.
@@ -65,6 +73,8 @@ function StudentsDirectoryContent() {
 
       return isStudentRole && matchesSearch && matchesStatus && matchesCourse;
     });
+    // standingOf only reads courseFilter, which is already a dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [students, searchQuery, statusFilter, courseFilter]);
 
   // Selected student details object
@@ -205,7 +215,10 @@ function StudentsDirectoryContent() {
                     </div>
                     <div className="p-3 bg-white/[0.01] border border-border rounded-xl text-center">
                       <p className="text-[9px] text-muted-foreground font-black uppercase">Assignments Done</p>
-                      <p className="text-lg font-black text-foreground mt-1">{selectedStudent.assignmentRate}%</p>
+                      {/* null = the course has no assignments to do. */}
+                      <p className="text-lg font-black text-foreground mt-1">
+                        {selectedStudent.assignmentRate != null ? `${selectedStudent.assignmentRate}%` : '—'}
+                      </p>
                     </div>
                     {/* Attendance Rate tile hidden with the rest of the attendance UI.
                         Uncomment this and change the grid back to sm:grid-cols-3. */}
@@ -270,7 +283,10 @@ function StudentsDirectoryContent() {
                               {as.status}
                             </span>
                             {as.score !== null && (
-                              <p className="text-[11.5px] font-black text-slate-250 mt-1.5">{as.score} / {as.maxScore}</p>
+                              // Grades are free text ("A", "9", "8/10") — show them as written.
+                              <p className="text-[11.5px] font-black text-slate-250 mt-1.5">
+                                {as.maxScore ? `${as.score} / ${as.maxScore}` : `Grade ${as.score}`}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -338,7 +354,9 @@ function StudentsDirectoryContent() {
               {/* 'Attendance Alert' dropped alongside the Attendance column — it matched
                   no student, since status is never set to it. Re-add it to this list if
                   attendance tracking lands. */}
-              {['All', 'Not Started', 'Behind Average', 'Struggling', 'Top Performer'].map((filter) => (
+              {/* Every student lands in exactly one of these — see
+                  classifyStudent in the backend students service. */}
+              {['All', 'Not Started', 'On Track', 'Behind Average', 'Struggling', 'Top Performer'].map((filter) => (
                 <button
                   key={filter}
                   onClick={() => setStatusFilter(filter)}
@@ -413,7 +431,9 @@ function StudentsDirectoryContent() {
                     </td>
                   </tr>
                 ) : (
-                  filteredStudents.map((student) => (
+                  filteredStudents.map((student) => {
+                    const standing = standingOf(student);
+                    return (
                     <tr key={student.id} className="hover:bg-white/[0.01] transition">
                       <td className="py-4 pl-2">
                         <div className="font-extrabold text-slate-250">{student.name}</div>
@@ -430,23 +450,34 @@ function StudentsDirectoryContent() {
                       </td>
                       <td className="py-4 text-center">
                         <span className={`text-[7.5px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider inline-block ${
-                          student.status === 'Top Performer' 
-                            ? 'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20' 
-                            : student.status === 'Not Started'
-                            ? 'bg-muted text-muted-foreground border border-transparent/50'
-                            : student.status === 'Struggling' || student.status === 'Behind Average'
-                            ? 'bg-rose-500/10 text-rose-455 border border-rose-500/20' 
-                            : 'bg-amber-500/10 text-amber-450 border border-amber-500/20'
+                          standing.status === 'Top Performer'
+                            ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                            : standing.status === 'Not Started'
+                            ? 'bg-muted text-muted-foreground border border-border'
+                            : standing.status === 'Struggling'
+                            ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                            : standing.status === 'Behind Average'
+                            ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                            : 'bg-sky-500/10 text-sky-500 border border-sky-500/20'
                         }`}>
-                          {student.status}
+                          {standing.status}
                         </span>
                       </td>
                       <td className="py-4 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <div className="h-1.5 w-16 bg-white/5 rounded-full overflow-hidden hidden sm:block">
-                            <div className="h-full bg-primary rounded-full" style={{ width: `${student.progress}%` }} />
+                          <div
+                            className="h-1.5 w-16 bg-muted rounded-full overflow-hidden hidden sm:block"
+                            role="progressbar"
+                            aria-valuenow={standing.progress}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                          >
+                            <div
+                              className="h-full bg-primary rounded-full"
+                              style={{ width: `${Math.min(100, Math.max(0, standing.progress))}%` }}
+                            />
                           </div>
-                          <span className="font-bold text-foreground">{student.progress}%</span>
+                          <span className="font-bold text-foreground tabular-nums">{standing.progress}%</span>
                         </div>
                       </td>
                       {/* <td className="py-4 text-center font-bold text-foreground">
@@ -461,7 +492,8 @@ function StudentsDirectoryContent() {
                         </button>
                       </td>
                     </tr>
-                  ))
+                    );
+                  })
                 )}
               </tbody>
             </table>

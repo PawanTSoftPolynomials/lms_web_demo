@@ -1,13 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { HelpCircle, Search, Send, Loader2, RotateCcw } from "lucide-react";
+import Link from "next/link";
+import { HelpCircle, Search, Send, Loader2, RotateCcw, FileText, ExternalLink } from "lucide-react";
+
+import MarkdownRenderer from "@/components/ui/MarkdownEditor/MarkdownRenderer";
+import { unescapeFromContentApi } from "@/lib/markdown";
 
 import { WorkFilterProvider, useWorkFilters } from "@/context/WorkFilterContext";
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 import { useModules } from "@/hooks/queries/instructor/useModules";
 import { useLessons } from "@/hooks/queries/instructor/useLessons";
-import { useCourseBatches } from "@/hooks/queries/instructor/useBatches";
 import { DateRangePicker } from "@/components/ui/DateRangePicker";
 import {
   useMyLessonQueries,
@@ -45,7 +48,6 @@ const timeAgo = (iso) => {
 function FilterToolbar({ onResetAll }) {
   const { filters, updateFilter, resetFilters } = useWorkFilters();
   const { data: courses = [] } = useInstructorCourses();
-  const { data: batches = [] } = useCourseBatches(filters.courseId);
   const { data: modules = [] } = useModules(filters.courseId);
   const { data: lessons = [] } = useLessons(filters.moduleId);
 
@@ -64,18 +66,6 @@ function FilterToolbar({ onResetAll }) {
         <option value="">All Courses</option>
         {courses.map((c) => (
           <option key={c.id} value={c.id}>{c.title}</option>
-        ))}
-      </select>
-
-      <select
-        value={filters.batchId}
-        onChange={(e) => updateFilter("batchId", e.target.value)}
-        disabled={!filters.courseId}
-        className={toolbarControlClass}
-      >
-        <option value="">All Batches</option>
-        {batches.map((b) => (
-          <option key={b.id} value={b.id}>{b.name}</option>
         ))}
       </select>
 
@@ -165,6 +155,100 @@ function ReplyBox({ queryId }) {
   );
 }
 
+const CONTENT_TYPE_LABELS = {
+  VIDEO: "Video",
+  HTML: "Reading",
+  TEXT: "Reading",
+  PDF: "PDF",
+  DOCUMENT: "Document",
+  FILE: "File",
+  PRESENTATION: "Slides",
+  SLIDE: "Slides",
+  EXTERNAL_LINK: "Link",
+  LINK: "Link",
+  ASSIGNMENT: "Assignment",
+  AUDIO: "Audio",
+  CODE: "Code",
+};
+
+/**
+ * The content the student asked about, right where the instructor answers:
+ * text content is shown inline; anything else (video, files) links out to
+ * the full content view.
+ */
+function ContentPreview({ content }) {
+  const text = content.htmlContent ? unescapeFromContentApi(content.htmlContent) : "";
+  const typeLabel = CONTENT_TYPE_LABELS[content.type] || "Content";
+
+  return (
+    <div className="mb-3 overflow-hidden rounded-lg border border-border bg-background/60">
+      <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
+        <p className="min-w-0 truncate text-[11px] font-bold text-foreground">
+          {content.title || "Course content"}
+          <span className="ml-1.5 font-normal text-muted-foreground">{typeLabel}</span>
+        </p>
+        <Link
+          href={`/instructor/contents/view/${content.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex shrink-0 items-center gap-1 text-[11px] font-bold text-primary transition hover:opacity-80"
+        >
+          Open content <ExternalLink size={11} aria-hidden />
+        </Link>
+      </div>
+      {text ? (
+        <div className="max-h-56 overflow-y-auto px-3 py-2 text-xs">
+          <MarkdownRenderer source={text} emptyText="" />
+        </div>
+      ) : (
+        <p className="px-3 py-2 text-[11px] text-muted-foreground">
+          {content.type === "VIDEO"
+            ? "This is a video. Open it to watch the part the student asked about."
+            : "Open the content to see it in full."}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** A quiz or assignment the student asked about, with its brief and a link. */
+function ItemPreview({ kind, item }) {
+  const isQuiz = kind === "quiz";
+  const text = isQuiz ? item.description || item.instructions : item.description;
+  const typeLabel = isQuiz ? (item.quizTag === "SELF_TEST" ? "Self-test" : "Final quiz") : "Assignment";
+  const href = isQuiz ? `/instructor/quizzes/${item.id}` : "/instructor/assignments";
+
+  return (
+    <div className="mb-3 overflow-hidden rounded-lg border border-border bg-background/60">
+      <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
+        <p className="min-w-0 truncate text-[11px] font-bold text-foreground">
+          {item.title || typeLabel}
+          <span className="ml-1.5 font-normal text-muted-foreground">{typeLabel}</span>
+        </p>
+        <Link
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex shrink-0 items-center gap-1 text-[11px] font-bold text-primary transition hover:opacity-80"
+        >
+          Open {isQuiz ? "quiz" : "assignment"} <ExternalLink size={11} aria-hidden />
+        </Link>
+      </div>
+      <p className="max-h-40 overflow-y-auto whitespace-pre-wrap break-words px-3 py-2 text-xs text-muted-foreground">
+        {text || `Open the ${isQuiz ? "quiz" : "assignment"} to see it in full.`}
+      </p>
+    </div>
+  );
+}
+
+/** What a question was asked about — content block, quiz, assignment, or the lesson. */
+function askedAboutLabel(q) {
+  if (q.content) return q.content.title || CONTENT_TYPE_LABELS[q.content.type] || "Course content";
+  if (q.quiz) return `${q.quiz.title || "Quiz"} (quiz)`;
+  if (q.assignment) return `${q.assignment.title || "Assignment"} (assignment)`;
+  return null;
+}
+
 function QuestionCard({ query: q }) {
   const [expanded, setExpanded] = useState(false);
   const meta = STATUS_META[q.status] || STATUS_META.PENDING;
@@ -188,6 +272,14 @@ function QuestionCard({ query: q }) {
         Student: <span className="text-foreground font-semibold">{studentName}</span>
       </p>
 
+      {askedAboutLabel(q) && (
+        <p className="mt-1.5 flex min-w-0 items-center gap-1.5 text-[10.5px] text-muted-foreground">
+          <FileText size={12} className="shrink-0" aria-hidden />
+          Asked about:
+          <span className="truncate font-semibold text-foreground">{askedAboutLabel(q)}</span>
+        </p>
+      )}
+
       <div className="flex items-center justify-between gap-3 mt-3 pt-3 border-t border-border/60">
         <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold ${meta.text}`}>
           <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
@@ -204,6 +296,9 @@ function QuestionCard({ query: q }) {
 
       {expanded && (
         <div className="mt-3">
+          {q.content && <ContentPreview content={q.content} />}
+          {q.quiz && <ItemPreview kind="quiz" item={q.quiz} />}
+          {q.assignment && <ItemPreview kind="assignment" item={q.assignment} />}
           {q.reply && (
             <div className="pl-3 border-l-2 border-primary/30">
               <p className="text-[10px] font-black text-primary uppercase tracking-wide">Your reply</p>
@@ -229,6 +324,9 @@ function QAContent() {
       const haystack = [
         q.question,
         q.student?.user?.name,
+        q.content?.title,
+        q.quiz?.title,
+        q.assignment?.title,
         q.lesson?.title,
         q.lesson?.module?.title,
         q.lesson?.module?.course?.title,

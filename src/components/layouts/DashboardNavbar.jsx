@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { FaBars } from "react-icons/fa";
-import { MessageSquare, ChevronRight, Menu } from "lucide-react";
+import { ChevronRight, Menu } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -295,8 +295,6 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     setIsOpen, 
     activeConversation, 
     setActiveConversation,
-    toggleChat,
-    unreadCount: chatUnreadCount
   } = useChat();
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -316,24 +314,28 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     conversations.forEach((conv) => {
       if (conv.unread > 0 && conv.lastMessage) {
         const lastMsgText = conv.lastMessage;
-        const notifId = `conv_${conv.id}_${lastMsgText.substring(0, 10)}`;
+        // The text alone is not enough to tell two messages apart — sending
+        // "hiii" twice would key the same. `unread` and `lastSeen` both advance
+        // when a message actually arrives and are otherwise stable across
+        // renders, which is exactly the property a dedupe key needs.
+        const notifId = `conv_${conv.id}_${conv.unread}_${conv.lastSeen || ""}_${lastMsgText.substring(0, 10)}`;
         
         // Don't show notification if we are actively focused on this conversation
         const isFocused = isOpen && activeConversation && activeConversation.id === conv.id;
         if (isFocused) return;
         
-        const alreadyExists = notifications.some((n) => n.id === notifId);
-        if (!alreadyExists) {
-          addNotification(
-            `New message from ${conv.name || "User"}`,
-            lastMsgText,
-            "chat",
-            ""
-          );
-        }
+        // addNotification drops a repeat call for the same key, so the whole
+        // stream can be replayed on every render without stacking toasts.
+        addNotification(
+          `New message from ${conv.name || "User"}`,
+          lastMsgText,
+          "chat",
+          "",
+          notifId
+        );
       }
     });
-  }, [conversations, isMounted, isOpen, activeConversation, notifications, addNotification]);
+  }, [conversations, isMounted, isOpen, activeConversation, addNotification]);
 
   // Listen to new messages in the currently active conversation
   useEffect(() => {
@@ -348,19 +350,25 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     const isFocused = isOpen && activeConversation && (activeConversation.id === lastMsg.conversationId || lastMsg.conversationId === undefined);
     
     if (lastMsg && !isMine && !isFocused) {
-      const notifId = `msg_${lastMsg.id || lastMsg._id || Date.now()}`;
-      const alreadyExists = notifications.some((n) => n.id === notifId);
-      
-      if (!alreadyExists) {
-        addNotification(
-          `New message from ${lastMsg.sender?.name || "User"}`,
-          lastMsg.text || lastMsg.content || "Sent a message.",
-          "chat",
-          ""
-        );
-      }
+      // Key off the message's own id; when the socket payload carries none, derive
+      // one from its content instead. Anything render-stable works — what must NOT
+      // be used here is Date.now(), which yields a fresh key every pass and so
+      // never dedupes.
+      const msgKey =
+        lastMsg.id ||
+        lastMsg._id ||
+        `${lastMsg.conversationId || "conv"}_${(lastMsg.text || lastMsg.content || "").substring(0, 24)}_${lastMsg.createdAt || lastMsg.timestamp || ""}`;
+      const notifId = `msg_${msgKey}`;
+
+      addNotification(
+        `New message from ${lastMsg.sender?.name || "User"}`,
+        lastMsg.text || lastMsg.content || "Sent a message.",
+        "chat",
+        "",
+        notifId
+      );
     }
-  }, [messages, currentUser, isMounted, isOpen, activeConversation, notifications, addNotification]);
+  }, [messages, currentUser, isMounted, isOpen, activeConversation, addNotification]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -478,25 +486,8 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
           {/* Right side items */}
           <div className="flex items-center gap-1 sm:gap-4 shrink-0">
 
-            {/* Messages */}
-            <button
-              type="button"
-              onClick={toggleChat}
-              className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition cursor-pointer ${
-                isOpen
-                  ? "bg-muted border-transparent text-primary"
-                  : "bg-card border-border text-muted-foreground hover:text-foreground hover:border-border"
-              }`}
-              title="Messages"
-              aria-label="Messages"
-            >
-              <MessageSquare size={16} />
-              {isMounted && chatUnreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-black text-foreground shadow-sm">
-                  {chatUnreadCount}
-                </span>
-              )}
-            </button>
+            {/* No Messages button here — removed from the navbar for every
+                role. Chat still opens from chat notifications. */}
 
             {/* Theme Switcher */}
             <ThemeSwitcher />
@@ -659,25 +650,9 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
               </div>
             )}
 
-            {/* Chat Message Icon */}
-            <button
-              type="button"
-              onClick={toggleChat}
-              className={`relative flex h-9 w-9 items-center justify-center rounded-xl border transition cursor-pointer ${
-                isOpen
-                  ? "bg-muted border-transparent text-primary"
-                  : "bg-card border-border text-muted-foreground hover:text-foreground hover:border-border"
-              }`}
-              title="Messages"
-              aria-label="Messages"
-            >
-              <MessageSquare size={16} />
-              {isMounted && chatUnreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-black text-foreground shadow-sm">
-                  {chatUnreadCount}
-                </span>
-              )}
-            </button>
+            {/* No Messages button here — removed from the navbar for every
+                role. Chat still opens from chat notifications and the course
+                player's Ask Instructor card. */}
 
             {/* Theme Switcher */}
             <ThemeSwitcher />

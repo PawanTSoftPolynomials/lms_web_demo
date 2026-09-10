@@ -9,6 +9,7 @@ import {
   Lightbulb,
   Home,
   Compass,
+  ClipboardCheck,
 } from "lucide-react";
 
 /**
@@ -24,6 +25,9 @@ export const PRIMARY_NAV_ITEMS = [
   // { label: "Dashboard", href: "/student/dashboard", icon: Home, primaryOnMobile: true },
   { label: "Learning", href: "/student/my-courses", icon: BookOpen, primaryOnMobile: true },
   { label: "Explore", href: "/student/courses", icon: Compass, primaryOnMobile: true },
+  // Every assignment across the student's courses, with their grades and the
+  // instructor's feedback — the lasting record, unlike a dismissible notification.
+  { label: "Assignments", href: "/student/assignments", icon: ClipboardCheck, primaryOnMobile: true },
   // {
   //   label: "Schedule & Communication",
   //   icon: CalendarDays,

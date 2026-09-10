@@ -90,6 +90,7 @@ export const QUERY_KEYS = {
 
     CONTENTS: "contents",
     CONTENT: "content",
+    CONTENT_SUBMISSION: "content-submission",
 
     QUIZZES: "quizzes",
     QUIZ: "quiz",
