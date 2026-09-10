@@ -1,73 +1,59 @@
 "use client";
 
-import { CheckSquare, MonitorPlay, HelpCircle, Bell } from "lucide-react";
+import { CheckSquare, MonitorPlay, HelpCircle } from "lucide-react";
 import type { ActivityItem } from "@/types/instructor-dashboard";
 
-/**
- * A read-only feed of what happened recently across the instructor's courses.
- *
- * Nothing in here is a control: the icons are borderless indicators and there
- * is no "View all" affordance, because there is no all-activity screen to send
- * anyone to. The header previously carried a <button> with no handler — it
- * looked pressable, was pressable, and did nothing.
- */
-function iconFor(type: string) {
-  switch (type) {
-    case "submission":
-    case "assignment":
-    case "grade":
-      return CheckSquare;
-    case "lesson_completed":
-    case "course_updated":
-      return MonitorPlay;
-    case "quiz_published":
-      return HelpCircle;
-    default:
-      return Bell;
-  }
-}
-
-export function RecentActivitiesSidebar({
-  activities,
-  isLoading,
-}: {
-  activities: ActivityItem[];
-  isLoading?: boolean;
-}) {
+export function RecentActivitiesSidebar({ activities, isLoading }: { activities: ActivityItem[], isLoading?: boolean }) {
   if (isLoading) {
-    return <div className="h-full min-h-[13rem] animate-pulse rounded-2xl bg-muted" />;
+    return <div className="h-64 animate-pulse bg-muted/50 rounded-2xl"></div>;
   }
+
+  const getIconAndColor = (type: string) => {
+    switch (type) {
+      case "submission":
+      case "assignment":
+        return { Icon: CheckSquare, bg: "bg-emerald-500/10", color: "text-emerald-400", border: "border-emerald-500/20" };
+      case "lesson_completed":
+      case "live":
+        return { Icon: MonitorPlay, bg: "bg-purple-500/10", color: "text-purple-400", border: "border-purple-500/20" };
+      case "quiz_published":
+      case "quiz":
+        return { Icon: HelpCircle, bg: "bg-primary/10", color: "text-primary", border: "border-primary/20" };
+      default:
+        return { Icon: CheckSquare, bg: "bg-blue-500/10", color: "text-blue-400", border: "border-blue-500/20" };
+    }
+  };
 
   return (
-    <section className="flex h-full flex-col rounded-2xl border border-card-border bg-card p-5">
-      <h2 className="text-sm font-semibold tracking-tight text-foreground">Recent activity</h2>
+    <div className="rounded-2xl bg-card border border-border p-5">
+      <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
+        <h3 className="text-sm font-black text-foreground">Recent Activities</h3>
+        <button className="text-[11px] text-primary font-bold hover:text-orange-300">
+          View all
+        </button>
+      </div>
 
-      {activities.length === 0 ? (
-        <p className="mt-6 text-sm text-muted-foreground">No activity in the last few days.</p>
-      ) : (
-        <ul className="mt-4 space-y-3.5">
-          {activities.slice(0, 4).map((activity) => {
-            const Icon = iconFor(activity.type);
+      <div className="space-y-5">
+        {activities.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-4">No recent activities</p>
+        ) : (
+          activities.slice(0, 4).map((activity) => {
+            const { Icon, bg, color, border } = getIconAndColor(activity.type);
             return (
-              <li key={activity.id} className="flex items-start gap-3">
-                <Icon
-                  size={16}
-                  className="mt-0.5 shrink-0 text-muted-foreground"
-                  aria-hidden
-                />
-                <div className="min-w-0">
-                  <p className="line-clamp-2 text-sm leading-snug text-foreground">
-                    {activity.title}
-                  </p>
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                    {activity.courseName} &middot; {activity.timestamp}
-                  </p>
+              <div key={activity.id} className="flex items-start gap-3">
+                <div className={`p-2 rounded-lg border ${bg} ${border} shrink-0`}>
+                  <Icon size={16} className={color} />
                 </div>
-              </li>
+                <div>
+                  <p className="text-xs font-bold text-foreground">{activity.title}</p>
+                  <p className="text-[10px] text-muted-foreground line-clamp-1">{activity.courseName}</p>
+                  <p className="text-[9px] text-slate-600 mt-0.5">{activity.timestamp}</p>
+                </div>
+              </div>
             );
-          })}
-        </ul>
-      )}
-    </section>
+          })
+        )}
+      </div>
+    </div>
   );
 }

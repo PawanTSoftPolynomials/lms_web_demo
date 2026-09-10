@@ -322,6 +322,26 @@ body {
   color: var(--btn-rainbow-foreground, var(--primary-foreground));
 }
 
+/* Waving-hand greeting emoji (dashboard/course-list welcome headers). Rocks the
+   glyph a few times on mount then rests — a looping wave would pull the eye away
+   from the page content it introduces. Pivots from the wrist via
+   `origin-bottom-right`, which callers set alongside `inline-block`. */
+@keyframes wave {
+  0%, 60%, 100% { transform: rotate(0deg); }
+  10%, 30%, 50% { transform: rotate(14deg); }
+  20%, 40% { transform: rotate(-8deg); }
+}
+
+@utility animate-wave {
+  animation: wave 2.4s ease-in-out 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-wave {
+    animation: none;
+  }
+}
+
 /* ==========================================================================
    Experimental photo-derived card palette — course cards only, applied via a
    wrapper class on the card root. Theme-aware: light-mode uses the app's own

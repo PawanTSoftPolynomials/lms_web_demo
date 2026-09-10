@@ -9,12 +9,16 @@ import EmptyState from "@/components/ui/EmptyState";
 import Pagination from "@/components/ui/Pagination";
 import CourseGridCard from "@/components/courses/CourseGridCard";
 import { useInstructorCoursesTable } from "@/hooks/queries/instructor/useInstructorCoursesTable";
+import { useAuth } from "@/context/AuthContext";
 
 const INITIAL_FILTERS = { search: "", status: "", category: "", level: "", sortBy: "recently_updated", page: 1, limit: 12 };
 
 export default function InstructorCoursesPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [filters, setFilters] = useState(INITIAL_FILTERS);
+
+  const firstName = user?.name ? user.name.split(" ")[0] : "Instructor";
 
   const { data, isLoading, isError, refetch } = useInstructorCoursesTable(filters);
 
@@ -62,6 +66,14 @@ export default function InstructorCoursesPage() {
 
   return (
     <div className="-m-2 sm:-m-6 md:-m-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
+      <div className="shrink-0 rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6 text-center space-y-0.5">
+        <p className="text-xs font-medium text-muted-foreground">Welcome back,</p>
+        <h1 className="flex items-center justify-center gap-2 text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+          {firstName}! <span className="inline-block origin-bottom-right animate-wave text-xl" aria-hidden="true">👋</span>
+        </h1>
+        <p className="text-xs text-muted-foreground">Here&apos;s everything you&apos;re teaching. Pick a course to keep building.</p>
+      </div>
+
       {isError ? (
         <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
           <p className="text-sm font-bold text-foreground">Unable to load courses.</p>

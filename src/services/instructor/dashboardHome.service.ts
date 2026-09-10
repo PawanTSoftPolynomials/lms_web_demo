@@ -52,18 +52,13 @@ export interface RawCourse {
   isPublished?: boolean;
   thumbnail?: string | null;
   imageUrl?: string | null;
-  /* Fields below are returned by GET /courses (Course model + attachCourseStats)
-     and consumed by CourseGridCard on the Home "My courses" grid. */
-  thumbnailUrl?: string | null;
-  level?: string | null;
-  stats?: { lessonsCount?: number };
   completionRate?: number;
   averageScore?: number;
   publishedLessonsCount?: number;
   pendingLessonsCount?: number;
   progress?: number;
   studentsCount?: number;
-  _count?: { enrollments?: number; lessons?: number };
+  _count?: { enrollments?: number };
 }
 
 export interface RawLesson {
@@ -723,22 +718,32 @@ export interface RecentSubmission {
 export function deriveRecentSubmissions(assignments: RawAssignment[]): RecentSubmission[] {
   const submissions: RecentSubmission[] = [];
 
+  const dated: { submission: RecentSubmission; at: number }[] = [];
+
   assignments.forEach((assignment) => {
     if (assignment.submissions && Array.isArray(assignment.submissions)) {
-      assignment.submissions.forEach((sub) => {
-        submissions.push({
-          id: sub.id ?? `sub-${Math.random()}`,
-          studentName: sub.student?.name ?? sub.studentName ?? "Student",
-          assignmentName: assignment.title ?? "Assignment",
-          status: sub.status ?? "Submitted",
-          time: sub.submittedAt ? daysAgoLabel(new Date(sub.submittedAt)) : "Recently",
+      assignment.submissions.forEach((sub, i) => {
+        const at = sub.submittedAt ? new Date(sub.submittedAt).getTime() : NaN;
+        dated.push({
+          submission: {
+            id: sub.id ?? `${assignment.id ?? "assignment"}-sub-${i}`,
+            studentName: sub.student?.name ?? sub.studentName ?? "Student",
+            assignmentName: assignment.title ?? "Assignment",
+            status: sub.status ?? "Submitted",
+            time: Number.isNaN(at) ? "Recently" : daysAgoLabel(new Date(at)),
+          },
+          // Undated rows sort last rather than jumping the queue.
+          at: Number.isNaN(at) ? -Infinity : at,
         });
       });
     }
   });
 
-  // Sort by time roughly (since we don't have exact timestamps in all cases, we rely on the backend order if possible)
-  // If the backend doesn't return submissions, this list will be empty as expected in a dynamic system
+  // Newest first across every assignment — the API caps rows per assignment, so
+  // without this the feed showed whichever assignment happened to come first.
+  dated.sort((a, b) => b.at - a.at);
+  submissions.push(...dated.map((d) => d.submission));
+
   return submissions.slice(0, 5);
 }
 
@@ -751,6 +756,8 @@ export interface GradeDistribution {
 export interface RawResult {
   score?: number;
   marks?: number;
+  /** Denominator behind `score`, when the row reports one. */
+  totalMarks?: number;
   percentage?: number;
 }
 
@@ -766,8 +773,17 @@ export function deriveGradeDistribution(results: RawResult[]): GradeDistribution
 
   let excellent = 0, good = 0, average = 0, needsImprovement = 0;
 
+  // Grade on the percentage, never on raw marks: /results reports both, and a
+  // perfect 5-out-of-5 carries score: 5, which against these thresholds would
+  // land in "Needs Improvement".
   results.forEach(result => {
-    const score = result.score ?? result.marks ?? result.percentage ?? 0;
+    const raw = result.score ?? result.marks;
+    const score =
+      result.percentage ??
+      (typeof raw === "number" && typeof result.totalMarks === "number" && result.totalMarks > 0
+        ? Math.round((raw / result.totalMarks) * 100)
+        : raw ?? 0);
+
     if (score >= 90) excellent++;
     else if (score >= 75) good++;
     else if (score >= 60) average++;

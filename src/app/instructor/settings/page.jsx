@@ -165,7 +165,7 @@ function InstructorSettingsContent() {
             <Globe size={13} className="text-primary" /> System Preferences
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-[9.5px] font-black text-muted-foreground uppercase tracking-wider">Interface Language</label>
               <select
@@ -189,17 +189,6 @@ function InstructorSettingsContent() {
                 <option value="GMT+05:30">UTC+5:30 (IST)</option>
                 <option value="GMT+00:00">UTC+0:00 (GMT)</option>
                 <option value="GMT-05:00">UTC-5:00 (EST)</option>
-              </select>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[9.5px] font-black text-muted-foreground uppercase tracking-wider">Workspace Theme</label>
-              <select
-                value="Dark"
-                disabled
-                className="w-full bg-background border border-border text-xs px-3.5 py-2.5 rounded-xl text-muted-foreground cursor-not-allowed outline-none"
-              >
-                <option value="Dark">Enterprise Dark (Locked)</option>
               </select>
             </div>
           </div>

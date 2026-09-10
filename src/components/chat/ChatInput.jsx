@@ -1,12 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import {
-  Smile,
-  Paperclip,
-  Mic,
-  SendHorizontal,
-} from "lucide-react";
+import { Paperclip, SendHorizontal } from "lucide-react";
 
 import useSendMessage from "@/hooks/useSendMessage";
 import useTyping from "@/hooks/useTyping";
@@ -105,10 +100,6 @@ export default function ChatInput() {
       )}
 
       <div className="flex items-center gap-1.5">
-        <button className="rounded-xl p-2.5 text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors duration-200">
-          <Smile size={18} />
-        </button>
-
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
@@ -159,10 +150,6 @@ export default function ChatInput() {
           focus:shadow-[0_0_15px_rgba(249,115,22,0.08)]
           "
         />
-
-        <button className="rounded-xl p-2.5 text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors duration-200">
-          <Mic size={18} />
-        </button>
 
         <button
           onClick={handleSend}

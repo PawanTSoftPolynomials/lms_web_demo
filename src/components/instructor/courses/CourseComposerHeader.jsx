@@ -22,7 +22,11 @@ export function CourseComposerHeader({
   const isDraft = status === "DRAFT";
 
   return (
-    <header className="app-header flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-border bg-background px-4 py-3 shadow-xl text-foreground">
+    // sticky top-0: the Course Map rail is already sticky, so a header that
+    // scrolled away left the title and the Save/Publish actions unreachable
+    // mid-course. z-30 keeps it under the mobile drawer (z-50) and its
+    // backdrop (z-40), and bg-background makes it opaque to what passes behind.
+    <header className="app-header sticky top-0 z-30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-border bg-background px-4 py-3 shadow-xl text-foreground">
       {/* Left: Menu Toggle + Course Title & Status Badge */}
       <div className="flex items-center gap-3 min-w-0">
         <button

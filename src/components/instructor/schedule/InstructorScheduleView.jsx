@@ -44,6 +44,31 @@ const toLocalDateString = (date) => {
   return `${y}-${m}-${d}`;
 };
 
+// "10:00 AM" / "9:30 pm" / "14:05" -> minutes past midnight, so the agenda can
+// sort events inside a day. Anything unparseable sorts to the end of its day.
+const toMinutes = (time) => {
+  if (!time) return Number.MAX_SAFE_INTEGER;
+  const m = String(time).trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+  if (!m) return Number.MAX_SAFE_INTEGER;
+  let hours = parseInt(m[1], 10);
+  const mins = parseInt(m[2], 10);
+  const suffix = m[3] ? m[3].toUpperCase() : null;
+  if (suffix === "PM" && hours !== 12) hours += 12;
+  if (suffix === "AM" && hours === 12) hours = 0;
+  return hours * 60 + mins;
+};
+
+// "60 mins" / "1.5 hours" / "90" -> hours. Events that never say fall back to
+// an hour rather than inventing a longer session.
+const toHours = (duration) => {
+  if (!duration) return 1;
+  const m = String(duration).trim().match(/^([\d.]+)\s*(.*)$/);
+  if (!m) return 1;
+  const value = parseFloat(m[1]);
+  if (!Number.isFinite(value)) return 1;
+  return /^h/i.test(m[2]) ? value : value / 60;
+};
+
 const EVENT_TYPES = {
   lecture: { label: "Lecture", color: "bg-emerald-500", text: "text-emerald-400", border: "border-emerald-500/30", bgSoft: "bg-emerald-500/10", icon: Video },
   assignment: { label: "Assignment", color: "bg-primary", text: "text-primary", border: "border-primary/30", bgSoft: "bg-primary/10", icon: FileText },
@@ -300,12 +325,36 @@ export default function InstructorScheduleView() {
     setScheduleEvents((prev) => [dup, ...prev]);
   };
 
+  // Everything below the header describes the month the header is showing, so
+  // both the snapshot bar and the agenda read from this slice rather than from
+  // every event the API returned. evt.date is already a local YYYY-MM-DD key,
+  // so match on its prefix instead of parsing it back into a Date.
+  const monthEvents = useMemo(() => {
+    const prefix = `${year}-${String(month + 1).padStart(2, "0")}`;
+    return scheduleEvents.filter((e) => String(e.date || "").startsWith(prefix));
+  }, [scheduleEvents, year, month]);
+
+  // Chronological, as the agenda heading promises: by day, then by start time.
+  const agendaEvents = useMemo(
+    () =>
+      [...monthEvents].sort((a, b) => {
+        if (a.date !== b.date) return String(a.date).localeCompare(String(b.date));
+        return toMinutes(a.startTime) - toMinutes(b.startTime);
+      }),
+    [monthEvents]
+  );
+
   // Dynamic Monthly Snapshot Calculations from DB scheduleEvents
-  const totalLecturesCount = useMemo(() => scheduleEvents.filter(e => e.type === "lecture" || e.type === "class").length, [scheduleEvents]);
-  const totalAssignmentsCount = useMemo(() => scheduleEvents.filter(e => e.type === "assignment").length, [scheduleEvents]);
-  const totalQuizzesCount = useMemo(() => scheduleEvents.filter(e => e.type === "quiz").length, [scheduleEvents]);
-  const totalMeetingsCount = useMemo(() => scheduleEvents.filter(e => e.type === "meeting").length, [scheduleEvents]);
-  const totalHoursCount = useMemo(() => (scheduleEvents.length * 1.5).toFixed(1), [scheduleEvents]);
+  const totalLecturesCount = useMemo(() => monthEvents.filter(e => e.type === "lecture" || e.type === "class").length, [monthEvents]);
+  const totalAssignmentsCount = useMemo(() => monthEvents.filter(e => e.type === "assignment").length, [monthEvents]);
+  const totalQuizzesCount = useMemo(() => monthEvents.filter(e => e.type === "quiz").length, [monthEvents]);
+  const totalMeetingsCount = useMemo(() => monthEvents.filter(e => e.type === "meeting").length, [monthEvents]);
+  // Summed from each event's own duration — it used to be event count x 1.5,
+  // which reported hours nobody had scheduled.
+  const totalHoursCount = useMemo(
+    () => monthEvents.reduce((sum, e) => sum + toHours(e.duration), 0).toFixed(1),
+    [monthEvents]
+  );
 
   const todayDateStr = useMemo(() => toLocalDateString(new Date()), []);
 
@@ -561,12 +610,12 @@ export default function InstructorScheduleView() {
               Chronological Agenda List
             </h3>
             <div className="space-y-3">
-              {scheduleEvents.length === 0 ? (
+              {agendaEvents.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground text-xs font-bold border border-dashed border-border rounded-xl">
-                  No scheduled activities found.
+                  Nothing scheduled in {MONTHS[month]} {year}.
                 </div>
               ) : (
-                scheduleEvents.map((evt) => {
+                agendaEvents.map((evt) => {
                   const typeConfig = EVENT_TYPES[evt.type] || EVENT_TYPES.lecture;
                   return (
                     <div

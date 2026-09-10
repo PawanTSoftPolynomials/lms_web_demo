@@ -565,6 +565,10 @@ export function CourseComposerSidebar({
 
   // The 7rem max-height is the desktop header offset; in the full-height
   // mobile drawer it only left dead space at the bottom, so it starts at lg.
+  // Pinned: the title, the New Module button and the Course Overview row —
+  // they stay reachable however far down the tree you are. Everything below
+  // scrolls, course-level content rows included: pinning those too was what
+  // once squeezed the modules tree into a sliver on quiz-heavy courses.
   return (
     <aside className="sidebar-panel rounded-2xl border border-border bg-background p-4 shadow-xl flex flex-col h-full max-h-full lg:max-h-[calc(100vh-7rem)] overflow-hidden text-foreground">
       {/* Panel Title */}
@@ -627,6 +631,9 @@ export function CourseComposerSidebar({
         )}
       </div>
 
+      {/* Scroll region — everything from the course-level rows down. */}
+      <div className="flex-1 min-h-0 overflow-y-auto -mr-1 pr-1">
+
       {/* Course-Level Content Cells (course-level quizzes are merged into this list) */}
       {(courseId || modules[0]?.courseId) && (
         <ParentContentRows
@@ -646,8 +653,8 @@ export function CourseComposerSidebar({
         />
       )}
 
-      {/* Modules Tree */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-0.5 pr-1 text-sm">
+      {/* Modules Tree — no scroll container of its own; the region above scrolls. */}
+      <div className="space-y-0.5 pr-1 text-sm">
         {modules.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground text-sm italic">
             No modules available in this course.
@@ -948,6 +955,8 @@ export function CourseComposerSidebar({
             );
           })
         )}
+      </div>
+
       </div>
     </aside>
   );
