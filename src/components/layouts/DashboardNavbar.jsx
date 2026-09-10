@@ -424,8 +424,8 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     return (
       <>
       <header className="bg-background border-b border-border text-foreground">
-        <div className="px-3 sm:px-6 py-3 flex items-center gap-2 sm:gap-4">
-          <div className="flex items-center gap-6 shrink-0">
+        <div className="px-3 sm:px-6 py-3 flex items-center gap-1.5 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-6 shrink-0">
             {/* Mobile menu toggle — opens the role's nav drawer (see
                 Instructor/AdminNavDrawer); this used to call the unrelated
                 `setOpen` prop, which controls a Sidebar that never renders for
@@ -476,7 +476,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
           )}
 
           {/* Right side items */}
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-4 shrink-0">
 
             {/* Messages */}
             <button
@@ -564,7 +564,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
         z-40
       `}
       >
-        <div className="px-3 sm:px-6 py-3 flex items-center gap-2 sm:gap-4">
+        <div className="px-3 sm:px-6 py-3 flex items-center gap-1.5 sm:gap-4">
           <div className="flex items-center gap-3 sm:gap-4 shrink-0">
             {!isStudentRole && (
               <button

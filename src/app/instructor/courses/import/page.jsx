@@ -681,7 +681,8 @@ export default function CourseImportPage() {
                       setShowAiForm(true);
                       setWorkflowState("INPUT");
                     }}
-                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-300 text-slate-950 text-sm font-extrabold shadow-lg shadow-orange-500/20 transition flex items-center justify-center space-x-2 cursor-pointer"
+                    className="w-full py-3.5 rounded-2xl bg-primary text-sm font-extrabold transition flex items-center justify-center space-x-2 cursor-pointer"
+                    style={{ "--btn-rainbow-fill": "#7C3AED" }}
                   >
                     <Sparkles className="w-4 h-4 fill-current" />
                     <span>Ask OTree AI</span>

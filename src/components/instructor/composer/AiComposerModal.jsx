@@ -565,7 +565,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                   <select
                     value={selectedModuleId}
                     onChange={(e) => handleModuleChange(e.target.value)}
-                    className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                    className="w-full h-9 bg-background border border-border rounded-lg !px-3 !py-0 text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                   >
                     {modules.length > 0 ? (
                       modules.map((m) => (
@@ -596,7 +596,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                       <select
                         value={selectedModuleId}
                         onChange={(e) => handleModuleChange(e.target.value)}
-                        className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="w-full h-9 bg-background border border-border rounded-lg !px-3 !py-0 text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {modules.length > 0 ? (
                           modules.map((m) => (
@@ -614,7 +614,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                       <select
                         value={selectedLessonId}
                         onChange={(e) => handleLessonChange(e.target.value)}
-                        className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="w-full h-9 bg-background border border-border rounded-lg !px-3 !py-0 text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {(activeModuleObj?.lessons || []).length > 0 ? (
                           (activeModuleObj?.lessons || []).map((l) => (
@@ -647,7 +647,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                       <select
                         value={selectedModuleId}
                         onChange={(e) => handleModuleChange(e.target.value)}
-                        className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="w-full h-9 bg-background border border-border rounded-lg !px-3 !py-0 text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {modules.length > 0 ? (
                           modules.map((m) => (
@@ -665,7 +665,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                       <select
                         value={selectedLessonId}
                         onChange={(e) => handleLessonChange(e.target.value)}
-                        className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                        className="w-full h-9 bg-background border border-border rounded-lg !px-3 !py-0 text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                       >
                         {(activeModuleObj?.lessons || []).length > 0 ? (
                           (activeModuleObj?.lessons || []).map((l) => (
@@ -684,7 +684,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                     <select
                       value={selectedTopicId}
                       onChange={(e) => handleTopicChange(e.target.value)}
-                      className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-emerald-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                      className="w-full h-9 bg-background border border-border rounded-lg !px-3 !py-0 text-xs text-emerald-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                     >
                       {(activeLessonObj?.topics || []).length > 0 ? (
                         (activeLessonObj?.topics || []).map((t) => (
@@ -709,7 +709,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                   <select
                     value={selectedModuleId}
                     onChange={(e) => handleModuleChange(e.target.value)}
-                    className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                    className="w-full h-9 bg-background border border-border rounded-lg !px-3 !py-0 text-xs text-amber-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                   >
                     {modules.length > 0 ? (
                       modules.map((m) => (
@@ -735,7 +735,7 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
                   <select
                     value={selectedOrderValue}
                     onChange={(e) => setSelectedOrderValue(e.target.value)}
-                    className="select-field w-full h-9 !py-0 !pl-3 !pr-6 bg-background border border-border rounded-lg text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
+                    className="w-full h-9 bg-background border border-border rounded-lg !px-3 !py-0 text-xs text-orange-300 font-bold outline-none focus:border-primary/50 cursor-pointer truncate"
                   >
                     <option value="AUTO_END" className="bg-card text-foreground">Auto / End</option>
                     {siblingItems.map((item, i) => (
@@ -1003,7 +1003,8 @@ ${selectedScope === "QUIZ" ? `Quiz Level: ${quizLevel}` : ""}`;
               type="button"
               onClick={handleGenerate}
               disabled={loading || !prompt.trim()}
-              className="px-5 py-2 text-xs font-extrabold text-slate-950 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 rounded-xl transition flex items-center space-x-2 shadow-lg shadow-orange-500/10 disabled:opacity-50 cursor-pointer"
+              className="px-5 py-2 text-xs font-extrabold bg-primary rounded-xl transition flex items-center space-x-2 disabled:opacity-50 cursor-pointer"
+              style={{ "--btn-rainbow-fill": "#7C3AED" }}
             >
               {loading ? (
                 <>

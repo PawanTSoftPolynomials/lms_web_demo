@@ -136,7 +136,7 @@ export default function StudentDashboardPage() {
   return (
     <>
       {/* ============================= UNIFIED RESPONSIVE LAYOUT ============================= */}
-      <div className="-m-3 sm:-m-6 sm:-mt-12 md:-mt-16 -mx-4 sm:-mx-12 md:-mx-16 min-h-[calc(100vh-3.5rem)] bg-background p-3 sm:p-6 pt-0 sm:pt-0">
+      <div className="-m-2 sm:-m-6 md:-m-16 min-h-[calc(100vh-3.5rem)] bg-background p-3 sm:p-6 pt-0 sm:pt-0">
         <div className="flex flex-col max-w-[1600px] mx-auto">
 
         {/*

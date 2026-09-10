@@ -7,7 +7,6 @@ import {
   ArrowDown,
   ArrowUp,
   BookOpen,
-  CheckCircle2,
   CheckSquare,
   ChevronRight,
   ClipboardList,
@@ -55,37 +54,39 @@ import { useReorderQuizzes } from "@/hooks/queries/instructor/useReorderQuizzes"
 import { swapSiblingOrder } from "@/lib/reorderSiblings";
 import { useToast } from "@/components/ui/ToastProvider";
 
-function NodeBadge({ progress, nodeId, node: nodeProp }) {
-  const indexNode = nodeId && progress?.nodes?.get ? progress.nodes.get(nodeId) : (progress?.nodes && nodeId ? progress.nodes[nodeId] : null);
-  const node = indexNode || nodeProp;
+/**
+ * Quiz rows are coloured by their tag, so practice and graded assessments are
+ * distinguishable in the tree without opening either — sky for Self-Test,
+ * purple for Final Quiz, matching the badges in QuizOverviewView.
+ *
+ * Each colour is stated twice, because the two themes need opposite ends of
+ * the ramp: light theme sits on a white background (--background: #FFFFFF)
+ * and needs deep shades, while dark theme needs the pale ones. The unprefixed
+ * class is the light value — `.dark` is the opt-in variant here
+ * (see `@custom-variant dark` in globals.css), so light is the default.
+ *
+ * Written as complete class strings rather than interpolated colour names:
+ * Tailwind scans source text, so `text-${colour}-400` would never be emitted.
+ */
+const QUIZ_TAG_STYLES = {
+  SELF_TEST: {
+    label: "Self-Test",
+    active: "bg-sky-500/10 text-sky-800 dark:bg-sky-500/15 dark:text-sky-400 font-semibold",
+    idle: "text-sky-700 hover:text-sky-900 hover:bg-sky-500/10 dark:text-sky-300/80 dark:hover:text-sky-300 dark:hover:bg-background/70",
+    icon: "text-sky-600 dark:text-sky-400",
+    badge: "bg-sky-500/15 text-sky-800 dark:bg-sky-500/20 dark:text-sky-300",
+  },
+  FINAL: {
+    label: "Final Quiz",
+    active: "bg-purple-500/10 text-purple-800 dark:bg-purple-500/15 dark:text-purple-400 font-semibold",
+    idle: "text-purple-700 hover:text-purple-900 hover:bg-purple-500/10 dark:text-purple-300/80 dark:hover:text-purple-300 dark:hover:bg-background/70",
+    icon: "text-purple-600 dark:text-purple-400",
+    badge: "bg-purple-500/15 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300",
+  },
+};
 
-  const percent = typeof indexNode?.progressPercent === 'number'
-    ? indexNode.progressPercent
-    : (typeof nodeProp?.progressPercent === 'number' ? nodeProp.progressPercent : (typeof node?.progressPercent === 'number' ? node.progressPercent : null));
-
-  if (percent === null || percent === undefined) return null;
-
-  const totalItems = indexNode?.totalItems ?? nodeProp?.totalItems ?? node?.totalItems ?? 0;
-  const completedItems = indexNode?.completedItems ?? nodeProp?.completedItems ?? node?.completedItems ?? 0;
-  const applicable = indexNode?.applicable ?? nodeProp?.applicable ?? node?.applicable;
-
-  if (applicable === false && totalItems === 0) return null;
-
-  const completed = indexNode?.completed ?? nodeProp?.completed ?? node?.completed ?? (percent === 100);
-
-  return (
-    <span
-      className={`shrink-0 text-[9px] font-black tabular-nums px-1.5 py-0.5 rounded border ${
-        completed
-          ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-500"
-          : "bg-background border-border text-muted-foreground"
-      }`}
-      title={`${completedItems} of ${totalItems} items complete`}
-    >
-      {percent}%
-    </span>
-  );
-}
+/** Falls back to Final Quiz, mirroring the Quiz.quizTag column default. */
+const getQuizTagStyle = (quizTag) => QUIZ_TAG_STYLES[quizTag] || QUIZ_TAG_STYLES.FINAL;
 
 /**
  * Classifies topic title into Theory, MCQs, Assignment, Home Task, or Revision Checklist.
@@ -97,8 +98,8 @@ function getTopicTypeMeta(title = "") {
       type: "mcq",
       badge: "MCQs",
       icon: HelpCircle,
-      color: "text-emerald-400",
-      bgClass: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+      color: "text-emerald-700 dark:text-emerald-400",
+      bgClass: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
     };
   }
   if (t.includes("assignment")) {
@@ -106,8 +107,8 @@ function getTopicTypeMeta(title = "") {
       type: "assignment",
       badge: "Assignment",
       icon: ClipboardList,
-      color: "text-amber-400",
-      bgClass: "bg-amber-500/10 text-amber-400 border-amber-500/30",
+      color: "text-amber-700 dark:text-amber-400",
+      bgClass: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30",
     };
   }
   if (t.includes("home task") || t.includes("hometask") || t.includes("homework")) {
@@ -115,8 +116,8 @@ function getTopicTypeMeta(title = "") {
       type: "hometask",
       badge: "Home Task",
       icon: Target,
-      color: "text-purple-400",
-      bgClass: "bg-purple-500/10 text-purple-400 border-purple-500/30",
+      color: "text-purple-700 dark:text-purple-400",
+      bgClass: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30",
     };
   }
   if (t.includes("checklist") || t.includes("revision")) {
@@ -124,16 +125,16 @@ function getTopicTypeMeta(title = "") {
       type: "checklist",
       badge: "Checklist",
       icon: CheckSquare,
-      color: "text-sky-400",
-      bgClass: "bg-sky-500/10 text-sky-400 border-sky-500/30",
+      color: "text-sky-700 dark:text-sky-400",
+      bgClass: "bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/30",
     };
   }
   return {
     type: "theory",
     badge: "Theory",
     icon: BookOpen,
-    color: "text-blue-400",
-    bgClass: "bg-blue-500/10 text-blue-400 border-blue-500/30",
+    color: "text-blue-700 dark:text-blue-400",
+    bgClass: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30",
   };
 }
 
@@ -151,24 +152,24 @@ function formatTopicDisplayTitle(title = "", index = 0) {
  * meaningful icon instead of falling back silently.
  */
 const CONTENT_TYPE_META = {
-  VIDEO: { icon: Video, label: "Video", color: "text-red-600 dark:text-red-400" },
-  AUDIO: { icon: Music2, label: "Audio", color: "text-teal-600 dark:text-teal-400" },
-  DOCUMENT: { icon: FileText, label: "Document", color: "text-blue-600 dark:text-blue-400" },
-  TEXT: { icon: AlignLeft, label: "Text", color: "text-blue-600 dark:text-blue-400" },
-  HTML: { icon: AlignLeft, label: "Text", color: "text-blue-600 dark:text-blue-400" },
-  IMAGE: { icon: ImageIcon, label: "Image", color: "text-purple-600 dark:text-purple-400" },
-  LINK: { icon: Link2, label: "Link", color: "text-emerald-600 dark:text-emerald-400" },
-  EXTERNAL_LINK: { icon: Link2, label: "Link", color: "text-emerald-600 dark:text-emerald-400" },
-  PRESENTATION: { icon: Presentation, label: "Presentation", color: "text-amber-600 dark:text-amber-400" },
-  SLIDE: { icon: Presentation, label: "Slide", color: "text-amber-600 dark:text-amber-400" },
-  PDF: { icon: File, label: "PDF", color: "text-sky-600 dark:text-sky-400" },
-  FILE: { icon: File, label: "File", color: "text-sky-600 dark:text-sky-400" },
-  CODE: { icon: Code2, label: "Code", color: "text-violet-600 dark:text-violet-400" },
-  CODING_EXERCISE: { icon: Code2, label: "Coding Exercise", color: "text-violet-600 dark:text-violet-400" },
-  ASSIGNMENT: { icon: ClipboardList, label: "Assignment", color: "text-amber-600 dark:text-amber-400" },
+  VIDEO: { icon: Video, label: "Video", color: "text-red-700 dark:text-red-400" },
+  AUDIO: { icon: Music2, label: "Audio", color: "text-teal-700 dark:text-teal-400" },
+  DOCUMENT: { icon: FileText, label: "Document", color: "text-blue-700 dark:text-blue-400" },
+  TEXT: { icon: AlignLeft, label: "Text", color: "text-blue-800 dark:text-blue-300" },
+  HTML: { icon: AlignLeft, label: "Text", color: "text-blue-800 dark:text-blue-300" },
+  IMAGE: { icon: ImageIcon, label: "Image", color: "text-purple-700 dark:text-purple-400" },
+  LINK: { icon: Link2, label: "Link", color: "text-green-700 dark:text-green-400" },
+  EXTERNAL_LINK: { icon: Link2, label: "Link", color: "text-green-700 dark:text-green-400" },
+  PRESENTATION: { icon: Presentation, label: "Presentation", color: "text-amber-700 dark:text-amber-400" },
+  SLIDE: { icon: Presentation, label: "Slide", color: "text-amber-700 dark:text-amber-400" },
+  PDF: { icon: File, label: "PDF", color: "text-sky-700 dark:text-sky-400" },
+  FILE: { icon: File, label: "File", color: "text-sky-700 dark:text-sky-400" },
+  CODE: { icon: Code2, label: "Code", color: "text-violet-700 dark:text-violet-400" },
+  CODING_EXERCISE: { icon: Code2, label: "Coding Exercise", color: "text-violet-700 dark:text-violet-400" },
+  ASSIGNMENT: { icon: ClipboardList, label: "Assignment", color: "text-amber-800 dark:text-amber-300" },
   SCORM: { icon: PackageOpen, label: "SCORM", color: "text-muted-foreground" },
-  INTERACTIVE_LAB: { icon: FlaskConical, label: "Interactive Lab", color: "text-pink-600 dark:text-pink-400" },
-  EMBED: { icon: MonitorPlay, label: "Embed", color: "text-indigo-600 dark:text-indigo-400" },
+  INTERACTIVE_LAB: { icon: FlaskConical, label: "Interactive Lab", color: "text-pink-700 dark:text-pink-400" },
+  EMBED: { icon: MonitorPlay, label: "Embed", color: "text-indigo-700 dark:text-indigo-400" },
 };
 const DEFAULT_CONTENT_META = { icon: File, label: "Content", color: "text-muted-foreground" };
 
@@ -188,11 +189,14 @@ function Collapsible({ open, children }) {
 // Tailwind needs each full class name literally present in this file to
 // generate it — a template-interpolated `group-hover/${groupName}` would
 // never match, hence this static lookup instead of building the string.
+// The opacity-0 is gated behind `(hover: hover)`. A touch device never fires
+// hover, so an unconditional opacity-0 left every row's kebab menu invisible
+// on a phone — present and tappable, but with nothing to aim at.
 const HOVER_VISIBLE_CLASSES = {
-  module: "opacity-0 group-hover/module:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
-  lesson: "opacity-0 group-hover/lesson:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
-  topic: "opacity-0 group-hover/topic:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
-  content: "opacity-0 group-hover/content:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
+  module: "[@media(hover:hover)]:opacity-0 group-hover/module:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
+  lesson: "[@media(hover:hover)]:opacity-0 group-hover/lesson:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
+  topic: "[@media(hover:hover)]:opacity-0 group-hover/topic:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
+  content: "[@media(hover:hover)]:opacity-0 group-hover/content:opacity-100 focus:opacity-100 data-[state=open]:opacity-100",
 };
 
 /** A single, subtle settings/kebab icon — the one action affordance per row, visible on hover/focus. */
@@ -223,7 +227,7 @@ function RowMenu({ groupName, items }) {
                 onSelect={(e) => {
                   item.onSelect?.(e);
                 }}
-                className={`cursor-pointer ${item.destructive ? "text-red-400 hover:bg-red-950/40" : "hover:bg-background"}`}
+                className={`cursor-pointer ${item.destructive ? "text-red-700 dark:text-red-400 hover:bg-red-950/40" : "hover:bg-background"}`}
               >
                 <item.icon className="mr-2 size-3" />
                 {item.label}
@@ -251,7 +255,6 @@ function ParentContentRows({
   selectedCellId,
   onSelectContent,
   onDeleteContent,
-  progress = null,
   quizzes = [],
   composerMode,
   composeQuizId,
@@ -261,6 +264,10 @@ function ParentContentRows({
   role = "INSTRUCTOR",
   isDraftMode = false,
   draftContents,
+  extraItems = [],
+  renderExtraItem,
+  emptyMessage = null,
+  className = "",
 }) {
   const { data: apiContents = [], isLoading: isApiLoading, isError: isApiError } = useContents(isDraftMode ? undefined : parent);
 
@@ -273,28 +280,23 @@ function ParentContentRows({
   const reorderQuizzes = useReorderQuizzes();
   const { showToast } = useToast();
 
-  // One merged, order-sorted list — this is what makes a quiz occupy a real
-  // position among its sibling content cells instead of always rendering in
-  // its own separate block. Ties (possible only via Add Above/Below on a
-  // content cell, which shifts sibling content rows but not quiz rows in
-  // the same scope — a known, non-fatal limitation, see the design spec)
-  // are broken deterministically: content sorts first.
-  // Content rows come from useContents(), not from the decorated course tree,
-  // so their completion has to be looked up here. Quizzes arrive already
-  // decorated when the caller passed a decorated tree; the same lookup is
-  // applied anyway so both row kinds resolve through one authority.
-  const markComplete = (row) => {
-    const known = progress?.items?.get(row.id);
-    return known ? { ...row, completed: known.completed === true } : row;
-  };
-
+  // Unified, order- and createdAt-sorted list — merges content cells, quizzes,
+  // and any parent-level children (like lessons in modules or topics in lessons)
+  // so items appear in the exact order created or authored.
   const mergedRows = [
-    ...contents.map((c) => markComplete({ ...c, kind: "content" })),
-    ...quizzes.map((q) => markComplete({ ...q, kind: "quiz" })),
+    ...contents.map((c) => ({ ...c, kind: "content" })),
+    ...quizzes.map((q) => ({ ...q, kind: "quiz" })),
+    ...extraItems.map((item) => ({ ...item, kind: item.kind || "extra" })),
   ].sort((a, b) => {
-    const orderDiff = (a.order ?? 0) - (b.order ?? 0);
-    if (orderDiff !== 0) return orderDiff;
-    return a.kind === b.kind ? 0 : a.kind === "content" ? -1 : 1;
+    const orderA = a.order ?? 0;
+    const orderB = b.order ?? 0;
+    if (orderA !== orderB) return orderA - orderB;
+    if (a.createdAt && b.createdAt) {
+      const diff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      if (diff !== 0) return diff;
+    }
+    const rank = (k) => (k === "content" ? 1 : k === "extra" || k === "lesson" || k === "topic" ? 2 : 3);
+    return rank(a.kind) - rank(b.kind);
   });
 
   const handleMove = async (id, direction) => {
@@ -327,58 +329,57 @@ function ParentContentRows({
     }
   };
 
+  const containerClass = className || (parent?.parentType === "course"
+    ? "mt-0.5 mb-1 ml-3 pl-3 py-0.5 space-y-0.5 border-l border-primary/20"
+    : "space-y-0.5");
+
   return (
-    <div className="mt-0.5 mb-1 ml-3 pl-3 py-0.5 space-y-0.5 border-l border-primary/20">
+    <div className={containerClass}>
       {isLoading ? (
-        <div className="flex items-center gap-1.5 py-1.5 px-2 text-[10px] text-muted-foreground">
+        <div className="flex items-center gap-1.5 py-1.5 px-2 text-[12px] text-muted-foreground">
           <Loader2 size={11} className="animate-spin shrink-0" />
           Loading contents…
         </div>
       ) : isError ? (
-        <div className="flex items-center gap-1.5 py-1.5 px-2 text-[10px] text-red-400/80">
+        <div className="flex items-center gap-1.5 py-1.5 px-2 text-[12px] text-red-700 dark:text-red-400/80">
           <AlertCircle size={11} className="shrink-0" />
           Failed to load contents.
         </div>
       ) : mergedRows.length === 0 ? (
-        <div className="py-1.5 px-2 text-[10px] text-muted-foreground italic">No content yet.</div>
+        emptyMessage ? (
+          <div className="py-1.5 px-2 text-[12px] text-muted-foreground italic">
+            {emptyMessage}
+          </div>
+        ) : null
       ) : (
         mergedRows.map((row, rIdx) => {
+          if (row.kind === "extra" || row.kind === "lesson" || row.kind === "topic") {
+            return renderExtraItem ? renderExtraItem(row, rIdx) : null;
+          }
           if (row.kind === "quiz") {
-            // `composerMode === "quiz"` covers the Instructor Composer's
-            // dedicated quiz-editor screen (composerMode switches globally
-            // to "quiz" there, so `isActive` — scoped per parent level —
-            // is never true in that case). `isActive` covers the Student
-            // side instead, where composerMode stays the containing level
-            // (module/lesson/topic) so that level's row also lights up as
-            // part of the same active path — see the learn page's
-            // selectedCellId/composeQuizId wiring.
-            const isQuizActive = (composerMode === "quiz" || isActive) && composeQuizId === row.id;
+            const isQuizActive = composerMode === "quiz" && composeQuizId === row.id;
             const questions = row.questions || (row.quizQuestions || []).map((qq) => qq.question) || [];
+            const tagStyle = getQuizTagStyle(row.quizTag);
 
             return (
               <div
                 key={row.id}
                 onClick={() => onSelectQuiz?.(row)}
-                title={row.title || "Quiz"}
+                // Colour alone shouldn't carry the tag — name it in the tooltip too.
+                title={`${row.title || "Quiz"} — ${tagStyle.label}`}
                 className={`group/content flex items-center justify-between gap-2 pl-2 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                  isQuizActive
-                    ? "bg-primary/15 text-primary font-semibold"
-                    : "text-emerald-300/80 hover:text-emerald-300 hover:bg-background/70"
+                  isQuizActive ? tagStyle.active : tagStyle.idle
                 }`}
               >
                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                  {row.completed ? (
-                    <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
-                  ) : (
-                    <HelpCircle size={12} className="shrink-0 text-emerald-400" />
-                  )}
-                  <span className="truncate text-[10.5px] leading-snug">
+                  <HelpCircle size={12} className={`shrink-0 ${tagStyle.icon}`} />
+                  <span className="truncate text-[12.5px] leading-snug">
                     {row.title || "Untitled Quiz"}
                   </span>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 shrink-0">
-                    {row.questionCount ?? questions.length} Qs
+                  <span className={`text-[11px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 ${tagStyle.badge}`}>
+                    {questions.length} Qs
                   </span>
                   {role === "INSTRUCTOR" && (
                     <RowMenu
@@ -418,16 +419,12 @@ function ParentContentRows({
               className={`group/content flex items-center justify-between gap-2 pl-2 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
                 isContentActive
                   ? "bg-primary/15 text-primary font-semibold"
-                  : "text-foreground/65 hover:text-foreground hover:bg-background/70"
+                  : "text-foreground hover:text-slate-50 hover:bg-background/70"
               }`}
             >
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                {content.completed ? (
-                  <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
-                ) : (
-                  <Icon size={12} className={`shrink-0 ${isContentActive ? "text-primary" : meta.color}`} />
-                )}
-                <span className="truncate text-body-small">
+                <Icon size={12} className={`shrink-0 ${isContentActive ? "text-primary" : meta.color}`} />
+                <span className="truncate text-[12.5px] leading-snug">
                   {content.title || `Untitled ${meta.label}`}
                 </span>
               </div>
@@ -459,88 +456,16 @@ function ParentContentRows({
   );
 }
 
-import { Lock } from "lucide-react";
-
-function AssignmentRows({
-  assignments = [],
-  composerMode,
-  composeAssignmentId,
-  onSelectAssignment,
-  onDeleteAssignment,
-  role = "INSTRUCTOR",
-  mod = null,
-  lesson = null,
-  topic = null,
-}) {
-  if (!assignments || assignments.length === 0) return null;
-
-  return (
-    <div className="mb-1 space-y-0.5">
-      {assignments.map((asgn, aIdx) => {
-        const isAsgnActive = composerMode === "assignment" && composeAssignmentId === asgn.id;
-
-        return (
-          <div key={asgn.id || `asgn-${aIdx}`}>
-            <div
-              className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
-                isAsgnActive
-                  ? "bg-amber-500/15 border-amber-500 text-amber-600 dark:text-amber-400 font-bold"
-                  : "border-transparent text-amber-600/90 dark:text-amber-400/90 hover:bg-background/60"
-              }`}
-              onClick={() => onSelectAssignment?.(asgn, mod, lesson, topic)}
-            >
-              <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                {asgn.completed ? (
-                  <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
-                ) : (
-                  <ClipboardList size={13} className="text-amber-600 dark:text-amber-400 shrink-0" />
-                )}
-                <span className="truncate text-caption font-semibold">{asgn.title || "Assignment"}</span>
-              </div>
-              <div className="flex items-center gap-1 shrink-0">
-                {asgn.marks ? (
-                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 shrink-0">
-                    {asgn.marks} Marks
-                  </span>
-                ) : null}
-                {role === "INSTRUCTOR" && (
-                  <RowMenu
-                    groupName="quiz"
-                    items={[
-                      {
-                        label: "Edit Assignment",
-                        icon: Pencil,
-                        onSelect: () => onSelectAssignment?.(asgn, mod, lesson, topic, { startEditing: true }),
-                      },
-                      { separator: true },
-                      {
-                        label: "Delete Assignment",
-                        icon: Trash2,
-                        destructive: true,
-                        onSelect: (e) => onDeleteAssignment?.(e, asgn, mod, lesson, topic),
-                      },
-                    ]}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+import { CheckCircle2, Lock } from "lucide-react";
 
 export function CourseComposerSidebar({
   modules = [],
   courseQuizzes = [],
-  courseAssignments = [],
   composerMode,
   composeModuleId,
   composeLessonId,
   composeTopicId,
   composeQuizId,
-  composeAssignmentId,
   selectedCellId,
   isOpen = true,
   onToggleOpen,
@@ -548,8 +473,6 @@ export function CourseComposerSidebar({
   onSelectQuiz,
   onDuplicateQuiz,
   onDeleteQuiz,
-  onSelectAssignment,
-  onDeleteAssignment,
   onSelectLesson,
   onSelectModule,
   onSelectTopic,
@@ -566,10 +489,6 @@ export function CourseComposerSidebar({
   onAddQuizToModule,
   onAddQuizToLesson,
   onAddQuizToTopic,
-  onAddAssignmentToCourse,
-  onAddAssignmentToModule,
-  onAddAssignmentToLesson,
-  onAddAssignmentToTopic,
   onAddModule,
   onAddTopic,
   onAddContentToTopic,
@@ -584,17 +503,8 @@ export function CourseComposerSidebar({
   onDeleteTopic,
   onDeleteContent,
   role = "INSTRUCTOR",
+  completedLessonIds = [],
   isDraftMode = false,
-  // Flattened backend progress roll-up (see lib/progressIndex). Student-only:
-  // the Composer passes nothing, so every progress affordance below is absent
-  // for INSTRUCTOR and the instructor rendering is unchanged.
-  progress = null,
-  // Callers whose own layout already constrains this sidebar's height (e.g.
-  // the Student learn page's fixed h-full shell) pass "max-h-full" here so
-  // the panel fills exactly the space it's given instead of also being
-  // capped against the raw viewport — which, under a layout that isn't just
-  // "top nav + padded page", leaves dead space at the bottom.
-  maxHeightClassName = "max-h-[calc(100vh-7rem)]",
 }) {
   const [expandedModules, setExpandedModules] = useState({});
   const [expandedLessons, setExpandedLessons] = useState({});
@@ -653,11 +563,17 @@ export function CourseComposerSidebar({
     return null;
   }
 
+  // The 7rem max-height is the desktop header offset; in the full-height
+  // mobile drawer it only left dead space at the bottom, so it starts at lg.
+  // Pinned: the title, the New Module button and the Course Overview row —
+  // they stay reachable however far down the tree you are. Everything below
+  // scrolls, course-level content rows included: pinning those too was what
+  // once squeezed the modules tree into a sliver on quiz-heavy courses.
   return (
-    <aside className={`sidebar-panel rounded-2xl border border-border bg-background p-4 shadow-xl flex flex-col h-full ${maxHeightClassName} overflow-hidden text-foreground`}>
+    <aside className="sidebar-panel rounded-2xl border border-border bg-background p-4 shadow-xl flex flex-col h-full max-h-full lg:max-h-[calc(100vh-7rem)] overflow-hidden text-foreground">
       {/* Panel Title */}
       <div className="flex items-center justify-between gap-2 mb-1 shrink-0">
-        <div className="font-black text-xs uppercase tracking-widest text-foreground flex items-center gap-2">
+        <div className="font-black text-sm uppercase tracking-widest text-foreground flex items-center gap-2">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-accent, #f97316)" strokeWidth="2">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
           </svg>
@@ -675,7 +591,7 @@ export function CourseComposerSidebar({
       </div>
 
       {/* Compact subtitle */}
-      <div className="text-caption text-muted-foreground mb-3 pb-3 border-b border-border/80">
+      <div className="text-[12.5px] text-muted-foreground mb-3 pb-3 border-b border-border/80">
         Course structure
       </div>
 
@@ -683,7 +599,7 @@ export function CourseComposerSidebar({
       {role === "INSTRUCTOR" && (
         <button
           type="button"
-          className="w-full py-2 mb-3 flex items-center justify-center gap-1.5 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold transition cursor-pointer shrink-0"
+          className="w-full py-2 mb-3 flex items-center justify-center gap-1.5 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-bold transition cursor-pointer shrink-0"
           onClick={onAddModule}
         >
           <Plus size={14} />
@@ -694,7 +610,7 @@ export function CourseComposerSidebar({
       {/* Course Overview Root Item */}
       <div className="flex items-center justify-between gap-1 mb-1 shrink-0 group/module">
         <div
-          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl transition cursor-pointer text-xs flex-1 border-l-[3px] ${
+          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl transition cursor-pointer text-sm flex-1 border-l-[3px] ${
             composerMode === "course"
               ? "bg-primary/15 border-primary text-primary font-bold"
               : "border-transparent text-foreground hover:bg-background"
@@ -702,8 +618,7 @@ export function CourseComposerSidebar({
           onClick={onSelectCourseOverview}
         >
           <Home size={14} className={composerMode === "course" ? "text-primary shrink-0" : "text-muted-foreground shrink-0"} />
-          <span className="truncate font-semibold flex-1">Course Overview</span>
-          <NodeBadge progress={progress} nodeId={courseId || modules[0]?.courseId} node={progress?.course} />
+          <span className="truncate font-semibold">Course Overview</span>
         </div>
         {role === "INSTRUCTOR" && (
           <RowMenu
@@ -711,11 +626,13 @@ export function CourseComposerSidebar({
             items={[
               { label: "Add Content", icon: Plus, onSelect: () => onAddContentToCourse?.() },
               { label: "Add Course Quiz", icon: HelpCircle, onSelect: () => onAddQuizToCourse?.() },
-              { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToCourse?.() },
             ]}
           />
         )}
       </div>
+
+      {/* Scroll region — everything from the course-level rows down. */}
+      <div className="flex-1 min-h-0 overflow-y-auto -mr-1 pr-1">
 
       {/* Course-Level Content Cells (course-level quizzes are merged into this list) */}
       {(courseId || modules[0]?.courseId) && (
@@ -732,25 +649,14 @@ export function CourseComposerSidebar({
           onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, null, null, null)}
           onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, null, null, null)}
           role={role}
-          progress={progress}
           isDraftMode={isDraftMode}
         />
       )}
 
-      {/* Course-Level Assignments (when present) */}
-      <AssignmentRows
-        assignments={courseAssignments}
-        composerMode={composerMode}
-        composeAssignmentId={composeAssignmentId}
-        onSelectAssignment={onSelectAssignment}
-        onDeleteAssignment={onDeleteAssignment}
-        role={role}
-      />
-
-      {/* Modules Tree */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-0.5 pr-1 text-xs">
+      {/* Modules Tree — no scroll container of its own; the region above scrolls. */}
+      <div className="space-y-0.5 pr-1 text-sm">
         {modules.length === 0 ? (
-          <div className="py-8 text-center text-muted-foreground text-xs italic">
+          <div className="py-8 text-center text-muted-foreground text-sm italic">
             No modules available in this course.
           </div>
         ) : (
@@ -790,15 +696,13 @@ export function CourseComposerSidebar({
                       />
                     </button>
                     <Layers size={14} className={`shrink-0 ${isModuleActive ? "text-primary" : "text-primary/80"}`} />
-                    <span className="text-[9px] font-black text-muted-foreground tabular-nums shrink-0">
+                    <span className="text-[11px] font-black text-muted-foreground tabular-nums shrink-0">
                       M{mIdx + 1}
                     </span>
-                    <span className="truncate text-h4 flex-1" title={mod.title}>
+                    <span className="truncate text-sm font-bold" title={mod.title}>
                       {mod.title}
                     </span>
-                    <NodeBadge progress={progress} nodeId={mod.id} node={mod} />
                   </div>
-
 
                   {role === "INSTRUCTOR" && (
                     <RowMenu
@@ -808,7 +712,6 @@ export function CourseComposerSidebar({
                         { label: "Add Lesson", icon: Plus, onSelect: () => onAddLesson?.(mod.id) },
                         { label: "Add Content", icon: Plus, onSelect: () => onAddContentToModule?.(mod) },
                         { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToModule?.(mod) },
-                        { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToModule?.(mod) },
                         { separator: true },
                         { label: "Move Up", icon: ArrowUp, disabled: mIdx === 0, onSelect: () => handleMoveModule(mod, "up") },
                         { label: "Move Down", icon: ArrowDown, disabled: mIdx === modules.length - 1, onSelect: () => handleMoveModule(mod, "down") },
@@ -824,10 +727,10 @@ export function CourseComposerSidebar({
                   )}
                 </div>
 
-                {/* Module Children: Module Content + Module Quizzes + Module Assignments + Lessons */}
+                {/* Module Children: Module Content + Module Quizzes + Lessons */}
                 <Collapsible open={moduleOpen}>
                   <div className="ml-3.5 pl-3 py-0.5 space-y-0.5 border-l border-border/70">
-                    {/* Module-Level Content Cells (module-level quizzes are merged into this list) */}
+                    {/* Unified Module Items (contents, quizzes, and lessons sorted by creation/order) */}
                     <ParentContentRows
                       parent={{ parentType: "module", parentId: mod.id }}
                       isActive={composerMode === "module" && composeModuleId === mod.id}
@@ -841,71 +744,70 @@ export function CourseComposerSidebar({
                       onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, mod, null, null)}
                       onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, mod, null, null)}
                       role={role}
-                      progress={progress}
                       isDraftMode={isDraftMode}
                       draftContents={mod.contents}
-                    />
-
-                    {/* Module Assignments (when present) */}
-                    <AssignmentRows
-                      assignments={mod.assignments}
-                      composerMode={composerMode}
-                      composeAssignmentId={composeAssignmentId}
-                      onSelectAssignment={onSelectAssignment}
-                      onDeleteAssignment={onDeleteAssignment}
-                      role={role}
-                      mod={mod}
-                    />
-                    {modLessons.length === 0 ? (
-                      <div className="py-1.5 px-2 text-[10px] text-muted-foreground italic">
-                        No lessons in this module.
-                      </div>
-                    ) : (
-                      modLessons.map((lesson, lIdx) => {
+                      extraItems={modLessons.map((lesson, lIdx) => ({ ...lesson, kind: "lesson", lIdx }))}
+                      emptyMessage={modLessons.length === 0 ? "No lessons in this module." : null}
+                      renderExtraItem={(lesson) => {
+                        const lIdx = lesson.lIdx;
                         const lessonOpen = isLessonOpen(lesson.id);
                         const isLessonActive = composerMode === "lesson" && composeLessonId === lesson.id;
                         const lessonHasActiveChild = !isLessonActive && composeLessonId === lesson.id;
                         const lessonTopics = lesson.topics || [];
                         const lessonQuizzes = lesson.quizzes || [];
+                        const isCompleted = completedLessonIds.includes(lesson.id);
+                        const isLessonLocked = role === "STUDENT" && Boolean(lesson.locked);
 
                         return (
                           <div key={lesson.id}>
                             {/* Lesson Row */}
                             <div
-                              className={`group/lesson flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg transition-colors border-l-2 cursor-pointer ${
-                                isLessonActive
+                              className={`group/lesson flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg transition-colors border-l-2 ${
+                                isLessonLocked
+                                  ? "cursor-not-allowed opacity-50 border-transparent text-muted-foreground"
+                                  : "cursor-pointer"
+                              } ${
+                                isLessonLocked
+                                  ? ""
+                                  : isLessonActive
                                   ? "bg-primary/15 border-primary text-primary font-bold"
                                   : lessonHasActiveChild
                                   ? "bg-background/30 border-primary/30 text-foreground"
-                                  : "border-transparent text-foreground/85 hover:text-foreground hover:bg-background/50"
+                                  : "border-transparent text-foreground hover:text-slate-50 hover:bg-background/50"
                               }`}
-                              onClick={() => onSelectLesson(lesson.id)}
+                              onClick={() => !isLessonLocked && onSelectLesson(lesson.id)}
+                              title={isLessonLocked ? "Complete the previous lesson to unlock" : undefined}
                             >
                               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    toggleLesson(lesson.id);
+                                    if (!isLessonLocked) toggleLesson(lesson.id);
                                   }}
                                   className="p-0.5 text-muted-foreground hover:text-slate-50 transition cursor-pointer shrink-0"
                                   aria-label={lessonOpen ? "Collapse lesson" : "Expand lesson"}
+                                  disabled={isLessonLocked}
                                 >
                                   <ChevronRight
                                     size={12}
                                     className={`transition-transform duration-200 ${lessonOpen ? "rotate-90 text-primary" : ""}`}
                                   />
                                 </button>
-                                <BookOpen size={12} className={`shrink-0 ${isLessonActive ? "text-primary" : "text-muted-foreground"}`} />
-                                <span className="text-[8.5px] font-black text-slate-600 tabular-nums shrink-0">
+                                {isLessonLocked ? (
+                                  <Lock size={12} className="shrink-0 text-muted-foreground" />
+                                ) : isCompleted ? (
+                                  <CheckCircle2 size={12} className="shrink-0 text-emerald-700 dark:text-emerald-400" />
+                                ) : (
+                                  <BookOpen size={12} className={`shrink-0 ${isLessonActive ? "text-primary" : "text-muted-foreground"}`} />
+                                )}
+                                <span className="text-[10.5px] font-black text-muted-foreground tabular-nums shrink-0">
                                   L{lIdx + 1}
                                 </span>
-                                <span className="truncate text-body-small flex-1" title={lesson.title}>
+                                <span className="truncate text-[13px] leading-snug" title={lesson.title}>
                                   {lesson.title}
                                 </span>
-                                <NodeBadge progress={progress} nodeId={lesson.id} node={lesson} />
                               </div>
-
 
                               {role === "INSTRUCTOR" && (
                                 <RowMenu
@@ -915,7 +817,6 @@ export function CourseComposerSidebar({
                                     { label: "Add Topic", icon: Plus, onSelect: () => onAddTopic?.(lesson.id) },
                                     { label: "Add Content", icon: Plus, onSelect: () => onAddContentToLesson?.(lesson, mod) },
                                     { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToLesson?.(lesson, mod) },
-                                    { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToLesson?.(lesson, mod) },
                                     { separator: true },
                                     { label: "Move Up", icon: ArrowUp, disabled: lIdx === 0, onSelect: () => handleMoveLesson(mod, lesson.id, "up") },
                                     { label: "Move Down", icon: ArrowDown, disabled: lIdx === modLessons.length - 1, onSelect: () => handleMoveLesson(mod, lesson.id, "down") },
@@ -931,10 +832,10 @@ export function CourseComposerSidebar({
                               )}
                             </div>
 
-                            {/* Lesson Content + Lesson Quizzes + Lesson Assignments + Topics */}
+                            {/* Lesson Content + Lesson Quizzes + Topics */}
                             <Collapsible open={lessonOpen}>
                               <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-border/60">
-                                {/* Lesson-Level Content Cells (lesson-level quizzes are merged into this list) */}
+                                {/* Unified Lesson Items (contents, quizzes, and topics sorted by creation/order) */}
                                 <ParentContentRows
                                   parent={{ parentType: "lesson", parentId: lesson.id }}
                                   isActive={composerMode === "lesson" && composeLessonId === lesson.id}
@@ -948,28 +849,12 @@ export function CourseComposerSidebar({
                                   onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, mod, lesson, null)}
                                   onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, mod, lesson, null)}
                                   role={role}
-                                  progress={progress}
                                   isDraftMode={isDraftMode}
                                   draftContents={lesson.contents}
-                                />
-
-                                {/* Lesson Assignments (when present) */}
-                                <AssignmentRows
-                                  assignments={lesson.assignments}
-                                  composerMode={composerMode}
-                                  composeAssignmentId={composeAssignmentId}
-                                  onSelectAssignment={onSelectAssignment}
-                                  onDeleteAssignment={onDeleteAssignment}
-                                  role={role}
-                                  mod={mod}
-                                  lesson={lesson}
-                                />
-                                {lessonTopics.length === 0 ? (
-                                  <div className="py-1.5 px-2 text-[10px] text-muted-foreground italic">
-                                    No topics in this lesson.
-                                  </div>
-                                ) : (
-                                  lessonTopics.map((topic, tIdx) => {
+                                  extraItems={lessonTopics.map((topic, tIdx) => ({ ...topic, kind: "topic", tIdx }))}
+                                  emptyMessage={lessonTopics.length === 0 ? "No topics in this lesson." : null}
+                                  renderExtraItem={(topic) => {
+                                    const tIdx = topic.tIdx;
                                     const topicOpen = isTopicOpen(topic.id);
                                     const isTopicActive = composerMode === "topic" && composeTopicId === topic.id;
                                     const topicMeta = getTopicTypeMeta(topic.title);
@@ -983,7 +868,7 @@ export function CourseComposerSidebar({
                                           className={`group/topic flex items-center justify-between gap-1.5 pl-1 pr-1 py-1.5 rounded-lg cursor-pointer transition-colors ${
                                             isTopicActive
                                               ? "bg-primary/15 text-primary font-semibold"
-                                              : "text-foreground/75 hover:text-foreground hover:bg-background/40"
+                                              : "text-muted-foreground hover:text-slate-50 hover:bg-background/40"
                                           }`}
                                           onClick={() => onSelectTopic?.(topic.id, lesson.id, mod.id)}
                                         >
@@ -1002,26 +887,16 @@ export function CourseComposerSidebar({
                                                 className={`transition-transform duration-200 ${topicOpen ? "rotate-90 text-primary" : ""}`}
                                               />
                                             </button>
-                                            {topic.completed ? (
-                                              <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
-                                            ) : (
-                                              <TopicIcon size={12} className={`shrink-0 ${isTopicActive ? "text-primary" : topicMeta.color}`} />
-                                            )}
-                                            <span className="truncate text-body-small flex-1" title={topic.title}>
+                                            <TopicIcon size={12} className={`shrink-0 ${isTopicActive ? "text-primary" : topicMeta.color}`} />
+                                            <span className="truncate text-[13px] leading-snug" title={topic.title}>
                                               {displayTitle}
                                             </span>
-                                            <NodeBadge progress={progress} nodeId={topic.id} node={topic} />
-                                            {topic.completed ? (
-                                              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border uppercase shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
-                                                Done
-                                              </span>
-                                            ) : topicMeta.type !== "theory" && (
-                                              <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border uppercase shrink-0 ${topicMeta.bgClass}`}>
+                                            {topicMeta.type !== "theory" && (
+                                              <span className={`text-[11px] font-mono font-bold px-1.5 py-0.2 rounded border uppercase shrink-0 ${topicMeta.bgClass}`}>
                                                 {topicMeta.badge}
                                               </span>
                                             )}
                                           </div>
-
 
                                           {role === "INSTRUCTOR" && (
                                             <RowMenu
@@ -1030,7 +905,6 @@ export function CourseComposerSidebar({
                                                 { label: "Edit Topic", icon: Pencil, onSelect: () => onEditTopic?.(topic, lesson.id, mod.id) },
                                                 { label: "Add Content", icon: Plus, onSelect: () => onAddContentToTopic?.(topic.id, lesson.id, mod.id) },
                                                 { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToTopic?.(topic, lesson, mod) },
-                                                { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToTopic?.(topic, lesson, mod) },
                                                 { separator: true },
                                                 { label: "Move Up", icon: ArrowUp, disabled: tIdx === 0, onSelect: () => handleMoveTopic(lesson, topic.id, "up") },
                                                 { label: "Move Down", icon: ArrowDown, disabled: tIdx === lessonTopics.length - 1, onSelect: () => handleMoveTopic(lesson, topic.id, "down") },
@@ -1046,22 +920,8 @@ export function CourseComposerSidebar({
                                           )}
                                         </div>
 
-                                        {/* Topic Quizzes + Topic Assignments + Contents */}
+                                        {/* Topic Content Cells (topic-level quizzes are merged into this list) */}
                                         <Collapsible open={topicOpen}>
-                                          <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-border/60">
-                                            {/* Topic Assignments (when present) */}
-                                            <AssignmentRows
-                                              assignments={topic.assignments}
-                                              composerMode={composerMode}
-                                              composeAssignmentId={composeAssignmentId}
-                                              onSelectAssignment={onSelectAssignment}
-                                              onDeleteAssignment={onDeleteAssignment}
-                                              role={role}
-                                              mod={mod}
-                                              lesson={lesson}
-                                              topic={topic}
-                                            />
-                                          </div>
                                           <ParentContentRows
                                             parent={{ parentType: "topic", parentId: topic.id }}
                                             isActive={composerMode === "topic"}
@@ -1075,27 +935,28 @@ export function CourseComposerSidebar({
                                             onDuplicateQuiz={(quiz) => onDuplicateQuiz?.(quiz, mod, lesson, topic)}
                                             onDeleteQuiz={(e, quiz) => onDeleteQuiz?.(e, quiz, mod, lesson, topic)}
                                             role={role}
-                                            progress={progress}
                                             isDraftMode={isDraftMode}
                                             draftContents={topic.contents}
                                           />
                                         </Collapsible>
                                       </div>
                                     );
-                                  })
-                                )}
+                                  }}
+                                />
                               </div>
                             </Collapsible>
                           </div>
                         );
-                      })
-                    )}
+                      }}
+                    />
                   </div>
                 </Collapsible>
               </div>
             );
           })
         )}
+      </div>
+
       </div>
     </aside>
   );

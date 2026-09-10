@@ -31,7 +31,7 @@ export function CourseOverviewView({
     onContentAutoOpenConsumed?.();
   };
   return (
-    <div className={`notebook-cell rounded-2xl border border-border bg-background p-5 shadow-md ${isEditing ? "active-cell border-primary/50" : ""}`}>
+    <div className={`notebook-cell rounded-2xl border border-border bg-background p-3 sm:p-5 shadow-md ${isEditing ? "active-cell border-primary/50" : ""}`}>
       {/* Left Action Bar */}
       <div className="cell-actions-left mb-3">
         <div style={{ fontSize: "0.75rem", color: "var(--text-muted, #94a3b8)", textAlign: "center" }}>

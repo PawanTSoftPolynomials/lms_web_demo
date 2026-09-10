@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
-import { BookOpen, Clock, Users, Pencil, ArrowRight, Loader2 } from "lucide-react";
+import { BookOpen, Clock, Users, Pencil, ArrowRight } from "lucide-react";
 
 import ActionMenu from "@/components/menus/ActionMenu";
 import { useConfirm, useAlert } from "@/context/ConfirmContext";
 import { useDeleteCourse } from "@/hooks/queries/instructor/useDeleteCourse";
-import { exportCourse } from "@/services/course.service";
 import { getDisplayUrl } from "@/lib/blob";
 import { useToast } from "@/components/ui/ToastProvider";
 
@@ -25,52 +24,17 @@ const LEVEL_STYLE = {
 };
 
 /** My Courses grid card — banner, meta row, tag pills, edit/view actions, and a
- *  kebab menu for export/delete. */
+ *  kebab menu for delete. */
 export default function CourseGridCard({ course }) {
   const router = useRouter();
   const confirm = useConfirm();
   const showAlert = useAlert();
   const { showToast } = useToast();
-  const [exporting, setExporting] = useState(false);
 
   const deleteCourseMutation = useDeleteCourse();
 
   const statusStyle = STATUS_STYLE[course.status] || STATUS_STYLE.DRAFT;
   const studentsCount = course._count?.enrollments ?? 0;
-
-  const goTo = (path) => (e) => {
-    e.stopPropagation();
-    router.push(path);
-  };
-
-  const handleExport = async () => {
-    if (exporting) return;
-    setExporting(true);
-    try {
-      const res = await exportCourse(course.id);
-      const blob = new Blob([res.data], { type: "application/zip" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-
-      let filename = `course-${course.id}.zip`;
-      const cd = res.headers["content-disposition"];
-      if (cd) {
-        const match = cd.match(/filename="?([^"]+)"?/);
-        if (match && match[1]) filename = match[1];
-      }
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Export failed:", err);
-      alert(err?.response?.data?.message || err?.message || "Failed to export course ZIP.");
-    } finally {
-      setExporting(false);
-    }
-  };
 
   const handleDelete = async () => {
     const confirmed = await confirm({
@@ -99,7 +63,6 @@ export default function CourseGridCard({ course }) {
   };
 
   const menuItems = [
-    { label: exporting ? "Exporting…" : "Export ZIP", onClick: handleExport },
     { label: "Delete Course", onClick: handleDelete },
   ];
 
@@ -162,20 +125,22 @@ export default function CourseGridCard({ course }) {
         </div>
 
         <div className="mt-auto pt-3 border-t border-border flex items-center justify-between">
-          <button
-            onClick={goTo(`/instructor/courses/edit/${course.id}`)}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition"
+          <Link
+            href={`/instructor/courses/edit/${course.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex min-h-11 items-center gap-1.5 text-[11px] font-medium text-link hover:text-link-hover hover:underline transition"
           >
             <Pencil size={11} />
             Edit
-          </button>
-          <button
-            onClick={goTo(`/instructor/courses/${course.id}`)}
-            className="inline-flex items-center gap-1 text-[11px] font-bold text-primary transition hover:opacity-80"
+          </Link>
+          <Link
+            href={`/instructor/courses/${course.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex min-h-11 items-center gap-1 text-[11px] font-semibold text-link hover:text-link-hover hover:underline transition"
           >
             View Course
             <ArrowRight size={13} />
-          </button>
+          </Link>
         </div>
       </div>
 

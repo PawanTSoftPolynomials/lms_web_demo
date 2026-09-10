@@ -79,29 +79,43 @@ export function CellShell({
   // layout, fades in on hover, and — since touch has no hover — also stays
   // visible while `isSelected` or actively `edit`ing.
   const showControls = isSelected || mode === "edit";
+  // Reveal-on-hover is gated behind `(hover: hover)` so it only applies to
+  // devices that actually have a pointer. Unconditionally, these controls were
+  // opacity-0 AND pointer-events-none on touch, where no hover ever fires —
+  // which left a phone with no way to edit, duplicate or delete a cell at all.
+  const HOVER_ONLY_HIDDEN =
+    "[@media(hover:hover)]:opacity-0 [@media(hover:hover)]:pointer-events-none";
   const hoverVisible = cn(
-    "opacity-0 pointer-events-none transition-opacity duration-150",
-    "group-hover:opacity-100 group-hover:pointer-events-auto",
+    "transition-opacity duration-150",
+    HOVER_ONLY_HIDDEN,
+    "[@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-hover:pointer-events-auto",
     showControls && "opacity-100 pointer-events-auto"
   );
   const addControlsVisible = cn(
-    "opacity-0 pointer-events-none transition-opacity duration-150",
-    "group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto",
+    "transition-opacity duration-150",
+    HOVER_ONLY_HIDDEN,
+    "[@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-hover:pointer-events-auto",
+    "[@media(hover:hover)]:group-focus-within:opacity-100 [@media(hover:hover)]:group-focus-within:pointer-events-auto",
     mode === "edit" && "opacity-100 pointer-events-auto"
   );
 
   return (
     <div
       className={cn(
-        "group relative flex items-start gap-3 transition-all duration-200",
+        // Stacks on mobile: side-by-side, the drag handle and index badge take
+        // ~44px of a phone-width column that has already been narrowed by the
+        // page, the overview card and this cell's own padding. What is left
+        // over is too narrow to render a video or an image in, so the badge
+        // row moves above the body below `sm` and the body gets the full width.
+        "group relative flex flex-col sm:flex-row items-stretch sm:items-start gap-2 sm:gap-3 transition-all duration-200",
         isTextOrHeading && mode === "view"
           ? "rounded-xl border border-transparent bg-transparent hover:border-border/80 hover:bg-background/40 p-2.5 sm:p-3.5"
           // Hover previously set `border-transparent/80`, which made the border
           // disappear on hover instead of strengthening it.
-          : "rounded-2xl border border-border bg-background/70 p-4 sm:p-5 shadow-sm hover:border-primary/40 hover:bg-background/90",
+          : "rounded-2xl border border-border bg-background/70 p-3 sm:p-5 shadow-sm hover:border-primary/40 hover:bg-background/90",
         // Edit focus ring follows --primary rather than a hardcoded orange, so
         // it stays correct in dark mode (where primary is green).
-        mode === "edit" && "rounded-2xl border-primary/50 bg-background/95 ring-2 ring-primary/50 p-4 sm:p-5"
+        mode === "edit" && "rounded-2xl border-primary/50 bg-background/95 ring-2 ring-primary/50 p-3 sm:p-5"
       )}
     >
       {/* Add Above — top center, fades in over the block's top edge */}
@@ -113,7 +127,7 @@ export function CellShell({
             onAddAbove();
           }}
           className={cn(
-            "absolute -top-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[10px] font-bold text-muted-foreground shadow-md transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground cursor-pointer",
+            "absolute -top-3 left-1/2 z-10 hidden md:flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[10px] font-bold text-muted-foreground shadow-md transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground cursor-pointer",
             addControlsVisible
           )}
           title="Add block above"
@@ -124,10 +138,12 @@ export function CellShell({
       )}
 
       {/* Drag Handle & Type Badge */}
-      <div className="flex items-center gap-2 shrink-0 pt-0.5">
+      <div className="flex items-center gap-2 shrink-0 sm:pt-0.5">
+        {/* Dragging is a pointer gesture with no touch equivalent here, so the
+            handle is desktop-only rather than occupying a row on a phone. */}
         <div
           className={cn(
-            "flex h-8 w-4 items-center justify-center text-muted-foreground cursor-grab active:cursor-grabbing transition",
+            "hidden sm:flex h-8 w-4 items-center justify-center text-muted-foreground cursor-grab active:cursor-grabbing transition",
             hoverVisible
           )}
           title="Drag to reorder"
@@ -137,9 +153,13 @@ export function CellShell({
 
         <div
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-lg font-extrabold text-xs border shadow-sm shrink-0 transition-opacity",
+            "flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-lg font-extrabold text-xs border shadow-sm shrink-0 transition-opacity",
             badgeClass,
-            isTextOrHeading && mode === "view" && !showControls ? "opacity-0 group-hover:opacity-100" : "opacity-100"
+            // Same hover trap as the action controls: on touch this made the
+            // type badge permanently invisible.
+            isTextOrHeading && mode === "view" && !showControls
+              ? cn(HOVER_ONLY_HIDDEN, "[@media(hover:hover)]:group-hover:opacity-100")
+              : "opacity-100"
           )}
         >
           {badgeText ? (
@@ -151,11 +171,15 @@ export function CellShell({
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0 space-y-2">
-        {/* Header Metadata — shown for named/file blocks OR when editing */}
+      <div className="flex-1 min-w-0 space-y-1.5 sm:space-y-2">
+        {/* Header Metadata — shown for named/file blocks OR when editing.
+            Tighter on mobile so the cell's actual content, not its chrome,
+            gets the vertical space. */}
         {(title || !isTextOrHeading || mode === "edit") && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-2">
-            <div className="min-w-0">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border/60 pb-1.5 sm:pb-2">
+            {/* flex-1 so the title claims the leftover space instead of being
+                squeezed by the shrink-0 action cluster next to it. */}
+            <div className="min-w-0 flex-1">
               <h4 className="truncate text-xs font-bold text-foreground">
                 {title || (isTextOrHeading ? "Text Block" : "Untitled Block")}
               </h4>
@@ -165,7 +189,13 @@ export function CellShell({
             </div>
 
             {/* Header Actions (PDF Navigation, Zoom, Download) & Block Action Menu */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap">
+            {/* Not shrink-0 below md. The PDF and presentation viewers inject
+                their whole control bar here (~291px of page nav, zoom and
+                Fit), and a shrink-0 wrapper sizes to that content instead of
+                to the column — which is what pushed the page to 411px wide at
+                a 320px viewport. Letting it shrink gives its flex-wrap a
+                constraint to wrap against. */}
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 md:shrink-0 flex-wrap justify-end">
               {headerActions}
 
               <div className={cn("flex items-center shrink-0", hoverVisible)}>
@@ -177,14 +207,36 @@ export function CellShell({
                       aria-label="Block Settings & Actions"
                       title="Settings & Actions"
                     >
-                      <Settings size={14} />
+                      {/* The block menu reads as a ⋮ on mobile, where it is the
+                          only route to these actions; the desktop gear is
+                          left as-is. */}
+                      <MoreVertical size={14} className="md:hidden" />
+                      <Settings size={14} className="hidden md:block" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" collisionPadding={8}>
                     <DropdownMenuItem onSelect={onEdit} disabled={mode === "edit"}>
                       <Pencil className="size-3.5" />
                       Edit Block
                     </DropdownMenuItem>
+
+                    {/* Below md the floating Add Above/Below controls are
+                        hidden (they clutter and overlap a narrow column), so
+                        the same handlers are exposed here instead. Same
+                        insertion flow, different entry point. */}
+                    {onAddAbove && (
+                      <DropdownMenuItem className="md:hidden" onSelect={() => onAddAbove()}>
+                        <Plus className="size-3.5" />
+                        Add Above
+                      </DropdownMenuItem>
+                    )}
+                    {onAddBelow && (
+                      <DropdownMenuItem className="md:hidden" onSelect={() => onAddBelow()}>
+                        <Plus className="size-3.5" />
+                        Add Below
+                      </DropdownMenuItem>
+                    )}
+
                     {onSettingsSelect && (
                       <DropdownMenuItem onSelect={onSettingsSelect}>
                         <Settings className="size-3.5" />
@@ -223,14 +275,27 @@ export function CellShell({
                   aria-label="Block Settings & Actions"
                   title="Settings & Actions"
                 >
-                  <Settings size={12} />
+                  <MoreVertical size={12} className="md:hidden" />
+                  <Settings size={12} className="hidden md:block" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" collisionPadding={8}>
                 <DropdownMenuItem onSelect={onEdit}>
                   <Pencil className="size-3.5" />
                   Edit Block
                 </DropdownMenuItem>
+                {onAddAbove && (
+                  <DropdownMenuItem className="md:hidden" onSelect={() => onAddAbove()}>
+                    <Plus className="size-3.5" />
+                    Add Above
+                  </DropdownMenuItem>
+                )}
+                {onAddBelow && (
+                  <DropdownMenuItem className="md:hidden" onSelect={() => onAddBelow()}>
+                    <Plus className="size-3.5" />
+                    Add Below
+                  </DropdownMenuItem>
+                )}
                 {onSettingsSelect && (
                   <DropdownMenuItem onSelect={onSettingsSelect}>
                     <Settings className="size-3.5" />
@@ -269,7 +334,7 @@ export function CellShell({
             onAddBelow();
           }}
           className={cn(
-            "absolute -bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[10px] font-bold text-muted-foreground shadow-md transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground cursor-pointer",
+            "absolute -bottom-3 left-1/2 z-10 hidden md:flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[10px] font-bold text-muted-foreground shadow-md transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground cursor-pointer",
             addControlsVisible
           )}
           title="Add block below"

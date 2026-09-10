@@ -155,7 +155,7 @@ export default function CourseContentAccordion({
     <div className="rounded-3xl border border-border/80 bg-[#0d0e16]/60 backdrop-blur-md shadow-xl overflow-hidden">
       <div className={`p-4 sm:p-5 ${collapsed ? "" : "border-b border-border/60"}`}>
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-xs font-black uppercase tracking-widest text-foreground">
+          <h3 className="text-sm font-black uppercase tracking-widest text-foreground">
             Course Content
           </h3>
           <div className="flex items-center gap-2">

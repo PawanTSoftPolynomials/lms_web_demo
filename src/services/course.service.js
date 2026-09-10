@@ -30,6 +30,20 @@ export const getCourseStatusCounts = async () => {
 };
 
 /**
+ * Every course on the platform, for the admin Home review queue.
+ *
+ * getCourses() above hits the same endpoint but inherits its default
+ * limit of 10, so counting "published courses with no valid price" from it
+ * would silently only ever inspect the first ten. The queue has to see the
+ * whole catalogue to be true, so the limit is raised explicitly here — the
+ * same approach getStoreCourses() takes for the student Store.
+ */
+export const getAllCoursesForReview = async () => {
+    const { data } = await api.get("/courses?limit=500");
+    return data.data ?? [];
+};
+
+/**
  * Get instructor's courses for the My Courses table/grid — server-side
  * search, filter, sort, and pagination. Kept separate from getCourses()
  * above since that function is used everywhere expecting a flat unpaginated
@@ -122,14 +136,6 @@ export const deleteCourse = async (
     );
 
     return data;
-};
-
-/**
- * Validate Course For Publish
- */
-export const validateCoursePublish = async (courseId) => {
-    const { data } = await api.get(`/courses/${courseId}/publish-validation`);
-    return data.data ?? data;
 };
 
 /**

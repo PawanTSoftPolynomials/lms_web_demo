@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Save, Bell, User, Globe, Loader2 } from 'lucide-react';
 import { useInstructorProfile, useUpdateInstructorProfile } from '@/hooks/queries/instructor/useProfile';
@@ -22,10 +23,18 @@ const DEFAULT_NOTIFICATIONS = {
   weeklyDigest: false
 };
 
-export default function InstructorSettingsPage() {
+function InstructorSettingsContent() {
   const { user } = useAuth();
   const { data: profile, isLoading } = useInstructorProfile();
   const updateProfile = useUpdateInstructorProfile();
+
+  // Where the back link goes depends on how the user got here. Only the
+  // profile page passes ?from=profile; every other entry point falls back to
+  // the dashboard.
+  const searchParams = useSearchParams();
+  const cameFromProfile = searchParams.get('from') === 'profile';
+  const backHref = cameFromProfile ? '/instructor/profile' : '/instructor/dashboard';
+  const backLabel = cameFromProfile ? 'Back to Profile' : 'Back to Dashboard';
 
   const [successMsg, setSuccessMsg] = useState('');
   const [notifications, setNotifications] = useState(DEFAULT_NOTIFICATIONS);
@@ -69,8 +78,8 @@ export default function InstructorSettingsPage() {
             Configure your workspace and notification preferences
           </p>
         </div>
-        <Link href="/instructor/dashboard" className="text-[10px] font-black text-muted-foreground hover:text-slate-350 flex items-center gap-1">
-          &larr; Back to Dashboard
+        <Link href={backHref} className="text-[10px] font-black text-muted-foreground hover:text-slate-350 flex items-center gap-1">
+          &larr; {backLabel}
         </Link>
       </div>
 
@@ -156,7 +165,7 @@ export default function InstructorSettingsPage() {
             <Globe size={13} className="text-primary" /> System Preferences
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-[9.5px] font-black text-muted-foreground uppercase tracking-wider">Interface Language</label>
               <select
@@ -182,17 +191,6 @@ export default function InstructorSettingsPage() {
                 <option value="GMT-05:00">UTC-5:00 (EST)</option>
               </select>
             </div>
-
-            <div className="space-y-1">
-              <label className="text-[9.5px] font-black text-muted-foreground uppercase tracking-wider">Workspace Theme</label>
-              <select
-                value="Dark"
-                disabled
-                className="w-full bg-background border border-border text-xs px-3.5 py-2.5 rounded-xl text-muted-foreground cursor-not-allowed outline-none"
-              >
-                <option value="Dark">Enterprise Dark (Locked)</option>
-              </select>
-            </div>
           </div>
         </div>
 
@@ -212,5 +210,19 @@ export default function InstructorSettingsPage() {
       )}
 
     </div>
+  );
+}
+
+export default function InstructorSettingsPage() {
+  // useSearchParams above needs a Suspense boundary, same as the Student
+  // Directory page.
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen text-foreground flex items-center justify-center bg-background">
+        <Loader2 className="animate-spin text-muted-foreground" size={24} />
+      </div>
+    }>
+      <InstructorSettingsContent />
+    </Suspense>
   );
 }

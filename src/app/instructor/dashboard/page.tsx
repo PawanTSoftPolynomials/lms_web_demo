@@ -7,19 +7,15 @@ import { TooltipProvider } from "@/components/ui/shadcn/tooltip";
 import { InstructorKPIs } from "@/components/instructor/dashboard/InstructorKPIs";
 import { CourseOverviewTable } from "@/components/instructor/dashboard/CourseOverviewTable";
 import { RecentSubmissionsList } from "@/components/instructor/dashboard/RecentSubmissionsList";
-import { UpcomingEventsPanel } from "@/components/instructor/dashboard/UpcomingEventsPanel";
 import { DashboardCalendarWidget } from "@/components/instructor/dashboard/DashboardCalendarWidget";
 import { RecentActivitiesSidebar } from "@/components/instructor/dashboard/RecentActivitiesSidebar";
-import { BatchPerformanceOverviewWidget } from "@/components/instructor/dashboard/BatchPerformanceOverviewWidget";
 
 import {
   useDashboardStats,
-  useUpcomingClasses,
-  useRecentActivities,
   useCourseProgressOverview,
+  useRecentActivities,
   useRecentSubmissions,
   useGradeDistribution,
-  useEngagementAnalytics,
 } from "@/hooks/queries/instructor/useDashboardHome";
 
 // Dynamically imported so recharts is bundled once via this shared
@@ -37,12 +33,10 @@ export default function InstructorDashboardHomePage() {
   // returns every module -> lesson -> topic for all of the instructor's courses
   // with no pagination, making it the heaviest payload on the page.
   const stats = useDashboardStats();
-  const schedule = useUpcomingClasses();
-  const activities = useRecentActivities();
   const courses = useCourseProgressOverview();
+  const activities = useRecentActivities();
   const submissions = useRecentSubmissions();
   const grades = useGradeDistribution();
-  const engagement = useEngagementAnalytics();
 
   // Extract needed KPIs from the stats payload
   const totalCourses = stats.data?.find(s => s.id === "active-courses")?.value || 0;
@@ -50,20 +44,10 @@ export default function InstructorDashboardHomePage() {
   const pendingReviews = stats.data?.find(s => s.id === "pending-reviews")?.value || 0;
   const activeQuizzes = stats.data?.find(s => s.id === "active-quizzes")?.value || 0;
 
-  // Share of the instructor's students who were active on a typical day in
-  // the series — real signal (daily active students / total students), not
-  // a fabricated percentage.
-  const engagementData = engagement.data ?? [];
-  const avgActiveStudents = engagementData.length > 0
-    ? engagementData.reduce((acc, point) => acc + (point.dailyActiveStudents || 0), 0) / engagementData.length
-    : 0;
-  const totalStudentsNum = Number(totalStudents);
-  const avgEngagement = totalStudentsNum > 0 ? Math.round((avgActiveStudents / totalStudentsNum) * 100) : 0;
-
   return (
     <TooltipProvider>
       {/* ============================= UNIFIED RESPONSIVE LAYOUT ============================= */}
-      <div className="-m-3 sm:-m-6 mt-0 sm:mt-0 -mx-4 sm:-mx-12 md:-mx-16 min-h-[calc(100vh-3.5rem)] bg-background p-3 sm:p-6 pt-0 sm:pt-0">
+      <div className="-m-3 sm:-m-6 sm:-mt-12 md:-mt-16 -mx-4 sm:-mx-12 md:-mx-16 min-h-[calc(100vh-3.5rem)] bg-background p-3 sm:p-6 pt-0 sm:pt-0">
         <div className="flex flex-col max-w-[1600px] mx-auto">
 
           <div className="mt-4 sm:mt-[3.2px] mb-[1.6px]">
@@ -72,7 +56,6 @@ export default function InstructorDashboardHomePage() {
               studentsCount={Number(totalStudents)}
               pendingAssignments={Number(pendingReviews)}
               activeQuizzes={Number(activeQuizzes)}
-              engagementPercentage={Number(avgEngagement)}
             />
           </div>
 
@@ -97,17 +80,10 @@ export default function InstructorDashboardHomePage() {
                   isLoading={grades.isLoading}
                 />
               </div>
-
-              <BatchPerformanceOverviewWidget />
             </div>
 
             {/* Right Sidebar Column (occupies 4/12 on large screens) */}
             <div className="xl:col-span-4 flex flex-col gap-4 xl:gap-[4.8px]">
-              <UpcomingEventsPanel
-                events={schedule.data?.upcoming || []}
-                isLoading={schedule.isLoading}
-              />
-
               <DashboardCalendarWidget />
 
               <RecentActivitiesSidebar

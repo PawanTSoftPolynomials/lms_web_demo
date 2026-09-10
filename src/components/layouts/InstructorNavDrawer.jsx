@@ -32,7 +32,7 @@ function isSubtreeActive(pathname, item) {
 // One row in the drawer's nav tree — a plain link for leaf items, or an
 // expand/collapse group for items with children (mirrors the desktop
 // QuickActionStrip's dropdowns, see PRIMARY_NAV_ITEMS). Recurses for the one
-// extra nesting level "Work" uses under "Learning". Starts expanded when the
+// extra nesting level "Work" uses under "Teaching". Starts expanded when the
 // current page lives inside it, so the active section is visible on open.
 function DrawerNavItem({ item, pathname, depth = 0, onNavigate }) {
   const active = isSubtreeActive(pathname, item);

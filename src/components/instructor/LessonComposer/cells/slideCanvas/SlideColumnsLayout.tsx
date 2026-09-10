@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { Minus, Plus } from "lucide-react";
 
 import { renderColumnContent } from "./renderColumnContent";
@@ -22,28 +23,83 @@ interface SlideColumnsViewProps {
 
 /**
  * Read-only renderer for one slide — a fixed 16:9 presentation canvas, not a
- * scrollable webpage section. `container-type: size` on the frame (see the
- * `.slide-frame` rule below) locks it to the aspect-ratio box regardless of
- * content length; content that doesn't fit scrolls *inside* the frame
- * (`.slide-inner`'s `overflow-y: auto`) instead of stretching the frame
- * taller — a real slide's shape never changes based on what's on it.
+ * scrollable webpage section. A real slide's shape never changes based on
+ * what is on it, so content that doesn't fit scrolls *inside* the canvas
+ * (`.slide-inner`'s `overflow-y: auto`) rather than stretching it taller.
  *
- * Typography and image sizing are driven by CSS container query units
- * (`cqw`/`cqh`) scoped to `.slide-frame`, so text and images scale with the
- * *rendered slide's* own box — not the viewport — exactly like a PPT slide
- * shrinks as one unit on a smaller screen instead of reflowing into a
- * stacked document. Columns with no content are dropped entirely (no
- * placeholder, no reserved grid track) rather than shown as empty boxes.
+ * Two layers do the work. The **stage** is always `SLIDE_DESIGN_WIDTH` wide
+ * and carries the container context, so every `cqw`/`cqh` below resolves
+ * against that fixed canvas and the layout is byte-identical at every
+ * viewport. The **frame** is the responsive box the stage is drawn into, and
+ * a transform scales the stage to fit it.
+ *
+ * Scaling rather than restyling is what makes this work on a phone: a
+ * column's content is arbitrary HTML that often carries its own intrinsic
+ * pixel widths, and no amount of font-size adjustment shrinks those. Scaling
+ * the whole stage moves them together, exactly as a deck renders a
+ * thumbnail — nothing reflows, nothing is hidden, nothing is cropped.
+ *
+ * Columns with no content are dropped entirely (no placeholder, no reserved
+ * grid track) rather than shown as empty boxes.
  */
+/** The slide is authored against this width, the way a deck has a fixed canvas. */
+const SLIDE_DESIGN_WIDTH = 1000;
+
 export function SlideColumnsView({ title, columns, backgroundColor = DEFAULT_SLIDE_BACKGROUND }: SlideColumnsViewProps) {
   const visibleColumns = columns.filter((c) => c.content && c.content.trim());
   const hasTitle = Boolean(title && title.trim());
   const isEmpty = !hasTitle && visibleColumns.length === 0;
 
+  // A column's content is arbitrary HTML, and it routinely carries its own
+  // intrinsic pixel widths — the coloured boxes of a timeline slide, say.
+  // Restyling text cannot shrink those, so instead the slide is laid out once
+  // at its design width and the whole stage is then scaled to whatever room
+  // the frame has, exactly as a deck renders a thumbnail. `designWidth` grows
+  // past the canvas when the content is genuinely wider than it, so an
+  // oversized slide is fitted rather than cropped.
+  const frameRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [designWidth, setDesignWidth] = useState(SLIDE_DESIGN_WIDTH);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+
+    const measure = () => {
+      // scrollWidth is in the stage's own pre-transform coordinates, so it is
+      // unaffected by the scale we are about to apply and cannot feed back.
+      const contentWidth = stageRef.current?.scrollWidth ?? 0;
+      const nextDesign = Math.max(SLIDE_DESIGN_WIDTH, contentWidth);
+      const frameWidth = frame.clientWidth;
+
+      setDesignWidth(nextDesign);
+      setScale(frameWidth > 0 ? frameWidth / nextDesign : 1);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, [title, columns]);
+
   return (
-    <div className="slide-frame mx-auto w-full max-w-[1000px] aspect-video overflow-hidden rounded-xl border border-border shadow-inner relative" style={{ backgroundColor }}>
+    <div
+      ref={frameRef}
+      className="slide-frame mx-auto w-full max-w-[1000px] aspect-video overflow-hidden rounded-xl border border-border shadow-inner relative"
+      style={{ backgroundColor }}
+    >
       <style>{`
-        .slide-frame {
+        /* The container context lives on the stage, not the frame. The stage is
+           always the design size, so every cqw/cqh below resolves against that
+           fixed canvas and the layout is identical at every viewport — the
+           transform alone changes how big it is drawn. Putting it on the frame
+           would shrink the type by the frame's size and then scale it again. */
+        .slide-stage {
+          position: absolute;
+          top: 0;
+          left: 0;
+          transform-origin: top left;
           container-type: size;
           container-name: slide;
         }
@@ -149,21 +205,31 @@ export function SlideColumnsView({ title, columns, backgroundColor = DEFAULT_SLI
           Empty slide.
         </div>
       ) : (
-        <div className="slide-inner">
-          {hasTitle && <h3 className="slide-title">{title}</h3>}
+        <div
+          ref={stageRef}
+          className="slide-stage"
+          style={{
+            width: designWidth,
+            height: designWidth * (9 / 16),
+            transform: `scale(${scale})`,
+          }}
+        >
+          <div className="slide-inner">
+            {hasTitle && <h3 className="slide-title">{title}</h3>}
 
-          {visibleColumns.length > 0 && (
-            <div className="slide-body" style={{ gridTemplateColumns: `repeat(${visibleColumns.length}, minmax(0, 1fr))` }}>
-              {visibleColumns.map((column) => (
-                <div key={column.id} className="slide-column">
-                  <div
-                    className="slide-prose"
-                    dangerouslySetInnerHTML={{ __html: renderColumnContent(column) }}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+            {visibleColumns.length > 0 && (
+              <div className="slide-body" style={{ gridTemplateColumns: `repeat(${visibleColumns.length}, minmax(0, 1fr))` }}>
+                {visibleColumns.map((column) => (
+                  <div key={column.id} className="slide-column">
+                    <div
+                      className="slide-prose"
+                      dangerouslySetInnerHTML={{ __html: renderColumnContent(column) }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

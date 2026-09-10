@@ -153,7 +153,7 @@ export function CourseStructureSidebar({
                         <button
                           type="button"
                           onClick={(e) => e.stopPropagation()}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-slate-50 rounded transition cursor-pointer"
+                          className="[@media(hover:hover)]:opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-slate-50 rounded transition cursor-pointer"
                         >
                           <MoreVertical size={13} />
                         </button>
@@ -238,7 +238,7 @@ export function CourseStructureSidebar({
                                   <button
                                     type="button"
                                     onClick={(e) => e.stopPropagation()}
-                                    className="opacity-0 group-hover:opacity-100 p-0.5 text-muted-foreground hover:text-slate-50 rounded transition cursor-pointer"
+                                    className="[@media(hover:hover)]:opacity-0 group-hover:opacity-100 p-0.5 text-muted-foreground hover:text-slate-50 rounded transition cursor-pointer"
                                   >
                                     <MoreVertical size={12} />
                                   </button>

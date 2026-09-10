@@ -84,6 +84,11 @@ export default function EditCoursePage() {
                 updateCourseMutation.isPending
             }
             onSubmit={handleSubmit}
+            onCancel={() =>
+                router.push(
+                    `/instructor/courses/${courseId}`
+                )
+            }
             submitError={submitError}
         />
     );

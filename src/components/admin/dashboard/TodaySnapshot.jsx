@@ -1,10 +1,15 @@
 "use client";
 
-import { UserPlus, Layers, BookOpenCheck, Award } from "lucide-react";
-
+/**
+ * What moved on the platform today.
+ *
+ * These four numbers are read-only indicators, so they are plain figures on the
+ * card rather than four bordered, tinted boxes — a border reads as a button,
+ * and nothing here is clickable.
+ */
 export function TodaySnapshot({ snapshot, isLoading }) {
   if (isLoading) {
-    return <div className="h-48 animate-pulse bg-muted/50 rounded-2xl"></div>;
+    return <div className="h-full min-h-[13rem] animate-pulse rounded-2xl bg-muted" />;
   }
 
   const {
@@ -15,30 +20,37 @@ export function TodaySnapshot({ snapshot, isLoading }) {
   } = snapshot ?? {};
 
   const items = [
-    { label: "New Users", value: newUsersToday, icon: UserPlus, color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" },
-    { label: "New Enrollments", value: newEnrollmentsToday, icon: Layers, color: "text-primary", bg: "bg-primary/10", border: "border-primary/20" },
-    { label: "Courses Published", value: coursesPublishedToday, icon: BookOpenCheck, color: "text-sky-400", bg: "bg-sky-500/10", border: "border-sky-500/20" },
-    { label: "Certificates Issued", value: certificatesIssuedToday, icon: Award, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+    { label: "New users", value: newUsersToday },
+    { label: "New enrollments", value: newEnrollmentsToday },
+    { label: "Courses published", value: coursesPublishedToday },
+    { label: "Certificates issued", value: certificatesIssuedToday },
   ];
 
+  const quiet = items.every((i) => i.value === 0);
+
   return (
-    <div className="rounded-2xl bg-card border border-border p-5 h-full">
-      <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
-        <h3 className="text-sm font-black text-foreground">Today&apos;s Snapshot</h3>
-        <span className="text-[9px] text-muted-foreground font-bold">
+    <section className="flex h-full flex-col rounded-2xl border border-card-border bg-card p-5">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-sm font-semibold tracking-tight text-foreground">Today</h2>
+        <span className="shrink-0 text-xs text-muted-foreground">
           {new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })}
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {items.map((item) => (
-          <div key={item.label} className={`rounded-xl border ${item.border} ${item.bg} p-3`}>
-            <item.icon size={14} className={item.color} />
-            <p className="text-lg font-black text-foreground leading-none mt-2">{item.value}</p>
-            <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider mt-1">{item.label}</p>
-          </div>
-        ))}
-      </div>
-    </div>
+      {quiet ? (
+        <p className="mt-6 text-sm text-muted-foreground">Nothing has happened yet today.</p>
+      ) : (
+        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-4">
+          {items.map((item) => (
+            <div key={item.label}>
+              <dd className="text-xl font-semibold leading-none tracking-tight text-foreground">
+                {item.value}
+              </dd>
+              <dt className="mt-1.5 text-[11px] leading-snug text-muted-foreground">{item.label}</dt>
+            </div>
+          ))}
+        </dl>
+      )}
+    </section>
   );
 }

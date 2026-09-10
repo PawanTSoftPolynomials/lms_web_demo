@@ -312,7 +312,12 @@ const useRawResults = () =>
       // Assuming getResults from results.service.js handles backend API
       const { getResults } = await import("@/services/results.service");
       const response = await getResults({});
-      return asArray<RawResult>(Array.isArray(response) ? response : response?.data ?? []);
+      // /results answers with { summary, studentResults, ... }; the graded rows
+      // live under studentResults. The other branches keep older shapes working.
+      const rows = Array.isArray(response)
+        ? response
+        : response?.studentResults ?? response?.data ?? [];
+      return asArray<RawResult>(rows);
     },
     ...defaultQueryOptions,
   });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, Phone, Video, MoreVertical, Trash2, Eraser } from "lucide-react";
+import { ArrowLeft, MoreVertical, Trash2, Eraser } from "lucide-react";
 
 import useChat from "@/hooks/useChat";
 import useMessages from "@/features/chat/hooks/useMessages";
@@ -141,14 +141,6 @@ export default function ChatConversation() {
         </div>
 
         <div className="flex gap-2 relative">
-
-          <button className="rounded-lg p-2 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-            <Phone size={18} />
-          </button>
-
-          <button className="rounded-lg p-2 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-            <Video size={18} />
-          </button>
 
           <button
             onClick={() => setShowMenu((prev) => !prev)}

@@ -171,7 +171,7 @@ export const AuthProvider = ({ children }) => {
           user.role === "ADMIN"
             ? "/admin/dashboard"
             : user.role === "INSTRUCTOR"
-            ? "/instructor/dashboard"
+            ? "/instructor/courses"
             : "/student/my-courses";
         router.replace(returnTo || defaultDashboard);
       }

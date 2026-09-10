@@ -62,7 +62,13 @@ export default function PdfViewer({
         // Measure exact available inner width excluding outer border/padding
         const width = containerRef.current.clientWidth;
         const padding = width < 640 ? 12 : 24;
-        setContainerWidth(Math.max(width - padding, 260));
+        const available = Math.max(width - padding, 0);
+        // The floor guards only the pre-layout case where clientWidth is
+        // still 0. It used to apply unconditionally, which meant a viewer
+        // sitting in a container narrower than 260px rendered its page wider
+        // than its own box and pushed the whole page sideways — exactly the
+        // horizontal overflow this must not cause.
+        setContainerWidth(available > 0 ? available : 260);
       }
     };
 
@@ -280,7 +286,9 @@ export default function PdfViewer({
   return (
     <div
       ref={containerRef}
-      className={`flex flex-col w-full ${
+      /* min-w-0 / max-w-full keep the viewer inside its flex parent rather
+         than letting the rendered page size it. */
+      className={`flex flex-col w-full min-w-0 max-w-full ${
         !hideToolbar
           ? "rounded-2xl border border-border bg-[#0B101D] shadow-2xl overflow-hidden"
           : ""
@@ -305,7 +313,13 @@ export default function PdfViewer({
       {/* PDF CANVAS VIEWPORT CONTAINER */}
       <div
         ref={viewportRef}
-        className="relative w-full h-[82vh] min-h-[560px] max-h-[950px] overflow-auto bg-[#060913] p-2 sm:p-3.5 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80"
+        /* The fixed 82vh height with a 560px floor is a reading-pane size that
+           only makes sense once the page is large enough to read. Fitted into
+           a phone-width column the page is ~300px tall, so that floor wrapped
+           it in roughly as much empty backdrop again. Below sm the viewport is
+           content-height instead, capped at 70vh so a zoomed page still
+           scrolls here rather than stretching the block. */
+        className="relative w-full h-auto min-h-0 max-h-[70vh] sm:h-[82vh] sm:min-h-[560px] sm:max-h-[950px] overflow-auto bg-[#060913] p-2 sm:p-3.5 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80"
       >
         {/* Loading Overlay */}
         {loading && (
@@ -348,7 +362,10 @@ export default function PdfViewer({
             }
             className="flex flex-col items-center max-w-full"
           >
-            <div className="my-auto py-1.5 transition-all duration-150 flex justify-center">
+            {/* Zooming past 100% deliberately renders the page wider than the
+                viewer. That overflow scrolls here, inside the document, so it
+                never becomes horizontal scrolling on the page itself. */}
+            <div className="my-auto py-1.5 transition-all duration-150 flex justify-center max-w-full overflow-x-auto">
               <Page
                 pageNumber={pageNumber}
                 width={renderPageWidth}

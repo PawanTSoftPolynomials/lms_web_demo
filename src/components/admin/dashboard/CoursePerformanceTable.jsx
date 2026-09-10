@@ -1,86 +1,119 @@
 "use client";
 
 import Link from "next/link";
-import { Users, Star, Code2 } from "lucide-react";
+import { Star } from "lucide-react";
 
-const STATUS_STYLES = {
-  PUBLISHED: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  DRAFT: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  ARCHIVED: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+/**
+ * Top courses by enrollment, with the numbers an admin judges a course on.
+ *
+ * Status is a read-only indicator, so it is a coloured dot plus plain text
+ * rather than a bordered pill, and "View" navigates, so it is an anchor in link
+ * colour rather than something wearing button chrome.
+ *
+ * The table keeps a min-width inside its scroll container: six columns cannot
+ * fit a phone, and without it the columns squash into an unreadable smear
+ * instead of letting the table scroll sideways.
+ */
+const STATUS_DOT = {
+  PUBLISHED: "bg-success",
+  DRAFT: "bg-warning",
+  ARCHIVED: "bg-muted-foreground",
 };
+
+function completionColor(rate) {
+  if (rate >= 75) return "bg-success";
+  if (rate >= 40) return "bg-warning";
+  return "bg-destructive";
+}
 
 export function CoursePerformanceTable({ courses = [], isLoading }) {
   if (isLoading) {
-    return <div className="h-48 animate-pulse bg-muted/50 rounded-2xl"></div>;
+    return <div className="h-48 animate-pulse rounded-2xl bg-muted" />;
   }
 
   return (
-    <div className="rounded-2xl bg-card border border-border p-5">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-h3 text-foreground">Course Performance</h3>
-          <p className="text-[10px] text-muted-foreground mt-0.5">Top courses by enrollment</p>
+    <section className="rounded-2xl border border-card-border bg-card p-5 sm:p-6">
+      <div className="mb-4 flex items-baseline justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold tracking-tight text-foreground">Course performance</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">Top courses by enrollment</p>
         </div>
-        <Link href="/admin/courses" className="text-[11px] text-primary font-bold flex items-center gap-1 hover:text-orange-300">
-          View all courses &rarr;
+        <Link
+          href="/admin/courses"
+          className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-link hover:text-link-hover hover:underline"
+        >
+          View all
         </Link>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full min-w-[680px] border-collapse text-left">
           <thead>
-            <tr className="border-b border-border text-caption uppercase text-muted-foreground">
-              <th className="pb-3 font-medium">Course</th>
-              <th className="pb-3 font-medium text-center">Students</th>
-              <th className="pb-3 font-medium text-center">Rating</th>
-              <th className="pb-3 font-medium">Status</th>
-              <th className="pb-3 font-medium text-right">Actions</th>
+            <tr className="border-b border-border text-xs font-medium text-muted-foreground">
+              <th className="pb-3 pr-4 font-medium">Course</th>
+              <th className="pb-3 px-2 text-center font-medium">Students</th>
+              <th className="pb-3 px-2 text-center font-medium">Completion</th>
+              <th className="pb-3 px-2 text-center font-medium">Rating</th>
+              <th className="pb-3 px-2 font-medium">Status</th>
+              <th className="pb-3 pl-4 text-right font-medium">&nbsp;</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {courses.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-6 text-center text-xs text-muted-foreground">No courses available</td>
+                <td colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
+                  No courses on the platform yet.
+                </td>
               </tr>
             ) : (
               courses.map((course) => (
-                <tr key={course.id} className="hover:bg-foreground/5 transition">
-                  <td className="py-4 pr-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Code2 size={16} className="text-primary" />
+                <tr key={course.id} className="transition hover:bg-muted/50">
+                  <td className="py-3.5 pr-4">
+                    <p className="truncate text-sm text-foreground">{course.title}</p>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                      {course.category} &middot; {course.level}
+                    </p>
+                  </td>
+
+                  <td className="px-2 py-3.5 text-center text-sm text-foreground">{course.students}</td>
+
+                  <td className="px-2 py-3.5">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-1.5 w-14 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className={`h-full rounded-full ${completionColor(course.completionRate)}`}
+                          style={{ width: `${Math.min(course.completionRate, 100)}%` }}
+                        />
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-foreground truncate max-w-[180px]">{course.title}</p>
-                        <p className="text-[10px] text-muted-foreground">{course.category} &bull; {course.level}</p>
-                      </div>
+                      <span className="w-8 text-xs text-muted-foreground">{course.completionRate}%</span>
                     </div>
                   </td>
-                  <td className="py-4 px-2 text-center">
-                    <div className="flex items-center justify-center gap-1.5 text-foreground text-xs font-bold">
-                      <Users size={14} className="text-muted-foreground" />
-                      {course.students}
-                    </div>
-                  </td>
-                  <td className="py-4 px-2 text-center">
+
+                  <td className="px-2 py-3.5 text-center">
                     {course.avgRating > 0 ? (
-                      <div className="flex items-center justify-center gap-1 text-xs font-bold text-amber-400">
-                        <Star size={12} className="fill-amber-400" />
+                      <span className="inline-flex items-center gap-1 text-sm text-foreground">
+                        <Star size={13} className="fill-warning text-warning" aria-hidden />
                         {course.avgRating}
-                      </div>
+                      </span>
                     ) : (
-                      <span className="text-[10px] text-slate-600">No reviews</span>
+                      <span className="text-xs text-muted-foreground">No reviews</span>
                     )}
                   </td>
-                  <td className="py-4 px-2">
-                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${STATUS_STYLES[course.status] || "bg-muted text-muted-foreground border-transparent"}`}>
+
+                  <td className="px-2 py-3.5">
+                    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT[course.status] ?? "bg-muted-foreground"}`}
+                        aria-hidden
+                      />
                       {course.status}
                     </span>
                   </td>
-                  <td className="py-4 pl-4 text-right">
+
+                  <td className="py-3.5 pl-4 text-right">
                     <Link
                       href={`/admin/courses/${course.id}`}
-                      className="px-3 py-1.5 rounded-lg border border-primary/30 text-[10px] font-bold text-primary hover:bg-primary/10 transition"
+                      className="inline-flex min-h-11 items-center text-sm font-medium text-link hover:text-link-hover hover:underline"
                     >
                       View
                     </Link>
@@ -91,6 +124,6 @@ export function CoursePerformanceTable({ courses = [], isLoading }) {
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
 }

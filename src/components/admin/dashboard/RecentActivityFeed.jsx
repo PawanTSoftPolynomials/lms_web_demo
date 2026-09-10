@@ -2,42 +2,41 @@
 
 import { UserPlus, Award } from "lucide-react";
 
-const TYPE_STYLES = {
-  enrollment: { Icon: UserPlus, bg: "bg-purple-500/10", color: "text-purple-400", border: "border-purple-500/20" },
-  certificate: { Icon: Award, bg: "bg-emerald-500/10", color: "text-emerald-400", border: "border-emerald-500/20" },
-};
+/**
+ * Platform-wide enrollments and certificate issuances, newest first.
+ *
+ * Read-only: the icons are borderless indicators and there is no call to
+ * action, because there is no all-activity screen to send anyone to.
+ */
+const TYPE_ICON = { enrollment: UserPlus, certificate: Award };
 
 export function RecentActivityFeed({ activity = [], isLoading }) {
   if (isLoading) {
-    return <div className="h-48 animate-pulse bg-muted/50 rounded-2xl"></div>;
+    return <div className="h-full min-h-[13rem] animate-pulse rounded-2xl bg-muted" />;
   }
 
   return (
-    <div className="rounded-2xl bg-card border border-border p-5 h-full">
-      <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
-        <h3 className="text-sm font-black text-foreground">Recent Activity</h3>
-      </div>
+    <section className="flex h-full flex-col rounded-2xl border border-card-border bg-card p-5">
+      <h2 className="text-sm font-semibold tracking-tight text-foreground">Recent activity</h2>
 
-      <div className="space-y-4">
-        {activity.length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-4">No recent activity</p>
-        ) : (
-          activity.map((event) => {
-            const { Icon, bg, color, border } = TYPE_STYLES[event.type] ?? TYPE_STYLES.enrollment;
+      {activity.length === 0 ? (
+        <p className="mt-6 text-sm text-muted-foreground">No activity in the last few days.</p>
+      ) : (
+        <ul className="mt-4 space-y-3.5">
+          {activity.slice(0, 5).map((event) => {
+            const Icon = TYPE_ICON[event.type] ?? UserPlus;
             return (
-              <div key={event.id} className="flex items-start gap-3">
-                <div className={`p-2 rounded-lg border ${bg} ${border} shrink-0`}>
-                  <Icon size={14} className={color} />
-                </div>
+              <li key={event.id} className="flex items-start gap-3">
+                <Icon size={16} className="mt-0.5 shrink-0 text-muted-foreground" aria-hidden />
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-foreground leading-snug">{event.title}</p>
-                  <p className="text-[9px] text-slate-600 mt-0.5">{event.time}</p>
+                  <p className="line-clamp-2 text-sm leading-snug text-foreground">{event.title}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{event.time}</p>
                 </div>
-              </div>
+              </li>
             );
-          })
-        )}
-      </div>
-    </div>
+          })}
+        </ul>
+      )}
+    </section>
   );
 }
