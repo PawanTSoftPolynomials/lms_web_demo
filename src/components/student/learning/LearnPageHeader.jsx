@@ -1,6 +1,6 @@
 "use client";
 
-import { PanelLeftOpen, StickyNote } from "lucide-react";
+import { PanelLeftOpen, MoreHorizontal } from "lucide-react";
 import ProgressBar from "@/components/student/courses/ProgressBar";
 
 // Sticky sub-header for the learning workspace — course-map toggle, the
@@ -15,7 +15,7 @@ export default function LearnPageHeader({
   selectedLesson,
   topicTitle,
   course,
-  courseProgress,
+  unitProgress,
   isProgressUnavailable,
   // The right-hand side panel (Ask Instructor / Sticky Notes / Feedback).
   // These names must match what the learn page passes — a mismatch here
@@ -23,11 +23,13 @@ export default function LearnPageHeader({
   isStickyNotesOpen = false,
   onToggleStickyNotes,
 }) {
-  // Straight passthrough of the backend roll-up (see lib/progressIndex.js) —
-  // `applicable` is the backend's own "this course has tracked items" flag,
-  // so an empty/untracked course shows neither state instead of a stray 0%.
-  const showProgress = !isProgressUnavailable && !!courseProgress?.applicable;
-  const percent = courseProgress?.progressPercent ?? 0;
+  // Straight passthrough of the backend roll-up (see lib/progressIndex.js),
+  // scoped to the current Topic/Lesson (whatever topicTitle/selectedLesson
+  // below is showing) rather than the whole course — `applicable` is the
+  // backend's own "this node has tracked items" flag, so an empty/untracked
+  // Topic or Lesson shows neither state instead of a stray 0%.
+  const showProgress = !isProgressUnavailable && !!unitProgress?.applicable;
+  const percent = unitProgress?.progressPercent ?? 0;
 
   return (
     <header className="sticky top-0 bg-[#07080f]/80 backdrop-blur-md border-b border-border py-3 px-4 sm:px-6 flex items-center justify-between z-30 select-none">
@@ -56,10 +58,11 @@ export default function LearnPageHeader({
         </div>
       </div>
 
-      {/* COURSE PROGRESS — the workspace's persistent "where am I in this
-          course" readout. Percentage and counts come straight from the backend
-          roll-up; nothing is computed here. Hidden below sm, where the header
-          only has room for the lesson title and the notes toggle. */}
+      {/* TOPIC/LESSON PROGRESS — the workspace's persistent "where am I in
+          this Topic (or Lesson, if it has none)" readout. Percentage and
+          counts come straight from the backend roll-up; nothing is computed
+          here. Hidden below sm, where the header only has room for the
+          lesson title and the notes toggle. */}
       {isProgressUnavailable && (
         <span className="hidden sm:block shrink-0 mr-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           Progress unavailable
@@ -70,21 +73,21 @@ export default function LearnPageHeader({
         <div className="hidden sm:flex shrink-0 items-center gap-3 mr-3 min-w-0">
           <div className="text-right min-w-0">
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block leading-none">
-              Progress
+              Topic Progress
             </span>
             {/* The backend denominator is every applicable Content, Quiz and
-                Assignment in the published tree, at all four levels — not
-                Content alone — so the count is labelled "items". Calling it
-                anything narrower would misdescribe what it counts. */}
+                Assignment this Topic/Lesson owns — not Content alone — so
+                the count is labelled "items". Calling it anything narrower
+                would misdescribe what it counts. */}
             <span className="text-xs font-bold text-foreground leading-none whitespace-nowrap">
               {percent}%
               <span className="text-muted-foreground font-semibold">
                 {" "}
-                · {courseProgress.completedItems}/{courseProgress.totalItems} items
+                · {unitProgress.completedItems}/{unitProgress.totalItems} items
               </span>
             </span>
           </div>
-          <div className="w-24 lg:w-32" aria-label="Course progress">
+          <div className="w-24 lg:w-32" aria-label="Topic or lesson progress">
             <ProgressBar value={percent} size="xs" variant="gradient" />
           </div>
         </div>
@@ -116,13 +119,13 @@ export default function LearnPageHeader({
               : "bg-background text-foreground/80 group-hover:text-foreground"
           }`}
         >
-          <StickyNote
+          <MoreHorizontal
             size={15}
             className={`transition-transform duration-300 motion-safe:group-hover:-rotate-12 motion-safe:group-hover:scale-110 ${
               isStickyNotesOpen ? "" : "text-primary"
             }`}
           />
-          <span className="hidden sm:inline">Notes</span>
+          <span className="hidden sm:inline">More</span>
         </span>
       </button>
     </header>

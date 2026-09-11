@@ -33,7 +33,12 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
     ? course.modules.reduce((acc, m) => acc + (Array.isArray(m.lessons) ? m.lessons.length : 0), 0)
     : (course.stats?.lessonsCount ?? course.lessons ?? course._count?.lessons ?? 0);
 
-  const progress = Math.min(100, Math.max(0, Math.round(enrollment?.progress ?? 0)));
+  // GET /enrollments returns the stored roll-up as `progressPercent`; `progress`
+  // never existed on it, so every card used to read 0%.
+  const progress = Math.min(
+    100,
+    Math.max(0, Math.round(enrollment?.progressPercent ?? enrollment?.progress ?? 0))
+  );
   const isComplete = isEnrolled && progress >= 100;
   const status = isEnrolled ? (isComplete ? "Completed" : progress > 0 ? "In Progress" : "Enrolled") : "Not Started";
   const statusStyle = STATUS_STYLE[status];
@@ -110,10 +115,10 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
           </span>
         </div>
 
-        <div className="mt-auto pt-3 border-t border-border flex items-center justify-between">
+        <div className="mt-auto pt-3 border-t border-border flex items-center justify-between gap-2">
           <button
             onClick={goTo(detailsDestination)}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition"
+            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition"
           >
             <Eye size={11} />
             View Course
@@ -122,7 +127,7 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
           {isEnrolled && (
             <button
               onClick={goTo(learnDestination)}
-              className="inline-flex items-center gap-1 text-[11px] font-bold text-primary transition hover:opacity-80"
+              className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-[11px] font-bold text-primary transition hover:opacity-80"
             >
               {isComplete ? "Review" : "Continue Learning"}
               <ArrowRight size={13} />

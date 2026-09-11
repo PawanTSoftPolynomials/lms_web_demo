@@ -10,6 +10,7 @@ import { CourseStructureSidebar } from "@/components/instructor/courses/CourseCo
 import { CourseOverviewView } from "@/components/instructor/courses/CourseOverviewView";
 import { LessonOverviewView } from "@/components/instructor/courses/LessonOverviewView";
 import useCourse from "@/hooks/queries/student/useCourse";
+import { useCourseProgress } from "@/hooks/queries/student";
 import { normalizeCourseHierarchy } from "@/lib/courseMapper";
 
 export default function CourseDetailsPage({ params }) {
@@ -18,6 +19,10 @@ export default function CourseDetailsPage({ params }) {
 
   const { data: rawCourse, isLoading, isError } = useCourse(courseId);
   const course = normalizeCourseHierarchy(rawCourse);
+  const { data: progressData } = useCourseProgress(courseId);
+  // Any progress at all (a visited item, a completed one, or a quiz attempt —
+  // attempting a quiz marks it visited too) means Start has already happened.
+  const hasProgress = (progressData?.visitedItems ?? 0) > 0 || (progressData?.completedItems ?? 0) > 0;
 
   const [isCourseMapOpen, setIsCourseMapOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -147,7 +152,7 @@ export default function CourseDetailsPage({ params }) {
               onClick={() => handleStartLearning()}
               className="bg-primary hover:bg-orange-600 text-slate-950 font-black text-xs px-4 py-2 rounded-xl transition shadow-lg shadow-orange-500/20 cursor-pointer"
             >
-              Start Learning
+              {hasProgress ? "Continue Learning" : "Start Learning"}
             </button>
           </div>
 
@@ -160,6 +165,7 @@ export default function CourseDetailsPage({ params }) {
                 role="STUDENT"
                 onSelectModule={(mod) => handleSelectModule(mod)}
                 onStartLearning={() => handleStartLearning()}
+                hasProgress={hasProgress}
               />
             )}
 

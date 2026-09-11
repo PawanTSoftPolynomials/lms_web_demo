@@ -367,7 +367,7 @@ export function LessonComposerPanel({
           className="rounded-2xl border-2 border-dashed border-border hover:border-primary/50 bg-background/40 p-12 text-center transition cursor-pointer group"
         >
           <p className="text-sm font-bold text-foreground group-hover:text-primary transition">
-            No content in this lesson yet.
+            No content in this {parent?.parentType || "lesson"} yet.
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Click here to add your first content block.

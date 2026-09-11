@@ -134,7 +134,7 @@ export function CourseOverviewTable({ courses, isLoading }: { courses: CoursePro
                       </div>
                       <div>
                         <p className="text-xs font-bold text-foreground">{course.courseName}</p>
-                        <p className="text-[10px] text-muted-foreground">{course.batch} &bull; {course.students} Students</p>
+                        <p className="text-[10px] text-muted-foreground">{course.batch} &bull; {course.students} {course.students === 1 ? "Student" : "Students"}</p>
                       </div>
                     </div>
                   </td>

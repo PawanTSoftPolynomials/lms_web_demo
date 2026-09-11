@@ -20,6 +20,7 @@ export function CourseOverviewView({
   onAddModule,
   role = "INSTRUCTOR",
   onStartLearning,
+  hasProgress = false,
   isDraftMode = false,
   contentAutoOpenSignal: externalContentAutoOpenSignal = 0,
   onContentAutoOpenConsumed,
@@ -32,20 +33,24 @@ export function CourseOverviewView({
   };
   return (
     <div className={`notebook-cell rounded-2xl border border-border bg-background p-3 sm:p-5 shadow-md ${isEditing ? "active-cell border-primary/50" : ""}`}>
-      {/* Left Action Bar */}
-      <div className="cell-actions-left mb-3">
-        <div style={{ fontSize: "0.75rem", color: "var(--text-muted, #94a3b8)", textAlign: "center" }}>
-          Course Meta
+      {/* Left Action Bar — composer-only labeling, never shown to students */}
+      {role !== "STUDENT" && (
+        <div className="cell-actions-left mb-3">
+          <div style={{ fontSize: "0.75rem", color: "var(--text-muted, #94a3b8)", textAlign: "center" }}>
+            Course Meta
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="cell-main space-y-4">
         {/* Cell Header Toolbar matching PageComponents.js */}
         <div className="cell-header flex items-center justify-between border-b border-border/80 pb-2.5 mb-3">
           <div>
-            <span className="cell-badge rounded bg-primary/15 border border-primary/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary">
-              Course Header
-            </span>
+            {role !== "STUDENT" && (
+              <span className="cell-badge rounded bg-primary/15 border border-primary/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary">
+                Course Header
+              </span>
+            )}
           </div>
           <div className="cell-controls flex items-center gap-2">
             {role === "STUDENT" && onStartLearning && (
@@ -54,7 +59,7 @@ export function CourseOverviewView({
                 onClick={onStartLearning}
                 className="btn bg-primary hover:bg-orange-600 text-slate-950 rounded-xl px-4 py-1.5 text-xs font-black transition cursor-pointer"
               >
-                Start Learning
+                {hasProgress ? "Continue Learning" : "Start Learning"}
               </button>
             )}
             {role === "INSTRUCTOR" && (
@@ -203,9 +208,21 @@ export function CourseOverviewView({
                   (sum, m) => sum + (m.lessons || []).reduce((tSum, l) => tSum + (l.topics?.length || 0), 0),
                   0
                 );
-                const courseQuizCount = Array.isArray(course?.quizzes) ? course.quizzes.length : 0;
-                const moduleQuizCount = modules.reduce((sum, m) => sum + (m.quizzes?.length || 0), 0);
-                const totalQuizzes = courseQuizCount + moduleQuizCount;
+                // Every quiz in the course — module, lesson AND topic level,
+                // not just module-level — deduplicated by id so a quiz that
+                // somehow appears in more than one list is only counted once.
+                const allQuizIds = new Set();
+                (course?.quizzes || []).forEach((q) => q?.id && allQuizIds.add(q.id));
+                modules.forEach((m) => {
+                  (m.quizzes || []).forEach((q) => q?.id && allQuizIds.add(q.id));
+                  (m.lessons || []).forEach((l) => {
+                    (l.quizzes || []).forEach((q) => q?.id && allQuizIds.add(q.id));
+                    (l.topics || []).forEach((t) => {
+                      (t.quizzes || []).forEach((q) => q?.id && allQuizIds.add(q.id));
+                    });
+                  });
+                });
+                const totalQuizzes = allQuizIds.size;
 
                 return (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border/80">

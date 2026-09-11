@@ -47,7 +47,10 @@ export default function InstructorDashboardHomePage() {
   return (
     <TooltipProvider>
       {/* ============================= UNIFIED RESPONSIVE LAYOUT ============================= */}
-      <div className="-m-3 sm:-m-6 sm:-mt-12 md:-mt-16 -mx-4 sm:-mx-12 md:-mx-16 min-h-[calc(100vh-3.5rem)] bg-background p-3 sm:p-6 pt-0 sm:pt-0">
+      {/* Horizontal bleed matches the layout's padding (p-2 / sm:p-6 /
+          md:p-16); -mx-4 and sm:-mx-12 overshot it and scrolled the page
+          sideways on phones and small tablets. */}
+      <div className="-m-3 sm:-m-6 sm:-mt-12 md:-mt-16 -mx-2 sm:-mx-6 md:-mx-16 min-h-[calc(100vh-3.5rem)] bg-background p-3 sm:p-6 pt-0 sm:pt-0">
         <div className="flex flex-col max-w-[1600px] mx-auto">
 
           <div className="mt-4 sm:mt-[3.2px] mb-[1.6px]">

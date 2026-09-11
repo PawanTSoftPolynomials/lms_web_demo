@@ -595,13 +595,36 @@ export default function CourseDetailsPage() {
         const quizDesc = generatedData.description || "";
         const rawQuestions = Array.isArray(generatedData.questions) ? generatedData.questions : [];
 
-        const formattedQuestions = rawQuestions.map((q, idx) => ({
-          question: q.question || `Question ${idx + 1}`,
-          questionType: q.questionType || "MCQ_SINGLE",
-          options: Array.isArray(q.options) ? q.options : ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctAnswer: q.correctAnswer || (Array.isArray(q.options) ? q.options[0] : "Option 1"),
-          explanation: q.explanation || "",
-        }));
+        // Never invent an answer key: a question the AI returned with no
+        // correctAnswer is dropped rather than silently marked "option 1".
+        const hasAnswerKey = (q) => {
+          const key = q.correctAnswer;
+          if (q.questionType === "MCQ_MULTI") {
+            return Array.isArray(key) ? key.length > 0 : Boolean(key);
+          }
+          if (Array.isArray(key)) return key.length > 0 && Boolean(key[0]);
+          return Boolean(key) && (typeof key !== "string" || key.trim().length > 0);
+        };
+
+        let skippedCount = 0;
+        const formattedQuestions = rawQuestions
+          .filter((q) => {
+            if (hasAnswerKey(q)) return true;
+            skippedCount += 1;
+            return false;
+          })
+          .map((q, idx) => ({
+            question: q.question || `Question ${idx + 1}`,
+            questionType: q.questionType || "MCQ_SINGLE",
+            options: Array.isArray(q.options) ? q.options : ["Option 1", "Option 2", "Option 3", "Option 4"],
+            correctAnswer: q.correctAnswer,
+            explanation: q.explanation || "",
+          }));
+
+        if (formattedQuestions.length === 0) {
+          showToast("No questions were applied: none of the generated questions had a correct answer.", "error");
+          return;
+        }
 
         const newQuizData = {
           title: quizTitle,
@@ -634,7 +657,14 @@ export default function CourseDetailsPage() {
         }
 
         await handleSaveQuiz(newQuizData);
-        showToast(`${targetLevel} quiz created from AI!`, "success");
+        if (skippedCount > 0) {
+          showToast(
+            `${targetLevel} quiz created from AI! ${skippedCount} question${skippedCount === 1 ? "" : "s"} ${skippedCount === 1 ? "was" : "were"} skipped because ${skippedCount === 1 ? "it had" : "they had"} no correct answer.`,
+            "info"
+          );
+        } else {
+          showToast(`${targetLevel} quiz created from AI!`, "success");
+        }
       }
     } catch (err) {
       console.error("Apply AI Data Error:", err);
@@ -1067,6 +1097,7 @@ export default function CourseDetailsPage() {
           // No `|| 30` fallback: null means the instructor chose no timer,
           // and re-inflating it here would defeat that before it ever saved.
           timeLimit: updatedQuizData.timeLimit ?? null,
+          attempts: updatedQuizData.attempts ?? 1,
           isPublished: updatedQuizData.isPublished !== false,
           moduleId: composeModuleId,
           lessonId: composeLessonId || null,
@@ -1223,6 +1254,8 @@ export default function CourseDetailsPage() {
             quizTag: updatedQuizData.quizTag,
             passingScore: Number(updatedQuizData.passingScore) || 70,
             timeLimit: updatedQuizData.timeLimit ?? null,
+            // Omitted when the caller didn't set it, so the schema default applies.
+            ...(updatedQuizData.attempts !== undefined && { attempts: Number(updatedQuizData.attempts) }),
             isPublished: updatedQuizData.isPublished !== false,
             courseId,
             moduleId: composeModuleId || null,
@@ -1291,6 +1324,7 @@ export default function CourseDetailsPage() {
             // Number(null) is 0, not null — and 0 would reach the API as a
             // real time limit rather than "untimed".
             timeLimit: updatedQuizData.timeLimit ?? null,
+            ...(updatedQuizData.attempts !== undefined && { attempts: Number(updatedQuizData.attempts) }),
             isPublished: updatedQuizData.isPublished,
             courseId,
             moduleId: composeModuleId || selectedQuizState.moduleId || null,

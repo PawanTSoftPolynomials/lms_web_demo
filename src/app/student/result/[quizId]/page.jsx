@@ -4,12 +4,16 @@ import { Suspense, useMemo } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import {
-  Award,
   ArrowLeft,
-  XCircle,
-  RefreshCw,
-  HelpCircle,
   BookOpen,
+  CalendarClock,
+  CheckCircle2,
+  CircleSlash,
+  HelpCircle,
+  ListChecks,
+  RotateCcw,
+  Timer,
+  XCircle,
 } from "lucide-react";
 
 import Card from "@/components/ui/Card";
@@ -18,7 +22,25 @@ import PageHeader from "@/components/layouts/PageHeader";
 import Loader from "@/components/common/Loader";
 import useQuizResult from "@/hooks/queries/student/useQuizResult";
 import QuestionReviewCard from "@/components/student/quiz-result/QuestionReviewCard";
+import AttemptHistory from "@/components/student/quiz-result/AttemptHistory";
+import SubmissionStatusBadge from "@/components/student/submissions/SubmissionStatusBadge";
+import { formatDate, formatDuration, formatTime } from "@/features/student/constants/submissionsConfig";
 
+const SUBMISSIONS_HREF = "/student/assignments";
+
+/** A read-only fact about the attempt — tinted, not bordered. */
+function StatTile({ icon: Icon, iconClassName, label, value, detail }) {
+  return (
+    <div className="min-w-0 rounded-xl bg-muted/50 p-3.5 sm:p-4">
+      <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        <Icon size={13} className={`shrink-0 ${iconClassName}`} aria-hidden />
+        {label}
+      </p>
+      <p className="mt-1.5 text-base font-semibold leading-snug tabular-nums text-foreground sm:text-lg">{value}</p>
+      {detail && <p className="text-xs tabular-nums text-muted-foreground">{detail}</p>}
+    </div>
+  );
+}
 
 function QuizResultPageContent() {
   const { quizId } = useParams();
@@ -29,7 +51,9 @@ function QuizResultPageContent() {
   // lesson's page, so a quiz's own lessonId doesn't reliably match the
   // specific lesson the student actually launched it from.
   const returnTo = searchParams.get("from");
-  const { data, isLoading, isError } = useQuizResult(quizId);
+  // One specific earlier attempt (?attempt=<id>); the latest when absent.
+  const attemptId = searchParams.get("attempt");
+  const { data, isLoading, isError } = useQuizResult(quizId, { attemptId });
 
   const submission = data?.data || data;
 
@@ -45,7 +69,6 @@ function QuizResultPageContent() {
     }
     return submission.answers;
   }, [submission]);
-
 
   if (isLoading) {
     return <Loader />;
@@ -63,19 +86,19 @@ function QuizResultPageContent() {
             <XCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
             <h2 className="text-xl font-bold text-foreground">Result Not Found</h2>
             <p className="mt-2 text-muted-foreground">
-              Either you have not attempted this quiz yet, or there was an error retrieving your submission.
+              {attemptId
+                ? "That attempt couldn't be found. It may belong to another quiz."
+                : "Either you have not attempted this quiz yet, or there was an error retrieving your submission."}
             </p>
-            <div className="mt-6 flex justify-center gap-4">
-              <Link href={returnTo || "/student/quizzes"}>
-                <Button className="flex items-center gap-2">
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+              <Link href={returnTo || SUBMISSIONS_HREF}>
+                <Button variant="outline" className="flex w-full items-center justify-center gap-2">
                   <ArrowLeft className="h-4 w-4" />
-                  {returnTo ? "Back" : "Back to Quizzes"}
+                  {returnTo ? "Back" : "Back to Submissions"}
                 </Button>
               </Link>
               <Link href={`/student/attempt/${quizId}`}>
-                <Button className="bg-primary hover:bg-orange-600">
-                  Attempt Quiz Now
-                </Button>
+                <Button className="w-full">Attempt Quiz Now</Button>
               </Link>
             </div>
           </div>
@@ -87,108 +110,200 @@ function QuizResultPageContent() {
   const { quiz, score, totalMarks, percentage, passed, submittedAt, conceptScores } = submission;
   const passingScore = quiz?.passingScore ?? 70;
 
-  // A lesson-launched quiz should return the student to that lesson, not
-  // strand them on the disconnected top-level Quizzes hub. Prefer the exact
-  // page the quiz was launched from (returnTo); fall back to a guess from
-  // the quiz's own lessonId; otherwise land on the Quizzes hub.
+  // A lesson-launched quiz should return the student to that lesson. Prefer
+  // the exact page the quiz was launched from (returnTo); fall back to a
+  // guess from the quiz's own lessonId; otherwise the Submissions page.
   const backHref =
     returnTo ||
-    (quiz?.lessonId ? `/student/learn/${quiz.courseId}?lessonId=${quiz.lessonId}` : "/student/quizzes");
-  const backLabel = backHref.startsWith("/student/learn/") ? "Back to Lesson" : "Back to Quizzes";
+    (quiz?.lessonId ? `/student/learn/${quiz.courseId}?lessonId=${quiz.lessonId}` : SUBMISSIONS_HREF);
+  const backLabel = backHref.startsWith("/student/learn/")
+    ? "Back to Lesson"
+    : backHref.startsWith(SUBMISSIONS_HREF)
+      ? "Back to Submissions"
+      : "Back";
+
+  // Links between attempts (and to a retake) keep the page the student came from.
+  const fromParam = returnTo ? `from=${encodeURIComponent(returnTo)}` : "";
+  const attemptHref = (id) =>
+    `/student/result/${quizId}?attempt=${encodeURIComponent(id)}${fromParam ? `&${fromParam}` : ""}`;
+  const latestHref = `/student/result/${quizId}${fromParam ? `?${fromParam}` : ""}`;
+  const retakeHref = `/student/attempt/${quizId}${fromParam ? `?${fromParam}` : ""}`;
+
+  const graded = Number(totalMarks) > 0;
+  const status = !graded ? "submitted" : passed ? "passed" : "failed";
+  const attempts = submission.attempts ?? [];
+  const attemptNumber = submission.attemptNumber ?? 1;
+  const attemptsUsed = submission.attemptsUsed ?? attempts.length;
+  const limited = !submission.unlimitedAttempts && Number(submission.maxAttempts) > 0;
+  const attemptLabel = limited
+    ? `Attempt ${attemptNumber} of ${submission.maxAttempts}`
+    : `Attempt ${attemptNumber}`;
+  const allowanceText = limited
+    ? `${attemptsUsed} of ${submission.maxAttempts} attempts used · ${
+        submission.attemptsRemaining > 0 ? `${submission.attemptsRemaining} remaining` : "no attempts left"
+      }`
+    : `${attemptsUsed} attempt${attemptsUsed === 1 ? "" : "s"} · no limit`;
+  const bestPercentage =
+    graded && attempts.length > 1 ? Math.max(...attempts.map((a) => a.percentage)) : null;
+  const totalQuestions = submission.totalQuestions ?? quiz?.questions?.length ?? 0;
+  const timeTaken = formatDuration(submission.timeTakenSeconds);
+  const moduleTitle = quiz?.module?.title || null;
+
+  const scoreTone = !graded
+    ? "text-foreground"
+    : passed
+      ? "text-emerald-600 dark:text-emerald-400"
+      : "text-red-600 dark:text-red-400";
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-12">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <PageHeader
-          title="Quiz Performance Report"
-          subtitle={`Detailed review for ${quiz?.title || "Quiz"}`}
-        />
-        <Link href={backHref}>
-          <Button className="flex items-center gap-2 border border-transparent bg-background/50 hover:bg-muted text-foreground">
-            <ArrowLeft className="h-4 w-4" />
-            {backLabel}
-          </Button>
+    <div className="mx-auto max-w-5xl space-y-6 pb-12 sm:space-y-8">
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href={backHref}
+          className="-ml-2 inline-flex min-h-[44px] items-center gap-2 rounded-lg px-2 text-sm font-semibold text-primary underline-offset-4 hover:underline"
+        >
+          <ArrowLeft size={16} aria-hidden />
+          {backLabel}
         </Link>
+        {submission.canAttempt && (
+          <Link
+            href={retakeHref}
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <RotateCcw size={15} aria-hidden />
+            Retake Quiz
+          </Link>
+        )}
       </div>
 
-      {/* Result Overview Banner */}
-      <Card className={`p-8 border-l-[6px] relative overflow-hidden ${
-        passed 
-          ? "border-l-emerald-500 bg-emerald-950/10 border-emerald-900/40" 
-          : "border-l-rose-500 bg-rose-950/10 border-rose-900/40"
-      }`}>
-        <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-5 blur-3xl pointer-events-none style-glow" 
-          style={{ backgroundColor: passed ? "#10b981" : "#f43f5e" }}
-        />
-        
-        <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
-          <div className={`p-4.5 rounded-full flex items-center justify-center ${
-            passed ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
-          }`}>
-            <Award className="h-10 w-10" />
-          </div>
+      {submission.isLatestAttempt === false && (
+        <p className="rounded-xl bg-sky-500/10 px-4 py-3 text-sm text-sky-800 dark:text-sky-300">
+          You&apos;re viewing an earlier attempt.{" "}
+          <Link href={latestHref} className="font-semibold underline underline-offset-2">
+            See your latest attempt
+          </Link>
+        </p>
+      )}
 
-          <div className="flex-1 text-center md:text-left space-y-2">
-            <div className={`inline-flex rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
-              passed ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25" : "bg-rose-500/15 text-rose-400 border border-rose-500/25"
-            }`}>
-              {passed ? "PASSED" : "FAILED"}
-            </div>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-foreground">
-              {passed ? "Congratulations! You Cleared It." : "Keep Practicing, You'll Get It Next Time!"}
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Attempt submitted on {new Date(submittedAt).toLocaleDateString([], { dateStyle: "long" })} at {new Date(submittedAt).toLocaleTimeString([], { timeStyle: "short" })}
+      {/* Result overview — on phones this stacks title, then score, then attempt. */}
+      <section
+        aria-labelledby="result-title"
+        className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-7"
+      >
+        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+              Quiz{moduleTitle ? ` · ${moduleTitle}` : ""}
             </p>
+            <h1
+              id="result-title"
+              className="mt-1.5 break-words text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
+            >
+              {quiz?.title || "Quiz"}
+            </h1>
+            {quiz?.course?.title && <p className="mt-1 text-sm text-muted-foreground">{quiz.course.title}</p>}
+            <p className="mt-3 text-sm font-semibold text-foreground">{attemptLabel}</p>
           </div>
 
-          <div className="flex-shrink-0">
-            <Link href={`/student/attempt/${quizId}`}>
-              <Button className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-pink-500 text-foreground shadow-md hover:scale-105 active:scale-95 transition-all">
-                <RefreshCw className="h-4 w-4" />
-                Retake Quiz
-              </Button>
-            </Link>
+          <div className="flex shrink-0 items-center gap-5 md:flex-col md:items-end md:gap-2 md:text-right">
+            <p className={`text-5xl font-bold leading-none tracking-tight tabular-nums ${scoreTone}`}>
+              {graded ? `${percentage}%` : "—"}
+            </p>
+            <div className="space-y-1.5 md:flex md:flex-col md:items-end">
+              <p className="text-sm font-semibold tabular-nums text-foreground">
+                {graded ? (
+                  <>
+                    {score} / {totalMarks} <span className="font-normal text-muted-foreground">marks</span>
+                  </>
+                ) : (
+                  "Not graded"
+                )}
+              </p>
+              <SubmissionStatusBadge status={status} />
+            </div>
           </div>
         </div>
-      </Card>
 
-      {/* KPI Performance Grid */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-5">
-        <div className="rounded-2xl border border-transparent bg-background/40 p-5 backdrop-blur-md">
-          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Your Score</p>
-          <p className="mt-2 text-2xl font-extrabold text-foreground">
-            {score} <span className="text-xs text-muted-foreground font-normal">/ {totalMarks} Marks</span>
+        {graded && (
+          <div className="mt-6">
+            <div
+              className="relative h-2 rounded-full bg-muted"
+              role="img"
+              aria-label={`Scored ${percentage}%. Pass mark ${passingScore}%.`}
+            >
+              <div
+                className={`h-full rounded-full ${passed ? "bg-emerald-500" : "bg-red-500"}`}
+                style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }}
+              />
+              <span
+                aria-hidden
+                className="absolute top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-foreground/70"
+                style={{ left: `${Math.min(100, Math.max(0, passingScore))}%` }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">Pass mark {passingScore}%</p>
+          </div>
+        )}
+      </section>
+
+      <section aria-label="Attempt details" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <StatTile
+          icon={CalendarClock}
+          iconClassName="text-primary"
+          label="Submitted"
+          value={formatDate(submittedAt)}
+          detail={formatTime(submittedAt)}
+        />
+        <StatTile
+          icon={Timer}
+          iconClassName="text-sky-500"
+          label="Time taken"
+          value={timeTaken ?? "—"}
+          detail={timeTaken ? null : "Not recorded"}
+        />
+        <StatTile icon={ListChecks} iconClassName="text-violet-500" label="Questions" value={totalQuestions} />
+        <StatTile
+          icon={CheckCircle2}
+          iconClassName="text-emerald-500"
+          label="Correct"
+          value={submission.correctCount ?? "—"}
+        />
+        <StatTile
+          icon={XCircle}
+          iconClassName="text-red-500"
+          label="Incorrect"
+          value={submission.incorrectCount ?? "—"}
+        />
+        <StatTile
+          icon={CircleSlash}
+          iconClassName="text-muted-foreground"
+          label="Unanswered"
+          value={submission.unansweredCount ?? "—"}
+        />
+      </section>
+
+      <section aria-labelledby="attempt-history" className="space-y-4">
+        <div>
+          <h2 id="attempt-history" className="text-lg font-semibold text-foreground">
+            Attempt history
+          </h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {allowanceText}
+            {bestPercentage !== null && (
+              <>
+                {" "}· best <span className="font-semibold text-foreground">{bestPercentage}%</span>
+              </>
+            )}
           </p>
         </div>
-
-        <div className="rounded-2xl border border-transparent bg-background/40 p-5 backdrop-blur-md">
-          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Percentage</p>
-          <p className="mt-2 text-2xl font-extrabold text-foreground">
-            {percentage}%
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-transparent bg-background/40 p-5 backdrop-blur-md">
-          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Passing Criteria</p>
-          <p className="mt-2 text-2xl font-extrabold text-foreground">
-            {passingScore}% <span className="text-xs text-muted-foreground font-normal">or above</span>
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-transparent bg-background/40 p-5 backdrop-blur-md">
-          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Questions Answered</p>
-          <p className="mt-2 text-2xl font-extrabold text-foreground">
-            {parsedAnswers.length} <span className="text-xs text-muted-foreground font-normal">/ {quiz?.questions?.length || 0}</span>
-          </p>
-        </div>
+        <AttemptHistory attempts={attempts} currentAttemptId={submission.attemptId} hrefFor={attemptHref} />
       </section>
 
       {/* Concept Performance Analysis */}
       {conceptScores && Object.keys(conceptScores).length > 0 && (
         <section className="space-y-4">
           <div>
-            <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <BookOpen size={20} className="text-primary" />
               Concept-wise Performance Analysis
             </h3>
@@ -199,11 +314,11 @@ function QuizResultPageContent() {
             {Object.entries(conceptScores).map(([conceptName, cData]) => {
               const perc = cData.percentage ?? 0;
               const isPassed = perc >= passingScore;
-              
+
               let barColor = "bg-rose-500";
               let textColor = "text-rose-400";
               let label = "Needs practice";
-              
+
               if (perc >= 75) {
                 barColor = "bg-emerald-500";
                 textColor = "text-emerald-400";
@@ -234,7 +349,7 @@ function QuizResultPageContent() {
 
                   <div className="w-full space-y-1">
                     <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className={`h-full rounded-full transition-all duration-500 ${barColor}`}
                         style={{ width: `${perc}%` }}
                       />
@@ -253,11 +368,15 @@ function QuizResultPageContent() {
       {/* Detailed Question Review List */}
       <section className="space-y-6">
         <div>
-          <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
             <HelpCircle size={20} className="text-primary" />
             Detailed Question Review
           </h3>
-          <p className="text-xs text-muted-foreground mt-1">Review your selections alongside correct options.</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {submission.isLatestAttempt === false
+              ? `Your answers in attempt ${attemptNumber}, alongside the correct options.`
+              : "Review your selections alongside correct options."}
+          </p>
         </div>
 
         <div className="space-y-5">

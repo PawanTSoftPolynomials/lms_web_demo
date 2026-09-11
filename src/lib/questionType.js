@@ -1,0 +1,27 @@
+// The API/DB QuestionType enum (prisma/schema.prisma) has two synonym pairs
+// the quiz UI doesn't know: "MCQ" for a single-choice question and
+// "MULTIPLE_CORRECT" for a multi-choice one. Everywhere the UI branches on a
+// question's type (QuestionCard, QuestionReviewCard, QuizExperience) and
+// wherever quizAnswers.js grades an answer, it needs the UI's own keys
+// (MCQ_SINGLE/MCQ_MULTI/...), not the raw API value — this is the one place
+// that translation happens, so every consumer stays in agreement.
+//
+// ARRANGE_TOKENS and MATCH_PAIRS already match the UI's keys and pass
+// through unchanged. TRUE_FALSE/FILL_BLANK/SHORT_ANSWER/LONG_ANSWER have no
+// dedicated UI or grading branch yet (see QuestionCard.jsx/quizAnswers.js) —
+// they pass through as-is rather than being silently coerced to the wrong
+// type; adding real support for them is separate, future work.
+const QUESTION_TYPE_ALIASES = {
+  MCQ: "MCQ_SINGLE",
+  MULTIPLE_CORRECT: "MCQ_MULTI",
+};
+
+/**
+ * Resolves a question's raw `questionType` (from the API) to the UI's
+ * internal type key. Missing/falsy defaults to "MCQ_SINGLE", matching every
+ * call site's previous fallback.
+ */
+export function resolveQuestionType(questionType) {
+  if (!questionType) return "MCQ_SINGLE";
+  return QUESTION_TYPE_ALIASES[questionType] || questionType;
+}

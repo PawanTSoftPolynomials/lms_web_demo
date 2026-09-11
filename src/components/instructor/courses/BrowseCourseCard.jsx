@@ -65,7 +65,7 @@ export default function BrowseCourseCard({ course }) {
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] md:text-[10px] text-[var(--card-photo-subtitle)]">
           <span className="flex items-center gap-1">
             <Users size={11} />
-            {studentsCount} Students
+            {studentsCount} {studentsCount === 1 ? "Student" : "Students"}
           </span>
           <span className="flex items-center gap-1">
             <Clock size={11} />

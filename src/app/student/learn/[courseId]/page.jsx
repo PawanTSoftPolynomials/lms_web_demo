@@ -33,6 +33,7 @@ import {
   useUpdateStudentState,
   useCourseProgress,
   useCompleteContent,
+  useMarkVisited,
 } from "@/hooks/queries/student";
 import useLessonBookmarkToggle from "@/hooks/queries/student/useLessonBookmarkToggle";
 import useTrackCourseAccess from "@/hooks/queries/student/useTrackCourseAccess";
@@ -79,6 +80,7 @@ export default function LearnPage() {
     refetch: refetchProgress,
   } = useCourseProgress(courseId);
   const completeContentMutation = useCompleteContent();
+  const markVisitedMutation = useMarkVisited();
 
   // Single flattened view of the backend roll-up. Null while loading or on
   // failure — every consumer below treats null as "don't render indicators".
@@ -97,8 +99,6 @@ export default function LearnPage() {
     () => decorateCourseWithProgress(course, progressIndex) || course,
     [course, progressIndex]
   );
-
-  const courseSummary = progressIndex?.course ?? null;
 
   const { data: stateData, isLoading: isStateLoading } = useStudentState(courseId);
   const updateStateMutation = useUpdateStudentState();
@@ -665,7 +665,7 @@ export default function LearnPage() {
   // boundary stashes the target id in pendingBlockTargetIdRef for the
   // unit-change reset effect to resolve once playerBlocks has been
   // recomputed for the newly-selected unit.
-  const jumpToBlock = (targetId, { lesson, topic } = {}) => {
+  const jumpToBlock = (targetId, { lesson, topic, skipGate = false } = {}) => {
     setExtraUnit(null);
     setOpenAssignmentItem(null);
     const alreadyOnUnit =
@@ -677,12 +677,17 @@ export default function LearnPage() {
     }
 
     const targetUnitKey = topic ? `topic:${topic.id}` : `lesson:${lesson?.id}`;
-    runGated(targetUnitKey, () => {
+    const proceed = () => {
       pendingBlockTargetIdRef.current = targetId;
       const match = lesson?.id ? lessons.find((l) => l.id === lesson.id) : null;
       if (match) selectLesson(match);
       if (topic?.id) setSelectedTopicId(topic.id);
-    });
+    };
+    if (skipGate) {
+      proceed();
+      return;
+    }
+    runGated(targetUnitKey, proceed);
   };
 
   // Once, on initial load with no explicit ?lessonId= (a Continue Learning
@@ -693,9 +698,11 @@ export default function LearnPage() {
   // nothing the student does afterward (sidebar clicks, Prev/Next, a fresh
   // completion) may be re-overridden by this as progress keeps changing
   // through the rest of the session. Reuses jumpToBlock/enterUnit exactly
-  // as a sidebar click would, so it's subject to the same gate — which a
-  // genuine resume target always clears, since everything before it was,
-  // by construction, already visited to get here.
+  // as a sidebar click would, but always with skipGate — a resume target can
+  // legitimately sit behind an incomplete earlier item (the leaf order this
+  // is computed from and the gate's own boundary walk don't always agree on
+  // in-progress edge cases), and the very first thing a student sees on
+  // opening a course must never be an error toast.
   const hasAppliedResumeTargetRef = useRef(false);
   useEffect(() => {
     if (hasAppliedResumeTargetRef.current) return;
@@ -715,7 +722,7 @@ export default function LearnPage() {
     if (topicId) {
       const lessonMatch = lessons.find((l) => l.id === lessonId);
       const topicMatch = lessonMatch?.topics?.find((t) => t.id === topicId);
-      jumpToBlock(id, { lesson: lessonMatch, topic: topicMatch });
+      jumpToBlock(id, { lesson: lessonMatch, topic: topicMatch, skipGate: true });
       return;
     }
 
@@ -726,21 +733,44 @@ export default function LearnPage() {
         // A topics-Lesson's own content/quiz run(s) — findUnitContaining
         // (not a guessed key) since buildCourseUnits can split a level's
         // own items into several runs interleaved with its children.
-        enterUnit(findUnitContaining(courseUnits, id), { targetItemId: id });
+        enterUnit(findUnitContaining(courseUnits, id), { targetItemId: id, skipGate: true });
       } else {
-        jumpToBlock(id, { lesson: lessonMatch });
+        jumpToBlock(id, { lesson: lessonMatch, skipGate: true });
       }
       return;
     }
 
     // Module-direct or Course-direct.
-    enterUnit(findUnitContaining(courseUnits, id), { targetItemId: id });
+    enterUnit(findUnitContaining(courseUnits, id), { targetItemId: id, skipGate: true });
     // enterUnit/jumpToBlock intentionally omitted from deps — same
     // convention as the unit-change reset effect above: they close over
     // this render's state and aren't memoized, so listing them would just
     // re-run this every render; the ref guard is what actually prevents
     // re-application.
   }, [stateRestored, resumeTarget, courseUnits, lessons]);
+
+  // Marks the block currently on screen visited, once per Content/Quiz id —
+  // POST /progress/visit, which nothing previously called. This is the data
+  // resumeTarget.js's "last visited leaf" walk depends on; without it every
+  // "Continue Learning" click fell back to the course's very first leaf.
+  const visitedIdsRef = useRef(new Set());
+  useEffect(() => {
+    const idx = extraUnit ? extraUnit.blockIndex : blockIndex;
+    const block = openAssignmentItem ? null : activeUnitBlocks[idx];
+    if (!block) return;
+
+    if (block.kind === "content") {
+      const ids = contentIdsOf(block.item).filter((id) => !visitedIdsRef.current.has(id));
+      if (ids.length === 0) return;
+      ids.forEach((id) => visitedIdsRef.current.add(id));
+      markVisitedMutation.mutate({ contentIds: ids });
+    } else if (block.kind === "quiz" && block.item?.id && !visitedIdsRef.current.has(block.item.id)) {
+      visitedIdsRef.current.add(block.item.id);
+      markVisitedMutation.mutate({ quizId: block.item.id });
+    }
+    // markVisitedMutation intentionally omitted — same convention as
+    // enterUnit/jumpToBlock above; the ref guard is what prevents re-sending.
+  }, [extraUnit, blockIndex, activeUnitBlocks, openAssignmentItem]);
 
   // Still used by Sticky Notes (both the mobile tab and the desktop side
   // panel) to jump the video to a note's timestamp.
@@ -762,6 +792,13 @@ export default function LearnPage() {
   const activeBlock = openAssignmentItem
     ? { kind: "assignment", item: openAssignmentItem }
     : activeUnitBlocks[activeBlockIndex];
+
+  // The header's Progress readout scopes to whatever its own Lesson/Topic
+  // line is showing below (topicTitle) — the current Topic when the Lesson
+  // uses Topics, the Lesson itself otherwise — instead of the whole course,
+  // so a student partway through one lesson isn't shown the entire course's
+  // (from their vantage point, near-zero) roll-up.
+  const headerProgress = getNodeProgress(progressIndex, hasTopics ? currentTopic?.id : selectedLesson?.id);
 
   // Course Map sidebar highlighting — mirrors the instructor Composer's
   // composerMode/composeXId contract (see CourseComposerSidebar), derived
@@ -1012,7 +1049,7 @@ export default function LearnPage() {
           selectedLesson={selectedLesson}
           topicTitle={hasTopics ? currentTopic?.title : null}
           course={course}
-          courseProgress={courseSummary}
+          unitProgress={headerProgress}
           isProgressUnavailable={isProgressError}
           isStickyNotesOpen={rightPanelOpen}
           onToggleStickyNotes={() => {
@@ -1153,34 +1190,38 @@ export default function LearnPage() {
                     onSelectNext={goToNextBlock}
                   />
                 </div>
-              </div>
 
-              {/* COMPLETION — the one place the student marks the block on
-                  screen complete, and the one place its completed state is
-                  shown in the workspace. Sits below the player frame (not
-                  inside it) so it never collides with the floating Prev/Next
-                  overlay, and applies to whatever the frame is showing:
-                  Course-, Module-, Lesson- or Topic-direct Content alike. */}
-              {showCompletionBar && (
-                <ContentCompletionBar
-                  completed={
-                    activeQuizId
-                      ? activeQuizCompleted
-                      : activeAssignmentId
-                        ? activeAssignmentCompleted
-                        : activeContentCompleted
-                  }
-                  isPending={completeContentMutation.isPending}
-                  isVideo={!activeEarnedId && activeBlock?.item?.type === "VIDEO"}
-                  readOnly={Boolean(activeEarnedId) || activeIsContentAssignment}
-                  readOnlyHint={
-                    activeQuizId
-                      ? "Pass this quiz to complete it."
-                      : "Submit your assignment (PDF or written answer) to complete it."
-                  }
-                  onMarkComplete={handleMarkComplete}
-                />
-              )}
+                {/* COMPLETION — the one place the student marks the block on
+                    screen complete, and the one place its completed state is
+                    shown in the workspace. A second hover-reveal overlay
+                    inside the same player frame as Prev/Next (see
+                    ContentCompletionBar's own doc comment), not a persistent
+                    bar underneath it — applies to whatever the frame is
+                    showing: Course-, Module-, Lesson- or Topic-direct
+                    Content alike. */}
+                {showCompletionBar && (
+                  <div className="absolute top-3 right-3 pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+                    <ContentCompletionBar
+                      completed={
+                        activeQuizId
+                          ? activeQuizCompleted
+                          : activeAssignmentId
+                            ? activeAssignmentCompleted
+                            : activeContentCompleted
+                      }
+                      isPending={completeContentMutation.isPending}
+                      isVideo={!activeEarnedId && activeBlock?.item?.type === "VIDEO"}
+                      readOnly={Boolean(activeEarnedId) || activeIsContentAssignment}
+                      readOnlyHint={
+                        activeQuizId
+                          ? "Pass this quiz to complete it."
+                          : "Submit your assignment (PDF or written answer) to complete it."
+                      }
+                      onMarkComplete={handleMarkComplete}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* CONTENT TAB STRIP — mobile & tablet only. Desktop shows every

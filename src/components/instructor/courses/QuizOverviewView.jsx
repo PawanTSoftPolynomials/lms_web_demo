@@ -18,7 +18,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ListFilter,
-  Library
+  Library,
+  RotateCcw
 } from "lucide-react";
 
 import QuestionRepositoryPickerModal from "./QuestionRepositoryPickerModal";
@@ -66,6 +67,9 @@ function quizFormFromQuiz(quiz) {
     timerEnabled: timeLimit !== null,
     timeLimit,
     passingScore: quiz.passingScore !== undefined && quiz.passingScore !== null ? quiz.passingScore : 50,
+    // A Final's limit (1 by default). A Self-Test is always unlimited and is
+    // stored as 0, which becomes the Final default if the tag is flipped.
+    attempts: Number(quiz.attempts) > 0 ? quiz.attempts : 1,
     isPublished: quiz.isPublished !== false,
   };
 }
@@ -96,6 +100,7 @@ export function QuizOverviewView({
     timerEnabled: false,
     timeLimit: null,
     passingScore: 70,
+    attempts: 1,
     isPublished: true,
   });
 
@@ -117,6 +122,7 @@ export function QuizOverviewView({
         timerEnabled: false,
         timeLimit: null,
         passingScore: 70,
+        attempts: 1,
         isPublished: true,
       });
       setQuestions([]);
@@ -250,7 +256,10 @@ export function QuizOverviewView({
             target.options = ["Option 1", "Option 2"];
           }
           if (value === "MCQ_SINGLE" && Array.isArray(target.correctAnswer)) {
-            target.correctAnswer = target.correctAnswer[0] || target.options[0];
+            // Never invent a key: if no option was selected under MCQ_MULTI,
+            // leave it unset so the instructor must explicitly pick one —
+            // handleSaveChanges blocks saving until they do.
+            target.correctAnswer = target.correctAnswer[0] || "";
           }
         }
       }
@@ -359,6 +368,18 @@ export function QuizOverviewView({
         setCurrentQuestionIndex(i);
         return;
       }
+
+      // Never save a question with an invented answer key — MCQ_SINGLE/
+      // TRUE_FALSE need a chosen string, MCQ_MULTI needs at least one.
+      const type = questions[i].questionType;
+      const answer = questions[i].correctAnswer;
+      const missingAnswer =
+        type === "MCQ_MULTI" ? !Array.isArray(answer) || answer.length === 0 : !answer;
+      if ((type === "MCQ_SINGLE" || type === "MCQ_MULTI" || type === "TRUE_FALSE") && missingAnswer) {
+        setError(`Question #${i + 1} needs a correct answer selected before saving.`);
+        setCurrentQuestionIndex(i);
+        return;
+      }
     }
 
     // Only a Final Quiz with the timer switched on carries a limit. Everything
@@ -376,6 +397,8 @@ export function QuizOverviewView({
       quizTag: quizForm.quizTag,
       timeLimit: effectiveTimeLimit,
       passingScore: Number(quizForm.passingScore) || 0,
+      // A Self-Test is always unlimited (0); a Final has at least one attempt.
+      attempts: quizForm.quizTag === "SELF_TEST" ? 0 : Math.max(1, Math.round(Number(quizForm.attempts)) || 1),
       isPublished: quizForm.isPublished,
       questions: questions.map((q, idx) => ({
         ...q,
@@ -479,7 +502,7 @@ export function QuizOverviewView({
             )}
 
             {/* Metadata Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs font-medium text-foreground">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-2 text-xs font-medium text-foreground">
               <div className="p-3 rounded-xl bg-background/80 border border-border flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 shrink-0">
                   <ListChecks size={16} />
@@ -517,6 +540,18 @@ export function QuizOverviewView({
                 <div>
                   <span className="text-[10px] uppercase font-mono text-muted-foreground block">Time Limit</span>
                   <span className="font-bold text-foreground text-sm">{Number(quizForm.timeLimit) > 0 ? `${quizForm.timeLimit} mins` : "No timer"}</span>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-background/80 border border-border flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-warning/10 text-warning shrink-0">
+                  <RotateCcw size={16} />
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-mono text-muted-foreground block">Attempts</span>
+                  <span className="font-bold text-foreground text-sm">
+                    {quizForm.quizTag === "SELF_TEST" ? "Unlimited" : `${Number(quizForm.attempts) || 1} per student`}
+                  </span>
                 </div>
               </div>
             </div>
@@ -651,6 +686,33 @@ export function QuizOverviewView({
                     className="w-full rounded-xl border border-transparent bg-background px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500"
                   />
                 </div>
+
+                {/* Attempts follow the tag, like the timer: a Self-Test can
+                    always be retaken; a Final gets the number set here (1 by
+                    default). Both rules are enforced server-side. */}
+                {quizForm.quizTag === "SELF_TEST" ? (
+                  <div className="space-y-1">
+                    <span className="block text-[11px] font-semibold text-foreground">Attempts per student</span>
+                    <p className="px-2.5 py-1.5 rounded-xl bg-background text-[10.5px] text-muted-foreground">
+                      Unlimited for Self-Tests
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <label htmlFor="quiz-attempts" className="text-[11px] font-semibold text-foreground">
+                      Attempts per student
+                    </label>
+                    <input
+                      id="quiz-attempts"
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={quizForm.attempts ?? 1}
+                      onChange={(e) => setQuizForm((prev) => ({ ...prev, attempts: e.target.value }))}
+                      className="w-24 rounded-xl border border-transparent bg-background px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-1 flex flex-col justify-end">
                   <label className="flex items-center gap-1.5 p-2 rounded-xl border border-border bg-background cursor-pointer">
