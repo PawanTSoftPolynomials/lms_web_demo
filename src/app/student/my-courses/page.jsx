@@ -8,6 +8,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import Button from "@/components/ui/Button";
 import Pagination from "@/components/ui/Pagination";
 import MyCourseCard from "@/components/student/my-courses/MyCourseCard";
+import StudentWelcomeCard from "@/components/student/my-courses/StudentWelcomeCard";
 import useMyCourses from "@/hooks/queries/student/useMyCourses";
 
 export default function MyCoursesPage() {
@@ -85,6 +86,10 @@ export default function MyCoursesPage() {
 
   return (
     <div className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-4 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
+      <div className="shrink-0">
+        <StudentWelcomeCard />
+      </div>
+
       {isError ? (
         <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
           <p className="text-sm font-bold text-foreground">Unable to load your courses.</p>
