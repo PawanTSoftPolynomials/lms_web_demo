@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FileText } from "lucide-react";
+import { ClipboardCheck, FileText } from "lucide-react";
 import type { RecentSubmission } from "@/services/instructor/dashboardHome.service";
 
 export function RecentSubmissionsList({ submissions, isLoading }: { submissions: RecentSubmission[], isLoading?: boolean }) {
@@ -47,25 +47,37 @@ export function RecentSubmissionsList({ submissions, isLoading }: { submissions:
         {submissions.length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-4">No recent submissions</p>
         ) : (
-          submissions.map((sub) => (
-            <div key={sub.id} className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 border border-primary/20 rounded-lg shrink-0">
-                  <FileText size={16} className="text-primary" />
+          submissions.map((sub) => {
+            // Final-test attempts get a test icon and a pass/fail colour;
+            // assignment submissions keep the primary badge.
+            const isTest = sub.kind === "test";
+            const Icon = isTest ? ClipboardCheck : FileText;
+            const badgeClass = isTest
+              ? sub.passed
+                ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                : "bg-red-500/10 text-red-500 border-red-500/20"
+              : "bg-primary/10 text-primary border-primary/20";
+
+            return (
+              <div key={sub.id} className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="p-2 bg-primary/10 border border-primary/20 rounded-lg shrink-0">
+                    <Icon size={16} className="text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-bold text-foreground">{sub.studentName}</p>
+                    <p className="truncate text-[10px] text-muted-foreground">{sub.assignmentName}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-foreground">{sub.studentName}</p>
-                  <p className="text-[10px] text-muted-foreground">{sub.assignmentName}</p>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${badgeClass}`}>
+                    {sub.status}
+                  </span>
+                  <span className="text-[9px] text-muted-foreground">{sub.time}</span>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-1 shrink-0">
-                <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
-                  {sub.status}
-                </span>
-                <span className="text-[9px] text-muted-foreground">{sub.time}</span>
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

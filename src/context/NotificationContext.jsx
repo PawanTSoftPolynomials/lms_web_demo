@@ -80,6 +80,11 @@ export function NotificationProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
   const { showToast } = useToast();
   const seenEventIdsRef = useRef(new Set());
+  // Dedupe keys for caller-generated notifications (chat, etc.). Same idea as
+  // seenEventIdsRef above, but keyed by whatever the caller considers "the same
+  // event" — checked synchronously so a caller that re-fires on every render
+  // cannot stack duplicate toasts before React has committed the state update.
+  const seenNotifKeysRef = useRef(new Set());
   const isMountedRef = useRef(false);
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -116,6 +121,7 @@ export function NotificationProvider({ children }) {
     const loadNotifications = async () => {
       if (!user) {
         setNotifications([]);
+        seenNotifKeysRef.current.clear();
         return;
       }
       try {
@@ -180,9 +186,18 @@ export function NotificationProvider({ children }) {
     initSeenEvents();
   }, [user, fetchCalendarEventsCached, fetchNotificationsCached]);
 
-  const addNotification = useCallback((title, message, type = "system", link = "") => {
+  // `dedupeKey` makes a call idempotent: the first call for a given key adds the
+  // notification, later calls with the same key are dropped — no duplicate entry,
+  // no repeated chime, no repeated toast. Callers that observe a stream (chat
+  // messages, for instance) pass a key derived from the underlying event.
+  const addNotification = useCallback((title, message, type = "system", link = "", dedupeKey = "") => {
+    if (dedupeKey) {
+      if (seenNotifKeysRef.current.has(dedupeKey)) return;
+      seenNotifKeysRef.current.add(dedupeKey);
+    }
+
     const newNotif = {
-      id: "notif_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+      id: dedupeKey || "notif_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
       title,
       message,
       type,

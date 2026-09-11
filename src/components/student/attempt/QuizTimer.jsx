@@ -47,9 +47,9 @@ export default function QuizTimer({
     const isCritical = timeLeft <= 60;
 
     return (
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <div
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                className={`flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl ${
                     isCritical
                         ? "bg-red-500/10"
                         : isWarning
@@ -58,7 +58,7 @@ export default function QuizTimer({
                 }`}
             >
                 <Clock
-                    className={`h-5 w-5 ${
+                    className={`h-4 w-4 sm:h-5 sm:w-5 ${
                         isCritical
                             ? "text-red-400"
                             : isWarning
@@ -68,13 +68,13 @@ export default function QuizTimer({
                 />
             </div>
 
-            <div>
-                <p className="text-xs text-muted-foreground">
+            <div className="min-w-0">
+                <p className="hidden sm:block text-xs text-muted-foreground">
                     Time Remaining
                 </p>
 
                 <p
-                    className={`text-2xl font-bold leading-tight tabular-nums ${
+                    className={`text-base sm:text-2xl font-bold leading-tight tabular-nums ${
                         isCritical
                             ? "text-red-400"
                             : isWarning

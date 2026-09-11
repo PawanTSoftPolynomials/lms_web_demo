@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, GraduationCap } from "lucide-react";
 
 import EmptyState from "@/components/ui/EmptyState";
 import Button from "@/components/ui/Button";
 import Pagination from "@/components/ui/Pagination";
+import SnapCardSlider from "@/components/ui/SnapCardSlider";
 import MyCourseCard from "@/components/student/my-courses/MyCourseCard";
 import useMyCourses from "@/hooks/queries/student/useMyCourses";
 
@@ -48,43 +49,8 @@ export default function MyCoursesPage() {
     setPage((p) => Math.min(p, totalPages));
   }, [totalPages]);
 
-  // Mobile carousel: tracks centered card for pagination dots
-  const sliderRef = useRef(null);
-  const scrollRaf = useRef(null);
-  const [activeSlide, setActiveSlide] = useState(0);
-  const firstCourseId = pagedEnrollments[0]?.id || pagedEnrollments[0]?.courseId;
-
-  useEffect(() => {
-    sliderRef.current?.scrollTo({ left: 0 });
-    setActiveSlide(0);
-  }, [firstCourseId]);
-
-  const handleSliderScroll = (e) => {
-    const el = e.currentTarget;
-    if (scrollRaf.current) return;
-    scrollRaf.current = requestAnimationFrame(() => {
-      scrollRaf.current = null;
-      const center = el.scrollLeft + el.clientWidth / 2;
-      let closest = 0;
-      let closestDist = Infinity;
-      Array.from(el.children).forEach((child, i) => {
-        const dist = Math.abs(child.offsetLeft + child.offsetWidth / 2 - center);
-        if (dist < closestDist) {
-          closestDist = dist;
-          closest = i;
-        }
-      });
-      setActiveSlide(closest);
-    });
-  };
-
-  const goToSlide = (i) => {
-    const child = sliderRef.current?.children[i];
-    child?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  };
-
   return (
-    <div className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-2 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
+    <div className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-2 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-3 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
       {isError ? (
         <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
           <p className="text-sm font-bold text-foreground">Unable to load your courses.</p>
@@ -128,52 +94,21 @@ export default function MyCoursesPage() {
           </div>
 
           <div className="md:flex-1 md:min-h-0 md:overflow-y-auto md:pr-1 md:-mr-1">
-            <div
-              ref={sliderRef}
-              onScroll={!isLoading && pagedEnrollments.length > 0 ? handleSliderScroll : undefined}
-              className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory scroll-smooth [-webkit-overflow-scrolling:touch] scrollbar-none pb-1 md:gap-4 md:pb-0 md:grid md:justify-items-center md:grid-cols-[repeat(auto-fill,minmax(272px,288px))] md:overflow-visible md:snap-none"
-            >
-              {isLoading
-                ? Array.from({ length: 6 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-full shrink-0 px-[6%] md:px-0 md:w-full md:max-w-72 md:shrink"
-                    >
-                      <div className="h-72 md:h-72 rounded-2xl border border-slate-200 bg-white/10 animate-pulse" />
-                    </div>
-                  ))
-                : pagedEnrollments.length === 0
-                ? (
-                  <div className="w-full col-span-full">
-                    <EmptyState title="No courses enrolled in the selected year." />
-                  </div>
-                )
-                : pagedEnrollments.map((enrollment) => (
-                    <div
-                      key={enrollment.id || enrollment.courseId}
-                      className="w-full shrink-0 snap-center px-[6%] md:px-0 md:w-full md:max-w-72 md:shrink"
-                    >
-                      <MyCourseCard enrollment={enrollment} />
-                    </div>
-                  ))}
-            </div>
-
-            {!isLoading && pagedEnrollments.length > 1 && (
-              <div className="flex md:hidden items-center justify-center gap-1.5 pt-3" role="tablist" aria-label="Course slides">
-                {pagedEnrollments.map((enrollment, i) => (
-                  <button
-                    key={enrollment.id || i}
-                    role="tab"
-                    aria-selected={i === activeSlide}
-                    aria-label={`Go to course slide ${i + 1}`}
-                    onClick={() => goToSlide(i)}
-                    className={`rounded-full transition-all duration-300 ${
-                      i === activeSlide ? "w-2 h-2 bg-primary" : "w-1.5 h-1.5 bg-slate-600"
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
+            <SnapCardSlider
+              items={pagedEnrollments}
+              getKey={(enrollment) => enrollment.id || enrollment.courseId}
+              renderItem={(enrollment) => <MyCourseCard enrollment={enrollment} />}
+              gridClassName="md:justify-items-center md:mx-auto md:max-w-[1504px] md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+              itemClassName="md:max-w-72"
+              isLoading={isLoading}
+              skeletonCount={6}
+              skeleton={
+                <div className="h-72 md:h-72 rounded-2xl border border-slate-200 bg-white/10 animate-pulse" />
+              }
+              emptyState={<EmptyState title="No courses enrolled in the selected year." />}
+              dotsLabel="Course slides"
+              getDotLabel={(_, i) => `Go to course slide ${i + 1}`}
+            />
 
             {!isLoading && myEnrollments.length > 0 && (
               <div className="hidden md:block">

@@ -20,6 +20,12 @@ export default function DocxViewer({
   title = "Document",
   className = "",
   hideToolbar = false,
+  // Opt-in, mirroring PdfViewer: fill the height the parent allots and let
+  // THIS viewport be the scroll container. Without it the unconditional
+  // min-h-[520px] reading-pane floor overflows a phone-sized player frame,
+  // producing a second scroller nested inside the page's. Consumers that do
+  // not pass it keep the original sizing exactly.
+  fillHeight = false,
   onControlsRender,
 }) {
   const resolvedUrl = getDisplayUrl(fileUrl);
@@ -162,13 +168,21 @@ export default function DocxViewer({
     );
   }
 
+  // fillHeight: below xl take the remaining height of the parent column and
+  // scroll here; at xl the original reading pane, unchanged. Otherwise the
+  // original sizing at every width. Branches never overlap, so nothing
+  // depends on stylesheet order.
+  const docViewportSizing = fillHeight
+    ? "flex-1 min-h-0 xl:flex-none xl:h-[78vh] xl:min-h-[520px] xl:max-h-[900px]"
+    : "h-[78vh] min-h-[520px] max-h-[900px]";
+
   return (
     <div
       className={`flex flex-col w-full ${
         !hideToolbar
           ? "rounded-2xl border border-border bg-[#0B101D] shadow-2xl overflow-hidden"
           : ""
-      } ${className}`}
+      } ${fillHeight ? "max-xl:h-full max-xl:min-h-0" : ""} ${className}`}
     >
       {/* Header Toolbar */}
       {!hideToolbar && (
@@ -187,7 +201,7 @@ export default function DocxViewer({
       )}
 
       {/* DOCUMENT PAPER VIEWPORT */}
-      <div className="relative w-full h-[78vh] min-h-[520px] max-h-[900px] overflow-auto bg-[#060913] p-4 sm:p-8 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80">
+      <div className={`relative w-full overflow-auto bg-[#060913] p-4 sm:p-8 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80 ${docViewportSizing}`}>
         {/* Loading Overlay */}
         {loadingStep && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#060913]/90 z-20 rounded-2xl">

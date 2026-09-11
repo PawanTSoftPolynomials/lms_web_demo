@@ -15,7 +15,7 @@ import AssignmentSubmissionPanel from "@/components/student/assignments/Assignme
  * backend Progress index the workspace already holds; nothing about
  * completion is decided in this component.
  */
-export default function AssignmentWorkspacePanel({ assignmentId, completed = false }) {
+export default function AssignmentWorkspacePanel({ assignmentId, completed = false, onNextContent }) {
   const { data: assignment, isLoading, isError } = useAssignment(assignmentId);
 
   if (isLoading) return <Loader />;
@@ -28,5 +28,12 @@ export default function AssignmentWorkspacePanel({ assignmentId, completed = fal
     );
   }
 
-  return <AssignmentSubmissionPanel assignment={assignment} completed={completed} />;
+  return (
+    <AssignmentSubmissionPanel
+      assignment={assignment}
+      completed={completed}
+      onNextContent={onNextContent}
+      showStatusLink
+    />
+  );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { ListTree, PanelLeftOpen, StickyNote } from "lucide-react";
+import { PanelLeftOpen, StickyNote } from "lucide-react";
 import ProgressBar from "@/components/student/courses/ProgressBar";
 
 // Sticky sub-header for the learning workspace — course-map toggle, the
@@ -17,12 +17,11 @@ export default function LearnPageHeader({
   course,
   courseProgress,
   isProgressUnavailable,
-  onOpenStickyNotes,
-  // Below xl the header identifies the course and the module being studied,
-  // and the course map is a drawer rather than a rail — the lesson's own
-  // title/number/topic live in the page body so the content leads.
-  moduleTitle,
-  onOpenCourseMap,
+  // The right-hand side panel (Ask Instructor / Sticky Notes / Feedback).
+  // These names must match what the learn page passes — a mismatch here
+  // left the button with no click handler, so it silently did nothing.
+  isStickyNotesOpen = false,
+  onToggleStickyNotes,
 }) {
   // Straight passthrough of the backend roll-up (see lib/progressIndex.js) —
   // `applicable` is the backend's own "this course has tracked items" flag,
@@ -31,7 +30,7 @@ export default function LearnPageHeader({
   const percent = courseProgress?.progressPercent ?? 0;
 
   return (
-    <header className="sticky top-0 bg-[#07080f]/80 backdrop-blur-md border-b border-[#1e2030]/40 py-3 px-4 sm:px-6 flex items-center justify-between z-30 select-none">
+    <header className="max-sm:hidden sticky top-0 bg-[#07080f]/80 backdrop-blur-md border-b border-border py-3 max-xl:py-2 px-4 sm:px-6 flex items-center justify-between z-30 select-none">
       <div className="flex items-center gap-3 min-w-0 flex-1">
         {!courseSidebarOpen && (
           <button
@@ -44,23 +43,15 @@ export default function LearnPageHeader({
             <PanelLeftOpen size={16} />
           </button>
         )}
-        <div className="min-w-0">
-          <span className="hidden xl:block text-[10px] font-black uppercase tracking-widest text-muted-foreground truncate">
+        <div className="hidden xl:block min-w-0">
+          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground truncate block">
             LEARNING WORKSPACE
           </span>
-          <h2 className="hidden xl:block text-sm font-bold text-foreground truncate">
+          <h2 className="text-sm font-bold text-foreground truncate">
             {selectedLesson ? `Lesson: ${selectedLesson.title}` : course?.title || "Course Overview"}
           </h2>
           {topicTitle && (
-            <p className="hidden xl:block text-xs text-muted-foreground truncate">Topic: {topicTitle}</p>
-          )}
-
-          {/* Below xl: course, then the module it belongs to. */}
-          <h2 className="xl:hidden text-sm font-bold text-foreground truncate">
-            {course?.title || "Course"}
-          </h2>
-          {moduleTitle && (
-            <p className="xl:hidden text-[11px] text-muted-foreground truncate">{moduleTitle}</p>
+            <p className="text-xs text-muted-foreground truncate">Topic: {topicTitle}</p>
           )}
         </div>
       </div>
@@ -99,26 +90,40 @@ export default function LearnPageHeader({
         </div>
       )}
 
-      {/* Course map, below xl only: one tap to the full hierarchy, rather than
-          a rail permanently taking the narrow screen's width. */}
+      {/* Side-panel toggle. globals.css gives every <button> an unlayered
+          border-radius / box-shadow / transition that beats Tailwind
+          utilities, so the pill radius and transition are set inline and the
+          gradient ring + glow live on inner spans the rule doesn't touch. */}
       <button
         type="button"
-        onClick={onOpenCourseMap}
-        className="xl:hidden shrink-0 mr-2 inline-flex items-center gap-1.5 rounded-xl border border-primary/40 bg-primary/5 px-2.5 py-2 text-xs font-bold text-primary transition hover:bg-primary/10 cursor-pointer"
-        aria-label="Open course map"
+        onClick={onToggleStickyNotes}
+        aria-pressed={isStickyNotesOpen}
+        style={{ borderRadius: 9999, transition: "transform 150ms ease" }}
+        className="group relative shrink-0 p-px cursor-pointer bg-gradient-to-br from-primary/80 via-border to-accent/60 motion-safe:active:scale-95 max-xl:hidden"
+        title={isStickyNotesOpen ? "Hide side panel" : "Show side panel"}
+        aria-label={isStickyNotesOpen ? "Hide side panel" : "Show side panel"}
       >
-        <ListTree size={14} className="shrink-0" aria-hidden="true" />
-        Course Map
-      </button>
-
-      <button
-        type="button"
-        onClick={onOpenStickyNotes}
-        className="shrink-0 h-9 w-9 flex items-center justify-center rounded-full border border-border bg-background/60 text-muted-foreground hover:text-primary hover:border-primary/40 transition cursor-pointer"
-        title="Sticky Notes"
-        aria-label="Open Sticky Notes"
-      >
-        <StickyNote size={16} />
+        <span
+          aria-hidden="true"
+          className={`pointer-events-none absolute -inset-1 rounded-full bg-primary/40 blur-md transition-opacity duration-300 ${
+            isStickyNotesOpen ? "opacity-70" : "opacity-0 group-hover:opacity-60"
+          }`}
+        />
+        <span
+          className={`relative flex h-9 items-center gap-2 rounded-full px-3 sm:px-3.5 text-xs font-bold tracking-wide transition-colors duration-200 ${
+            isStickyNotesOpen
+              ? "bg-primary text-primary-foreground"
+              : "bg-background text-foreground/80 group-hover:text-foreground"
+          }`}
+        >
+          <StickyNote
+            size={15}
+            className={`transition-transform duration-300 motion-safe:group-hover:-rotate-12 motion-safe:group-hover:scale-110 ${
+              isStickyNotesOpen ? "" : "text-primary"
+            }`}
+          />
+          <span className="hidden sm:inline">Notes</span>
+        </span>
       </button>
     </header>
   );

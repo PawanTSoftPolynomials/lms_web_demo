@@ -10,7 +10,6 @@ import {
     ChevronLeft,
     ChevronRight,
     Music,
-    Paperclip,
 } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
 
@@ -22,6 +21,7 @@ import PdfViewer from "@/components/student/learn/PdfViewer";
 import PptViewer from "@/components/shared/PptViewer";
 import DocxViewer from "@/components/shared/DocxViewer";
 import ExternalDocumentViewer from "@/components/shared/ExternalDocumentViewer";
+import ContentAssignmentPanel from "@/components/student/learning/ContentAssignmentPanel";
 
 const isGoogleSlidesUrl = (url) => Boolean(url?.includes("docs.google.com/presentation"));
 const getGoogleSlidesEmbedUrl = (url) => {
@@ -64,6 +64,15 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const localVideoRef = useRef(null);
     const [slideIndex, setSlideIndex] = useState(0);
 
+    // Page state reported by PdfViewer: { page, total, goToPreviousPage,
+    // goToNextPage }. The viewer still owns pageNumber and the handlers —
+    // this only holds what the header needs to draw, and forwards the same
+    // object to the learn page, which draws the buttons below the player.
+    // Cleared on every content change so a previous document can never
+    // leave controls behind on new content.
+    const [pdfPage, setPdfPage] = useState(null);
+    const reportPdfPage = (state) => setPdfPage(state);
+
     const type = content?.type;
     const videoUrl = content?.videoUrl;
     const fileUrl = content?.fileUrl;
@@ -83,6 +92,10 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const onTimeUpdateRef = useRef(onTimeUpdate);
     const onEndedRef = useRef(onEnded);
     const onDurationChangeRef = useRef(onDurationChange);
+    useEffect(() => {
+        setPdfPage(null);
+    }, [content?.id]);
+
     useEffect(() => {
         onTimeUpdateRef.current = onTimeUpdate;
     }, [onTimeUpdate]);
@@ -255,8 +268,42 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     // Player Frame in the learn page) can actually scroll to the rest of it.
     const fillsFrame = type === "VIDEO";
 
+    // Height ownership below xl, matching the learn page's player modes.
+    // Literal strings only — Tailwind emits nothing it cannot see verbatim.
+    //   VIDEO     -> h-auto; the 16:9 box below decides the height.
+    //   file-like -> fill the bounded frame so the viewer's canvas scrolls.
+    //   otherwise -> no min-height floor, so text sizes to its own content
+    //                instead of being padded out to the frame.
+    // Height ownership below xl, matching the learn page's player modes.
+    //   VIDEO      -> h-auto; the 16:9 box below decides the height.
+    //   ASSIGNMENT -> natural: sizes to its own form content.
+    //   everything else (text/HTML, documents) -> fill the bounded player so
+    //      the scroll happens INSIDE it, never by growing the page.
+    const isNaturalFlow = type === "ASSIGNMENT";
+    const rootSizing = fillsFrame
+        ? "h-full max-xl:h-auto"
+        : isNaturalFlow
+        ? "min-h-full max-xl:min-h-0"
+        : "min-h-full max-xl:h-full max-xl:min-h-0";
+
+    // A flex-1 child inside an auto-height column collapses to zero, so the
+    // content area stays flexible only where the root has a definite height.
+    //
+    // Reading flow (text/HTML) is the one case where THIS element owns the
+    // vertical scroll below xl. It sits under the title bar, which is
+    // shrink-0, so the header stays pinned while the prose scrolls — the
+    // learn page's player body is set to overflow-y-hidden for this mode, so
+    // there is exactly one scrollbar, not a nested pair. Documents keep their
+    // own viewer canvas as the scroller; desktop is untouched in every case.
+    const isReadingFlow = !fillsFrame && !isFileLike && !isNaturalFlow;
+    const contentAreaSizing = isNaturalFlow
+        ? "flex-1 max-xl:flex-none"
+        : isReadingFlow
+        ? "flex-1 max-xl:min-h-0 max-xl:overflow-y-auto"
+        : "flex-1 max-xl:min-h-0";
+
     return (
-        <div className={`overflow-hidden rounded-2xl border border-border bg-background flex flex-col w-full ${fillsFrame ? "h-full" : "min-h-full max-xl:rounded-none max-xl:border-0 max-xl:bg-transparent"}`}>
+        <div className={`bg-background flex flex-col w-full ${rootSizing}`}>
             {/* Header — skipped for VIDEO: the lesson title already shows above the
                 player, and the video's own thumbnail/embed carries its title too,
                 so this bar was just a third repeat of the same text. Also skipped
@@ -264,8 +311,8 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                 (e.g. a merged document block from an import with no block title) —
                 an icon-only bar with nothing next to it isn't useful, and we don't
                 invent a fake title just to fill it. */}
-            {type !== "VIDEO" && (content.title || isSlideShow) && (
-            <div className="border-b border-border px-4 sm:px-6 py-3.5 flex items-center justify-between bg-background min-h-[52px] max-xl:px-0 max-xl:bg-transparent">
+            {type !== "VIDEO" && (content.title || isSlideShow || pdfPage) && (
+            <div className="shrink-0 border-b border-border px-4 sm:px-6 py-3.5 flex items-center justify-between bg-background min-h-[52px] max-xl:py-2.5 max-xl:min-h-0">
                 <h2 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2 truncate pr-2">
                     {isSlideShow && <Presentation className="h-4 w-4 text-primary shrink-0" />}
                     {isTextLike && !isSlideShow && <BookOpen className="h-4 w-4 text-primary shrink-0" />}
@@ -277,17 +324,59 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                         Slide {slideIndex + 1} / {slides.length}
                     </span>
                 )}
+                {/* The document's own page control, in its own header: the
+                    viewer renders one page at a time, so without this a
+                    multi-page document could not be read past page 1. It is
+                    NOT a second Previous/Next pair below the player — that
+                    page-level row was removed as redundant with the lesson's
+                    Previous/Next content controls. This moves the document
+                    between its own pages only and never touches which lesson
+                    content is open. */}
+                {pdfPage && (
+                    <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+                        <button
+                            type="button"
+                            onClick={pdfPage.goToPreviousPage}
+                            disabled={pdfPage.page <= 1}
+                            aria-label="Previous document page"
+                            title="Previous document page"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-card/90 text-foreground transition hover:border-primary hover:text-primary disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                        >
+                            <ChevronLeft size={15} />
+                        </button>
+
+                        <span className="px-1 text-[11px] font-bold tabular-nums text-muted-foreground whitespace-nowrap">
+                            <span className="sm:hidden">
+                                {pdfPage.page} / {pdfPage.total}
+                            </span>
+                            <span className="hidden sm:inline">
+                                Page {pdfPage.page} of {pdfPage.total}
+                            </span>
+                        </span>
+
+                        <button
+                            type="button"
+                            onClick={pdfPage.goToNextPage}
+                            disabled={pdfPage.page >= pdfPage.total}
+                            aria-label="Next document page"
+                            title="Next document page"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-card/90 text-foreground transition hover:border-primary hover:text-primary disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                        >
+                            <ChevronRight size={15} />
+                        </button>
+                    </div>
+                )}
             </div>
             )}
 
             {/* Content Area with fluid aspect ratio */}
-            <div className="relative w-full flex-1 flex flex-col bg-background max-xl:bg-transparent">
+            <div className={`relative w-full flex flex-col bg-background ${contentAreaSizing}`}>
                 {/* VIDEO */}
                 {type === "VIDEO" && (
                     isYoutube ? (
                         <div
                             ref={containerRef}
-                            className="relative w-full h-full bg-black overflow-hidden [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full"
+                            className="relative w-full h-full bg-black overflow-hidden max-xl:h-auto max-xl:aspect-video [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full"
                         />
                     ) : displayVideoUrl ? (
                         <video
@@ -301,7 +390,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                             onTimeUpdate={(event) =>
                                 onTimeUpdate?.(Math.floor(event.currentTarget.currentTime))
                             }
-                            className="w-full h-full bg-black object-contain"
+                            className="w-full h-full bg-black object-contain max-xl:h-auto max-xl:aspect-video"
                         />
                     ) : (
                         <div className="flex h-80 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-[#0B101D] p-6 text-center">
@@ -316,17 +405,22 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
                 {/* FILE / DOCUMENT / PDF (PDFs / PPTs / Docs / Resources) */}
                 {isFileLike && (
-                    <div className="w-full">
+                    /* Below xl this is the link in the chain that lets the
+                       viewer fill: a flex column that takes the content
+                       area's remaining height, so PdfViewer's own canvas —
+                       not the player frame, and not the page — is what
+                       scrolls. */
+                    <div className="w-full max-xl:flex-1 max-xl:min-h-0 max-xl:flex max-xl:flex-col">
                         {displayFileUrl && (displayFileUrl.toLowerCase().includes(".pdf") || displayFileUrl.toLowerCase().includes("/pdf")) ? (
-                            <PdfViewer fileUrl={displayFileUrl} title={content?.title} />
+                            <PdfViewer fileUrl={displayFileUrl} title={content?.title} hideToolbar fillHeight onPageStateChange={reportPdfPage} />
                         ) : displayFileUrl && (displayFileUrl.toLowerCase().includes(".ppt") || displayFileUrl.toLowerCase().includes(".pptx")) ? (
                             <PptViewer fileUrl={displayFileUrl} title={content?.title} />
                         ) : displayFileUrl && (displayFileUrl.toLowerCase().includes(".doc") || displayFileUrl.toLowerCase().includes(".docx")) ? (
-                            <DocxViewer fileUrl={displayFileUrl} title={content?.title} />
+                            <DocxViewer fileUrl={displayFileUrl} title={content?.title} fillHeight />
                         ) : displayFileUrl ? (
-                            <ExternalDocumentViewer fileUrl={displayFileUrl} title={content?.title} />
+                            <ExternalDocumentViewer fileUrl={displayFileUrl} title={content?.title} fillHeight />
                         ) : htmlContent ? (
-                            <div className="p-4 sm:p-8 select-text max-xl:px-0">
+                            <div className="p-4 sm:p-8 select-text min-w-0 max-w-full">
                                 <MarkdownRenderer
                                     source={unescapeFromContentApi(htmlContent || "")}
                                     emptyText="No document content provided."
@@ -334,7 +428,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                                 />
                             </div>
                         ) : (
-                            <ExternalDocumentViewer fileUrl={displayFileUrl} title={content?.title} />
+                            <ExternalDocumentViewer fileUrl={displayFileUrl} title={content?.title} fillHeight />
                         )}
                     </div>
                 )}
@@ -401,12 +495,15 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                 {/* HTML / TEXT / PRESENTATION / SLIDE */}
                 {isHtmlLike && !isFileLike && (
                     isSlideShow ? (
-                        <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px]">
+                        <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px] max-xl:flex-none max-xl:min-h-0">
                             <div 
                                 className="prose prose-invert max-w-none text-foreground text-base sm:text-lg leading-relaxed flex-1 flex flex-col justify-center select-text"
                                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(slides[slideIndex] || "") }}
                             />
                             
+                            {/* Slide navigation — moves within THIS deck only
+                                (slideIndex), never between lesson content
+                                items. Labelled with its unit for that reason. */}
                             <div className="mt-6 pt-4 border-t border-border flex items-center justify-between gap-2">
                                 <button
                                     type="button"
@@ -414,7 +511,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                                     disabled={slideIndex === 0}
                                     className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] bg-muted text-foreground rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-muted transition"
                                 >
-                                    <ChevronLeft className="h-4 w-4" /> Previous
+                                    <ChevronLeft className="h-4 w-4" /> Prev slide
                                 </button>
                                 
                                 <div className="flex gap-1.5 overflow-x-auto py-1">
@@ -436,12 +533,12 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                                     disabled={slideIndex === slides.length - 1}
                                     className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] bg-muted text-foreground rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-muted transition"
                                 >
-                                    Next <ChevronRight className="h-4 w-4" />
+                                    Next slide <ChevronRight className="h-4 w-4" />
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <div className="p-4 sm:p-8 select-text max-xl:px-0">
+                        <div className="p-4 sm:p-8 select-text min-w-0 max-w-full">
                             <MarkdownRenderer
                                 source={unescapeFromContentApi(htmlContent || "")}
                                 emptyText="No content yet."
@@ -452,62 +549,21 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                 )}
 
                 {/* ASSIGNMENT (descriptive assignment brief, not a quiz).
-                    Two clearly separated sections: the instructor's written
-                    instructions, then the instructor's reference file. The
-                    title already sits in the header bar above, so it is not
-                    repeated here. Completion for this block runs through the
-                    workspace's existing backend-authoritative completion
-                    strip, exactly as for every other Content type. */}
+                    The instructor's instructions and reference file, then the
+                    student's PDF upload. The title already sits in the header
+                    bar above, so it is not repeated here. Submitting records
+                    the PDF and the backend marks this block complete. */}
                 {type === "ASSIGNMENT" && (
-                    <div className="p-4 sm:p-6 md:p-8 max-w-3xl w-full mx-auto space-y-6">
-                        <section className="space-y-2">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                                Assignment Instructions
-                            </p>
-                            {htmlContent ? (
-                                <p className="whitespace-pre-wrap break-words text-sm sm:text-base leading-relaxed text-foreground/90 select-text">
-                                    {unescapeFromContentApi(htmlContent)}
-                                </p>
-                            ) : (
-                                <p className="text-sm text-muted-foreground italic">
-                                    No instructions were provided for this assignment.
-                                </p>
-                            )}
-                        </section>
-
-                        <section className="space-y-2 border-t border-border pt-5">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                                Reference Material
-                            </p>
-                            {fileUrl ? (
-                                <>
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 px-3 py-2.5">
-                                        <span className="flex items-center gap-2 min-w-0">
-                                            <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                            <span className="truncate text-xs font-semibold text-foreground">
-                                                {getAttachmentName(content)}
-                                            </span>
-                                        </span>
-                                        <a
-                                            href={displayFileUrl}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="shrink-0 self-start sm:self-auto inline-flex items-center gap-2 rounded-xl border border-border bg-muted px-4 py-2.5 min-h-[44px] text-xs font-bold text-primary hover:bg-background transition"
-                                        >
-                                            <Paperclip className="h-4 w-4" />
-                                            View Attachment
-                                        </a>
-                                    </div>
-                                    <p className="text-[11px] font-semibold text-muted-foreground">
-                                        Provided by your instructor. This is not your submission.
-                                    </p>
-                                </>
-                            ) : (
-                                <p className="text-sm text-muted-foreground italic">
-                                    No reference material provided.
-                                </p>
-                            )}
-                        </section>
+                    <div className="p-4 sm:p-6">
+                        <ContentAssignmentPanel
+                            contentId={content.id}
+                            instructions={htmlContent ? unescapeFromContentApi(htmlContent) : ""}
+                            attachments={
+                                fileUrl
+                                    ? [{ url: displayFileUrl, name: getAttachmentName(content) }]
+                                    : []
+                            }
+                        />
                     </div>
                 )}
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Settings, LifeBuoy, LogOut, X } from "lucide-react";
+import { ChevronDown, LifeBuoy, LogOut, X } from "lucide-react";
 
 import { useInstructorNavDrawer } from "@/context/InstructorNavDrawerContext";
 import { PRIMARY_NAV_ITEMS } from "@/components/instructor/NavigationStrip/navigationItems";
@@ -14,7 +14,6 @@ import { ThemeModeRow } from "@/components/ui/shadcn/theme-switcher";
 // Account-level links that aren't part of the desktop nav strip (see
 // PRIMARY_NAV_ITEMS, rendered above these in the tree below).
 const SECONDARY_ITEMS = [
-  { id: "settings", label: "Settings", icon: Settings, href: "/instructor/settings" },
   { id: "help", label: "Help & Support", icon: LifeBuoy, href: "/instructor/settings" },
 ];
 

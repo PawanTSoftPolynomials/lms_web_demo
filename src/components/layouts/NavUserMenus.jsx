@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Bell, BookOpen, CheckCheck, CheckSquare, ChevronDown, MessageSquare, Trash2, X } from "lucide-react";
+import { Bell, BookOpen, CheckCheck, CheckSquare, ChevronDown, MessageSquare, Trash2 } from "lucide-react";
 
 /** Helper to return type icon and color styles for notification items */
 function getNotificationMeta(type) {
@@ -176,7 +176,7 @@ export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkA
 }
 
 // Compact avatar-initial profile pill + dropdown (name, email, quick links, sign out).
-export function ProfileMenu({ user, onLogout, profileHref = "/student/profile", settingsHref = "/student/settings" }) {
+export function ProfileMenu({ user, onLogout, profileHref = "/student/profile" }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -235,16 +235,6 @@ export function ProfileMenu({ user, onLogout, profileHref = "/student/profile", 
               className="flex items-center rounded-xl px-3 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
             >
               My Profile
-            </Link>
-          )}
-          {settingsHref && (
-            <Link
-              href={settingsHref}
-              role="menuitem"
-              onClick={() => setOpen(false)}
-              className="flex items-center rounded-xl px-3 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
-            >
-              Settings
             </Link>
           )}
           <button

@@ -85,7 +85,8 @@ export default function MCQMultiOptionList({
                 justify-center
                 rounded-xl
                 font-extrabold
-                text-sm
+                text-xs
+                sm:text-sm
                 transition-all
                 duration-300
                 ${
@@ -101,7 +102,7 @@ export default function MCQMultiOptionList({
             {/* Option Text */}
             <div className="flex-1 pt-1.5 min-w-0">
               <p
-                className={`text-base leading-relaxed transition-colors duration-200 ${
+                className={`text-[13px] sm:text-base leading-relaxed break-words transition-colors duration-200 ${
                   isSelected
                     ? "font-semibold text-foreground"
                     : "text-slate-400"

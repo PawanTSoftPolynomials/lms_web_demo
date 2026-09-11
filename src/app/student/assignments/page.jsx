@@ -1,65 +1,77 @@
 "use client";
 
-import { Suspense, useMemo, useRef, useState } from "react";
+import { Suspense, useMemo } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, CalendarDays, ClipboardCheck, Plus } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ClipboardList, Hourglass } from "lucide-react";
 
 import PageHeader from "@/components/layouts/PageHeader";
-import Card from "@/components/ui/Card";
-import AssignmentFilters from "@/components/student/assignments/AssignmentFilters";
 import AssignmentCard from "@/components/student/assignments/AssignmentCard";
-import AssignmentSummaryPanel from "@/components/student/assignments/AssignmentSummaryPanel";
 import useAssignments from "@/hooks/queries/student/useAssignments";
-import {
-  ASSIGNMENT_TABS,
-  ASSIGNMENT_STATUSES,
-  normalizeAssignmentStatus,
-} from "@/features/student/constants/assignmentsConfig";
+import { normalizeAssignmentStatus } from "@/features/student/constants/assignmentsConfig";
 
-// Loading state — mirrors the real layout (header, filter bar, a few
-// assignment cards, summary panel) so nothing jumps around once data arrives.
-function AssignmentCardSkeleton() {
-  return (
-    <div className="rounded-2xl xl:rounded-3xl border border-transparent bg-background p-4 xl:p-6 space-y-3">
-      <div className="flex items-center gap-2">
-        <div className="h-5 w-20 rounded-full bg-muted animate-pulse" />
-        <div className="h-5 w-16 rounded-full bg-muted animate-pulse" />
-      </div>
-      <div className="h-5 w-3/4 rounded bg-muted animate-pulse" />
-      <div className="h-4 w-1/2 rounded bg-muted animate-pulse" />
-      <div className="h-10 w-full rounded-xl bg-muted animate-pulse xl:hidden" />
-    </div>
-  );
+// Where an assignment can stand, in the order a student acts on it. The
+// grouping replaces filters, tabs and stat tiles: the page is just the list.
+// Each section's icon chip uses the same colour as its cards' status edge.
+const SECTIONS = [
+  {
+    key: "todo",
+    title: "To do",
+    statuses: ["Not Submitted", "In Progress"],
+    icon: ClipboardList,
+    tone: "bg-primary/15 text-primary",
+  },
+  {
+    key: "submitted",
+    title: "Awaiting grade",
+    statuses: ["Submitted"],
+    icon: Hourglass,
+    tone: "bg-amber-500/10 text-amber-500",
+  },
+  {
+    key: "graded",
+    title: "Graded",
+    statuses: ["Graded"],
+    icon: CheckCircle2,
+    tone: "bg-emerald-500/10 text-emerald-500",
+  },
+];
+
+const toTime = (value) => (value ? new Date(value).getTime() : null);
+
+// To do: soonest deadline first, undated last. Submitted/graded: newest first.
+function sortForSection(key, list) {
+  if (key === "todo") {
+    return [...list].sort((a, b) => {
+      const ad = toTime(a.dueDate);
+      const bd = toTime(b.dueDate);
+      if (ad === bd) return 0;
+      if (ad === null) return 1;
+      if (bd === null) return -1;
+      return ad - bd;
+    });
+  }
+  return [...list].sort((a, b) => (toTime(b.submittedAt) ?? 0) - (toTime(a.submittedAt) ?? 0));
 }
 
-function AssignmentsPageSkeleton() {
+function AssignmentsSkeleton() {
   return (
-    <div className="space-y-5 xl:space-y-8">
-      <div className="flex items-start gap-3">
-        <div className="h-11 w-11 shrink-0 rounded-xl bg-muted animate-pulse xl:hidden" />
-        <div className="flex-1 space-y-3">
-          <div className="h-8 w-40 rounded-lg bg-muted animate-pulse" />
-          <div className="h-4 w-64 max-w-full rounded bg-muted animate-pulse" />
-          <div className="flex gap-4 pt-1">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-4 w-14 rounded bg-muted animate-pulse" />
-            ))}
-          </div>
-        </div>
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <div className="h-8 w-44 rounded-lg bg-muted animate-pulse" />
+        <div className="h-4 w-80 max-w-full rounded bg-muted animate-pulse" />
       </div>
-
-      <div className="grid gap-4 xl:gap-6 xl:grid-cols-[2fr_1fr] items-start">
-        <div className="space-y-4 xl:space-y-6">
-          <div className="h-14 rounded-2xl border border-transparent bg-background animate-pulse" />
-          {[1, 2, 3].map((i) => (
-            <AssignmentCardSkeleton key={i} />
-          ))}
-        </div>
-        <div className="space-y-3">
-          <div className="h-24 rounded-3xl border border-transparent bg-background animate-pulse" />
-          <div className="h-16 rounded-3xl border border-transparent bg-background animate-pulse" />
-          <div className="h-16 rounded-3xl border border-transparent bg-background animate-pulse" />
-        </div>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="h-1.5 bg-muted animate-pulse" />
+            <div className="space-y-3 p-5">
+              <div className="h-3 w-1/3 rounded bg-muted animate-pulse" />
+              <div className="h-5 w-2/3 rounded bg-muted animate-pulse" />
+              <div className="h-20 rounded-xl bg-muted animate-pulse" />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -68,309 +80,102 @@ function AssignmentsPageSkeleton() {
 function AssignmentsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  // Other pages link here scoped to one course (?course=<title>).
+  const courseContext = searchParams.get("course") || "";
   const { data: assignments = [], isLoading, isError } = useAssignments();
 
-  const courseContext = searchParams.get("course") || "";
-  const isCourseScoped = Boolean(courseContext);
+  const sections = useMemo(() => {
+    const scoped = courseContext
+      ? assignments.filter((a) => (a.course?.title || a.courseTitle) === courseContext)
+      : assignments;
 
-  const [search, setSearch] = useState("");
-  const [courseFilter, setCourseFilter] = useState(courseContext);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [sortBy, setSortBy] = useState("due-earliest");
-  const [activeTab, setActiveTab] = useState("all");
+    return SECTIONS.map((section) => ({
+      ...section,
+      items: sortForSection(
+        section.key,
+        scoped.filter((a) => section.statuses.includes(normalizeAssignmentStatus(a)))
+      ),
+    })).filter((section) => section.items.length > 0);
+  }, [assignments, courseContext]);
 
-  const [deadlinesExpanded, setDeadlinesExpanded] = useState(false);
-  const deadlinesSectionRef = useRef(null);
-  const scrollToDeadlines = () => {
-    setDeadlinesExpanded(true);
-    deadlinesSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  };
-
-  const hasActiveFilters = Boolean(
-    search.trim() || (!isCourseScoped && courseFilter) || statusFilter || activeTab !== "all"
-  );
-  const clearFilters = () => {
-    setSearch("");
-    if (!isCourseScoped) setCourseFilter("");
-    setStatusFilter("");
-    setActiveTab("all");
-  };
-
-  const courseOptions = useMemo(
-    () =>
-      [...new Set(
-        assignments
-          .map((assignment) => assignment.course?.title || assignment.courseTitle)
-          .filter(Boolean)
-      )],
-    [assignments]
-  );
-
-  const filteredAssignments = useMemo(() => {
-    let list = [...assignments];
-
-    if (search.trim()) {
-      const keyword = search.toLowerCase();
-      list = list.filter(
-        (assignment) =>
-          assignment.title?.toLowerCase().includes(keyword) ||
-          assignment.description?.toLowerCase().includes(keyword) ||
-          (assignment.course?.title || assignment.courseTitle || "")
-            .toLowerCase()
-            .includes(keyword)
-      );
-    }
-
-    if (courseFilter) {
-      list = list.filter(
-        (assignment) =>
-          (assignment.course?.title || assignment.courseTitle) ===
-          courseFilter
-      );
-    }
-
-    if (statusFilter) {
-      list = list.filter(
-        (assignment) => normalizeAssignmentStatus(assignment) === statusFilter
-      );
-    }
-
-    if (activeTab !== "all") {
-      if (activeTab === "upcoming") {
-        list = list.filter((assignment) => {
-          const due = assignment.dueDate ? new Date(assignment.dueDate) : null;
-          return due && due >= new Date();
-        });
-      } else {
-        list = list.filter((assignment) => normalizeAssignmentStatus(assignment) === activeTab);
-      }
-    }
-
-    if (sortBy === "due-latest") {
-      list.sort(
-        (a, b) =>
-          new Date(b.dueDate || 0) - new Date(a.dueDate || 0)
-      );
-    } else if (sortBy === "course") {
-      list.sort((a, b) =>
-        (a.course?.title || a.courseTitle || "").localeCompare(
-          b.course?.title || b.courseTitle || ""
-        )
-      );
-    } else {
-      list.sort(
-        (a, b) =>
-          new Date(a.dueDate || 0) - new Date(b.dueDate || 0)
-      );
-    }
-
-    return list;
-  }, [assignments, search, courseFilter, statusFilter, sortBy, activeTab]);
-
-  const statusCounts = useMemo(() => {
-    return assignments.reduce((counts, assignment) => {
-      const status = normalizeAssignmentStatus(assignment);
-      counts[status] = (counts[status] || 0) + 1;
-      return counts;
-    }, Object.fromEntries(ASSIGNMENT_STATUSES.map((status) => [status, 0])));
-  }, [assignments]);
-
-  const upcomingDeadlines = useMemo(() => {
-    return assignments
-      .filter((assignment) => {
-        const due = assignment.dueDate ? new Date(assignment.dueDate) : null;
-        return due && due >= new Date();
-      })
-      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-  }, [assignments]);
-
-  if (isLoading) {
-    return <AssignmentsPageSkeleton />;
-  }
-
-  if (isError) {
-    return (
-      <Card tone="flat" className="p-8 text-center">
-        <h2 className="text-xl font-semibold text-foreground">
-          Unable to load assignments
-        </h2>
-        <p className="mt-2 text-muted-foreground">
-          Please try again later.
-        </p>
-      </Card>
-    );
-  }
+  if (isLoading) return <AssignmentsSkeleton />;
 
   return (
-    <div className="space-y-5 xl:space-y-8">
+    <div>
       <div className="flex items-start gap-3">
         <button
           type="button"
           onClick={() => router.back()}
-          className="xl:hidden shrink-0 flex h-11 w-11 items-center justify-center rounded-xl text-foreground hover:text-foreground hover:bg-muted/60 transition-colors duration-200 cursor-pointer bg-transparent border-0"
+          aria-label="Go back"
+          className="xl:hidden shrink-0 flex h-11 w-11 items-center justify-center rounded-xl text-foreground hover:bg-muted/60 transition-colors cursor-pointer bg-transparent border-0"
         >
           <ArrowLeft size={18} />
         </button>
-
         <div className="flex-1 min-w-0">
           <PageHeader
             title="Assignments"
             subtitle={
-              isCourseScoped
-                ? `Assignments for ${courseContext}.`
-                : "Review, submit, and track all your course assignments."
+              courseContext
+                ? `Your assignments in ${courseContext}, with grades and feedback from your instructor.`
+                : "Everything you've been assigned across your courses, with grades and feedback from your instructors."
             }
-          >
-            {/* Desktop (xl+): tab pills */}
-            <div className="hidden xl:flex flex-wrap items-center gap-2">
-              {ASSIGNMENT_TABS.map((tab) => {
-                const active = activeTab === tab.value;
-                return (
-                  <button
-                    key={tab.value}
-                    type="button"
-                    onClick={() => setActiveTab(tab.value)}
-                    className={`rounded-full px-4 py-2 text-sm transition ${
-                      active
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-foreground hover:bg-muted"
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Mobile & tablet: tab strip */}
-            <div className="xl:hidden w-full overflow-x-auto scrollbar-none">
-              <div className="flex items-center gap-4 border-b border-transparent/80">
-                {ASSIGNMENT_TABS.map((tab) => {
-                  const active = activeTab === tab.value;
-                  return (
-                    <button
-                      key={tab.value}
-                      type="button"
-                      onClick={() => setActiveTab(tab.value)}
-                      className={`relative flex min-h-[44px] items-center pb-1.5 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors duration-200 cursor-pointer bg-transparent border-x-0 border-t-0 ${
-                        active
-                          ? "text-primary border-primary"
-                          : "text-muted-foreground border-transparent hover:text-foreground"
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </PageHeader>
-        </div>
-      </div>
-
-      <div className="grid gap-4 xl:gap-6 xl:grid-cols-[2fr_1fr] items-start">
-        <div className="space-y-4 xl:space-y-6">
-          <AssignmentFilters
-            search={search}
-            setSearch={setSearch}
-            courseFilter={courseFilter}
-            setCourseFilter={setCourseFilter}
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            courseOptions={courseOptions}
-            hideCourseFilter={isCourseScoped}
           />
-
-          {filteredAssignments.length > 0 ? (
-            <div className="grid gap-3 xl:gap-4">
-              {filteredAssignments.map((assignment) => (
-                <AssignmentCard
-                  key={assignment.id}
-                  assignment={assignment}
-                />
-              ))}
-            </div>
-          ) : (
-            <>
-              {/* Desktop (xl+): empty state */}
-              <Card tone="flat" className="hidden xl:block p-8 text-center">
-                <h2 className="text-xl font-semibold text-foreground">
-                  No assignments found
-                </h2>
-                <p className="mt-2 text-muted-foreground">
-                  Try adjusting your filters or search term.
-                </p>
-              </Card>
-
-              {/* Mobile & tablet: context-aware empty state */}
-              <div className="xl:hidden rounded-3xl border border-transparent bg-background p-8 text-center">
-                <div className="relative mx-auto mb-4 h-16 w-16">
-                  <Plus size={14} className="absolute -top-2 left-1 text-primary/50" />
-                  <Plus size={10} className="absolute top-7 -right-2 text-primary/30" />
-                  <Plus size={12} className="absolute -bottom-1 left-0 text-primary/40" />
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-transparent bg-muted/80">
-                    <ClipboardCheck size={28} className="text-primary" />
-                  </div>
-                </div>
-
-                {hasActiveFilters ? (
-                  <>
-                    <h2 className="text-lg font-semibold text-foreground">No matches found</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      No assignments match your current filters.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={clearFilters}
-                      className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary hover:bg-orange-600 px-5 py-2.5 min-h-[44px] text-sm font-bold text-slate-950 transition-colors duration-200 cursor-pointer"
-                    >
-                      Clear Filters
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <h2 className="text-lg font-semibold text-foreground">🎉 You&apos;re all caught up!</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      No assignments are available right now.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={scrollToDeadlines}
-                      className="mt-5 inline-flex items-center gap-2 rounded-xl border border-primary/60 px-5 py-2.5 min-h-[44px] text-sm font-bold text-primary hover:bg-primary/10 transition-colors duration-200 cursor-pointer bg-transparent"
-                    >
-                      <CalendarDays size={16} />
-                      View Upcoming Deadlines
-                    </button>
-                  </>
-                )}
-              </div>
-            </>
-          )}
         </div>
-
-        <AssignmentSummaryPanel
-          statusCounts={statusCounts}
-          upcomingDeadlines={upcomingDeadlines}
-          deadlinesExpanded={deadlinesExpanded}
-          onToggleDeadlines={() => setDeadlinesExpanded((prev) => !prev)}
-          deadlinesSectionRef={deadlinesSectionRef}
-          onViewAll={() => {
-            setActiveTab("all");
-            setStatusFilter("");
-            if (!isCourseScoped) setCourseFilter("");
-            setSearch("");
-          }}
-        />
       </div>
+
+      {isError ? (
+        <p role="alert" className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+          Your assignments couldn&apos;t be loaded. Refresh the page to try again.
+        </p>
+      ) : sections.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border px-6 py-12 text-center">
+          <p className="text-base font-semibold text-foreground">No assignments yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            When your instructors add assignments to your courses, they&apos;ll appear here.
+          </p>
+          <Link
+            href="/student/my-courses"
+            className="mt-5 inline-flex min-h-[40px] items-center rounded-xl border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:border-primary/50 hover:text-primary"
+          >
+            Go to my courses
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-10">
+          {sections.map((section) => (
+            <section key={section.key} aria-labelledby={`assignments-${section.key}`}>
+              <h2
+                id={`assignments-${section.key}`}
+                className="mb-4 flex items-center gap-2.5 text-base font-semibold text-foreground"
+              >
+                <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${section.tone}`}>
+                  <section.icon size={15} aria-hidden />
+                </span>
+                {section.title}
+                <span className="text-sm font-normal text-muted-foreground tabular-nums">
+                  {section.items.length}
+                </span>
+              </h2>
+              {/* Tiles: 1 column on phones, 2 on tablets, 3 on wide screens.
+                  Each li is a flex item so every tile in a row matches height. */}
+              <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {section.items.map((assignment) => (
+                  <li key={assignment.id} className="flex">
+                    <AssignmentCard assignment={assignment} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 export default function StudentAssignmentsPage() {
   return (
-    <Suspense fallback={<AssignmentsPageSkeleton />}>
+    <Suspense fallback={<AssignmentsSkeleton />}>
       <AssignmentsPageContent />
     </Suspense>
   );

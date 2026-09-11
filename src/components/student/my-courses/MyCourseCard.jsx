@@ -113,16 +113,19 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
         </div>
 
         {/* Two peer actions on one row at every width: a neutral outline for
-            details, a primary-tinted one for resuming. The desktop grid sizes
-            its columns to at least 272px so the pair always fits on a single
-            line — nowrap is scoped to md and up because the narrowest phones
-            (320px) still need the labels free to wrap. */}
-        <div className="mt-auto pt-3 border-t border-border flex items-center gap-1.5">
+            details, a primary-tinted one for resuming. Below md the card rides
+            in a px-[6%] snap carousel, which leaves only ~216px for this row at
+            320px — 26px short of the two full labels, so they used to wrap and
+            the pair stopped looking like a pair. The resume label therefore
+            drops to its short form under 360px, which lets nowrap apply at
+            every width. Touch height is raised below md as well: py-1 with
+            11px text is a ~23px target, well under the 44px minimum. */}
+        <div className="mt-auto pt-3 border-t border-border flex items-stretch gap-1.5">
           <button
             onClick={goTo(detailsDestination)}
             aria-label="View Course"
             title="View Course"
-            className="inline-flex flex-auto items-center justify-center gap-1.5 rounded-md border border-border bg-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition md:whitespace-nowrap"
+            className="inline-flex flex-auto items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-transparent px-2 py-2 min-h-[40px] md:py-1 md:min-h-0 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition"
           >
             <Eye size={11} aria-hidden="true" />
             View Course
@@ -133,9 +136,10 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
               onClick={goTo(learnDestination)}
               aria-label={continueLabel}
               title={continueLabel}
-              className="inline-flex flex-auto items-center justify-center gap-1 rounded-md border border-primary/40 bg-transparent px-2 py-1 text-[11px] font-bold text-primary hover:bg-primary/10 hover:border-primary/60 transition md:whitespace-nowrap"
+              className="inline-flex flex-auto items-center justify-center gap-1 whitespace-nowrap rounded-md border border-primary/40 bg-transparent px-2 py-2 min-h-[40px] md:py-1 md:min-h-0 text-[11px] font-bold text-primary hover:bg-primary/10 hover:border-primary/60 transition"
             >
-              {continueLabel}
+              <span className="max-[359px]:hidden">{continueLabel}</span>
+              <span className="hidden max-[359px]:inline">{isComplete ? "Review" : "Continue"}</span>
               <ArrowRight size={13} aria-hidden="true" />
             </button>
           )}

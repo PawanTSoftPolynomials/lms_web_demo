@@ -15,7 +15,7 @@ export default function OptionList({
   onSelect,
 }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5 sm:space-y-2">
       {options.map((option, index) => {
         const optionText = getOptionText(option);
         const isSelected = selectedAnswer === optionText || selectedAnswer === option;
@@ -33,10 +33,12 @@ export default function OptionList({
               flex
               w-full
               items-center
-              gap-2.5
+              gap-2
+              sm:gap-2.5
               rounded-xl
               border
-              p-2.5
+              p-2
+              sm:p-2.5
               text-left
               cursor-pointer
               transition-all
@@ -86,14 +88,17 @@ export default function OptionList({
             <div
               className={`
                 flex
-                h-7
-                w-7
+                h-6
+                w-6
+                sm:h-7
+                sm:w-7
                 shrink-0
                 items-center
                 justify-center
                 rounded-xl
                 font-extrabold
-                text-sm
+                text-xs
+                sm:text-sm
                 transition-all
                 duration-300
                 ${
@@ -109,7 +114,7 @@ export default function OptionList({
             {/* Option Text */}
             <div className="flex-1 min-w-0">
               <p
-                className={`text-sm sm:text-base leading-snug transition-colors duration-200 ${
+                className={`text-[13px] sm:text-base leading-snug break-words transition-colors duration-200 ${
                   isSelected
                     ? "font-semibold text-foreground"
                     : "text-slate-400"

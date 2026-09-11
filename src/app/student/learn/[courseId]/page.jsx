@@ -2,14 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import {
-  ChevronRight,
-  MessageSquare, Star, PanelRightClose,
-  PanelLeftOpen, X,
-} from "lucide-react";
+import { ListTree, X } from "lucide-react";
 
-import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel";
 import LessonContentBlock from "@/components/student/learning/LessonContentBlock";
 import ContentCompletionBar from "@/components/student/learning/ContentCompletionBar";
 import AssignmentWorkspacePanel from "@/components/student/learning/AssignmentWorkspacePanel";
@@ -17,14 +11,16 @@ import LessonOverviewPanel from "@/components/student/learning/LessonOverviewPan
 import LessonResourcesPanel from "@/components/student/learning/LessonResourcesPanel";
 import LessonQuizPanel from "@/components/student/learning/LessonQuizPanel";
 import QuizExperience from "@/components/student/attempt/QuizExperience";
-import AskInstructorCard from "@/components/student/learning/AskInstructorCard";
+import LearnSidePanel from "@/components/student/learning/LearnSidePanel";
 import LessonNavigationControls from "@/components/student/learning/LessonNavigationControls";
 import LearnPageHeader from "@/components/student/learning/LearnPageHeader";
 
 import { groupLessonContentForDocumentView } from "@/lib/contentDocument";
+import { buildCourseUnits, findUnitContaining } from "@/lib/courseUnits";
 import { CourseStructureSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
 import { normalizeCourseHierarchy } from "@/lib/courseMapper";
-import { buildProgressIndex, decorateCourseWithProgress, isItemComplete, getNodeProgress } from "@/lib/progressIndex";
+import { buildProgressIndex, decorateCourseWithProgress, isItemComplete, isItemSubmitted, getNodeProgress } from "@/lib/progressIndex";
+import { resolveResumeTarget } from "@/lib/resumeTarget";
 
 import {
   useCourse,
@@ -42,7 +38,7 @@ import Loader from "@/components/common/Loader";
 import Card from "@/components/ui/Card";
 import { ChatWidget } from "@/components/chat";
 
-import useChat from "@/hooks/useChat";
+
 import { useToast } from "@/components/ui/ToastProvider";
 
 /**
@@ -70,12 +66,24 @@ export default function LearnPage() {
   // Progress is advisory to this page: the player must stay fully usable when
   // the roll-up is unavailable, so a failed/pending progress query degrades to
   // "no indicators" rather than blocking or erroring the learning experience.
-  const { data: progressData, isError: isProgressError, refetch: refetchProgress } = useCourseProgress(courseId);
+  const {
+    data: progressData,
+    isLoading: isProgressLoading,
+    isError: isProgressError,
+    refetch: refetchProgress,
+  } = useCourseProgress(courseId);
   const completeContentMutation = useCompleteContent();
 
   // Single flattened view of the backend roll-up. Null while loading or on
   // failure — every consumer below treats null as "don't render indicators".
   const progressIndex = useMemo(() => buildProgressIndex(progressData), [progressData]);
+
+  // Where Continue Learning (or any plain visit with no explicit ?lessonId=)
+  // should land — see resolveResumeTarget. useLearningStateSync below uses
+  // its lessonId to settle selectedLesson; the resume effect further down
+  // (after courseUnits/jumpToBlock/enterUnit exist) uses the rest of it to
+  // land on the exact Topic/Content/Quiz once that lesson is on screen.
+  const resumeTarget = useMemo(() => resolveResumeTarget(progressData), [progressData]);
 
   // The same course tree the player renders from, decorated with the backend's
   // completion flags so the sidebar, the accordion and the quiz panel all agree.
@@ -89,7 +97,6 @@ export default function LearnPage() {
   const { data: stateData, isLoading: isStateLoading } = useStudentState(courseId);
   const updateStateMutation = useUpdateStudentState();
 
-  const { setIsOpen } = useChat();
   const { showToast } = useToast();
 
 
@@ -104,6 +111,9 @@ export default function LearnPage() {
   // collapse behavior. Closed by default to match the Course Index being
   // open on first arrival (avoids both wide panels competing for space).
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
+  // Which section of that panel is expanded (LearnSidePanel shows one at a
+  // time; null collapses all). Desktop-only, like the panel itself.
+  const [sidePanelFeature, setSidePanelFeature] = useState("notes");
 
   const videoPlayerRef = useRef(null);
 
@@ -115,6 +125,7 @@ export default function LearnPage() {
     currentTimestamp,
     setCurrentTimestamp,
     initialTime,
+    stateRestored,
   } = useLearningStateSync({
     courseId,
     course,
@@ -122,6 +133,8 @@ export default function LearnPage() {
     stateData,
     isStateLoading,
     updateStateMutation,
+    resumeTarget,
+    isProgressLoading,
   });
 
   // Lesson list, plus the single entry point (selectLesson) every navigation
@@ -140,23 +153,22 @@ export default function LearnPage() {
   // lesson-wide bar and content flatten further down instead.
   const hasTopics = (selectedLesson?.topics?.length ?? 0) > 0;
 
-  // Which module the open lesson belongs to, and its position in the course —
-  // the below-xl header/context needs both, and both come from data already
-  // loaded for the tree. Nothing extra is fetched.
-  const currentModule = useMemo(
-    () =>
-      (courseWithProgress?.modules || []).find((m) =>
-        (m.lessons || []).some((l) => l.id === selectedLesson?.id)
-      ) || null,
-    [courseWithProgress, selectedLesson]
-  );
-  const lessonNumber = lessons.findIndex((l) => l.id === selectedLesson?.id) + 1;
-
   // Picking a lesson or topic in the drawer should reveal it, not leave the
   // sheet covering what was just chosen.
   useEffect(() => {
     setCourseMapOpen(false);
   }, [selectedLesson?.id, selectedTopicId]);
+
+  // Escape closes the off-canvas course map, the same as its X and its scrim.
+  // Bound only while it is open, so nothing listens on the desktop layout.
+  useEffect(() => {
+    if (!courseMapOpen) return;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setCourseMapOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [courseMapOpen]);
 
   // previousTopic/nextTopic/selectTopic aren't used for Prev/Next crossing
   // any more — courseUnits below now owns "what's adjacent" for the whole
@@ -272,6 +284,11 @@ export default function LearnPage() {
   // counter. Any normal Lesson/Topic/Module sidebar pick clears it.
   const [extraUnit, setExtraUnit] = useState(null); // { key, blockIndex } | null
 
+  // An Assignment row opened from the Course Map. Assignments aren't steps in
+  // the Prev/Next sequence, so one is shown over the current position until
+  // the student navigates anywhere else. (Replaces the removed manualOverride
+  // state that openItem still called, which threw on every such tap.)
+  const [openAssignmentItem, setOpenAssignmentItem] = useState(null);
 
 
   // Auto-advance one block once a video finishes playing — same step Next
@@ -378,74 +395,14 @@ export default function LearnPage() {
   }, [documentGroupedContents, activeQuizzes]);
 
   // ---- Whole-course Prev/Next sequence -------------------------------------
-  // Every stop the player can land on, in the order a student progresses
-  // through the whole course: a Course's own direct content, then for each
-  // Module in turn (its own direct content, then for each Lesson in turn —
-  // its own direct content only when it ALSO has Topics [rare: Composer v2
-  // content is Lesson-only, so a real Lesson normally has either Topics or
-  // its own content, never both], each Topic in order, then the Lesson's
-  // own quiz), then the Module's own quiz — then the Course's own quiz,
-  // last of all. A level with nothing of its own contributes no unit, so a
-  // course that only uses Topics degrades to exactly the sequence Prev/Next
-  // already walked before this. Topic and zero-Topic-Lesson entries are
-  // `placeholder: true` — their real blocks still come from
+  // Every stop the player can land on, in the same order the Course Map
+  // lists them — see lib/courseUnits.js. Topic and zero-Topic-Lesson entries
+  // are `placeholder: true`: their real blocks still come from
   // documentGroupedContents/activeQuizzes above, driven by the existing
   // selectedLesson/selectedTopicId state; this array only needs to know
-  // they exist, in order, so crossing past them into a Module/Course-level
-  // unit (and back) works.
-  const courseUnits = useMemo(() => {
-    const byOrder = (list) => [...(list || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-    const contentUnit = (key, scope, contents) => {
-      const grouped = groupLessonContentForDocumentView(byOrder(contents));
-      return grouped.length > 0 ? { key, scope, blocks: grouped.map((item) => ({ kind: "content", item })) } : null;
-    };
-    const quizUnit = (key, scope, quizzes) => {
-      const sorted = byOrder(quizzes);
-      return sorted.length > 0 ? { key, scope, blocks: sorted.map((item) => ({ kind: "quiz", item })) } : null;
-    };
-
-    const units = [];
-    const noScope = { moduleId: null, lessonId: null, topicId: null };
-    const courseContent = contentUnit("course-content", noScope, course.contents);
-    if (courseContent) units.push(courseContent);
-
-    for (const mod of course.modules || []) {
-      const moduleScope = { moduleId: mod.id, lessonId: null, topicId: null };
-      const moduleContent = contentUnit(`module-content:${mod.id}`, moduleScope, mod.contents);
-      if (moduleContent) units.push(moduleContent);
-
-      for (const lesson of mod.lessons || []) {
-        const lessonScope = { moduleId: mod.id, lessonId: lesson.id, topicId: null };
-        const lessonHasTopics = (lesson.topics?.length ?? 0) > 0;
-
-        if (lessonHasTopics) {
-          const lessonContent = contentUnit(`lesson-content:${lesson.id}`, lessonScope, lesson.contents);
-          if (lessonContent) units.push(lessonContent);
-
-          for (const topic of lesson.topics) {
-            units.push({
-              key: `topic:${topic.id}`,
-              scope: { ...lessonScope, topicId: topic.id },
-              placeholder: true,
-            });
-          }
-
-          const lessonQuiz = quizUnit(`lesson-quiz:${lesson.id}`, lessonScope, lesson.quizzes);
-          if (lessonQuiz) units.push(lessonQuiz);
-        } else {
-          units.push({ key: `lesson:${lesson.id}`, scope: lessonScope, placeholder: true });
-        }
-      }
-
-      const moduleQuiz = quizUnit(`module-quiz:${mod.id}`, moduleScope, mod.quizzes);
-      if (moduleQuiz) units.push(moduleQuiz);
-    }
-
-    const courseQuiz = quizUnit("course-quiz", noScope, course.quizzes);
-    if (courseQuiz) units.push(courseQuiz);
-
-    return units;
-  }, [course]);
+  // they exist, in order, so crossing past them into a Course/Module/Lesson-
+  // level unit (and back) works.
+  const courseUnits = useMemo(() => buildCourseUnits(course), [course]);
 
   // Where the placeholder (Topic / zero-Topic-Lesson) pathway currently is,
   // as a courseUnits key — used only to find this position's neighbors for
@@ -481,6 +438,94 @@ export default function LearnPage() {
     moduleId: "Complete every lesson and module-level item in this module before moving to the next module.",
   };
 
+  // Generalizes the single-boundary check goToNextUnit does (below) to an
+  // arbitrary sidebar jump: walks every boundary strictly before the target
+  // courseUnits entry, finest-scope-first per boundary, so a direct click on
+  // (say) Module 3 while Module 1 is still incomplete is blocked exactly
+  // like stepping there one Next at a time would be — same canLeaveUnit/
+  // GATE_MESSAGES, just applied cumulatively instead of to one neighbor.
+  // A target that's already reachable (everything before it is done, which
+  // is always true for anything at or behind wherever the student already
+  // is) returns null, so this never blocks reviewing earlier material.
+  const findBlockingGate = (targetUnitKey) => {
+    const targetIndex = courseUnits.findIndex((u) => u.key === targetUnitKey);
+    if (targetIndex <= 0) return null;
+
+    for (let i = 0; i < targetIndex; i++) {
+      const current = courseUnits[i];
+      const next = courseUnits[i + 1];
+      for (const level of ["topicId", "lessonId", "moduleId"]) {
+        const currentId = current.scope[level];
+        if (!currentId || currentId === next.scope[level]) continue;
+        if (!canLeaveUnit(currentId)) {
+          return GATE_MESSAGES[level];
+        }
+      }
+    }
+    return null;
+  };
+
+  // The courseUnits entry a sidebar click on a whole Module/Lesson row
+  // (rather than one specific item inside it) actually lands on, matching
+  // what onSelectModule/onSelectLesson below (and the reset effect they
+  // trigger) actually navigate to — a Lesson with Topics always lands on
+  // its first Topic, even for a legacy Lesson that also has its own
+  // lesson-content unit ahead of that Topic in course order.
+  const firstUnitKeyFor = ({ moduleId = null, lessonId = null } = {}) => {
+    if (lessonId) {
+      const firstTopicId = lessons.find((l) => l.id === lessonId)?.topics?.[0]?.id;
+      if (firstTopicId) return `topic:${firstTopicId}`;
+    }
+    const match = courseUnits.find(
+      (u) =>
+        (!moduleId || u.scope.moduleId === moduleId) &&
+        (!lessonId || u.scope.lessonId === lessonId)
+    );
+    return match?.key ?? null;
+  };
+
+  // Runs a sidebar navigation action only if its target isn't gated —
+  // shared by every sidebar entry point below so the toast + early-return
+  // shape is written once.
+  //
+  // Returns whether the action actually ran: false means the gate blocked it
+  // and nothing moved. The decision itself is unchanged — this only reports
+  // it, so callers (the Course Map handlers) can tell a real navigation from
+  // a blocked tap instead of guessing from state changes.
+  const runGated = (targetUnitKey, action) => {
+    const blockingMessage = findBlockingGate(targetUnitKey);
+    if (blockingMessage) {
+      showToast(blockingMessage, "error");
+      return false;
+    }
+    action();
+    return true;
+  };
+
+  // One level finer than canLeaveUnit above: whether the single block
+  // currently on screen can be left for the next block in the SAME unit.
+  // A Quiz only needs an attempt on file here — passing is what canLeaveUnit
+  // requires to leave the unit entirely, not what's required to keep moving
+  // through the unit's own remaining blocks. Assignment blocks never occur
+  // in this sequence today (opening one goes through a separate, currently
+  // broken, standalone path), so there is nothing to gate for that kind yet.
+  const canLeaveBlock = (block) => {
+    if (!block || !progressIndex) return true;
+    if (block.kind === "content") {
+      const ids = contentIdsOf(block.item);
+      return ids.length === 0 || ids.every((id) => isItemComplete(progressIndex, id));
+    }
+    if (block.kind === "quiz") {
+      return isItemSubmitted(progressIndex, block.item?.id);
+    }
+    return true;
+  };
+
+  const BLOCK_GATE_MESSAGES = {
+    content: "Finish this content before moving to the next item.",
+    quiz: "Submit this quiz before moving to the next item.",
+  };
+
   // Lands the player on a given courseUnits entry. A Topic or zero-Topic
   // Lesson hands off to the existing selectedLesson/selectedTopicId pathway
   // (unchanged — still owns rendering + resume/sidebar/Sticky-Notes sync for
@@ -488,10 +533,30 @@ export default function LearnPage() {
   // Lesson's own quiz) becomes the active extra unit. `atEnd` lands on the
   // unit's last block (Prev) instead of its first; `targetItemId` (a sidebar
   // click) lands on that specific item's block.
-  const enterUnit = (unit, { atEnd = false, targetItemId = null } = {}) => {
-    if (!unit) return;
+  // Returns whether the player actually moved: false for an unresolvable unit
+  // (findUnitContaining found nothing) and for a gated one. Same reporting-only
+  // addition as runGated above — no change to what is or isn't allowed.
+  const enterUnit = (unit, { atEnd = false, targetItemId = null, skipGate = false } = {}) => {
+    if (!unit) return false;
+
+    // skipGate is for goToPreviousUnit only — going back must always work,
+    // never re-litigated against completion state (see the comment there).
+    if (!skipGate) {
+      const blockingMessage = findBlockingGate(unit.key);
+      if (blockingMessage) {
+        showToast(blockingMessage, "error");
+        return false;
+      }
+    }
+
+    setOpenAssignmentItem(null);
     const resolvedIndex = targetItemId
-      ? Math.max(0, (unit.blocks || []).findIndex((b) => b.item.id === targetItemId))
+      ? Math.max(
+          0,
+          (unit.blocks || []).findIndex(
+            (b) => b.item.id === targetItemId || b.item.contentIds?.includes(targetItemId)
+          )
+        )
       : atEnd
       ? Math.max(0, (unit.blocks?.length || 1) - 1)
       : 0;
@@ -505,7 +570,7 @@ export default function LearnPage() {
       setSelectedTopicId(unit.scope.topicId || null);
       if (atEnd) landOnLastBlockRef.current = true;
       else if (targetItemId) pendingBlockTargetIdRef.current = targetItemId;
-      return;
+      return true;
     }
 
     // A Lesson-scoped extra unit (lesson-content/lesson-quiz) still points
@@ -516,6 +581,7 @@ export default function LearnPage() {
       if (lessonMatch) selectLesson(lessonMatch);
     }
     setExtraUnit({ key: unit.key, blockIndex: resolvedIndex });
+    return true;
   };
 
   // Only the forward direction is gated; a student can always go back to
@@ -525,28 +591,25 @@ export default function LearnPage() {
   // requires the whole Lesson complete; crossing out of a Module likewise
   // requires the whole Module complete. Same rule as the instructor's spec,
   // generalized to every level courseUnits now covers, not just Topics —
-  // checked finest-scope-first so the most specific message wins.
+  // checked finest-scope-first so the most specific message wins. enterUnit's
+  // own findBlockingGate check (walking every prior boundary) subsumes this
+  // single-neighbor case, so the gate itself now lives there.
   const goToNextUnit = () => {
-    const current = courseUnits[currentUnitIndex];
     const target = courseUnits[currentUnitIndex + 1];
-    if (!current || !target) return;
-
-    for (const level of ["topicId", "lessonId", "moduleId"]) {
-      const currentId = current.scope[level];
-      if (!currentId || currentId === target.scope[level]) continue;
-      if (!canLeaveUnit(currentId)) {
-        showToast(GATE_MESSAGES[level], "error");
-        return;
-      }
-    }
-
+    if (!target) return;
     enterUnit(target);
   };
 
+  // Only the forward direction is gated; a student can always go back to
+  // review earlier material — skipGate bypasses enterUnit's check
+  // unconditionally here rather than relying on "the previous unit's own
+  // prerequisites happen to already be satisfied", which stops holding the
+  // moment a student reached their current position via a not-yet-gated
+  // path (e.g. progress predating this feature).
   const goToPreviousUnit = () => {
     const target = courseUnits[currentUnitIndex - 1];
     if (!target) return;
-    enterUnit(target, { atEnd: true });
+    enterUnit(target, { atEnd: true, skipGate: true });
   };
 
   // In-player Prev/Next (the floating buttons over the content itself): step
@@ -554,6 +617,11 @@ export default function LearnPage() {
   // goToPreviousUnit/goToNextUnit — i.e. cross into the previous/next unit —
   // once there's no earlier/later block in the current one.
   const goToPreviousBlock = () => {
+    // Prev/Next from an opened Assignment returns to the position underneath.
+    if (openAssignmentItem) {
+      setOpenAssignmentItem(null);
+      return;
+    }
     if (extraUnit) {
       if (extraUnit.blockIndex > 0) {
         setExtraUnit((prev) => ({ ...prev, blockIndex: prev.blockIndex - 1 }));
@@ -567,6 +635,16 @@ export default function LearnPage() {
   };
 
   const goToNextBlock = () => {
+    const currentBlock = activeUnitBlocks[extraUnit ? extraUnit.blockIndex : blockIndex];
+    if (!canLeaveBlock(currentBlock)) {
+      showToast(BLOCK_GATE_MESSAGES[currentBlock.kind] || "Finish this item before moving on.", "error");
+      return;
+    }
+
+    if (openAssignmentItem) {
+      setOpenAssignmentItem(null);
+      return;
+    }
     if (extraUnit) {
       if (extraUnit.blockIndex < activeUnitBlocks.length - 1) {
         setExtraUnit((prev) => ({ ...prev, blockIndex: prev.blockIndex + 1 }));
@@ -587,20 +665,87 @@ export default function LearnPage() {
   // boundary stashes the target id in pendingBlockTargetIdRef for the
   // unit-change reset effect to resolve once playerBlocks has been
   // recomputed for the newly-selected unit.
+  //
+  // Returns whether the player moved. A click inside the unit already on
+  // screen always did (it is at or behind the student's own position, which
+  // the gate never blocks — see findBlockingGate); a click that crosses a
+  // boundary moved only if runGated let it through.
   const jumpToBlock = (targetId, { lesson, topic } = {}) => {
     setExtraUnit(null);
+    setOpenAssignmentItem(null);
     const alreadyOnUnit =
       lesson?.id === selectedLesson?.id && (topic ? topic.id === selectedTopicId : true);
     if (alreadyOnUnit) {
       const idx = playerBlocks.findIndex((b) => b.item.id === targetId);
       setBlockIndex(idx >= 0 ? idx : 0);
+      return true;
+    }
+
+    const targetUnitKey = topic ? `topic:${topic.id}` : `lesson:${lesson?.id}`;
+    return runGated(targetUnitKey, () => {
+      pendingBlockTargetIdRef.current = targetId;
+      const match = lesson?.id ? lessons.find((l) => l.id === lesson.id) : null;
+      if (match) selectLesson(match);
+      if (topic?.id) setSelectedTopicId(topic.id);
+    });
+  };
+
+  // Once, on initial load with no explicit ?lessonId= (a Continue Learning
+  // click, or any bare visit to the course): lands the player on
+  // resumeTarget's exact Topic/Content/Quiz — useLearningStateSync above
+  // only gets as far as the right Lesson. Runs after that settles
+  // (stateRestored) and courseUnits exists, and only once per mount ever —
+  // nothing the student does afterward (sidebar clicks, Prev/Next, a fresh
+  // completion) may be re-overridden by this as progress keeps changing
+  // through the rest of the session. Reuses jumpToBlock/enterUnit exactly
+  // as a sidebar click would, so it's subject to the same gate — which a
+  // genuine resume target always clears, since everything before it was,
+  // by construction, already visited to get here.
+  const hasAppliedResumeTargetRef = useRef(false);
+  useEffect(() => {
+    if (hasAppliedResumeTargetRef.current) return;
+    if (!stateRestored || !resumeTarget || courseUnits.length === 0) return;
+
+    if (typeof window !== "undefined") {
+      const hasExplicitLessonParam = new URLSearchParams(window.location.search).get("lessonId");
+      if (hasExplicitLessonParam) {
+        hasAppliedResumeTargetRef.current = true;
+        return;
+      }
+    }
+
+    hasAppliedResumeTargetRef.current = true;
+    const { id, lessonId, topicId } = resumeTarget;
+
+    if (topicId) {
+      const lessonMatch = lessons.find((l) => l.id === lessonId);
+      const topicMatch = lessonMatch?.topics?.find((t) => t.id === topicId);
+      jumpToBlock(id, { lesson: lessonMatch, topic: topicMatch });
       return;
     }
-    pendingBlockTargetIdRef.current = targetId;
-    const match = lesson?.id ? lessons.find((l) => l.id === lesson.id) : null;
-    if (match) selectLesson(match);
-    if (topic?.id) setSelectedTopicId(topic.id);
-  };
+
+    if (lessonId) {
+      const lessonMatch = lessons.find((l) => l.id === lessonId);
+      const lessonHasTopics = (lessonMatch?.topics?.length ?? 0) > 0;
+      if (lessonHasTopics) {
+        // A topics-Lesson's own content/quiz run(s) — findUnitContaining
+        // (not a guessed key) since buildCourseUnits can split a level's
+        // own items into several runs interleaved with its children.
+        enterUnit(findUnitContaining(courseUnits, id), { targetItemId: id });
+      } else {
+        jumpToBlock(id, { lesson: lessonMatch });
+      }
+      return;
+    }
+
+    // Module-direct or Course-direct.
+    enterUnit(findUnitContaining(courseUnits, id), { targetItemId: id });
+    // enterUnit/jumpToBlock intentionally omitted from deps — same
+    // convention as the unit-change reset effect above: they close over
+    // this render's state and aren't memoized, so listing them would just
+    // re-run this every render; the ref guard is what actually prevents
+    // re-application.
+  }, [stateRestored, resumeTarget, courseUnits, lessons]);
 
   // Still used by Sticky Notes (both the mobile tab and the desktop side
   // panel) to jump the video to a note's timestamp.
@@ -619,7 +764,9 @@ export default function LearnPage() {
   // What the player actually shows — whatever block the active unit
   // (extraUnit, or the Topic/Lesson pathway) is currently on.
   const activeBlockIndex = extraUnit ? extraUnit.blockIndex : blockIndex;
-  const activeBlock = activeUnitBlocks[activeBlockIndex];
+  const activeBlock = openAssignmentItem
+    ? { kind: "assignment", item: openAssignmentItem }
+    : activeUnitBlocks[activeBlockIndex];
 
   // Course Map sidebar highlighting — mirrors the instructor Composer's
   // composerMode/composeXId contract (see CourseComposerSidebar), derived
@@ -671,11 +818,25 @@ export default function LearnPage() {
 
   const activeEarnedId = activeQuizId || activeAssignmentId;
 
+  // A lesson-composer Assignment block (Content type ASSIGNMENT) is earned the
+  // same way: the backend completes it when the PDF submission is recorded.
+  const activeIsContentAssignment =
+    activeBlock?.kind === "content" && activeBlock.item?.type === "ASSIGNMENT";
+
   // Hidden entirely until the roll-up is known: without it we cannot say
   // whether this item is already complete, and showing "Mark as Complete" on a
   // finished item (or vice versa) would misreport the student's own state.
   const showCompletionBar =
     Boolean(progressIndex) && (activeContentIds.length > 0 || Boolean(activeEarnedId));
+
+  // Opens an Assignment in this workspace instead of navigating away, so the
+  // Course Map, the completion strip and the course percentage all stay on
+  // screen while the student works through it.
+  const openAssignment = (assignment) => {
+    if (!assignment?.id) return;
+    setOpenAssignmentItem(assignment);
+  };
+
 
   const handleMarkComplete = () => {
     // The mutation's own pending flag is the guard against double submission;
@@ -692,52 +853,39 @@ export default function LearnPage() {
     );
   };
 
-  // Each tab's content is defined exactly once here, then referenced both by
-  // the mobile shared content panel (conditional render, one at a time) and
-  // by the desktop stacked layout (all shown at once) — so there is a single
-  // source of truth per tab, not two copies that can drift out of sync.
-  const askInstructorCard = <AskInstructorCard course={course} setIsOpen={setIsOpen} />;
-
-  const feedbackPanel = (
-    <div className="space-y-4">
-      <Link
-        href={`/student/feedback?courseId=${course.id}`}
-        className="w-full flex items-center justify-between p-4 sm:p-5 rounded-3xl border border-transparent bg-background/40 hover:bg-background/60 hover:border-transparent/80 transition duration-300 group cursor-pointer text-left min-h-[44px]"
-      >
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-          <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-emerald-500/15 bg-emerald-500/5 text-emerald-400 shrink-0">
-            <MessageSquare size={18} className="stroke-[2.5]" />
-          </div>
-          <div className="min-w-0">
-            <h4 className="text-sm font-extrabold text-foreground group-hover:text-foreground transition truncate">Feedback</h4>
-            <p className="text-[10px] text-muted-foreground font-semibold mt-0.5 truncate">Share your feedback to help us improve.</p>
-          </div>
-        </div>
-        <ChevronRight size={14} className="text-slate-600 group-hover:text-primary transition-colors shrink-0 ml-2" />
-      </Link>
-
-      <Link
-        href={`/student/reviews?courseId=${course.id}`}
-        className="w-full flex items-center justify-between p-4 sm:p-5 rounded-3xl border border-transparent bg-background/40 hover:bg-background/60 hover:border-transparent/80 transition duration-300 group cursor-pointer text-left min-h-[44px]"
-      >
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-          <div className="w-10 h-10 rounded-2xl flex items-center justify-center border border-blue-500/15 bg-blue-500/5 text-blue-400 shrink-0">
-            <Star size={18} className="stroke-[2.5]" />
-          </div>
-          <div className="min-w-0">
-            <h4 className="text-sm font-extrabold text-foreground group-hover:text-foreground transition truncate">Reviews</h4>
-            <p className="text-[10px] text-muted-foreground font-semibold mt-0.5 truncate">Rate this course and see what others think.</p>
-          </div>
-        </div>
-        <ChevronRight size={14} className="text-slate-600 group-hover:text-primary transition-colors shrink-0 ml-2" />
-      </Link>
-    </div>
+  // The side panel (Ask instructor / Sticky notes / Feedback / Reviews) —
+  // desktop only: below xl the lesson itself owns the screen.
+  // Questions are tied to the one item on screen — content block, quiz or
+  // assignment — and only ever listed back on that item.
+  const sidePanel = (
+    <LearnSidePanel
+      activeFeature={sidePanelFeature}
+      onChangeFeature={setSidePanelFeature}
+      courseId={course.id}
+      lessonId={selectedLesson?.id ?? null}
+      askTarget={
+        activeBlock?.item?.id && ["content", "quiz", "assignment"].includes(activeBlock.kind)
+          ? { kind: activeBlock.kind, id: activeBlock.item.id, title: activeBlock.item.title }
+          : null
+      }
+      currentTimestamp={currentTimestamp}
+      onSeek={handleTranscriptSeek}
+    />
   );
 
   const quizPanel = (
     <LessonQuizPanel quizzes={courseWithProgress?.quizzes || course?.quizzes || []} courseId={courseId} currentLessonId={selectedLesson?.id} />
   );
 
+  // Below xl the Course Map is an overlay, so a selection that lands has to
+  // get out of the way — but ONLY one that lands. Every handler below closes
+  // it on the navigation primitive's own success result (runGated/enterUnit/
+  // jumpToBlock), never on the click itself: a completion-gated tap still
+  // toasts and leaves the map open over the unchanged player, and so does a
+  // selection whose unit can't be resolved. On the xl rail these calls are
+  // no-ops — courseMapOpen is already false there and React bails on an
+  // identical value — so the desktop sidebar is unaffected.
+  //
   // One definition of the course tree, rendered on two surfaces: the xl+
   // rail and the below-xl drawer. Same modules, same progress, same select
   // handlers — only the open/close wiring and the header differ.
@@ -761,61 +909,160 @@ export default function LearnPage() {
       onSelectCourseOverview={() => router.push(`/student/courses/${courseId}`)}
       onSelectLesson={(lessonId) => {
         setExtraUnit(null);
+        setOpenAssignmentItem(null);
         const match = lessons.find((l) => l.id === lessonId);
-        selectLesson(match);
+        if (!match) return;
+        const navigated = runGated(
+          firstUnitKeyFor({ moduleId: match.moduleId, lessonId: match.id }),
+          () => {
+            setExtraUnit(null);
+            selectLesson(match);
+          }
+        );
+        if (navigated) setCourseMapOpen(false);
       }}
       onSelectModule={(mod) => {
-        setExtraUnit(null);
-        selectLesson(mod.lessons?.[0]);
+        const firstLesson = mod.lessons?.[0];
+        if (!firstLesson) return;
+        const navigated = runGated(
+          firstUnitKeyFor({ moduleId: mod.id, lessonId: firstLesson.id }),
+          () => {
+            setExtraUnit(null);
+            setOpenAssignmentItem(null);
+            selectLesson(firstLesson);
+          }
+        );
+        if (navigated) setCourseMapOpen(false);
       }}
       onSelectTopic={(topicId, lessonId) => {
         setExtraUnit(null);
+        setOpenAssignmentItem(null);
         const match = lessons.find((l) => l.id === lessonId);
         if (!match) return;
-        selectLesson(match);
-        setSelectedTopicId(topicId);
+        const navigated = runGated(`topic:${topicId}`, () => {
+          setExtraUnit(null);
+          selectLesson(match);
+          setSelectedTopicId(topicId);
+        });
+        if (navigated) setCourseMapOpen(false);
       }}
       onSelectContent={(content, topic, lesson) => {
-        jumpToBlock(content.id, { lesson, topic });
+        if (jumpToBlock(content.id, { lesson, topic })) setCourseMapOpen(false);
       }}
       onSelectLessonContent={(content, lesson) => {
         // A Lesson's own direct content is only ever a distinct
         // courseUnits entry when that Lesson also has Topics (see
         // courseUnits above) — otherwise it *is* the Topic/Lesson
         // pathway's own content, reached the normal way.
-        if ((lesson?.topics?.length ?? 0) > 0) {
-          enterUnit(courseUnits.find((u) => u.key === `lesson-content:${lesson.id}`), { targetItemId: content.id });
-        } else {
-          jumpToBlock(content.id, { lesson });
-        }
+        const navigated =
+          (lesson?.topics?.length ?? 0) > 0
+            ? enterUnit(findUnitContaining(courseUnits, content.id), { targetItemId: content.id })
+            : jumpToBlock(content.id, { lesson });
+        if (navigated) setCourseMapOpen(false);
       }}
-      onSelectModuleContent={(content, mod) => {
-        enterUnit(courseUnits.find((u) => u.key === `module-content:${mod?.id}`), { targetItemId: content.id });
+      onSelectModuleContent={(content) => {
+        if (enterUnit(findUnitContaining(courseUnits, content.id), { targetItemId: content.id })) {
+          setCourseMapOpen(false);
+        }
       }}
       onSelectCourseContent={(content) => {
-        enterUnit(courseUnits.find((u) => u.key === "course-content"), { targetItemId: content.id });
-      }}
-      onSelectQuiz={(quiz, mod, lesson, topic) => {
-        if (topic) {
-          jumpToBlock(quiz.id, { lesson, topic });
-        } else if (lesson) {
-          if ((lesson.topics?.length ?? 0) > 0) {
-            enterUnit(courseUnits.find((u) => u.key === `lesson-quiz:${lesson.id}`), { targetItemId: quiz.id });
-          } else {
-            jumpToBlock(quiz.id, { lesson });
-          }
-        } else if (mod) {
-          enterUnit(courseUnits.find((u) => u.key === `module-quiz:${mod.id}`), { targetItemId: quiz.id });
-        } else {
-          enterUnit(courseUnits.find((u) => u.key === "course-quiz"), { targetItemId: quiz.id });
+        if (enterUnit(findUnitContaining(courseUnits, content.id), { targetItemId: content.id })) {
+          setCourseMapOpen(false);
         }
       }}
+      onSelectQuiz={(quiz, mod, lesson, topic) => {
+        let navigated;
+        if (topic) {
+          navigated = jumpToBlock(quiz.id, { lesson, topic });
+        } else if (lesson && (lesson.topics?.length ?? 0) === 0) {
+          navigated = jumpToBlock(quiz.id, { lesson });
+        } else {
+          // A topic-Lesson's, Module's or Course's own quiz — its own unit.
+          navigated = enterUnit(findUnitContaining(courseUnits, quiz.id), { targetItemId: quiz.id });
+        }
+        if (navigated) setCourseMapOpen(false);
+      }}
+      // Assignments are not steps in the Prev/Next sequence, so one opens
+      // over the current position. Wired on the shared tree, so the xl rail
+      // and the below-xl drawer both reach it — this used to hang off the
+      // mobile-only accordion, which the drawer replaced.
+      onSelectAssignment={(assignment) => openAssignment(assignment)}
       isOpen={isOpen}
       onToggleOpen={onToggleOpen}
       hideHeader={hideHeader}
       role="STUDENT"
     />
   );
+
+  // ---- Mobile height/scroll ownership -------------------------------------
+  // Below xl, who owns height and scrolling depends on WHAT is on screen. One
+  // bounded 68dvh box for everything is what stretched video, clipped text and
+  // trapped the quiz in a nested scroller.
+  //   reading   — text/HTML: bounded player, but the scroller is VideoPlayer's
+  //               own content area, one level BELOW its title bar, so the bar
+  //               stays pinned while the prose scrolls. The body here must
+  //               therefore NOT scroll, or there would be two scrollbars.
+  //   contained — quiz and PDF/DOC/PPT/external: bounded player, and this body
+  //               is the single scroller (documents fill it exactly, so it
+  //               only actually scrolls for the quiz).
+  //   aspect    — video: the frame wraps a 16:9 player that derives its own
+  //               height from its width.
+  //   natural   — assignment: a form with uploads, which must size to its own
+  //               content rather than be trapped in a short box.
+  // Derived from data already in scope; desktop is unaffected (every class
+  // below is max-xl:).
+  const activeContentType = activeBlock?.kind === "content" ? activeBlock.item?.type : null;
+  const playerMode =
+    activeContentType === "VIDEO"
+      ? "aspect"
+      : activeBlock?.kind === "assignment" || activeContentType === "ASSIGNMENT"
+      ? "natural"
+      : activeBlock?.kind === "content" &&
+        activeContentType !== "FILE" &&
+        activeContentType !== "DOCUMENT" &&
+        activeContentType !== "PDF"
+      ? "reading"
+      : "contained";
+
+  // Literal class strings — Tailwind only emits what it can see verbatim.
+  const FRAME_MODE_CLASSES = {
+    natural: "max-xl:h-auto max-xl:min-h-0 max-xl:max-h-none",
+    aspect: "max-xl:h-auto max-xl:min-h-0 max-xl:max-h-none",
+    reading: "max-xl:h-[68dvh] max-xl:min-h-[360px] max-xl:max-h-none",
+    contained: "max-xl:h-[68dvh] max-xl:min-h-[360px] max-xl:max-h-none",
+  };
+  // overflow-y (not the overflow shorthand) so it overrides the base
+  // overflow-y-auto by property, never by stylesheet order.
+  const BODY_MODE_CLASSES = {
+    natural: "max-xl:flex-none max-xl:overflow-y-visible",
+    aspect: "max-xl:flex-none max-xl:overflow-y-visible",
+    // reading: hand the scroll down to VideoPlayer's content area, and make
+    // sure this element can never become a second vertical scrollbar.
+    reading: "max-xl:overflow-y-hidden",
+    contained: "",
+  };
+
+  // LESSON CONTENT navigation — one set of props and one pair of handlers
+  // (goToPreviousBlock / goToNextBlock), rendered in two placements: the
+  // desktop overlay on the player, and the row under the player below xl.
+  // Entirely separate from the document's page navigation, which the
+  // document viewer owns and renders in its own header.
+  const lessonNavProps = {
+    unitLabel: activeExtraUnitDef
+      ? activeExtraUnitDef.key.startsWith("course")
+        ? "Course"
+        : activeExtraUnitDef.key.startsWith("module")
+        ? "Module"
+        : "Lesson"
+      : hasTopics
+      ? "Topic"
+      : "Lesson",
+    previousItem: activeBlockIndex > 0 || currentUnitIndex > 0,
+    nextItem:
+      activeBlockIndex < activeUnitBlocks.length - 1 || currentUnitIndex < courseUnits.length - 1,
+    onSelectPrevious: goToPreviousBlock,
+    onSelectNext: goToNextBlock,
+  };
 
   return (
     <div className="h-full bg-[#07080f] text-foreground flex overflow-x-hidden font-sans relative">
@@ -832,12 +1079,17 @@ export default function LearnPage() {
         })}
       </div>
 
-      {/* COURSE MAP DRAWER — below xl. Same tree as the rail, opened from the
-          header and dismissed with X, so the lesson keeps the screen the rest
-          of the time. Its own scroll: it is a temporary navigation surface. */}
+      {/* COURSE MAP — off-canvas navigation sidebar below xl. Same tree as the
+          desktop rail (one renderCourseTree, two call sites), opened from the
+          trigger in the lesson context row and dismissed with X, the scrim or
+          Escape. Fixed to the viewport's left edge and mounted only while
+          open, so it overlays the lesson instead of ever taking part in the
+          page's flow: the lesson never shifts, resizes or scrolls because of
+          it. The tree scrolls inside its own region — the wrapper below only
+          hands it the height, it does not scroll a second time. */}
       {courseMapOpen && (
         <div
-          className="xl:hidden fixed inset-0 z-50 flex"
+          className="xl:hidden fixed inset-0 z-50"
           role="dialog"
           aria-modal="true"
           aria-label="Course Map"
@@ -845,11 +1097,15 @@ export default function LearnPage() {
           <div
             aria-hidden="true"
             onClick={() => setCourseMapOpen(false)}
-            className="absolute inset-0 bg-black/70"
+            className="absolute inset-0 bg-black/70 animate-scrim-in"
           />
-          <div className="relative ml-auto flex h-full w-full max-w-[380px] flex-col bg-[#07080f] shadow-2xl">
+          {/* 85% of the viewport with a cap, so it reads as a sidebar (the page
+              stays visible behind it) at 320px and at 430px alike. */}
+          <aside className="absolute inset-y-0 left-0 flex h-full w-[85%] max-w-[340px] flex-col bg-[#07080f] shadow-2xl animate-sidebar-in-left">
             <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 shrink-0">
-              <h2 className="text-base font-bold text-foreground">Course Map</h2>
+              <h2 className="text-sm font-black uppercase tracking-widest text-foreground">
+                Course Content
+              </h2>
               <button
                 type="button"
                 onClick={() => setCourseMapOpen(false)}
@@ -860,21 +1116,18 @@ export default function LearnPage() {
               </button>
             </div>
 
-            <div className="border-b border-border px-4 py-3 shrink-0">
-              <p className="text-sm font-bold text-foreground truncate">{course?.title}</p>
-              {currentModule?.title && (
-                <p className="text-xs text-muted-foreground truncate">{currentModule.title}</p>
-              )}
-            </div>
-
-            <div className="flex-1 min-h-0 overflow-y-auto p-3">
+            {/* The tree's own panel chrome (card radius, border, shadow) is for
+                a rail sitting inside a padded page; flush against the sidebar's
+                edges it would read as a card floating in a drawer, so it is
+                flattened here — presentation only, scoped to this call site. */}
+            <div className="flex-1 min-h-0 overflow-hidden [&>aside]:rounded-none [&>aside]:border-0 [&>aside]:bg-transparent [&>aside]:shadow-none [&>aside]:p-3">
               {renderCourseTree({
                 isOpen: true,
                 onToggleOpen: () => setCourseMapOpen(false),
                 hideHeader: true,
               })}
             </div>
-          </div>
+          </aside>
         </div>
       )}
 
@@ -886,8 +1139,6 @@ export default function LearnPage() {
         <LearnPageHeader
           courseSidebarOpen={courseSidebarOpen}
           onOpenSidebar={() => setCourseSidebarOpen(true)}
-          moduleTitle={currentModule?.title}
-          onOpenCourseMap={() => setCourseMapOpen(true)}
           selectedLesson={selectedLesson}
           topicTitle={hasTopics ? currentTopic?.title : null}
           course={course}
@@ -900,7 +1151,12 @@ export default function LearnPage() {
         {/* ========================================================== */}
         {/* FLUID RESPONSIVE WORKSPACE CONTAINER */}
         {/* ========================================================== */}
-        <div className="p-4 sm:p-6 md:p-8 min-w-0">
+        {/* Phone: keep the 16px side gutter so lesson text never runs to the
+            screen edge, but trim the top so the lesson starts higher. At xl the
+            padding all but disappears — the player frame's
+            h-[calc(100vh-147px)] is measured against the chrome above it, so
+            anything more would push the frame past the viewport. */}
+        <div className="px-4 pt-3 pb-4 sm:px-6 sm:pt-6 sm:pb-6 md:px-8 md:pt-8 md:pb-8 xl:px-[3.2px] xl:pt-[3.2px] xl:pb-[3.2px] min-w-0">
           {/*
             Priority-driven order: below xl the student only sees one column, so every
             block that comes before the video costs them a scroll. DOM order follows
@@ -919,48 +1175,56 @@ export default function LearnPage() {
           >
 
             {/* VIDEO — the primary learning action: first below xl, row 1 of the left column on desktop. */}
-            <div className="space-y-4 min-w-0 row-start-1 xl:col-start-1 xl:row-start-1">
+            <div className="space-y-3 xl:space-y-4 min-w-0 row-start-1 xl:col-start-1 xl:row-start-1">
               {/* LESSON CONTEXT — below xl only. Where the learner is, then what
                   they are reading. Bookmark / more / back-to-module are gone: the
                   lesson is what this screen is for. */}
-              <div className="xl:hidden space-y-1">
-                {lessonNumber > 0 && lessons.length > 0 && (
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Lesson {lessonNumber} of {lessons.length}
-                  </p>
-                )}
-                <h1 className="text-lg font-bold leading-snug text-foreground line-clamp-2">
-                  {selectedLesson?.title || course?.title || "Lesson"}
-                </h1>
-                {hasTopics && currentTopic?.title && (
-                  <p className="text-xs text-muted-foreground line-clamp-1">Topic: {currentTopic.title}</p>
-                )}
-              </div>
-
-              {/* CONTENT PLAYER FRAME — fixed viewport-relative height (matches
-                  every screen size, not just desktop). Header stays pinned at
-                  top, the content body scrolls internally once a block (or
-                  several stacked blocks) exceeds the frame, and Prev/Next stay
-                  pinned at the bottom corners instead of pushing the page
-                  taller. Transcript/Resources stay outside this frame, below,
-                  in normal page flow. */}
-              <div className="group relative flex flex-col h-[75vh] min-h-[440px] max-h-[720px] rounded-2xl border border-border bg-card overflow-hidden max-xl:h-auto max-xl:min-h-0 max-xl:max-h-none max-xl:overflow-visible max-xl:rounded-none! max-xl:border-0! max-xl:bg-transparent!">
-                {/* No dedicated header bar — lesson/topic name and the Sticky
-                    Notes trigger already live in the top bar above. Course
-                    Index reopen (desktop, sidebar collapsed only) floats over
-                    the top-left corner of the content instead, same treatment
-                    as Prev/Next below. */}
-                {!courseSidebarOpen && (
+              <div className="xl:hidden">
+                {/* Course Map on the left, lesson identity centred on the ROW,
+                    not on the space left over beside the button: the first and
+                    third grid cells are the same 44px, so the middle cell's
+                    centre is the row's centre. The third cell is inert spacing,
+                    not a second control. Same courseMapOpen state and drawer as
+                    before — only the trigger's size and position changed. */}
+                <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setCourseSidebarOpen(true)}
-                    className="hidden xl:flex absolute top-3 left-3 z-10 items-center justify-center w-9 h-9 rounded-full border border-border bg-card/90 backdrop-blur-sm shadow-md text-muted-foreground hover:text-primary hover:border-primary/40 transition cursor-pointer"
-                    title="Show Course Index"
-                    aria-label="Show Course Index"
+                    onClick={() => setCourseMapOpen(true)}
+                    className="shrink-0 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-primary/40 bg-primary/5 text-primary transition hover:bg-primary/10 cursor-pointer"
+                    aria-label="Open course map"
+                    title="Course Map"
                   >
-                    <PanelLeftOpen size={16} />
+                    <ListTree size={18} aria-hidden="true" />
                   </button>
-                )}
+
+                  <div className="min-w-0 text-center">
+                    <h1 className="text-base font-bold leading-snug text-foreground line-clamp-2">
+                      {selectedLesson?.title || course?.title || "Lesson"}
+                    </h1>
+                    {hasTopics && currentTopic?.title && (
+                      <p className="text-xs text-muted-foreground line-clamp-1">Topic: {currentTopic.title}</p>
+                    )}
+                  </div>
+
+                  <div aria-hidden="true" className="h-11 w-11 shrink-0" />
+                </div>
+              </div>
+
+              {/* CONTENT PLAYER FRAME — a bounded box at every width, so the
+                  frame itself never becomes the thing the page scrolls.
+                  Desktop: height fills the viewport down to just under the
+                  screen's bottom edge (100vh minus the fixed DashboardNavbar +
+                  LearnPageHeader chrome above it), clamped by min/max.
+                  Below xl: a viewport fraction rather than a calc, because the
+                  chrome above it differs by breakpoint (the sub-header is
+                  hidden below sm) and dvh tracks the mobile address bar. Either
+                  way the body below scrolls INSIDE this box — the box, its
+                  border and the content title bar stay put. Transcript/
+                  Resources stay outside it. */}
+              <div className={`group relative flex flex-col h-[calc(100vh-147px)] min-h-[440px] max-h-[900px] rounded-2xl border border-border bg-card overflow-hidden ${FRAME_MODE_CLASSES[playerMode]}`}>
+                {/* No dedicated header bar — lesson/topic name, the Course
+                    Index reopen and the side-panel toggle all live in the top
+                    bar above (LearnPageHeader). */}
 
                 {/* One block at a time — Next/Prev below step through the
                     active unit's blocks (content and quizzes merged in
@@ -969,20 +1233,22 @@ export default function LearnPage() {
                     courseUnits above. initialTime (resume position) only
                     applies to the first block of the normal Topic/Lesson
                     sequence. */}
-                <div className="flex-1 overflow-y-auto min-h-0 max-xl:overflow-visible">
+                <div className={`flex-1 overflow-y-auto min-h-0 ${BODY_MODE_CLASSES[playerMode]}`}>
                   {activeBlock?.kind === "assignment" ? (
-                    <div className="p-4 sm:p-5">
+                    <div className="p-2.5 sm:p-5">
                       <AssignmentWorkspacePanel
                         assignmentId={activeBlock.item.id}
                         completed={activeAssignmentCompleted}
+                        onNextContent={goToNextBlock}
                       />
                     </div>
                   ) : activeBlock?.kind === "quiz" ? (
-                    <div className="p-4 sm:p-5">
+                    <div className="p-2.5 sm:p-5">
                       <QuizExperience
                         quizId={activeBlock.item.id}
                         onBack={goToPreviousBlock}
                         resultReturnTo={resultReturnTo}
+                        onNextContent={goToNextBlock}
                       />
                     </div>
                   ) : (
@@ -997,35 +1263,29 @@ export default function LearnPage() {
                   )}
                 </div>
 
-                {/* Previous / Next — floating over the bottom corners of the
-                    scrollable content instead of a dedicated footer bar, so the
-                    content area keeps that space. Pointer-events only on the
-                    buttons themselves, so the overlay never blocks scrolling
-                    or clicks on the content beneath it. Hidden until the player
-                    is hovered (or a button inside gets keyboard focus) — video-
-                    player-style controls, not a bar that's always sitting there.
-                    Always shown now — Course/Module-level units are stops in
-                    the same whole-course sequence, not a standalone dead end. */}
-                <div className="absolute inset-x-3 bottom-3 flex items-center justify-between pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 max-xl:static max-xl:inset-x-auto max-xl:mt-5 max-xl:opacity-100 max-xl:pointer-events-auto">
-                  <LessonNavigationControls
-                    variant="corners"
-                    unitLabel={
-                      activeExtraUnitDef
-                        ? activeExtraUnitDef.key.startsWith("course")
-                          ? "Course"
-                          : activeExtraUnitDef.key.startsWith("module")
-                          ? "Module"
-                          : "Lesson"
-                        : hasTopics
-                        ? "Topic"
-                        : "Lesson"
-                    }
-                    previousItem={activeBlockIndex > 0 || currentUnitIndex > 0}
-                    nextItem={activeBlockIndex < activeUnitBlocks.length - 1 || currentUnitIndex < courseUnits.length - 1}
-                    onSelectPrevious={goToPreviousBlock}
-                    onSelectNext={goToNextBlock}
-                  />
+                {/* LESSON CONTENT Previous/Next — DESKTOP ONLY (max-xl:hidden).
+                    Floats over the vertical middle of the player's left/right
+                    edges, revealed on hover or keyboard focus, video-player
+                    style. A sibling of the scroller rather than a child, so the
+                    chips stay put while the document scrolls underneath them,
+                    and pointer-events sit only on the buttons so the overlay
+                    never blocks scrolling.
+                    Below xl the same control is rendered under the player
+                    instead (variant="below"), because floating arrows there sit
+                    on top of what the student is trying to read. Same props,
+                    same handlers — see lessonNavProps. */}
+                <div className="max-xl:hidden absolute inset-3 flex items-center justify-between pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+                  <LessonNavigationControls variant="corners" {...lessonNavProps} />
                 </div>
+              </div>
+
+              {/* LESSON CONTENT Previous/Next — below xl only, under the
+                  player rather than floating over it. Same control and the
+                  same handlers as the desktop overlay above. Distinct from
+                  the document-page row: Next here keeps the primary fill,
+                  while the document buttons stay neutral-outlined. */}
+              <div className="xl:hidden">
+                <LessonNavigationControls variant="below" {...lessonNavProps} />
               </div>
 
               {/* COMPLETION — the one place the student marks the block on
@@ -1045,43 +1305,27 @@ export default function LearnPage() {
                   }
                   isPending={completeContentMutation.isPending}
                   isVideo={!activeEarnedId && activeBlock?.item?.type === "VIDEO"}
-                  readOnly={Boolean(activeEarnedId)}
+                  readOnly={Boolean(activeEarnedId) || activeIsContentAssignment}
                   readOnlyHint={
                     activeQuizId
                       ? "Pass this quiz to complete it."
-                      : "Upload and submit your assignment PDF to complete it."
+                      : "Submit your assignment (PDF or written answer) to complete it."
                   }
                   onMarkComplete={handleMarkComplete}
                 />
               )}
             </div>
 
-            {/* Collapsed state renders no grid column at all (see grid-cols
-                above) — the player and stacked panels get the full width
-                back instead of a persistently reserved 48px-wide column. */}
+            {/* SIDE PANEL — desktop only. Collapsed state renders no grid
+                column at all (see grid-cols above) — the player gets the full
+                width back. Below xl there is no side panel: the lesson is what
+                the screen is for. */}
             {rightPanelOpen && (
-              <div className="hidden xl:flex xl:flex-col xl:gap-6 min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-2 xl:sticky xl:top-24 xl:h-fit w-full xl:w-[360px]">
-                <button
-                  type="button"
-                  onClick={() => setRightPanelOpen(false)}
-                  className="self-end flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-xl text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground bg-background/60 hover:bg-muted border border-transparent transition cursor-pointer"
-                  title="Hide side panel"
-                  aria-label="Hide side panel"
-                >
-                  <PanelRightClose size={14} />
-                  <span>Hide</span>
-                </button>
-                <div className="order-2">
-                  <StickyNotesPanel
-                    lessonId={selectedLesson?.id}
-                    currentTimestamp={currentTimestamp}
-                    onSeek={handleTranscriptSeek}
-                  />
-                </div>
-                <div className="order-1">{askInstructorCard}</div>
-                <div className="order-3">{feedbackPanel}</div>
+              <div className="hidden xl:block min-w-0 xl:col-start-2 xl:row-start-1 xl:row-span-2 xl:sticky xl:top-24 xl:h-fit w-full xl:w-[360px]">
+                {sidePanel}
               </div>
             )}
+
 
           </div>
         </div>

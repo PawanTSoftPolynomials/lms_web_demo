@@ -76,7 +76,7 @@ export const SIDEBAR_ITEMS = {
             href: "/instructor/students",
         },
         {
-            title: "Assignments",
+            title: "Grading & Results",
             icon: FaClipboardList,
             href: "/instructor/assignments",
         },

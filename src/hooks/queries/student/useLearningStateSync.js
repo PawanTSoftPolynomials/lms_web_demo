@@ -18,10 +18,15 @@ function flattenLessons(course) {
   );
 }
 
-// Restores the student's place in a course on load (URL ?lessonId, then the
-// last DB-saved position, then the first lesson) and persists it back to the
-// DB (debounced) as the student watches. Owns the selectedLesson/timestamp
-// state so restore and persist stay in lockstep instead of drifting apart.
+// Restores the student's place in a course on load (URL ?lessonId, then
+// wherever the visited/completed Progress roll-up says to resume, then the
+// first lesson) and persists it back to the DB (debounced) as the student
+// watches. Owns the selectedLesson/timestamp state so restore and persist
+// stay in lockstep instead of drifting apart.
+//
+// `resumeTarget` is resolveResumeTarget's output, computed once by the Learn
+// page (it needs the same value for its own topic/content-level positioning
+// afterward — see there) rather than recomputed here from raw progressData.
 export default function useLearningStateSync({
   courseId,
   course,
@@ -29,6 +34,8 @@ export default function useLearningStateSync({
   stateData,
   isStateLoading,
   updateStateMutation,
+  resumeTarget,
+  isProgressLoading,
 }) {
   const lessons = useMemo(() => flattenLessons(course), [course]);
 
@@ -54,25 +61,50 @@ export default function useLearningStateSync({
       }
     }
 
-    const savedState = stateData?.data || stateData;
-    if (savedState && savedState.courseId === courseId && savedState.lessonId) {
-      const matchedLesson = lessons.find((l) => l.id === savedState.lessonId);
-      if (matchedLesson) {
-        setSelectedLesson(matchedLesson);
-        if (savedState.timestamp) {
-          setInitialTime(savedState.timestamp);
-          setCurrentTimestamp(savedState.timestamp);
-        }
-        setStateRestored(true);
-        return;
+    // No explicit lesson requested — wait for the Progress roll-up to settle
+    // (loaded or failed) before picking a default, so a plain Continue
+    // Learning visit doesn't flash Lesson 1 before snapping to the real
+    // resume point a moment later. Once settled, resumeTarget (not the old
+    // DB-saved lessonId) decides which lesson to land on; the DB-saved
+    // timestamp is still used, but only when it's for that same lesson,
+    // purely to restore video playback position within it.
+    if (isProgressLoading) return;
+
+    const matchedLesson = resumeTarget?.lessonId
+      ? lessons.find((l) => l.id === resumeTarget.lessonId)
+      : null;
+
+    if (matchedLesson) {
+      setSelectedLesson(matchedLesson);
+      const savedState = stateData?.data || stateData;
+      if (savedState?.lessonId === resumeTarget.lessonId && savedState?.timestamp) {
+        setInitialTime(savedState.timestamp);
+        setCurrentTimestamp(savedState.timestamp);
       }
+      setStateRestored(true);
+      return;
     }
 
+    // A resolved target with no lessonId (a Module/Course-level Content or
+    // Quiz) has no lesson here to select — the Learn page's own resume
+    // effect (which has courseUnits/enterUnit) positions the player exactly
+    // once this settles on some lesson. Same fallback when progress is
+    // unavailable or the course has nothing trackable yet.
     if (!selectedLesson && lessons.length > 0) {
       setSelectedLesson(lessons[0]);
       setStateRestored(true);
     }
-  }, [lessons, selectedLesson, stateData, isStateLoading, isLoading, courseId, stateRestored]);
+  }, [
+    lessons,
+    selectedLesson,
+    stateData,
+    isStateLoading,
+    isLoading,
+    isProgressLoading,
+    resumeTarget,
+    courseId,
+    stateRestored,
+  ]);
 
   useEffect(() => {
     if (stateRestored) {

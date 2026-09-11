@@ -30,6 +30,20 @@ export default function PdfViewer({
   title,
   className = "",
   hideToolbar = false,
+  // Opt-in (the learn player below xl): instead of the standalone
+  // reading-pane sizing, fill exactly the height the parent allots and let
+  // THIS viewport be the scroll container. Without it the viewer grows past
+  // the player frame, which hands scrolling back to the frame and pushes the
+  // page bar below the fold — the whole point of the fill.
+  fillHeight = false,
+  // Reports this document's page STATE and handlers upward so consumers can
+  // draw the controls wherever they belong — the indicator in the document
+  // header, the buttons below the player — without ever owning the page
+  // state themselves. Lifting data rather than a rendered node is what lets
+  // two different places drive the same single set of handlers. Called with
+  // null when there is nothing to navigate (single-page, or the standalone
+  // toolbar mode, which has its own page controls in its own header).
+  onPageStateChange = null,
   onControlsRender,
 }) {
   const resolvedUrl = getDisplayUrl(fileUrl);
@@ -106,6 +120,29 @@ export default function PdfViewer({
       return next;
     });
   };
+
+  // In hideToolbar mode the page nav lifted into the parent's document
+  // header is the ONLY thing that changes the page. It replaces an earlier click-to-turn region that
+  // treated the whole left/right half of the viewport as previous/next page:
+  // on the learn page the lesson's own Previous/Next content controls are
+  // overlaid at those same left and right edges, so one tap meant two
+  // different kinds of navigation depending on a few pixels, with no page
+  // indicator to tell them apart. An explicit, labelled control cannot be
+  // confused with lesson navigation, and leaves the viewport free to scroll.
+  const showPageNav = hideToolbar && (numPages || 0) > 1;
+
+  // Height of the scrolling canvas. Both branches are literal class strings —
+  // Tailwind only generates classes it can see verbatim in the source, so
+  // these must never be built by string concatenation.
+  //
+  // fillHeight (the learn player): below xl take whatever height the parent
+  // column leaves and scroll here, so the document header above stays put; at
+  // xl the original reading-pane sizing applies.
+  // Otherwise: the original sizing at every width.
+  // The two branches never overlap, so no rule depends on stylesheet order.
+  const viewportSizing = fillHeight
+    ? "flex-1 xl:flex-none xl:h-[82vh] xl:min-h-[560px] xl:max-h-[950px]"
+    : "h-auto max-h-[70vh] sm:h-[82vh] sm:min-h-[560px] sm:max-h-[950px]";
 
   const handlePageInputChange = (e) => {
     setPageInput(e.target.value);
@@ -244,6 +281,29 @@ export default function PdfViewer({
     </div>
   );
 
+  // The document's own page handlers. changePage is the single source of
+  // page movement — it updates pageNumber and nothing else, so nothing here
+  // can reach the lesson's content navigation.
+  const goToPreviousPage = () => changePage(-1);
+  const goToNextPage = () => changePage(1);
+
+  const onPageStateChangeRef = useRef(onPageStateChange);
+  useEffect(() => {
+    onPageStateChangeRef.current = onPageStateChange;
+  }, [onPageStateChange]);
+
+  // Re-report whenever the page or the document changes. The handlers close
+  // over changePage, which uses a functional setState, so they stay correct
+  // without being listed here.
+  useEffect(() => {
+    onPageStateChangeRef.current?.(
+      showPageNav
+        ? { page: pageNumber, total: numPages, goToPreviousPage, goToNextPage }
+        : null
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showPageNav, pageNumber, numPages]);
+
   const onControlsRenderRef = useRef(onControlsRender);
   useEffect(() => {
     onControlsRenderRef.current = onControlsRender;
@@ -292,7 +352,7 @@ export default function PdfViewer({
         !hideToolbar
           ? "rounded-2xl border border-border bg-[#0B101D] shadow-2xl overflow-hidden"
           : ""
-      } ${className}`}
+      } ${fillHeight ? "max-xl:h-full max-xl:min-h-0" : ""} ${className}`}
     >
       {/* Standalone Header Toolbar (rendered ONLY when hideToolbar is false) */}
       {!hideToolbar && (
@@ -318,8 +378,11 @@ export default function PdfViewer({
            a phone-width column the page is ~300px tall, so that floor wrapped
            it in roughly as much empty backdrop again. Below sm the viewport is
            content-height instead, capped at 70vh so a zoomed page still
-           scrolls here rather than stretching the block. */
-        className="relative w-full h-auto min-h-0 max-h-[70vh] sm:h-[82vh] sm:min-h-[560px] sm:max-h-[950px] overflow-auto bg-[#060913] p-2 sm:p-3.5 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80"
+           scrolls here rather than stretching the block.
+           When the page bar is shown the viewport gives back exactly the
+           height the bar takes, so adding it never changes the viewer's
+           overall footprint. */
+        className={`relative w-full min-h-0 overflow-auto bg-[#060913] p-2 sm:p-3.5 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80 ${viewportSizing}`}
       >
         {/* Loading Overlay */}
         {loading && (

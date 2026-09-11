@@ -669,7 +669,9 @@ export function CourseComposerSidebar({
   // scrolls, course-level content rows included: pinning those too was what
   // once squeezed the modules tree into a sliver on quiz-heavy courses.
   return (
-    <aside className="sidebar-panel rounded-2xl border border-border bg-background p-4 shadow-xl flex flex-col h-full max-h-full lg:max-h-[calc(100vh-7rem)] overflow-hidden text-foreground">
+    <aside className={`sidebar-panel rounded-2xl border border-border bg-background p-4 shadow-xl flex flex-col h-full max-h-full ${
+      maxHeightClassName === "max-h-full" ? "lg:max-h-full" : "lg:max-h-[calc(100vh-7rem)]"
+    } overflow-hidden text-foreground`}>
       {!hideHeader && (
         <>
         {/* Panel Title */}

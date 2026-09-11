@@ -712,17 +712,39 @@ export interface RecentSubmission {
   assignmentName: string;
   status: string;
   time: string;
+  /** "test" = a Final-test attempt; otherwise an assignment submission. */
+  kind?: "assignment" | "test";
+  /** Final tests only: whether the attempt passed. */
+  passed?: boolean;
 }
 
-export function deriveRecentSubmissions(assignments: RawAssignment[]): RecentSubmission[] {
-  const submissions: RecentSubmission[] = [];
+/** One Final-test attempt, as /results?quizTag=FINAL returns it (studentResults). */
+export interface RecentTestResult {
+  submissionId?: string;
+  studentName?: string;
+  title?: string;
+  percentage?: number;
+  passed?: boolean;
+  submittedAt?: string;
+}
 
+/**
+ * The newest student work across everything the instructor reviews:
+ * assignment submissions — standalone Assignment rows and lesson-composer
+ * assignment blocks, which both carry `submissions` — and Final-test
+ * attempts. Self-Test attempts are practice and are never passed in.
+ */
+export function deriveRecentSubmissions(
+  assignments: RawAssignment[],
+  testResults: RecentTestResult[] = []
+): RecentSubmission[] {
   const dated: { submission: RecentSubmission; at: number }[] = [];
+  const toTime = (value?: string) => (value ? new Date(value).getTime() : NaN);
 
   assignments.forEach((assignment) => {
     if (assignment.submissions && Array.isArray(assignment.submissions)) {
       assignment.submissions.forEach((sub, i) => {
-        const at = sub.submittedAt ? new Date(sub.submittedAt).getTime() : NaN;
+        const at = toTime(sub.submittedAt);
         dated.push({
           submission: {
             id: sub.id ?? `${assignment.id ?? "assignment"}-sub-${i}`,
@@ -730,6 +752,7 @@ export function deriveRecentSubmissions(assignments: RawAssignment[]): RecentSub
             assignmentName: assignment.title ?? "Assignment",
             status: sub.status ?? "Submitted",
             time: Number.isNaN(at) ? "Recently" : daysAgoLabel(new Date(at)),
+            kind: "assignment",
           },
           // Undated rows sort last rather than jumping the queue.
           at: Number.isNaN(at) ? -Infinity : at,
@@ -738,12 +761,27 @@ export function deriveRecentSubmissions(assignments: RawAssignment[]): RecentSub
     }
   });
 
-  // Newest first across every assignment — the API caps rows per assignment, so
-  // without this the feed showed whichever assignment happened to come first.
-  dated.sort((a, b) => b.at - a.at);
-  submissions.push(...dated.map((d) => d.submission));
+  testResults.forEach((result, i) => {
+    const at = toTime(result.submittedAt);
+    const percent = typeof result.percentage === "number" ? ` ${result.percentage}%` : "";
+    dated.push({
+      submission: {
+        id: result.submissionId ?? `test-${i}`,
+        studentName: result.studentName ?? "Student",
+        assignmentName: result.title ?? "Final test",
+        status: `${result.passed ? "Passed" : "Failed"}${percent}`,
+        time: Number.isNaN(at) ? "Recently" : daysAgoLabel(new Date(at)),
+        kind: "test",
+        passed: Boolean(result.passed),
+      },
+      at: Number.isNaN(at) ? -Infinity : at,
+    });
+  });
 
-  return submissions.slice(0, 5);
+  // Newest first across every source — each API caps its own rows, so
+  // without this the feed showed whichever source happened to come first.
+  dated.sort((a, b) => b.at - a.at);
+  return dated.slice(0, 5).map((d) => d.submission);
 }
 
 export interface GradeDistribution {
