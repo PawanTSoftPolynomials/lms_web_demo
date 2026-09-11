@@ -28,6 +28,32 @@ function getFirstElement(node, tagName) {
   return list.length > 0 ? list[0] : null;
 }
 
+const SLIDE_FILE_PATTERN = /^ppt\/slides\/slide\d+\.xml$/i;
+
+/**
+ * Lightweight check for whether a file's bytes are a real OOXML PowerPoint
+ * archive (has at least one ppt/slides/slideN.xml entry), without doing the
+ * full slide parse. Lets upload flows reject non-presentation files (wrong
+ * file, renamed .zip, legacy binary .ppt) immediately instead of only
+ * failing later when a viewer tries to render them.
+ *
+ * @param {ArrayBuffer} arrayBuffer
+ * @returns {Promise<boolean>}
+ */
+export async function hasPptxSlides(arrayBuffer) {
+  if (!arrayBuffer || arrayBuffer.byteLength === 0) return false;
+  try {
+    const zip = await JSZip.loadAsync(arrayBuffer);
+    let found = false;
+    zip.forEach((relativePath) => {
+      if (SLIDE_FILE_PATTERN.test(relativePath)) found = true;
+    });
+    return found;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Pure client-side PPTX parser utility.
  * Unpacks PowerPoint OpenXML archives (.pptx) in the browser using JSZip & DOMParser.
@@ -88,7 +114,7 @@ export async function parsePptxArrayBuffer(arrayBuffer) {
   // 2. Discover and sort slide files (ppt/slides/slide1.xml, slide2.xml, etc.)
   const slideFiles = [];
   zip.forEach((relativePath) => {
-    if (/^ppt\/slides\/slide\d+\.xml$/i.test(relativePath)) {
+    if (SLIDE_FILE_PATTERN.test(relativePath)) {
       slideFiles.push(relativePath);
     }
   });

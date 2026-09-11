@@ -434,7 +434,13 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     const openRoleNavDrawer = role === 'ADMIN' ? openAdminNavDrawer : openInstructorNavDrawer;
     return (
       <>
-      <header className="bg-background border-b border-border text-foreground">
+      {/* sticky top-0, not scrolled-away static — matches the Student header
+          below. Sticky over a true `fixed` here since the header sits first
+          in the document flow with no scrolling/transformed ancestor between
+          it and the viewport: visually identical to fixed, but content below
+          keeps its natural space instead of needing compensating padding on
+          every instructor/admin page that renders this navbar. */}
+      <header className="bg-background border-b border-border text-foreground sticky top-0 z-40">
         <div className="px-3 sm:px-6 py-3 flex items-center gap-1.5 sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-6 shrink-0">
             {/* Mobile menu toggle — opens the role's nav drawer (see

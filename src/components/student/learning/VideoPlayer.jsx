@@ -22,6 +22,8 @@ import PptViewer from "@/components/shared/PptViewer";
 import DocxViewer from "@/components/shared/DocxViewer";
 import ExternalDocumentViewer from "@/components/shared/ExternalDocumentViewer";
 import ContentAssignmentPanel from "@/components/student/learning/ContentAssignmentPanel";
+import { SlideColumnsView } from "@/components/instructor/LessonComposer/cells/slideCanvas/SlideColumnsLayout";
+import { parseSlideDeckJson } from "@/components/instructor/LessonComposer/cells/slideCanvas/slideElementTypes";
 
 const isGoogleSlidesUrl = (url) => Boolean(url?.includes("docs.google.com/presentation"));
 const getGoogleSlidesEmbedUrl = (url) => {
@@ -240,12 +242,32 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         );
     }
 
-    const isFileLike = type === "FILE" || type === "DOCUMENT" || type === "PDF";
     const isTextLike = type === "TEXT" || type === "HTML";
     const isPresentationLike = type === "PRESENTATION" || type === "SLIDE";
     const isHtmlLike = isTextLike || isPresentationLike;
-    const slides = isPresentationLike ? parseSlides(htmlContent) : [];
-    const isSlideShow = isPresentationLike && slides.length > 1;
+
+    // Current slide-deck format (Composer v2): htmlContent holds a JSON array
+    // of {title, columns, backgroundColor} slides authored in the canvas
+    // slide editor — see slideElementTypes.ts. A Presentation can also have
+    // been added by uploading a .ppt/.pptx file instead (fileUrl set,
+    // htmlContent empty), which has no slide JSON to render, so it takes the
+    // same file-viewer path as Document/PDF below. Older, pre-Composer-v2
+    // presentations stored raw HTML slides separated by <hr>/<!-- slide -->
+    // instead of JSON; parseSlides still renders those so existing lessons
+    // authored that way don't go blank.
+    const slideDeck = isPresentationLike ? parseSlideDeckJson(htmlContent) : [];
+    const hasSlideDeck = slideDeck.length > 0;
+    const legacySlides = isPresentationLike && !hasSlideDeck ? parseSlides(htmlContent) : [];
+    const isLegacySlideShow = legacySlides.length > 1;
+
+    const isFileLike =
+        type === "FILE" ||
+        type === "DOCUMENT" ||
+        type === "PDF" ||
+        (isPresentationLike && !hasSlideDeck && Boolean(fileUrl));
+
+    const isSlideShow = hasSlideDeck || isLegacySlideShow;
+    const slideCount = hasSlideDeck ? slideDeck.length : legacySlides.length;
 
     // Only VIDEO needs to fill (and be clipped to) the player frame exactly —
     // it's a fixed-aspect embed with nothing more to reveal. Every other
@@ -272,9 +294,9 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     {isFileLike && <FileText className="h-4 w-4 text-primary shrink-0" />}
                     {content.title && <span className="truncate">{content.title}</span>}
                 </h2>
-                {isSlideShow && (
+                {isSlideShow && slideCount > 1 && (
                     <span className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full shrink-0">
-                        Slide {slideIndex + 1} / {slides.length}
+                        Slide {slideIndex + 1} / {slideCount}
                     </span>
                 )}
             </div>
@@ -339,6 +361,56 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     </div>
                 )}
 
+                {/* PRESENTATION — current columns-based slide deck (authored in
+                    the canvas slide editor). Mirrors the instructor composer's
+                    own read-only preview (DocumentCell's showSlideDeck),
+                    reusing the same SlideColumnsView renderer so a deck looks
+                    identical for the student and the instructor. */}
+                {hasSlideDeck && !isFileLike && (
+                    <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px]">
+                        <SlideColumnsView
+                            title={slideDeck[slideIndex]?.title}
+                            columns={slideDeck[slideIndex]?.columns || []}
+                            backgroundColor={slideDeck[slideIndex]?.backgroundColor}
+                        />
+
+                        {slideDeck.length > 1 && (
+                            <div className="mt-6 pt-4 border-t border-border flex items-center justify-between gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setSlideIndex(prev => Math.max(0, prev - 1))}
+                                    disabled={slideIndex === 0}
+                                    className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] bg-muted text-foreground rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-muted transition"
+                                >
+                                    <ChevronLeft className="h-4 w-4" /> Previous
+                                </button>
+
+                                <div className="flex gap-1.5 overflow-x-auto py-1">
+                                    {slideDeck.map((_, i) => (
+                                        <button
+                                            key={i}
+                                            type="button"
+                                            onClick={() => setSlideIndex(i)}
+                                            className={`h-2.5 min-w-[10px] rounded-full transition-all ${
+                                                i === slideIndex ? "bg-primary w-6" : "bg-slate-700 w-2.5"
+                                            }`}
+                                        />
+                                    ))}
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setSlideIndex(prev => Math.min(slideDeck.length - 1, prev + 1))}
+                                    disabled={slideIndex === slideDeck.length - 1}
+                                    className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] bg-muted text-foreground rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-muted transition"
+                                >
+                                    Next <ChevronRight className="h-4 w-4" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* IMAGE */}
                 {type === "IMAGE" && (
                     <div className="flex flex-col items-center gap-3 p-4 sm:p-8">
@@ -398,15 +470,17 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     </div>
                 )}
 
-                {/* HTML / TEXT / PRESENTATION / SLIDE */}
-                {isHtmlLike && !isFileLike && (
-                    isSlideShow ? (
+                {/* HTML / TEXT / legacy pre-Composer-v2 PRESENTATION / SLIDE
+                    (raw HTML slides separated by <hr>, not the JSON slide
+                    deck — that's handled by the "PRESENTATION" block above) */}
+                {isHtmlLike && !isFileLike && !hasSlideDeck && (
+                    isLegacySlideShow ? (
                         <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px]">
-                            <div 
+                            <div
                                 className="prose prose-invert max-w-none text-foreground text-base sm:text-lg leading-relaxed flex-1 flex flex-col justify-center select-text"
-                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(slides[slideIndex] || "") }}
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(legacySlides[slideIndex] || "") }}
                             />
-                            
+
                             <div className="mt-6 pt-4 border-t border-border flex items-center justify-between gap-2">
                                 <button
                                     type="button"
@@ -416,9 +490,9 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                                 >
                                     <ChevronLeft className="h-4 w-4" /> Previous
                                 </button>
-                                
+
                                 <div className="flex gap-1.5 overflow-x-auto py-1">
-                                    {slides.map((_, i) => (
+                                    {legacySlides.map((_, i) => (
                                         <button
                                             key={i}
                                             type="button"
@@ -432,8 +506,8 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
                                 <button
                                     type="button"
-                                    onClick={() => setSlideIndex(prev => Math.min(slides.length - 1, prev + 1))}
-                                    disabled={slideIndex === slides.length - 1}
+                                    onClick={() => setSlideIndex(prev => Math.min(legacySlides.length - 1, prev + 1))}
+                                    disabled={slideIndex === legacySlides.length - 1}
                                     className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] bg-muted text-foreground rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-muted transition"
                                 >
                                     Next <ChevronRight className="h-4 w-4" />

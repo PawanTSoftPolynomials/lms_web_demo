@@ -25,7 +25,7 @@ import ExternalDocumentViewer from "@/components/shared/ExternalDocumentViewer";
 import { useCreateContent, useUpdateContent, useDeleteContent } from "../contentMutations";
 import { CellShell } from "../CellShell";
 import { getErrorMessage } from "../getErrorMessage";
-import { PresentationSlidesEditor, adaptLegacySlide, createDefaultSlideDeck, type SlideItemV2 } from "./PresentationSlidesEditor";
+import { PresentationSlidesEditor, createDefaultSlideDeck, parseSlideDeckJson, type SlideItemV2 } from "./PresentationSlidesEditor";
 import { PresentationUploadPanel } from "./PresentationUploadPanel";
 import { SlideColumnsView } from "./slideCanvas/SlideColumnsLayout";
 import type { CellTypeDefinition } from "../cellTypes";
@@ -36,23 +36,7 @@ interface DocumentCellProps extends CellActionProps {
   cellType: CellTypeDefinition;
 }
 
-/** Parses the persisted slide JSON and upgrades any pre-canvas slides (old `{content, mediaUrl}` shape) into the current `{elements: []}` shape — see slideElementTypes.ts's adaptLegacySlide. */
-function parseSlides(raw: string | null | undefined): SlideItemV2[] {
-  const text = raw || "";
-  try {
-    if (text.trim().startsWith("[")) {
-      const parsed = JSON.parse(text);
-      if (Array.isArray(parsed)) {
-        return parsed.map(adaptLegacySlide);
-      }
-    }
-  } catch {
-    // fall through
-  }
-  return [];
-}
-
-/** Plain "upload a file" fields — used by Document/PDF (which have no slideshow concept) and by Presentation's own Upload PPTX choice isn't this; that one uses PresentationUploadPanel instead. This is the generic, non-presentation file upload. */
+/** Plain "upload a file" fields — used by Document/PDF, which have no slideshow concept and no Upload/External URL/Google Drive source distinction. Presentation's "Upload PPTX" choice uses PresentationUploadPanel instead, which validates the file is really a .pptx and supports all three source types. */
 function PlainFileUploadFields({
   fileUrl,
   onFileUrlChange,
@@ -207,7 +191,7 @@ export function DocumentCell({
   const isPresentation = cellType.id === "presentation";
   const [mode, setMode] = useState<"view" | "edit">("view");
 
-  const parsedSlides = parseSlides(content.htmlContent || content.body);
+  const parsedSlides = parseSlideDeckJson(content.htmlContent || content.body);
 
   const [presentationMode, setPresentationMode] = useState<"slideshow" | "upload">(
     parsedSlides.length > 0 ? "slideshow" : content.fileUrl ? "upload" : "slideshow"
@@ -336,12 +320,13 @@ export function DocumentCell({
 
           {isPresentation && presentationMode === "slideshow" ? (
             <PresentationSlidesEditor slides={slides} onChange={setSlides} />
+          ) : isPresentation ? (
+            <PresentationUploadPanel fileUrl={fileUrl} onFileUrlChange={setFileUrl} />
           ) : (
             <PlainFileUploadFields
               fileUrl={fileUrl}
               onFileUrlChange={setFileUrl}
-              accept={isPresentation ? ".ppt,.pptx" : undefined}
-              placeholder={isPresentation ? "https://example.com/presentation.pptx" : "https://example.com/file.pdf"}
+              placeholder="https://example.com/file.pdf"
             />
           )}
 
@@ -514,12 +499,14 @@ export function CreateFileForm({ parent, order, cellType, accept, presentationMo
 
       {useSlideshow ? (
         <PresentationSlidesEditor slides={slides} onChange={setSlides} />
+      ) : isPresentation ? (
+        <PresentationUploadPanel fileUrl={fileUrl} onFileUrlChange={setFileUrl} />
       ) : (
         <PlainFileUploadFields
           fileUrl={fileUrl}
           onFileUrlChange={setFileUrl}
-          accept={isPresentation ? ".ppt,.pptx" : accept}
-          placeholder={isPresentation ? "https://example.com/presentation.pptx" : "https://example.com/file.pdf"}
+          accept={accept}
+          placeholder="https://example.com/file.pdf"
         />
       )}
 

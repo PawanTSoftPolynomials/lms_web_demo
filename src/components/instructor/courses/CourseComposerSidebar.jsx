@@ -667,9 +667,22 @@ export function CourseComposerSidebar({
   // they stay reachable however far down the tree you are. Everything below
   // scrolls, course-level content rows included: pinning those too was what
   // once squeezed the modules tree into a sliver on quiz-heavy courses.
+  //
+  // Height (not just max-height) matters here beyond filling the screen: the
+  // caller's wrapper div is what actually carries `sticky` (see
+  // CourseComposerSidebar's usage in the Composer page), and a sticky
+  // element only stays pinned while its OWN box is still within the
+  // viewport. Left at h-full, this panel shrank to its own tree content
+  // (often a few hundred px) in a plain flowing page with no stretched
+  // ancestor to fill — so it ran out of "stickable" height almost
+  // immediately and scrolled away with the rest of the page long before the
+  // notebook cells beside it did. An explicit viewport-tied height keeps it
+  // pinned for effectively the whole scroll instead.
   return (
     <aside className={`sidebar-panel rounded-2xl border border-border bg-background p-4 shadow-xl flex flex-col h-full max-h-full ${
-      maxHeightClassName === "max-h-full" ? "lg:max-h-full" : "lg:max-h-[calc(100vh-7rem)]"
+      maxHeightClassName === "max-h-full"
+        ? "lg:max-h-full"
+        : "lg:h-[calc(100vh-7rem)] lg:max-h-[calc(100vh-7rem)]"
     } overflow-hidden text-foreground`}>
       {/* Panel Title */}
       <div className="flex items-center justify-between gap-2 mb-1 shrink-0">
