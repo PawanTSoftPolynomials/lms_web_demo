@@ -63,8 +63,11 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
                 const isSelected = qType === "MCQ_SINGLE"
                   ? selectedOption === optionText || selectedOption === option
                   : Array.isArray(selectedOption) && (selectedOption.includes(optionText) || selectedOption.includes(option));
+                // The key may be a string or a one-element array — the same
+                // rule checkAnswerCorrectness applies to the summary line.
                 const isAnswerCorrect = qType === "MCQ_SINGLE"
-                  ? optionText === question.correctAnswer || (typeof option === "object" && option?.isCorrect)
+                  ? checkAnswerCorrectness("MCQ_SINGLE", optionText, question.correctAnswer) ||
+                    (typeof option === "object" && option?.isCorrect)
                   : Array.isArray(question.correctAnswer) && question.correctAnswer.includes(optionText);
 
                 let optionStyle = "border-border bg-background/40 text-muted-foreground";

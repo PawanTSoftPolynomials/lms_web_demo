@@ -2,11 +2,19 @@
 // rule per question type, used wherever a submitted answer needs comparing
 // against a question's correctAnswer (result summary counts, per-question
 // review highlighting).
+// The stored key for a single-answer question can be a plain string or a
+// one-element array (how imported/generated questions arrive), and the
+// backend scorer compares trimmed, case-insensitive text. The review has to
+// apply the same rule, or an answer the server scored as right is shown as
+// "Incorrect Choice" underneath a full score.
+const normalizeAnswerText = (value) => String(value ?? "").trim().toLowerCase();
+const asAnswerList = (value) => (Array.isArray(value) ? value : [value]);
+
 export function checkAnswerCorrectness(type, selected, correct) {
   if (selected === undefined || selected === null) return false;
 
   if (type === "MCQ_SINGLE") {
-    return selected === correct;
+    return asAnswerList(correct).some((c) => normalizeAnswerText(c) === normalizeAnswerText(selected));
   }
 
   if (type === "MCQ_MULTI") {

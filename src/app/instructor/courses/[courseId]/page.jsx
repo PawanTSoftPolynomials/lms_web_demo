@@ -1067,6 +1067,7 @@ export default function CourseDetailsPage() {
           // No `|| 30` fallback: null means the instructor chose no timer,
           // and re-inflating it here would defeat that before it ever saved.
           timeLimit: updatedQuizData.timeLimit ?? null,
+          attempts: updatedQuizData.attempts ?? 1,
           isPublished: updatedQuizData.isPublished !== false,
           moduleId: composeModuleId,
           lessonId: composeLessonId || null,
@@ -1223,6 +1224,8 @@ export default function CourseDetailsPage() {
             quizTag: updatedQuizData.quizTag,
             passingScore: Number(updatedQuizData.passingScore) || 70,
             timeLimit: updatedQuizData.timeLimit ?? null,
+            // Omitted when the caller didn't set it, so the schema default applies.
+            ...(updatedQuizData.attempts !== undefined && { attempts: Number(updatedQuizData.attempts) }),
             isPublished: updatedQuizData.isPublished !== false,
             courseId,
             moduleId: composeModuleId || null,
@@ -1291,6 +1294,7 @@ export default function CourseDetailsPage() {
             // Number(null) is 0, not null — and 0 would reach the API as a
             // real time limit rather than "untimed".
             timeLimit: updatedQuizData.timeLimit ?? null,
+            ...(updatedQuizData.attempts !== undefined && { attempts: Number(updatedQuizData.attempts) }),
             isPublished: updatedQuizData.isPublished,
             courseId,
             moduleId: composeModuleId || selectedQuizState.moduleId || null,

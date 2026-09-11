@@ -33,7 +33,12 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
     ? course.modules.reduce((acc, m) => acc + (Array.isArray(m.lessons) ? m.lessons.length : 0), 0)
     : (course.stats?.lessonsCount ?? course.lessons ?? course._count?.lessons ?? 0);
 
-  const progress = Math.min(100, Math.max(0, Math.round(enrollment?.progress ?? 0)));
+  // GET /enrollments returns the stored roll-up as `progressPercent`; `progress`
+  // never existed on it, so every card used to read 0%.
+  const progress = Math.min(
+    100,
+    Math.max(0, Math.round(enrollment?.progressPercent ?? enrollment?.progress ?? 0))
+  );
   const isComplete = isEnrolled && progress >= 100;
   const status = isEnrolled ? (isComplete ? "Completed" : progress > 0 ? "In Progress" : "Enrolled") : "Not Started";
   const statusStyle = STATUS_STYLE[status];

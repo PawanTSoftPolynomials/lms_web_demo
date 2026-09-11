@@ -25,6 +25,8 @@ const INITIAL_FORM = {
     timerEnabled: false,
     timeLimit: null,
     passingScore: 50,
+    // Attempts each student gets; 0 means unlimited.
+    attempts: 1,
     startDate: "",
     dueDate: "",
     shuffleQuestions: false,
@@ -72,6 +74,8 @@ export default function QuizForm({
                 quizTag: initialValues.quizTag === "SELF_TEST" ? "SELF_TEST" : "FINAL",
                 timerEnabled: timeLimit !== null,
                 timeLimit,
+                // A Self-Test is stored as 0 (unlimited); the Final box starts at 1.
+                attempts: Number(initialValues.attempts) > 0 ? initialValues.attempts : 1,
                 startDate: formatDateForInput(initialValues.startDate || initialValues.availableFrom),
                 dueDate: formatDateForInput(initialValues.dueDate || initialValues.availableUntil),
             });
@@ -117,6 +121,11 @@ export default function QuizForm({
         const payload = {
             ...formData,
             timeLimit,
+            // A Self-Test is always unlimited (0); a Final has at least one attempt.
+            attempts:
+                formData.quizTag === "SELF_TEST"
+                    ? 0
+                    : Math.max(1, Math.round(Number(formData.attempts)) || 1),
             moduleId: formData.moduleId || null,
             startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
             dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
@@ -293,6 +302,30 @@ export default function QuizForm({
                         onChange={handleChange}
                     />
                 </div>
+
+                {/* Attempts follow the tag, like the timer: a Self-Test can
+                    always be retaken; a Final gets the number set here (1 by
+                    default). Both rules are enforced server-side. */}
+                {formData.quizTag === "SELF_TEST" ? (
+                    <div className="space-y-2">
+                        <span className="block text-sm text-foreground">Attempts per Student</span>
+                        <p className="rounded-lg bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+                            Self-Test quizzes allow unlimited attempts.
+                        </p>
+                    </div>
+                ) : formData.quizTag === "FINAL" ? (
+                    <div className="grid gap-6 md:grid-cols-2">
+                        <Input
+                            label="Attempts per Student"
+                            name="attempts"
+                            type="number"
+                            min="1"
+                            max="100"
+                            value={formData.attempts ?? 1}
+                            onChange={handleChange}
+                        />
+                    </div>
+                ) : null}
 
                 <div className="flex items-center gap-3 bg-[#05070E] p-3.5 rounded-xl border border-border">
                     <input

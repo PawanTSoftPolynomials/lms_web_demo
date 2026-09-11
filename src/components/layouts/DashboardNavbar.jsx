@@ -272,7 +272,10 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
       "announcements", "modules", "lessons", "contents",
     ];
     if (standalonePages.includes(section)) {
-      breadcrumbs.push({ label: section.toUpperCase(), href: null });
+      // The student portal's /assignments page is titled "Submissions".
+      const label =
+        segments[0] === "student" && section === "assignments" ? "SUBMISSIONS" : section.toUpperCase();
+      breadcrumbs.push({ label, href: null });
     }
 
     // Handle Create/Edit static operations

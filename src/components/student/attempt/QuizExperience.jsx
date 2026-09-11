@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { Lock } from "lucide-react";
 
 import Loader from "@/components/common/Loader";
+import Button from "@/components/ui/Button";
 import QuizHeader from "@/components/student/attempt/QuizHeader";
 import QuestionCard from "@/components/student/attempt/QuestionCard";
 import QuizNavigation from "@/components/student/attempt/QuizNavigation";
@@ -19,9 +22,17 @@ import { checkAnswerCorrectness } from "@/lib/quizAnswers";
  * that launches a quiz (e.g. the Learning Page's modal/full-screen presenter).
  * Presentation (page vs modal vs full-screen) is entirely the caller's job;
  * this component only knows about the quiz itself.
+ *
+ * Every launch point comes through here, so this is also where a student who
+ * has used all their attempts is stopped — before answering, rather than
+ * after the server refuses the submission.
  */
 export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextContent }) {
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [submitError, setSubmitError] = useState("");
+    // When the questions were first shown — the start of this attempt's
+    // time taken.
+    const startedAtRef = useRef(null);
 
     const {
         data,
@@ -53,6 +64,12 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
 
     const answeredQuestions =
         Object.keys(answers).length;
+
+    useEffect(() => {
+        if (quiz && startedAtRef.current === null) {
+            startedAtRef.current = Date.now();
+        }
+    }, [quiz]);
 
     useEffect(() => {
         setVisitedIndices((prev) => {
@@ -107,6 +124,8 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
             return;
         }
 
+        const startedAt = startedAtRef.current;
+
         const submitPayload = {
             quizId,
             answers: Object.entries(
@@ -117,7 +136,12 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
                     answer: selectedOption,
                 })
             ),
+            timeTakenSeconds: startedAt
+                ? Math.round((Date.now() - startedAt) / 1000)
+                : undefined,
         };
+
+        setSubmitError("");
 
         submitQuizMutation.mutate(
             submitPayload,
@@ -131,6 +155,13 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
                     console.error(
                         "Quiz submission failed",
                         error
+                    );
+                    setShowSubmitModal(false);
+                    // The server's message explains a refusal (e.g. no
+                    // attempts left); anything else is most likely network.
+                    setSubmitError(
+                        error?.response?.data?.message ||
+                            "Your answers couldn't be submitted. Check your connection and try again."
                     );
                 },
             }
@@ -200,13 +231,45 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
             <QuizResultSummary
                 quizTitle={quiz.title}
                 isLoading={isResultLoading || !submissionResult}
-                correctCount={correctCount}
+                // The server's tally is authoritative; the client-side check
+                // only covers a response that predates it.
+                correctCount={submissionResult?.correctCount ?? correctCount}
                 totalQuestions={questions.length}
                 percentage={submissionResult?.percentage ?? 0}
                 passed={Boolean(submissionResult?.passed)}
                 resultHref={resultHref}
                 onNextContent={onNextContent}
             />
+        );
+    }
+
+    // Present for students only (see GET /quizzes/:id).
+    const allowance = quiz.attemptStatus;
+
+    if (allowance && !allowance.canAttempt) {
+        return (
+            <div className="rounded-2xl border border-border bg-card p-6 text-center sm:p-8">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-warning/10 text-warning">
+                    <Lock className="h-5 w-5" aria-hidden />
+                </div>
+                <h2 className="mt-4 text-lg font-semibold text-foreground">
+                    No attempts remaining
+                </h2>
+                <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+                    You&apos;ve used all {allowance.maxAttempts} attempt
+                    {allowance.maxAttempts === 1 ? "" : "s"} allowed for &ldquo;{quiz.title}&rdquo;.
+                </p>
+                <div className="mx-auto mt-6 flex max-w-sm flex-col gap-2 sm:flex-row sm:justify-center">
+                    <Button asChild className="inline-flex flex-1 items-center justify-center">
+                        <Link href={resultHref}>View your result</Link>
+                    </Button>
+                    {onBack && (
+                        <Button type="button" variant="outline" onClick={onBack} className="flex-1">
+                            Go back
+                        </Button>
+                    )}
+                </div>
+            </div>
         );
     }
 
@@ -219,6 +282,22 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
                     onTimeUp={handleTimeUp}
                     answeredCount={answeredQuestions}
                 />
+
+                {allowance && (allowance.attemptsUsed > 0 || !allowance.unlimitedAttempts) && (
+                    <p className="px-1 text-xs font-medium text-muted-foreground">
+                        Attempt {allowance.attemptsUsed + 1}
+                        {allowance.unlimitedAttempts ? "" : ` of ${allowance.maxAttempts}`}
+                    </p>
+                )}
+
+                {submitError && (
+                    <p
+                        role="alert"
+                        className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-500"
+                    >
+                        {submitError}
+                    </p>
+                )}
 
                 <QuestionCard
                     question={currentQuestion}
