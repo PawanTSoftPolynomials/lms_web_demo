@@ -538,11 +538,11 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                             </div>
                         </div>
                     ) : (
-                        <div className="p-4 sm:p-8 select-text min-w-0 max-w-full">
+                        <div className="p-4 sm:p-8 select-text min-w-0 max-w-full w-full">
                             <MarkdownRenderer
                                 source={unescapeFromContentApi(htmlContent || "")}
                                 emptyText="No content yet."
-                                className="max-w-4xl mx-auto"
+                                className="max-w-4xl mx-auto w-full min-w-0"
                             />
                         </div>
                     )

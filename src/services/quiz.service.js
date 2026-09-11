@@ -63,10 +63,13 @@ export const submitQuiz = async (
     quizId,
     answers
 ) => {
-    const {data} = await api.post(
+    const { data } = await api.post(
         `/quizzes/${quizId}/submit`,
         {
             answers,
+        },
+        {
+            timeout: 45000,
         }
     );
 

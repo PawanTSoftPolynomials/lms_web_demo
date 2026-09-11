@@ -35,10 +35,15 @@ export default function OptionList({
               items-center
               gap-2
               sm:gap-2.5
-              rounded-xl
+              rounded-lg
+              sm:rounded-xl
               border
-              p-2
-              sm:p-2.5
+              py-1.5
+              px-2.5
+              sm:py-2.5
+              sm:px-3
+              min-h-[38px]
+              sm:min-h-[44px]
               text-left
               cursor-pointer
               transition-all
@@ -54,7 +59,7 @@ export default function OptionList({
             {isSelected && (
               <motion.div
                 layoutId="activeOptionGlow"
-                className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/5 to-pink-500/5 -z-10 pointer-events-none"
+                className="absolute inset-0 rounded-lg sm:rounded-2xl bg-gradient-to-r from-orange-500/5 to-pink-500/5 -z-10 pointer-events-none"
                 transition={{ type: "spring", stiffness: 380, damping: 30 }}
               />
             )}
@@ -63,8 +68,10 @@ export default function OptionList({
             <div
               className={`
                 flex
-                h-4
-                w-4
+                h-3.5
+                w-3.5
+                sm:h-4
+                sm:w-4
                 shrink-0
                 items-center
                 justify-center
@@ -80,7 +87,7 @@ export default function OptionList({
               `}
             >
               {isSelected && (
-                <div className="h-2 w-2 rounded-full bg-white" />
+                <div className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-white" />
               )}
             </div>
 
@@ -88,16 +95,17 @@ export default function OptionList({
             <div
               className={`
                 flex
-                h-6
-                w-6
+                h-5
+                w-5
                 sm:h-7
                 sm:w-7
                 shrink-0
                 items-center
                 justify-center
-                rounded-xl
+                rounded-md
+                sm:rounded-xl
                 font-extrabold
-                text-xs
+                text-[11px]
                 sm:text-sm
                 transition-all
                 duration-300
@@ -114,7 +122,7 @@ export default function OptionList({
             {/* Option Text */}
             <div className="flex-1 min-w-0">
               <p
-                className={`text-[13px] sm:text-base leading-snug break-words transition-colors duration-200 ${
+                className={`text-xs sm:text-base leading-snug break-words transition-colors duration-200 ${
                   isSelected
                     ? "font-semibold text-foreground"
                     : "text-slate-400"

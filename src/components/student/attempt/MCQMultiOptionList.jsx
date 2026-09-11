@@ -26,9 +26,9 @@ export default function MCQMultiOptionList({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-1.5 sm:space-y-4">
       {/* Top Banner Alert / Instruction */}
-      <div className="flex items-center gap-2 rounded-xl bg-primary/5 border border-primary/10 px-4 py-3 text-xs text-primary font-semibold mb-4">
+      <div className="flex items-center gap-2 rounded-xl bg-primary/5 border border-primary/10 px-3 py-1.5 sm:px-4 sm:py-3 text-[11px] sm:text-xs text-primary font-semibold mb-2 sm:mb-4">
         <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
         <span>Multiple Choice: Select all options that apply to this question.</span>
       </div>
@@ -49,11 +49,17 @@ export default function MCQMultiOptionList({
               relative
               flex
               w-full
-              items-start
-              gap-4
-              rounded-2xl
+              items-center
+              gap-2
+              sm:gap-4
+              rounded-xl
+              sm:rounded-2xl
               border
-              p-5
+              py-1.5
+              px-2.5
+              sm:p-5
+              min-h-[38px]
+              sm:min-h-[50px]
               text-left
               cursor-pointer
               transition-all
@@ -69,7 +75,7 @@ export default function MCQMultiOptionList({
             {isSelected && (
               <motion.div
                 layoutId="activeMultiOptionGlow"
-                className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/5 to-pink-500/5 -z-10 pointer-events-none"
+                className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-r from-orange-500/5 to-pink-500/5 -z-10 pointer-events-none"
                 transition={{ type: "spring", stiffness: 380, damping: 30 }}
               />
             )}
@@ -78,12 +84,15 @@ export default function MCQMultiOptionList({
             <div
               className={`
                 flex
-                h-10
-                w-10
+                h-6
+                w-6
+                sm:h-10
+                sm:w-10
                 shrink-0
                 items-center
                 justify-center
-                rounded-xl
+                rounded-lg
+                sm:rounded-xl
                 font-extrabold
                 text-xs
                 sm:text-sm
@@ -100,9 +109,9 @@ export default function MCQMultiOptionList({
             </div>
 
             {/* Option Text */}
-            <div className="flex-1 pt-1.5 min-w-0">
+            <div className="flex-1 min-w-0">
               <p
-                className={`text-[13px] sm:text-base leading-relaxed break-words transition-colors duration-200 ${
+                className={`text-xs sm:text-base leading-snug sm:leading-relaxed break-words transition-colors duration-200 ${
                   isSelected
                     ? "font-semibold text-foreground"
                     : "text-slate-400"
@@ -121,9 +130,9 @@ export default function MCQMultiOptionList({
                     initial={{ scale: 0.6, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.6, opacity: 0 }}
-                    className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-foreground shadow-md shadow-orange-500/25"
+                    className="flex h-4 w-4 sm:h-6 sm:w-6 items-center justify-center rounded-md sm:rounded-lg bg-primary text-foreground shadow-md shadow-orange-500/25"
                   >
-                    <Check className="h-4 w-4 stroke-[3.5]" />
+                    <Check className="h-3 w-3 sm:h-4 sm:w-4 stroke-[3.5]" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -131,7 +140,7 @@ export default function MCQMultiOptionList({
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.8, opacity: 0 }}
-                    className="h-6 w-6 rounded-lg border border-slate-700 bg-background/40 hover:border-primary/50 transition-colors"
+                    className="h-4 w-4 sm:h-6 sm:w-6 rounded-md sm:rounded-lg border border-slate-700 bg-background/40 hover:border-primary/50 transition-colors"
                   />
                 )}
               </AnimatePresence>

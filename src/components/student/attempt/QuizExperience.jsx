@@ -102,9 +102,27 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
     const submitQuizMutation =
         useSubmitQuiz();
 
+    const submitError = submitQuizMutation.error
+        ? (submitQuizMutation.error?.code === "ECONNABORTED" ||
+           submitQuizMutation.error?.message?.includes("timeout")
+            ? "Submission timed out while contacting the server. Please click Retry Submission to try again."
+            : (submitQuizMutation.error?.response?.data?.message ||
+               submitQuizMutation.error?.message ||
+               "Quiz submission failed. Please try again."))
+        : null;
+
+    const handleCloseSubmitModal = () => {
+        submitQuizMutation.reset();
+        setShowSubmitModal(false);
+    };
+
     const handleSubmitQuiz = () => {
         if (answeredQuestions < questions.length) {
             return;
+        }
+
+        if (submitQuizMutation.isError) {
+            submitQuizMutation.reset();
         }
 
         const submitPayload = {
@@ -243,15 +261,14 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
 
             <QuizSubmitModal
                 isOpen={showSubmitModal}
-                onClose={() =>
-                    setShowSubmitModal(false)
-                }
+                onClose={handleCloseSubmitModal}
                 onConfirm={handleSubmitQuiz}
                 totalQuestions={questions.length}
                 answeredQuestions={answeredQuestions}
                 isSubmitting={
                     submitQuizMutation.isPending
                 }
+                errorMessage={submitError}
             />
         </>
     );

@@ -57,22 +57,23 @@ export default function QuestionCard({
   return (
     <div className="rounded-2xl border border-border bg-background p-2.5 sm:p-4 shadow-xl">
       {/* Question Text + Concept / Marks */}
-      <div className="mb-2 sm:mb-3 flex flex-col sm:flex-row items-start sm:justify-between gap-1 sm:gap-3">
-        <h2 className="min-w-0 w-full sm:flex-1 text-sm sm:text-xl font-semibold leading-snug text-foreground break-words">
-          {question.question}
-        </h2>
-
-        <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">
+      <div className="mb-2 sm:mb-3 block min-w-0">
+        <div className="float-right ml-2 mb-1 flex shrink-0 items-center gap-1.5">
           {question.concept && (
             <div className="hidden sm:inline-block rounded-lg bg-muted border border-transparent px-2.5 py-1 text-xs font-medium text-foreground">
               Concept: <span className="text-primary font-semibold">{question.concept}</span>
             </div>
           )}
 
-          <div className="rounded-lg bg-primary/10 px-2 py-1 text-[10px] sm:px-3 sm:py-1.5 sm:text-xs font-semibold text-primary whitespace-nowrap">
+          <div className="rounded-lg bg-primary/10 px-2 py-0.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold text-primary whitespace-nowrap">
             {question.marks} {question.marks === 1 ? "Mark" : "Marks"}
           </div>
         </div>
+
+        <h2 className="text-xs sm:text-xl font-semibold leading-snug text-foreground break-words">
+          {question.question}
+        </h2>
+        <div className="clear-both" />
       </div>
 
       {/* Options Rendering per Question Type */}
