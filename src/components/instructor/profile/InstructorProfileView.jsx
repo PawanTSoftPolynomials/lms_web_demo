@@ -269,12 +269,11 @@ export default function InstructorProfileView({ profile, onRefresh }) {
               <span>Change Password</span>
             </button>
 
-            {/* ?from=profile tells the settings page to send its back link here
-                rather than to the dashboard. Entry points that aren't the
-                profile (nav drawer, navbar, sidebar) omit it and keep the
-                default. */}
+            {/* Plain link: the ?from=profile marker this used to carry only
+                steered the settings page's back link, which no longer
+                exists. */}
             <Link
-              href="/instructor/settings?from=profile"
+              href="/instructor/settings"
               className="flex items-center justify-center gap-2 rounded-xl bg-background hover:bg-muted border border-transparent text-foreground font-bold text-xs px-5 py-2.5 transition active:scale-95"
             >
               <SettingsIcon size={14} />

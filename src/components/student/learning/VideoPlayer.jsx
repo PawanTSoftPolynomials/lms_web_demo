@@ -379,7 +379,21 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                                 onControlsRender={setViewerControls}
                             />
                         ) : displayFileUrl && (displayFileUrl.toLowerCase().includes(".doc") || displayFileUrl.toLowerCase().includes(".docx")) ? (
-                            <DocxViewer fileUrl={displayFileUrl} title={content?.title} />
+                            /* hideToolbar + onControlsRender, same as PptViewer
+                               above: without them DocxViewer drew its own bar,
+                               repeating the block title the header already
+                               shows. showDownload={false} keeps Download out
+                               of the header — a student reads the document
+                               here; the only download left is the fallback
+                               inside the card shown when the browser can't
+                               render the file at all. */
+                            <DocxViewer
+                                fileUrl={displayFileUrl}
+                                title={content?.title}
+                                hideToolbar
+                                showDownload={false}
+                                onControlsRender={setViewerControls}
+                            />
                         ) : displayFileUrl ? (
                             <ExternalDocumentViewer fileUrl={displayFileUrl} title={content?.title} />
                         ) : htmlContent ? (

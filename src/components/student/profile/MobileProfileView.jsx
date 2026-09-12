@@ -18,8 +18,6 @@ import {
   GraduationCap,
   Users,
   Clock,
-  Lock,
-  Bell,
   X,
 } from "lucide-react";
 
@@ -211,37 +209,6 @@ export default function MobileProfileView({ profile, onEdit }) {
           <InfoRow icon={GraduationCap} label="Education" value={student.education} onClick={onEdit} />
           <InfoRow icon={Users} label="Guardian Name" value={student.guardianName} onClick={onEdit} />
           <InfoRow icon={Clock} label="Member Since" value={joinedDate} />
-        </div>
-      </div>
-
-      {/* Security & Preferences */}
-      <div className="rounded-xl bg-card border border-card-border p-3">
-        <h3 className="text-xs font-black text-foreground mb-1 flex items-center gap-2">
-          <span className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center">
-            <ShieldCheck size={12} className="text-primary" />
-          </span>
-          Security & Preferences
-        </h3>
-        <div className="divide-y divide-card-border">
-          <button
-            type="button"
-            onClick={() => setShowPasswordModal(true)}
-            className="w-full flex items-center gap-3 py-2.5 text-left active:opacity-70 transition"
-          >
-            <Lock size={15} className="text-muted-foreground shrink-0" />
-            <span className="text-xs text-muted-foreground flex-1">Change Password</span>
-            <ChevronRight size={14} className="text-slate-600 shrink-0" />
-          </button>
-          <Link href="/student/settings" className="flex items-center gap-3 py-2.5 active:opacity-70 transition">
-            <ShieldCheck size={15} className="text-muted-foreground shrink-0" />
-            <span className="text-xs text-muted-foreground flex-1">Privacy Settings</span>
-            <ChevronRight size={14} className="text-slate-600 shrink-0" />
-          </Link>
-          <Link href="/student/settings" className="flex items-center gap-3 py-2.5 active:opacity-70 transition">
-            <Bell size={15} className="text-muted-foreground shrink-0" />
-            <span className="text-xs text-muted-foreground flex-1">Notification Preferences</span>
-            <ChevronRight size={14} className="text-slate-600 shrink-0" />
-          </Link>
         </div>
       </div>
 
