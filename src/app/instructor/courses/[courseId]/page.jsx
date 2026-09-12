@@ -96,6 +96,11 @@ function withTopicIn(les, topicId, updateTopic) {
   };
 }
 
+// The workspace selections the URL is allowed to restore. Anything else in
+// `?view=` is ignored and the page opens on the course overview, so a
+// hand-edited or stale link can't drop the composer into an unknown mode.
+const COMPOSER_MODES = new Set(["course", "module", "lesson", "topic", "quiz"]);
+
 export default function CourseDetailsPage() {
   const params = useParams();
   const router = useRouter();
@@ -136,16 +141,30 @@ export default function CourseDetailsPage() {
   // Global View Mode: 'rendered' | 'edit'
 
   // Active Workspace Selection: 'course' | 'lesson' | 'module' | 'topic' | 'quiz'
-  const [composerMode, setComposerMode] = useState("course");
+  //
+  // Seeded from the query string so a refresh (or a pasted link) reopens the
+  // exact module → lesson → topic → content the instructor was looking at.
+  // The effect further down writes these back to the URL as the selection
+  // changes; `?compose=` is the older lesson-only form of `?lesson=`, still
+  // honoured so existing links keep working.
+  const initialView = searchParams.get("view");
+  const [composerMode, setComposerMode] = useState(
+    COMPOSER_MODES.has(initialView) ? initialView : "course"
+  );
+  // Deliberately always "view" on load: a refresh in the middle of creating or
+  // editing a quiz has already lost the unsaved question edits, so reopening
+  // that form empty would be a lie. The saved quiz is shown instead.
   const [quizMode, setQuizMode] = useState("view"); // "view" | "edit" | "create"
-  const [composeLessonId, setComposeLessonId] = useState(searchParams.get("compose") || null);
-  const [composeModuleId, setComposeModuleId] = useState(null);
-  const [composeTopicId, setComposeTopicId] = useState(null);
-  const [composeQuizId, setComposeQuizId] = useState(null);
+  const [composeLessonId, setComposeLessonId] = useState(
+    searchParams.get("lesson") || searchParams.get("compose") || null
+  );
+  const [composeModuleId, setComposeModuleId] = useState(searchParams.get("module") || null);
+  const [composeTopicId, setComposeTopicId] = useState(searchParams.get("topic") || null);
+  const [composeQuizId, setComposeQuizId] = useState(searchParams.get("quiz") || null);
   const [selectedQuizState, setSelectedQuizState] = useState(null);
   const [quizStartEditing, setQuizStartEditing] = useState(false);
   const [pendingQuizOrder, setPendingQuizOrder] = useState(null);
-  const [selectedCellId, setSelectedCellId] = useState(null);
+  const [selectedCellId, setSelectedCellId] = useState(searchParams.get("content") || null);
 
   // Edit Mode for Metadata Headers
   const [isEditingCourse, setIsEditingCourse] = useState(false);
@@ -697,6 +716,49 @@ export default function CourseDetailsPage() {
     return () => { document.body.style.overflow = previous; };
   }, [mobileSidebarOpen]);
 
+  // Mirrors the current workspace selection into the query string, so the page
+  // can be reopened exactly where it was left. history.replaceState rather than
+  // router.replace on purpose: this is not a navigation — it must not push a
+  // history entry per sidebar click, remount the tree, or trigger a server
+  // round trip. The URL is only read back on mount (see the state above).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // A quiz that hasn't been created yet has no id to restore, so record the
+    // level it is being added under instead of a "quiz" view that would come
+    // back as "Quiz Not Found".
+    const restorableView =
+      composerMode === "quiz" && !composeQuizId
+        ? composeTopicId
+          ? "topic"
+          : composeLessonId
+            ? "lesson"
+            : composeModuleId
+              ? "module"
+              : "course"
+        : composerMode;
+
+    const next = new URLSearchParams(window.location.search);
+    const put = (key, value) => {
+      if (value) next.set(key, String(value));
+      else next.delete(key);
+    };
+
+    put("view", restorableView === "course" ? null : restorableView);
+    put("module", composeModuleId);
+    put("lesson", composeLessonId);
+    put("topic", composeTopicId);
+    put("quiz", restorableView === "quiz" ? composeQuizId : null);
+    put("content", selectedCellId);
+    next.delete("compose"); // superseded by `lesson`
+
+    const query = next.toString();
+    const url = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+    if (url !== `${window.location.pathname}${window.location.search}`) {
+      window.history.replaceState(null, "", url);
+    }
+  }, [composerMode, composeModuleId, composeLessonId, composeTopicId, composeQuizId, selectedCellId]);
+
   // Desktop Course Map collapse state
   const [isCourseMapOpen, setIsCourseMapOpen] = useState(true);
 
@@ -1244,6 +1306,11 @@ export default function CourseDetailsPage() {
       setComposeQuizId(createdQuiz.id);
       setQuizMode("view");
       setQuizStartEditing(false);
+      // Every branch reports whether the quiz actually landed. QuizOverviewView
+      // awaits this and only raises its "Quiz Saved" confirmation on true — the
+      // failure branches below already explain themselves with an error toast,
+      // and a success dialog on top of one would be a lie.
+      return true;
     } else {
       // Saved Course Mode (via REST API)
       if (quizMode === "create" || !selectedQuizState) {
@@ -1309,9 +1376,11 @@ export default function CourseDetailsPage() {
           setComposeQuizId(resQuiz.id);
           setQuizMode("view");
           setQuizStartEditing(false);
+          return true;
         } catch (err) {
           console.error("Create Quiz Error:", err);
           showToast(err?.response?.data?.message || "Failed to create quiz.", "error");
+          return false;
         }
       } else {
         const targetId = selectedQuizState.id || selectedQuizState._id || composeQuizId;
@@ -1362,9 +1431,11 @@ export default function CourseDetailsPage() {
           setSelectedQuizState(freshQuiz);
           setQuizMode("view");
           setQuizStartEditing(false);
+          return true;
         } catch (err) {
           console.error("Update Quiz Error:", err);
           showToast(err?.response?.data?.message || "Failed to update quiz.", "error");
+          return false;
         }
       }
     }
@@ -1721,6 +1792,49 @@ export default function CourseDetailsPage() {
   const activeQuizObj = composeQuizId
     ? (quizzesById.get(String(composeQuizId)) || (selectedQuizState && (String(selectedQuizState.id) === String(composeQuizId) || String(selectedQuizState._id) === String(composeQuizId)) ? selectedQuizState : null))
     : null;
+
+  // Ids restored from the URL may name something that has since been deleted —
+  // or that belongs to a different course, if a link was edited by hand. Once
+  // the tree has actually loaded, anything that doesn't resolve is dropped and
+  // the view falls back to the nearest parent that does, instead of rendering
+  // an empty panel the instructor can't get out of. Guarded on the loading
+  // flags so a slow fetch is never mistaken for a missing entity.
+  const treeLoaded = !effectiveLoading;
+  useEffect(() => {
+    if (!treeLoaded) return;
+
+    if (composeQuizId && !activeQuizObj) {
+      setComposeQuizId(null);
+      if (composerMode === "quiz") setComposerMode(composeTopicId ? "topic" : composeLessonId ? "lesson" : composeModuleId ? "module" : "course");
+      return;
+    }
+    if (composeTopicId && !composingTopic) {
+      setComposeTopicId(null);
+      setSelectedCellId(null);
+      if (composerMode === "topic") setComposerMode(composingLesson ? "lesson" : "course");
+      return;
+    }
+    if (composeLessonId && !composingLesson) {
+      setComposeLessonId(null);
+      if (composerMode === "lesson") setComposerMode(activeModuleObj ? "module" : "course");
+      return;
+    }
+    if (selectedCellId && composingTopic && !(composingTopic.contents || []).some((c) => String(c.id || c._id) === String(selectedCellId))) {
+      setSelectedCellId(null);
+    }
+  }, [
+    treeLoaded,
+    composerMode,
+    composeQuizId,
+    activeQuizObj,
+    composeTopicId,
+    composingTopic,
+    composeLessonId,
+    composingLesson,
+    composeModuleId,
+    activeModuleObj,
+    selectedCellId,
+  ]);
 
   // Delete Handlers for structural children
   const handleDeleteModule = async (e, mod) => {
@@ -2254,6 +2368,7 @@ export default function CourseDetailsPage() {
                 key={composeQuizId || `new-quiz-${composeTopicId || composeLessonId || composeModuleId || "course"}`}
                 quiz={activeQuizObj}
                 quizMode={quizMode}
+                courseId={courseId}
                 moduleTitle={activeModuleObj?.title}
                 lessonTitle={composeLessonId ? composingLesson?.title : null}
                 topicTitle={composeTopicId ? composingTopic?.title : null}

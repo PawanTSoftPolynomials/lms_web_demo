@@ -113,6 +113,32 @@ export default function UploadQuestionsPage() {
           { optionText: "404", isCorrect: false }
         ],
         correctAnswer: "201"
+      },
+      {
+        title: "HTTP Request Flow",
+        question: "Arrange the steps of an HTTP request in order.",
+        type: "ARRANGE_TOKENS",
+        subject: "Web Development",
+        topic: "HTTP",
+        difficulty: "MEDIUM",
+        marks: 2,
+        // Listed in their correct order — students see them shuffled.
+        options: ["DNS lookup", "TCP handshake", "HTTP request sent", "Response received"],
+        explanation: "A request resolves the host, opens a connection, then sends and receives."
+      },
+      {
+        title: "HTTP Status Meanings",
+        question: "Match each status code to its meaning.",
+        type: "MATCH_PAIRS",
+        subject: "Web Development",
+        topic: "HTTP",
+        difficulty: "MEDIUM",
+        marks: 2,
+        options: {
+          left: ["200", "404", "500"],
+          right: ["OK", "Not Found", "Server Error"]
+        },
+        explanation: "The right-hand column is shuffled for students."
       }
     ];
 
@@ -128,7 +154,9 @@ export default function UploadQuestionsPage() {
   const handleDownloadSampleCsv = () => {
     const csvContent = `title,type,subject,difficulty,marks,question,option1,option2,option3,option4,correctAnswer,explanation
 Python Variables,MCQ_SINGLE,Python,EASY,1,What is the keyword to define a function in Python?,func,def,function,define,option 2,Functions in Python are defined using the def keyword.
-JavaScript Async,SHORT_ANSWER,Web Development,MEDIUM,2,What does a Promise represent in JS?,,,,,An eventual completion or failure of an asynchronous operation,Promises represent eventual values.`;
+JavaScript Async,MCQ_MULTI,Web Development,MEDIUM,2,Which of these are JavaScript primitive types?,string,number,array,object,string|number,Arrays and objects are reference types.
+HTTP Request Flow,ARRANGE_TOKENS,Web Development,MEDIUM,2,Arrange the steps of an HTTP request in order,DNS lookup,TCP handshake,HTTP request sent,Response received,,Option columns are the tokens in their correct order.
+HTTP Status Codes,MATCH_PAIRS,Web Development,MEDIUM,2,Match each status code to its meaning,200 => OK,404 => Not Found,500 => Server Error,301 => Moved Permanently,,Each option column holds one pair written as left => right.`;
 
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -192,6 +220,34 @@ JavaScript Async,SHORT_ANSWER,Web Development,MEDIUM,2,What does a Promise repre
               <span>Sample JSON</span>
             </button>
           </div>
+        </div>
+
+        {/* Supported types & column conventions */}
+        <div className="p-4 rounded-2xl bg-background/90 border border-transparent text-xs space-y-2">
+          <p className="text-foreground font-medium">
+            Supported <span className="font-mono">type</span> values — one of these four, nothing else:
+          </p>
+          <ul className="space-y-1.5 text-muted-foreground">
+            <li>
+              <span className="font-mono text-amber-400">MCQ_SINGLE</span> — option columns hold the choices;{" "}
+              <span className="font-mono">correctAnswer</span> names one of them (its text, or <span className="font-mono">option 2</span>).
+            </li>
+            <li>
+              <span className="font-mono text-amber-400">MCQ_MULTI</span> — same columns, with every correct option
+              listed in <span className="font-mono">correctAnswer</span>, separated by <span className="font-mono">|</span>.
+            </li>
+            <li>
+              <span className="font-mono text-amber-400">ARRANGE_TOKENS</span> — the option columns are the tokens,
+              read left to right as the correct order. Students see them shuffled.
+            </li>
+            <li>
+              <span className="font-mono text-amber-400">MATCH_PAIRS</span> — each option column holds one pair written
+              as <span className="font-mono">left =&gt; right</span>.
+            </li>
+          </ul>
+          <p className="text-muted-foreground">
+            Older files using True / False, Short Answer or Long Answer are reported row by row and skipped.
+          </p>
         </div>
 
         {/* Error Alert */}

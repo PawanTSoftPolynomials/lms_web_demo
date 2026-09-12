@@ -12,7 +12,6 @@ import {
   ChevronRight,
   ClipboardList,
   Code2,
-  Copy,
   Eye,
   File,
   FileStack,
@@ -48,7 +47,6 @@ import {
 import { NodeBadge } from "@/components/student/learning/CourseContentAccordion";
 import { getNodeProgress } from "@/lib/progressIndex";
 import { useContents } from "@/hooks/queries/instructor/useContents";
-import { useDuplicateContent } from "@/components/instructor/LessonComposer/contentMutations";
 import { useReorderModules } from "@/hooks/queries/instructor/useReorderModules";
 import { useReorderLessons } from "@/hooks/queries/instructor/useReorderLessons";
 import { useReorderTopics } from "@/hooks/queries/instructor/useReorderTopics";
@@ -284,7 +282,6 @@ function ParentContentRows({
   composerMode,
   composeQuizId,
   onSelectQuiz,
-  onDuplicateQuiz,
   onDeleteQuiz,
   role = "INSTRUCTOR",
   isDraftMode = false,
@@ -299,7 +296,6 @@ function ParentContentRows({
   const contents = isDraftMode ? (draftContents || []) : (apiContents || []);
   const isLoading = isDraftMode ? false : isApiLoading;
   const isError = isDraftMode ? false : isApiError;
-  const { duplicate } = useDuplicateContent();
   const reorderContents = useReorderContents();
   const updateQuizOrder = useUpdateQuizOrder();
   const reorderQuizzes = useReorderQuizzes();
@@ -339,18 +335,6 @@ function ParentContentRows({
       }
     } catch {
       showToast("Failed to reorder", "error");
-    }
-  };
-
-  const handleDuplicate = async (content) => {
-    const validOrders = mergedRows
-      .map((r) => (typeof r.order === "number" && r.order > 0 ? r.order : 0))
-      .filter((o) => o > 0);
-    const nextOrder = validOrders.length > 0 ? Math.max(...validOrders) + 1 : mergedRows.length + 1;
-    try {
-      await duplicate(content, nextOrder);
-    } catch {
-      showToast("Failed to duplicate content", "error");
     }
   };
 
@@ -420,7 +404,6 @@ function ParentContentRows({
                       items={[
                         { label: "Edit Quiz", icon: Pencil, onSelect: () => onSelectQuiz?.(row, { startEditing: true }) },
                         { label: "Preview Quiz", icon: Eye, onSelect: () => onSelectQuiz?.(row, { startEditing: false }) },
-                        { label: "Duplicate Quiz", icon: Copy, onSelect: () => onDuplicateQuiz?.(row) },
                         { separator: true },
                         { label: "Move Up", icon: ArrowUp, disabled: rIdx === 0, onSelect: () => handleMove(row.id, "up") },
                         { label: "Move Down", icon: ArrowDown, disabled: rIdx === mergedRows.length - 1, onSelect: () => handleMove(row.id, "down") },
@@ -466,9 +449,10 @@ function ParentContentRows({
                 <RowMenu
                   groupName="content"
                   items={[
-                    { label: "Edit Content", icon: Pencil, onSelect: () => onSelectContent?.(content) },
-                    { label: "Duplicate Content", icon: Copy, onSelect: () => handleDuplicate(content) },
-                    { separator: true },
+                    /* No "Edit Content" here: editing happens on the right-hand
+                       composer. The row itself already opens the content on
+                       click (onSelectContent above), so the menu entry was a
+                       second door to the same place. */
                     { label: "Move Up", icon: ArrowUp, disabled: rIdx === 0, onSelect: () => handleMove(content.id, "up") },
                     { label: "Move Down", icon: ArrowDown, disabled: rIdx === mergedRows.length - 1, onSelect: () => handleMove(content.id, "down") },
                     { separator: true },

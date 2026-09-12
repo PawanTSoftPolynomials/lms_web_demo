@@ -104,7 +104,6 @@ export default function InstructorScheduleView() {
             title: e.title,
             type: e.type === "class" ? "lecture" : (e.type || "lecture"),
             course: e.courseName || "General Course",
-            batch: e.batch || "Batch A",
             date: e.date,
             startTime: e.startTime || "09:00 AM",
             endTime: e.endTime || "10:30 AM",
@@ -222,7 +221,6 @@ export default function InstructorScheduleView() {
       title: "",
       type: typeKey,
       course: "",
-      batch: "",
       date: selectedDateStr || toLocalDateString(new Date()),
       startTime: "10:00",
       duration: "60 mins",
@@ -255,7 +253,6 @@ export default function InstructorScheduleView() {
       title: createModalData.title || `New ${EVENT_TYPES[createModalData.type]?.label || "Event"} Session`,
       type: createModalData.type,
       course: createModalData.course || "General Course",
-      batch: createModalData.batch || "Batch A",
       date: createModalData.date,
       startTime: displayStartTime,
       endTime: "", // Can derive if needed
@@ -638,7 +635,7 @@ export default function InstructorScheduleView() {
                             </span>
                           </div>
                           <p className="text-[10px] text-muted-foreground mt-1">
-                            {evt.course} &bull; {evt.batch} &bull; {evt.date} at {evt.startTime}
+                            {evt.course} &bull; {evt.date} at {evt.startTime}
                           </p>
                         </div>
                       </div>
@@ -720,10 +717,6 @@ export default function InstructorScheduleView() {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground uppercase tracking-wider text-[9.5px]">Course</span>
                       <span>{selectedEvent.course}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground uppercase tracking-wider text-[9.5px]">Batch</span>
-                      <span>{selectedEvent.batch}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground uppercase tracking-wider text-[9.5px]">Time & Duration</span>
@@ -838,7 +831,7 @@ export default function InstructorScheduleView() {
                             <span className="text-foreground">{evt.title}</span>
                             <span className="text-primary font-mono">{evt.startTime}</span>
                           </div>
-                          <p className="text-[10px] text-muted-foreground">{evt.course} &bull; {evt.batch}</p>
+                          <p className="text-[10px] text-muted-foreground">{evt.course}</p>
                         </div>
                       ))
                     )}

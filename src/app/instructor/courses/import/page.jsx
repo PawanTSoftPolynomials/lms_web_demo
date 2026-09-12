@@ -107,9 +107,9 @@ const FALLBACK_TEMPLATE = {
         },
         {
           question: "Is C a compiled programming language?",
-          questionType: "TRUE_FALSE",
-          options: ["True", "False"],
-          correctAnswer: "True",
+          questionType: "MCQ_SINGLE",
+          options: ["Yes, it compiles to machine code", "No, it is interpreted"],
+          correctAnswer: "Yes, it compiles to machine code",
           explanation: "C code is directly compiled into machine executable binaries.",
           marks: 1,
           difficulty: "EASY",
@@ -1338,7 +1338,7 @@ export default function CourseImportPage() {
                   <div className="p-3 bg-background border border-transparent rounded-xl">
                     <span className="font-bold text-purple-400 font-mono block">quizzes [ ]</span>
                     <span className="text-muted-foreground block mt-0.5">
-                      Course or module level assessment quizzes with passingScore, timeLimit, and questions array (MCQ_SINGLE, MCQ_MULTI, TRUE_FALSE, SHORT_ANSWER, CODING).
+                      Course or module level assessment quizzes with passingScore, timeLimit, and questions array (MCQ_SINGLE, MCQ_MULTI, ARRANGE_TOKENS, MATCH_PAIRS).
                     </span>
                   </div>
                 </div>

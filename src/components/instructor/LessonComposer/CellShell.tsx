@@ -2,8 +2,6 @@
 
 import type { ReactNode } from "react";
 import {
-  Copy,
-  GripVertical,
   MoreVertical,
   Pencil,
   Plus,
@@ -28,8 +26,12 @@ interface CellShellProps {
   onEdit: () => void;
   onDelete: () => void;
   isDeleting?: boolean;
+  /** Still accepted (every cell threads it) but no longer surfaced: the
+   *  block menu has no Duplicate entry. */
   onDuplicate?: () => void;
   isDuplicating?: boolean;
+  /** Still accepted (every cell threads it) but no longer surfaced: the
+   *  block menu has no Settings entry. */
   onSettingsSelect?: () => void;
   onAddAbove?: () => void;
   onAddBelow?: () => void;
@@ -60,9 +62,6 @@ export function CellShell({
   onEdit,
   onDelete,
   isDeleting = false,
-  onDuplicate,
-  isDuplicating = false,
-  onSettingsSelect,
   onAddAbove,
   onAddBelow,
   isSelected = false,
@@ -137,19 +136,8 @@ export function CellShell({
         </button>
       )}
 
-      {/* Drag Handle & Type Badge */}
+      {/* Type Badge */}
       <div className="flex items-center gap-2 shrink-0 sm:pt-0.5">
-        {/* Dragging is a pointer gesture with no touch equivalent here, so the
-            handle is desktop-only rather than occupying a row on a phone. */}
-        <div
-          className={cn(
-            "hidden sm:flex h-8 w-4 items-center justify-center text-muted-foreground cursor-grab active:cursor-grabbing transition",
-            hoverVisible
-          )}
-          title="Drag to reorder"
-        >
-          <GripVertical size={16} />
-        </div>
 
         <div
           className={cn(
@@ -204,8 +192,8 @@ export function CellShell({
                     <button
                       type="button"
                       className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-background/60 text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
-                      aria-label="Block Settings & Actions"
-                      title="Settings & Actions"
+                      aria-label="Block Actions"
+                      title="Block Actions"
                     >
                       {/* The block menu reads as a ⋮ on mobile, where it is the
                           only route to these actions; the desktop gear is
@@ -237,18 +225,6 @@ export function CellShell({
                       </DropdownMenuItem>
                     )}
 
-                    {onSettingsSelect && (
-                      <DropdownMenuItem onSelect={onSettingsSelect}>
-                        <Settings className="size-3.5" />
-                        Block Settings
-                      </DropdownMenuItem>
-                    )}
-                    {onDuplicate && (
-                      <DropdownMenuItem onSelect={onDuplicate} disabled={isDuplicating}>
-                        <Copy className="size-3.5" />
-                        {isDuplicating ? "Duplicating…" : "Duplicate Block"}
-                      </DropdownMenuItem>
-                    )}
                     <DropdownMenuItem
                       variant="destructive"
                       onSelect={onDelete}
@@ -272,8 +248,8 @@ export function CellShell({
                 <button
                   type="button"
                   className="flex h-6 w-6 items-center justify-center rounded-md border border-border bg-background/80 text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer shadow-sm"
-                  aria-label="Block Settings & Actions"
-                  title="Settings & Actions"
+                  aria-label="Block Actions"
+                  title="Block Actions"
                 >
                   <MoreVertical size={12} className="md:hidden" />
                   <Settings size={12} className="hidden md:block" />
@@ -294,18 +270,6 @@ export function CellShell({
                   <DropdownMenuItem className="md:hidden" onSelect={() => onAddBelow()}>
                     <Plus className="size-3.5" />
                     Add Below
-                  </DropdownMenuItem>
-                )}
-                {onSettingsSelect && (
-                  <DropdownMenuItem onSelect={onSettingsSelect}>
-                    <Settings className="size-3.5" />
-                    Block Settings
-                  </DropdownMenuItem>
-                )}
-                {onDuplicate && (
-                  <DropdownMenuItem onSelect={onDuplicate} disabled={isDuplicating}>
-                    <Copy className="size-3.5" />
-                    {isDuplicating ? "Duplicating…" : "Duplicate Block"}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem

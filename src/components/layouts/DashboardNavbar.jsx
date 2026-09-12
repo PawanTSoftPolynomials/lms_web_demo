@@ -680,7 +680,9 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
               user={currentUser}
               onLogout={() => setShowLogoutModal(true)}
               profileHref={isStudentRole ? "/student/profile" : "/admin/profile"}
-              settingsHref={isStudentRole ? "/student/settings" : null}
+              // Settings is no longer offered to students — the entry is
+              // dropped the same way it already was for every other role.
+              settingsHref={null}
             />
           </div>
         </div>

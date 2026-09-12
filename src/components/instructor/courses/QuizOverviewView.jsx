@@ -23,7 +23,8 @@ import {
 } from "lucide-react";
 
 import QuestionRepositoryPickerModal from "./QuestionRepositoryPickerModal";
-import { RETIRED_QUESTION_TYPES } from "@/lib/questionType";
+import Modal from "@/components/ui/Modal";
+import { QUESTION_TYPE_OPTIONS, RETIRED_QUESTION_TYPES } from "@/lib/questionType";
 
 // Question.options (backend) may hold plain strings or richer
 // { optionText, isCorrect?, misconceptionTag? } objects (see
@@ -78,6 +79,10 @@ function quizFormFromQuiz(quiz) {
 export function QuizOverviewView({
   quiz,
   quizMode = "view",
+  // The course being edited. Scopes the repository picker to this course's
+  // own questions — falls back to the quiz's own courseId so a caller that
+  // doesn't pass it still narrows correctly.
+  courseId = null,
   moduleTitle = null,
   lessonTitle = null,
   topicTitle = null,
@@ -109,6 +114,11 @@ export function QuizOverviewView({
   const [questions, setQuestions] = useState([]);
   const [error, setError] = useState("");
   const [showRepoPicker, setShowRepoPicker] = useState(false);
+
+  // Set once a save comes back successful — its presence opens the "Quiz
+  // Saved" confirmation, and it carries the figures that dialog reports.
+  const [savedSummary, setSavedSummary] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Sync state when quiz prop, quizMode, or startEditing changes
   useEffect(() => {
@@ -350,7 +360,7 @@ export function QuizOverviewView({
   };
 
   // Save changes
-  const handleSaveChanges = (e) => {
+  const handleSaveChanges = async (e) => {
     if (e) e.preventDefault();
 
     if (!quizForm.title.trim()) {
@@ -408,8 +418,29 @@ export function QuizOverviewView({
       })),
     };
 
-    onSaveQuiz?.(updatedQuiz);
+    setIsSaving(true);
+    let saved;
+    try {
+      saved = await onSaveQuiz?.(updatedQuiz);
+    } finally {
+      setIsSaving(false);
+    }
+
     setIsEditing(false);
+
+    // A handler that reports nothing back (older callers, and the read-only
+    // preview) is taken at its word rather than being called a failure — only
+    // an explicit `false` means the save was rejected, and that path has
+    // already shown its own error.
+    if (saved !== false) {
+      setSavedSummary({
+        title: updatedQuiz.title,
+        questionCount: updatedQuiz.questions.length,
+        totalMarks: updatedQuiz.questions.reduce((sum, q) => sum + (Number(q.marks) || 1), 0),
+        quizTag: updatedQuiz.quizTag,
+        isPublished: updatedQuiz.isPublished,
+      });
+    }
   };
 
   const totalMarks = questions.reduce((sum, q) => sum + (Number(q.marks) || 1), 0);
@@ -474,10 +505,11 @@ export function QuizOverviewView({
               <button
                 type="button"
                 onClick={handleSaveChanges}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold transition shadow-lg shadow-emerald-600/20 cursor-pointer"
+                disabled={isSaving}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold transition shadow-lg shadow-emerald-600/20 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <Save size={14} />
-                Save Changes
+                {isSaving ? "Saving…" : "Save Changes"}
               </button>
             </>
           )}
@@ -949,10 +981,9 @@ export function QuizOverviewView({
                     onChange={(e) => handleCurrentQuestionChange("questionType", e.target.value)}
                     className="w-full rounded-xl border border-transparent bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500 cursor-pointer"
                   >
-                    <option value="MCQ_SINGLE">Single Choice (MCQ)</option>
-                    <option value="MCQ_MULTI">Multiple Choice (MCQ)</option>
-                    <option value="ARRANGE_TOKENS">Arrange Tokens</option>
-                    <option value="MATCH_PAIRS">Match Pairs</option>
+                    {QUESTION_TYPE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
                     {/* Only for a question that already is one — see
                         RETIRED_QUESTION_TYPES. */}
                     {RETIRED_QUESTION_TYPES[activeQuestion.questionType] && (
@@ -1142,14 +1173,84 @@ export function QuizOverviewView({
               </button>
             </div>
           )}
+
+          {/* Save/Cancel repeated at the end of the question list. The pair in
+              the header scrolls out of sight once a quiz has more than a couple
+              of questions, leaving the instructor to scroll back up to save
+              what they just finished writing. Same handlers, same validation —
+              this is the identical control, only reachable where the work ends. */}
+          <div className="flex items-center justify-between gap-3 pt-4 mt-2 border-t border-border">
+            <p className="text-xs text-muted-foreground">
+              {questions.length} question{questions.length === 1 ? "" : "s"} • {totalMarks} total mark{totalMarks === 1 ? "" : "s"}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-bold transition cursor-pointer"
+              >
+                <X size={14} />
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveChanges}
+                disabled={isSaving}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold transition shadow-lg shadow-emerald-600/20 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <Save size={14} />
+                {isSaving ? "Saving…" : "Save Changes"}
+              </button>
+            </div>
+          </div>
         </form>
       )}
+
+      {/* Save confirmation — raised only after the save actually succeeded. */}
+      <Modal
+        open={Boolean(savedSummary)}
+        onClose={() => setSavedSummary(null)}
+        title="Quiz Saved"
+        size="sm"
+      >
+        <div className="text-center space-y-4 py-2">
+          <div className="mx-auto w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center">
+            <CheckCircle2 size={30} className="text-emerald-500" />
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            &ldquo;{savedSummary?.title}&rdquo; has been saved successfully.
+          </p>
+
+          <div className="rounded-xl border border-border bg-background/60 px-4 py-3 text-xs font-bold text-foreground">
+            <p>
+              {savedSummary?.questionCount} question{savedSummary?.questionCount === 1 ? "" : "s"}
+              {" • "}
+              {savedSummary?.totalMarks} total mark{savedSummary?.totalMarks === 1 ? "" : "s"}
+            </p>
+            <p className="mt-1 text-[11px] font-semibold text-muted-foreground">
+              {QUIZ_TAG_LABELS[savedSummary?.quizTag] || "Quiz"}
+              {" • "}
+              {savedSummary?.isPublished ? "Published" : "Draft"}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setSavedSummary(null)}
+            className="w-full px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold transition cursor-pointer"
+          >
+            Done
+          </button>
+        </div>
+      </Modal>
 
       <QuestionRepositoryPickerModal
         open={showRepoPicker}
         onClose={() => setShowRepoPicker(false)}
         onAddQuestions={handleAddRepositoryQuestions}
         excludeIds={questions.map((q) => q.id)}
+        courseId={courseId || quiz?.courseId || null}
       />
     </div>
   );

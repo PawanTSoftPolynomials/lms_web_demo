@@ -77,7 +77,15 @@ const calendarClassNames = {
   months: "flex flex-col",
   month: "relative space-y-3",
   month_caption: "flex items-center justify-center h-9 px-10",
-  caption_label: "text-[13px] font-black text-foreground tracking-tight",
+  // sr-only, not styled text: with captionLayout="dropdown" react-day-picker
+  // renders BOTH a <select> and a caption label per dropdown, and its own
+  // stylesheet (never imported here — this calendar is styled entirely through
+  // these classNames) is what turns the select into a transparent overlay on
+  // top of that label. Without it the two stack up side by side and the header
+  // reads "September ⌄ September  2026 ⌄ 2026". The select carries the value,
+  // so the label is redundant on screen; it is kept in the DOM rather than
+  // removed so nothing depending on it breaks.
+  caption_label: "sr-only",
   dropdowns: "flex items-center gap-1.5",
   dropdown_root: "relative",
   months_dropdown:
