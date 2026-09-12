@@ -367,14 +367,14 @@ export function LessonComposerPanel({
           className="rounded-2xl border-2 border-dashed border-border hover:border-primary/50 bg-background/40 p-12 text-center transition cursor-pointer group"
         >
           <p className="text-sm font-bold text-foreground group-hover:text-primary transition">
-            No content in this lesson yet.
+            No content in this {parent?.parentType || "lesson"} yet.
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Click here to add your first content block.
           </p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-border/80 bg-background/60 p-2 sm:p-8 md:p-10 shadow-lg space-y-2">
+        <div className="p-2 sm:p-8 md:p-10 space-y-2">
           {sortByOrder(contents).map((content: ContentRow) => {
             const badge = getBlockBadge(content);
             const isSelected = effectiveSelectedId === content.id;

@@ -137,7 +137,7 @@ function StudentsDirectoryContent() {
               {selectedStudentId ? 'Student Profile' : 'Student Directory'}
             </h1>
             <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">
-              {selectedStudentId ? `Viewing ${selectedStudent?.name}` : `${filteredStudents.length} Students Active`}
+              {selectedStudentId ? `Viewing ${selectedStudent?.name}` : `${filteredStudents.length} ${filteredStudents.length === 1 ? "Student" : "Students"} Active`}
             </p>
           </div>
         </div>

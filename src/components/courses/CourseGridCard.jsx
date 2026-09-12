@@ -109,7 +109,7 @@ export default function CourseGridCard({ course }) {
         <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-muted-foreground mb-3">
           <span className="flex items-center gap-1">
             <Users size={12} className="text-muted-foreground/70" />
-            {studentsCount} Students
+            {studentsCount} {studentsCount === 1 ? "Student" : "Students"}
           </span>
           <span className="text-muted-foreground/40 text-[10px]">●</span>
           <span className="flex items-center gap-1">

@@ -1,11 +1,12 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect } from "react";
 
 import Loader from "@/components/common/Loader";
 import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
 import useAssignment from "@/hooks/queries/student/useAssignment";
+import useTrackCourseAccess from "@/hooks/queries/student/useTrackCourseAccess";
 import AssignmentSubmissionPanel from "@/components/student/assignments/AssignmentSubmissionPanel";
 import { normalizeAssignmentStatus } from "@/features/student/constants/assignmentsConfig";
 
@@ -34,6 +35,15 @@ export default function AssignmentDetailPage({ params }) {
       </Card>
     );
   }
+
+  const trackAccessMutation = useTrackCourseAccess();
+  const parentCourseId = assignment?.courseId || assignment?.course?.id;
+
+  useEffect(() => {
+    if (parentCourseId) {
+      trackAccessMutation.mutate(parentCourseId);
+    }
+  }, [parentCourseId]);
 
   const status = normalizeAssignmentStatus(assignment);
 

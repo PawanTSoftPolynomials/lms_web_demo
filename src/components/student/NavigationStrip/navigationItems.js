@@ -25,9 +25,11 @@ export const PRIMARY_NAV_ITEMS = [
   // { label: "Dashboard", href: "/student/dashboard", icon: Home, primaryOnMobile: true },
   { label: "Learning", href: "/student/my-courses", icon: BookOpen, primaryOnMobile: true },
   { label: "Explore", href: "/student/courses", icon: Compass, primaryOnMobile: true },
-  // Every assignment across the student's courses, with their grades and the
-  // instructor's feedback — the lasting record, unlike a dismissible notification.
-  { label: "Assignments", href: "/student/assignments", icon: ClipboardCheck, primaryOnMobile: true },
+  // Every assignment and quiz the student has submitted — grades, scores,
+  // attempts and instructor feedback — the lasting record, unlike a
+  // dismissible notification. The route keeps its /assignments path so
+  // existing links still land here.
+  { label: "Submissions", href: "/student/assignments", icon: ClipboardCheck, primaryOnMobile: true },
   // {
   //   label: "Schedule & Communication",
   //   icon: CalendarDays,

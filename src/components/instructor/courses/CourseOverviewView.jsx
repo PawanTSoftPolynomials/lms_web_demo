@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronRight } from "lucide-react";
+import { Archive, ChevronRight } from "lucide-react";
 import { UploadButton } from "@/components/instructor/courses/UploadButton";
 import { getDisplayUrl } from "@/lib/blob";
 import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
@@ -21,15 +21,26 @@ export function CourseOverviewView({
   onAddModule,
   role = "INSTRUCTOR",
   onStartLearning,
+  hasProgress = false,
   isDraftMode = false,
   contentAutoOpenSignal: externalContentAutoOpenSignal = 0,
   onContentAutoOpenConsumed,
+  onPublishClick,
+  onUnpublishClick,
+  onRestoreClick,
+  hasUnsavedChanges = false,
+  onSaveCourse,
+  isSavingCourse = false,
   // Opt-in, student course-details only. Below lg that page composes its own
   // hero and overview sections, so this view contributes only the module list
   // there, restyled as a scannable mobile list. Off by default: Instructor
   // rendering is unchanged.
   mobileCompact = false,
 }) {
+  const status = course?.status || "DRAFT";
+  const isPublished = status === "PUBLISHED";
+  const isArchived = status === "ARCHIVED";
+  const isDraft = status === "DRAFT";
   const hideOnMobile = mobileCompact ? "max-lg:hidden" : "";
   const [localContentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
   const contentAutoOpenSignal = externalContentAutoOpenSignal + localContentAutoOpenSignal;
@@ -39,31 +50,95 @@ export function CourseOverviewView({
   };
   return (
     <div className={`notebook-cell rounded-2xl border border-border bg-background p-3 sm:p-5 shadow-md ${isEditing ? "active-cell border-primary/50" : ""} ${mobileCompact ? "max-lg:rounded-none max-lg:border-0 max-lg:bg-transparent max-lg:p-0 max-lg:shadow-none" : ""}`}>
-      {/* Left Action Bar */}
-      <div className={`cell-actions-left mb-3 ${hideOnMobile}`}>
-        <div style={{ fontSize: "0.75rem", color: "var(--text-muted, #94a3b8)", textAlign: "center" }}>
-          Course Meta
+      {/* Left Action Bar — composer-only labeling, never shown to students */}
+      {role !== "STUDENT" && (
+        <div className={`cell-actions-left mb-3 ${hideOnMobile}`}>
+          <div style={{ fontSize: "0.75rem", color: "var(--text-muted, #94a3b8)", textAlign: "center" }}>
+            Course Meta
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="cell-main space-y-4">
         {/* Cell Header Toolbar matching PageComponents.js */}
-        <div className={`cell-header flex items-center justify-between border-b border-border/80 pb-2.5 mb-3 ${hideOnMobile}`}>
-          <div>
-            <span className="cell-badge rounded bg-primary/15 border border-primary/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary">
-              Course Header
-            </span>
+        <div className={`cell-header flex flex-wrap items-center justify-between gap-2 border-b border-border/80 pb-2.5 mb-3 ${hideOnMobile}`}>
+          <div className="flex items-center gap-2.5">
+            {role !== "STUDENT" && (
+              <span className="cell-badge rounded bg-primary/15 border border-primary/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary">
+                Course Header
+              </span>
+            )}
+            {role !== "STUDENT" && (
+              <span
+                className={`rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border shrink-0 ${
+                  isPublished
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                    : isArchived
+                    ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                    : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                }`}
+              >
+                {status}
+              </span>
+            )}
           </div>
-          <div className="cell-controls flex items-center gap-2">
+          <div className="cell-controls flex flex-wrap items-center gap-2">
             {role === "STUDENT" && onStartLearning && (
               <button
                 type="button"
                 onClick={onStartLearning}
                 className="btn bg-primary hover:bg-orange-600 text-slate-950 rounded-xl px-4 py-1.5 text-xs font-black transition cursor-pointer"
               >
-                Start Learning
+                {hasProgress ? "Continue Learning" : "Start Learning"}
               </button>
             )}
+
+            {/* Save — hidden until the course actually has unsaved changes
+                (imported-draft flow), so a course sitting untouched shows no
+                dead action. */}
+            {role === "INSTRUCTOR" && !isArchived && hasUnsavedChanges && (
+              <button
+                type="button"
+                className="btn shrink-0 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-bold px-3 py-1.5 transition cursor-pointer disabled:opacity-50"
+                onClick={onSaveCourse}
+                disabled={isSavingCourse}
+                title="Persist current course changes"
+              >
+                {isSavingCourse ? "Saving..." : "Save"}
+              </button>
+            )}
+
+            {role === "INSTRUCTOR" && isDraft && onPublishClick && (
+              <button
+                type="button"
+                className="btn shrink-0 rounded-xl bg-primary hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-3.5 py-1.5 transition shadow-md cursor-pointer"
+                onClick={onPublishClick}
+              >
+                Publish
+              </button>
+            )}
+
+            {role === "INSTRUCTOR" && isPublished && onUnpublishClick && (
+              <button
+                type="button"
+                className="btn shrink-0 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-bold text-xs px-3.5 py-1.5 transition cursor-pointer"
+                onClick={onUnpublishClick}
+              >
+                Unpublish
+              </button>
+            )}
+
+            {role === "INSTRUCTOR" && isArchived && onRestoreClick && (
+              <button
+                type="button"
+                className="btn shrink-0 rounded-xl border border-purple-500/40 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-bold text-xs px-3.5 py-1.5 transition cursor-pointer flex items-center gap-1.5"
+                onClick={onRestoreClick}
+              >
+                <Archive size={13} />
+                <span>Restore to Draft</span>
+              </button>
+            )}
+
             {role === "INSTRUCTOR" && (
               <button
                 className={`btn ${isEditing ? "btn-primary bg-primary text-slate-950" : "btn-outline-primary border border-border text-foreground hover:text-foreground"} rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed`}
@@ -210,9 +285,21 @@ export function CourseOverviewView({
                   (sum, m) => sum + (m.lessons || []).reduce((tSum, l) => tSum + (l.topics?.length || 0), 0),
                   0
                 );
-                const courseQuizCount = Array.isArray(course?.quizzes) ? course.quizzes.length : 0;
-                const moduleQuizCount = modules.reduce((sum, m) => sum + (m.quizzes?.length || 0), 0);
-                const totalQuizzes = courseQuizCount + moduleQuizCount;
+                // Every quiz in the course — module, lesson AND topic level,
+                // not just module-level — deduplicated by id so a quiz that
+                // somehow appears in more than one list is only counted once.
+                const allQuizIds = new Set();
+                (course?.quizzes || []).forEach((q) => q?.id && allQuizIds.add(q.id));
+                modules.forEach((m) => {
+                  (m.quizzes || []).forEach((q) => q?.id && allQuizIds.add(q.id));
+                  (m.lessons || []).forEach((l) => {
+                    (l.quizzes || []).forEach((q) => q?.id && allQuizIds.add(q.id));
+                    (l.topics || []).forEach((t) => {
+                      (t.quizzes || []).forEach((q) => q?.id && allQuizIds.add(q.id));
+                    });
+                  });
+                });
+                const totalQuizzes = allQuizIds.size;
 
                 return (
                   <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border/80 ${hideOnMobile}`}>

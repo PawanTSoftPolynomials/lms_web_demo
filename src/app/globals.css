@@ -457,15 +457,27 @@ body {
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
-/* Form controls. Padding is NOT forced any more — it used to override the
-   composer's compact inline rename inputs (px-1.5 py-1) with 0.75rem/1rem,
-   which broke their layout. Utilities now win; bare inputs keep this default. */
+/* Form controls. Bare inputs keep a comfortable default; an input that asks
+   for its own padding gets it.
+
+   The padding lives in @layer base for that second half to be true. Zero
+   specificity is not enough on its own: Tailwind's utilities sit in
+   @layer utilities, and an UNLAYERED rule beats any layered one whatever its
+   specificity — so while this declaration sat outside a layer it silently
+   overrode every padding utility on an input in the app. Compact controls were the
+   casualty: 0.75rem/1rem of padding inside a 34px-wide page-number box leaves
+   about 2px of content box, and the page number was clipped out of sight. */
 :where(input, select) {
   background-color: var(--surface-muted);
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--foreground);
-  padding: 0.75rem 1rem;
+}
+
+@layer base {
+  :where(input, select) {
+    padding: 0.75rem 1rem;
+  }
 }
 
 :where(input, select):focus {

@@ -595,13 +595,36 @@ export default function CourseDetailsPage() {
         const quizDesc = generatedData.description || "";
         const rawQuestions = Array.isArray(generatedData.questions) ? generatedData.questions : [];
 
-        const formattedQuestions = rawQuestions.map((q, idx) => ({
-          question: q.question || `Question ${idx + 1}`,
-          questionType: q.questionType || "MCQ_SINGLE",
-          options: Array.isArray(q.options) ? q.options : ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctAnswer: q.correctAnswer || (Array.isArray(q.options) ? q.options[0] : "Option 1"),
-          explanation: q.explanation || "",
-        }));
+        // Never invent an answer key: a question the AI returned with no
+        // correctAnswer is dropped rather than silently marked "option 1".
+        const hasAnswerKey = (q) => {
+          const key = q.correctAnswer;
+          if (q.questionType === "MCQ_MULTI") {
+            return Array.isArray(key) ? key.length > 0 : Boolean(key);
+          }
+          if (Array.isArray(key)) return key.length > 0 && Boolean(key[0]);
+          return Boolean(key) && (typeof key !== "string" || key.trim().length > 0);
+        };
+
+        let skippedCount = 0;
+        const formattedQuestions = rawQuestions
+          .filter((q) => {
+            if (hasAnswerKey(q)) return true;
+            skippedCount += 1;
+            return false;
+          })
+          .map((q, idx) => ({
+            question: q.question || `Question ${idx + 1}`,
+            questionType: q.questionType || "MCQ_SINGLE",
+            options: Array.isArray(q.options) ? q.options : ["Option 1", "Option 2", "Option 3", "Option 4"],
+            correctAnswer: q.correctAnswer,
+            explanation: q.explanation || "",
+          }));
+
+        if (formattedQuestions.length === 0) {
+          showToast("No questions were applied: none of the generated questions had a correct answer.", "error");
+          return;
+        }
 
         const newQuizData = {
           title: quizTitle,
@@ -634,7 +657,14 @@ export default function CourseDetailsPage() {
         }
 
         await handleSaveQuiz(newQuizData);
-        showToast(`${targetLevel} quiz created from AI!`, "success");
+        if (skippedCount > 0) {
+          showToast(
+            `${targetLevel} quiz created from AI! ${skippedCount} question${skippedCount === 1 ? "" : "s"} ${skippedCount === 1 ? "was" : "were"} skipped because ${skippedCount === 1 ? "it had" : "they had"} no correct answer.`,
+            "info"
+          );
+        } else {
+          showToast(`${targetLevel} quiz created from AI!`, "success");
+        }
       }
     } catch (err) {
       console.error("Apply AI Data Error:", err);
@@ -1067,6 +1097,7 @@ export default function CourseDetailsPage() {
           // No `|| 30` fallback: null means the instructor chose no timer,
           // and re-inflating it here would defeat that before it ever saved.
           timeLimit: updatedQuizData.timeLimit ?? null,
+          attempts: updatedQuizData.attempts ?? 1,
           isPublished: updatedQuizData.isPublished !== false,
           moduleId: composeModuleId,
           lessonId: composeLessonId || null,
@@ -1223,6 +1254,8 @@ export default function CourseDetailsPage() {
             quizTag: updatedQuizData.quizTag,
             passingScore: Number(updatedQuizData.passingScore) || 70,
             timeLimit: updatedQuizData.timeLimit ?? null,
+            // Omitted when the caller didn't set it, so the schema default applies.
+            ...(updatedQuizData.attempts !== undefined && { attempts: Number(updatedQuizData.attempts) }),
             isPublished: updatedQuizData.isPublished !== false,
             courseId,
             moduleId: composeModuleId || null,
@@ -1291,6 +1324,7 @@ export default function CourseDetailsPage() {
             // Number(null) is 0, not null — and 0 would reach the API as a
             // real time limit rather than "untimed".
             timeLimit: updatedQuizData.timeLimit ?? null,
+            ...(updatedQuizData.attempts !== undefined && { attempts: Number(updatedQuizData.attempts) }),
             isPublished: updatedQuizData.isPublished,
             courseId,
             moduleId: composeModuleId || selectedQuizState.moduleId || null,
@@ -2053,33 +2087,30 @@ export default function CourseDetailsPage() {
     return fn?.(...args);
   };
   const sidebarWrapperClassName = mobileSidebarOpen
-    ? "fixed inset-y-0 left-0 z-50 w-80 bg-background p-4 shadow-2xl block shrink-0 overflow-y-auto"
-    : `hidden lg:block shrink-0 lg:sticky lg:top-24 transition-[width] duration-300 ease-in-out ${
+    ? "fixed inset-y-0 left-0 z-50 w-80 bg-background pt-4 pr-4 pb-4 pl-[1.6px] shadow-2xl block shrink-0 overflow-y-auto"
+    : `hidden lg:block shrink-0 lg:h-full transition-[width] duration-300 ease-in-out ${
         isCourseMapOpen ? "w-full lg:w-[320px]" : "w-full lg:w-0"
       }`;
 
   return (
-    // The shared dashboard shell pads its main by p-2/sm:p-6/md:p-16; the
-    // composer pulls most of that top padding back so the course header sits
-    // just under the navbar instead of below a band of empty space.
-    <div className="-mt-1 sm:-mt-4 md:-mt-12 space-y-4 pb-16 animate-fade-in duration-300">
-      {/* 1. APP HEADER */}
+    // The instructor layout gives the Composer route its own bounded-height
+    // shell (see instructor/layout.jsx's isCourseComposerPage branch) instead
+    // of DashboardLayout's normal ever-growing, p-16/pb-32-padded `main` — so
+    // this fills that shell rather than pulling back padding that isn't
+    // there any more. flex-col + min-h-0 lets the Notebook cell stack below
+    // become the one scrollable region instead of the whole page.
+    <div className="h-full flex flex-col animate-fade-in duration-300">
+      {/* 1. APP HEADER — no visible bar now; just the mobile Course Map
+          toggle (floating) and Ask OTree AI (floating). Status and the
+          Publish/Unpublish/Restore/Save actions live on the Course Header
+          cell below. */}
       <CourseComposerHeader
-        course={effectiveCourse}
-        courseId={courseId}
-        onSaveCourse={handleSaveCourse}
-        hasUnsavedChanges={hasUnsavedChanges}
-        onImportCourse={() => router.push("/instructor/courses/import")}
         onOpenAskAi={() => handleOpenAskAi()}
-        isSaving={isDraftMode ? isSavingDraft : updateCourseMutation.isPending}
-        onPublishClick={handleConfirmPublish}
-        onUnpublishClick={handleOpenUnpublishModal}
-        onRestoreClick={handleConfirmRestoreCourse}
         onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
       />
 
       {/* 2. MAIN WORKSPACE CONTAINER */}
-      <div className="relative flex flex-col lg:flex-row gap-5 items-start">
+      <div className="relative flex flex-col lg:flex-row gap-5 flex-1 min-h-0">
         {/* Drawer backdrop — sits under the drawer (z-50) and over everything
             else, so a tap outside dismisses instead of falling through to the
             workspace. lg:hidden keeps it away from the desktop rail entirely. */}
@@ -2094,6 +2125,7 @@ export default function CourseDetailsPage() {
         {/* Left Sidebar Panel */}
         <div className={sidebarWrapperClassName}>
           <CourseComposerSidebar
+            maxHeightClassName="max-h-full"
             modules={effectiveModules}
             courseQuizzes={effectiveCourseQuizzes}
             composerMode={composerMode}
@@ -2151,43 +2183,33 @@ export default function CourseDetailsPage() {
           />
         </div>
 
-        {/* Center Main Workspace Notebook Area */}
-        <main className="flex-1 min-w-0 w-full space-y-4">
-          {/* Workspace Header & Breadcrumbs */}
-          <div className="flex items-center justify-between pb-3 border-b border-transparent/80">
-            <div className="flex items-center gap-3">
-              {!isCourseMapOpen && !mobileSidebarOpen && (
-                <button
-                  type="button"
-                  onClick={() => setIsCourseMapOpen(true)}
-                  className="hidden lg:flex shrink-0 h-9 w-9 items-center justify-center rounded-full border border-primary/50 bg-background text-primary shadow-md transition hover:bg-primary/10 hover:border-primary hover:text-orange-300 cursor-pointer"
-                  aria-label="Show course map"
-                  title="Show course map"
-                >
-                  <PanelLeftOpen size={16} />
-                </button>
-              )}
-              <div>
-                <div className="text-xs font-semibold text-primary mb-0.5">
-                  {composerMode === "course" && `Course Overview`}
-                  {composerMode === "quiz" && (quizMode === "create" ? (composeTopicId ? "New Topic Quiz Creation" : composeLessonId ? "New Lesson Quiz Creation" : "New Module Quiz Creation") : `Quiz Overview`)}
-                  {composerMode === "lesson" && `Lesson: ${composingLesson?.title || "Lesson Overview"}`}
-                  {composerMode === "module" && `Module: ${activeModuleObj?.title || "Module Cells"}`}
-                  {composerMode === "topic" && `Topic: ${composingTopic?.title || "Topic Composer"}`}
-                </div>
-                <h2 className="text-lg sm:text-xl font-black text-foreground tracking-tight">
-                  {composerMode === "course" && (effectiveCourse?.title || "Course Overview Header")}
-                  {composerMode === "quiz" && (quizMode === "create" ? `Create Quiz for ${composeTopicId ? (composingTopic?.title || "Topic") : composeLessonId ? (composingLesson?.title || "Lesson") : (activeModuleObj?.title || "Module")}` : (activeQuizObj?.title || "Quiz Details"))}
-                  {composerMode === "lesson" && (composingLesson?.title || "Lesson Overview Header")}
-                  {composerMode === "module" && (activeModuleObj?.title || "Module Cells Notebook")}
-                  {composerMode === "topic" && (composingTopic?.title || "Topic Cells Notebook")}
-                </h2>
-              </div>
+        {/* Center Main Workspace Notebook Area — flex-col so only the cell
+            stack below scrolls, not this whole column (the reopen button
+            above it stays put, same as the Course Map beside it). */}
+        <main className="flex-1 min-w-0 w-full flex flex-col min-h-0">
+          {/* Workspace Header — breadcrumb/title text removed (each view
+              already shows its own title further down: the Course Header
+              cell, the lesson/module/topic composer, the quiz form). The
+              "reopen Course Map" control survives since it's the only way
+              back once the rail is collapsed on desktop. */}
+          {!isCourseMapOpen && !mobileSidebarOpen && (
+            <div className="flex items-center pb-3 border-b border-transparent/80 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsCourseMapOpen(true)}
+                className="hidden lg:flex shrink-0 h-9 w-9 items-center justify-center rounded-full border border-primary/50 bg-background text-primary shadow-md transition hover:bg-primary/10 hover:border-primary hover:text-orange-300 cursor-pointer"
+                aria-label="Show course map"
+                title="Show course map"
+              >
+                <PanelLeftOpen size={16} />
+              </button>
             </div>
-          </div>
+          )}
 
-          {/* Notebook Workspace Dynamic View */}
-          <div className="rounded-2xl border border-transparent bg-background/60 p-2 sm:p-6 shadow-xl">
+          {/* Notebook Workspace Dynamic View — the one scrollable region in
+              this page now; everything else (navbar, Course Map, this
+              reopen button) stays fixed in place while these cells scroll. */}
+          <div className="flex-1 min-h-0 overflow-y-auto rounded-2xl border border-transparent bg-background/60 p-2 sm:p-6 shadow-xl">
             {composerMode === "course" && (
               <CourseOverviewView
                 course={effectiveCourse}
@@ -2218,6 +2240,12 @@ export default function CourseDetailsPage() {
                 isDraftMode={isDraftMode}
                 contentAutoOpenSignal={courseContentAutoOpenSignal}
                 onContentAutoOpenConsumed={() => setCourseContentAutoOpenSignal(0)}
+                onPublishClick={handleConfirmPublish}
+                onUnpublishClick={handleOpenUnpublishModal}
+                onRestoreClick={handleConfirmRestoreCourse}
+                hasUnsavedChanges={hasUnsavedChanges}
+                onSaveCourse={handleSaveCourse}
+                isSavingCourse={isDraftMode ? isSavingDraft : updateCourseMutation.isPending}
               />
             )}
 

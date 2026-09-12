@@ -40,6 +40,8 @@ export default function AssignmentSubmissionPanel({
   // its own endpoint while reusing this panel; defaults to /assignments/:id.
   submitMutation: submitMutationOverride,
   showTitle = true,
+  showStatusLink = false,
+  onNextContent,
 }) {
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);

@@ -57,16 +57,19 @@ export const deleteQuiz =
         return response.data;
     };
 /**
- * Submit Quiz
+ * Submit Quiz. timeTakenSeconds is informational only — scoring and the
+ * attempt limit are decided server-side.
  */
 export const submitQuiz = async (
     quizId,
-    answers
+    answers,
+    timeTakenSeconds
 ) => {
     const { data } = await api.post(
         `/quizzes/${quizId}/submit`,
         {
             answers,
+            ...(Number.isFinite(timeTakenSeconds) && { timeTakenSeconds }),
         },
         {
             timeout: 45000,
@@ -77,16 +80,28 @@ export const submitQuiz = async (
 };
 
 /**
- * Get Quiz Result
+ * Get Quiz Result — the latest attempt, or one specific attempt when
+ * attemptId is given. Either way the response carries the student's full
+ * attempt history and remaining allowance.
  */
 export const getQuizResult =
-    async (quizId) => {
+    async (quizId, attemptId) => {
         const {data} =
             await api.get(
-                `/quizzes/${quizId}/result`
+                `/quizzes/${quizId}/result`,
+                attemptId ? { params: { attempt: attemptId } } : undefined
             );
 
         return data.data ?? data;
+};
+
+/**
+ * Student: every quiz they have attempted, one entry per quiz with its
+ * attempt history summarised — the quiz half of the Submissions page.
+ */
+export const getMyQuizSubmissions = async () => {
+    const { data } = await api.get("/quizzes/my-submissions");
+    return data.data ?? data;
 };
 
 /**

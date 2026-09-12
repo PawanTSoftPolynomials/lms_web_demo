@@ -22,6 +22,7 @@ export function useUpdateQuiz() {
                 // here explicitly or it is silently dropped before the API.
                 ...(quizData.quizTag !== undefined && { quizTag: quizData.quizTag }),
                 ...(quizData.isPublished !== undefined && { isPublished: quizData.isPublished }),
+                ...(quizData.attempts !== undefined && { attempts: Number(quizData.attempts) }),
                 ...(quizData.status !== undefined && { status: quizData.status }),
             }),
 

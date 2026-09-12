@@ -141,9 +141,72 @@ const CERTIFICATES = [
   { id: "ce2", issuedAt: iso(-2.1), student: { user: { name: "Priya Sharma" } }, course: { title: "Data Structures in Python" } },
 ];
 
+// Student Submissions / quiz-result fixtures, shaped like the student branch
+// of GET /assignments, GET /quizzes/my-submissions and GET /quizzes/:id/result.
+const STUDENT_ASSIGNMENTS = [
+  { id: "sa1", kind: "assignment", title: "Programming Basics — Loops and Conditions", course: { id: "c1", title: "Data Structures in Python" }, moduleTitle: "Module 1: Foundations", status: "Graded", grade: "18/20", marks: 20, feedback: "Clean, well-structured solution. Watch the edge case on empty input.", dueDate: iso(-3), submittedAt: iso(-4), createdAt: iso(-10) },
+  { id: "sa2", kind: "assignment", title: "Binary tree traversal write-up", course: { id: "c1", title: "Data Structures in Python" }, moduleTitle: "Trees and Graphs", status: "Submitted", grade: null, marks: 10, feedback: null, dueDate: iso(1), submittedAt: iso(-0.5), createdAt: iso(-6) },
+  { id: "sa3", kind: "content", title: "Confidence intervals worksheet", course: { id: "c2", title: "Applied Statistics for Analysts" }, moduleTitle: "Distributions", lessonId: "l4", status: "Not Submitted", grade: null, feedback: null, dueDate: null, submittedAt: null, createdAt: iso(-2) },
+  { id: "sa4", kind: "assignment", title: "Design a URL shortener", course: { id: "c3", title: "Systems Design Fundamentals" }, moduleTitle: null, status: "Not Submitted", grade: null, marks: 50, feedback: null, dueDate: iso(-1), submittedAt: null, createdAt: iso(-8) },
+];
+
+const attemptFixture = (id, attemptNumber, score, totalMarks, days, passed, timeTakenSeconds) => ({
+  id, attemptNumber, score, totalMarks, percentage: Math.round((score / totalMarks) * 100), passed, timeTakenSeconds, submittedAt: iso(days),
+});
+
+// One limited quiz with a retake left, one with none left, one unlimited.
+const QUIZ_SUBMISSIONS = [
+  { id: "q1", title: "Introduction to C", quizTag: "FINAL", passingScore: 70, totalQuestions: 20, course: { id: "c1", title: "Data Structures in Python" }, moduleTitle: "Module 1: Foundations",
+    attempts: [attemptFixture("at1", 1, 14, 20, -2, false, 612), attemptFixture("at2", 2, 17, 20, -0.2, true, 540)], maxAttempts: 3, unlimitedAttempts: false },
+  { id: "q2", title: "Week 4 quiz: Graphs", quizTag: "FINAL", passingScore: 60, totalQuestions: 10, course: { id: "c1", title: "Data Structures in Python" }, moduleTitle: "Trees and Graphs",
+    attempts: [attemptFixture("at3", 1, 5, 10, -1, false, 300)], maxAttempts: 1, unlimitedAttempts: false },
+  { id: "q3", title: "Stats practice set", quizTag: "SELF_TEST", passingScore: 50, totalQuestions: 8, course: { id: "c2", title: "Applied Statistics for Analysts" }, moduleTitle: "Distributions",
+    attempts: [attemptFixture("at4", 1, 4, 8, -5, true, 200), attemptFixture("at5", 2, 6, 8, -4, true, 150), attemptFixture("at6", 3, 7, 8, -3.5, true, null)], maxAttempts: null, unlimitedAttempts: true },
+].map((q) => {
+  const used = q.attempts.length;
+  return {
+    ...q,
+    kind: "quiz",
+    latestAttempt: q.attempts[used - 1],
+    bestPercentage: Math.max(...q.attempts.map((a) => a.percentage)),
+    attemptsUsed: used,
+    attemptsRemaining: q.unlimitedAttempts ? null : Math.max(0, q.maxAttempts - used),
+    canAttempt: q.unlimitedAttempts || used < q.maxAttempts,
+  };
+});
+
+function quizResultFixture(quizId, attemptId) {
+  const q = QUIZ_SUBMISSIONS.find((x) => x.id === quizId) || QUIZ_SUBMISSIONS[0];
+  const selected = q.attempts.find((a) => a.id === attemptId) || q.latestAttempt;
+  const questions = [0, 1, 2].map((i) => ({
+    id: `qq${i}`, question: `Sample question ${i + 1}?`, questionType: "MCQ_SINGLE", type: "MCQ_SINGLE",
+    options: ["Option A", "Option B", "Option C", "Option D"], correctAnswer: "Option A", explanation: "Option A is correct.", marks: 1,
+  }));
+  return {
+    id: selected.id, quizId: q.id,
+    answers: [{ questionId: "qq0", answer: "Option A" }, { questionId: "qq1", answer: "Option B" }],
+    score: selected.score, totalMarks: selected.totalMarks, percentage: selected.percentage, passed: selected.passed,
+    submittedAt: selected.submittedAt, conceptScores: null,
+    attemptId: selected.id, attemptNumber: selected.attemptNumber, isLatestAttempt: selected.id === q.latestAttempt.id,
+    timeTakenSeconds: selected.timeTakenSeconds,
+    correctCount: selected.score, incorrectCount: Math.max(0, selected.totalMarks - selected.score - 1), unansweredCount: 1,
+    totalQuestions: q.totalQuestions,
+    attempts: q.attempts, attemptsUsed: q.attemptsUsed, maxAttempts: q.maxAttempts, unlimitedAttempts: q.unlimitedAttempts,
+    attemptsRemaining: q.attemptsRemaining, canAttempt: q.canAttempt,
+    quiz: { id: q.id, title: q.title, passingScore: q.passingScore, courseId: q.course.id, lessonId: null, course: q.course, module: { title: q.moduleTitle }, questions },
+  };
+}
+
 function fixtureFor(pathname, search, role) {
   const p = pathname.replace(/\/+$/, "") || "/";
   const wrap = (data, extra) => ({ success: true, data, ...(extra || {}) });
+
+  if (role === "STUDENT") {
+    if (p.endsWith("/quizzes/my-submissions")) return wrap(QUIZ_SUBMISSIONS);
+    const resultMatch = p.match(/\/quizzes\/([^/]+)\/result$/);
+    if (resultMatch) return wrap(quizResultFixture(resultMatch[1], new URLSearchParams(search).get("attempt")));
+    if (p.endsWith("/assignments")) return wrap(STUDENT_ASSIGNMENTS);
+  }
 
   if (p.endsWith("/auth/profile") || p.endsWith("/auth/me")) return wrap(USER[role]);
   if (p.endsWith("/courses/stats/mine")) return wrap({ total: 4, published: 2, draft: 2, archived: 0, students: 226, activeQuizzes: 1 });

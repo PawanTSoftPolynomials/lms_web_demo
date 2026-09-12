@@ -8,8 +8,8 @@ export default function useSubmitQuiz() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ quizId, answers }) =>
-            submitQuiz(quizId, answers),
+        mutationFn: ({ quizId, answers, timeTakenSeconds }) =>
+            submitQuiz(quizId, answers, timeTakenSeconds),
 
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries({
@@ -25,6 +25,11 @@ export default function useSubmitQuiz() {
                     QUERY_KEYS.QUIZ_RESULT,
                     variables.quizId,
                 ],
+            });
+
+            // The new attempt belongs on the Submissions page straight away.
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.STUDENT_QUIZ_SUBMISSIONS],
             });
 
             // A submitted quiz can complete its parent Topic/Lesson/Module and

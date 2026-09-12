@@ -22,6 +22,38 @@ import PptViewer from "@/components/shared/PptViewer";
 import DocxViewer from "@/components/shared/DocxViewer";
 import ExternalDocumentViewer from "@/components/shared/ExternalDocumentViewer";
 import ContentAssignmentPanel from "@/components/student/learning/ContentAssignmentPanel";
+import { SlideColumnsView } from "@/components/instructor/LessonComposer/cells/slideCanvas/SlideColumnsLayout";
+import { parseSlideDeckJson } from "@/components/instructor/LessonComposer/cells/slideCanvas/slideElementTypes";
+
+const isPdfUrl = (url) => {
+    const u = url?.toLowerCase() || "";
+    return u.includes(".pdf") || u.includes("/pdf");
+};
+// PDF is tested first so this stays true to the viewer chain below, where the
+// PDF branch already claimed such a URL before the deck branch was reached.
+const isPptUrl = (url) => {
+    const u = url?.toLowerCase() || "";
+    return !isPdfUrl(u) && u.includes(".ppt");
+};
+
+/**
+ * True when a content item renders through PptViewer — an uploaded .ppt/.pptx
+ * with no authored slide JSON to draw instead. PptViewer's canvas takes the
+ * slide's own aspect ratio from its width, so unlike a PDF or a document it
+ * has no further height to give; the learn page reads this to let the desktop
+ * player frame size to the deck rather than leave dead backdrop beneath it.
+ * Kept here, beside the branch it mirrors, so the two cannot drift apart.
+ */
+export function rendersUploadedDeck(content) {
+    if (!isPptUrl(content?.fileUrl)) return false;
+    const type = content?.type;
+    if (type === "FILE" || type === "DOCUMENT") return true;
+    if (type !== "PRESENTATION" && type !== "SLIDE") return false;
+    // A Presentation authored in the canvas slide editor keeps its slides as
+    // JSON in htmlContent and renders through SlideColumnsView instead — see
+    // isFileLike below.
+    return parseSlideDeckJson(content?.htmlContent).length === 0;
+}
 
 const isGoogleSlidesUrl = (url) => Boolean(url?.includes("docs.google.com/presentation"));
 const getGoogleSlidesEmbedUrl = (url) => {
@@ -63,6 +95,11 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const playerRef = useRef(null);
     const localVideoRef = useRef(null);
     const [slideIndex, setSlideIndex] = useState(0);
+    // A file viewer's own toolbar carries the same title this player already
+    // shows above it, so the deck rendered its name twice. The viewers can
+    // hand their controls up instead (onControlsRender) and drop their header
+    // (hideToolbar) — one title, one row of controls.
+    const [viewerControls, setViewerControls] = useState(null);
 
     // Page state reported by PdfViewer: { page, total, goToPreviousPage,
     // goToNextPage }. The viewer still owns pageNumber and the handlers —
@@ -239,6 +276,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
     useEffect(() => {
         setSlideIndex(0);
+        setViewerControls(null);
     }, [content]);
 
     if (!content) {
@@ -253,12 +291,101 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         );
     }
 
-    const isFileLike = type === "FILE" || type === "DOCUMENT" || type === "PDF";
-    const isTextLike = type === "TEXT" || type === "HTML";
+    const isImage =
+        type === "IMAGE" ||
+        type === "image" ||
+        (type === "HTML" && (
+            htmlContent?.includes("cc-image-block") ||
+            /<figure[^>]*class="[^"]*cc-image-block[^"]*"/i.test(htmlContent || "") ||
+            /<img\s+/i.test(htmlContent || "")
+        ));
+
+    const parseImageDetails = () => {
+        if (!htmlContent) return { src: "", alt: "", caption: "" };
+        if (typeof window !== "undefined") {
+            try {
+                const root = new DOMParser().parseFromString(htmlContent, "text/html").body.firstElementChild;
+                const img = root?.querySelector("img");
+                const figcaption = root?.querySelector("figcaption");
+                if (img || figcaption) {
+                    return {
+                        src: img?.getAttribute("src") ?? "",
+                        alt: img?.getAttribute("alt") ?? "",
+                        caption: figcaption?.innerHTML ?? figcaption?.textContent ?? "",
+                    };
+                }
+            } catch {}
+        }
+        const srcMatch = htmlContent.match(/<img[^>]+src=["']([^"']+)["']/i);
+        const altMatch = htmlContent.match(/<img[^>]+alt=["']([^"']+)["']/i);
+        const figMatch = htmlContent.match(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/i);
+        return {
+            src: srcMatch ? srcMatch[1] : "",
+            alt: altMatch ? altMatch[1] : "",
+            caption: figMatch ? figMatch[1] : "",
+        };
+    };
+
+    const parsedImg = isImage ? parseImageDetails() : { src: "", alt: "", caption: "" };
+
+    const effectiveImageSrc = getDisplayUrl(
+        fileUrl ||
+        content?.externalUrl ||
+        content?.data?.url ||
+        content?.data?.fileUrl ||
+        parsedImg.src
+    );
+
+    const effectiveImageAlt = content?.title || parsedImg.alt || "Lesson image";
+    const effectiveImageCaption = parsedImg.caption || (fileUrl ? htmlContent : "");
+
+    const isTextLike = (type === "TEXT" || type === "HTML") && !isImage;
     const isPresentationLike = type === "PRESENTATION" || type === "SLIDE";
     const isHtmlLike = isTextLike || isPresentationLike;
-    const slides = isPresentationLike ? parseSlides(htmlContent) : [];
-    const isSlideShow = isPresentationLike && slides.length > 1;
+
+    // Current slide-deck format (Composer v2): htmlContent holds a JSON array
+    // of {title, columns, backgroundColor} slides authored in the canvas
+    // slide editor — see slideElementTypes.ts. A Presentation can also have
+    // been added by uploading a .ppt/.pptx file instead (fileUrl set,
+    // htmlContent empty), which has no slide JSON to render, so it takes the
+    // same file-viewer path as Document/PDF below. Older, pre-Composer-v2
+    // presentations stored raw HTML slides separated by <hr>/<!-- slide -->
+    // instead of JSON; parseSlides still renders those so existing lessons
+    // authored that way don't go blank.
+    const slideDeck = isPresentationLike ? parseSlideDeckJson(htmlContent) : [];
+    const hasSlideDeck = slideDeck.length > 0;
+    const legacySlides = isPresentationLike && !hasSlideDeck ? parseSlides(htmlContent) : [];
+    const isLegacySlideShow = legacySlides.length > 1;
+
+    const isFileLike =
+        type === "FILE" ||
+        type === "DOCUMENT" ||
+        type === "PDF" ||
+        (isPresentationLike && !hasSlideDeck && Boolean(fileUrl));
+
+    const isSlideShow = hasSlideDeck || isLegacySlideShow;
+    const slideCount = hasSlideDeck ? slideDeck.length : legacySlides.length;
+
+    // Click-to-turn on the slide surface: a click on its right half goes to the
+    // next slide, the left half to the previous one — the same gesture the PDF
+    // viewer offers (see PdfViewer's handleViewportClick). It is bound to the
+    // slide body only, never the strip below it, so the Previous/Next buttons
+    // and the dot jumps keep their own behaviour instead of being turned twice
+    // by one click.
+    const handleSlideAreaClick = (event) => {
+        if (slideCount <= 1) return;
+        // Slide bodies carry authored HTML, which can hold its own links and
+        // media controls; those clicks belong to the element, not to paging.
+        if (event.target?.closest?.("a, button, input, textarea, select, video, audio, iframe")) return;
+        // A click that finishes a text selection shouldn't also turn the slide.
+        if (typeof window !== "undefined" && window.getSelection()?.toString()) return;
+
+        const rect = event.currentTarget.getBoundingClientRect();
+        const forward = event.clientX - rect.left > rect.width / 2;
+        setSlideIndex((prev) =>
+            forward ? Math.min(slideCount - 1, prev + 1) : Math.max(0, prev - 1)
+        );
+    };
 
     // Only VIDEO needs to fill (and be clipped to) the player frame exactly —
     // it's a fixed-aspect embed with nothing more to reveal. Every other
@@ -311,7 +438,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                 (e.g. a merged document block from an import with no block title) —
                 an icon-only bar with nothing next to it isn't useful, and we don't
                 invent a fake title just to fill it. */}
-            {type !== "VIDEO" && (content.title || isSlideShow || pdfPage) && (
+            {type !== "VIDEO" && (content.title || isSlideShow || pdfPage || viewerControls) && (
             <div className="shrink-0 border-b border-border px-4 sm:px-6 py-3.5 flex items-center justify-between bg-background min-h-[52px] max-xl:py-2.5 max-xl:min-h-0">
                 <h2 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2 truncate pr-2">
                     {isSlideShow && <Presentation className="h-4 w-4 text-primary shrink-0" />}
@@ -319,9 +446,9 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     {isFileLike && <FileText className="h-4 w-4 text-primary shrink-0" />}
                     {content.title && <span className="truncate">{content.title}</span>}
                 </h2>
-                {isSlideShow && (
+                {isSlideShow && slideCount > 1 && (
                     <span className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full shrink-0">
-                        Slide {slideIndex + 1} / {slides.length}
+                        Slide {slideIndex + 1} / {slideCount}
                     </span>
                 )}
                 {/* The document's own page control, in its own header: the
@@ -366,6 +493,8 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                         </button>
                     </div>
                 )}
+
+                {viewerControls}
             </div>
             )}
 
@@ -410,11 +539,17 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                        area's remaining height, so PdfViewer's own canvas —
                        not the player frame, and not the page — is what
                        scrolls. */
-                    <div className="w-full max-xl:flex-1 max-xl:min-h-0 max-xl:flex max-xl:flex-col">
-                        {displayFileUrl && (displayFileUrl.toLowerCase().includes(".pdf") || displayFileUrl.toLowerCase().includes("/pdf")) ? (
+                    <div className="w-full flex-1 min-h-0 flex flex-col">
+                        {isPdfUrl(displayFileUrl) ? (
                             <PdfViewer fileUrl={displayFileUrl} title={content?.title} hideToolbar fillHeight onPageStateChange={reportPdfPage} />
-                        ) : displayFileUrl && (displayFileUrl.toLowerCase().includes(".ppt") || displayFileUrl.toLowerCase().includes(".pptx")) ? (
-                            <PptViewer fileUrl={displayFileUrl} title={content?.title} />
+                        ) : isPptUrl(displayFileUrl) ? (
+                            <PptViewer
+                                fileUrl={displayFileUrl}
+                                title={content?.title}
+                                hideToolbar
+                                showDownload={false}
+                                onControlsRender={setViewerControls}
+                            />
                         ) : displayFileUrl && (displayFileUrl.toLowerCase().includes(".doc") || displayFileUrl.toLowerCase().includes(".docx")) ? (
                             <DocxViewer fileUrl={displayFileUrl} title={content?.title} fillHeight />
                         ) : displayFileUrl ? (
@@ -433,18 +568,80 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     </div>
                 )}
 
+                {/* PRESENTATION — current columns-based slide deck (authored in
+                    the canvas slide editor). Mirrors the instructor composer's
+                    own read-only preview (DocumentCell's showSlideDeck),
+                    reusing the same SlideColumnsView renderer so a deck looks
+                    identical for the student and the instructor. */}
+                {hasSlideDeck && !isFileLike && (
+                    <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px] max-xl:flex-none max-xl:min-h-0">
+                        <div
+                            onClick={handleSlideAreaClick}
+                            className={slideDeck.length > 1 ? "cursor-pointer" : undefined}
+                        >
+                            <SlideColumnsView
+                                title={slideDeck[slideIndex]?.title}
+                                columns={slideDeck[slideIndex]?.columns || []}
+                                backgroundColor={slideDeck[slideIndex]?.backgroundColor}
+                            />
+                        </div>
+
+                        {/* Slide navigation — moves within THIS deck only
+                            (slideIndex), never between lesson content items.
+                            Labelled with its unit for that reason. */}
+                        {slideDeck.length > 1 && (
+                            <div className="mt-6 pt-4 border-t border-border flex items-center justify-between gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setSlideIndex(prev => Math.max(0, prev - 1))}
+                                    disabled={slideIndex === 0}
+                                    className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] bg-muted text-foreground rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-muted transition"
+                                >
+                                    <ChevronLeft className="h-4 w-4" /> Prev slide
+                                </button>
+
+                                <div className="flex gap-1.5 overflow-x-auto py-1">
+                                    {slideDeck.map((_, i) => (
+                                        <button
+                                            key={i}
+                                            type="button"
+                                            onClick={() => setSlideIndex(i)}
+                                            className={`h-2.5 min-w-[10px] rounded-full transition-all ${
+                                                i === slideIndex ? "bg-primary w-6" : "bg-slate-700 w-2.5"
+                                            }`}
+                                        />
+                                    ))}
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setSlideIndex(prev => Math.min(slideDeck.length - 1, prev + 1))}
+                                    disabled={slideIndex === slideDeck.length - 1}
+                                    className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] bg-muted text-foreground rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-muted transition"
+                                >
+                                    Next slide <ChevronRight className="h-4 w-4" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* IMAGE */}
-                {type === "IMAGE" && (
-                    <div className="flex flex-col items-center gap-3 p-4 sm:p-8">
-                        <img
-                            src={fileUrl}
-                            alt={content.title || "Lesson image"}
-                            className="max-w-full max-h-[520px] rounded-xl shadow-sm mx-auto"
-                        />
-                        {htmlContent && (
+                {isImage && (
+                    <div className="w-full flex-1 min-h-0 flex flex-col items-center justify-center p-3 sm:p-6 overflow-hidden">
+                        {effectiveImageSrc ? (
+                            <div className="relative w-full flex-1 min-h-0 flex items-center justify-center">
+                                <img
+                                    src={effectiveImageSrc}
+                                    alt={effectiveImageAlt}
+                                    className="w-full h-full object-contain object-center rounded-xl shadow-sm"
+                                />
+                            </div>
+                        ) : null}
+                        {effectiveImageCaption && (
                             <div
-                                className="prose prose-invert prose-sm max-w-none text-center select-text"
-                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }}
+                                className="shrink-0 mt-3 prose prose-invert prose-sm max-w-none text-center select-text"
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(effectiveImageCaption) }}
                             />
                         )}
                     </div>
@@ -468,39 +665,58 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     </pre>
                 )}
 
-                {/* INTERACTIVE_LAB (genuine embedded widgets/tools, not video) */}
-                {type === "INTERACTIVE_LAB" && (
-                    externalUrl ? (
-                        <iframe
-                            src={externalUrl}
-                            className="h-[320px] sm:h-[420px] md:h-[520px] w-full border-none bg-white"
-                            title={content.title}
-                        />
-                    ) : (
-                        <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">No embed URL set</div>
-                    )
+                {/* INTERACTIVE_LAB / EMBED (interactive widgets, simulations, embedded content) */}
+                {(type === "EMBED" || type === "INTERACTIVE_LAB") && (
+                    (() => {
+                        const embedSrc = externalUrl || fileUrl || htmlContent?.match(/src=["']([^"']+)["']/i)?.[1];
+                        if (embedSrc) {
+                            return (
+                                <div className="w-full h-full min-h-[420px] sm:min-h-[520px] rounded-xl overflow-hidden bg-white">
+                                    <iframe
+                                        src={embedSrc}
+                                        className="w-full h-full min-h-[420px] sm:min-h-[520px] border-0"
+                                        title={content?.title || "Interactive Content"}
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    />
+                                </div>
+                            );
+                        }
+                        if (htmlContent) {
+                            return (
+                                <div
+                                    className="p-4 sm:p-8 prose prose-invert prose-sm max-w-none select-text"
+                                    dangerouslySetInnerHTML={{
+                                        __html: DOMPurify.sanitize(htmlContent, {
+                                            ADD_TAGS: ["iframe"],
+                                            ADD_ATTR: ["src", "width", "height", "frameborder", "allow", "allowfullscreen", "scrolling", "style", "class"],
+                                        }),
+                                    }}
+                                />
+                            );
+                        }
+                        return (
+                            <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">
+                                No embed URL configured
+                            </div>
+                        );
+                    })()
                 )}
 
-                {/* EMBED (quiz block preview — the graded quiz itself lives under Quizzes) */}
-                {type === "EMBED" && (
-                    <div className="p-4 sm:p-8 space-y-3">
-                        <div
-                            className="prose prose-invert prose-sm max-w-none select-text"
-                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent || "") }}
-                        />
-                        <p className="text-xs text-muted-foreground">This is a quiz question preview — take the graded quiz from the Quizzes section.</p>
-                    </div>
-                )}
-
-                {/* HTML / TEXT / PRESENTATION / SLIDE */}
-                {isHtmlLike && !isFileLike && (
-                    isSlideShow ? (
+                {/* HTML / TEXT / legacy pre-Composer-v2 PRESENTATION / SLIDE
+                    (raw HTML slides separated by <hr>, not the JSON slide
+                    deck — that's handled by the "PRESENTATION" block above) */}
+                {isHtmlLike && !isFileLike && !hasSlideDeck && (
+                    isLegacySlideShow ? (
                         <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px] max-xl:flex-none max-xl:min-h-0">
-                            <div 
-                                className="prose prose-invert max-w-none text-foreground text-base sm:text-lg leading-relaxed flex-1 flex flex-col justify-center select-text"
-                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(slides[slideIndex] || "") }}
+                            <div
+                                onClick={handleSlideAreaClick}
+                                className={`prose prose-invert max-w-none text-foreground text-base sm:text-lg leading-relaxed flex-1 flex flex-col justify-center select-text ${
+                                    legacySlides.length > 1 ? "cursor-pointer" : ""
+                                }`}
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(legacySlides[slideIndex] || "") }}
                             />
-                            
+
                             {/* Slide navigation — moves within THIS deck only
                                 (slideIndex), never between lesson content
                                 items. Labelled with its unit for that reason. */}
@@ -513,9 +729,9 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                                 >
                                     <ChevronLeft className="h-4 w-4" /> Prev slide
                                 </button>
-                                
+
                                 <div className="flex gap-1.5 overflow-x-auto py-1">
-                                    {slides.map((_, i) => (
+                                    {legacySlides.map((_, i) => (
                                         <button
                                             key={i}
                                             type="button"
@@ -529,8 +745,8 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
                                 <button
                                     type="button"
-                                    onClick={() => setSlideIndex(prev => Math.min(slides.length - 1, prev + 1))}
-                                    disabled={slideIndex === slides.length - 1}
+                                    onClick={() => setSlideIndex(prev => Math.min(legacySlides.length - 1, prev + 1))}
+                                    disabled={slideIndex === legacySlides.length - 1}
                                     className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] bg-muted text-foreground rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-muted transition"
                                 >
                                     Next slide <ChevronRight className="h-4 w-4" />

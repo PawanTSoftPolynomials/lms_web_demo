@@ -22,7 +22,9 @@ import { groupLessonContentForDocumentView } from "./contentDocument.js";
  */
 const RANK = { content: 1, child: 2, quiz: 3 };
 
-function mapOrder(a, b) {
+// Exported so resumeTarget.js's leaf sequence can be sorted by the exact same
+// rule the player itself uses — the two must never independently drift.
+export function mapOrder(a, b) {
   const orderDiff = (a.item.order ?? 0) - (b.item.order ?? 0);
   if (orderDiff !== 0) return orderDiff;
   if (a.item.createdAt && b.item.createdAt) {

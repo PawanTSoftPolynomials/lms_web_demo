@@ -4,12 +4,13 @@ import { Check, X, ArrowRight, CheckCircle2, XCircle } from "lucide-react";
 
 import Card from "@/components/ui/Card";
 import { checkAnswerCorrectness } from "@/lib/quizAnswers";
+import { resolveQuestionType } from "@/lib/questionType";
 
 // One question's row in the "Detailed Question Review" list — options review
 // for MCQ types, plus dedicated layouts for ARRANGE_TOKENS/MATCH_PAIRS/
 // SELF_ASSESSMENT, each showing the student's answer against the correct one.
 export default function QuestionReviewCard({ question, index, userAnswer }) {
-  const qType = question.type || "MCQ_SINGLE";
+  const qType = resolveQuestionType(question.questionType);
   const selectedOption = userAnswer?.answer ?? userAnswer?.selectedOption;
   const isCorrect = checkAnswerCorrectness(qType, selectedOption, question.correctAnswer);
 
@@ -64,8 +65,11 @@ export default function QuestionReviewCard({ question, index, userAnswer }) {
                 const isSelected = qType === "MCQ_SINGLE"
                   ? selectedOption === optionText || selectedOption === option
                   : Array.isArray(selectedOption) && (selectedOption.includes(optionText) || selectedOption.includes(option));
+                // The key may be a string or a one-element array — the same
+                // rule checkAnswerCorrectness applies to the summary line.
                 const isAnswerCorrect = qType === "MCQ_SINGLE"
-                  ? optionText === question.correctAnswer || (typeof option === "object" && option?.isCorrect)
+                  ? checkAnswerCorrectness("MCQ_SINGLE", optionText, question.correctAnswer) ||
+                    (typeof option === "object" && option?.isCorrect)
                   : Array.isArray(question.correctAnswer) && question.correctAnswer.includes(optionText);
 
                 let optionStyle = "border-slate-800/80 bg-background/40 text-muted-foreground";

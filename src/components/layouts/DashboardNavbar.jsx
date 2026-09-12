@@ -265,7 +265,10 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
       "announcements", "modules", "lessons", "contents",
     ];
     if (standalonePages.includes(section)) {
-      breadcrumbs.push({ label: section.toUpperCase(), href: null });
+      // The student portal's /assignments page is titled "Submissions".
+      const label =
+        segments[0] === "student" && section === "assignments" ? "SUBMISSIONS" : section.toUpperCase();
+      breadcrumbs.push({ label, href: null });
     }
 
     // Handle Create/Edit static operations
@@ -290,7 +293,6 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     setActiveConversation,
   } = useChat();
 
-  const [ setShowNotifications] = useState(false);
   const { notifications, markAllRead, clearAll, markAsRead, addNotification } = useNotification();
   const [isMounted, setIsMounted] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -384,39 +386,10 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     markAsRead(id);
   };
 
-  // Process notifications clicks: route to relevant page or open chat instantly
+  // Process notification clicks: mark read and close popup, NO route navigation (user stays on current page)
   const handleNotificationClick = (n) => {
     handleToggleRead(n.id);
     setShowNotifications(false);
-
-    if (n.type === "chat") {
-      const targetConvId = n.conversationId;
-      if (targetConvId) {
-        const found = conversations.find((c) => c.id === targetConvId);
-        if (found) {
-          setActiveConversation(found);
-          setConversations((prev) =>
-            prev.map((c) =>
-              c.id === found.id ? { ...c, unread: 0 } : c
-            )
-          );
-        } else {
-          // If not in standard list, set a baseline conversation structure
-          setActiveConversation({ id: targetConvId, name: n.title.replace("New message from ", "") });
-        }
-      }
-      setIsOpen(true);
-    } else if (n.type === "quiz") {
-      router.push(currentUser?.role === "INSTRUCTOR" ? "/instructor/quizzes" : "/student/quizzes");
-    } else if (n.type === "course") {
-      router.push(
-        currentUser?.role === "INSTRUCTOR"
-          ? "/instructor/courses"
-          : currentUser?.role === "ADMIN"
-          ? "/admin/courses"
-          : "/student/courses"
-      );
-    }
   };
 
   if (role === 'INSTRUCTOR' || role === 'ADMIN') {
@@ -424,7 +397,15 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     const openRoleNavDrawer = role === 'ADMIN' ? openAdminNavDrawer : openInstructorNavDrawer;
     return (
       <>
-      <header className="bg-background border-b border-border text-foreground">
+      {/* sticky top-0, not scrolled-away static — matches the Student header
+          below. Sticky over a true `fixed` here since the header sits first
+          in the document flow with no scrolling/transformed ancestor between
+          it and the viewport: visually identical to fixed, but content below
+          keeps its natural space instead of needing compensating padding on
+          every instructor/admin page that renders this navbar. */}
+      <header className="bg-background border-b border-border text-foreground sticky top-0 z-40">
+        {/* px-2 below sm: the 12px gutter pushed the drawer toggle and the
+            action cluster into each other at 320px. */}
         <div className="px-2 sm:px-6 py-3 flex items-center gap-1.5 sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-6 shrink-0">
             {/* Mobile menu toggle — opens the role's nav drawer (see

@@ -6,13 +6,14 @@ import MCQMultiOptionList from "./MCQMultiOptionList";
 import ArrangeTokensList from "./ArrangeTokensList";
 import MatchPairsGrid from "./MatchPairsGrid";
 import SelfAssessmentInput from "./SelfAssessmentInput";
+import { resolveQuestionType } from "@/lib/questionType";
 
 export default function QuestionCard({
   question,
   selectedAnswer,
   onSelectAnswer,
 }) {
-  const type = question?.type || "MCQ_SINGLE";
+  const type = resolveQuestionType(question?.questionType);
 
   // Deterministic-ish stable random shuffle helper for single option, multioption, and arrange tokens
   const shuffledOptions = useMemo(() => {

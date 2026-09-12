@@ -29,7 +29,7 @@ function getNotificationMeta(type) {
 }
 
 // Premium notification bell + dropdown with Clear All & type icons.
-export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkAllRead, onClearAll, onItemClick }) {
+export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkAllRead, onClearAll }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -129,18 +129,12 @@ export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkA
                 const { icon: TypeIcon, badgeClass } = getNotificationMeta(n.type);
 
                 return (
-                  <button
+                  <div
                     key={n.id}
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      setOpen(false);
-                      onItemClick?.(n);
-                    }}
-                    className={`group flex w-full items-start gap-3 rounded-xl border p-2.5 text-left transition ${
+                    className={`flex w-full items-start gap-3 rounded-xl border p-2.5 text-left ${
                       n.read
-                        ? "border-border/60 bg-background/40 hover:bg-background/90 text-muted-foreground"
-                        : "border-primary/20 bg-primary/[0.06] hover:bg-primary/10 text-foreground"
+                        ? "border-border/60 bg-background/40 text-muted-foreground"
+                        : "border-primary/20 bg-primary/[0.06] text-foreground"
                     }`}
                   >
                     {/* Icon Badge */}
@@ -157,7 +151,7 @@ export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkA
                       <p className="line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">{n.message}</p>
                       {n.time && <span className="block text-[9.5px] font-mono text-muted-foreground">{n.time}</span>}
                     </div>
-                  </button>
+                  </div>
                 );
               })
             )}

@@ -8,6 +8,6 @@ export { default as useStudentState } from "./useStudentState";
 export { default as useUpdateStudentState } from "./useUpdateStudentState";
 export { default as useEnrollCourse } from "./useEnrollCourse";
 export { useCourseProgress, useOverallProgress } from "./useProgress";
-export { useCompleteContent, useCompleteLesson } from "./useCompleteContent";
+export { useCompleteContent, useCompleteLesson, useMarkVisited } from "./useCompleteContent";
 
 

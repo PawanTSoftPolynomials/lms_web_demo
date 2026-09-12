@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -20,6 +20,8 @@ import { CourseOverviewView } from "@/components/instructor/courses/CourseOvervi
 import { LessonOverviewView } from "@/components/instructor/courses/LessonOverviewView";
 import useCourse from "@/hooks/queries/student/useCourse";
 import useMyCourses from "@/hooks/queries/student/useMyCourses";
+import useTrackCourseAccess from "@/hooks/queries/student/useTrackCourseAccess";
+import { useCourseProgress } from "@/hooks/queries/student";
 import { getDisplayUrl } from "@/lib/blob";
 import { normalizeCourseHierarchy } from "@/lib/courseMapper";
 
@@ -29,11 +31,33 @@ export default function CourseDetailsPage({ params }) {
 
   const { data: rawCourse, isLoading, isError } = useCourse(courseId);
   const course = normalizeCourseHierarchy(rawCourse);
+  const { data: progressData } = useCourseProgress(courseId);
+  // Any progress at all (a visited item, a completed one, or a quiz attempt —
+  // attempting a quiz marks it visited too) means Start has already happened.
+  const hasProgress = (progressData?.visitedItems ?? 0) > 0 || (progressData?.completedItems ?? 0) > 0;
 
-  // Same cached /enrollments query the rest of the student side uses to answer
-  // "is this viewer enrolled" (see CourseBuyButton) — the course payload only
-  // carries a total enrollment count, not the current user's own state.
-  const { data: myEnrollments = [] } = useMyCourses();
+  // This page is the full module/lesson composer, complete with a "Start
+  // Learning" entry point straight into lesson content — nothing here
+  // should be reachable before enrollment. The Store card already keeps
+  // non-enrolled students from linking here, but the route itself had no
+  // guard, so a logged-in student could still reach it (and every lesson
+  // under it) just by typing the URL. Sent to the public course page
+  // instead, which already has the real description/duration/Buy flow.
+  // The same cached /enrollments query answers both "may this viewer be here"
+  // (the guard below) and the mobile hero's Enrolled chip — the course payload
+  // carries only a total enrollment count, not the current user's own state.
+  const { data: myEnrollments = [], isLoading: isEnrollmentsLoading } = useMyCourses();
+  const isEnrolled = myEnrollments.some((e) => (e.courseId || e.course?.id) === courseId);
+
+  const trackAccessMutation = useTrackCourseAccess();
+
+  useEffect(() => {
+    if (!isEnrollmentsLoading && !isEnrolled) {
+      router.replace(`/courses/${courseId}`);
+    } else if (!isEnrollmentsLoading && isEnrolled && courseId) {
+      trackAccessMutation.mutate(courseId);
+    }
+  }, [isEnrollmentsLoading, isEnrolled, courseId, router]);
 
   const [isCourseMapOpen, setIsCourseMapOpen] = useState(true);
   const [isOverviewExpanded, setIsOverviewExpanded] = useState(false);
@@ -41,7 +65,7 @@ export default function CourseDetailsPage({ params }) {
   const [composeModuleId, setComposeModuleId] = useState(null);
   const [composeLessonId, setComposeLessonId] = useState(null);
 
-  if (isLoading) {
+  if (isLoading || isEnrollmentsLoading || !isEnrolled) {
     return <Loader />;
   }
 
@@ -62,9 +86,6 @@ export default function CourseDetailsPage({ params }) {
   );
 
   // Hero/overview facts, all derived from the course payload already fetched.
-  const isEnrolled =
-    Array.isArray(myEnrollments) &&
-    myEnrollments.some((e) => e.courseId === courseId || e.course?.id === courseId);
   const lessonCount = modules.reduce((sum, m) => sum + (m.lessons?.length || 0), 0);
   const instructorName = course.creator?.name;
   const courseImage = course.thumbnailUrl ? getDisplayUrl(course.thumbnailUrl) : null;
@@ -183,7 +204,7 @@ export default function CourseDetailsPage({ params }) {
             className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-3 py-2.5 text-sm font-bold text-[var(--primary-foreground)] transition hover:opacity-90 cursor-pointer"
           >
             <Play size={14} className="shrink-0 fill-current" aria-hidden="true" />
-            Start Learning
+            {hasProgress ? "Continue Learning" : "Start Learning"}
             <ArrowRight size={14} className="shrink-0" aria-hidden="true" />
           </button>
         </section>
@@ -276,7 +297,7 @@ export default function CourseDetailsPage({ params }) {
               onClick={() => handleStartLearning()}
               className="bg-primary hover:bg-orange-600 text-slate-950 font-black text-xs px-4 py-2 rounded-xl transition shadow-lg shadow-orange-500/20 cursor-pointer"
             >
-              Start Learning
+              {hasProgress ? "Continue Learning" : "Start Learning"}
             </button>
           </div>
 
@@ -290,6 +311,7 @@ export default function CourseDetailsPage({ params }) {
                 mobileCompact
                 onSelectModule={(mod) => handleSelectModule(mod)}
                 onStartLearning={() => handleStartLearning()}
+                hasProgress={hasProgress}
               />
             )}
 

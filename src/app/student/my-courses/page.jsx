@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import Pagination from "@/components/ui/Pagination";
 import SnapCardSlider from "@/components/ui/SnapCardSlider";
 import MyCourseCard from "@/components/student/my-courses/MyCourseCard";
+import StudentWelcomeCard from "@/components/student/my-courses/StudentWelcomeCard";
 import useMyCourses from "@/hooks/queries/student/useMyCourses";
 
 export default function MyCoursesPage() {
@@ -16,6 +17,24 @@ export default function MyCoursesPage() {
   const { data: myEnrollments = [], isLoading, isError, refetch } = useMyCourses();
 
   const [yearFilter, setYearFilter] = useState("all");
+
+  // Sort enrollments strictly by student's actual course access (lastAccessedAt desc).
+  // Accessed courses (lastAccessedAt exists) come first in order of recency.
+  // Never-accessed courses fall back to enrolledAt desc.
+  const sortedEnrollments = useMemo(() => {
+    return [...myEnrollments].sort((a, b) => {
+      const timeA = a.lastAccessedAt ? new Date(a.lastAccessedAt).getTime() : 0;
+      const timeB = b.lastAccessedAt ? new Date(b.lastAccessedAt).getTime() : 0;
+
+      if (timeA !== timeB) {
+        return timeB - timeA;
+      }
+
+      const enrollA = a.enrolledAt ? new Date(a.enrolledAt).getTime() : 0;
+      const enrollB = b.enrolledAt ? new Date(b.enrolledAt).getTime() : 0;
+      return enrollB - enrollA;
+    });
+  }, [myEnrollments]);
 
   // Years the student has an enrollment in, newest first — drives the Year filter.
   const enrollmentYears = useMemo(() => {
@@ -28,11 +47,11 @@ export default function MyCoursesPage() {
   }, [myEnrollments]);
 
   const yearFilteredEnrollments = useMemo(() => {
-    if (yearFilter === "all") return myEnrollments;
-    return myEnrollments.filter(
+    if (yearFilter === "all") return sortedEnrollments;
+    return sortedEnrollments.filter(
       (e) => e.enrolledAt && new Date(e.enrolledAt).getFullYear() === Number(yearFilter)
     );
-  }, [myEnrollments, yearFilter]);
+  }, [sortedEnrollments, yearFilter]);
 
   // `/enrollments` returns everything at once (no server-side pagination), so
   // paging happens client-side over the year-filtered list — same
@@ -50,7 +69,16 @@ export default function MyCoursesPage() {
   }, [totalPages]);
 
   return (
-    <div className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-2 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-3 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
+    <div
+      // Bleeds exactly to the layout's own padding (p-2 / sm:p-6 / md:p-16);
+      // -mx-4 on phones overshot it by 8px and scrolled the page sideways.
+      // pt-3 below sm so the greeting clears the sticky navbar it bleeds under.
+      className="-m-3 sm:-m-6 -mt-4 sm:-mt-6 md:-mt-16 -mx-2 sm:-mx-6 md:-mx-16 -mb-8 sm:-mb-12 md:-mb-16 p-3 sm:p-6 pt-3 sm:pt-0 space-y-4 md:space-y-6 flex flex-col flex-1 min-h-0">
+      <div className="shrink-0">
+        <StudentWelcomeCard />
+      </div>
+
+
       {isError ? (
         <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
           <p className="text-sm font-bold text-foreground">Unable to load your courses.</p>

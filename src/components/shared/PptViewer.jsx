@@ -27,6 +27,8 @@ export default function PptViewer({
   className = "",
   hideToolbar = false,
   onControlsRender,
+  /** Hosts that shouldn't hand the source deck to the viewer pass false. */
+  showDownload = true,
 }) {
   const resolvedUrl = getDisplayUrl(fileUrl);
 
@@ -155,6 +157,23 @@ export default function PptViewer({
     });
   }, []);
 
+  // Click-to-turn on the slide canvas: a click on the right half of the
+  // viewport advances a slide, the left half goes back — the same gesture the
+  // PDF viewer offers (see PdfViewer's handleViewportClick). The handler sits
+  // on the scrollable viewport itself rather than on absolutely-positioned
+  // overlay halves, because an overlay spanning the viewport swallows every
+  // wheel and touch-scroll gesture before it reaches the scroll area beneath.
+  // A plain click handler doesn't: the browser only fires "click" for a genuine
+  // tap with no drag in between.
+  const handleViewportClick = (e) => {
+    if (loadingStep || error || slidesRef.current.length <= 1) return;
+    // A click that finishes a text selection shouldn't also turn the slide.
+    if (typeof window !== "undefined" && window.getSelection()?.toString()) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickedRightHalf = e.clientX - rect.left > rect.width / 2;
+    changeSlide(clickedRightHalf ? 1 : -1);
+  };
+
   const handlePageInputSubmit = (e) => {
     if (e.key === "Enter") {
       const parsed = parseInt(pageInput, 10);
@@ -213,8 +232,12 @@ export default function PptViewer({
   );
 
   const effectiveScale = isFit ? fitScale : fitScale * zoomScale;
-  const renderedWidth = Math.round(baseSlideWidth * effectiveScale);
-  const renderedHeight = Math.round(baseSlideHeight * effectiveScale);
+  // Floored, not rounded: the viewport now carries the slide's own aspect
+  // ratio, so a fitted slide is exactly as big as its box — rounding a
+  // sub-pixel remainder up would overflow it by 1px and raise a scrollbar over
+  // a slide that actually fits.
+  const renderedWidth = Math.floor(baseSlideWidth * effectiveScale);
+  const renderedHeight = Math.floor(baseSlideHeight * effectiveScale);
 
   // Reusable Controls Bar JSX node (used in standalone header or passed to parent header)
   const controlsNode = (
@@ -297,17 +320,19 @@ export default function PptViewer({
       </div>
 
       {/* Download Button */}
-      <a
-        href={resolvedUrl || fileUrl}
-        download
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-1.5 rounded-xl bg-primary hover:bg-orange-600 px-3 py-1.5 text-xs font-extrabold text-slate-950 transition cursor-pointer shadow-md"
-        title="Download Presentation"
-      >
-        <Download size={14} />
-        <span className="hidden sm:inline">Download</span>
-      </a>
+      {showDownload && (
+        <a
+          href={resolvedUrl || fileUrl}
+          download
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 rounded-xl bg-primary hover:bg-orange-600 px-3 py-1.5 text-xs font-extrabold text-slate-950 transition cursor-pointer shadow-md"
+          title="Download Presentation"
+        >
+          <Download size={14} />
+          <span className="hidden sm:inline">Download</span>
+        </a>
+      )}
     </div>
   );
 
@@ -320,7 +345,7 @@ export default function PptViewer({
     if (onControlsRenderRef.current) {
       onControlsRenderRef.current(controlsNode);
     }
-  }, [activeSlideIndex, totalSlides, isFit, zoomScale, pageInput, resolvedUrl, fileUrl]);
+  }, [activeSlideIndex, totalSlides, isFit, zoomScale, pageInput, resolvedUrl, fileUrl, showDownload]);
 
   if (!isMounted) {
     return (
@@ -332,7 +357,7 @@ export default function PptViewer({
 
   return (
     <div
-      className={`flex flex-col w-full ${
+      className={`flex flex-col w-full h-full flex-1 min-h-0 ${
         !hideToolbar
           ? "rounded-2xl border border-border bg-[#0B101D] shadow-2xl overflow-hidden"
           : ""
@@ -340,7 +365,7 @@ export default function PptViewer({
     >
       {/* Standalone Header Toolbar */}
       {!hideToolbar && (
-        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border/80 bg-[#0D1222] px-3.5 py-2.5 text-foreground rounded-t-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border/80 bg-[#0D1222] px-3.5 py-2.5 text-foreground rounded-t-2xl shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15 border border-primary/30 text-primary shrink-0">
               <Presentation size={15} />
@@ -357,11 +382,10 @@ export default function PptViewer({
       {/* SLIDE CANVAS VIEWPORT CONTAINER */}
       <div
         ref={viewportRef}
-        // A 16:9 slide scaled into a 320px column is ~170px tall, so the
-        // 520px floor left a phone showing mostly empty backdrop. Below sm the
-        // viewport is aspect-driven instead; the tall fixed height starts at
-        // sm, where it is a reasonable reading size again.
-        className="relative w-full aspect-video min-h-0 sm:aspect-auto sm:h-[78vh] sm:min-h-[520px] sm:max-h-[900px] overflow-auto bg-[#060913] p-0 sm:p-4 flex justify-center items-center scroll-smooth rounded-2xl border border-border/80"
+        onClick={handleViewportClick}
+        className={`relative w-full flex-1 min-h-0 overflow-auto bg-[#060913] p-2 sm:p-4 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80 ${
+          totalSlides > 1 ? "cursor-pointer" : ""
+        }`}
       >
         {/* Loading Overlay */}
         {loadingStep && (
@@ -395,11 +419,16 @@ export default function PptViewer({
         ) : currentSlide ? (
           /* Render Complete Active Slide Canvas dynamically sized to fit 100% of the viewport */
           <div
-            className="relative transition-all duration-150 shadow-2xl rounded-xl overflow-hidden border border-transparent/60 bg-card shrink-0 my-auto mx-auto"
+            /* No themed surface here: bg-card follows the reader's light/dark
+               theme, while a slide's background is a property of the deck. A
+               light-theme card under a deck's own dark-on-white type was what
+               made the text vanish. */
+            className="relative transition-all duration-150 shadow-2xl rounded-xl overflow-hidden border border-transparent/60 shrink-0 mt-0 mb-auto mx-auto"
             style={{
               width: `${renderedWidth}px`,
               height: `${renderedHeight}px`,
               aspectRatio: `${baseSlideWidth} / ${baseSlideHeight}`,
+              backgroundColor: currentSlide.background || "#FFFFFF",
             }}
           >
             {/* Slide Elements */}
@@ -425,7 +454,7 @@ export default function PptViewer({
                 return (
                   <div
                     key={elem.id}
-                    className="absolute overflow-hidden p-1 flex flex-col justify-start"
+                    className="absolute overflow-visible p-1 flex flex-col justify-start"
                     style={{
                       left: `${elem.left}%`,
                       top: `${elem.top}%`,
@@ -447,7 +476,7 @@ export default function PptViewer({
                               fontSize: `${Math.max(10, Math.round(run.fontSize * effectiveScale))}px`,
                               fontWeight: run.bold ? "bold" : "normal",
                               fontStyle: run.italic ? "italic" : "normal",
-                              color: run.color || "#FFFFFF",
+                              color: run.color || currentSlide.defaultTextColor || "#000000",
                             }}
                           >
                             {run.text}
@@ -463,7 +492,11 @@ export default function PptViewer({
                 return (
                   <div
                     key={elem.id}
-                    className="absolute overflow-auto border border-transparent rounded-lg p-1 bg-background/80"
+                    /* No backdrop, no padding and no theme text colour of its
+                       own: every cell carries the fill and type colour the deck
+                       authored, and a panel painted underneath them only shows
+                       through the gridlines as a colour the slide never had. */
+                    className="absolute overflow-visible"
                     style={{
                       left: `${elem.left}%`,
                       top: `${elem.top}%`,
@@ -471,15 +504,54 @@ export default function PptViewer({
                       height: `${elem.height}%`,
                     }}
                   >
-                    <table className="w-full text-xs text-foreground border-collapse">
+                    <table
+                      /* Fixed layout + the authored column widths: left to
+                         itself the browser sizes columns by their text, which
+                         is not the table the slide was designed with. */
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        borderCollapse: "collapse",
+                        tableLayout: "fixed",
+                      }}
+                    >
+                      {elem.columnWidths?.length > 0 && (
+                        <colgroup>
+                          {elem.columnWidths.map((width, cIdx) => (
+                            <col key={cIdx} style={{ width: `${width}%` }} />
+                          ))}
+                        </colgroup>
+                      )}
                       <tbody>
                         {elem.rows?.map((row, rIdx) => (
-                          <tr key={rIdx} className="border-b border-border">
-                            {row?.map((cell, cIdx) => (
-                              <td key={cIdx} className="p-1 border-r border-border">
-                                {cell}
-                              </td>
-                            ))}
+                          <tr key={rIdx}>
+                            {row?.map((cell, cIdx) => {
+                              const c = typeof cell === "string" ? { text: cell } : cell || {};
+                              return (
+                                <td
+                                  key={cIdx}
+                                  colSpan={c.colSpan}
+                                  rowSpan={c.rowSpan}
+                                  style={{
+                                    backgroundColor: c.bgColor || undefined,
+                                    color: c.color || currentSlide.defaultTextColor || "#000000",
+                                    fontWeight: c.bold ? 700 : 400,
+                                    fontStyle: c.italic ? "italic" : "normal",
+                                    // Scaled exactly like a text run's size, so
+                                    // a table reads at the same size as the
+                                    // prose around it at every zoom level.
+                                    fontSize: `${Math.max(8, Math.round((c.fontSize || 14) * effectiveScale))}px`,
+                                    textAlign: c.textAlign || "left",
+                                    padding: `${Math.max(1, Math.round(3 * effectiveScale))}px ${Math.max(2, Math.round(5 * effectiveScale))}px`,
+                                    border: "1px solid rgba(255, 255, 255, 0.25)",
+                                    verticalAlign: "middle",
+                                    overflow: "hidden",
+                                  }}
+                                >
+                                  {c.text}
+                                </td>
+                              );
+                            })}
                           </tr>
                         ))}
                       </tbody>

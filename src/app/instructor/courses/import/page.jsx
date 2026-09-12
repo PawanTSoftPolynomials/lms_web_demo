@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import JSZip from "jszip";
 import {
   ArrowLeft,
   Sparkles,
@@ -34,7 +35,15 @@ import {
   useProcessZipJob,
   useProcessJsonCourse,
   useCourseJsonTemplate,
+  useCourseImportJobStatus,
+  useImportCourseJob,
 } from "@/hooks/queries/instructor/useCourseImport";
+import ZipImportTimeline, {
+  stageIndexOf,
+} from "@/components/instructor/courses/ZipImportTimeline";
+import { buildSampleCoursePackage } from "@/lib/sampleCoursePackage";
+import { useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useGenerateAiContent } from "@/hooks/queries/instructor/useGenerateAiContent";
 
 /** Example prompts covering diverse disciplines */
@@ -60,6 +69,13 @@ const EXAMPLE_PROMPTS = [
     text: "Create a digital marketing course covering SEO fundamentals, content strategy, social media advertising, email marketing, and Google Analytics.",
   },
 ];
+
+/**
+ * Stages the backend moves through inside POST /jobs/:id/process. While the job
+ * sits in one of these, the page polls it so the timeline follows the real
+ * status instead of guessing which step is running.
+ */
+const ZIP_PROCESSING_STATUSES = ["UPLOADED", "EXTRACTING", "ANALYZING", "MAPPING"];
 
 /** Generation Pipeline Staged Steps for User Feedback */
 const STAGED_STEPS = [
@@ -196,7 +212,18 @@ export default function CourseImportPage() {
   const [generatedDraft, setGeneratedDraft] = useState(null);
 
   // ZIP Import State
-  const [zipImportingState, setZipImportingState] = useState(null); // null | "uploading" | "validating" | "importing"
+  // ZIP import lifecycle. `zipStatus` is a real CourseImportStatus once the
+  // package is in the backend's hands; "SELECTED" is the only client-side
+  // value, covering the gap between picking a file and uploading it.
+  const [zipFile, setZipFile] = useState(null);
+  const [zipStatus, setZipStatus] = useState(null);
+  const [zipJobId, setZipJobId] = useState(null);
+  const [zipFailedAt, setZipFailedAt] = useState(null);
+  const [zipReadyJob, setZipReadyJob] = useState(null);
+  const [zipError, setZipError] = useState("");
+  const [zipErrors, setZipErrors] = useState([]);
+  const [zipCreatedCourseId, setZipCreatedCourseId] = useState(null);
+  const lastZipStageRef = useRef("SELECTED");
   const zipInputRef = useRef(null);
 
   // JSON File Import Ref
@@ -220,7 +247,92 @@ export default function CourseImportPage() {
   const processZipMutation = useProcessZipJob();
   const processJsonMutation = useProcessJsonCourse();
   const generateAiMutation = useGenerateAiContent();
+  const importCourseJobMutation = useImportCourseJob();
   const { refetch: refetchTemplate } = useCourseJsonTemplate();
+  const queryClient = useQueryClient();
+
+  const isZipProcessing = ZIP_PROCESSING_STATUSES.includes(zipStatus);
+  const { data: polledZipJob } = useCourseImportJobStatus(
+    zipJobId,
+    Boolean(zipJobId) && isZipProcessing
+  );
+
+  /**
+   * Moves the timeline forward only. Polls can land out of order, and a stage
+   * that already finished must never appear to be pending again. FAILED is the
+   * one status allowed to interrupt the sequence.
+   */
+  const advanceZipStatus = useCallback((next) => {
+    if (!next) return;
+    setZipStatus((prev) => {
+      if (prev === "FAILED") return prev;
+      if (next === "FAILED") return next;
+      return stageIndexOf(next) > stageIndexOf(prev) ? next : prev;
+    });
+  }, []);
+
+  // Remember the furthest real stage so a failure can be attributed to the
+  // step that actually broke — FAILED on its own doesn't say where it stopped.
+  useEffect(() => {
+    if (zipStatus && zipStatus !== "FAILED") lastZipStageRef.current = zipStatus;
+  }, [zipStatus]);
+
+  useEffect(() => {
+    const polledStatus = polledZipJob?.status;
+    if (!polledStatus) return;
+
+    if (polledStatus === "FAILED") {
+      setZipFailedAt(lastZipStageRef.current);
+      setZipError(polledZipJob?.errorMessage || "The package could not be processed.");
+      setZipErrors(polledZipJob?.validationReport?.errors || []);
+      advanceZipStatus("FAILED");
+      return;
+    }
+
+    // The poll only reveals the stages that run inside /process. READY is left
+    // to the process response itself, which is the thing that carries the
+    // canonical JSON the READY summary and the composer handoff both need.
+    if (ZIP_PROCESSING_STATUSES.includes(polledStatus)) {
+      advanceZipStatus(polledStatus);
+    }
+  }, [polledZipJob, advanceZipStatus]);
+
+  // A physical package arrives fully validated and is written straight to the
+  // LMS from here. A course.json package keeps its composer review step.
+  const isPhysicalZipPackage = zipReadyJob?.canonicalJson?.packageFormat === "PHYSICAL_V1";
+
+  /** Counts for the READY summary, using the page's existing count convention. */
+  const zipSummary = useMemo(() => {
+    const canonical = zipReadyJob?.canonicalJson;
+    if (!canonical) return null;
+
+    if (canonical.packageFormat === "PHYSICAL_V1") {
+      const course = canonical.course || {};
+      const mods = Array.isArray(course.modules) ? course.modules : [];
+      const lessons = mods.flatMap((m) => (Array.isArray(m.lessons) ? m.lessons : []));
+      const topics = lessons.flatMap((l) => (Array.isArray(l.topics) ? l.topics : []));
+      const levels = [course, ...mods, ...lessons, ...topics];
+
+      return {
+        title: course.title || canonical?.metadata?.title || "Imported course",
+        modules: mods.length,
+        lessons: lessons.length,
+        quizzes: levels.reduce((acc, l) => acc + (Array.isArray(l.quizzes) ? l.quizzes.length : 0), 0),
+      };
+    }
+
+    const mods = Array.isArray(canonical.modules) ? canonical.modules : [];
+    const courseQuizzes = Array.isArray(canonical.quizzes) ? canonical.quizzes : [];
+
+    return {
+      title: canonical?.metadata?.title || "Imported course",
+      modules: mods.length,
+      lessons: mods.reduce((acc, m) => acc + (Array.isArray(m.lessons) ? m.lessons.length : 0), 0),
+      quizzes:
+        mods.reduce((acc, m) => acc + (Array.isArray(m.quizzes) ? m.quizzes.length : 0), 0) +
+        courseQuizzes.length,
+    };
+  }, [zipReadyJob]);
 
   /** Assigns client-side UUIDs to canonical draft nodes for Composer compatibility */
   const withDraftIds = (modules = [], courseQuizzes = []) => {
@@ -377,33 +489,78 @@ export default function CourseImportPage() {
   // ==========================================
   // 2. ZIP PACKAGE IMPORT HANDLER
   // ==========================================
-  const handleZipFileSelected = async (e) => {
+  /** Stage 1 — take the package, show what was picked, and wait for confirmation. */
+  const handleZipFileSelected = (e) => {
     const file = e.target.files?.[0];
+    if (zipInputRef.current) zipInputRef.current.value = "";
     if (!file) return;
 
     if (!file.name.toLowerCase().endsWith(".zip")) {
       setErrorMsg("Invalid file type. Please select a .zip course package.");
-      if (zipInputRef.current) zipInputRef.current.value = "";
       return;
     }
 
     setErrorMsg("");
     setValidationErrors([]);
-    setZipImportingState("uploading");
+    setZipError("");
+    setZipErrors([]);
+    setZipJobId(null);
+    setZipFailedAt(null);
+    setZipReadyJob(null);
+    setZipCreatedCourseId(null);
+    lastZipStageRef.current = "SELECTED";
+    setZipFile(file);
+    setZipStatus("SELECTED");
+  };
+
+  /** Clears the ZIP flow and returns to the three creation options. */
+  const handleResetZipImport = () => {
+    setZipFile(null);
+    setZipStatus(null);
+    setZipJobId(null);
+    setZipFailedAt(null);
+    setZipReadyJob(null);
+    setZipCreatedCourseId(null);
+    setZipError("");
+    setZipErrors([]);
+    lastZipStageRef.current = "SELECTED";
+    if (zipInputRef.current) zipInputRef.current.value = "";
+  };
+
+  /**
+   * Stages 2-6 — upload the package, then let the backend extract, check and
+   * prepare it. Both requests are the existing ones; the poll running
+   * alongside them is what surfaces the stages in between.
+   */
+  const handleStartZipImport = async () => {
+    if (!zipFile) return;
+
+    setZipError("");
+    setZipErrors([]);
+    setZipFailedAt(null);
+    setZipStatus("UPLOADED");
+    lastZipStageRef.current = "UPLOADED";
+
+    let job = null;
 
     try {
       // Step 1: Upload ZIP file package to backend
-      const job = await uploadZipMutation.mutateAsync(file);
+      job = await uploadZipMutation.mutateAsync(zipFile);
 
       if (!job || !job.id) {
         throw new Error("Failed to create import job.");
       }
 
-      // Step 2: Validate and process package
-      setZipImportingState("validating");
+      setZipJobId(job.id);
+
+      // Step 2: Extract, validate and map the package
       const processedJob = await processZipMutation.mutateAsync(job.id);
 
-      setZipImportingState("importing");
+      if (processedJob?.status === "FAILED") {
+        const failure = new Error(processedJob.errorMessage || "The package could not be processed.");
+        failure.importErrors = processedJob?.validationReport?.errors;
+        throw failure;
+      }
 
       const canonical = processedJob?.canonicalJson || job?.canonicalJson;
 
@@ -411,19 +568,58 @@ export default function CourseImportPage() {
         throw new Error("Unable to extract valid course structure from ZIP package.");
       }
 
-      setZipImportingState(null);
-      if (zipInputRef.current) zipInputRef.current.value = "";
-
-      // Load extracted course structure into Composer
-      prepareDraftAndNavigate(canonical, job.id);
+      // Step 3: Hold at READY so the instructor sees what will be created
+      setZipReadyJob({ ...processedJob, canonicalJson: canonical });
+      advanceZipStatus("READY");
     } catch (err) {
-      setZipImportingState(null);
-      if (zipInputRef.current) zipInputRef.current.value = "";
       console.error("ZIP Import Error:", err);
-      const msg = err?.response?.data?.message || err?.message || "Unable to import the ZIP package. The package structure is invalid.";
-      const errors = err?.response?.data?.errors || [msg];
-      setErrorMsg(msg);
-      setValidationErrors(errors);
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Unable to import the ZIP package. The package structure is invalid.";
+      const errors = err?.response?.data?.errors || err?.importErrors || [];
+
+      setZipFailedAt(lastZipStageRef.current);
+      setZipError(msg);
+      setZipErrors(errors);
+      setZipStatus("FAILED");
+    }
+  };
+
+  /** Stage 6 action — carry the validated structure into the Course Composer. */
+  const handleContinueToComposer = () => {
+    const canonical = zipReadyJob?.canonicalJson;
+    if (!canonical || !zipJobId) return;
+    prepareDraftAndNavigate(canonical, zipJobId);
+  };
+
+  /**
+   * Stages 7-8 — write a validated physical package into the LMS. The package
+   * already carries its full structure, so there is nothing to review first.
+   */
+  const handleCreateCourseFromPackage = async () => {
+    if (!zipJobId) return;
+
+    setZipStatus("IMPORTING");
+    lastZipStageRef.current = "IMPORTING";
+
+    try {
+      const created = await importCourseJobMutation.mutateAsync(zipJobId);
+      const courseId = created?.id || created?.courseId || null;
+
+      setZipCreatedCourseId(courseId);
+      advanceZipStatus("COMPLETED");
+
+      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
+      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES_TABLE] });
+    } catch (err) {
+      console.error("Course Creation Error:", err);
+      const msg =
+        err?.response?.data?.message || err?.message || "The course could not be created.";
+      setZipFailedAt("IMPORTING");
+      setZipError(msg);
+      setZipErrors(err?.response?.data?.errors || []);
+      setZipStatus("FAILED");
     }
   };
 
@@ -554,6 +750,31 @@ export default function CourseImportPage() {
     }
   };
 
+  /**
+   * Downloads the sample course package: the Course -> Modules -> Lessons ->
+   * Topics hierarchy as real folders, with a real artifact file in each one.
+   * Deliberately contains no course.json — the tree itself is the example.
+   */
+  const handleDownloadSampleZip = async () => {
+    try {
+      const zip = buildSampleCoursePackage(new JSZip());
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "sample_course_package.zip";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download Sample ZIP Error:", err);
+      setErrorMsg("Failed to download sample ZIP package.");
+    }
+  };
+
   // Preview Stats Calculation
   const canonicalData = generatedDraft?.canonicalJson || generatedDraft?.data?.canonicalJson || generatedDraft || {};
   const targetMetadata = canonicalData?.metadata || canonicalData || {};
@@ -633,6 +854,126 @@ export default function CourseImportPage() {
         {/* ======================================================== */}
         {!showAiForm && (
           <div className="space-y-6 animate-in fade-in duration-200">
+            {zipStatus ? (
+              /* A ZIP package is in flight: the chronological flow takes over
+                 from the three options until it finishes or is dismissed. */
+              <div className="space-y-4 animate-in fade-in duration-200">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-xl font-extrabold text-foreground">Import from ZIP</h2>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {zipStatus === "SELECTED"
+                        ? "Check the package below, then upload it to start the import."
+                        : zipStatus === "READY"
+                        ? "The package passed validation. Review what will be created, then continue."
+                        : zipStatus === "IMPORTING"
+                        ? "Creating the course in your LMS. This runs in one step, so it either completes or leaves nothing behind."
+                        : zipStatus === "COMPLETED"
+                        ? "The course was created and is ready to open."
+                        : zipStatus === "FAILED"
+                        ? "The import stopped, so nothing was added to your courses."
+                        : "Keep this page open while the package is processed."}
+                    </p>
+                  </div>
+
+                  {!isZipProcessing && zipStatus !== "IMPORTING" && (
+                    <button
+                      type="button"
+                      onClick={handleResetZipImport}
+                      className="text-xs text-muted-foreground hover:text-foreground font-semibold flex items-center space-x-1.5 transition cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>{zipStatus === "SELECTED" ? "Cancel" : "Start over"}</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="p-6 md:p-8 rounded-3xl bg-background/90 border border-sky-500/25 shadow-2xl">
+                  <ZipImportTimeline
+                    status={zipStatus}
+                    failedAt={zipFailedAt}
+                    fileName={zipFile?.name}
+                    fileSize={zipFile?.size}
+                    summary={zipSummary}
+                    errorMessage={zipError}
+                    errors={zipErrors}
+                  />
+
+                  <div className="mt-6 pt-5 border-t border-muted-foreground/10">
+                    {zipStatus === "SELECTED" && (
+                      <button
+                        type="button"
+                        onClick={handleStartZipImport}
+                        className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-sky-600 hover:bg-sky-500 text-foreground text-sm font-extrabold shadow-lg shadow-sky-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span>Upload package</span>
+                      </button>
+                    )}
+
+                    {isZipProcessing && (
+                      <p className="text-xs text-muted-foreground">
+                        Large packages with media can take a few minutes.
+                      </p>
+                    )}
+
+                    {zipStatus === "IMPORTING" && (
+                      <p className="text-xs text-muted-foreground">
+                        Writing modules, lessons, topics, quizzes and assignments.
+                      </p>
+                    )}
+
+                    {zipStatus === "READY" && (
+                      <button
+                        type="button"
+                        onClick={
+                          isPhysicalZipPackage
+                            ? handleCreateCourseFromPackage
+                            : handleContinueToComposer
+                        }
+                        className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-sky-600 hover:bg-sky-500 text-foreground text-sm font-extrabold shadow-lg shadow-sky-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
+                      >
+                        <Check className="w-4 h-4" />
+                        <span>
+                          {isPhysicalZipPackage ? "Create course" : "Review and create course"}
+                        </span>
+                      </button>
+                    )}
+
+                    {zipStatus === "COMPLETED" && (
+                      <div className="flex flex-wrap gap-3">
+                        <Link
+                          href={
+                            zipCreatedCourseId
+                              ? `/instructor/courses/${zipCreatedCourseId}`
+                              : "/instructor/courses"
+                          }
+                          className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-sky-600 hover:bg-sky-500 text-foreground text-sm font-extrabold shadow-lg shadow-sky-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
+                        >
+                          <BookOpen className="w-4 h-4" />
+                          <span>Open course</span>
+                        </Link>
+                      </div>
+                    )}
+
+                    {zipStatus === "FAILED" && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleResetZipImport();
+                          zipInputRef.current?.click();
+                        }}
+                        className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-sky-600 hover:bg-sky-500 text-foreground text-sm font-extrabold shadow-lg shadow-sky-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span>Choose another package</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
             <div className="text-left">
               <h2 className="text-xl font-extrabold text-foreground">How would you like to create your course?</h2>
               <p className="text-xs text-muted-foreground mt-1">
@@ -723,23 +1064,9 @@ export default function CourseImportPage() {
                   </div>
                 </div>
 
-                {zipImportingState && (
-                  <div className="p-4 rounded-2xl bg-sky-950/50 border border-sky-800/50 text-sky-200 text-xs flex items-center space-x-3">
-                    <RefreshCw className="w-4 h-4 text-sky-400 animate-spin shrink-0" />
-                    <span className="capitalize font-semibold">
-                      {zipImportingState === "uploading"
-                        ? "Uploading course package..."
-                        : zipImportingState === "validating"
-                        ? "Validating package..."
-                        : "Importing course..."}
-                    </span>
-                  </div>
-                )}
-
                 <div className="space-y-2 pt-2 border-t border-transparent">
                   <button
                     type="button"
-                    disabled={Boolean(zipImportingState)}
                     onClick={() => zipInputRef.current?.click()}
                     className="w-full py-3.5 rounded-2xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-foreground text-sm font-extrabold shadow-lg shadow-sky-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
                   >
@@ -747,6 +1074,17 @@ export default function CourseImportPage() {
                     <span>Select ZIP Package</span>
                   </button>
                   <p className="text-[11px] text-muted-foreground text-center font-mono">.zip file up to 2GB</p>
+
+                  <div className="flex items-center justify-center pt-1">
+                    <button
+                      type="button"
+                      onClick={handleDownloadSampleZip}
+                      className="text-xs text-sky-400 hover:text-sky-300 font-semibold transition flex items-center space-x-1.5 cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Sample ZIP</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -830,6 +1168,8 @@ export default function CourseImportPage() {
                 </div>
               </div>
             </div>
+              </>
+            )}
           </div>
         )}
 

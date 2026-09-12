@@ -6,6 +6,7 @@ import { CheckCircle2, Loader2, Upload, X } from "lucide-react";
 import { useToast } from "@/components/ui/ToastProvider";
 import { uploadFileToVercelBlob } from "@/services/content.service";
 import { classifyExternalFile } from "@/lib/external/classifyExternalFile";
+import { hasPptxSlides } from "@/lib/pptxParser";
 import { getErrorMessage } from "../getErrorMessage";
 
 type PresentationSourceType = "UPLOAD" | "EXTERNAL_URL" | "GOOGLE_DRIVE";
@@ -74,6 +75,20 @@ export function PresentationUploadPanel({ fileUrl, onFileUrlChange }: Presentati
     setUploadError(null);
     setIsUploading(true);
     setFileName(file.name);
+
+    // The <input accept> hint and this handler's own drag-and-drop path can
+    // both be bypassed (native "All Files" picker, or dropping anything),
+    // so a wrong file — or a legacy binary .ppt, which isn't a zip at all —
+    // would otherwise upload fine and only fail later when a student opens
+    // it, deep inside the viewer's parser. Check the actual bytes now.
+    const buffer = await file.arrayBuffer();
+    if (!(await hasPptxSlides(buffer))) {
+      setUploadError("This doesn't look like a valid .pptx file with slides. Legacy .ppt files aren't supported for in-browser preview — please save the file as .pptx and try again.");
+      setIsUploading(false);
+      setFileName(null);
+      return;
+    }
+
     try {
       const result = await uploadFileToVercelBlob(file);
       if (result?.url) {
@@ -257,7 +272,7 @@ export function PresentationUploadPanel({ fileUrl, onFileUrlChange }: Presentati
                 isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 bg-background/40"
               }`}
             >
-              <input ref={fileInputRef} type="file" accept=".ppt,.pptx" onChange={handleFileChange} className="hidden" />
+              <input ref={fileInputRef} type="file" accept=".pptx" onChange={handleFileChange} className="hidden" />
               {isUploading ? (
                 <>
                   <Loader2 className="size-6 animate-spin text-primary" />
@@ -266,8 +281,8 @@ export function PresentationUploadPanel({ fileUrl, onFileUrlChange }: Presentati
               ) : (
                 <>
                   <Upload className="size-6 text-muted-foreground" />
-                  <p className="text-xs font-bold text-foreground">Drag &amp; drop your PPT/PPTX file</p>
-                  <p className="text-[11px] text-muted-foreground">or click to browse — Supported: .ppt, .pptx</p>
+                  <p className="text-xs font-bold text-foreground">Drag &amp; drop your PPTX file</p>
+                  <p className="text-[11px] text-muted-foreground">or click to browse — Supported: .pptx only</p>
                 </>
               )}
             </div>

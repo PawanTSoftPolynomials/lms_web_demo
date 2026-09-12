@@ -22,6 +22,7 @@ export const QUERY_KEYS = {
     STUDENT_QUESTIONS: "student-questions",
     STUDENT_ASSIGNMENTS: "student-assignments",
     STUDENT_ASSIGNMENT: "student-assignment",
+    STUDENT_QUIZ_SUBMISSIONS: "student-quiz-submissions",
     STICKY_NOTES: "sticky-notes",
     TRANSCRIPT: "transcript",
     NOTES: "notes",
@@ -120,4 +121,5 @@ export const QUERY_KEYS = {
     RESULTS: "results",
     ASSESSMENTS: "assessments",
     INSTRUCTOR_CERTIFICATES: "instructor-certificates",
+    COURSE_IMPORT_JOB: "course-import-job",
 };

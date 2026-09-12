@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { CheckCircle2 } from "lucide-react";
 
 import Loader from "@/components/common/Loader";
+import Button from "@/components/ui/Button";
 import QuizHeader from "@/components/student/attempt/QuizHeader";
+import { getQuizTimerStorageKey } from "@/components/student/attempt/QuizTimer";
 import QuestionCard from "@/components/student/attempt/QuestionCard";
 import QuizNavigation from "@/components/student/attempt/QuizNavigation";
 import QuizSubmitModal from "@/components/student/attempt/QuizSubmitModal";
@@ -11,7 +15,9 @@ import QuizResultSummary from "@/components/student/attempt/QuizResultSummary";
 import useQuiz from "@/hooks/queries/student/useQuiz";
 import useSubmitQuiz from "@/hooks/queries/student/useSubmitQuiz";
 import useQuizResult from "@/hooks/queries/student/useQuizResult";
+import useTrackCourseAccess from "@/hooks/queries/student/useTrackCourseAccess";
 import { checkAnswerCorrectness } from "@/lib/quizAnswers";
+import { resolveQuestionType } from "@/lib/questionType";
 
 /**
  * The actual quiz-taking experience (timer, questions, navigation, submit) —
@@ -19,9 +25,20 @@ import { checkAnswerCorrectness } from "@/lib/quizAnswers";
  * that launches a quiz (e.g. the Learning Page's modal/full-screen presenter).
  * Presentation (page vs modal vs full-screen) is entirely the caller's job;
  * this component only knows about the quiz itself.
+ *
+ * Every launch point comes through here, so this is also where a student who
+ * has used all their attempts is stopped — before answering, rather than
+ * after the server refuses the submission.
  */
 export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextContent }) {
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [submitError, setSubmitError] = useState("");
+    // Dismisses the "already completed" landing card below in favor of the
+    // normal quiz-taking view, for a student who still has an attempt left.
+    const [reattempting, setReattempting] = useState(false);
+    // When the questions were first shown — the start of this attempt's
+    // time taken.
+    const startedAtRef = useRef(null);
 
     const {
         data,
@@ -30,6 +47,13 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
     } = useQuiz(quizId);
 
     const quiz = data?.data || data;
+
+    const trackAccessMutation = useTrackCourseAccess();
+    useEffect(() => {
+        if (quiz?.courseId) {
+            trackAccessMutation.mutate(quiz.courseId);
+        }
+    }, [quiz?.courseId]);
 
     const questions = useMemo(
         () => quiz?.questions || [],
@@ -53,6 +77,12 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
 
     const answeredQuestions =
         Object.keys(answers).length;
+
+    useEffect(() => {
+        if (quiz && startedAtRef.current === null) {
+            startedAtRef.current = Date.now();
+        }
+    }, [quiz]);
 
     useEffect(() => {
         setVisitedIndices((prev) => {
@@ -95,35 +125,31 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
         }));
     };
 
-    const handleTimeUp = () => {
-        setShowSubmitModal(true);
-    };
-
     const submitQuizMutation =
         useSubmitQuiz();
 
-    const submitError = submitQuizMutation.error
-        ? (submitQuizMutation.error?.code === "ECONNABORTED" ||
-           submitQuizMutation.error?.message?.includes("timeout")
-            ? "Submission timed out while contacting the server. Please click Retry Submission to try again."
-            : (submitQuizMutation.error?.response?.data?.message ||
-               submitQuizMutation.error?.message ||
-               "Quiz submission failed. Please try again."))
-        : null;
+    // Guards against a duplicate submit firing before submitQuizMutation.isPending
+    // has re-rendered true — e.g. two near-simultaneous timer expiry calls
+    // (React Strict Mode's double effect-invocation in dev) would otherwise
+    // both slip past a state-based check in the same tick.
+    const submitInFlightRef = useRef(false);
 
+    // Dismissing the confirm modal clears the failure shown inside it, so the
+    // next open starts clean rather than re-showing a stale error.
     const handleCloseSubmitModal = () => {
-        submitQuizMutation.reset();
+        setSubmitError("");
+        submitInFlightRef.current = false;
         setShowSubmitModal(false);
     };
 
-    const handleSubmitQuiz = () => {
-        if (answeredQuestions < questions.length) {
-            return;
-        }
+    // Shared by the manual "Submit Quiz" confirm and the timer running out —
+    // the timeout path skips the completeness gate below since the attempt
+    // has to close regardless of how many questions got answered.
+    const performSubmit = () => {
+        if (submitInFlightRef.current) return;
+        submitInFlightRef.current = true;
 
-        if (submitQuizMutation.isError) {
-            submitQuizMutation.reset();
-        }
+        const startedAt = startedAtRef.current;
 
         const submitPayload = {
             quizId,
@@ -135,12 +161,24 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
                     answer: selectedOption,
                 })
             ),
+            timeTakenSeconds: startedAt
+                ? Math.round((Date.now() - startedAt) / 1000)
+                : undefined,
         };
+
+        setSubmitError("");
 
         submitQuizMutation.mutate(
             submitPayload,
             {
                 onSuccess: () => {
+                    const timerKey = getQuizTimerStorageKey(
+                        quiz?.id,
+                        quiz?.attemptStatus?.attemptsUsed ?? 0
+                    );
+                    if (timerKey) {
+                        window.sessionStorage.removeItem(timerKey);
+                    }
                     setShowSubmitModal(false);
                     setIsSubmitted(true);
                 },
@@ -150,9 +188,39 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
                         "Quiz submission failed",
                         error
                     );
+                    // A real failure (network/server) should allow retrying —
+                    // only a successful submit keeps this attempt locked.
+                    submitInFlightRef.current = false;
+                    // The server's message explains a refusal (e.g. no
+                    // attempts left); a timeout needs its own wording since
+                    // axios reports it with no response at all; anything else
+                    // is most likely network.
+                    setSubmitError(
+                        error?.code === "ECONNABORTED" || error?.message?.includes("timeout")
+                            ? "Submission timed out while contacting the server. Please click Retry Submission to try again."
+                            : error?.response?.data?.message ||
+                                  "Your answers couldn't be submitted. Check your connection and try again."
+                    );
                 },
             }
         );
+    };
+
+    const handleSubmitQuiz = () => {
+        if (answeredQuestions < questions.length) {
+            return;
+        }
+
+        performSubmit();
+    };
+
+    // The timer (persisted per-attempt, see QuizTimer) fires this once its
+    // deadline passes — including immediately on a refresh that lands after
+    // time was already up. Auto-submit whatever was answered so far rather
+    // than waiting on a confirmation click that may never come.
+    const handleTimeUp = () => {
+        if (isSubmitted || submitQuizMutation.isPending) return;
+        performSubmit();
     };
 
     // Fetches only once submitted — the result endpoint 404s on an
@@ -184,7 +252,7 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
                 (a) => a.questionId === q.id
             );
             return checkAnswerCorrectness(
-                q.type || "MCQ_SINGLE",
+                resolveQuestionType(q.questionType),
                 userAnswer?.answer ?? userAnswer?.selectedOption,
                 q.correctAnswer
             );
@@ -218,13 +286,57 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
             <QuizResultSummary
                 quizTitle={quiz.title}
                 isLoading={isResultLoading || !submissionResult}
-                correctCount={correctCount}
+                // The server's tally is authoritative; the client-side check
+                // only covers a response that predates it.
+                correctCount={submissionResult?.correctCount ?? correctCount}
                 totalQuestions={questions.length}
                 percentage={submissionResult?.percentage ?? 0}
                 passed={Boolean(submissionResult?.passed)}
                 resultHref={resultHref}
                 onNextContent={onNextContent}
             />
+        );
+    }
+
+    // Present for students only (see GET /quizzes/:id).
+    const allowance = quiz.attemptStatus;
+    const hasPriorAttempt = allowance && allowance.attemptsUsed > 0;
+
+    if (hasPriorAttempt && !reattempting) {
+        return (
+            <div className="rounded-2xl border border-border bg-card p-6 text-center sm:p-8">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
+                    <CheckCircle2 className="h-5 w-5" aria-hidden />
+                </div>
+                <h2 className="mt-4 text-lg font-semibold text-foreground">
+                    You have completed the quiz
+                </h2>
+                <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+                    {allowance.canAttempt
+                        ? `You can view your result or make another attempt for “${quiz.title}”.`
+                        : `You've used all ${allowance.maxAttempts} attempt${allowance.maxAttempts === 1 ? "" : "s"} allowed for “${quiz.title}”.`}
+                </p>
+                <div className="mx-auto mt-6 flex max-w-sm flex-col gap-2 sm:flex-row sm:justify-center">
+                    <Button asChild className="inline-flex flex-1 items-center justify-center">
+                        <Link href={resultHref}>View result</Link>
+                    </Button>
+                    {allowance.canAttempt && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setReattempting(true)}
+                            className="flex-1"
+                        >
+                            Reattempt
+                        </Button>
+                    )}
+                    {onBack && (
+                        <Button type="button" variant="outline" onClick={onBack} className="flex-1">
+                            Go back
+                        </Button>
+                    )}
+                </div>
+            </div>
         );
     }
 
@@ -237,6 +349,22 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
                     onTimeUp={handleTimeUp}
                     answeredCount={answeredQuestions}
                 />
+
+                {allowance && (allowance.attemptsUsed > 0 || !allowance.unlimitedAttempts) && (
+                    <p className="px-1 text-xs font-medium text-muted-foreground">
+                        Attempt {allowance.attemptsUsed + 1}
+                        {allowance.unlimitedAttempts ? "" : ` of ${allowance.maxAttempts}`}
+                    </p>
+                )}
+
+                {submitError && !showSubmitModal && (
+                    <p
+                        role="alert"
+                        className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-500"
+                    >
+                        {submitError}
+                    </p>
+                )}
 
                 <QuestionCard
                     question={currentQuestion}

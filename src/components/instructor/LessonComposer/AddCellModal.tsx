@@ -156,7 +156,12 @@ export function AddCellModal({ parent, order, open, onOpenChange, onAddQuiz }: A
 
   return (
     <Modal open={open} onClose={close} title={title} size="lg">
-      <div className="flex-1 min-h-0 flex flex-col overflow-hidden -mx-1 px-1">
+      {/* No overflow-hidden here — Modal's own body already scrolls
+          (overflow-y-auto). Clipping here instead of letting content flow up
+          into that scroll region was cutting off the Cancel/Done footer on
+          any form tall enough to exceed the modal's visible height (the
+          Presentation slide editor being the most common case). */}
+      <div className="flex-1 min-h-0 flex flex-col -mx-1 px-1">
         {selectedCellOption && (
           <button
             type="button"
@@ -260,11 +265,11 @@ export function AddCellModal({ parent, order, open, onOpenChange, onAddQuiz }: A
             </div>
           </>
         ) : SimpleForm ? (
-          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex-1 min-h-0 flex flex-col">
             <SimpleForm parent={parent} order={order} onCreated={close} onCancel={() => setSelectedId(null)} />
           </div>
         ) : isDocument ? (
-          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex-1 min-h-0 flex flex-col">
             <CreateFileForm
               parent={parent}
               order={order}
@@ -282,7 +287,7 @@ export function AddCellModal({ parent, order, open, onOpenChange, onAddQuiz }: A
             />
           </div>
         ) : isPresentation ? (
-          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex-1 min-h-0 flex flex-col">
             <CreateFileForm
               parent={parent}
               order={order}

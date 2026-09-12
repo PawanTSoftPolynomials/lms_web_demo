@@ -1,51 +1,86 @@
+import { mapOrder } from "./courseUnits.js";
+
 const byOrder = (list) => [...(list || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
+// Same three-way merge courseUnits.js's walkLevel uses: a level's own
+// content and quizzes interleaved with its child containers (lessons under a
+// module, topics under a lesson), sorted by `order` with mapOrder's
+// content-before-child-before-quiz tie-break. Reusing mapOrder (rather than a
+// parallel copy) is what keeps this in permanent lockstep with the player.
+const mergeByOrder = (contents, quizzes, children) => {
+  const rows = [
+    ...(contents || []).map((item) => ({ kind: "content", item })),
+    ...(quizzes || []).map((item) => ({ kind: "quiz", item })),
+    ...(children || []).map((item) => ({ kind: "child", item })),
+  ];
+  return rows.sort(mapOrder);
+};
+
 /**
- * The whole course's Content/Quiz leaves, flattened into course order —
- * Course-direct, then per Module (its own direct content, each Lesson in
- * turn, its own quiz), then the Course's own quiz last. Mirrors courseUnits
- * in the Learn page exactly (same nesting/order rules), just built from the
- * Progress roll-up's shape instead of the course tree, since this is the
- * only place visited/completed live per item. Assignments are excluded —
- * they aren't reachable in the content player's block sequence yet.
+ * The whole course's Content/Quiz leaves, flattened into the exact order the
+ * player's courseUnits (lib/courseUnits.js) walks them: Course-direct first,
+ * then each Module with its own content/quizzes interleaved (by `order`)
+ * with its Lessons, each Lesson's own content/quizzes interleaved with its
+ * Topics (or, with no Topics, just merged together), each Topic's own
+ * content merged with its own quizzes. Built from the Progress roll-up's
+ * shape instead of the course tree, since this is the only place
+ * visited/completed live per item. Assignments are excluded — they aren't
+ * reachable in the content player's block sequence yet.
  */
 function buildLeafSequence(hierarchy) {
   const leaves = [];
 
-  const pushLeaves = (kind, list, scope) => {
-    for (const raw of byOrder(list)) {
-      leaves.push({
-        kind,
-        id: raw.id,
-        visited: raw.visited === true,
-        completed: raw.completed === true,
-        ...scope,
-      });
-    }
+  const pushLeaf = (kind, raw, scope) => {
+    leaves.push({
+      kind,
+      id: raw.id,
+      visited: raw.visited === true,
+      completed: raw.completed === true,
+      ...scope,
+    });
   };
 
   const noScope = { moduleId: null, lessonId: null, topicId: null };
-  pushLeaves("content", hierarchy.contents, noScope);
+  // Course level has no child containers — modules always follow every
+  // course-direct item, regardless of order value (matches courseUnits.js).
+  for (const row of mergeByOrder(hierarchy.contents, hierarchy.quizzes, [])) {
+    pushLeaf(row.kind, row.item, noScope);
+  }
 
   for (const mod of byOrder(hierarchy.modules)) {
     const moduleScope = { moduleId: mod.id, lessonId: null, topicId: null };
-    pushLeaves("content", mod.contents, moduleScope);
 
-    for (const lesson of byOrder(mod.lessons)) {
-      const lessonScope = { moduleId: mod.id, lessonId: lesson.id, topicId: null };
-      pushLeaves("content", lesson.contents, lessonScope);
-
-      for (const topic of byOrder(lesson.topics)) {
-        pushLeaves("content", topic.contents, { moduleId: mod.id, lessonId: lesson.id, topicId: topic.id });
+    for (const row of mergeByOrder(mod.contents, mod.quizzes, mod.lessons)) {
+      if (row.kind !== "child") {
+        pushLeaf(row.kind, row.item, moduleScope);
+        continue;
       }
 
-      pushLeaves("quiz", lesson.quizzes, lessonScope);
+      const lesson = row.item;
+      const lessonScope = { moduleId: mod.id, lessonId: lesson.id, topicId: null };
+      const hasTopics = (lesson.topics?.length ?? 0) > 0;
+
+      if (!hasTopics) {
+        for (const leafRow of mergeByOrder(lesson.contents, lesson.quizzes, [])) {
+          pushLeaf(leafRow.kind, leafRow.item, lessonScope);
+        }
+        continue;
+      }
+
+      for (const leafRow of mergeByOrder(lesson.contents, lesson.quizzes, lesson.topics)) {
+        if (leafRow.kind !== "child") {
+          pushLeaf(leafRow.kind, leafRow.item, lessonScope);
+          continue;
+        }
+
+        const topic = leafRow.item;
+        const topicScope = { moduleId: mod.id, lessonId: lesson.id, topicId: topic.id };
+        for (const topicRow of mergeByOrder(topic.contents, topic.quizzes, [])) {
+          pushLeaf(topicRow.kind, topicRow.item, topicScope);
+        }
+      }
     }
-
-    pushLeaves("quiz", mod.quizzes, moduleScope);
   }
-
-  pushLeaves("quiz", hierarchy.quizzes, noScope);
 
   return leaves;
 }

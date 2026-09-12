@@ -28,7 +28,7 @@ export default function StudentStatCard({ stat, isLoading, variant = "desktop" }
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="text-muted-foreground text-[10.5px] font-bold uppercase tracking-wider truncate">{stat.label}</p>
+        <p className="text-muted-foreground text-[10.5px] font-bold uppercase tracking-wider leading-tight">{stat.label}</p>
         {isLoading ? (
           <div className="h-5 w-10 bg-muted rounded animate-pulse mt-1.5" />
         ) : (

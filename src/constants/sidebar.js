@@ -134,7 +134,7 @@ export const SIDEBAR_ITEMS = {
             href: "/student/live-classes",
         },
         {
-            title: "Assignments",
+            title: "Submissions",
             icon: FaClipboardList,
             href: "/student/assignments",
         },

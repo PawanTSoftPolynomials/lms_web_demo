@@ -23,6 +23,17 @@ export const completeLesson = async (lessonId, completed = true) => {
 };
 
 /**
+ * Marks a Content/Quiz/Assignment/Topic/Lesson/Module as visited — drives
+ * "Continue Learning" resume tracking. Pass exactly one of the entity ids
+ * (contentId, quizId, assignmentId, topicId, lessonId, moduleId), matching
+ * markVisitedSchema on the backend.
+ */
+export const markVisited = async (params) => {
+  const { data } = await api.post("/progress/visit", { visited: true, ...params });
+  return data.data ?? data;
+};
+
+/**
  * Fetch detailed progress for a course (Student or Instructor viewing a student)
  */
 export const getCourseProgress = async (courseId, studentId = null) => {

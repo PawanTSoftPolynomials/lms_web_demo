@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, ClipboardCheck } from "lucide-react";
 
-import QuizTimer from "@/components/student/attempt/QuizTimer";
+import QuizTimer, { getQuizTimerStorageKey } from "@/components/student/attempt/QuizTimer";
 
 export default function QuizHeader({
                                        quiz,
@@ -78,6 +78,10 @@ export default function QuizHeader({
                 <div className="shrink-0 sm:border-l sm:border-border sm:pl-3">
                     <QuizTimer
                         duration={timeLimit}
+                        storageKey={getQuizTimerStorageKey(
+                            quiz.id,
+                            quiz.attemptStatus?.attemptsUsed ?? 0
+                        )}
                         onTimeUp={onTimeUp}
                     />
                 </div>

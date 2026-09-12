@@ -7,6 +7,7 @@ import { ChevronRight, BookOpen, HelpCircle, Award, Clock } from "lucide-react";
 
 import useAssignments from "@/hooks/queries/student/useAssignments";
 import useQuizzes from "@/hooks/queries/student/useQuizzes";
+import useQuizSubmissions from "@/hooks/queries/student/useQuizSubmissions";
 import Modal from "@/components/ui/Modal";
 
 // The five tabs — Quiz is its own model; Assessment/Test/Exam/Project all
@@ -38,10 +39,18 @@ export default function NewAssignedWorkPanel() {
   const router = useRouter();
   const { data: assignments = [], isLoading: isAssignmentsLoading } = useAssignments();
   const { data: quizzes = [], isLoading: isQuizzesLoading } = useQuizzes();
+  const { data: quizSubmissions = [], isLoading: isSubmissionsLoading } = useQuizSubmissions();
   const [activeTab, setActiveTab] = useState("Quiz");
   const [selectedQuiz, setSelectedQuiz] = useState(null);
 
-  const isLoading = isAssignmentsLoading || isQuizzesLoading;
+  const isLoading = isAssignmentsLoading || isQuizzesLoading || isSubmissionsLoading;
+
+  // Already-submitted quizzes aren't "new" work anymore — one entry per quiz
+  // per getMyQuizSubmissions, so any match here means at least one attempt.
+  const submittedQuizIds = useMemo(
+    () => new Set(quizSubmissions.map((s) => s.id)),
+    [quizSubmissions]
+  );
 
   const allItems = useMemo(
     () => [
@@ -53,20 +62,22 @@ export default function NewAssignedWorkPanel() {
         createdAt: a.createdAt,
         href: `/student/assignments/${a.id}`,
       })),
-      ...quizzes.map((q) => ({
-        id: `quiz-${q.id}`,
-        title: q.title,
-        type: "Quiz",
-        courseTitle: q.course?.title || "your course",
-        createdAt: q.createdAt,
-        href: `/student/attempt/${q.id}`,
-        totalQuestions: q._count?.quizQuestions ?? 0,
-        totalMarks: q.totalMarks ?? 0,
-        passingScore: q.passingScore,
-        timeLimit: q.timeLimit,
-      })),
+      ...quizzes
+        .filter((q) => !submittedQuizIds.has(q.id))
+        .map((q) => ({
+          id: `quiz-${q.id}`,
+          title: q.title,
+          type: "Quiz",
+          courseTitle: q.course?.title || "your course",
+          createdAt: q.createdAt,
+          href: `/student/attempt/${q.id}`,
+          totalQuestions: q._count?.quizQuestions ?? 0,
+          totalMarks: q.totalMarks ?? 0,
+          passingScore: q.passingScore,
+          timeLimit: q.timeLimit,
+        })),
     ].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)),
-    [assignments, quizzes]
+    [assignments, quizzes, submittedQuizIds]
   );
 
   const tabItems = allItems.filter((item) => item.type === activeTab).slice(0, MAX_ITEMS);
