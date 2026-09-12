@@ -22,6 +22,7 @@ import { useRestoreCourse } from "@/hooks/queries/instructor/useRestoreCourse";
 import { useDeleteLesson } from "@/hooks/queries/instructor/useDeleteLesson";
 import { useDeleteTopic } from "@/hooks/queries/instructor/useDeleteTopic";
 import { useDeleteContent } from "@/hooks/queries/instructor/useDeleteContent";
+import useTrackCourseView from "@/hooks/queries/instructor/useTrackCourseView";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -763,6 +764,16 @@ export default function CourseDetailsPage() {
   const [isCourseMapOpen, setIsCourseMapOpen] = useState(true);
 
   const isDraftMode = courseId === "draft" || courseId === "new";
+
+  // Marks the course as viewed for the My Courses "Recently Viewed" row.
+  // Skipped in draft mode — an unsaved import preview isn't a real course yet.
+  const trackViewMutation = useTrackCourseView();
+  useEffect(() => {
+    if (!isDraftMode && courseId) {
+      trackViewMutation.mutate(courseId);
+    }
+  }, [courseId, isDraftMode]);
+
   const [draftData, setDraftData] = useState(null);
   const [draftModules, setDraftModules] = useState([]);
   const [draftQuizzes, setDraftQuizzes] = useState([]);

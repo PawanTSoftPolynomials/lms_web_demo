@@ -19,6 +19,36 @@ import useTrackCourseAccess from "@/hooks/queries/student/useTrackCourseAccess";
 import { checkAnswerCorrectness } from "@/lib/quizAnswers";
 import { resolveQuestionType } from "@/lib/questionType";
 
+// One sessionStorage key per quiz attempt — same scoping convention as
+// getQuizTimerStorageKey — so a refresh resumes the same answers/position,
+// while a new attempt (attemptsUsed incremented server-side) never inherits
+// a previous attempt's progress.
+function getQuizProgressStorageKey(quizId, attemptsUsed = 0) {
+    if (!quizId) return undefined;
+    return `quiz-progress:${quizId}:${attemptsUsed + 1}`;
+}
+
+function readStoredProgress(storageKey) {
+    if (typeof window === "undefined" || !storageKey) return null;
+    try {
+        const raw = window.sessionStorage.getItem(storageKey);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return {
+            currentQuestionIndex: Number(parsed.currentQuestionIndex) || 0,
+            answers:
+                parsed.answers && typeof parsed.answers === "object"
+                    ? parsed.answers
+                    : {},
+            visitedIndices: Array.isArray(parsed.visitedIndices)
+                ? parsed.visitedIndices
+                : [0],
+        };
+    } catch {
+        return null;
+    }
+}
+
 /**
  * The actual quiz-taking experience (timer, questions, navigation, submit) —
  * shared by the standalone /student/attempt/[quizId] route and anywhere else
@@ -72,6 +102,11 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
     const [showSubmitModal, setShowSubmitModal] =
         useState(false);
 
+    // Flips true once this attempt's stored progress (if any) has been
+    // applied to state, so the persistence effect below never fires with
+    // pre-hydration defaults and clobbers what was just read.
+    const [progressHydrated, setProgressHydrated] = useState(false);
+
     const currentQuestion =
         questions[currentQuestionIndex];
 
@@ -90,6 +125,52 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
             return new Set(prev).add(currentQuestionIndex);
         });
     }, [currentQuestionIndex]);
+
+    // Restores answers/position from a previous visit to this same attempt.
+    // Runs once quiz data (and therefore attemptsUsed, part of the storage
+    // key) is available; the progressHydrated guard keeps it from re-running.
+    useEffect(() => {
+        if (!quiz || progressHydrated) return;
+
+        const storageKey = getQuizProgressStorageKey(
+            quiz.id,
+            quiz.attemptStatus?.attemptsUsed ?? 0
+        );
+        const stored = readStoredProgress(storageKey);
+
+        if (stored) {
+            setAnswers(stored.answers);
+            setVisitedIndices(new Set(stored.visitedIndices));
+            const maxIndex = Math.max(0, questions.length - 1);
+            setCurrentQuestionIndex(
+                Math.min(Math.max(stored.currentQuestionIndex, 0), maxIndex)
+            );
+        }
+
+        setProgressHydrated(true);
+    }, [quiz, questions.length, progressHydrated]);
+
+    // Persists answers/position after every change, once hydration above has
+    // run — so a refresh mid-attempt lands back on the same question with
+    // the same options ticked.
+    useEffect(() => {
+        if (!progressHydrated || !quiz || typeof window === "undefined") return;
+
+        const storageKey = getQuizProgressStorageKey(
+            quiz.id,
+            quiz.attemptStatus?.attemptsUsed ?? 0
+        );
+        if (!storageKey) return;
+
+        window.sessionStorage.setItem(
+            storageKey,
+            JSON.stringify({
+                currentQuestionIndex,
+                answers,
+                visitedIndices: Array.from(visitedIndices),
+            })
+        );
+    }, [progressHydrated, quiz, answers, currentQuestionIndex, visitedIndices]);
 
     const handlePrevious = () => {
         if (currentQuestionIndex > 0) {
@@ -172,12 +253,14 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
             submitPayload,
             {
                 onSuccess: () => {
-                    const timerKey = getQuizTimerStorageKey(
-                        quiz?.id,
-                        quiz?.attemptStatus?.attemptsUsed ?? 0
-                    );
+                    const attemptsUsed = quiz?.attemptStatus?.attemptsUsed ?? 0;
+                    const timerKey = getQuizTimerStorageKey(quiz?.id, attemptsUsed);
                     if (timerKey) {
                         window.sessionStorage.removeItem(timerKey);
+                    }
+                    const progressKey = getQuizProgressStorageKey(quiz?.id, attemptsUsed);
+                    if (progressKey) {
+                        window.sessionStorage.removeItem(progressKey);
                     }
                     setShowSubmitModal(false);
                     setIsSubmitted(true);

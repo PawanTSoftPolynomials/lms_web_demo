@@ -249,3 +249,16 @@ export const exportCourse = async (courseId) => {
         responseType: "blob"
     });
 };
+
+/**
+ * Track Course View — updates lastViewedAt on the instructor's own course.
+ * Fire-and-forget: call whenever an instructor opens a course in the Composer.
+ */
+export const trackCourseView = async (courseId) => {
+    try {
+        const { data } = await api.patch(`/courses/${courseId}/view`);
+        return data;
+    } catch {
+        // Non-critical — silently ignore failures
+    }
+};
