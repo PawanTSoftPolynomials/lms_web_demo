@@ -30,6 +30,8 @@ export default function DocxViewer({
   const [zoomScale, setZoomScale] = useState(1.0);
   const [isMounted, setIsMounted] = useState(false);
 
+  const viewportRef = useRef(null);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -81,6 +83,27 @@ export default function DocxViewer({
       isMountedFlag = false;
     };
   }, [fileUrl, resolvedUrl]);
+
+  // Click-to-page on the document paper: a click on the right half of the
+  // viewport moves forward, the left half back — the same gesture PdfViewer's
+  // handleViewportClick gives a PDF. A .docx carries no page breaks of its own
+  // (the parser yields one continuous flow of paragraphs), so a "page" here is
+  // one viewport height, minus a small overlap so no line is stepped over. The
+  // handler sits on the scrollable viewport itself rather than on overlay
+  // halves, which would swallow every wheel and touch-scroll gesture before it
+  // reached the scroll area; the browser only fires "click" for a genuine tap
+  // with no drag in between.
+  const handleViewportClick = (e) => {
+    if (loadingStep || error || elements.length === 0) return;
+    // A click that finishes a text selection shouldn't also turn the page.
+    if (typeof window !== "undefined" && window.getSelection()?.toString()) return;
+    const el = viewportRef.current;
+    if (!el) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const forward = e.clientX - rect.left > rect.width / 2;
+    const step = Math.max(el.clientHeight - 80, 120);
+    el.scrollTop += forward ? step : -step;
+  };
 
   const handleZoomIn = () => setZoomScale((prev) => Math.min(prev + 0.15, 2.0));
   const handleZoomOut = () => setZoomScale((prev) => Math.max(prev - 0.15, 0.7));
@@ -187,7 +210,11 @@ export default function DocxViewer({
       )}
 
       {/* DOCUMENT PAPER VIEWPORT */}
-      <div className="relative w-full h-[78vh] min-h-[520px] max-h-[900px] overflow-auto bg-[#060913] p-4 sm:p-8 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80">
+      <div
+        ref={viewportRef}
+        onClick={handleViewportClick}
+        className="relative w-full h-[78vh] min-h-[520px] max-h-[900px] overflow-auto bg-[#060913] p-4 sm:p-8 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80"
+      >
         {/* Loading Overlay */}
         {loadingStep && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#060913]/90 z-20 rounded-2xl">

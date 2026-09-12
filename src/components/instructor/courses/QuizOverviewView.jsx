@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import QuestionRepositoryPickerModal from "./QuestionRepositoryPickerModal";
+import { RETIRED_QUESTION_TYPES } from "@/lib/questionType";
 
 // Question.options (backend) may hold plain strings or richer
 // { optionText, isCorrect?, misconceptionTag? } objects (see
@@ -950,13 +951,15 @@ export function QuizOverviewView({
                   >
                     <option value="MCQ_SINGLE">Single Choice (MCQ)</option>
                     <option value="MCQ_MULTI">Multiple Choice (MCQ)</option>
-                    <option value="TRUE_FALSE">True / False</option>
-                    <option value="FILL_BLANK">Fill in Blanks</option>
-                    <option value="SHORT_ANSWER">Short Answer</option>
-                    <option value="LONG_ANSWER">Long Answer</option>
                     <option value="ARRANGE_TOKENS">Arrange Tokens</option>
                     <option value="MATCH_PAIRS">Match Pairs</option>
-                    <option value="SELF_ASSESSMENT">Self Assessment</option>
+                    {/* Only for a question that already is one — see
+                        RETIRED_QUESTION_TYPES. */}
+                    {RETIRED_QUESTION_TYPES[activeQuestion.questionType] && (
+                      <option value={activeQuestion.questionType}>
+                        {RETIRED_QUESTION_TYPES[activeQuestion.questionType]}
+                      </option>
+                    )}
                   </select>
                 </div>
 
