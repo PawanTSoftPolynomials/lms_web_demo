@@ -65,6 +65,11 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const playerRef = useRef(null);
     const localVideoRef = useRef(null);
     const [slideIndex, setSlideIndex] = useState(0);
+    // A file viewer's own toolbar carries the same title this player already
+    // shows above it, so the deck rendered its name twice. The viewers can
+    // hand their controls up instead (onControlsRender) and drop their header
+    // (hideToolbar) — one title, one row of controls.
+    const [viewerControls, setViewerControls] = useState(null);
 
     const type = content?.type;
     const videoUrl = content?.videoUrl;
@@ -228,6 +233,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
     useEffect(() => {
         setSlideIndex(0);
+        setViewerControls(null);
     }, [content]);
 
     if (!content) {
@@ -269,6 +275,27 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const isSlideShow = hasSlideDeck || isLegacySlideShow;
     const slideCount = hasSlideDeck ? slideDeck.length : legacySlides.length;
 
+    // Click-to-turn on the slide surface: a click on its right half goes to the
+    // next slide, the left half to the previous one — the same gesture the PDF
+    // viewer offers (see PdfViewer's handleViewportClick). It is bound to the
+    // slide body only, never the strip below it, so the Previous/Next buttons
+    // and the dot jumps keep their own behaviour instead of being turned twice
+    // by one click.
+    const handleSlideAreaClick = (event) => {
+        if (slideCount <= 1) return;
+        // Slide bodies carry authored HTML, which can hold its own links and
+        // media controls; those clicks belong to the element, not to paging.
+        if (event.target?.closest?.("a, button, input, textarea, select, video, audio, iframe")) return;
+        // A click that finishes a text selection shouldn't also turn the slide.
+        if (typeof window !== "undefined" && window.getSelection()?.toString()) return;
+
+        const rect = event.currentTarget.getBoundingClientRect();
+        const forward = event.clientX - rect.left > rect.width / 2;
+        setSlideIndex((prev) =>
+            forward ? Math.min(slideCount - 1, prev + 1) : Math.max(0, prev - 1)
+        );
+    };
+
     // Only VIDEO needs to fill (and be clipped to) the player frame exactly —
     // it's a fixed-aspect embed with nothing more to reveal. Every other
     // type (a long document, a tall embedded image, multi-slide HTML, etc.)
@@ -286,7 +313,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                 (e.g. a merged document block from an import with no block title) —
                 an icon-only bar with nothing next to it isn't useful, and we don't
                 invent a fake title just to fill it. */}
-            {type !== "VIDEO" && (content.title || isSlideShow) && (
+            {type !== "VIDEO" && (content.title || isSlideShow || viewerControls) && (
             <div className="border-b border-border px-4 sm:px-6 py-3.5 flex items-center justify-between bg-background min-h-[52px]">
                 <h2 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2 truncate pr-2">
                     {isSlideShow && <Presentation className="h-4 w-4 text-primary shrink-0" />}
@@ -299,6 +326,8 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                         Slide {slideIndex + 1} / {slideCount}
                     </span>
                 )}
+
+                {viewerControls}
             </div>
             )}
 
@@ -342,7 +371,13 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                         {displayFileUrl && (displayFileUrl.toLowerCase().includes(".pdf") || displayFileUrl.toLowerCase().includes("/pdf")) ? (
                             <PdfViewer fileUrl={displayFileUrl} title={content?.title} hideToolbar />
                         ) : displayFileUrl && (displayFileUrl.toLowerCase().includes(".ppt") || displayFileUrl.toLowerCase().includes(".pptx")) ? (
-                            <PptViewer fileUrl={displayFileUrl} title={content?.title} />
+                            <PptViewer
+                                fileUrl={displayFileUrl}
+                                title={content?.title}
+                                hideToolbar
+                                showDownload={false}
+                                onControlsRender={setViewerControls}
+                            />
                         ) : displayFileUrl && (displayFileUrl.toLowerCase().includes(".doc") || displayFileUrl.toLowerCase().includes(".docx")) ? (
                             <DocxViewer fileUrl={displayFileUrl} title={content?.title} />
                         ) : displayFileUrl ? (
@@ -368,11 +403,16 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     identical for the student and the instructor. */}
                 {hasSlideDeck && !isFileLike && (
                     <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px]">
-                        <SlideColumnsView
-                            title={slideDeck[slideIndex]?.title}
-                            columns={slideDeck[slideIndex]?.columns || []}
-                            backgroundColor={slideDeck[slideIndex]?.backgroundColor}
-                        />
+                        <div
+                            onClick={handleSlideAreaClick}
+                            className={slideDeck.length > 1 ? "cursor-pointer" : undefined}
+                        >
+                            <SlideColumnsView
+                                title={slideDeck[slideIndex]?.title}
+                                columns={slideDeck[slideIndex]?.columns || []}
+                                backgroundColor={slideDeck[slideIndex]?.backgroundColor}
+                            />
+                        </div>
 
                         {slideDeck.length > 1 && (
                             <div className="mt-6 pt-4 border-t border-border flex items-center justify-between gap-2">
@@ -477,7 +517,10 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     isLegacySlideShow ? (
                         <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px]">
                             <div
-                                className="prose prose-invert max-w-none text-foreground text-base sm:text-lg leading-relaxed flex-1 flex flex-col justify-center select-text"
+                                onClick={handleSlideAreaClick}
+                                className={`prose prose-invert max-w-none text-foreground text-base sm:text-lg leading-relaxed flex-1 flex flex-col justify-center select-text ${
+                                    legacySlides.length > 1 ? "cursor-pointer" : ""
+                                }`}
                                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(legacySlides[slideIndex] || "") }}
                             />
 

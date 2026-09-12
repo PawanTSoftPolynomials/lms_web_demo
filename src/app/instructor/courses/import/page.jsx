@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import JSZip from "jszip";
 import {
   ArrowLeft,
   Sparkles,
@@ -554,6 +555,33 @@ export default function CourseImportPage() {
     }
   };
 
+  const handleDownloadSampleZip = async () => {
+    try {
+      let templateData = FALLBACK_TEMPLATE;
+      try {
+        const { data: fetchedTemplate } = await refetchTemplate();
+        if (fetchedTemplate) templateData = fetchedTemplate;
+      } catch (e) {}
+
+      const zip = new JSZip();
+      zip.file("course.json", JSON.stringify(templateData, null, 2));
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "sample_course_package.zip";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download Sample ZIP Error:", err);
+      setErrorMsg("Failed to download sample ZIP package.");
+    }
+  };
+
   // Preview Stats Calculation
   const canonicalData = generatedDraft?.canonicalJson || generatedDraft?.data?.canonicalJson || generatedDraft || {};
   const targetMetadata = canonicalData?.metadata || canonicalData || {};
@@ -747,6 +775,17 @@ export default function CourseImportPage() {
                     <span>Select ZIP Package</span>
                   </button>
                   <p className="text-[11px] text-muted-foreground text-center font-mono">.zip file up to 2GB</p>
+
+                  <div className="flex items-center justify-center pt-1">
+                    <button
+                      type="button"
+                      onClick={handleDownloadSampleZip}
+                      className="text-xs text-sky-400 hover:text-sky-300 font-semibold transition flex items-center space-x-1.5 cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Sample ZIP</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
