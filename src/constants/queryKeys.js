@@ -121,4 +121,5 @@ export const QUERY_KEYS = {
     RESULTS: "results",
     ASSESSMENTS: "assessments",
     INSTRUCTOR_CERTIFICATES: "instructor-certificates",
+    COURSE_IMPORT_JOB: "course-import-job",
 };

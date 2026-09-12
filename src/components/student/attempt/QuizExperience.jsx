@@ -15,6 +15,7 @@ import QuizResultSummary from "@/components/student/attempt/QuizResultSummary";
 import useQuiz from "@/hooks/queries/student/useQuiz";
 import useSubmitQuiz from "@/hooks/queries/student/useSubmitQuiz";
 import useQuizResult from "@/hooks/queries/student/useQuizResult";
+import useTrackCourseAccess from "@/hooks/queries/student/useTrackCourseAccess";
 import { checkAnswerCorrectness } from "@/lib/quizAnswers";
 import { resolveQuestionType } from "@/lib/questionType";
 
@@ -46,6 +47,13 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
     } = useQuiz(quizId);
 
     const quiz = data?.data || data;
+
+    const trackAccessMutation = useTrackCourseAccess();
+    useEffect(() => {
+        if (quiz?.courseId) {
+            trackAccessMutation.mutate(quiz.courseId);
+        }
+    }, [quiz?.courseId]);
 
     const questions = useMemo(
         () => quiz?.questions || [],
@@ -126,6 +134,14 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
     // both slip past a state-based check in the same tick.
     const submitInFlightRef = useRef(false);
 
+    // Dismissing the confirm modal clears the failure shown inside it, so the
+    // next open starts clean rather than re-showing a stale error.
+    const handleCloseSubmitModal = () => {
+        setSubmitError("");
+        submitInFlightRef.current = false;
+        setShowSubmitModal(false);
+    };
+
     // Shared by the manual "Submit Quiz" confirm and the timer running out —
     // the timeout path skips the completeness gate below since the attempt
     // has to close regardless of how many questions got answered.
@@ -175,12 +191,15 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
                     // A real failure (network/server) should allow retrying —
                     // only a successful submit keeps this attempt locked.
                     submitInFlightRef.current = false;
-                    setShowSubmitModal(false);
                     // The server's message explains a refusal (e.g. no
-                    // attempts left); anything else is most likely network.
+                    // attempts left); a timeout needs its own wording since
+                    // axios reports it with no response at all; anything else
+                    // is most likely network.
                     setSubmitError(
-                        error?.response?.data?.message ||
-                            "Your answers couldn't be submitted. Check your connection and try again."
+                        error?.code === "ECONNABORTED" || error?.message?.includes("timeout")
+                            ? "Submission timed out while contacting the server. Please click Retry Submission to try again."
+                            : error?.response?.data?.message ||
+                                  "Your answers couldn't be submitted. Check your connection and try again."
                     );
                 },
             }
@@ -346,7 +365,7 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
 
     return (
         <>
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
                 <QuizHeader
                     quiz={quiz}
                     onBack={onBack}
@@ -361,7 +380,7 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
                     </p>
                 )}
 
-                {submitError && (
+                {submitError && !showSubmitModal && (
                     <p
                         role="alert"
                         className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-500"
@@ -393,15 +412,14 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
 
             <QuizSubmitModal
                 isOpen={showSubmitModal}
-                onClose={() =>
-                    setShowSubmitModal(false)
-                }
+                onClose={handleCloseSubmitModal}
                 onConfirm={handleSubmitQuiz}
                 totalQuestions={questions.length}
                 answeredQuestions={answeredQuestions}
                 isSubmitting={
                     submitQuizMutation.isPending
                 }
+                errorMessage={submitError}
             />
         </>
     );

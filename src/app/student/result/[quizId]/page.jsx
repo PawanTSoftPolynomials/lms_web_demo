@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import {
@@ -8,6 +8,8 @@ import {
   BookOpen,
   CalendarClock,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   CircleSlash,
   HelpCircle,
   ListChecks,
@@ -31,13 +33,13 @@ const SUBMISSIONS_HREF = "/student/assignments";
 /** A read-only fact about the attempt — tinted, not bordered. */
 function StatTile({ icon: Icon, iconClassName, label, value, detail }) {
   return (
-    <div className="min-w-0 rounded-xl bg-muted/50 p-3.5 sm:p-4">
-      <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-        <Icon size={13} className={`shrink-0 ${iconClassName}`} aria-hidden />
-        {label}
+    <div className="min-w-0 rounded-xl bg-muted/50 p-2.5 sm:p-4">
+      <p className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground sm:gap-1.5 sm:text-[11px]">
+        <Icon size={12} className={`shrink-0 sm:w-[13px] sm:h-[13px] ${iconClassName}`} aria-hidden />
+        <span className="truncate">{label}</span>
       </p>
-      <p className="mt-1.5 text-base font-semibold leading-snug tabular-nums text-foreground sm:text-lg">{value}</p>
-      {detail && <p className="text-xs tabular-nums text-muted-foreground">{detail}</p>}
+      <p className="mt-1 break-words text-[13px] font-semibold leading-snug tabular-nums text-foreground sm:mt-1.5 sm:text-lg">{value}</p>
+      {detail && <p className="truncate text-[10px] tabular-nums text-muted-foreground sm:text-xs">{detail}</p>}
     </div>
   );
 }
@@ -45,15 +47,12 @@ function StatTile({ icon: Icon, iconClassName, label, value, detail }) {
 function QuizResultPageContent() {
   const { quizId } = useParams();
   const searchParams = useSearchParams();
-  // The page that launched this quiz (set via ?from= on the attempt link) —
-  // takes priority over guessing from the quiz's own lessonId, since the
-  // Assessment Quiz panel lists every quiz for the whole course on every
-  // lesson's page, so a quiz's own lessonId doesn't reliably match the
-  // specific lesson the student actually launched it from.
   const returnTo = searchParams.get("from");
   // One specific earlier attempt (?attempt=<id>); the latest when absent.
   const attemptId = searchParams.get("attempt");
   const { data, isLoading, isError } = useQuizResult(quizId, { attemptId });
+
+  const [mobileReviewIndex, setMobileReviewIndex] = useState(0);
 
   const submission = data?.data || data;
 
@@ -156,14 +155,14 @@ function QuizResultPageContent() {
       : "text-red-600 dark:text-red-400";
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 pb-12 sm:space-y-8">
-      <div className="flex items-center justify-between gap-3">
+    <div className="mx-auto w-full min-w-0 max-w-5xl space-y-4 overflow-x-hidden px-3 pb-12 sm:space-y-8 sm:px-6">
+      <div className="flex items-center justify-between gap-2 sm:gap-3">
         <Link
           href={backHref}
-          className="-ml-2 inline-flex min-h-[44px] items-center gap-2 rounded-lg px-2 text-sm font-semibold text-primary underline-offset-4 hover:underline"
+          className="-ml-2 inline-flex min-h-[44px] min-w-0 items-center gap-2 rounded-lg px-2 text-[13px] font-semibold text-primary underline-offset-4 hover:underline sm:text-sm"
         >
-          <ArrowLeft size={16} aria-hidden />
-          {backLabel}
+          <ArrowLeft size={16} className="shrink-0" aria-hidden />
+          <span className="truncate">{backLabel}</span>
         </Link>
         {submission.canAttempt && (
           <Link
@@ -188,29 +187,31 @@ function QuizResultPageContent() {
       {/* Result overview — on phones this stacks title, then score, then attempt. */}
       <section
         aria-labelledby="result-title"
-        className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-7"
+        className="rounded-2xl border border-border bg-card p-3.5 shadow-sm sm:p-7"
       >
-        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-3 sm:gap-6 md:flex-row md:items-start md:justify-between">
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400 sm:text-xs">
               Quiz{moduleTitle ? ` · ${moduleTitle}` : ""}
             </p>
             <h1
               id="result-title"
-              className="mt-1.5 break-words text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
+              className="mt-1 break-words text-lg font-bold leading-snug tracking-tight text-foreground sm:mt-1.5 sm:text-3xl"
             >
               {quiz?.title || "Quiz"}
             </h1>
-            {quiz?.course?.title && <p className="mt-1 text-sm text-muted-foreground">{quiz.course.title}</p>}
-            <p className="mt-3 text-sm font-semibold text-foreground">{attemptLabel}</p>
+            {quiz?.course?.title && (
+              <p className="mt-0.5 text-xs text-muted-foreground sm:mt-1 sm:text-sm">{quiz.course.title}</p>
+            )}
+            <p className="mt-2 text-xs font-semibold text-foreground sm:mt-3 sm:text-sm">{attemptLabel}</p>
           </div>
 
-          <div className="flex shrink-0 items-center gap-5 md:flex-col md:items-end md:gap-2 md:text-right">
-            <p className={`text-5xl font-bold leading-none tracking-tight tabular-nums ${scoreTone}`}>
+          <div className="flex shrink-0 items-center gap-4 sm:gap-5 md:flex-col md:items-end md:gap-2 md:text-right">
+            <p className={`text-3xl font-bold leading-none tracking-tight tabular-nums sm:text-5xl ${scoreTone}`}>
               {graded ? `${percentage}%` : "—"}
             </p>
-            <div className="space-y-1.5 md:flex md:flex-col md:items-end">
-              <p className="text-sm font-semibold tabular-nums text-foreground">
+            <div className="space-y-1 sm:space-y-1.5 md:flex md:flex-col md:items-end">
+              <p className="text-xs font-semibold tabular-nums text-foreground sm:text-sm">
                 {graded ? (
                   <>
                     {score} / {totalMarks} <span className="font-normal text-muted-foreground">marks</span>
@@ -225,7 +226,7 @@ function QuizResultPageContent() {
         </div>
 
         {graded && (
-          <div className="mt-6">
+          <div className="mt-4 sm:mt-6">
             <div
               className="relative h-2 rounded-full bg-muted"
               role="img"
@@ -246,7 +247,7 @@ function QuizResultPageContent() {
         )}
       </section>
 
-      <section aria-label="Attempt details" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <section aria-label="Attempt details" className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6">
         <StatTile
           icon={CalendarClock}
           iconClassName="text-primary"
@@ -284,10 +285,10 @@ function QuizResultPageContent() {
 
       <section aria-labelledby="attempt-history" className="space-y-4">
         <div>
-          <h2 id="attempt-history" className="text-lg font-semibold text-foreground">
+          <h2 id="attempt-history" className="text-base font-semibold text-foreground sm:text-lg">
             Attempt history
           </h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
             {allowanceText}
             {bestPercentage !== null && (
               <>
@@ -301,16 +302,16 @@ function QuizResultPageContent() {
 
       {/* Concept Performance Analysis */}
       {conceptScores && Object.keys(conceptScores).length > 0 && (
-        <section className="space-y-4">
+        <section className="space-y-3 sm:space-y-4">
           <div>
-            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <BookOpen size={20} className="text-primary" />
+            <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+              <BookOpen size={18} className="text-primary shrink-0 sm:w-5 sm:h-5" />
               Concept-wise Performance Analysis
             </h3>
-            <p className="text-xs text-muted-foreground mt-1">Review which concepts are well understood and which need practice.</p>
+            <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">Review which concepts are well understood and which need practice.</p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
             {Object.entries(conceptScores).map(([conceptName, cData]) => {
               const perc = cData.percentage ?? 0;
               const isPassed = perc >= passingScore;
@@ -330,17 +331,17 @@ function QuizResultPageContent() {
               }
 
               return (
-                <Card key={conceptName} className={`p-5 border-transparent bg-background/30 flex flex-col justify-between gap-4 border-l-[4px] ${
+                <Card padding="" key={conceptName} className={`p-3.5 sm:p-5 border-transparent bg-background/30 flex flex-col justify-between gap-3 sm:gap-4 border-l-[4px] ${
                   isPassed ? "border-l-emerald-500" : "border-l-orange-500"
                 }`}>
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="text-sm font-semibold text-foreground">{conceptName}</h4>
+                      <h4 className="text-xs sm:text-sm font-semibold text-foreground">{conceptName}</h4>
                       <p className="text-[10px] text-muted-foreground mt-0.5">
                         {cData.score} / {cData.total} Marks
                       </p>
                     </div>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                    <span className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded ${
                       isPassed ? "bg-emerald-500/10 text-emerald-400" : "bg-primary/10 text-primary"
                     }`}>
                       {perc}%
@@ -365,21 +366,91 @@ function QuizResultPageContent() {
         </section>
       )}
 
-      {/* Detailed Question Review List */}
-      <section className="space-y-6">
+      {/* Detailed Question Review List / Mobile Slider */}
+      <section className="space-y-3 sm:space-y-6">
         <div>
-          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <HelpCircle size={20} className="text-primary" />
+          <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+            <HelpCircle size={18} className="text-primary shrink-0 sm:w-5 sm:h-5" />
             Detailed Question Review
           </h3>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-[11px] text-muted-foreground mt-0.5 sm:mt-1 sm:text-xs">
             {submission.isLatestAttempt === false
               ? `Your answers in attempt ${attemptNumber}, alongside the correct options.`
               : "Review your selections alongside correct options."}
           </p>
         </div>
 
-        <div className="space-y-5">
+        {/* Mobile Question Review Slider (sm:hidden) */}
+        {quiz?.questions?.length > 0 && (
+          <div className="sm:hidden space-y-2">
+            {/* Single Question Review Card */}
+            {quiz.questions[mobileReviewIndex] && (
+              <QuestionReviewCard
+                key={quiz.questions[mobileReviewIndex].id}
+                question={quiz.questions[mobileReviewIndex]}
+                index={mobileReviewIndex}
+                userAnswer={parsedAnswers.find((ans) => ans.questionId === quiz.questions[mobileReviewIndex].id)}
+              />
+            )}
+
+            {/* Unified Mobile Question Navigation Container */}
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-center justify-between gap-1 rounded-xl border border-border bg-background/50 backdrop-blur-md p-1 min-w-0 shadow-sm">
+                {/* Previous Button */}
+                <button
+                  type="button"
+                  onClick={() => setMobileReviewIndex((prev) => Math.max(0, prev - 1))}
+                  disabled={mobileReviewIndex === 0}
+                  title="Previous Question"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-25 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+
+                {/* Scrollable Question Number Strip */}
+                <div className="flex flex-1 min-w-0 items-center justify-center gap-1 overflow-x-auto scrollbar-none py-0.5 px-1">
+                  {quiz.questions.map((q, idx) => {
+                    const isCurrent = idx === mobileReviewIndex;
+                    return (
+                      <button
+                        key={q.id || idx}
+                        type="button"
+                        onClick={() => setMobileReviewIndex(idx)}
+                        title={`Go to question ${idx + 1}`}
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold transition cursor-pointer ${
+                          isCurrent
+                            ? "bg-emerald-500 text-white shadow-sm shadow-emerald-500/25"
+                            : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                        }`}
+                      >
+                        {idx + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  type="button"
+                  onClick={() => setMobileReviewIndex((prev) => Math.min(quiz.questions.length - 1, prev + 1))}
+                  disabled={mobileReviewIndex >= quiz.questions.length - 1}
+                  title="Next Question"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-25 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Secondary Subordinate Position Indicator */}
+              <p className="text-[10px] font-semibold text-muted-foreground text-center">
+                Question {mobileReviewIndex + 1} of {quiz.questions.length}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Desktop Vertical Stack (hidden sm:block) */}
+        <div className="hidden sm:block space-y-5">
           {quiz?.questions?.map((question, index) => (
             <QuestionReviewCard
               key={question.id}

@@ -56,21 +56,21 @@ export default function QuestionCard({
   if (!question) return null;
 
   return (
-    <div className="rounded-2xl border border-border bg-background p-3 sm:p-4 shadow-xl">
+    <div className="rounded-2xl border border-border bg-background p-2.5 sm:p-4 shadow-xl">
       {/* Question Text + Concept / Marks */}
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <h2 className="min-w-0 flex-1 text-lg sm:text-xl font-semibold leading-snug text-foreground">
+      <div className="mb-2.5 sm:mb-4 flex items-start justify-between gap-2.5 min-w-0">
+        <h2 className="text-sm sm:text-xl font-semibold leading-snug text-foreground break-words flex-1 min-w-0">
           {question.question}
         </h2>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5">
           {question.concept && (
             <div className="hidden sm:inline-block rounded-lg bg-muted border border-transparent px-2.5 py-1 text-xs font-medium text-foreground">
               Concept: <span className="text-primary font-semibold">{question.concept}</span>
             </div>
           )}
 
-          <div className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary whitespace-nowrap">
+          <div className="rounded-lg bg-primary/10 px-2 py-0.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold text-primary whitespace-nowrap">
             {question.marks} {question.marks === 1 ? "Mark" : "Marks"}
           </div>
         </div>

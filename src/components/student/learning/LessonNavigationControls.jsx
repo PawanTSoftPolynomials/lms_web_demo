@@ -5,9 +5,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 // Previous/Next controls, generalized over the navigation unit via
 // `unitLabel` ("Topic" for the primary topic-scoped pathway, "Lesson" for
 // the zero-Topic fallback) so both callers share one component instead of
-// forking near-identical copies. `variant="compact"` is the mobile row
-// directly under the video player; `variant="full"` is the desktop bar at
-// the bottom of the page. Both share the same navigation rules (passed in
+// forking near-identical copies. `variant="corners"` floats over the player
+// (desktop); `variant="below"` is the row under the player used below xl,
+// where floating controls would sit on top of what the student is reading;
+// `variant="compact"` and `variant="full"` are older layouts. Both share the same navigation rules (passed in
 // via the on* callbacks) — only the layout/density differs.
 export default function LessonNavigationControls({
   variant = "full",
@@ -23,6 +24,8 @@ export default function LessonNavigationControls({
     // Floats over the content it navigates rather than sitting in its own
     // bar, so each button carries its own solid/blurred chip — legible over
     // arbitrary scrolled content (video, text, images) underneath it.
+    // Identical at every width; below xl the chips are sized up to a 44px
+    // touch target, which is the only difference.
     return (
       <div className="w-full flex items-center justify-between gap-2">
         <button
@@ -35,7 +38,7 @@ export default function LessonNavigationControls({
             !previousItem ? "opacity-30 cursor-not-allowed hover:border-border hover:text-foreground" : ""
           }`}
         >
-          <ChevronLeft size={16} />
+          <ChevronLeft size={16} className="shrink-0" />
         </button>
 
         <button
@@ -48,7 +51,47 @@ export default function LessonNavigationControls({
             !nextItem ? "opacity-40 cursor-not-allowed bg-primary/40 text-muted-foreground" : ""
           }`}
         >
-          <ChevronRight size={16} />
+          <ChevronRight size={16} className="shrink-0" />
+        </button>
+      </div>
+    );
+  }
+
+  if (variant === "below") {
+    // The row under the player, below xl. Same handlers and the same
+    // enabled/disabled rules as the corners overlay — this is a second
+    // placement of one control, not a second control. Icon + text so it
+    // reads as lesson navigation rather than as the document's page
+    // buttons, which sit in the same stack but stay neutral-outlined while
+    // Next here keeps the primary fill every other variant uses.
+    return (
+      <div className="flex items-center justify-between gap-3">
+        <button
+          type="button"
+          disabled={!previousItem}
+          onClick={onSelectPrevious}
+          aria-label="Previous content"
+          title={`Previous ${unitLabel}`}
+          className={`inline-flex items-center gap-1.5 rounded-xl border border-border bg-card/90 px-3.5 py-2 min-h-[44px] text-xs font-bold text-foreground transition hover:border-primary hover:text-primary cursor-pointer ${
+            !previousItem ? "opacity-30 cursor-not-allowed hover:border-border hover:text-foreground" : ""
+          }`}
+        >
+          <ChevronLeft size={15} className="shrink-0" aria-hidden="true" />
+          Previous
+        </button>
+
+        <button
+          type="button"
+          disabled={!nextItem}
+          onClick={onSelectNext}
+          aria-label="Next content"
+          title={`Next ${unitLabel}`}
+          className={`inline-flex items-center gap-1.5 rounded-xl bg-primary hover:bg-orange-600 px-3.5 py-2 min-h-[44px] text-xs font-bold text-slate-950 transition cursor-pointer ${
+            !nextItem ? "opacity-40 cursor-not-allowed bg-primary/40 text-muted-foreground" : ""
+          }`}
+        >
+          Next
+          <ChevronRight size={15} className="shrink-0" aria-hidden="true" />
         </button>
       </div>
     );

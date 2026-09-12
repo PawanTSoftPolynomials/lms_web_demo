@@ -9,6 +9,7 @@ import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import useAssignment from "@/hooks/queries/student/useAssignment";
+import useTrackCourseAccess from "@/hooks/queries/student/useTrackCourseAccess";
 import AssignmentSubmissionPanel from "@/components/student/assignments/AssignmentSubmissionPanel";
 import SubmissionStatusBadge from "@/components/student/submissions/SubmissionStatusBadge";
 import { assignmentRecord, formatDate, formatTime } from "@/features/student/constants/submissionsConfig";
@@ -61,6 +62,15 @@ export default function AssignmentDetailPage({ params }) {
       </Card>
     );
   }
+
+  const trackAccessMutation = useTrackCourseAccess();
+  const parentCourseId = assignment?.courseId || assignment?.course?.id;
+
+  useEffect(() => {
+    if (parentCourseId) {
+      trackAccessMutation.mutate(parentCourseId);
+    }
+  }, [parentCourseId]);
 
   // Same status/grade derivation the Submissions list uses, so the grade
   // shown here always matches what "View Submission" promised.

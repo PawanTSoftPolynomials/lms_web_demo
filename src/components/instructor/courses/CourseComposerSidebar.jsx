@@ -556,6 +556,7 @@ export function CourseComposerSidebar({
   selectedCellId,
   isOpen = true,
   onToggleOpen,
+  hideHeader = false,
   onSelectCourseOverview,
   onSelectQuiz,
   onDuplicateQuiz,
@@ -680,29 +681,33 @@ export function CourseComposerSidebar({
         ? "lg:max-h-full"
         : "lg:h-[calc(100vh-7rem)] lg:max-h-[calc(100vh-7rem)]"
     } overflow-hidden text-foreground`}>
-      {/* Panel Title */}
-      <div className="flex items-center justify-between gap-2 mb-1 shrink-0">
-        <div className="font-black text-sm uppercase tracking-widest text-foreground flex items-center gap-2">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-accent, #f97316)" strokeWidth="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-          </svg>
-          <span>Course Map</span>
+      {!hideHeader && (
+        <>
+        {/* Panel Title */}
+        <div className="flex items-center justify-between gap-2 mb-1 shrink-0">
+          <div className="font-black text-sm uppercase tracking-widest text-foreground flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-accent, #f97316)" strokeWidth="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
+            <span>Course Map</span>
+          </div>
+          <button
+            type="button"
+            onClick={onToggleOpen}
+            className="p-1 rounded-lg text-muted-foreground hover:text-primary hover:bg-background transition cursor-pointer shrink-0"
+            aria-label="Hide course map"
+            title="Hide course map"
+          >
+            <PanelLeftClose size={16} />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={onToggleOpen}
-          className="p-1 rounded-lg text-muted-foreground hover:text-primary hover:bg-background transition cursor-pointer shrink-0"
-          aria-label="Hide course map"
-          title="Hide course map"
-        >
-          <PanelLeftClose size={16} />
-        </button>
-      </div>
 
-      {/* Compact subtitle */}
-      <div className="text-[12.5px] text-muted-foreground mb-3 pb-3 border-b border-border/80">
-        Course structure
-      </div>
+        {/* Compact subtitle */}
+        <div className="text-[12.5px] text-muted-foreground mb-3 pb-3 border-b border-border/80">
+          Course structure
+        </div>
+        </>
+      )}
 
       {/* New Module Button - Instructor only */}
       {role === "INSTRUCTOR" && (

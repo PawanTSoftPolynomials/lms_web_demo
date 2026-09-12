@@ -45,6 +45,8 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
 
   const instructorName = course.creator?.name;
 
+  const continueLabel = isComplete ? "Review" : "Continue Learning";
+
   const learnDestination = `/student/learn/${course.id}`;
   const detailsDestination = `/student/courses/${course.id}`;
   const feedbackDestination = `/student/feedback?courseId=${course.id}`;
@@ -58,10 +60,10 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
   return (
     <div
       onClick={() => router.push(primaryDestination)}
-      className="bg-card group relative flex h-full w-[85%] shrink-0 snap-center max-md:first:ml-[5%] max-md:last:mr-[5%] md:w-full md:shrink-0 flex-col overflow-hidden rounded-2xl border border-border shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
+      className="bg-card group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-border shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
     >
       {/* Flush image wrapper */}
-      <div className="relative h-32 md:h-36 shrink-0 w-full overflow-hidden bg-muted">
+      <div className="relative aspect-video shrink-0 w-full overflow-hidden bg-muted">
         {course.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -116,22 +118,35 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
           </span>
         </div>
 
-        <div className="mt-auto pt-3 border-t border-border flex items-center justify-between gap-2">
+        {/* Two peer actions on one row at every width: a neutral outline for
+            details, a primary-tinted one for resuming. Below md the card rides
+            in a px-[6%] snap carousel, which leaves only ~216px for this row at
+            320px — 26px short of the two full labels, so they used to wrap and
+            the pair stopped looking like a pair. The resume label therefore
+            drops to its short form under 360px, which lets nowrap apply at
+            every width. Touch height is raised below md as well: py-1 with
+            11px text is a ~23px target, well under the 44px minimum. */}
+        <div className="mt-auto pt-3 border-t border-border flex items-stretch gap-1.5">
           <button
             onClick={goTo(detailsDestination)}
-            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-transparent px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition"
+            aria-label="View Course"
+            title="View Course"
+            className="inline-flex flex-auto items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-transparent px-2 py-2 min-h-[40px] md:py-1 md:min-h-0 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition"
           >
-            <Eye size={11} />
+            <Eye size={11} aria-hidden="true" />
             View Course
           </button>
 
           {isEnrolled && (
             <button
               onClick={goTo(isComplete ? feedbackDestination : learnDestination)}
-              className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-[11px] font-bold text-primary transition hover:opacity-80"
+              aria-label={continueLabel}
+              title={continueLabel}
+              className="inline-flex flex-auto items-center justify-center gap-1 whitespace-nowrap rounded-md border border-primary/40 bg-transparent px-2 py-2 min-h-[40px] md:py-1 md:min-h-0 text-[11px] font-bold text-primary hover:bg-primary/10 hover:border-primary/60 transition"
             >
-              {isComplete ? "Review" : "Continue Learning"}
-              <ArrowRight size={13} />
+              <span className="max-[359px]:hidden">{continueLabel}</span>
+              <span className="hidden max-[359px]:inline">{isComplete ? "Review" : "Continue"}</span>
+              <ArrowRight size={13} aria-hidden="true" />
             </button>
           )}
         </div>

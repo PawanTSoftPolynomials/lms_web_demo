@@ -29,8 +29,15 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
   const widthClass = className || "max-w-none";
 
   return (
-    <div className={`md-prose prose prose-sm overflow-x-auto ${widthClass}`}>
+    <div className={`md-prose prose prose-sm w-full max-w-full min-w-0 break-words [overflow-wrap:anywhere] ${widthClass}`}>
       <style>{`
+        .md-prose {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+        }
         .md-prose h1 {
           font-size: 1.5rem;
           font-weight: 800;
@@ -38,6 +45,9 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
           margin-top: 1.5rem;
           margin-bottom: 0.75rem;
           letter-spacing: -0.02em;
+          line-height: 1.3;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
         .md-prose h2 {
           font-size: 1.25rem;
@@ -48,6 +58,9 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
           letter-spacing: -0.01em;
           padding-bottom: 0.375rem;
           border-bottom: 1px solid var(--border);
+          line-height: 1.35;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
         .md-prose h3 {
           font-size: 1.125rem;
@@ -56,6 +69,9 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
           margin-top: 1.25rem;
           margin-bottom: 0.625rem;
           letter-spacing: -0.01em;
+          line-height: 1.4;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
         .md-prose h4, .md-prose h5, .md-prose h6 {
           font-size: 1rem;
@@ -63,12 +79,39 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
           color: var(--foreground);
           margin-top: 1rem;
           margin-bottom: 0.5rem;
+          line-height: 1.4;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+        }
+        @media (max-width: 640px) {
+          .md-prose h1 {
+            font-size: 1.375rem;
+            margin-top: 1.125rem;
+            margin-bottom: 0.5rem;
+          }
+          .md-prose h2 {
+            font-size: 1.125rem;
+            margin-top: 1.125rem;
+            margin-bottom: 0.5rem;
+          }
+          .md-prose h3 {
+            font-size: 1rem;
+            margin-top: 1rem;
+            margin-bottom: 0.375rem;
+          }
+          .md-prose h4, .md-prose h5, .md-prose h6 {
+            font-size: 0.9375rem;
+            margin-top: 0.875rem;
+            margin-bottom: 0.375rem;
+          }
         }
         .md-prose p {
           color: var(--muted-foreground);
           line-height: 1.7;
           margin-bottom: 0.875rem;
           font-size: 0.9375rem;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
         .md-prose p:last-child {
           margin-bottom: 0;
@@ -82,6 +125,11 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
           margin-top: 0.5rem;
           margin-bottom: 0.875rem;
         }
+        @media (max-width: 640px) {
+          .md-prose ul, .md-prose ol {
+            padding-left: 1rem;
+          }
+        }
         .md-prose ul { list-style-type: disc; }
         .md-prose ol { list-style-type: decimal; }
         .md-prose li {
@@ -89,6 +137,8 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
           margin-bottom: 0.375rem;
           line-height: 1.6;
           font-size: 0.9375rem;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
         .md-prose blockquote {
           border-left: 3px solid var(--primary);
@@ -99,12 +149,23 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
           color: var(--muted-foreground);
           background-color: color-mix(in oklab, var(--primary) 6%, transparent);
           border-radius: 0 0.5rem 0.5rem 0;
+          max-width: 100%;
+          box-sizing: border-box;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+        }
+        @media (max-width: 640px) {
+          .md-prose blockquote {
+            padding-left: 0.75rem;
+          }
         }
         .md-prose a {
           color: var(--primary);
           text-decoration: underline;
           text-underline-offset: 3px;
           transition: opacity 0.15s ease;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
         .md-prose a:hover { opacity: 0.8; }
         .md-prose a:empty { display: none; }
@@ -119,6 +180,8 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
           border-radius: 0.25rem;
           padding: 0.125rem 0.375rem;
           font-size: 0.85em;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
         .md-prose code::before, .md-prose code::after {
           content: none;
@@ -131,6 +194,8 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
           border: 1px solid var(--border);
           background-color: #1E1E1E !important;
           overflow-x: auto;
+          max-width: 100%;
+          -webkit-overflow-scrolling: touch;
         }
         .md-prose pre code {
           color: inherit;
@@ -139,27 +204,61 @@ export default function MarkdownRenderer({ source, className = "", emptyText = "
           border-radius: 0;
           font-size: 0.8125rem;
           line-height: 1.6;
+          white-space: pre;
+          overflow-wrap: normal;
+          word-break: normal;
         }
-        .md-prose table {
+        .md-prose .md-table-wrapper {
+          width: 100%;
+          max-width: 100%;
+          overflow-x: auto;
+          margin-top: 1.25rem;
+          margin-bottom: 1.25rem;
+          border-radius: 0.75rem;
+          border: 1px solid var(--border);
+          background-color: var(--card);
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: thin;
+          scrollbar-color: color-mix(in oklab, var(--primary) 40%, var(--border)) transparent;
+        }
+        .md-prose .md-table-wrapper::-webkit-scrollbar {
+          height: 5px;
+        }
+        .md-prose .md-table-wrapper::-webkit-scrollbar-track {
+          background: transparent;
+          border-radius: 9999px;
+        }
+        .md-prose .md-table-wrapper::-webkit-scrollbar-thumb {
+          background-color: color-mix(in oklab, var(--primary) 40%, var(--border));
+          border-radius: 9999px;
+        }
+        .md-prose .md-table-wrapper::-webkit-scrollbar-thumb:hover {
+          background-color: var(--primary);
+        }
+        .md-prose .md-table-wrapper table, .md-prose table {
           width: 100%;
           border-collapse: separate;
           border-spacing: 0;
-          margin-top: 1.25rem;
-          margin-bottom: 1.25rem;
-          margin-left: auto;
-          margin-right: auto;
-          border-radius: 0.75rem;
-          border: 1px solid var(--border);
-          overflow: hidden;
+          margin: 0;
+          border: none;
           background-color: var(--card);
-          display: block;
-          overflow-x: auto;
-          max-width: 100%;
+          display: table;
+          min-width: max-content;
+        }
+        @media (min-width: 641px) {
+          .md-prose .md-table-wrapper table, .md-prose table {
+            min-width: 100%;
+          }
         }
         .md-prose img {
           display: block;
+          max-width: 100%;
+          height: auto;
           margin-left: auto;
           margin-right: auto;
+          margin-top: 1rem;
+          margin-bottom: 1rem;
+          border-radius: 0.5rem;
         }
         .md-prose th {
           background-color: var(--muted);

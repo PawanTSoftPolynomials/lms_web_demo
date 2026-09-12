@@ -65,11 +65,14 @@ export const submitQuiz = async (
     answers,
     timeTakenSeconds
 ) => {
-    const {data} = await api.post(
+    const { data } = await api.post(
         `/quizzes/${quizId}/submit`,
         {
             answers,
             ...(Number.isFinite(timeTakenSeconds) && { timeTakenSeconds }),
+        },
+        {
+            timeout: 45000,
         }
     );
 

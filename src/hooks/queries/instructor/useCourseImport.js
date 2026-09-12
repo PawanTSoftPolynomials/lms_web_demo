@@ -1,5 +1,28 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import api from "@/lib/axios";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+
+/**
+ * Watches a single import job so the UI can follow the real CourseImportJob
+ * status while a long-running request is still in flight. The backend writes
+ * EXTRACTING / ANALYZING / MAPPING part-way through POST /jobs/:id/process,
+ * and that single response only ever returns the terminal state — polling the
+ * existing job endpoint is what makes the intermediate stages observable.
+ */
+export const useCourseImportJobStatus = (jobId, enabled = false) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.COURSE_IMPORT_JOB, jobId],
+    queryFn: async () => {
+      const response = await api.get(`/course-import/jobs/${jobId}`);
+      return response.data?.data;
+    },
+    enabled: Boolean(jobId) && enabled,
+    refetchInterval: enabled ? 700 : false,
+    gcTime: 0,
+    staleTime: 0,
+    retry: false,
+  });
+};
 
 /**
  * Uploads a ZIP course package.
@@ -10,7 +33,7 @@ export const useUploadZipPackage = () => {
       const formData = new FormData();
       formData.append("package", file);
       const response = await api.post("/course-import/jobs", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { "Content-Type": undefined },
       });
       return response.data?.data;
     },
@@ -39,7 +62,7 @@ export const useProcessJsonCourse = () => {
         const formData = new FormData();
         formData.append("package", file);
         const response = await api.post("/course-import/json", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: { "Content-Type": undefined },
         });
         return response.data?.data;
       } else {

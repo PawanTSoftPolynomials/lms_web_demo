@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Award, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Award, ArrowRight, CheckCircle2, Eye } from "lucide-react";
 
 import Loader from "@/components/common/Loader";
 import Button from "@/components/ui/Button";
@@ -31,24 +31,24 @@ export default function QuizResultSummary({
     }
 
     return (
-        <div className="rounded-2xl border border-border bg-background p-6 sm:p-8 text-center">
+        <div className="rounded-2xl border border-border bg-background p-3.5 sm:p-8 text-center">
             <div
-                className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full ${
+                className={`mx-auto flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-full ${
                     passed ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
                 }`}
             >
-                <Award className="h-7 w-7" />
+                <Award className="h-5 w-5 sm:h-7 sm:w-7" />
             </div>
 
-            <div className="mt-3 flex items-center justify-center gap-2 text-emerald-400">
-                <CheckCircle2 className="h-4 w-4" />
-                <p className="text-sm font-semibold">
+            <div className="mt-2 sm:mt-3 flex items-center justify-center gap-1.5 sm:gap-2 text-emerald-400">
+                <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <p className="text-xs sm:text-sm font-semibold truncate max-w-full px-2">
                     {quizTitle ? `"${quizTitle}" submitted` : "Quiz submitted"}
                 </p>
             </div>
 
             <div
-                className={`mx-auto mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
+                className={`mx-auto mt-1.5 sm:mt-2 inline-flex rounded-full px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold uppercase tracking-wider ${
                     passed
                         ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25"
                         : "bg-rose-500/15 text-rose-400 border border-rose-500/25"
@@ -57,24 +57,25 @@ export default function QuizResultSummary({
                 {passed ? "Passed" : "Failed"}
             </div>
 
-            <div className="mx-auto mt-5 grid max-w-xs grid-cols-2 gap-3">
-                <div className="rounded-xl bg-muted/60 p-3">
-                    <p className="text-[11px] text-muted-foreground">Correct Answers</p>
-                    <p className="mt-1 text-xl font-bold text-foreground">
-                        {correctCount} <span className="text-sm font-normal text-muted-foreground">/ {totalQuestions}</span>
+            <div className="mx-auto mt-3 sm:mt-5 grid max-w-[280px] sm:max-w-xs grid-cols-2 gap-2 sm:gap-3">
+                <div className="rounded-xl bg-muted/60 p-2 sm:p-3">
+                    <p className="text-[10px] sm:text-[11px] text-muted-foreground">Correct Answers</p>
+                    <p className="mt-0.5 sm:mt-1 text-base sm:text-xl font-bold text-foreground">
+                        {correctCount} <span className="text-[10px] sm:text-sm font-normal text-muted-foreground">/ {totalQuestions}</span>
                     </p>
                 </div>
 
-                <div className="rounded-xl bg-muted/60 p-3">
-                    <p className="text-[11px] text-muted-foreground">Score</p>
-                    <p className="mt-1 text-xl font-bold text-foreground">{percentage}%</p>
+                <div className="rounded-xl bg-muted/60 p-2 sm:p-3">
+                    <p className="text-[10px] sm:text-[11px] text-muted-foreground">Score</p>
+                    <p className="mt-0.5 sm:mt-1 text-base sm:text-xl font-bold text-foreground">{percentage}%</p>
                 </div>
             </div>
 
-            <div className="mx-auto mt-6 flex max-w-sm flex-col gap-2 sm:flex-row sm:justify-center">
-                <Link href={resultHref} className="flex-1">
-                    <Button type="button" variant="outline" className="w-full">
-                        View Full Result
+            <div className={`mx-auto mt-3.5 sm:mt-6 max-w-[280px] sm:max-w-sm ${onNextContent ? "grid grid-cols-2 gap-2 sm:gap-3" : "flex justify-center"}`}>
+                <Link href={resultHref} className="w-full">
+                    <Button type="button" variant="outline" className="w-full h-9 sm:h-10 px-1.5 sm:px-3 text-[11px] sm:text-sm flex items-center justify-center gap-1 sm:gap-1.5">
+                        <Eye className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">View Full Result</span>
                     </Button>
                 </Link>
 
@@ -82,13 +83,14 @@ export default function QuizResultSummary({
                     <Button
                         type="button"
                         onClick={onNextContent}
-                        className="flex flex-1 items-center justify-center gap-2"
+                        className="w-full h-9 sm:h-10 px-1.5 sm:px-3 text-[11px] sm:text-sm font-semibold bg-primary hover:bg-orange-600 text-foreground flex items-center justify-center gap-1 sm:gap-1.5"
                     >
-                        Next Content
-                        <ArrowRight className="h-4 w-4" />
+                        <span className="truncate">Next Content</span>
+                        <ArrowRight className="h-3.5 w-3.5 shrink-0" />
                     </Button>
                 )}
             </div>
         </div>
     );
 }
+

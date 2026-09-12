@@ -1,0 +1,3 @@
+- generic [active] [ref=e1]:
+  - progressbar "loading" [ref=e4]
+  - button "Open Next.js Dev Tools" [ref=e15] [cursor=pointer]

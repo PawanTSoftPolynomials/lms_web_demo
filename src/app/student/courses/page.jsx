@@ -3,8 +3,9 @@
 import Loader from "@/components/common/Loader";
 import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
+import SnapCardSlider from "@/components/ui/SnapCardSlider";
 
-import StoreCourseGrid from "@/components/student/store/StoreCourseGrid";
+import StoreCourseCard from "@/components/student/store/StoreCourseCard";
 
 import useCourses from "@/hooks/queries/student/useCourses";
 import useMyCourses from "@/hooks/queries/student/useMyCourses";
@@ -52,8 +53,25 @@ export default function StudentCoursesPage() {
                 className="items-center text-center"
             />
 
-            <div className="flex flex-col flex-1 min-h-0 rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6">
-                <StoreCourseGrid courses={availableCourses}/>
+            {/* min-w-0 keeps the slider's overflow-x contained here instead of
+                letting it push the page itself sideways. */}
+            <div className="flex flex-col flex-1 min-h-0 min-w-0 rounded-2xl border border-border bg-card px-3 py-4 md:px-12 md:py-6">
+                <SnapCardSlider
+                    items={availableCourses}
+                    getKey={(course) => course.id}
+                    renderItem={(course) => <StoreCourseCard course={course}/>}
+                    gridClassName="md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+                    dotsLabel="Course slides"
+                    getDotLabel={(course, i) => `Go to ${course.title || `course slide ${i + 1}`}`}
+                    emptyState={
+                        <div className="rounded-xl border border-dashed border-transparent p-12 text-center">
+                            <h3 className="text-lg font-semibold text-foreground">No courses found</h3>
+                            <p className="mt-2 text-muted-foreground">
+                                You&apos;re already enrolled in every published course, or no courses match your filters.
+                            </p>
+                        </div>
+                    }
+                />
             </div>
         </div>
     );

@@ -49,7 +49,7 @@ export const getAllCoursesForReview = async () => {
  * above since that function is used everywhere expecting a flat unpaginated
  * array; this one returns { courses, pagination } for this page only.
  */
-export const getInstructorCoursesTable = async (filters = {}) => {
+export const getInstructorCoursesTable = async (filters = {}, config = {}) => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "") {
@@ -57,7 +57,7 @@ export const getInstructorCoursesTable = async (filters = {}) => {
         }
     });
 
-    const { data } = await api.get(`/courses?${params.toString()}`);
+    const { data } = await api.get(`/courses?${params.toString()}`, config);
     return {
         courses: data.data ?? [],
         pagination: data.pagination ?? { page: 1, limit: 10, total: data.data?.length ?? 0, totalPages: 1 },
