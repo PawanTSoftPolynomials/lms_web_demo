@@ -9,9 +9,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import Pagination from "@/components/ui/Pagination";
 import CourseGridCard from "@/components/courses/CourseGridCard";
 import { useInstructorCoursesTable } from "@/hooks/queries/instructor/useInstructorCoursesTable";
-import { useRecentlyViewedCourses } from "@/hooks/queries/instructor/useRecentlyViewedCourses";
 import InstructorWelcomeCard from "@/components/instructor/InstructorWelcomeCard";
-import RecentlyViewedCourseRow from "@/components/instructor/courses/RecentlyViewedCourseRow";
 
 const INITIAL_FILTERS = { search: "", status: "", category: "", level: "", sortBy: "recently_updated", page: 1, limit: 12 };
 
@@ -21,7 +19,6 @@ export default function InstructorCoursesPage() {
   const [searchInput, setSearchInput] = useState(filters.search);
 
   const { data, isLoading, isError, isFetching, refetch } = useInstructorCoursesTable(filters);
-  const { data: recentlyViewed = [] } = useRecentlyViewedCourses();
 
   const courses = data?.courses || [];
   const pagination = data?.pagination || { page: 1, limit: 12, total: 0, totalPages: 1 };
@@ -86,17 +83,6 @@ export default function InstructorCoursesPage() {
       <div className="shrink-0">
         <InstructorWelcomeCard />
       </div>
-
-      {recentlyViewed.length > 0 && (
-        <div className="shrink-0 rounded-2xl border border-border bg-card p-5">
-          <h3 className="text-h3 text-foreground mb-4">Recently Viewed</h3>
-          <div className="space-y-3">
-            {recentlyViewed.map((course, idx) => (
-              <RecentlyViewedCourseRow key={course.id} course={course} accentIdx={idx} />
-            ))}
-          </div>
-        </div>
-      )}
 
       {isError ? (
         <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">

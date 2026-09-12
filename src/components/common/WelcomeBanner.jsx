@@ -58,7 +58,7 @@ export default function WelcomeBanner({
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">{eyebrow}</p>
 
           <h1 className="mt-1.5 flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Hi {name} !
+            {name} !
             <span className="inline-block origin-bottom-right animate-wave" aria-hidden="true">
               👋
             </span>

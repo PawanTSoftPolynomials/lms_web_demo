@@ -765,8 +765,8 @@ export default function CourseDetailsPage() {
 
   const isDraftMode = courseId === "draft" || courseId === "new";
 
-  // Marks the course as viewed for the My Courses "Recently Viewed" row.
-  // Skipped in draft mode — an unsaved import preview isn't a real course yet.
+  // Marks the course as viewed (Course.lastViewedAt). Skipped in draft mode —
+  // an unsaved import preview isn't a real course yet.
   const trackViewMutation = useTrackCourseView();
   useEffect(() => {
     if (!isDraftMode && courseId) {
