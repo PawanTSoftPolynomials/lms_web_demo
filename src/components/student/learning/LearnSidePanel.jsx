@@ -1,36 +1,17 @@
 "use client";
 
-import Link from "next/link";
-import { ChevronDown, HelpCircle, MessageSquare, Star, StickyNote } from "lucide-react";
+import { ChevronDown, HelpCircle, StickyNote } from "lucide-react";
 
 import AskInstructorCard from "@/components/student/learning/AskInstructorCard";
 import StickyNotesPanel from "@/components/student/sticky-notes/StickyNotesPanel";
 
-// The learning workspace's side panel: four buttons, each showing or hiding
-// its own feature below. One section is open at a time (the column is narrow);
+// The learning workspace's side panel: each button shows or hides its own
+// feature below. One section is open at a time (the column is narrow);
 // clicking the open one collapses it.
 const FEATURES = [
   { id: "ask", label: "Ask instructor", icon: HelpCircle },
   { id: "notes", label: "Sticky notes", icon: StickyNote },
-  { id: "feedback", label: "Feedback", icon: MessageSquare },
-  { id: "reviews", label: "Reviews", icon: Star },
 ];
-
-/** A short pointer to a page that has its own full form. */
-function LinkSection({ title, description, href, cta }) {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <p className="text-sm font-semibold text-foreground">{title}</p>
-      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{description}</p>
-      <Link
-        href={href}
-        className="mt-3 inline-flex min-h-[36px] items-center rounded-lg bg-primary px-3.5 text-xs font-bold text-slate-950 transition hover:bg-orange-600"
-      >
-        {cta}
-      </Link>
-    </div>
-  );
-}
 
 /**
  * `activeFeature` / `onChangeFeature` are owned by the learn page, so the
@@ -40,7 +21,6 @@ function LinkSection({ title, description, href, cta }) {
 export default function LearnSidePanel({
   activeFeature,
   onChangeFeature,
-  courseId,
   lessonId,
   askTarget,
   currentTimestamp,
@@ -84,24 +64,6 @@ export default function LearnSidePanel({
 
           {activeFeature === "notes" && (
             <StickyNotesPanel lessonId={lessonId} currentTimestamp={currentTimestamp} onSeek={onSeek} />
-          )}
-
-          {activeFeature === "feedback" && (
-            <LinkSection
-              title="Share feedback"
-              description="Tell us what's working in this course and what isn't."
-              href={`/student/feedback?courseId=${courseId}`}
-              cta="Give feedback"
-            />
-          )}
-
-          {activeFeature === "reviews" && (
-            <LinkSection
-              title="Rate this course"
-              description="Leave a rating and see what other students think."
-              href={`/student/reviews?courseId=${courseId}`}
-              cta="Rate this course"
-            />
           )}
         </div>
       )}

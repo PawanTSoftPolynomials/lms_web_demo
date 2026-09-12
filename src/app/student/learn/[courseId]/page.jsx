@@ -24,7 +24,7 @@ import { groupLessonContentForDocumentView } from "@/lib/contentDocument";
 import { buildCourseUnits, findUnitContaining } from "@/lib/courseUnits";
 import { CourseStructureSidebar } from "@/components/instructor/courses/CourseComposerSidebar";
 import { normalizeCourseHierarchy } from "@/lib/courseMapper";
-import { buildProgressIndex, decorateCourseWithProgress, isItemComplete, isItemSubmitted, getNodeProgress } from "@/lib/progressIndex";
+import { buildProgressIndex, decorateCourseWithProgress, isItemComplete, isItemSubmitted, isNodeLeavable, getNodeProgress } from "@/lib/progressIndex";
 import { resolveResumeTarget } from "@/lib/resumeTarget";
 
 import {
@@ -449,12 +449,7 @@ export default function LearnPage() {
   // become `completed` in the roll-up, so it can't block either — mirrors
   // progressRollup.js's own rule that empty containers don't block their
   // parent's completion.
-  const canLeaveUnit = (nodeId) => {
-    const summary = getNodeProgress(progressIndex, nodeId);
-    if (!summary) return true;
-    if (summary.applicable === false) return true;
-    return summary.completed === true;
-  };
+  const canLeaveUnit = (nodeId) => isNodeLeavable(progressIndex, nodeId);
 
   const GATE_MESSAGES = {
     topicId: "Complete every item in this topic and submit its quiz before moving to the next topic.",
@@ -951,7 +946,6 @@ export default function LearnPage() {
     <LearnSidePanel
       activeFeature={activeContentTab}
       onChangeFeature={setActiveContentTab}
-      courseId={course.id}
       lessonId={selectedLesson?.id ?? null}
       askTarget={
         activeBlock?.item?.id && ["content", "quiz", "assignment"].includes(activeBlock.kind)

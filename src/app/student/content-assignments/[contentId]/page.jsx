@@ -2,19 +2,37 @@
 
 import { use, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CalendarClock, ClipboardCheck, Download, FileText, Quote, X } from "lucide-react";
+import { ArrowLeft, CalendarClock, Download, FileText, Quote, X } from "lucide-react";
 
 import Loader from "@/components/common/Loader";
 import PageHeader from "@/components/layouts/PageHeader";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
-import useAssignment from "@/hooks/queries/student/useAssignment";
-import AssignmentSubmissionPanel from "@/components/student/assignments/AssignmentSubmissionPanel";
+import { useContent } from "@/hooks/queries/student/useContent";
+import useContentSubmission from "@/hooks/queries/student/useContentSubmission";
+import ContentAssignmentPanel from "@/components/student/learning/ContentAssignmentPanel";
 import SubmissionStatusBadge from "@/components/student/submissions/SubmissionStatusBadge";
-import { assignmentRecord, formatDate, formatTime } from "@/features/student/constants/submissionsConfig";
+import { formatDate, formatTime, parseAssignmentGrade } from "@/features/student/constants/submissionsConfig";
 import { getDisplayUrl } from "@/lib/blob";
+import { unescapeFromContentApi } from "@/lib/markdown";
 
 const SUBMISSIONS_HREF = "/student/assignments";
+
+/** Same "<epoch>-<original name>" -> "<original name>" cleanup VideoPlayer's
+ * inline assignment block uses for its single fileUrl attachment. */
+function attachmentName(content) {
+  const recorded = content?.data?.originalName || content?.data?.fileName;
+  if (recorded) return recorded;
+  const raw = content?.fileUrl;
+  if (!raw) return "Attachment";
+  try {
+    const last = raw.split("?")[0].split("#")[0].split("/").pop();
+    if (!last) return "Attachment";
+    return decodeURIComponent(last).replace(/^\d{10,}-/, "");
+  } catch {
+    return "Attachment";
+  }
+}
 
 /** A read-only fact about the submission — tinted, not bordered. Matches the quiz result page's StatTile. */
 function StatTile({ icon: Icon, label, value, detail }) {
@@ -30,52 +48,53 @@ function StatTile({ icon: Icon, label, value, detail }) {
   );
 }
 
-export default function AssignmentDetailPage({ params }) {
-  const { assignmentId } = use(params);
+/**
+ * Result page for a lesson-composer Assignment block (a Content row, not a
+ * real Assignment row) — the counterpart to /student/assignments/:id for
+ * assignments authored inside a lesson rather than the standalone Assignments
+ * feature. Content carries no dueDate/marks (those are Assignment-model-only
+ * fields), so this shows what it actually has: submission, grade, feedback.
+ */
+export default function ContentAssignmentResultPage({ params }) {
+  const { contentId } = use(params);
 
-  const {
-    data: assignment,
-    isLoading,
-    isError,
-  } = useAssignment(assignmentId);
+  const { data: content, isLoading: isContentLoading, isError: isContentError } = useContent(contentId);
+  const { data: submission, isLoading: isSubmissionLoading } = useContentSubmission(contentId);
 
-  // Reopens the submission form over an already-graded/submitted assignment —
-  // mirrors the quiz result page's "Retake Quiz", just gated behind an
-  // explicit action instead of a fresh attempt link, since resubmitting
-  // replaces the same submission rather than starting a new one.
+  // Reopens the submission form over an already-submitted-but-not-yet-graded
+  // block — mirrors the quiz result page's "Retake Quiz" and the standalone
+  // Assignment result page's "Resubmit Assignment". Hidden once graded (see
+  // below) so a graded submission can't be quietly swapped out afterward.
   const [isResubmitting, setIsResubmitting] = useState(false);
 
-  if (isLoading) {
+  if (isContentLoading || isSubmissionLoading) {
     return <Loader />;
   }
 
-  if (isError || !assignment) {
+  if (isContentError || !content) {
     return (
       <Card tone="flat" className="p-8 text-center">
-        <h2 className="text-xl font-bold text-foreground">
-          Assignment not found
-        </h2>
-        <p className="mt-2 text-muted-foreground">
-          The requested assignment could not be loaded.
-        </p>
+        <h2 className="text-xl font-bold text-foreground">Assignment not found</h2>
+        <p className="mt-2 text-muted-foreground">The requested assignment could not be loaded.</p>
       </Card>
     );
   }
 
-  // Same status/grade derivation the Submissions list uses, so the grade
-  // shown here always matches what "View Submission" promised.
-  const record = assignmentRecord(assignment);
-  const submission = assignment.submission || null;
-  const showResultView = record.submitted && !isResubmitting;
+  const instructions = content.htmlContent ? unescapeFromContentApi(content.htmlContent) : "";
+  const attachments = content.fileUrl ? [{ url: content.fileUrl, name: attachmentName(content) }] : [];
+  const hasSubmitted = Boolean(submission);
+  const graded = Boolean(submission?.grade);
+  const grade = graded ? parseAssignmentGrade(submission.grade, null) : null;
+  const status = graded ? "graded" : hasSubmitted ? "pending" : "todo";
 
   // ---- Not yet submitted, or actively resubmitting: the brief + upload form ----
-  if (!showResultView) {
+  if (!hasSubmitted || isResubmitting) {
     return (
       <div className="space-y-8">
         {isResubmitting ? (
           <div className="flex items-center justify-between gap-3">
             <PageHeader
-              title={assignment.title}
+              title={content.title || "Assignment"}
               subtitle="Resubmitting will replace your previous submission."
             />
             <button
@@ -88,56 +107,20 @@ export default function AssignmentDetailPage({ params }) {
             </button>
           </div>
         ) : (
-          <PageHeader
-            title={assignment.title}
-            subtitle={assignment.course?.title || assignment.courseTitle || "Assignment details"}
-          />
+          <PageHeader title={content.title || "Assignment"} subtitle="Assignment details" />
         )}
 
-        <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-          {/* Brief, instructor reference material and the single PDF submission
-              control — the same component the learning workspace renders, so
-              both entry points behave identically. */}
-          <div className="space-y-6">
-            <AssignmentSubmissionPanel
-              assignment={assignment}
-              completed={record.submitted}
-              onSubmitted={() => setIsResubmitting(false)}
-            />
-          </div>
-
-          <div className="space-y-6">
-            <Card tone="flat">
-              <h3 className="text-lg font-semibold text-foreground">Assignment Summary</h3>
-              <div className="mt-4 space-y-4 text-sm text-muted-foreground">
-                <div className="flex items-center justify-between rounded-2xl bg-background p-4">
-                  <span>Course</span>
-                  <span className="text-foreground">{assignment.course?.title || assignment.courseTitle || "—"}</span>
-                </div>
-                <div className="flex items-center justify-between rounded-2xl bg-background p-4">
-                  <span>Due Date</span>
-                  <span className="text-foreground">
-                    {assignment.dueDate ? new Date(assignment.dueDate).toLocaleString() : "—"}
-                  </span>
-                </div>
-              </div>
-            </Card>
-
-            <Card tone="flat">
-              <h3 className="text-lg font-semibold text-foreground">Need Help?</h3>
-              <p className="mt-4 text-sm text-muted-foreground">
-                Contact your instructor if you have questions about the assignment requirements or submission format.
-              </p>
-            </Card>
-          </div>
-        </div>
+        <ContentAssignmentPanel
+          contentId={contentId}
+          instructions={instructions}
+          attachments={attachments}
+          onSubmitted={() => setIsResubmitting(false)}
+        />
       </div>
     );
   }
 
   // ---- Already submitted: a read-only result view, same spirit as the quiz result page ----
-  const graded = record.status === "graded";
-
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6 pb-12 sm:space-y-8">
       <Link
@@ -148,7 +131,6 @@ export default function AssignmentDetailPage({ params }) {
         Back to Submissions
       </Link>
 
-      {/* Result overview — grade takes the same prominence the quiz result page gives its score. */}
       <section
         aria-labelledby="result-title"
         className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-7"
@@ -156,15 +138,14 @@ export default function AssignmentDetailPage({ params }) {
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400">
-              Assignment{assignment.course?.title || assignment.courseTitle ? ` · ${assignment.course?.title || assignment.courseTitle}` : ""}
+              Assignment
             </p>
             <h1
               id="result-title"
               className="mt-1.5 break-words text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
             >
-              {assignment.title}
+              {content.title || "Assignment"}
             </h1>
-            {record.moduleTitle && <p className="mt-1 text-sm text-muted-foreground">{record.moduleTitle}</p>}
           </div>
 
           <div className="flex shrink-0 items-center gap-5 md:flex-col md:items-end md:gap-2 md:text-right">
@@ -173,36 +154,26 @@ export default function AssignmentDetailPage({ params }) {
                 graded ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"
               }`}
             >
-              {graded ? record.grade?.text || "Graded" : "—"}
+              {graded ? grade?.text || "Graded" : "—"}
             </p>
             <div className="space-y-1.5 md:flex md:flex-col md:items-end">
-              {graded && record.grade?.percentage != null && (
-                <p className="text-sm font-semibold text-foreground">{record.grade.percentage}%</p>
+              {graded && grade?.percentage != null && (
+                <p className="text-sm font-semibold text-foreground">{grade.percentage}%</p>
               )}
-              <SubmissionStatusBadge status={record.status} />
+              <SubmissionStatusBadge status={status} />
             </div>
           </div>
         </div>
       </section>
 
-      <section aria-label="Submission details" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <section aria-label="Submission details" className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <StatTile
           icon={CalendarClock}
           label="Submitted"
-          value={formatDate(record.submittedAt)}
-          detail={formatTime(record.submittedAt)}
+          value={formatDate(submission?.submittedAt)}
+          detail={formatTime(submission?.submittedAt)}
         />
-        <StatTile
-          icon={CalendarClock}
-          label="Due Date"
-          value={assignment.dueDate ? formatDate(assignment.dueDate) : "No due date"}
-          detail={assignment.dueDate ? formatTime(assignment.dueDate) : null}
-        />
-        <StatTile
-          icon={ClipboardCheck}
-          label="Marks"
-          value={Number.isFinite(assignment.marks) ? assignment.marks : "—"}
-        />
+        <StatTile icon={FileText} label="Status" value={graded ? "Graded" : "Pending review"} />
       </section>
 
       <Card tone="flat">
@@ -241,21 +212,27 @@ export default function AssignmentDetailPage({ params }) {
         </div>
       </Card>
 
-      {record.feedback && (
+      {submission?.feedback && (
         <Card tone="flat" className="border-emerald-500/25 bg-emerald-500/5">
           <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
             <Quote size={18} className="text-emerald-500" aria-hidden />
             Instructor Feedback
           </h3>
           <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground">
-            {record.feedback}
+            {submission.feedback}
           </p>
         </Card>
       )}
 
-      {/* Once an instructor has graded it, the submission is final — no
-          resubmit escape hatch that would let a student quietly swap out
-          the work a grade was already given for. */}
+      {instructions && (
+        <Card tone="flat">
+          <h3 className="text-lg font-semibold text-foreground">Assignment Instructions</h3>
+          <div className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">
+            {instructions}
+          </div>
+        </Card>
+      )}
+
       {!graded && (
         <div className="flex justify-end">
           <Button variant="outline" onClick={() => setIsResubmitting(true)}>

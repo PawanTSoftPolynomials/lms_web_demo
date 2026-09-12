@@ -12,7 +12,7 @@ import AssignmentSubmissionPanel from "@/components/student/assignments/Assignme
  * reads and writes the submission through /contents/:id instead of
  * /assignments/:id. The frame header already shows the title.
  */
-export default function ContentAssignmentPanel({ contentId, instructions, attachments }) {
+export default function ContentAssignmentPanel({ contentId, instructions, attachments, onSubmitted }) {
   const { data: submission, isLoading } = useContentSubmission(contentId);
   const submitMutation = useSubmitContentAssignment(contentId);
 
@@ -28,6 +28,7 @@ export default function ContentAssignmentPanel({ contentId, instructions, attach
       }}
       submitMutation={submitMutation}
       showTitle={false}
+      onSubmitted={onSubmitted}
     />
   );
 }

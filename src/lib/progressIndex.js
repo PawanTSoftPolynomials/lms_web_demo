@@ -51,38 +51,47 @@ export function buildProgressIndex(progressData) {
 
   const nodes = new Map();
   const items = new Map();
+  // Every item id owned by a node OR any of its descendants — lets
+  // isNodeLeavable below check a Module/Lesson's full subtree without
+  // re-walking the hierarchy itself.
+  const nodeItemIds = new Map();
 
   // Direct (non-inherited) learning items owned by one node. Every item the
   // backend counts arrives pre-tagged with `kind` and `completed`.
   const indexDirectItems = (node) => {
+    const ids = [];
     for (const item of [
       ...(node.contents || []),
       ...(node.quizzes || []),
       ...(node.assignments || []),
     ]) {
-      if (item?.id) items.set(item.id, item);
+      if (item?.id) {
+        items.set(item.id, item);
+        ids.push(item.id);
+      }
     }
+    return ids;
   };
 
+  // Post-order so a node's entry includes everything under it.
   const indexNode = (node) => {
-    if (!node?.id) return;
+    if (!node?.id) return [];
+    let ids = indexDirectItems(node);
+    for (const child of [
+      ...(node.modules || []),
+      ...(node.lessons || []),
+      ...(node.topics || []),
+    ]) {
+      ids = ids.concat(indexNode(child));
+    }
     nodes.set(node.id, nodeSummary(node));
-    indexDirectItems(node);
+    nodeItemIds.set(node.id, ids);
+    return ids;
   };
 
   indexNode(hierarchy);
 
-  for (const mod of hierarchy.modules || []) {
-    indexNode(mod);
-    for (const lesson of mod.lessons || []) {
-      indexNode(lesson);
-      for (const topic of lesson.topics || []) {
-        indexNode(topic);
-      }
-    }
-  }
-
-  return { nodes, items, course: nodes.get(hierarchy.id) || nodeSummary(hierarchy) };
+  return { nodes, items, nodeItemIds, course: nodes.get(hierarchy.id) || nodeSummary(hierarchy) };
 }
 
 /** True only when the backend says this specific item is complete. */
@@ -107,6 +116,29 @@ export function isItemSubmitted(progressIndex, itemId) {
     return Boolean(item.submissionStatus) && item.submissionStatus !== "NotSubmitted";
   }
   return isItemComplete(progressIndex, itemId);
+}
+
+/**
+ * True when a student may cross out of this Topic/Lesson/Module to the next
+ * one — every quiz under it (direct or in a descendant) only needs an
+ * attempt on file, same as isItemSubmitted's quiz rule; a failed attempt no
+ * longer blocks moving on. Non-quiz items (content, assignments) still need
+ * their own `completed` flag, unchanged from before.
+ */
+export function isNodeLeavable(progressIndex, nodeId) {
+  if (!progressIndex || !nodeId) return true;
+  const summary = progressIndex.nodes.get(nodeId);
+  if (!summary) return true;
+  if (summary.applicable === false) return true;
+
+  const itemIds = progressIndex.nodeItemIds?.get(nodeId);
+  if (!itemIds || itemIds.length === 0) return summary.completed === true;
+
+  return itemIds.every((id) => {
+    const item = progressIndex.items.get(id);
+    if (item?.kind === "QUIZ") return item.attempted === true;
+    return isItemComplete(progressIndex, id);
+  });
 }
 
 /** The backend's roll-up for a Course/Module/Lesson/Topic id, or null. */

@@ -204,12 +204,13 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
         performSubmit();
     };
 
-    // Fetches only once submitted — the result endpoint 404s on an
-    // unattempted quiz, and this is the same endpoint/shape the full
-    // /student/result page uses, including each question's correctAnswer
-    // (stripped from useQuiz above so a student can't see it mid-attempt).
+    // Fetches once submitted, or on landing back on a quiz already attempted
+    // in an earlier visit — the result endpoint 404s on a bare unattempted
+    // quiz. Same endpoint/shape the full /student/result page uses, including
+    // each question's correctAnswer (stripped from useQuiz above so a
+    // student can't see it mid-attempt).
     const { data: resultData, isLoading: isResultLoading } = useQuizResult(quizId, {
-        enabled: isSubmitted,
+        enabled: isSubmitted || Boolean(quiz?.attemptStatus?.attemptsUsed > 0),
     });
 
     const submissionResult = resultData?.data || resultData;
@@ -284,17 +285,39 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
     const hasPriorAttempt = allowance && allowance.attemptsUsed > 0;
 
     if (hasPriorAttempt && !reattempting) {
+        // submissionResult is only known once its fetch (enabled above for
+        // any prior attempt) resolves — the icon/badge stay neutral until then.
+        const knowsOutcome = !isResultLoading && submissionResult != null;
+        const passed = Boolean(submissionResult?.passed);
+
         return (
             <div className="rounded-2xl border border-border bg-card p-6 text-center sm:p-8">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
+                <div
+                    className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${
+                        knowsOutcome && !passed
+                            ? "bg-rose-500/10 text-rose-400"
+                            : "bg-emerald-500/10 text-emerald-400"
+                    }`}
+                >
                     <CheckCircle2 className="h-5 w-5" aria-hidden />
                 </div>
-                <h2 className="mt-4 text-lg font-semibold text-foreground">
+                {knowsOutcome && (
+                    <div
+                        className={`mx-auto mt-3 inline-flex rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
+                            passed
+                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25"
+                                : "bg-rose-500/15 text-rose-400 border border-rose-500/25"
+                        }`}
+                    >
+                        {passed ? "Passed" : "Failed"}
+                    </div>
+                )}
+                <h2 className="mt-3 text-lg font-semibold text-foreground">
                     You have completed the quiz
                 </h2>
                 <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
                     {allowance.canAttempt
-                        ? `You can view your result or make another attempt for “${quiz.title}”.`
+                        ? `You can view your result or retake “${quiz.title}”.`
                         : `You've used all ${allowance.maxAttempts} attempt${allowance.maxAttempts === 1 ? "" : "s"} allowed for “${quiz.title}”.`}
                 </p>
                 <div className="mx-auto mt-6 flex max-w-sm flex-col gap-2 sm:flex-row sm:justify-center">
@@ -308,7 +331,7 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
                             onClick={() => setReattempting(true)}
                             className="flex-1"
                         >
-                            Reattempt
+                            Retake
                         </Button>
                     )}
                     {onBack && (

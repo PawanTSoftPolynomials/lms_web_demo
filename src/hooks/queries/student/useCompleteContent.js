@@ -1,6 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { markContentComplete, completeLesson as completeLessonApi, markVisited as markVisitedApi } from "@/services/progress.service";
+import {
+  markContentComplete,
+  markContentCompleteBatch,
+  completeLesson as completeLessonApi,
+  markVisited as markVisitedApi,
+} from "@/services/progress.service";
 
 /**
  * Marks Content complete/incomplete through the existing
@@ -15,6 +20,14 @@ import { markContentComplete, completeLesson as completeLessonApi, markVisited a
  * Progress denominator, so completing the block has to complete all of them —
  * marking only the representative id would leave the merged-away rows
  * permanently incomplete and their ancestors permanently short of 100%.
+ *
+ * A multi-id block goes through ONE batched request, not one request per id:
+ * the backend used to recompute the whole course roll-up separately for each
+ * id in parallel, and whichever recompute's read landed before another
+ * id's write committed would persist a rollup missing that other id's
+ * completion — a lost update that could leave "Mark as Complete" looking
+ * like it silently did nothing, or still offering itself after the item was
+ * already completed.
  */
 export function useCompleteContent() {
   const queryClient = useQueryClient();
@@ -26,9 +39,9 @@ export function useCompleteContent() {
         : [contentId]
       ).filter(Boolean);
 
-      // Fails as a whole if any single row fails, so a partially-applied block
-      // surfaces as an error rather than as silent, incomplete progress.
-      return Promise.all(ids.map((id) => markContentComplete(id, completed)));
+      return ids.length > 1
+        ? markContentCompleteBatch(ids, completed)
+        : markContentComplete(ids[0], completed);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.COURSE_PROGRESS] });

@@ -26,6 +26,11 @@ function StudentsDirectoryContent() {
   const [activeTab, setActiveTab] = useState('Progress'); // Progress | Assignments | Certificates
 
   const selectedCourse = courseFilter === 'All' ? null : courses.find((c) => c.id === courseFilter);
+  // The filter should only offer courses students can actually be viewed
+  // against day-to-day — a DRAFT/ARCHIVED course isn't a live teaching
+  // context, even though `courses` itself (from useInstructorCourses) still
+  // includes them for other uses like resolving selectedCourse's title.
+  const publishedCourses = courses.filter((c) => c.status === 'PUBLISHED');
 
   // Batch state and the useCourseBatches lookup went with the Batch filter —
   // batch rosters aren't linked to student records, so it could never narrow
@@ -382,7 +387,7 @@ function StudentsDirectoryContent() {
                 className="w-full bg-white/[0.02] border border-border text-xs px-3.5 py-2 rounded-xl outline-none text-foreground focus:border-transparent transition cursor-pointer"
               >
                 <option value="All">All Courses</option>
-                {courses.map((c) => (
+                {publishedCourses.map((c) => (
                   <option key={c.id} value={c.id}>{c.title}</option>
                 ))}
               </select>

@@ -47,6 +47,7 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
 
   const learnDestination = `/student/learn/${course.id}`;
   const detailsDestination = `/student/courses/${course.id}`;
+  const feedbackDestination = `/student/feedback?courseId=${course.id}`;
   const primaryDestination = isEnrolled ? learnDestination : detailsDestination;
 
   const goTo = (path) => (e) => {
@@ -126,7 +127,7 @@ export default function MyCourseCard({ enrollment, course: rawCourse }) {
 
           {isEnrolled && (
             <button
-              onClick={goTo(learnDestination)}
+              onClick={goTo(isComplete ? feedbackDestination : learnDestination)}
               className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-[11px] font-bold text-primary transition hover:opacity-80"
             >
               {isComplete ? "Review" : "Continue Learning"}
