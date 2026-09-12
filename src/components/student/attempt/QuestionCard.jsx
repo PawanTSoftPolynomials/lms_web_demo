@@ -57,8 +57,12 @@ export default function QuestionCard({
   return (
     <div className="rounded-2xl border border-border bg-background p-2.5 sm:p-4 shadow-xl">
       {/* Question Text + Concept / Marks */}
-      <div className="mb-2 sm:mb-3 block min-w-0">
-        <div className="float-right ml-2 mb-1 flex shrink-0 items-center gap-1.5">
+      <div className="mb-2.5 sm:mb-4 flex items-start justify-between gap-2.5 min-w-0">
+        <h2 className="text-sm sm:text-xl font-semibold leading-snug text-foreground break-words flex-1 min-w-0">
+          {question.question}
+        </h2>
+
+        <div className="flex shrink-0 items-center gap-1.5">
           {question.concept && (
             <div className="hidden sm:inline-block rounded-lg bg-muted border border-transparent px-2.5 py-1 text-xs font-medium text-foreground">
               Concept: <span className="text-primary font-semibold">{question.concept}</span>
@@ -69,11 +73,6 @@ export default function QuestionCard({
             {question.marks} {question.marks === 1 ? "Mark" : "Marks"}
           </div>
         </div>
-
-        <h2 className="text-xs sm:text-xl font-semibold leading-snug text-foreground break-words">
-          {question.question}
-        </h2>
-        <div className="clear-both" />
       </div>
 
       {/* Options Rendering per Question Type */}

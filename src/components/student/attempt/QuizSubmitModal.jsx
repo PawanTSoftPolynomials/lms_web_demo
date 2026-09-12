@@ -17,10 +17,10 @@ export default function QuizSubmitModal({
     const hasUnanswered = unansweredQuestions > 0;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-4">
-            <div className="w-full max-w-lg rounded-xl sm:rounded-2xl border border-border bg-background shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-4 overflow-y-auto">
+            <div className="w-full max-w-lg rounded-xl sm:rounded-2xl border border-border bg-background shadow-2xl my-auto max-h-[90dvh] flex flex-col">
                 {/* Header */}
-                <div className="flex items-start justify-between border-b border-border px-4 py-3.5 sm:px-6 sm:py-5">
+                <div className="flex items-start justify-between border-b border-border px-4 py-3.5 sm:px-6 sm:py-5 shrink-0">
                     <div>
                         <h2 className="text-lg sm:text-2xl font-bold text-foreground">
                             {hasUnanswered ? "Incomplete Quiz Attempt" : "Submit Quiz"}
@@ -47,7 +47,7 @@ export default function QuizSubmitModal({
                 </div>
 
                 {/* Body */}
-                <div className="space-y-3.5 sm:space-y-5 px-4 py-4 sm:px-6 sm:py-6">
+                <div className="space-y-3.5 sm:space-y-5 px-4 py-4 sm:px-6 sm:py-6 overflow-y-auto min-h-0">
                     <div className="grid grid-cols-3 gap-2 sm:gap-4">
                         <div className="rounded-lg sm:rounded-xl bg-muted p-2.5 sm:p-4 text-center">
                             <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">
@@ -125,7 +125,7 @@ export default function QuizSubmitModal({
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-end gap-2.5 sm:gap-3 border-t border-border px-4 py-3.5 sm:px-6 sm:py-5">
+                <div className="flex items-center justify-end gap-2.5 sm:gap-3 border-t border-border px-4 py-3.5 sm:px-6 sm:py-5 shrink-0">
                     {hasUnanswered ? (
                         <Button
                             type="button"
