@@ -466,7 +466,10 @@ function ParentContentRows({
                 <RowMenu
                   groupName="content"
                   items={[
-                    { label: "Edit Content", icon: Pencil, onSelect: () => onSelectContent?.(content) },
+                    /* No "Edit Content" here: editing happens on the right-hand
+                       composer. The row itself already opens the content on
+                       click (onSelectContent above), so the menu entry was a
+                       second door to the same place. */
                     { label: "Duplicate Content", icon: Copy, onSelect: () => handleDuplicate(content) },
                     { separator: true },
                     { label: "Move Up", icon: ArrowUp, disabled: rIdx === 0, onSelect: () => handleMove(content.id, "up") },

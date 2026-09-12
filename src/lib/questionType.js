@@ -25,6 +25,18 @@ const QUESTION_TYPE_ALIASES = {
  * would leave such a question displaying the first entry in the list instead
  * of what it actually is.
  */
+/**
+ * The only question types the UI offers, in the order every picker shows
+ * them. Type pickers and type filters alike render this list and nothing
+ * else, so the wording stays identical wherever a type is chosen.
+ */
+export const QUESTION_TYPE_OPTIONS = [
+  { value: "MCQ_SINGLE", label: "Single Choice (MCQ)" },
+  { value: "MCQ_MULTI", label: "Multiple Choice (MCQ)" },
+  { value: "ARRANGE_TOKENS", label: "Arrange Tokens" },
+  { value: "MATCH_PAIRS", label: "Match Pairs" },
+];
+
 export const RETIRED_QUESTION_TYPES = {
   TRUE_FALSE: "True / False",
   FILL_BLANK: "Fill in Blanks",

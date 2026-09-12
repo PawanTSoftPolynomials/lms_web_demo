@@ -107,6 +107,22 @@ export default function LearnPage() {
   // land on the exact Topic/Content/Quiz once that lesson is on screen.
   const resumeTarget = useMemo(() => resolveResumeTarget(progressData), [progressData]);
 
+  // The position asked for by the URL this page was OPENED with, captured once
+  // at first render. It must be read here and not later: the effect that
+  // mirrors the current block into `?item=` starts writing as soon as the
+  // player settles on its default block, which happens BEFORE the restore
+  // effect runs — reading the live URL down there would read back that
+  // default and restore the student to it instead of where they actually were.
+  const openedWithRef = useRef(null);
+  if (openedWithRef.current === null) {
+    const search = typeof window === "undefined" ? "" : window.location.search;
+    const opened = new URLSearchParams(search);
+    openedWithRef.current = {
+      itemId: opened.get("item"),
+      lessonId: opened.get("lessonId"),
+    };
+  }
+
   // The same course tree the player renders from, decorated with the backend's
   // completion flags so the sidebar, the accordion and the quiz panel all agree.
   const courseWithProgress = useMemo(
@@ -720,15 +736,31 @@ export default function LearnPage() {
   const hasAppliedResumeTargetRef = useRef(false);
   useEffect(() => {
     if (hasAppliedResumeTargetRef.current) return;
-    if (!stateRestored || !resumeTarget || courseUnits.length === 0) return;
+    if (!stateRestored || courseUnits.length === 0) return;
 
-    if (typeof window !== "undefined") {
-      const hasExplicitLessonParam = new URLSearchParams(window.location.search).get("lessonId");
-      if (hasExplicitLessonParam) {
+    // `?item=` pins the exact block the student was last on. It outranks the
+    // progress-derived resume target: this is "put me back where I was",
+    // which is a stricter promise than "where should I carry on". Read from
+    // the mount-time capture, and only honoured when the id still resolves to
+    // a unit in this course — a stale or hand-edited one falls through to the
+    // normal resume below rather than dead-ending.
+    const { itemId: pinnedItemId, lessonId: openedLessonId } = openedWithRef.current || {};
+
+    if (pinnedItemId) {
+      const pinnedUnit = findUnitContaining(courseUnits, pinnedItemId);
+      if (pinnedUnit) {
         hasAppliedResumeTargetRef.current = true;
+        enterUnit(pinnedUnit, { targetItemId: pinnedItemId, skipGate: true });
         return;
       }
     }
+
+    if (openedLessonId) {
+      hasAppliedResumeTargetRef.current = true;
+      return;
+    }
+
+    if (!resumeTarget) return;
 
     hasAppliedResumeTargetRef.current = true;
     const { id, lessonId, topicId } = resumeTarget;
@@ -784,6 +816,33 @@ export default function LearnPage() {
     }
     // markVisitedMutation intentionally omitted — same convention as
     // enterUnit/jumpToBlock above; the ref guard is what prevents re-sending.
+  }, [extraUnit, blockIndex, activeUnitBlocks, openAssignmentItem]);
+
+  // Mirrors the block on screen into the URL, so a refresh returns to this
+  // exact Content/Quiz rather than to wherever "Continue Learning" would send
+  // the student. Those are different questions: resumeTarget answers "what
+  // should I do next" and deliberately steps PAST a leaf once it's completed,
+  // so without this a refresh while reviewing a finished item jumped forward
+  // to the following one. history.replaceState, not router.replace — this is
+  // not navigation and must not remount the player mid-video or stack a
+  // history entry per block.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const idx = extraUnit ? extraUnit.blockIndex : blockIndex;
+    const block = openAssignmentItem ? null : activeUnitBlocks[idx];
+    const itemId = block?.item?.id;
+    if (!itemId) return;
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("item") === String(itemId)) return;
+
+    // Any `lessonId` the page was opened with is left alone: `item` is
+    // consulted first on restore, so a lingering lesson param is a harmless
+    // fallback — and useLearningStateSync still reads it from the live URL to
+    // choose the initial lesson, which deleting it here could race.
+    params.set("item", String(itemId));
+    window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
   }, [extraUnit, blockIndex, activeUnitBlocks, openAssignmentItem]);
 
   // Still used by Sticky Notes (both the mobile tab and the desktop side

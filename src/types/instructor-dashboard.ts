@@ -51,7 +51,6 @@ export interface ScheduleEvent {
   time: string;
   endTime?: string;
   courseName: string;
-  batch?: string;
   type: "class" | "live" | "deadline" | "meeting";
   location?: string;
   joinLink?: string;

@@ -27,6 +27,7 @@ import { useDeleteQuiz } from "@/hooks/queries/instructor/useDeleteQuiz";
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 import { useQuestions } from "@/hooks/queries/instructor/useQuestions";
 import { useDeleteQuestion } from "@/hooks/queries/instructor/useDeleteQuestion";
+import { QUESTION_TYPE_OPTIONS } from "@/lib/questionType";
 
 export default function QuizzesPage() {
   const { showToast } = useToast();
@@ -629,11 +630,9 @@ export default function QuizzesPage() {
                 className="bg-background border border-transparent text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3 text-sm cursor-pointer min-w-[170px]"
               >
                 <option value="all">All Question Types</option>
-                <option value="MCQ_SINGLE">Single Choice (MCQ)</option>
-                <option value="MCQ_MULTI">Multiple Choice</option>
-                <option value="ARRANGE_TOKENS">Arrange Tokens</option>
-                <option value="MATCH_PAIRS">Match Pairs</option>
-                <option value="SELF_ASSESSMENT">Self Assessment</option>
+                {QUESTION_TYPE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
               </select>
             </div>
 
