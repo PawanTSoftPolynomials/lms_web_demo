@@ -374,7 +374,7 @@ export function LessonComposerPanel({
           </p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-border/80 bg-background/60 p-2 sm:p-8 md:p-10 shadow-lg space-y-2">
+        <div className="p-2 sm:p-8 md:p-10 space-y-2">
           {sortByOrder(contents).map((content: ContentRow) => {
             const badge = getBlockBadge(content);
             const isSelected = effectiveSelectedId === content.id;

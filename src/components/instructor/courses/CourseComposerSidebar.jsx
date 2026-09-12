@@ -142,6 +142,26 @@ function getTopicTypeMeta(title = "") {
   };
 }
 
+/**
+ * Ascending by `order` (createdAt tie-break) — matches ParentContentRows'
+ * mergedRows comparator exactly, so a lesson/topic's numeral (L{n}/tIdx)
+ * lines up with where it actually lands once mixed in with quizzes there.
+ * Without this, numerals came from each item's plain position in the raw
+ * `lesson.topics`/`module.lessons` array, which only matches the rendered
+ * order by coincidence.
+ */
+function sortByRenderOrder(items = []) {
+  return [...items].sort((a, b) => {
+    const orderA = a.order ?? 0;
+    const orderB = b.order ?? 0;
+    if (orderA !== orderB) return orderA - orderB;
+    if (a.createdAt && b.createdAt) {
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    }
+    return 0;
+  });
+}
+
 function formatTopicDisplayTitle(title = "", index = 0) {
   const trimmed = title.trim();
   if (/^(\d+\.\d+|\d+\.\d+\.\d+|mcqs?|assignment|home\s*task|revision)/i.test(trimmed)) {
@@ -571,11 +591,9 @@ export function CourseComposerSidebar({
   courseId,
   onAddLesson,
   onAddQuizToCourse,
-  onAddQuizToModule,
   onAddQuizToLesson,
   onAddQuizToTopic,
   onAddAssignmentToCourse,
-  onAddAssignmentToModule,
   onAddAssignmentToLesson,
   onAddAssignmentToTopic,
   onAddModule,
@@ -839,8 +857,6 @@ export function CourseComposerSidebar({
                         { label: "Edit Module", icon: Pencil, onSelect: () => onEditModule?.(mod) },
                         { label: "Add Lesson", icon: Plus, onSelect: () => onAddLesson?.(mod.id) },
                         { label: "Add Content", icon: Plus, onSelect: () => onAddContentToModule?.(mod) },
-                        { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToModule?.(mod) },
-                        { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToModule?.(mod) },
                         { separator: true },
                         { label: "Move Up", icon: ArrowUp, disabled: mIdx === 0, onSelect: () => handleMoveModule(mod, "up") },
                         { label: "Move Down", icon: ArrowDown, disabled: mIdx === modules.length - 1, onSelect: () => handleMoveModule(mod, "down") },
@@ -876,7 +892,7 @@ export function CourseComposerSidebar({
                       progress={progress}
                       isDraftMode={isDraftMode}
                       draftContents={mod.contents}
-                      extraItems={modLessons.map((lesson, lIdx) => ({ ...lesson, kind: "lesson", lIdx }))}
+                      extraItems={sortByRenderOrder(modLessons).map((lesson, lIdx) => ({ ...lesson, kind: "lesson", lIdx }))}
                       emptyMessage={modLessons.length === 0 ? "No lessons in this module." : null}
                       renderExtraItem={(lesson) => {
                         const lIdx = lesson.lIdx;
@@ -977,7 +993,7 @@ export function CourseComposerSidebar({
                                   progress={progress}
                                   isDraftMode={isDraftMode}
                                   draftContents={lesson.contents}
-                                  extraItems={lessonTopics.map((topic, tIdx) => ({ ...topic, kind: "topic", tIdx }))}
+                                  extraItems={sortByRenderOrder(lessonTopics).map((topic, tIdx) => ({ ...topic, kind: "topic", tIdx }))}
                                   emptyMessage={lessonTopics.length === 0 ? "No topics in this lesson." : null}
                                   renderExtraItem={(topic) => {
                                     const tIdx = topic.tIdx;

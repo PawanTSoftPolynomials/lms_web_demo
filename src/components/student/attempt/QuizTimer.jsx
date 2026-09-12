@@ -1,10 +1,38 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Clock } from "lucide-react";
+
+// One sessionStorage key per quiz attempt, so a refresh resumes the same
+// countdown instead of restarting it, while a new attempt (attemptsUsed
+// incremented server-side) starts a fresh one. sessionStorage (not
+// localStorage) so it doesn't outlive the tab/browser session, and it's
+// already wiped on logout (see AuthContext's sessionStorage.clear()).
+export function getQuizTimerStorageKey(quizId, attemptsUsed = 0) {
+    if (!quizId) return undefined;
+    return `quiz-timer:${quizId}:${attemptsUsed + 1}`;
+}
+
+function readOrCreateDeadline(storageKey, durationMinutes) {
+    const freshDeadline = () => Date.now() + durationMinutes * 60 * 1000;
+
+    if (typeof window === "undefined" || !storageKey) {
+        return freshDeadline();
+    }
+
+    const stored = Number(window.sessionStorage.getItem(storageKey));
+    if (Number.isFinite(stored) && stored > 0) {
+        return stored;
+    }
+
+    const deadline = freshDeadline();
+    window.sessionStorage.setItem(storageKey, String(deadline));
+    return deadline;
+}
 
 export default function QuizTimer({
                                       duration = 15,
+                                      storageKey,
                                       onTimeUp,
                                   }) {
     const effectiveDuration = useMemo(() => {
@@ -12,26 +40,49 @@ export default function QuizTimer({
         return !isNaN(num) && num > 0 ? num : 15;
     }, [duration]);
 
-    const [timeLeft, setTimeLeft] = useState(
-        effectiveDuration * 60
+    // The countdown is driven off a fixed deadline timestamp (persisted above)
+    // rather than a decrementing counter, so it reflects real elapsed time
+    // even after a refresh or a throttled background tab.
+    const [deadline, setDeadline] = useState(() =>
+        readOrCreateDeadline(storageKey, effectiveDuration)
     );
 
     useEffect(() => {
-        setTimeLeft(effectiveDuration * 60);
-    }, [effectiveDuration]);
+        setDeadline(readOrCreateDeadline(storageKey, effectiveDuration));
+    }, [storageKey, effectiveDuration]);
+
+    const [timeLeft, setTimeLeft] = useState(() =>
+        Math.max(0, Math.round((deadline - Date.now()) / 1000))
+    );
+
+    // Kept current via a ref (not an effect dependency below) so a parent
+    // re-render that passes a new onTimeUp identity can't restart the
+    // interval or re-arm the fired guard while time is already up.
+    const onTimeUpRef = useRef(onTimeUp);
+    useEffect(() => {
+        onTimeUpRef.current = onTimeUp;
+    }, [onTimeUp]);
 
     useEffect(() => {
-        if (timeLeft <= 0) {
-            onTimeUp?.();
-            return;
-        }
+        let firedTimeUp = false;
 
-        const timer = setInterval(() => {
-            setTimeLeft((prev) => prev - 1);
-        }, 1000);
+        const evaluate = () => {
+            const remaining = Math.max(
+                0,
+                Math.round((deadline - Date.now()) / 1000)
+            );
+            setTimeLeft(remaining);
 
+            if (remaining <= 0 && !firedTimeUp) {
+                firedTimeUp = true;
+                onTimeUpRef.current?.();
+            }
+        };
+
+        evaluate();
+        const timer = setInterval(evaluate, 1000);
         return () => clearInterval(timer);
-    }, [timeLeft, onTimeUp]);
+    }, [deadline]);
 
     const formattedTime = useMemo(() => {
         const minutes = Math.floor(timeLeft / 60);

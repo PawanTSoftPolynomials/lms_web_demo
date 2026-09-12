@@ -23,7 +23,10 @@ function DropdownMenuContent({
       <DropdownMenuPrimitive.Content
         sideOffset={sideOffset}
         className={cn(
-          "z-50 min-w-[10rem] overflow-hidden rounded-xl border border-card-border bg-popover backdrop-blur-xl p-1.5 text-popover-foreground shadow-xl",
+          // Portals to document.body as a sibling of any open Modal
+          // (ui/Modal.jsx, z-9999), not a descendant — z-50 would render
+          // behind it. Must clear that.
+          "z-[10000] min-w-[10rem] overflow-hidden rounded-xl border border-card-border bg-popover backdrop-blur-xl p-1.5 text-popover-foreground shadow-xl",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2",
           className
         )}
@@ -182,7 +185,7 @@ function DropdownMenuSubContent({
   return (
     <DropdownMenuPrimitive.SubContent
       className={cn(
-        "z-50 min-w-[8rem] overflow-hidden rounded-xl border border-card-border bg-popover backdrop-blur-xl p-1.5 text-popover-foreground shadow-xl",
+        "z-[10000] min-w-[8rem] overflow-hidden rounded-xl border border-card-border bg-popover backdrop-blur-xl p-1.5 text-popover-foreground shadow-xl",
         className
       )}
       {...props}

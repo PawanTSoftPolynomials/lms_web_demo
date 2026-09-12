@@ -35,6 +35,7 @@ import {
   useCompleteContent,
   useMarkVisited,
 } from "@/hooks/queries/student";
+import useMyCourses from "@/hooks/queries/student/useMyCourses";
 import useLessonBookmarkToggle from "@/hooks/queries/student/useLessonBookmarkToggle";
 import useTrackCourseAccess from "@/hooks/queries/student/useTrackCourseAccess";
 import useLearningStateSync from "@/hooks/queries/student/useLearningStateSync";
@@ -70,6 +71,19 @@ export default function LearnPage() {
 
   const { data: rawCourseData, isLoading, isError } = useCourse(courseId);
   const course = useMemo(() => normalizeCourseHierarchy(rawCourseData) || {}, [rawCourseData]);
+
+  // Same enrollment gate as /student/courses/[courseId] — this is the actual
+  // lesson content, not just an overview, so it's the more important of the
+  // two to close. A non-enrolled student who reaches this URL directly is
+  // sent to the public course page instead of the player.
+  const { data: myEnrollments, isLoading: isEnrollmentsLoading } = useMyCourses();
+  const isEnrolled = (myEnrollments || []).some((e) => (e.courseId || e.course?.id) === courseId);
+
+  useEffect(() => {
+    if (!isEnrollmentsLoading && !isEnrolled) {
+      router.replace(`/courses/${courseId}`);
+    }
+  }, [isEnrollmentsLoading, isEnrolled, courseId, router]);
   // Progress is advisory to this page: the player must stay fully usable when
   // the roll-up is unavailable, so a failed/pending progress query degrades to
   // "no indicators" rather than blocking or erroring the learning experience.
@@ -778,7 +792,7 @@ export default function LearnPage() {
     videoPlayerRef.current?.seekTo(seconds);
   };
 
-  if (isLoading) {
+  if (isLoading || isEnrollmentsLoading || !isEnrolled) {
     return <Loader />;
   }
 
@@ -841,6 +855,13 @@ export default function LearnPage() {
   // QuizSubmission, so it is earned by passing, not by asserting it here.
   const activeQuizId = activeBlock?.kind === "quiz" ? activeBlock.item?.id : null;
   const activeQuizCompleted = Boolean(activeQuizId) && isItemComplete(progressIndex, activeQuizId);
+
+  // The floating Prev/Next controls double as an escape hatch out of an
+  // in-progress quiz — same gate canLeaveBlock already enforces on click
+  // (isItemSubmitted), just hidden outright here instead of clickable-then-
+  // toast, so an unsubmitted quiz reads as "finish this first" rather than
+  // offering a way out that immediately errors.
+  const hideFloatingNavForActiveQuiz = Boolean(activeQuizId) && !isItemSubmitted(progressIndex, activeQuizId);
 
   // An Assignment is the same story: completion is earned by the backend
   // accepting a submission, so the strip reports it and offers no action.
@@ -1169,27 +1190,31 @@ export default function LearnPage() {
                     focus) — video-player-style controls, not a bar that's
                     always sitting there. Always shown now — Course/Module-level
                     units are stops in the same whole-course sequence, not a
-                    standalone dead end. */}
-                <div className="absolute inset-3 flex items-center justify-between pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
-                  <LessonNavigationControls
-                    variant="corners"
-                    unitLabel={
-                      activeExtraUnitDef
-                        ? activeExtraUnitDef.key.startsWith("course")
-                          ? "Course"
-                          : activeExtraUnitDef.key.startsWith("module")
-                          ? "Module"
+                    standalone dead end. Hidden entirely (not just gated on
+                    click) while the block on screen is a quiz still awaiting
+                    submission — see hideFloatingNavForActiveQuiz. */}
+                {!hideFloatingNavForActiveQuiz && (
+                  <div className="absolute inset-3 flex items-center justify-between pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+                    <LessonNavigationControls
+                      variant="corners"
+                      unitLabel={
+                        activeExtraUnitDef
+                          ? activeExtraUnitDef.key.startsWith("course")
+                            ? "Course"
+                            : activeExtraUnitDef.key.startsWith("module")
+                            ? "Module"
+                            : "Lesson"
+                          : hasTopics
+                          ? "Topic"
                           : "Lesson"
-                        : hasTopics
-                        ? "Topic"
-                        : "Lesson"
-                    }
-                    previousItem={activeBlockIndex > 0 || currentUnitIndex > 0}
-                    nextItem={activeBlockIndex < activeUnitBlocks.length - 1 || currentUnitIndex < courseUnits.length - 1}
-                    onSelectPrevious={goToPreviousBlock}
-                    onSelectNext={goToNextBlock}
-                  />
-                </div>
+                      }
+                      previousItem={activeBlockIndex > 0 || currentUnitIndex > 0}
+                      nextItem={activeBlockIndex < activeUnitBlocks.length - 1 || currentUnitIndex < courseUnits.length - 1}
+                      onSelectPrevious={goToPreviousBlock}
+                      onSelectNext={goToNextBlock}
+                    />
+                  </div>
+                )}
 
                 {/* COMPLETION — the one place the student marks the block on
                     screen complete, and the one place its completed state is
