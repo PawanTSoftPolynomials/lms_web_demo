@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ListTree, X } from "lucide-react";
 
@@ -86,7 +86,6 @@ export default function LearnPage() {
     data: progressData,
     isLoading: isProgressLoading,
     isError: isProgressError,
-    refetch: refetchProgress,
   } = useCourseProgress(courseId);
   const completeContentMutation = useCompleteContent();
   const markVisitedMutation = useMarkVisited();
@@ -94,6 +93,60 @@ export default function LearnPage() {
   // Single flattened view of the backend roll-up. Null while loading or on
   // failure — every consumer below treats null as "don't render indicators".
   const progressIndex = useMemo(() => buildProgressIndex(progressData), [progressData]);
+
+  // A same-tick-current mirror of progressIndex, for gate checks that run
+  // inside an already-executing closure (handleVideoEnded, event handlers
+  // captured at an earlier render) rather than during render itself. A plain
+  // read of the `progressIndex` closure variable there would see whatever
+  // was current when THAT closure was created — never anything newer,
+  // because a re-render creates a new closure but cannot reach back into one
+  // that's already running. canLeaveBlock/canLeaveUnit read this ref instead
+  // so a gate check always sees the latest known progress, however stale the
+  // handler instance itself is. Anything used for on-screen display should
+  // keep reading `progressIndex` (the render-time value) instead — this ref
+  // is only for "is it actually safe to proceed" checks.
+  const progressIndexRef = useRef(progressIndex);
+  useEffect(() => {
+    progressIndexRef.current = progressIndex;
+  }, [progressIndex]);
+
+  // activeCompletionRef carries the current active-block completion state
+  // into handleMarkComplete below without making it a dependency (it's kept
+  // current by a plain assignment further down, where activeContentIds/
+  // activeContentCompleted are actually computed); markCompletePendingRef is
+  // its synchronous double-click guard. Declared here, and handleMarkComplete
+  // itself defined here too, because this sits before the loading/error early
+  // returns below — React requires every hook (useCallback included) to run
+  // on every render, so it cannot be declared only in the branch that has
+  // activeContentIds/activeContentCompleted already computed.
+  const activeCompletionRef = useRef({ contentIds: [], completed: false });
+  const markCompletePendingRef = useRef(false);
+  const { showToast } = useToast();
+
+  const handleMarkComplete = useCallback(() => {
+    const { contentIds, completed } = activeCompletionRef.current;
+    // markCompletePendingRef is a synchronous guard: the mutation's own
+    // isPending flag only becomes true once React re-renders after the
+    // first mutate() call commits, and a fast double click can fire both
+    // clicks before that happens. This ref is set/cleared immediately, in
+    // the same tick, so a same-tick double click still resolves to exactly
+    // one request (Test 5 in the task spec).
+    if (markCompletePendingRef.current || completed || contentIds.length === 0) return;
+
+    markCompletePendingRef.current = true;
+    completeContentMutation.mutate(
+      { contentIds, completed: true },
+      {
+        // No optimistic write: the item flips to Completed only once
+        // useCompleteContent's onSuccess has written the confirmed state
+        // (from the backend's own response) into the cache.
+        onSettled: () => {
+          markCompletePendingRef.current = false;
+        },
+        onError: () => showToast("Could not mark this item complete. Please try again.", "error"),
+      }
+    );
+  }, [completeContentMutation, showToast]);
 
   // Where Continue Learning (or any plain visit with no explicit ?lessonId=)
   // should land — see resolveResumeTarget. useLearningStateSync below uses
@@ -127,9 +180,6 @@ export default function LearnPage() {
 
   const { data: stateData, isLoading: isStateLoading } = useStudentState(courseId);
   const updateStateMutation = useUpdateStudentState();
-
-  const { showToast } = useToast();
-
 
   // Course Content Sidebar toggle state — open by default so the Course
   // Index is what a student sees on first arriving at a lesson.
@@ -338,16 +388,20 @@ export default function LearnPage() {
       try {
         // contentIds (not the block's representative id) so a merged document
         // block marks every underlying Content row — see useCompleteContent.
-        // Awaited, then the progress roll-up is explicitly refetched, before
-        // advancing: goToNextBlock can fall through into goToNextUnit's
-        // completion gate below, which reads progressIndex — advancing on the
-        // still-stale pre-completion snapshot would wrongly block a student
-        // who just finished the last item in the unit.
-        await completeContentMutation.mutateAsync({
+        const result = await completeContentMutation.mutateAsync({
           contentIds: contentIdsOf(finished.item),
           completed: true,
         });
-        await refetchProgress();
+        // goToNextBlock() below can fall through into goToNextUnit's
+        // completion gate (canLeaveBlock/canLeaveUnit), which must see this
+        // completion to avoid wrongly blocking a student who just finished
+        // the last item in the unit. Those gates read progressIndexRef, so
+        // updating it here — synchronously, from the response this mutation
+        // already returned — is enough; no separate refetch (and no second
+        // server-side rollup) is needed just to get the same data again.
+        if (result?.courseProgress?.hierarchy) {
+          progressIndexRef.current = buildProgressIndex(result.courseProgress);
+        }
       } catch {
         // Completion write failed — fall through and let the gate re-check
         // with whatever progress data is actually available rather than
@@ -458,7 +512,7 @@ export default function LearnPage() {
   // become `completed` in the roll-up, so it can't block either — mirrors
   // progressRollup.js's own rule that empty containers don't block their
   // parent's completion.
-  const canLeaveUnit = (nodeId) => isNodeLeavable(progressIndex, nodeId);
+  const canLeaveUnit = (nodeId) => isNodeLeavable(progressIndexRef.current, nodeId);
 
   const GATE_MESSAGES = {
     topicId: "Complete every item in this topic and submit its quiz before moving to the next topic.",
@@ -538,13 +592,14 @@ export default function LearnPage() {
   // in this sequence today (opening one goes through a separate, currently
   // broken, standalone path), so there is nothing to gate for that kind yet.
   const canLeaveBlock = (block) => {
-    if (!block || !progressIndex) return true;
+    const index = progressIndexRef.current;
+    if (!block || !index) return true;
     if (block.kind === "content") {
       const ids = contentIdsOf(block.item);
-      return ids.length === 0 || ids.every((id) => isItemComplete(progressIndex, id));
+      return ids.length === 0 || ids.every((id) => isItemComplete(index, id));
     }
     if (block.kind === "quiz") {
-      return isItemSubmitted(progressIndex, block.item?.id);
+      return isItemSubmitted(index, block.item?.id);
     }
     return true;
   };
@@ -956,20 +1011,17 @@ export default function LearnPage() {
   };
 
 
-  const handleMarkComplete = () => {
-    // The mutation's own pending flag is the guard against double submission;
-    // the button is disabled from the same flag.
-    if (completeContentMutation.isPending || activeContentCompleted || activeContentIds.length === 0) return;
-
-    completeContentMutation.mutate(
-      { contentIds: activeContentIds, completed: true },
-      {
-        // No optimistic write: the item flips to Completed only after the
-        // invalidated COURSE_PROGRESS query comes back saying so.
-        onError: () => showToast("Could not mark this item complete. Please try again.", "error"),
-      }
-    );
-  };
+  // Mirrors the values handleMarkComplete needs at click time, kept current
+  // on every render (a plain assignment, not a ref updated in an effect, so
+  // it's correct as of the render that just committed — no extra tick of
+  // lag). handleMarkComplete itself reads this ref rather than closing over
+  // activeContentIds/activeContentCompleted directly: those are recomputed
+  // (new array / fresh boolean) on every render, including the several-a-
+  // second re-renders a playing video drives via currentTimestamp, so
+  // closing over them directly would give handleMarkComplete — and anything
+  // memoized against it, like ContentCompletionBar — a new identity on every
+  // one of those ticks, defeating the memoization entirely.
+  activeCompletionRef.current = { contentIds: activeContentIds, completed: activeContentCompleted };
 
   // The side panel (Ask instructor / Sticky notes / Feedback / Reviews) —
   // desktop only: below xl the lesson itself owns the screen.
@@ -1194,6 +1246,16 @@ export default function LearnPage() {
     onSelectNext: goToNextBlock,
   };
 
+  // Not memoized as a single object -- `<ContentCompletionBar {...x} />`
+  // spreads these into individual props, and memo()'s default comparison
+  // checks each one separately, not the wrapper object's own identity (which
+  // isn't itself a prop). completed/isPending/isVideo/readOnly/readOnlyHint
+  // are plain booleans/strings, so they already compare equal by value across
+  // renders where nothing actually changed. onMarkComplete is the only
+  // reference-typed one, and it's a stable useCallback (declared above, before
+  // the loading/error early returns) — that's what actually lets memo() skip
+  // re-rendering ContentCompletionBar on the several-a-second re-renders a
+  // playing video drives via currentTimestamp.
   const completionBarProps = {
     completed: activeQuizId
       ? activeQuizCompleted

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import {
   Search,
   AlertTriangle, ArrowLeft, Loader2 // Info dropped with the Batch filter hint
@@ -146,9 +145,6 @@ function StudentsDirectoryContent() {
             </p>
           </div>
         </div>
-        <Link href="/instructor/dashboard" className="text-[10px] font-black text-muted-foreground hover:text-foreground flex items-center gap-1">
-          &larr; Back to Dashboard
-        </Link>
       </div>
 
       {selectedStudent ? (
