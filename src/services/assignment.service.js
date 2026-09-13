@@ -72,3 +72,12 @@ export const deleteAssignment = async (assignmentId) => {
   const { data } = await api.delete(`/assignments/${assignmentId}`);
   return data;
 };
+
+/**
+ * Batch reorder assignments within a parent scope (two-phase on the backend
+ * to avoid swap collisions) — mirrors reorderQuizzes in quiz.service.js.
+ */
+export const reorderAssignments = async (assignments) => {
+  const { data } = await api.patch("/assignments/reorder", { assignments });
+  return data;
+};
