@@ -133,7 +133,7 @@ export function NotificationProvider({ children }) {
             displayType = "course";
           } else if (backendType === "QUIZ_SUBMISSION" || backendType === "CERTIFICATE") {
             displayType = "quiz";
-          } else if (backendType === "CHAT") {
+          } else if (backendType === "CHAT" || backendType.startsWith("QA")) {
             displayType = "chat";
           }
           return {
@@ -146,7 +146,16 @@ export function NotificationProvider({ children }) {
             link: n.link || ""
           };
         });
-        setNotifications(formatted);
+        setNotifications(prev => {
+          const map = new Map();
+          formatted.forEach(n => map.set(n.id, n));
+          prev.forEach(n => {
+            if (!map.has(n.id)) {
+              map.set(n.id, n);
+            }
+          });
+          return Array.from(map.values());
+        });
 
         // Alert user of unread notifications after fresh login with a beautiful card modal
         if (typeof window !== "undefined") {
@@ -283,7 +292,7 @@ export function NotificationProvider({ children }) {
         displayType = "course";
       } else if (backendType === "QUIZ_SUBMISSION" || backendType === "CERTIFICATE") {
         displayType = "quiz";
-      } else if (backendType === "CHAT") {
+      } else if (backendType === "CHAT" || backendType.startsWith("QA")) {
         displayType = "chat";
       }
 
@@ -297,7 +306,12 @@ export function NotificationProvider({ children }) {
         link: notification.link || ""
       };
 
-      setNotifications(prev => [formatted, ...prev]);
+      setNotifications(prev => {
+        if (prev.some(n => n.id === formatted.id)) {
+          return prev;
+        }
+        return [formatted, ...prev];
+      });
 
       // Play chime sound
       playNotificationChime();

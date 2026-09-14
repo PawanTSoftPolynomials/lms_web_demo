@@ -17,6 +17,10 @@ export default function ExternalDocumentViewer({
   title = "Document",
   className = "",
   hideToolbar = false,
+  // Opt-in, mirroring PdfViewer/DocxViewer: below xl fill the height the
+  // parent allots instead of imposing a min-h-[480px] floor that overflows a
+  // phone-sized player frame. Consumers that do not pass it are unchanged.
+  fillHeight = false,
   onControlsRender,
 }) {
   const [refMetadata, setRefMetadata] = useState(null);
@@ -24,6 +28,15 @@ export default function ExternalDocumentViewer({
   const [refError, setRefError] = useState(null);
 
   const [iframeLoading, setIframeLoading] = useState(true);
+
+  // fillHeight: below xl an aspect-driven box that cannot impose a floor
+  // taller than the player frame; at xl the original reading pane, verbatim.
+  const extFrameSizing = fillHeight
+    ? "aspect-[4/3] max-h-[70dvh] xl:aspect-auto xl:h-[68vh] xl:min-h-[480px] xl:max-h-[850px]"
+    : "h-[68vh] min-h-[480px] max-h-[850px]";
+  const extStateSizing = fillHeight
+    ? "aspect-[4/3] max-h-[70dvh] xl:aspect-auto xl:h-[480px]"
+    : "h-[480px]";
   const [iframeError, setIframeError] = useState(false);
 
   // Check if fileUrl points to a Vercel Blob JSON metadata reference
@@ -92,6 +105,7 @@ export default function ExternalDocumentViewer({
         title={title}
         className={className}
         hideToolbar={hideToolbar}
+        fillHeight={fillHeight}
         onControlsRender={onControlsRender}
       />
     );
@@ -113,6 +127,7 @@ export default function ExternalDocumentViewer({
         title={title}
         className={className}
         hideToolbar={hideToolbar}
+        fillHeight={fillHeight}
         onControlsRender={onControlsRender}
       />
     );
@@ -134,6 +149,7 @@ export default function ExternalDocumentViewer({
         title={title}
         className={className}
         hideToolbar={hideToolbar}
+        fillHeight={fillHeight}
         onControlsRender={onControlsRender}
       />
     );
@@ -181,6 +197,7 @@ export default function ExternalDocumentViewer({
         title={title}
         className={className}
         hideToolbar={hideToolbar}
+        fillHeight={fillHeight}
         onControlsRender={onControlsRender}
       />
     );
@@ -224,7 +241,7 @@ export default function ExternalDocumentViewer({
 
         {/* Clean LMS Error / Permission Fallback */}
         {iframeError ? (
-          <div className="flex h-[480px] w-full flex-col items-center justify-center gap-4 p-8 text-center bg-[#060913]">
+          <div className={`flex w-full flex-col items-center justify-center gap-4 p-8 text-center bg-[#060913] ${extStateSizing}`}>
             <AlertCircle className="h-10 w-10 text-amber-400" />
             <div>
               <h4 className="text-sm font-bold text-foreground mb-1">Google Drive preview unavailable</h4>
@@ -248,7 +265,7 @@ export default function ExternalDocumentViewer({
           <iframe
             src={resolved.viewerUrl}
             title={title}
-            className="w-full h-[68vh] min-h-[480px] max-h-[850px] border-0 bg-[#060913]"
+            className={`w-full border-0 bg-[#060913] ${extFrameSizing}`}
             onLoad={() => setIframeLoading(false)}
             onError={() => {
               setIframeLoading(false);
@@ -283,6 +300,7 @@ export default function ExternalDocumentViewer({
         title={title}
         className={className}
         hideToolbar={hideToolbar}
+        fillHeight={fillHeight}
         onControlsRender={onControlsRender}
       />
     );
@@ -303,7 +321,7 @@ export default function ExternalDocumentViewer({
         )}
 
         {iframeError ? (
-          <div className="flex h-[480px] w-full flex-col items-center justify-center gap-4 p-8 text-center bg-[#060913]">
+          <div className={`flex w-full flex-col items-center justify-center gap-4 p-8 text-center bg-[#060913] ${extStateSizing}`}>
             <FileText className="h-12 w-12 text-muted-foreground mb-1" />
             <h4 className="text-sm font-bold text-foreground mb-1">Document preview unavailable</h4>
             <p className="text-xs text-muted-foreground max-w-sm mb-4 leading-relaxed">
@@ -325,7 +343,7 @@ export default function ExternalDocumentViewer({
           <iframe
             src={officeViewerUrl}
             title={title}
-            className="w-full h-[68vh] min-h-[480px] max-h-[850px] border-0 bg-[#060913] rounded-2xl"
+            className={`w-full border-0 bg-[#060913] rounded-2xl ${extFrameSizing}`}
             onLoad={() => setIframeLoading(false)}
             onError={() => {
               setIframeLoading(false);

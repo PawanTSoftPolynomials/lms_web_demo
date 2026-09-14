@@ -192,14 +192,16 @@ export function DocumentCell({
   const [mode, setMode] = useState<"view" | "edit">("view");
 
   const parsedSlides = parseSlideDeckJson(content.htmlContent || content.body);
+  const hasSlides = parsedSlides.length > 0;
+  const hasFile = Boolean(content.fileUrl && content.fileUrl.trim());
 
   const [presentationMode, setPresentationMode] = useState<"slideshow" | "upload">(
-    parsedSlides.length > 0 ? "slideshow" : content.fileUrl ? "upload" : "slideshow"
+    hasSlides ? "slideshow" : "upload"
   );
 
   const [title, setTitle] = useState(content.title ?? "");
   const [fileUrl, setFileUrl] = useState(content.fileUrl ?? "");
-  const [slides, setSlides] = useState<SlideItemV2[]>(parsedSlides.length > 0 ? parsedSlides : createDefaultSlideDeck());
+  const [slides, setSlides] = useState<SlideItemV2[]>(hasSlides ? parsedSlides : createDefaultSlideDeck());
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [pdfControls, setPdfControls] = useState<React.ReactNode | null>(null);
 
@@ -211,6 +213,7 @@ export function DocumentCell({
   const handleEdit = () => {
     setTitle(content.title ?? "");
     setFileUrl(content.fileUrl ?? "");
+    setPresentationMode(hasSlides ? "slideshow" : "upload");
     setMode("edit");
   };
 
@@ -278,7 +281,7 @@ export function DocumentCell({
   }
 
   const currentSlide = slides[activeSlideIndex] || slides[0];
-  const showSlideDeck = isPresentation && (presentationMode === "slideshow" || parsedSlides.length > 0);
+  const showSlideDeck = isPresentation && hasSlides;
 
   return (
     <CellShell
@@ -426,9 +429,16 @@ export function DocumentCell({
           )}
         </div>
       ) : (
-        <p className="text-xs italic text-muted-foreground">
-          No {cellType.label.toLowerCase()} set yet.
-        </p>
+        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/20 p-6 text-center">
+          <Layers className="h-7 w-7 text-muted-foreground" />
+          <p className="text-xs font-bold text-foreground">No presentation file or slides configured yet</p>
+          <p className="text-[11px] text-muted-foreground max-w-xs">
+            Upload a PowerPoint file (.pptx) or build slide deck.
+          </p>
+          <Button type="button" size="sm" onClick={handleEdit} className="mt-1 font-bold">
+            Configure Presentation
+          </Button>
+        </div>
       )}
     </CellShell>
   );

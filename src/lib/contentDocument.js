@@ -20,23 +20,45 @@
  * the representative `id` — otherwise the blocks merged away here could
  * never be counted toward lesson completion.
  */
+function isHtmlImage(item) {
+  if (!item) return false;
+  const type = item.type?.toUpperCase();
+  if (type === "IMAGE") return true;
+  if (type === "HTML" && item.htmlContent) {
+    return (
+      item.htmlContent.includes("cc-image-block") ||
+      /<figure[^>]*class="[^"]*cc-image-block[^"]*"/i.test(item.htmlContent) ||
+      /<img\s+/i.test(item.htmlContent)
+    );
+  }
+  return false;
+}
+
 export function groupLessonContentForDocumentView(contents) {
   const items = Array.isArray(contents) ? contents : [];
   const grouped = [];
 
   for (const item of items) {
     const last = grouped[grouped.length - 1];
+    const hasOwnTitle = Boolean(item?.title && item.title.trim());
 
-    if (item?.type === "HTML" && last?.type === "HTML" && last.__merged && last.topicId === item.topicId) {
+    if (
+      !hasOwnTitle &&
+      item?.type === "HTML" &&
+      !isHtmlImage(item) &&
+      last?.type === "HTML" &&
+      !isHtmlImage(last) &&
+      last.__merged &&
+      last.topicId === item.topicId
+    ) {
       last.htmlContent = [last.htmlContent, item.htmlContent].filter(Boolean).join("\n");
-      if (!last.title && item.title) last.title = item.title;
       if (item.id) last.contentIds.push(item.id);
       continue;
     }
 
     grouped.push(
-      item?.type === "HTML"
-        ? { ...item, __merged: true, contentIds: item.id ? [item.id] : [] }
+      item?.type === "HTML" && !isHtmlImage(item)
+        ? { ...item, __merged: true, contentIds: item?.id ? [item.id] : [] }
         : { ...item, contentIds: item?.id ? [item.id] : [] }
     );
   }

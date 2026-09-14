@@ -357,7 +357,7 @@ export default function PptViewer({
 
   return (
     <div
-      className={`flex flex-col w-full ${
+      className={`flex flex-col w-full h-full flex-1 min-h-0 ${
         !hideToolbar
           ? "rounded-2xl border border-border bg-[#0B101D] shadow-2xl overflow-hidden"
           : ""
@@ -365,7 +365,7 @@ export default function PptViewer({
     >
       {/* Standalone Header Toolbar */}
       {!hideToolbar && (
-        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border/80 bg-[#0D1222] px-3.5 py-2.5 text-foreground rounded-t-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border/80 bg-[#0D1222] px-3.5 py-2.5 text-foreground rounded-t-2xl shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15 border border-primary/30 text-primary shrink-0">
               <Presentation size={15} />
@@ -383,16 +383,7 @@ export default function PptViewer({
       <div
         ref={viewportRef}
         onClick={handleViewportClick}
-        // The viewport takes the *slide's own* aspect ratio, so a fitted slide
-        // fills it edge to edge. A fixed tall box (78vh) letterboxed instead:
-        // fitScale is min(width, height) based, so on a wide frame the height
-        // bound, leaving a band of dead backdrop down either side of every
-        // 16:9 deck. max-h keeps a portrait or square deck from growing past
-        // the window — that case letterboxes, and there is no way round it
-        // without cropping the slide. Padding is 0 for the same reason: it is
-        // blank space around the one thing the frame exists to show.
-        style={{ aspectRatio: `${baseSlideWidth} / ${baseSlideHeight}` }}
-        className={`relative w-full max-h-[88vh] overflow-auto bg-[#060913] p-0 flex justify-center items-center scroll-smooth rounded-2xl border border-border/80 ${
+        className={`relative w-full flex-1 min-h-0 overflow-auto bg-[#060913] p-2 sm:p-4 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80 ${
           totalSlides > 1 ? "cursor-pointer" : ""
         }`}
       >
@@ -432,7 +423,7 @@ export default function PptViewer({
                theme, while a slide's background is a property of the deck. A
                light-theme card under a deck's own dark-on-white type was what
                made the text vanish. */
-            className="relative transition-all duration-150 shadow-2xl rounded-xl overflow-hidden border border-transparent/60 shrink-0 my-auto mx-auto"
+            className="relative transition-all duration-150 shadow-2xl rounded-xl overflow-hidden border border-transparent/60 shrink-0 mt-0 mb-auto mx-auto"
             style={{
               width: `${renderedWidth}px`,
               height: `${renderedHeight}px`,
@@ -463,7 +454,7 @@ export default function PptViewer({
                 return (
                   <div
                     key={elem.id}
-                    className="absolute overflow-hidden p-1 flex flex-col justify-start"
+                    className="absolute overflow-visible p-1 flex flex-col justify-start"
                     style={{
                       left: `${elem.left}%`,
                       top: `${elem.top}%`,
@@ -505,7 +496,7 @@ export default function PptViewer({
                        own: every cell carries the fill and type colour the deck
                        authored, and a panel painted underneath them only shows
                        through the gridlines as a colour the slide never had. */
-                    className="absolute overflow-hidden"
+                    className="absolute overflow-visible"
                     style={{
                       left: `${elem.left}%`,
                       top: `${elem.top}%`,
@@ -551,7 +542,7 @@ export default function PptViewer({
                                     // prose around it at every zoom level.
                                     fontSize: `${Math.max(8, Math.round((c.fontSize || 14) * effectiveScale))}px`,
                                     textAlign: c.textAlign || "left",
-                                    padding: `${Math.max(2, Math.round(6 * effectiveScale))}px ${Math.max(3, Math.round(8 * effectiveScale))}px`,
+                                    padding: `${Math.max(1, Math.round(3 * effectiveScale))}px ${Math.max(2, Math.round(5 * effectiveScale))}px`,
                                     border: "1px solid rgba(255, 255, 255, 0.25)",
                                     verticalAlign: "middle",
                                     overflow: "hidden",

@@ -83,13 +83,6 @@ function ProfileDropdown({ user, onLogoutRequest, role }) {
               onClick={() => setOpen(false)}
               className="flex items-center px-3 py-2 text-[10px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition"
             >
-              ⚙ Settings
-            </Link>
-            <Link
-              href={settingsHref}
-              onClick={() => setOpen(false)}
-              className="flex items-center px-3 py-2 text-[10px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition"
-            >
               🛟 Help & Support
             </Link>
             <button
@@ -300,7 +293,6 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     setActiveConversation,
   } = useChat();
 
-  const [showNotifications, setShowNotifications] = useState(false);
   const { notifications, markAllRead, clearAll, markAsRead, addNotification } = useNotification();
   const [isMounted, setIsMounted] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -394,39 +386,10 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
     markAsRead(id);
   };
 
-  // Process notifications clicks: route to relevant page or open chat instantly
+  // Process notification clicks: mark read and close popup, NO route navigation (user stays on current page)
   const handleNotificationClick = (n) => {
     handleToggleRead(n.id);
     setShowNotifications(false);
-
-    if (n.type === "chat") {
-      const targetConvId = n.conversationId;
-      if (targetConvId) {
-        const found = conversations.find((c) => c.id === targetConvId);
-        if (found) {
-          setActiveConversation(found);
-          setConversations((prev) =>
-            prev.map((c) =>
-              c.id === found.id ? { ...c, unread: 0 } : c
-            )
-          );
-        } else {
-          // If not in standard list, set a baseline conversation structure
-          setActiveConversation({ id: targetConvId, name: n.title.replace("New message from ", "") });
-        }
-      }
-      setIsOpen(true);
-    } else if (n.type === "quiz") {
-      router.push(currentUser?.role === "INSTRUCTOR" ? "/instructor/quizzes" : "/student/quizzes");
-    } else if (n.type === "course") {
-      router.push(
-        currentUser?.role === "INSTRUCTOR"
-          ? "/instructor/courses"
-          : currentUser?.role === "ADMIN"
-          ? "/admin/courses"
-          : "/student/courses"
-      );
-    }
   };
 
   if (role === 'INSTRUCTOR' || role === 'ADMIN') {
@@ -441,7 +404,9 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
           keeps its natural space instead of needing compensating padding on
           every instructor/admin page that renders this navbar. */}
       <header className="bg-background border-b border-border text-foreground sticky top-0 z-40">
-        <div className="px-3 sm:px-6 py-3 flex items-center gap-1.5 sm:gap-4">
+        {/* px-2 below sm: the 12px gutter pushed the drawer toggle and the
+            action cluster into each other at 320px. */}
+        <div className="px-2 sm:px-6 py-3 flex items-center gap-1.5 sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-6 shrink-0">
             {/* Mobile menu toggle — opens the role's nav drawer (see
                 Instructor/AdminNavDrawer); this used to call the unrelated
@@ -564,7 +529,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
         z-40
       `}
       >
-        <div className="px-3 sm:px-6 py-3 flex items-center gap-1.5 sm:gap-4">
+        <div className="px-2 sm:px-6 py-3 flex items-center gap-1.5 sm:gap-4">
           <div className="flex items-center gap-3 sm:gap-4 shrink-0">
             {!isStudentRole && (
               <button
@@ -648,7 +613,7 @@ export default function Navbar({ title = "Dashboard", setOpen, role }) {
             </div>
           )}
 
-          <div className="flex gap-2 sm:gap-4 items-center relative shrink-0">
+          <div className="flex gap-1.5 sm:gap-4 items-center relative shrink-0">
 
             {/* Global Search: Courses, Assignments, Live Classes, Notes —
                 icon-only on mobile (GlobalSearch already hides its own

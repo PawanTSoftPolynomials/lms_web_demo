@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
 /**
@@ -16,8 +17,14 @@ import { CheckCircle2, Loader2 } from "lucide-react";
  * VIDEO also completes automatically when it plays to the end, so the button
  * is never the *required* path for it; it stays available because an embedded
  * player that never fires `onEnded` would otherwise leave that item stuck.
+ *
+ * Wrapped in memo(): the learn page re-renders at video timeupdate frequency
+ * (several times a second) to drive the transcript sync, and this bar sits
+ * in that same tree. As long as the page passes it referentially-stable
+ * props (see completionBarProps/handleMarkComplete in page.jsx), memo skips
+ * re-rendering this on every one of those ticks.
  */
-export default function ContentCompletionBar({
+function ContentCompletionBar({
   completed = false,
   isPending = false,
   readOnly = false,
@@ -50,3 +57,5 @@ export default function ContentCompletionBar({
     </button>
   );
 }
+
+export default memo(ContentCompletionBar);

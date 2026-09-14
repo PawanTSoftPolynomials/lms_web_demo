@@ -386,6 +386,34 @@ body {
   }
 }
 
+/* Off-canvas navigation sidebar (below xl): the panel slides in from the left
+   edge of the viewport while its scrim fades up behind it. Mount-time only —
+   the panel is unmounted on close, so there is no exit animation to pair. */
+@keyframes sidebar-slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@utility animate-sidebar-in-left {
+  animation: sidebar-slide-in-left 220ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes scrim-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@utility animate-scrim-in {
+  animation: scrim-fade-in 220ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sidebar-in-left,
+  .animate-scrim-in {
+    animation: none;
+  }
+}
+
 /* ==========================================================================
    Experimental photo-derived card palette — course cards only, applied via a
    wrapper class on the card root. Theme-aware: light-mode uses the app's own

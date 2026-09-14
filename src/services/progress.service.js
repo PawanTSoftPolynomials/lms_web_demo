@@ -12,6 +12,20 @@ export const markContentComplete = async (contentId, completed = true) => {
 };
 
 /**
+ * Same as markContentComplete, but for every Content row a single merged
+ * player block stands for (see groupLessonContentForDocumentView) — one
+ * request instead of one per row, so the backend recomputes the course's
+ * progress roll-up once instead of once per id racing the others.
+ */
+export const markContentCompleteBatch = async (contentIds, completed = true) => {
+  const { data } = await api.post("/progress/content-complete", {
+    contentIds,
+    completed
+  });
+  return data.data ?? data;
+};
+
+/**
  * Mark a lesson (and all its topic contents) as complete or incomplete
  */
 export const completeLesson = async (lessonId, completed = true) => {

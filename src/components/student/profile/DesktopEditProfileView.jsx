@@ -14,7 +14,6 @@ import {
   Key,
   Check,
   X,
-  ChevronRight,
   Camera,
   Upload,
   Trash2,
@@ -261,13 +260,6 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
         accept="image/*"
         className="hidden"
       />
-
-      {/* Top Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-        <span className="hover:text-foreground transition cursor-pointer">Profile</span>
-        <ChevronRight size={12} className="text-slate-600" />
-        <span className="text-primary font-bold">Edit Profile</span>
-      </div>
 
       {/* 1. HERO PROFILE HEADER CARD */}
       <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-[var(--card)] via-[var(--surface-muted)] to-[var(--card)] p-6 md:p-8 shadow-2xl">

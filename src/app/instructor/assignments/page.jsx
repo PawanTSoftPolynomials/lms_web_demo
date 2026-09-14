@@ -99,14 +99,17 @@ export default function InstructorAssignmentsPage() {
 
   if (loadingAssignments || loadingContentAssignments || loadingCourses) return <Loader />;
 
-  // Filter assignments list
+  // Filter assignments list — draft courses aren't graded yet, so only
+  // surface work that belongs to a course the instructor has published.
   const filteredAssignments = assignments.filter((a) => {
+    if (a.course?.status !== "PUBLISHED") return false;
     if (courseFilter === "all") return true;
     return a.courseId === courseFilter || a.course?.id === courseFilter;
   });
-  const filteredContentAssignments = contentAssignments.filter(
-    (a) => courseFilter === "all" || a.course?.id === courseFilter
-  );
+  const filteredContentAssignments = contentAssignments.filter((a) => {
+    if (a.course?.status !== "PUBLISHED") return false;
+    return courseFilter === "all" || a.course?.id === courseFilter;
+  });
 
   const renderSubmissionsToggle = (id, pendingCount) => (
     <button

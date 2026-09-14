@@ -12,7 +12,6 @@ import {
   ChevronRight,
   ClipboardList,
   Code2,
-  Copy,
   Eye,
   File,
   FileStack,
@@ -48,7 +47,6 @@ import {
 import { NodeBadge } from "@/components/student/learning/CourseContentAccordion";
 import { getNodeProgress } from "@/lib/progressIndex";
 import { useContents } from "@/hooks/queries/instructor/useContents";
-import { useDuplicateContent } from "@/components/instructor/LessonComposer/contentMutations";
 import { useReorderModules } from "@/hooks/queries/instructor/useReorderModules";
 import { useReorderLessons } from "@/hooks/queries/instructor/useReorderLessons";
 import { useReorderTopics } from "@/hooks/queries/instructor/useReorderTopics";
@@ -284,7 +282,6 @@ function ParentContentRows({
   composerMode,
   composeQuizId,
   onSelectQuiz,
-  onDuplicateQuiz,
   onDeleteQuiz,
   role = "INSTRUCTOR",
   isDraftMode = false,
@@ -299,7 +296,6 @@ function ParentContentRows({
   const contents = isDraftMode ? (draftContents || []) : (apiContents || []);
   const isLoading = isDraftMode ? false : isApiLoading;
   const isError = isDraftMode ? false : isApiError;
-  const { duplicate } = useDuplicateContent();
   const reorderContents = useReorderContents();
   const updateQuizOrder = useUpdateQuizOrder();
   const reorderQuizzes = useReorderQuizzes();
@@ -339,18 +335,6 @@ function ParentContentRows({
       }
     } catch {
       showToast("Failed to reorder", "error");
-    }
-  };
-
-  const handleDuplicate = async (content) => {
-    const validOrders = mergedRows
-      .map((r) => (typeof r.order === "number" && r.order > 0 ? r.order : 0))
-      .filter((o) => o > 0);
-    const nextOrder = validOrders.length > 0 ? Math.max(...validOrders) + 1 : mergedRows.length + 1;
-    try {
-      await duplicate(content, nextOrder);
-    } catch {
-      showToast("Failed to duplicate content", "error");
     }
   };
 
@@ -420,7 +404,6 @@ function ParentContentRows({
                       items={[
                         { label: "Edit Quiz", icon: Pencil, onSelect: () => onSelectQuiz?.(row, { startEditing: true }) },
                         { label: "Preview Quiz", icon: Eye, onSelect: () => onSelectQuiz?.(row, { startEditing: false }) },
-                        { label: "Duplicate Quiz", icon: Copy, onSelect: () => onDuplicateQuiz?.(row) },
                         { separator: true },
                         { label: "Move Up", icon: ArrowUp, disabled: rIdx === 0, onSelect: () => handleMove(row.id, "up") },
                         { label: "Move Down", icon: ArrowDown, disabled: rIdx === mergedRows.length - 1, onSelect: () => handleMove(row.id, "down") },
@@ -462,7 +445,9 @@ function ParentContentRows({
                 </span>
               </div>
 
-              {role === "INSTRUCTOR" && (
+              {/* Course/module/lesson content in an import draft has no draft
+                  move/delete path (only topic content does), so no menu there. */}
+              {role === "INSTRUCTOR" && !(isDraftMode && parent?.parentType !== "topic") && (
                 <RowMenu
                   groupName="content"
                   items={[
@@ -470,8 +455,6 @@ function ParentContentRows({
                        composer. The row itself already opens the content on
                        click (onSelectContent above), so the menu entry was a
                        second door to the same place. */
-                    { label: "Duplicate Content", icon: Copy, onSelect: () => handleDuplicate(content) },
-                    { separator: true },
                     { label: "Move Up", icon: ArrowUp, disabled: rIdx === 0, onSelect: () => handleMove(content.id, "up") },
                     { label: "Move Down", icon: ArrowDown, disabled: rIdx === mergedRows.length - 1, onSelect: () => handleMove(content.id, "down") },
                     { separator: true },
@@ -505,6 +488,11 @@ function AssignmentRows({
 }) {
   if (!assignments || assignments.length === 0) return null;
 
+  // Without handlers (the Composer's import draft) a row is a read-only
+  // listing: it neither looks clickable nor offers menu actions that do nothing.
+  const isSelectable = Boolean(onSelectAssignment);
+  const hasActions = role === "INSTRUCTOR" && Boolean(onSelectAssignment || onDeleteAssignment);
+
   return (
     <div className="mb-1 space-y-0.5">
       {assignments.map((asgn, aIdx) => {
@@ -513,12 +501,14 @@ function AssignmentRows({
         return (
           <div key={asgn.id || `asgn-${aIdx}`}>
             <div
-              className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
+              className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition border-l-2 ${
+                isSelectable ? "cursor-pointer" : ""
+              } ${
                 isAsgnActive
                   ? "bg-amber-500/15 border-amber-500 text-amber-600 dark:text-amber-400 font-bold"
-                  : "border-transparent text-amber-600/90 dark:text-amber-400/90 hover:bg-background/60"
+                  : `border-transparent text-amber-600/90 dark:text-amber-400/90 ${isSelectable ? "hover:bg-background/60" : ""}`
               }`}
-              onClick={() => onSelectAssignment?.(asgn, mod, lesson, topic)}
+              onClick={isSelectable ? () => onSelectAssignment(asgn, mod, lesson, topic) : undefined}
             >
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                 {asgn.completed ? (
@@ -534,7 +524,7 @@ function AssignmentRows({
                     {asgn.marks} Marks
                   </span>
                 ) : null}
-                {role === "INSTRUCTOR" && (
+                {hasActions && (
                   <RowMenu
                     groupName="quiz"
                     items={[
@@ -566,6 +556,8 @@ export function CourseComposerSidebar({
   modules = [],
   courseQuizzes = [],
   courseAssignments = [],
+  // Course-level content of an import draft; live courses load theirs by parent.
+  courseContents,
   composerMode,
   composeModuleId,
   composeLessonId,
@@ -575,6 +567,7 @@ export function CourseComposerSidebar({
   selectedCellId,
   isOpen = true,
   onToggleOpen,
+  hideHeader = false,
   onSelectCourseOverview,
   onSelectQuiz,
   onDuplicateQuiz,
@@ -593,12 +586,6 @@ export function CourseComposerSidebar({
   onDeleteLessonContent,
   courseId,
   onAddLesson,
-  onAddQuizToCourse,
-  onAddQuizToLesson,
-  onAddQuizToTopic,
-  onAddAssignmentToCourse,
-  onAddAssignmentToLesson,
-  onAddAssignmentToTopic,
   onAddModule,
   onAddTopic,
   onAddContentToTopic,
@@ -705,29 +692,33 @@ export function CourseComposerSidebar({
         ? "lg:max-h-full"
         : "lg:h-[calc(100vh-7rem)] lg:max-h-[calc(100vh-7rem)]"
     } overflow-hidden text-foreground`}>
-      {/* Panel Title */}
-      <div className="flex items-center justify-between gap-2 mb-1 shrink-0">
-        <div className="font-black text-sm uppercase tracking-widest text-foreground flex items-center gap-2">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-accent, #f97316)" strokeWidth="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-          </svg>
-          <span>Course Map</span>
+      {!hideHeader && (
+        <>
+        {/* Panel Title */}
+        <div className="flex items-center justify-between gap-2 mb-1 shrink-0">
+          <div className="font-black text-sm uppercase tracking-widest text-foreground flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-accent, #f97316)" strokeWidth="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
+            <span>Course Map</span>
+          </div>
+          <button
+            type="button"
+            onClick={onToggleOpen}
+            className="p-1 rounded-lg text-muted-foreground hover:text-primary hover:bg-background transition cursor-pointer shrink-0"
+            aria-label="Hide course map"
+            title="Hide course map"
+          >
+            <PanelLeftClose size={16} />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={onToggleOpen}
-          className="p-1 rounded-lg text-muted-foreground hover:text-primary hover:bg-background transition cursor-pointer shrink-0"
-          aria-label="Hide course map"
-          title="Hide course map"
-        >
-          <PanelLeftClose size={16} />
-        </button>
-      </div>
 
-      {/* Compact subtitle */}
-      <div className="text-[12.5px] text-muted-foreground mb-3 pb-3 border-b border-border/80">
-        Course structure
-      </div>
+        {/* Compact subtitle */}
+        <div className="text-[12.5px] text-muted-foreground mb-3 pb-3 border-b border-border/80">
+          Course structure
+        </div>
+        </>
+      )}
 
       {/* New Module Button - Instructor only */}
       {role === "INSTRUCTOR" && (
@@ -760,8 +751,6 @@ export function CourseComposerSidebar({
             groupName="module"
             items={[
               { label: "Add Content", icon: Plus, onSelect: () => onAddContentToCourse?.() },
-              { label: "Add Course Quiz", icon: HelpCircle, onSelect: () => onAddQuizToCourse?.() },
-              { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToCourse?.() },
             ]}
           />
         )}
@@ -787,6 +776,7 @@ export function CourseComposerSidebar({
           role={role}
           progress={progress}
           isDraftMode={isDraftMode}
+          draftContents={courseContents}
         />
       )}
 
@@ -878,6 +868,16 @@ export function CourseComposerSidebar({
                 {/* Module Children: Module Content + Module Quizzes + Module Assignments + Lessons */}
                 <Collapsible open={moduleOpen}>
                   <div className="ml-3.5 pl-3 py-0.5 space-y-0.5 border-l border-border/70">
+                    {/* Module Assignments (when present) */}
+                    <AssignmentRows
+                      assignments={mod.assignments}
+                      composerMode={composerMode}
+                      composeAssignmentId={composeAssignmentId}
+                      onSelectAssignment={onSelectAssignment}
+                      onDeleteAssignment={onDeleteAssignment}
+                      role={role}
+                      mod={mod}
+                    />
                     {/* Unified Module Items (contents, quizzes, and lessons sorted by creation/order) */}
                     <ParentContentRows
                       parent={{ parentType: "module", parentId: mod.id }}
@@ -959,8 +959,6 @@ export function CourseComposerSidebar({
                                     { label: "Edit Lesson", icon: Pencil, onSelect: () => onEditLesson?.(lesson, mod.id) },
                                     { label: "Add Topic", icon: Plus, onSelect: () => onAddTopic?.(lesson.id) },
                                     { label: "Add Content", icon: Plus, onSelect: () => onAddContentToLesson?.(lesson, mod) },
-                                    { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToLesson?.(lesson, mod) },
-                                    { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToLesson?.(lesson, mod) },
                                     { separator: true },
                                     { label: "Move Up", icon: ArrowUp, disabled: lIdx === 0, onSelect: () => handleMoveLesson(mod, lesson.id, "up") },
                                     { label: "Move Down", icon: ArrowDown, disabled: lIdx === modLessons.length - 1, onSelect: () => handleMoveLesson(mod, lesson.id, "down") },
@@ -979,6 +977,17 @@ export function CourseComposerSidebar({
                             {/* Lesson Content + Lesson Quizzes + Lesson Assignments + Topics */}
                             <Collapsible open={lessonOpen}>
                               <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-border/60">
+                                {/* Lesson Assignments (when present) */}
+                                <AssignmentRows
+                                  assignments={lesson.assignments}
+                                  composerMode={composerMode}
+                                  composeAssignmentId={composeAssignmentId}
+                                  onSelectAssignment={onSelectAssignment}
+                                  onDeleteAssignment={onDeleteAssignment}
+                                  role={role}
+                                  mod={mod}
+                                  lesson={lesson}
+                                />
                                 {/* Unified Lesson Items (contents, quizzes, and topics sorted by creation/order) */}
                                 <ParentContentRows
                                   parent={{ parentType: "lesson", parentId: lesson.id }}
@@ -1050,8 +1059,6 @@ export function CourseComposerSidebar({
                                               items={[
                                                 { label: "Edit Topic", icon: Pencil, onSelect: () => onEditTopic?.(topic, lesson.id, mod.id) },
                                                 { label: "Add Content", icon: Plus, onSelect: () => onAddContentToTopic?.(topic.id, lesson.id, mod.id) },
-                                                { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToTopic?.(topic, lesson, mod) },
-                                                { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToTopic?.(topic, lesson, mod) },
                                                 { separator: true },
                                                 { label: "Move Up", icon: ArrowUp, disabled: tIdx === 0, onSelect: () => handleMoveTopic(lesson, topic.id, "up") },
                                                 { label: "Move Down", icon: ArrowDown, disabled: tIdx === lessonTopics.length - 1, onSelect: () => handleMoveTopic(lesson, topic.id, "down") },

@@ -10,6 +10,7 @@ import SubmissionListItem from "@/components/student/submissions/SubmissionListI
 import useAssignments from "@/hooks/queries/student/useAssignments";
 import useQuizSubmissions from "@/hooks/queries/student/useQuizSubmissions";
 import {
+  SUBMISSION_QUIZ_TYPE_FILTERS,
   SUBMISSION_SORTS,
   SUBMISSION_STATUS_FILTERS,
   SUBMISSION_TYPES,
@@ -68,6 +69,7 @@ function SubmissionsPageContent() {
     SUBMISSION_TYPES.some((t) => t.key === typeParam) ? typeParam : "assignment"
   );
   const [status, setStatus] = useState("all");
+  const [quizType, setQuizType] = useState("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("newest");
 
@@ -88,15 +90,16 @@ function SubmissionsPageContent() {
   );
 
   const visible = useMemo(
-    () => filterAndSortSubmissions(records, { type, status, query, sort }),
-    [records, type, status, query, sort]
+    () => filterAndSortSubmissions(records, { type, status, quizType, query, sort }),
+    [records, type, status, quizType, query, sort]
   );
 
   // Search and status narrow the current tab; switching tabs isn't a filter.
-  const filtered = status !== "all" || query.trim() !== "";
+  const filtered = status !== "all" || (type === "quiz" && quizType !== "all") || query.trim() !== "";
 
   const clearFilters = () => {
     setStatus("all");
+    setQuizType("all");
     setQuery("");
   };
 
@@ -213,6 +216,20 @@ function SubmissionsPageContent() {
                     </option>
                   ))}
                 </select>
+                {type === "quiz" && (
+                  <select
+                    value={quizType}
+                    onChange={(e) => setQuizType(e.target.value)}
+                    aria-label="Filter by quiz type"
+                    className={SELECT_CLASS}
+                  >
+                    {SUBMISSION_QUIZ_TYPE_FILTERS.map((option) => (
+                      <option key={option.key} value={option.key}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
@@ -264,12 +281,12 @@ function SubmissionsPageContent() {
                 <Inbox size={22} aria-hidden />
               </div>
               <p className="mt-4 text-base font-semibold text-foreground">
-                {type === "quiz" ? "No quizzes submitted yet" : "No assignments yet"}
+                {type === "quiz" ? "No quizzes submitted yet" : "No assignments submitted yet"}
               </p>
               <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
                 {type === "quiz"
                   ? "Quizzes you submit will appear here, with your score and every attempt."
-                  : "Assignments from your courses will appear here, with your submissions and grades."}
+                  : "Assignments you submit will appear here, with your grade and feedback."}
               </p>
               <Link
                 href="/student/my-courses"

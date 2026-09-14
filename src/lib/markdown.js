@@ -115,6 +115,28 @@ function highlightLegacyCodeBlocks(html) {
 }
 
 /**
+ * Ensures any `<table>` tag (from raw legacy HTML or markdown) is wrapped in a
+ * `.md-table-wrapper` container so horizontal overflow is owned strictly by the
+ * table wrapper rather than expanding the main prose container.
+ */
+function wrapLegacyTables(html) {
+  if (typeof document === "undefined") return html;
+  const container = document.createElement("div");
+  container.innerHTML = html;
+  const tables = container.querySelectorAll("table");
+  tables.forEach((table) => {
+    if (table.parentElement && table.parentElement.classList.contains("md-table-wrapper")) {
+      return;
+    }
+    const wrapper = document.createElement("div");
+    wrapper.className = "md-table-wrapper";
+    table.parentNode.insertBefore(wrapper, table);
+    wrapper.appendChild(table);
+  });
+  return container.innerHTML;
+}
+
+/**
  * Renders a Markdown (or, for not-yet-migrated legacy rows, raw HTML — `marked`
  * passes untouched HTML blocks straight through) source string to sanitized HTML
  * safe for `dangerouslySetInnerHTML`. Single source of truth for every "view mode"
@@ -125,10 +147,11 @@ export function renderMarkdownToSafeHtml(source) {
   const html = marked.parse(source);
   const safeHtml = DOMPurify.sanitize(html, { ADD_ATTR: ["target", "class"] });
   const highlightedHtml = highlightLegacyCodeBlocks(safeHtml);
+  const wrappedTablesHtml = wrapLegacyTables(highlightedHtml);
   // Imported lesson content can carry raw <img>/<a> URLs pointing straight at
   // a private Vercel Blob file — those 403 unless routed through the
   // /api/blob-proxy proxy that getDisplayUrl() otherwise handles for us.
-  return rewritePrivateBlobUrlsInHtml(highlightedHtml);
+  return rewritePrivateBlobUrlsInHtml(wrappedTablesHtml);
 }
 
 /**

@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import {
-  Copy,
   MoreVertical,
   Pencil,
   Plus,
@@ -27,6 +26,8 @@ interface CellShellProps {
   onEdit: () => void;
   onDelete: () => void;
   isDeleting?: boolean;
+  /** Still accepted (every cell threads it) but no longer surfaced: the
+   *  block menu has no Duplicate entry. */
   onDuplicate?: () => void;
   isDuplicating?: boolean;
   /** Still accepted (every cell threads it) but no longer surfaced: the
@@ -61,8 +62,6 @@ export function CellShell({
   onEdit,
   onDelete,
   isDeleting = false,
-  onDuplicate,
-  isDuplicating = false,
   onAddAbove,
   onAddBelow,
   isSelected = false,
@@ -226,12 +225,6 @@ export function CellShell({
                       </DropdownMenuItem>
                     )}
 
-                    {onDuplicate && (
-                      <DropdownMenuItem onSelect={onDuplicate} disabled={isDuplicating}>
-                        <Copy className="size-3.5" />
-                        {isDuplicating ? "Duplicating…" : "Duplicate Block"}
-                      </DropdownMenuItem>
-                    )}
                     <DropdownMenuItem
                       variant="destructive"
                       onSelect={onDelete}
@@ -277,12 +270,6 @@ export function CellShell({
                   <DropdownMenuItem className="md:hidden" onSelect={() => onAddBelow()}>
                     <Plus className="size-3.5" />
                     Add Below
-                  </DropdownMenuItem>
-                )}
-                {onDuplicate && (
-                  <DropdownMenuItem onSelect={onDuplicate} disabled={isDuplicating}>
-                    <Copy className="size-3.5" />
-                    {isDuplicating ? "Duplicating…" : "Duplicate Block"}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem

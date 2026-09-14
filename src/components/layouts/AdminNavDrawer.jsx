@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { ChevronDown, Settings, LifeBuoy, LogOut, X } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { ChevronDown, LifeBuoy, LogOut, X } from "lucide-react";
 
 import { useAdminNavDrawer } from "@/context/AdminNavDrawerContext";
 import { PRIMARY_NAV_ITEMS } from "@/components/admin/NavigationStrip/navigationItems";
@@ -12,7 +12,6 @@ import Modal from "@/components/ui/Modal";
 import { ThemeModeRow } from "@/components/ui/shadcn/theme-switcher";
 
 const SECONDARY_ITEMS = [
-  { id: "settings", label: "Settings", icon: Settings, href: "/admin/profile" },
   { id: "help", label: "Help & Support", icon: LifeBuoy, href: "/admin/profile" },
 ];
 

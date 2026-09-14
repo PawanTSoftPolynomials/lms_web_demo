@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Search } from "lucide-react";
+import { BookOpen, Search, X, Loader2 } from "lucide-react";
 
 import EmptyState from "@/components/ui/EmptyState";
 import Pagination from "@/components/ui/Pagination";
@@ -16,11 +16,28 @@ const INITIAL_FILTERS = { search: "", status: "", category: "", level: "", sortB
 export default function InstructorCoursesPage() {
   const router = useRouter();
   const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [searchInput, setSearchInput] = useState(filters.search);
 
-  const { data, isLoading, isError, refetch } = useInstructorCoursesTable(filters);
+  const { data, isLoading, isError, isFetching, refetch } = useInstructorCoursesTable(filters);
 
   const courses = data?.courses || [];
   const pagination = data?.pagination || { page: 1, limit: 12, total: 0, totalPages: 1 };
+
+  // Debounce search input changes (280ms delay) to avoid triggering API calls on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters((f) => {
+        if (f.search === searchInput) return f;
+        return { ...f, search: searchInput, page: 1 };
+      });
+    }, 280);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setFilters((f) => ({ ...f, search: "", page: 1 }));
+  };
 
   const set = (key) => (value) => setFilters((f) => ({ ...f, [key]: value, page: key === "page" ? value : 1 }));
 
@@ -77,7 +94,7 @@ export default function InstructorCoursesPage() {
             Retry
           </button>
         </div>
-      ) : isLoading ? (
+      ) : isLoading && !data ? (
         <div className="rounded-2xl border border-border bg-card py-16 text-center space-y-3">
           <div className="mx-auto w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           <p className="text-xs font-bold text-muted-foreground">Loading courses...</p>
@@ -95,14 +112,29 @@ export default function InstructorCoursesPage() {
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4 mb-4 md:mb-6 shrink-0">
             <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center md:flex-wrap">
               <div className="relative w-full min-w-0 md:max-w-xs">
-                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Search courses..."
-                  value={filters.search}
-                  onChange={(e) => set("search")(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-card !pl-9 !pr-4 py-2 md:py-2.5 text-sm text-foreground placeholder-slate-500 outline-none transition focus:border-primary/60"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-card !pl-9 !pr-10 py-2 md:py-2.5 text-sm text-foreground placeholder-slate-500 outline-none transition focus:border-primary/60"
                 />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-muted-foreground">
+                  {isFetching && (
+                    <Loader2 size={14} className="animate-spin text-primary shrink-0" />
+                  )}
+                  {searchInput && (
+                    <button
+                      type="button"
+                      onClick={handleClearSearch}
+                      className="hover:text-foreground transition p-0.5 rounded-full"
+                      title="Clear search"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -137,7 +169,13 @@ export default function InstructorCoursesPage() {
             >
               {courses.length === 0 ? (
                 <div className="w-full col-span-full">
-                  <EmptyState title="No courses match the current filters." />
+                  <EmptyState
+                    icon={BookOpen}
+                    title={filters.search ? `No courses found matching "${filters.search}"` : "No courses match the current filters."}
+                    description={filters.search ? "Try searching with different keywords or clear your search query." : undefined}
+                    actionText={filters.search ? "Clear Search" : undefined}
+                    onAction={filters.search ? handleClearSearch : undefined}
+                  />
                 </div>
               ) : (
                 courses.map((course, index) => <CourseGridCard key={course.id} course={course} index={index} />)
@@ -179,3 +217,4 @@ export default function InstructorCoursesPage() {
     </div>
   );
 }
+

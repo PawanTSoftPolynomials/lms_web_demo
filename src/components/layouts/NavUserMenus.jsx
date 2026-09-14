@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Bell, BookOpen, CheckCheck, CheckSquare, ChevronDown, MessageSquare, Trash2, X } from "lucide-react";
+import { Bell, BookOpen, CheckCheck, CheckSquare, ChevronDown, MessageSquare, Trash2 } from "lucide-react";
 
 /** Helper to return type icon and color styles for notification items */
 function getNotificationMeta(type) {
@@ -29,7 +29,7 @@ function getNotificationMeta(type) {
 }
 
 // Premium notification bell + dropdown with Clear All & type icons.
-export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkAllRead, onClearAll, onItemClick }) {
+export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkAllRead, onClearAll }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -129,18 +129,12 @@ export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkA
                 const { icon: TypeIcon, badgeClass } = getNotificationMeta(n.type);
 
                 return (
-                  <button
+                  <div
                     key={n.id}
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      setOpen(false);
-                      onItemClick?.(n);
-                    }}
-                    className={`group flex w-full items-start gap-3 rounded-xl border p-2.5 text-left transition ${
+                    className={`flex w-full items-start gap-3 rounded-xl border p-2.5 text-left ${
                       n.read
-                        ? "border-border/60 bg-background/40 hover:bg-background/90 text-muted-foreground"
-                        : "border-primary/20 bg-primary/[0.06] hover:bg-primary/10 text-foreground"
+                        ? "border-border/60 bg-background/40 text-muted-foreground"
+                        : "border-primary/20 bg-primary/[0.06] text-foreground"
                     }`}
                   >
                     {/* Icon Badge */}
@@ -157,7 +151,7 @@ export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkA
                       <p className="line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">{n.message}</p>
                       {n.time && <span className="block text-[9.5px] font-mono text-muted-foreground">{n.time}</span>}
                     </div>
-                  </button>
+                  </div>
                 );
               })
             )}
@@ -176,7 +170,7 @@ export function NotificationsMenu({ notifications = [], unreadCount = 0, onMarkA
 }
 
 // Compact avatar-initial profile pill + dropdown (name, email, quick links, sign out).
-export function ProfileMenu({ user, onLogout, profileHref = "/student/profile", settingsHref = "/student/settings" }) {
+export function ProfileMenu({ user, onLogout, profileHref = "/student/profile" }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -204,7 +198,7 @@ export function ProfileMenu({ user, onLogout, profileHref = "/student/profile", 
         aria-label="Profile menu"
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 transition-all duration-200 hover:-translate-y-0.5 ${
+        className={`flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-1.5 lg:pr-3 transition-all duration-200 hover:-translate-y-0.5 ${
           open ? "bg-muted" : "hover:bg-muted"
         }`}
       >
@@ -235,16 +229,6 @@ export function ProfileMenu({ user, onLogout, profileHref = "/student/profile", 
               className="flex items-center rounded-xl px-3 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
             >
               My Profile
-            </Link>
-          )}
-          {settingsHref && (
-            <Link
-              href={settingsHref}
-              role="menuitem"
-              onClick={() => setOpen(false)}
-              className="flex items-center rounded-xl px-3 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
-            >
-              Settings
             </Link>
           )}
           <button

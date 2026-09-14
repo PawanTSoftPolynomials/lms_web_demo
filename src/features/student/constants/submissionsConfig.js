@@ -21,7 +21,14 @@ export const SUBMISSION_STATUS_FILTERS = [
   { key: "failed", label: "Failed" },
   { key: "graded", label: "Graded" },
   { key: "pending", label: "Pending review" },
-  { key: "todo", label: "Not submitted" },
+];
+
+// Quizzes-tab-only filter — quizTag on the Quiz model, not a submission
+// property, so it's a separate list from SUBMISSION_STATUS_FILTERS.
+export const SUBMISSION_QUIZ_TYPE_FILTERS = [
+  { key: "all", label: "All quiz types" },
+  { key: "self", label: "Self-Test" },
+  { key: "final", label: "Final Quiz" },
 ];
 
 export const SUBMISSION_SORTS = [
@@ -88,7 +95,10 @@ export function parseAssignmentGrade(grade, marks) {
 // Result and attempt pages send the student back here when they're done.
 const FROM_SUBMISSIONS = `from=${encodeURIComponent("/student/assignments")}`;
 
-function assignmentRecord(a) {
+// Exported so the standalone assignment detail page can derive the exact
+// same status/grade shape the Submissions list uses, instead of
+// re-deriving it (and drifting from parseAssignmentGrade's rules over time).
+export function assignmentRecord(a) {
   const raw = normalizeAssignmentStatus(a);
   const submitted = raw === "Submitted" || raw === "Graded";
   const overdue = !submitted && Boolean(a.dueDate) && new Date(a.dueDate) < new Date();
@@ -116,11 +126,13 @@ function assignmentRecord(a) {
     percentage: grade?.percentage ?? null,
     grade,
     feedback: a.feedback || null,
-    // A lesson-composer Assignment (kind "content") lives inside the course
-    // player, not at /student/assignments/:id — open its lesson there.
+    // A lesson-composer Assignment (kind "content") has no Assignment row
+    // behind it — its own result/brief page reads it via /contents/:id
+    // instead of /assignments/:id — but otherwise behaves identically:
+    // a result view once submitted, the brief + upload form until then.
     href:
       a.kind === "content"
-        ? `/student/learn/${a.course?.id}${a.lessonId ? `?lessonId=${a.lessonId}` : ""}`
+        ? `/student/content-assignments/${a.id}`
         : `/student/assignments/${a.id}`,
     actionLabel: submitted ? "View Submission" : "Open Assignment",
   };
@@ -138,6 +150,7 @@ function quizRecord(q) {
     title: q.title || "Quiz",
     courseTitle: q.course?.title || null,
     moduleTitle: q.moduleTitle || null,
+    quizType: q.quizTag === "SELF_TEST" ? "self" : "final",
     status: !graded ? "submitted" : latest.passed ? "passed" : "failed",
     submitted: true,
     submittedAt: latest?.submittedAt || null,
@@ -155,7 +168,13 @@ function quizRecord(q) {
 }
 
 export function buildSubmissionRecords(assignments = [], quizzes = []) {
-  return [...assignments.map(assignmentRecord), ...quizzes.map(quizRecord)];
+  // Quiz records are always submitted (they come from an attempts endpoint —
+  // there's no "not yet attempted" quiz row to begin with); assignments come
+  // from a plain "every assignment in your courses" list, so it's the one
+  // side that needs filtering down to match — this is a Submissions list,
+  // not an assignment browser.
+  const submittedAssignments = assignments.map(assignmentRecord).filter((r) => r.submitted);
+  return [...submittedAssignments, ...quizzes.map(quizRecord)];
 }
 
 const STATUS_MATCHERS = {
@@ -195,7 +214,10 @@ const COMPARATORS = {
   lowest: byScore(1),
 };
 
-export function filterAndSortSubmissions(records, { type = "assignment", status = "all", query = "", sort = "newest" }) {
+export function filterAndSortSubmissions(
+  records,
+  { type = "assignment", status = "all", quizType = "all", query = "", sort = "newest" }
+) {
   const needle = query.trim().toLowerCase();
   const matchesStatus = STATUS_MATCHERS[status] || STATUS_MATCHERS.all;
 
@@ -204,6 +226,8 @@ export function filterAndSortSubmissions(records, { type = "assignment", status 
       (r) =>
         r.type === type &&
         matchesStatus(r) &&
+        // Only quiz records carry quizType, so this is a no-op on the Assignments tab.
+        (quizType === "all" || r.quizType === quizType) &&
         (!needle ||
           r.title.toLowerCase().includes(needle) ||
           (r.courseTitle || "").toLowerCase().includes(needle) ||

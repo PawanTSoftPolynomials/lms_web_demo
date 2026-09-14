@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -34,7 +34,15 @@ import {
   useProcessZipJob,
   useProcessJsonCourse,
   useCourseJsonTemplate,
+  useCourseImportJobStatus,
+  useImportCourseJob,
 } from "@/hooks/queries/instructor/useCourseImport";
+import ZipImportTimeline, {
+  stageIndexOf,
+} from "@/components/instructor/courses/ZipImportTimeline";
+import { buildSampleCoursePackage } from "@/lib/sampleCoursePackage";
+import { useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useGenerateAiContent } from "@/hooks/queries/instructor/useGenerateAiContent";
 
 /** Example prompts covering diverse disciplines */
@@ -61,6 +69,13 @@ const EXAMPLE_PROMPTS = [
   },
 ];
 
+/**
+ * Stages the backend moves through inside POST /jobs/:id/process. While the job
+ * sits in one of these, the page polls it so the timeline follows the real
+ * status instead of guessing which step is running.
+ */
+const ZIP_PROCESSING_STATUSES = ["UPLOADED", "EXTRACTING", "ANALYZING", "MAPPING"];
+
 /** Generation Pipeline Staged Steps for User Feedback */
 const STAGED_STEPS = [
   { id: 1, label: "Understanding your requirements", desc: "Parsing topic, level, and goals" },
@@ -69,106 +84,86 @@ const STAGED_STEPS = [
   { id: 4, label: "Creating assessments", desc: "Building module quizzes and question sets" },
 ];
 
-/** Fallback Orange Tree LMS Course JSON Template */
+/**
+ * Fallback course JSON template, used only when GET /course-import/template is
+ * unreachable. Same conventions as the backend's reference template: it shows
+ * HOW course JSON is written, and every element in it is optional.
+ */
 const FALLBACK_TEMPLATE = {
-  metadata: {
-    title: "C Programming Fundamentals",
-    description: "Master C programming concepts from basic syntax to memory pointers.",
-    category: "Computer Science",
-    level: "BEGINNER",
-    language: "English",
-    tags: ["c", "programming", "coding"],
-    estimatedLearningHours: 10,
-    price: 0,
-  },
-  settings: {
+  course: {
+    title: "Introduction to Physics",
+    description: "A beginner-friendly introduction to measurement and motion.",
+    category: "Physics",
+    level: "Beginner",
+    status: "DRAFT",
     visibility: "PUBLIC",
-    certificatesEnabled: true,
+    language: "English",
+    tags: ["physics", "beginner"],
+    certificatesEnabled: false,
     discussionEnabled: true,
+    estimatedLearningHours: 15,
   },
-  quizzes: [
+  content: [
     {
-      title: "C Programming Final Assessment",
-      description: "Comprehensive course-level assessment covering C fundamentals.",
-      passingScore: 60,
-      timeLimit: 30,
-      isPublished: true,
-      questions: [
-        {
-          question: "Which header file is required for printf()?",
-          questionType: "MCQ_SINGLE",
-          options: ["<stdio.h>", "<stdlib.h>", "<string.h>", "<math.h>"],
-          correctAnswer: "<stdio.h>",
-          explanation: "printf() is declared in stdio.h.",
-          marks: 1,
-          negativeMarks: 0,
-          difficulty: "EASY",
-        },
-        {
-          question: "Is C a compiled programming language?",
-          questionType: "MCQ_SINGLE",
-          options: ["Yes, it compiles to machine code", "No, it is interpreted"],
-          correctAnswer: "Yes, it compiles to machine code",
-          explanation: "C code is directly compiled into machine executable binaries.",
-          marks: 1,
-          difficulty: "EASY",
-        },
-      ],
+      order: 1,
+      type: "HTML",
+      title: "What is Physics?",
+      htmlContent: "<p>Physics is the study of matter, energy, motion and forces.</p>",
     },
   ],
   modules: [
     {
-      title: "C Fundamentals",
-      description: "First steps in writing C programs.",
+      courseId: "course_physics_1",
+      title: "Units and Measurements",
+      description: "How physical quantities are measured.",
       order: 1,
-      isPublished: true,
-      quizzes: [
-        {
-          title: "Module 1 Quick Check",
-          description: "Check understanding of basic C concepts.",
-          passingScore: 60,
-          timeLimit: 15,
-          isPublished: true,
-          questions: [
-            {
-              question: "What is the entry point of a C program?",
-              questionType: "MCQ_SINGLE",
-              options: ["start()", "main()", "run()", "execute()"],
-              correctAnswer: "main()",
-              explanation: "Execution of a C program always begins from main().",
-              marks: 1,
-              difficulty: "EASY",
-            },
-          ],
-        },
-      ],
+      content: [],
       lessons: [
         {
-          title: "Introduction to C",
-          description: "Understanding compilation and basic structure.",
+          moduleId: "physics_mod_1",
+          title: "Physical Quantities and SI Units",
           order: 1,
-          isPublished: true,
+          isPublished: false,
+          content: [],
           topics: [
             {
-              title: "What is C?",
-              description: "Overview of procedural programming.",
+              lessonId: "physics_lesson_1",
+              title: "SI Base Units",
               order: 1,
-              isPublished: true,
-              contents: [
-                {
-                  type: "HTML",
-                  title: "Introduction to C Language",
-                  order: 1,
-                  htmlContent: "<h2>What is C?</h2><p>C is a low-level, high-efficiency compiled programming language.</p>",
-                },
-                {
-                  type: "VIDEO",
-                  title: "Writing Your First Hello World",
-                  order: 2,
-                  duration: 300,
-                  videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-                },
-              ],
+              isPublished: false,
+              content: [],
+              quiz: {
+                title: "SI Units Quick Check",
+                courseId: "course_physics_1",
+                moduleId: "physics_mod_1",
+                lessonId: "physics_lesson_1",
+                topicId: "physics_topic_1",
+                quizTag: "SELF_TEST",
+                passingScore: 50,
+                questions: [
+                  {
+                    question: "What is the SI unit of length?",
+                    questionType: "MCQ_SINGLE",
+                    options: ["Kilogram", "Metre", "Second", "Newton"],
+                    correctAnswer: "Metre",
+                    marks: 1,
+                    difficulty: "EASY",
+                    explanation: "The metre is the SI base unit of length.",
+                  },
+                ],
+              },
+              assignment: {
+                title: "Identify Physical Units",
+                courseId: "course_physics_1",
+                moduleId: "physics_mod_1",
+                lessonId: "physics_lesson_1",
+                topicId: "physics_topic_1",
+                dueDate: "2026-11-15T23:59:00.000Z",
+                marks: 10,
+                assessmentType: "EXERCISE",
+                estimatedTime: 15,
+                description: "Identify the SI units for different physical quantities.",
+              },
             },
           ],
         },
@@ -196,7 +191,18 @@ export default function CourseImportPage() {
   const [generatedDraft, setGeneratedDraft] = useState(null);
 
   // ZIP Import State
-  const [zipImportingState, setZipImportingState] = useState(null); // null | "uploading" | "validating" | "importing"
+  // ZIP import lifecycle. `zipStatus` is a real CourseImportStatus once the
+  // package is in the backend's hands; "SELECTED" is the only client-side
+  // value, covering the gap between picking a file and uploading it.
+  const [zipFile, setZipFile] = useState(null);
+  const [zipStatus, setZipStatus] = useState(null);
+  const [zipJobId, setZipJobId] = useState(null);
+  const [zipFailedAt, setZipFailedAt] = useState(null);
+  const [zipReadyJob, setZipReadyJob] = useState(null);
+  const [zipError, setZipError] = useState("");
+  const [zipErrors, setZipErrors] = useState([]);
+  const [zipCreatedCourseId, setZipCreatedCourseId] = useState(null);
+  const lastZipStageRef = useRef("SELECTED");
   const zipInputRef = useRef(null);
 
   // JSON File Import Ref
@@ -220,7 +226,92 @@ export default function CourseImportPage() {
   const processZipMutation = useProcessZipJob();
   const processJsonMutation = useProcessJsonCourse();
   const generateAiMutation = useGenerateAiContent();
+  const importCourseJobMutation = useImportCourseJob();
   const { refetch: refetchTemplate } = useCourseJsonTemplate();
+  const queryClient = useQueryClient();
+
+  const isZipProcessing = ZIP_PROCESSING_STATUSES.includes(zipStatus);
+  const { data: polledZipJob } = useCourseImportJobStatus(
+    zipJobId,
+    Boolean(zipJobId) && isZipProcessing
+  );
+
+  /**
+   * Moves the timeline forward only. Polls can land out of order, and a stage
+   * that already finished must never appear to be pending again. FAILED is the
+   * one status allowed to interrupt the sequence.
+   */
+  const advanceZipStatus = useCallback((next) => {
+    if (!next) return;
+    setZipStatus((prev) => {
+      if (prev === "FAILED") return prev;
+      if (next === "FAILED") return next;
+      return stageIndexOf(next) > stageIndexOf(prev) ? next : prev;
+    });
+  }, []);
+
+  // Remember the furthest real stage so a failure can be attributed to the
+  // step that actually broke — FAILED on its own doesn't say where it stopped.
+  useEffect(() => {
+    if (zipStatus && zipStatus !== "FAILED") lastZipStageRef.current = zipStatus;
+  }, [zipStatus]);
+
+  useEffect(() => {
+    const polledStatus = polledZipJob?.status;
+    if (!polledStatus) return;
+
+    if (polledStatus === "FAILED") {
+      setZipFailedAt(lastZipStageRef.current);
+      setZipError(polledZipJob?.errorMessage || "The package could not be processed.");
+      setZipErrors(polledZipJob?.validationReport?.errors || []);
+      advanceZipStatus("FAILED");
+      return;
+    }
+
+    // The poll only reveals the stages that run inside /process. READY is left
+    // to the process response itself, which is the thing that carries the
+    // canonical JSON the READY summary and the composer handoff both need.
+    if (ZIP_PROCESSING_STATUSES.includes(polledStatus)) {
+      advanceZipStatus(polledStatus);
+    }
+  }, [polledZipJob, advanceZipStatus]);
+
+  // A physical package arrives fully validated and is written straight to the
+  // LMS from here. A course.json package keeps its composer review step.
+  const isPhysicalZipPackage = zipReadyJob?.canonicalJson?.packageFormat === "PHYSICAL_V1";
+
+  /** Counts for the READY summary, using the page's existing count convention. */
+  const zipSummary = useMemo(() => {
+    const canonical = zipReadyJob?.canonicalJson;
+    if (!canonical) return null;
+
+    if (canonical.packageFormat === "PHYSICAL_V1") {
+      const course = canonical.course || {};
+      const mods = Array.isArray(course.modules) ? course.modules : [];
+      const lessons = mods.flatMap((m) => (Array.isArray(m.lessons) ? m.lessons : []));
+      const topics = lessons.flatMap((l) => (Array.isArray(l.topics) ? l.topics : []));
+      const levels = [course, ...mods, ...lessons, ...topics];
+
+      return {
+        title: course.title || canonical?.metadata?.title || "Imported course",
+        modules: mods.length,
+        lessons: lessons.length,
+        quizzes: levels.reduce((acc, l) => acc + (Array.isArray(l.quizzes) ? l.quizzes.length : 0), 0),
+      };
+    }
+
+    const mods = Array.isArray(canonical.modules) ? canonical.modules : [];
+    const courseQuizzes = Array.isArray(canonical.quizzes) ? canonical.quizzes : [];
+
+    return {
+      title: canonical?.metadata?.title || "Imported course",
+      modules: mods.length,
+      lessons: mods.reduce((acc, m) => acc + (Array.isArray(m.lessons) ? m.lessons.length : 0), 0),
+      quizzes:
+        mods.reduce((acc, m) => acc + (Array.isArray(m.quizzes) ? m.quizzes.length : 0), 0) +
+        courseQuizzes.length,
+    };
+  }, [zipReadyJob]);
 
   /** Assigns client-side UUIDs to canonical draft nodes for Composer compatibility */
   const withDraftIds = (modules = [], courseQuizzes = []) => {
@@ -273,6 +364,8 @@ export default function CourseImportPage() {
       const { modules, quizzes } = withDraftIds(rawModules, rawQuizzes);
       const assetMap = canonical?.assetMap || targetObj?.assetMap || {};
 
+      const thumbnailRef = metadata.thumbnailUrl || metadata.thumbnail;
+
       const draftPayload = {
         jobId: jobId || `draft-${crypto.randomUUID()}`,
         isImportDraft: true,
@@ -281,7 +374,7 @@ export default function CourseImportPage() {
           description: metadata.description || "",
           category: metadata.category || "General",
           level: metadata.level || "BEGINNER",
-          thumbnailUrl: metadata.thumbnail ? assetMap[metadata.thumbnail] || metadata.thumbnail : null,
+          thumbnailUrl: thumbnailRef ? assetMap[thumbnailRef] || thumbnailRef : null,
           language: metadata.language || "English",
           tags: Array.isArray(metadata.tags) ? metadata.tags : [],
           estimatedLearningHours: metadata.estimatedLearningHours || null,
@@ -378,33 +471,78 @@ export default function CourseImportPage() {
   // ==========================================
   // 2. ZIP PACKAGE IMPORT HANDLER
   // ==========================================
-  const handleZipFileSelected = async (e) => {
+  /** Stage 1 — take the package, show what was picked, and wait for confirmation. */
+  const handleZipFileSelected = (e) => {
     const file = e.target.files?.[0];
+    if (zipInputRef.current) zipInputRef.current.value = "";
     if (!file) return;
 
     if (!file.name.toLowerCase().endsWith(".zip")) {
       setErrorMsg("Invalid file type. Please select a .zip course package.");
-      if (zipInputRef.current) zipInputRef.current.value = "";
       return;
     }
 
     setErrorMsg("");
     setValidationErrors([]);
-    setZipImportingState("uploading");
+    setZipError("");
+    setZipErrors([]);
+    setZipJobId(null);
+    setZipFailedAt(null);
+    setZipReadyJob(null);
+    setZipCreatedCourseId(null);
+    lastZipStageRef.current = "SELECTED";
+    setZipFile(file);
+    setZipStatus("SELECTED");
+  };
+
+  /** Clears the ZIP flow and returns to the three creation options. */
+  const handleResetZipImport = () => {
+    setZipFile(null);
+    setZipStatus(null);
+    setZipJobId(null);
+    setZipFailedAt(null);
+    setZipReadyJob(null);
+    setZipCreatedCourseId(null);
+    setZipError("");
+    setZipErrors([]);
+    lastZipStageRef.current = "SELECTED";
+    if (zipInputRef.current) zipInputRef.current.value = "";
+  };
+
+  /**
+   * Stages 2-6 — upload the package, then let the backend extract, check and
+   * prepare it. Both requests are the existing ones; the poll running
+   * alongside them is what surfaces the stages in between.
+   */
+  const handleStartZipImport = async () => {
+    if (!zipFile) return;
+
+    setZipError("");
+    setZipErrors([]);
+    setZipFailedAt(null);
+    setZipStatus("UPLOADED");
+    lastZipStageRef.current = "UPLOADED";
+
+    let job = null;
 
     try {
       // Step 1: Upload ZIP file package to backend
-      const job = await uploadZipMutation.mutateAsync(file);
+      job = await uploadZipMutation.mutateAsync(zipFile);
 
       if (!job || !job.id) {
         throw new Error("Failed to create import job.");
       }
 
-      // Step 2: Validate and process package
-      setZipImportingState("validating");
+      setZipJobId(job.id);
+
+      // Step 2: Extract, validate and map the package
       const processedJob = await processZipMutation.mutateAsync(job.id);
 
-      setZipImportingState("importing");
+      if (processedJob?.status === "FAILED") {
+        const failure = new Error(processedJob.errorMessage || "The package could not be processed.");
+        failure.importErrors = processedJob?.validationReport?.errors;
+        throw failure;
+      }
 
       const canonical = processedJob?.canonicalJson || job?.canonicalJson;
 
@@ -412,19 +550,58 @@ export default function CourseImportPage() {
         throw new Error("Unable to extract valid course structure from ZIP package.");
       }
 
-      setZipImportingState(null);
-      if (zipInputRef.current) zipInputRef.current.value = "";
-
-      // Load extracted course structure into Composer
-      prepareDraftAndNavigate(canonical, job.id);
+      // Step 3: Hold at READY so the instructor sees what will be created
+      setZipReadyJob({ ...processedJob, canonicalJson: canonical });
+      advanceZipStatus("READY");
     } catch (err) {
-      setZipImportingState(null);
-      if (zipInputRef.current) zipInputRef.current.value = "";
       console.error("ZIP Import Error:", err);
-      const msg = err?.response?.data?.message || err?.message || "Unable to import the ZIP package. The package structure is invalid.";
-      const errors = err?.response?.data?.errors || [msg];
-      setErrorMsg(msg);
-      setValidationErrors(errors);
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Unable to import the ZIP package. The package structure is invalid.";
+      const errors = err?.response?.data?.errors || err?.importErrors || [];
+
+      setZipFailedAt(lastZipStageRef.current);
+      setZipError(msg);
+      setZipErrors(errors);
+      setZipStatus("FAILED");
+    }
+  };
+
+  /** Stage 6 action — carry the validated structure into the Course Composer. */
+  const handleContinueToComposer = () => {
+    const canonical = zipReadyJob?.canonicalJson;
+    if (!canonical || !zipJobId) return;
+    prepareDraftAndNavigate(canonical, zipJobId);
+  };
+
+  /**
+   * Stages 7-8 — write a validated physical package into the LMS. The package
+   * already carries its full structure, so there is nothing to review first.
+   */
+  const handleCreateCourseFromPackage = async () => {
+    if (!zipJobId) return;
+
+    setZipStatus("IMPORTING");
+    lastZipStageRef.current = "IMPORTING";
+
+    try {
+      const created = await importCourseJobMutation.mutateAsync(zipJobId);
+      const courseId = created?.id || created?.courseId || null;
+
+      setZipCreatedCourseId(courseId);
+      advanceZipStatus("COMPLETED");
+
+      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES] });
+      await queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES_TABLE] });
+    } catch (err) {
+      console.error("Course Creation Error:", err);
+      const msg =
+        err?.response?.data?.message || err?.message || "The course could not be created.";
+      setZipFailedAt("IMPORTING");
+      setZipError(msg);
+      setZipErrors(err?.response?.data?.errors || []);
+      setZipStatus("FAILED");
     }
   };
 
@@ -454,14 +631,10 @@ export default function CourseImportPage() {
         throw new Error(`Invalid JSON syntax in file '${file.name}': ${parseErr.message}`);
       }
 
-      // Basic Schema Checks
+      // Basic Schema Checks — everything past this (which levels exist, what
+      // each element needs) is validated by the backend, which reports it by path.
       if (!parsedJson || typeof parsedJson !== "object") {
         throw new Error("JSON file must contain a valid course object.");
-      }
-
-      const hasMetadataTitle = parsedJson.metadata?.title || parsedJson.title;
-      if (!hasMetadataTitle) {
-        throw new Error("Invalid course JSON: course title is missing (expected 'metadata.title' or 'title').");
       }
 
       // Process JSON with backend validator/parser
@@ -503,12 +676,6 @@ export default function CourseImportPage() {
 
     if (!parsedJson || typeof parsedJson !== "object") {
       setPasteValidationErrors(["Root JSON element must be an object."]);
-      return;
-    }
-
-    const hasTitle = parsedJson.metadata?.title || parsedJson.title;
-    if (!hasTitle) {
-      setPasteValidationErrors(["Invalid course JSON: course title is missing (expected 'metadata.title' or 'title')."]);
       return;
     }
 
@@ -555,20 +722,59 @@ export default function CourseImportPage() {
     }
   };
 
+  /**
+   * Downloads the sample course package: the Course -> Modules -> Lessons ->
+   * Topics hierarchy as real folders, with a real artifact file in each one.
+   * Deliberately contains no course.json — the tree itself is the example.
+   */
+  const handleDownloadSampleZip = async () => {
+    try {
+      const zip = buildSampleCoursePackage(new JSZip());
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "sample_course_package.zip";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download Sample ZIP Error:", err);
+      setErrorMsg("Failed to download sample ZIP package.");
+    }
+  };
+
   // Preview Stats Calculation
   const canonicalData = generatedDraft?.canonicalJson || generatedDraft?.data?.canonicalJson || generatedDraft || {};
   const targetMetadata = canonicalData?.metadata || canonicalData || {};
   const modulesList = Array.isArray(canonicalData?.modules) ? canonicalData.modules : [];
   const quizzesList = Array.isArray(canonicalData?.quizzes) ? canonicalData.quizzes : [];
 
-  const totalModulesCount = modulesList.length;
-  const totalLessonsCount = modulesList.reduce(
+  // The backend's validation summary counts every level — quizzes, content and
+  // assignments can sit on the course, a module, a lesson or a topic.
+  const previewSummary = generatedDraft?.validationReport?.summary;
+  const previewWarnings = generatedDraft?.validationReport?.warnings || [];
+
+  const totalModulesCount = previewSummary?.modules ?? modulesList.length;
+  const totalLessonsCount = previewSummary?.lessons ?? modulesList.reduce(
     (acc, m) => acc + (Array.isArray(m.lessons) ? m.lessons.length : 0),
     0
   );
-  const totalQuizzesCount =
-    modulesList.reduce((acc, m) => acc + (Array.isArray(m.quizzes) ? m.quizzes.length : 0), 0) +
-    quizzesList.length;
+  const totalQuizzesCount = previewSummary?.quizzes ??
+    (modulesList.reduce((acc, m) => acc + (Array.isArray(m.quizzes) ? m.quizzes.length : 0), 0) +
+      quizzesList.length);
+  const previewExtras = previewSummary
+    ? [
+        [previewSummary.topics, "topic"],
+        [previewSummary.contents, "content item"],
+        [previewSummary.assignments, "assignment"],
+      ]
+        .filter(([count]) => count > 0)
+        .map(([count, label]) => `${count} ${label}${count === 1 ? "" : "s"}`)
+    : [];
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 md:p-8 lg:p-10 font-sans pb-32">
@@ -634,6 +840,126 @@ export default function CourseImportPage() {
         {/* ======================================================== */}
         {!showAiForm && (
           <div className="space-y-6 animate-in fade-in duration-200">
+            {zipStatus ? (
+              /* A ZIP package is in flight: the chronological flow takes over
+                 from the three options until it finishes or is dismissed. */
+              <div className="space-y-4 animate-in fade-in duration-200">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-xl font-extrabold text-foreground">Import from ZIP</h2>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {zipStatus === "SELECTED"
+                        ? "Check the package below, then upload it to start the import."
+                        : zipStatus === "READY"
+                        ? "The package passed validation. Review what will be created, then continue."
+                        : zipStatus === "IMPORTING"
+                        ? "Creating the course in your LMS. This runs in one step, so it either completes or leaves nothing behind."
+                        : zipStatus === "COMPLETED"
+                        ? "The course was created and is ready to open."
+                        : zipStatus === "FAILED"
+                        ? "The import stopped, so nothing was added to your courses."
+                        : "Keep this page open while the package is processed."}
+                    </p>
+                  </div>
+
+                  {!isZipProcessing && zipStatus !== "IMPORTING" && (
+                    <button
+                      type="button"
+                      onClick={handleResetZipImport}
+                      className="text-xs text-muted-foreground hover:text-foreground font-semibold flex items-center space-x-1.5 transition cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>{zipStatus === "SELECTED" ? "Cancel" : "Start over"}</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="p-6 md:p-8 rounded-3xl bg-background/90 border border-sky-500/25 shadow-2xl">
+                  <ZipImportTimeline
+                    status={zipStatus}
+                    failedAt={zipFailedAt}
+                    fileName={zipFile?.name}
+                    fileSize={zipFile?.size}
+                    summary={zipSummary}
+                    errorMessage={zipError}
+                    errors={zipErrors}
+                  />
+
+                  <div className="mt-6 pt-5 border-t border-muted-foreground/10">
+                    {zipStatus === "SELECTED" && (
+                      <button
+                        type="button"
+                        onClick={handleStartZipImport}
+                        className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-sky-600 hover:bg-sky-500 text-foreground text-sm font-extrabold shadow-lg shadow-sky-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span>Upload package</span>
+                      </button>
+                    )}
+
+                    {isZipProcessing && (
+                      <p className="text-xs text-muted-foreground">
+                        Large packages with media can take a few minutes.
+                      </p>
+                    )}
+
+                    {zipStatus === "IMPORTING" && (
+                      <p className="text-xs text-muted-foreground">
+                        Writing modules, lessons, topics, quizzes and assignments.
+                      </p>
+                    )}
+
+                    {zipStatus === "READY" && (
+                      <button
+                        type="button"
+                        onClick={
+                          isPhysicalZipPackage
+                            ? handleCreateCourseFromPackage
+                            : handleContinueToComposer
+                        }
+                        className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-sky-600 hover:bg-sky-500 text-foreground text-sm font-extrabold shadow-lg shadow-sky-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
+                      >
+                        <Check className="w-4 h-4" />
+                        <span>
+                          {isPhysicalZipPackage ? "Create course" : "Review and create course"}
+                        </span>
+                      </button>
+                    )}
+
+                    {zipStatus === "COMPLETED" && (
+                      <div className="flex flex-wrap gap-3">
+                        <Link
+                          href={
+                            zipCreatedCourseId
+                              ? `/instructor/courses/${zipCreatedCourseId}`
+                              : "/instructor/courses"
+                          }
+                          className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-sky-600 hover:bg-sky-500 text-foreground text-sm font-extrabold shadow-lg shadow-sky-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
+                        >
+                          <BookOpen className="w-4 h-4" />
+                          <span>Open course</span>
+                        </Link>
+                      </div>
+                    )}
+
+                    {zipStatus === "FAILED" && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleResetZipImport();
+                          zipInputRef.current?.click();
+                        }}
+                        className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-sky-600 hover:bg-sky-500 text-foreground text-sm font-extrabold shadow-lg shadow-sky-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span>Choose another package</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
             <div className="text-left">
               <h2 className="text-xl font-extrabold text-foreground">How would you like to create your course?</h2>
               <p className="text-xs text-muted-foreground mt-1">
@@ -724,23 +1050,9 @@ export default function CourseImportPage() {
                   </div>
                 </div>
 
-                {zipImportingState && (
-                  <div className="p-4 rounded-2xl bg-sky-950/50 border border-sky-800/50 text-sky-200 text-xs flex items-center space-x-3">
-                    <RefreshCw className="w-4 h-4 text-sky-400 animate-spin shrink-0" />
-                    <span className="capitalize font-semibold">
-                      {zipImportingState === "uploading"
-                        ? "Uploading course package..."
-                        : zipImportingState === "validating"
-                        ? "Validating package..."
-                        : "Importing course..."}
-                    </span>
-                  </div>
-                )}
-
                 <div className="space-y-2 pt-2 border-t border-transparent">
                   <button
                     type="button"
-                    disabled={Boolean(zipImportingState)}
                     onClick={() => zipInputRef.current?.click()}
                     className="w-full py-3.5 rounded-2xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-foreground text-sm font-extrabold shadow-lg shadow-sky-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
                   >
@@ -831,6 +1143,8 @@ export default function CourseImportPage() {
                 </div>
               </div>
             </div>
+              </>
+            )}
           </div>
         )}
 
@@ -877,7 +1191,7 @@ export default function CourseImportPage() {
                         </span>
                       </h2>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Describe your course goals in plain text. The AI Agent will generate a structured draft with modules, lessons, topics, and quizzes.
+                        Describe your course goals in plain text. The AI Agent builds only the structure you ask for — modules, lessons, topics, quizzes and assignments as needed. To match a specific format, paste a course JSON template into your prompt.
                       </p>
                     </div>
                   </div>
@@ -1103,7 +1417,26 @@ export default function CourseImportPage() {
                       <span>•</span>
                       <span>Category: {targetMetadata?.category || "General"}</span>
                     </div>
+                    {previewExtras.length > 0 && (
+                      <p className="text-[11px] font-mono text-sky-400 mt-1">
+                        Also includes {previewExtras.join(" · ")}
+                      </p>
+                    )}
                   </div>
+
+                  {previewWarnings.length > 0 && (
+                    <div className="p-3 rounded-xl bg-amber-500/10 text-xs space-y-1">
+                      <div className="flex items-center space-x-1.5 font-semibold text-amber-600 dark:text-amber-400">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span>Review before creating the course</span>
+                      </div>
+                      <ul className="list-disc pl-5 space-y-0.5 text-foreground/80">
+                        {previewWarnings.map((warning, idx) => (
+                          <li key={idx}>{warning}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                   {modulesList.length > 0 && (
                     <div className="space-y-3 pt-3 border-t border-transparent">
@@ -1203,7 +1536,7 @@ export default function CourseImportPage() {
               <textarea
                 value={pastedJsonText}
                 onChange={(e) => setPastedJsonText(e.target.value)}
-                placeholder='{\n  "metadata": {\n    "title": "My Custom Course",\n    "category": "Computer Science"\n  },\n  "modules": [...]\n}'
+                placeholder='{\n  "course": {\n    "title": "My Custom Course",\n    "category": "Computer Science"\n  },\n  "content": [...],\n  "modules": [...]\n}'
                 rows={10}
                 className="w-full bg-background border border-transparent rounded-2xl p-4 text-xs text-foreground font-mono focus:outline-none focus:border-indigo-500 transition resize-y"
               />
@@ -1239,7 +1572,7 @@ export default function CourseImportPage() {
             <div className="flex items-center justify-between border-b border-transparent pb-4">
               <div className="flex items-center space-x-2">
                 <FileJson className="w-5 h-5 text-indigo-400" />
-                <h3 className="text-lg font-bold text-foreground">Orange Tree LMS Course JSON Format Guide (v2)</h3>
+                <h3 className="text-lg font-bold text-foreground">Orange Tree LMS Course JSON Format Guide</h3>
               </div>
               <button
                 type="button"
@@ -1252,55 +1585,65 @@ export default function CourseImportPage() {
 
             {/* Hierarchy Explanation */}
             <div className="space-y-4 text-xs text-foreground leading-relaxed">
-              <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-800/40 space-y-2">
+              <div className="p-4 rounded-2xl bg-indigo-950/40 space-y-2">
                 <h4 className="font-bold text-indigo-300 uppercase tracking-wider text-[11px]">
-                  Course Structure Hierarchy
+                  Flexible Course Structure
                 </h4>
                 <p className="text-foreground">
-                  Orange Tree LMS organizes courses using a 5-level nested structure:
+                  The template shows <strong>how</strong> course JSON is written, not <strong>what</strong> every course must contain. Every level and element below is optional — include only what your course needs.
                 </p>
-                <div className="p-2.5 bg-background border border-transparent rounded-xl font-mono text-[11px] text-amber-300 flex items-center space-x-2 flex-wrap">
-                  <span className="font-bold">Course</span> → <span>Module</span> → <span>Lesson</span> → <span>Topic</span> → <span className="text-emerald-400">Content / Quiz</span>
+                <div className="p-2.5 bg-background rounded-xl font-mono text-[11px] text-amber-300 flex items-center space-x-2 flex-wrap">
+                  <span className="font-bold">Course</span> → <span>Module</span> → <span>Lesson</span> → <span>Topic</span>
                 </div>
+                <p className="text-muted-foreground">
+                  Each of these four levels can carry its own <span className="font-mono text-sky-400">content</span>, <span className="font-mono text-purple-400">quiz</span> and <span className="font-mono text-rose-400">assignment</span>. A module can have content without lessons, a lesson can have content without topics, and modules in one course can be structured differently.
+                </p>
               </div>
 
               {/* Schema Fields Breakdown */}
               <div className="space-y-3">
-                <h4 className="font-bold text-foreground text-sm">Supported Top-Level Fields</h4>
+                <h4 className="font-bold text-foreground text-sm">Fields</h4>
 
                 <div className="space-y-2">
-                  <div className="p-3 bg-background border border-transparent rounded-xl">
-                    <span className="font-bold text-amber-400 font-mono block">metadata</span>
+                  <div className="p-3 bg-background rounded-xl">
+                    <span className="font-bold text-amber-400 font-mono block">course</span>
                     <span className="text-muted-foreground block mt-0.5">
-                      Contains course title, description, category, difficulty level (BEGINNER | INTERMEDIATE | ADVANCED), language, estimatedLearningHours, price, and tags array.
+                      title (required), description, category, level, thumbnailUrl, visibility (PUBLIC | PRIVATE | UNLISTED), language, tags, certificatesEnabled, discussionEnabled, estimatedLearningHours. Imported courses are always created as DRAFT.
                     </span>
                   </div>
 
-                  <div className="p-3 bg-background border border-transparent rounded-xl">
-                    <span className="font-bold text-indigo-400 font-mono block">settings</span>
+                  <div className="p-3 bg-background rounded-xl">
+                    <span className="font-bold text-emerald-400 font-mono block">modules [ ] → lessons [ ] → topics [ ]</span>
                     <span className="text-muted-foreground block mt-0.5">
-                      visibility (PUBLIC | PRIVATE), certificatesEnabled (boolean), discussionEnabled (boolean).
+                      Each has title (required), description, order and isPublished. order must be unique among siblings; without it, array position is used.
                     </span>
                   </div>
 
-                  <div className="p-3 bg-background border border-transparent rounded-xl">
-                    <span className="font-bold text-emerald-400 font-mono block">modules [ ]</span>
+                  <div className="p-3 bg-background rounded-xl">
+                    <span className="font-bold text-sky-400 font-mono block">content [ ]</span>
                     <span className="text-muted-foreground block mt-0.5">
-                      Array of module objects. Each module has title, description, order, and nested lessons array.
+                      On any level. Each item has type (HTML, VIDEO, DOCUMENT, PRESENTATION, CODE, LINK, IMAGE, AUDIO…), title, order, and htmlContent, videoUrl, fileUrl or externalUrl as the type needs.
                     </span>
                   </div>
 
-                  <div className="p-3 bg-background border border-transparent rounded-xl">
-                    <span className="font-bold text-sky-400 font-mono block">contents [ ] (Topic Content Items)</span>
+                  <div className="p-3 bg-background rounded-xl">
+                    <span className="font-bold text-purple-400 font-mono block">quiz</span>
                     <span className="text-muted-foreground block mt-0.5">
-                      Supported types: HTML (rich text / markdown), VIDEO (videoUrl), DOCUMENT (fileUrl), PRESENTATION (fileUrl).
+                      On any level: title, quizTag (SELF_TEST, LESSON_ASSESSMENT, MODULE_ASSESSMENT, COURSE_ASSESSMENT), passingScore and questions. MCQ questions need options and a correctAnswer that matches one of them.
                     </span>
                   </div>
 
-                  <div className="p-3 bg-background border border-transparent rounded-xl">
-                    <span className="font-bold text-purple-400 font-mono block">quizzes [ ]</span>
+                  <div className="p-3 bg-background rounded-xl">
+                    <span className="font-bold text-rose-400 font-mono block">assignment</span>
                     <span className="text-muted-foreground block mt-0.5">
-                      Course or module level assessment quizzes with passingScore, timeLimit, and questions array (MCQ_SINGLE, MCQ_MULTI, ARRANGE_TOKENS, MATCH_PAIRS).
+                      On any level: title, description, dueDate (required by the LMS, ISO 8601), marks, assessmentType and estimatedTime in minutes.
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-background rounded-xl">
+                    <span className="font-bold text-foreground font-mono block">courseId · moduleId · lessonId · topicId</span>
+                    <span className="text-muted-foreground block mt-0.5">
+                      Optional references, as in the template (a lesson&apos;s moduleId names its module). When given, they must agree with where the item is nested.
                     </span>
                   </div>
                 </div>

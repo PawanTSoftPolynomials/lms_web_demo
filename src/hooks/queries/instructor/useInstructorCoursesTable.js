@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 
 import { getInstructorCoursesTable } from "@/services/course.service";
 import { QUERY_KEYS } from "@/constants/queryKeys";
@@ -10,8 +10,9 @@ import { defaultQueryOptions } from "@/lib/queryOptions";
 export function useInstructorCoursesTable(filters = {}) {
   return useQuery({
     queryKey: [QUERY_KEYS.INSTRUCTOR_COURSES_TABLE, filters],
-    queryFn: () => getInstructorCoursesTable(filters),
+    queryFn: ({ signal }) => getInstructorCoursesTable(filters, { signal }),
     ...defaultQueryOptions,
+    placeholderData: keepPreviousData,
     staleTime: 0,
     refetchOnMount: "always",
   });

@@ -15,8 +15,39 @@ import QuizResultSummary from "@/components/student/attempt/QuizResultSummary";
 import useQuiz from "@/hooks/queries/student/useQuiz";
 import useSubmitQuiz from "@/hooks/queries/student/useSubmitQuiz";
 import useQuizResult from "@/hooks/queries/student/useQuizResult";
+import useTrackCourseAccess from "@/hooks/queries/student/useTrackCourseAccess";
 import { checkAnswerCorrectness } from "@/lib/quizAnswers";
 import { resolveQuestionType } from "@/lib/questionType";
+
+// One sessionStorage key per quiz attempt — same scoping convention as
+// getQuizTimerStorageKey — so a refresh resumes the same answers/position,
+// while a new attempt (attemptsUsed incremented server-side) never inherits
+// a previous attempt's progress.
+function getQuizProgressStorageKey(quizId, attemptsUsed = 0) {
+    if (!quizId) return undefined;
+    return `quiz-progress:${quizId}:${attemptsUsed + 1}`;
+}
+
+function readStoredProgress(storageKey) {
+    if (typeof window === "undefined" || !storageKey) return null;
+    try {
+        const raw = window.sessionStorage.getItem(storageKey);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return {
+            currentQuestionIndex: Number(parsed.currentQuestionIndex) || 0,
+            answers:
+                parsed.answers && typeof parsed.answers === "object"
+                    ? parsed.answers
+                    : {},
+            visitedIndices: Array.isArray(parsed.visitedIndices)
+                ? parsed.visitedIndices
+                : [0],
+        };
+    } catch {
+        return null;
+    }
+}
 
 /**
  * The actual quiz-taking experience (timer, questions, navigation, submit) —
@@ -47,6 +78,13 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
 
     const quiz = data?.data || data;
 
+    const trackAccessMutation = useTrackCourseAccess();
+    useEffect(() => {
+        if (quiz?.courseId) {
+            trackAccessMutation.mutate(quiz.courseId);
+        }
+    }, [quiz?.courseId]);
+
     const questions = useMemo(
         () => quiz?.questions || [],
         [quiz]
@@ -63,6 +101,11 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
 
     const [showSubmitModal, setShowSubmitModal] =
         useState(false);
+
+    // Flips true once this attempt's stored progress (if any) has been
+    // applied to state, so the persistence effect below never fires with
+    // pre-hydration defaults and clobbers what was just read.
+    const [progressHydrated, setProgressHydrated] = useState(false);
 
     const currentQuestion =
         questions[currentQuestionIndex];
@@ -82,6 +125,52 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
             return new Set(prev).add(currentQuestionIndex);
         });
     }, [currentQuestionIndex]);
+
+    // Restores answers/position from a previous visit to this same attempt.
+    // Runs once quiz data (and therefore attemptsUsed, part of the storage
+    // key) is available; the progressHydrated guard keeps it from re-running.
+    useEffect(() => {
+        if (!quiz || progressHydrated) return;
+
+        const storageKey = getQuizProgressStorageKey(
+            quiz.id,
+            quiz.attemptStatus?.attemptsUsed ?? 0
+        );
+        const stored = readStoredProgress(storageKey);
+
+        if (stored) {
+            setAnswers(stored.answers);
+            setVisitedIndices(new Set(stored.visitedIndices));
+            const maxIndex = Math.max(0, questions.length - 1);
+            setCurrentQuestionIndex(
+                Math.min(Math.max(stored.currentQuestionIndex, 0), maxIndex)
+            );
+        }
+
+        setProgressHydrated(true);
+    }, [quiz, questions.length, progressHydrated]);
+
+    // Persists answers/position after every change, once hydration above has
+    // run — so a refresh mid-attempt lands back on the same question with
+    // the same options ticked.
+    useEffect(() => {
+        if (!progressHydrated || !quiz || typeof window === "undefined") return;
+
+        const storageKey = getQuizProgressStorageKey(
+            quiz.id,
+            quiz.attemptStatus?.attemptsUsed ?? 0
+        );
+        if (!storageKey) return;
+
+        window.sessionStorage.setItem(
+            storageKey,
+            JSON.stringify({
+                currentQuestionIndex,
+                answers,
+                visitedIndices: Array.from(visitedIndices),
+            })
+        );
+    }, [progressHydrated, quiz, answers, currentQuestionIndex, visitedIndices]);
 
     const handlePrevious = () => {
         if (currentQuestionIndex > 0) {
@@ -126,6 +215,14 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
     // both slip past a state-based check in the same tick.
     const submitInFlightRef = useRef(false);
 
+    // Dismissing the confirm modal clears the failure shown inside it, so the
+    // next open starts clean rather than re-showing a stale error.
+    const handleCloseSubmitModal = () => {
+        setSubmitError("");
+        submitInFlightRef.current = false;
+        setShowSubmitModal(false);
+    };
+
     // Shared by the manual "Submit Quiz" confirm and the timer running out —
     // the timeout path skips the completeness gate below since the attempt
     // has to close regardless of how many questions got answered.
@@ -156,12 +253,14 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
             submitPayload,
             {
                 onSuccess: () => {
-                    const timerKey = getQuizTimerStorageKey(
-                        quiz?.id,
-                        quiz?.attemptStatus?.attemptsUsed ?? 0
-                    );
+                    const attemptsUsed = quiz?.attemptStatus?.attemptsUsed ?? 0;
+                    const timerKey = getQuizTimerStorageKey(quiz?.id, attemptsUsed);
                     if (timerKey) {
                         window.sessionStorage.removeItem(timerKey);
+                    }
+                    const progressKey = getQuizProgressStorageKey(quiz?.id, attemptsUsed);
+                    if (progressKey) {
+                        window.sessionStorage.removeItem(progressKey);
                     }
                     setShowSubmitModal(false);
                     setIsSubmitted(true);
@@ -175,12 +274,15 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
                     // A real failure (network/server) should allow retrying —
                     // only a successful submit keeps this attempt locked.
                     submitInFlightRef.current = false;
-                    setShowSubmitModal(false);
                     // The server's message explains a refusal (e.g. no
-                    // attempts left); anything else is most likely network.
+                    // attempts left); a timeout needs its own wording since
+                    // axios reports it with no response at all; anything else
+                    // is most likely network.
                     setSubmitError(
-                        error?.response?.data?.message ||
-                            "Your answers couldn't be submitted. Check your connection and try again."
+                        error?.code === "ECONNABORTED" || error?.message?.includes("timeout")
+                            ? "Submission timed out while contacting the server. Please click Retry Submission to try again."
+                            : error?.response?.data?.message ||
+                                  "Your answers couldn't be submitted. Check your connection and try again."
                     );
                 },
             }
@@ -204,12 +306,13 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
         performSubmit();
     };
 
-    // Fetches only once submitted — the result endpoint 404s on an
-    // unattempted quiz, and this is the same endpoint/shape the full
-    // /student/result page uses, including each question's correctAnswer
-    // (stripped from useQuiz above so a student can't see it mid-attempt).
+    // Fetches once submitted, or on landing back on a quiz already attempted
+    // in an earlier visit — the result endpoint 404s on a bare unattempted
+    // quiz. Same endpoint/shape the full /student/result page uses, including
+    // each question's correctAnswer (stripped from useQuiz above so a
+    // student can't see it mid-attempt).
     const { data: resultData, isLoading: isResultLoading } = useQuizResult(quizId, {
-        enabled: isSubmitted,
+        enabled: isSubmitted || Boolean(quiz?.attemptStatus?.attemptsUsed > 0),
     });
 
     const submissionResult = resultData?.data || resultData;
@@ -284,17 +387,39 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
     const hasPriorAttempt = allowance && allowance.attemptsUsed > 0;
 
     if (hasPriorAttempt && !reattempting) {
+        // submissionResult is only known once its fetch (enabled above for
+        // any prior attempt) resolves — the icon/badge stay neutral until then.
+        const knowsOutcome = !isResultLoading && submissionResult != null;
+        const passed = Boolean(submissionResult?.passed);
+
         return (
             <div className="rounded-2xl border border-border bg-card p-6 text-center sm:p-8">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
+                <div
+                    className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${
+                        knowsOutcome && !passed
+                            ? "bg-rose-500/10 text-rose-400"
+                            : "bg-emerald-500/10 text-emerald-400"
+                    }`}
+                >
                     <CheckCircle2 className="h-5 w-5" aria-hidden />
                 </div>
-                <h2 className="mt-4 text-lg font-semibold text-foreground">
+                {knowsOutcome && (
+                    <div
+                        className={`mx-auto mt-3 inline-flex rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
+                            passed
+                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25"
+                                : "bg-rose-500/15 text-rose-400 border border-rose-500/25"
+                        }`}
+                    >
+                        {passed ? "Passed" : "Failed"}
+                    </div>
+                )}
+                <h2 className="mt-3 text-lg font-semibold text-foreground">
                     You have completed the quiz
                 </h2>
                 <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
                     {allowance.canAttempt
-                        ? `You can view your result or make another attempt for “${quiz.title}”.`
+                        ? `You can view your result or retake “${quiz.title}”.`
                         : `You've used all ${allowance.maxAttempts} attempt${allowance.maxAttempts === 1 ? "" : "s"} allowed for “${quiz.title}”.`}
                 </p>
                 <div className="mx-auto mt-6 flex max-w-sm flex-col gap-2 sm:flex-row sm:justify-center">
@@ -308,7 +433,7 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
                             onClick={() => setReattempting(true)}
                             className="flex-1"
                         >
-                            Reattempt
+                            Retake
                         </Button>
                     )}
                     {onBack && (
@@ -323,7 +448,7 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
 
     return (
         <>
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
                 <QuizHeader
                     quiz={quiz}
                     onBack={onBack}
@@ -338,7 +463,7 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
                     </p>
                 )}
 
-                {submitError && (
+                {submitError && !showSubmitModal && (
                     <p
                         role="alert"
                         className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-500"
@@ -370,15 +495,14 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
 
             <QuizSubmitModal
                 isOpen={showSubmitModal}
-                onClose={() =>
-                    setShowSubmitModal(false)
-                }
+                onClose={handleCloseSubmitModal}
                 onConfirm={handleSubmitQuiz}
                 totalQuestions={questions.length}
                 answeredQuestions={answeredQuestions}
                 isSubmitting={
                     submitQuizMutation.isPending
                 }
+                errorMessage={submitError}
             />
         </>
     );

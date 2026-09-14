@@ -25,6 +25,36 @@ import ContentAssignmentPanel from "@/components/student/learning/ContentAssignm
 import { SlideColumnsView } from "@/components/instructor/LessonComposer/cells/slideCanvas/SlideColumnsLayout";
 import { parseSlideDeckJson } from "@/components/instructor/LessonComposer/cells/slideCanvas/slideElementTypes";
 
+const isPdfUrl = (url) => {
+    const u = url?.toLowerCase() || "";
+    return u.includes(".pdf") || u.includes("/pdf");
+};
+// PDF is tested first so this stays true to the viewer chain below, where the
+// PDF branch already claimed such a URL before the deck branch was reached.
+const isPptUrl = (url) => {
+    const u = url?.toLowerCase() || "";
+    return !isPdfUrl(u) && u.includes(".ppt");
+};
+
+/**
+ * True when a content item renders through PptViewer — an uploaded .ppt/.pptx
+ * with no authored slide JSON to draw instead. PptViewer's canvas takes the
+ * slide's own aspect ratio from its width, so unlike a PDF or a document it
+ * has no further height to give; the learn page reads this to let the desktop
+ * player frame size to the deck rather than leave dead backdrop beneath it.
+ * Kept here, beside the branch it mirrors, so the two cannot drift apart.
+ */
+export function rendersUploadedDeck(content) {
+    if (!isPptUrl(content?.fileUrl)) return false;
+    const type = content?.type;
+    if (type === "FILE" || type === "DOCUMENT") return true;
+    if (type !== "PRESENTATION" && type !== "SLIDE") return false;
+    // A Presentation authored in the canvas slide editor keeps its slides as
+    // JSON in htmlContent and renders through SlideColumnsView instead — see
+    // isFileLike below.
+    return parseSlideDeckJson(content?.htmlContent).length === 0;
+}
+
 const isGoogleSlidesUrl = (url) => Boolean(url?.includes("docs.google.com/presentation"));
 const getGoogleSlidesEmbedUrl = (url) => {
     if (!url) return "";
@@ -71,6 +101,15 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     // (hideToolbar) — one title, one row of controls.
     const [viewerControls, setViewerControls] = useState(null);
 
+    // Page state reported by PdfViewer: { page, total, goToPreviousPage,
+    // goToNextPage }. The viewer still owns pageNumber and the handlers —
+    // this only holds what the header needs to draw, and forwards the same
+    // object to the learn page, which draws the buttons below the player.
+    // Cleared on every content change so a previous document can never
+    // leave controls behind on new content.
+    const [pdfPage, setPdfPage] = useState(null);
+    const reportPdfPage = (state) => setPdfPage(state);
+
     const type = content?.type;
     const videoUrl = content?.videoUrl;
     const fileUrl = content?.fileUrl;
@@ -90,6 +129,10 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     const onTimeUpdateRef = useRef(onTimeUpdate);
     const onEndedRef = useRef(onEnded);
     const onDurationChangeRef = useRef(onDurationChange);
+    useEffect(() => {
+        setPdfPage(null);
+    }, [content?.id]);
+
     useEffect(() => {
         onTimeUpdateRef.current = onTimeUpdate;
     }, [onTimeUpdate]);
@@ -248,7 +291,55 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         );
     }
 
-    const isTextLike = type === "TEXT" || type === "HTML";
+    const isImage =
+        type === "IMAGE" ||
+        type === "image" ||
+        (type === "HTML" && (
+            htmlContent?.includes("cc-image-block") ||
+            /<figure[^>]*class="[^"]*cc-image-block[^"]*"/i.test(htmlContent || "") ||
+            /<img\s+/i.test(htmlContent || "")
+        ));
+
+    const parseImageDetails = () => {
+        if (!htmlContent) return { src: "", alt: "", caption: "" };
+        if (typeof window !== "undefined") {
+            try {
+                const root = new DOMParser().parseFromString(htmlContent, "text/html").body.firstElementChild;
+                const img = root?.querySelector("img");
+                const figcaption = root?.querySelector("figcaption");
+                if (img || figcaption) {
+                    return {
+                        src: img?.getAttribute("src") ?? "",
+                        alt: img?.getAttribute("alt") ?? "",
+                        caption: figcaption?.innerHTML ?? figcaption?.textContent ?? "",
+                    };
+                }
+            } catch {}
+        }
+        const srcMatch = htmlContent.match(/<img[^>]+src=["']([^"']+)["']/i);
+        const altMatch = htmlContent.match(/<img[^>]+alt=["']([^"']+)["']/i);
+        const figMatch = htmlContent.match(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/i);
+        return {
+            src: srcMatch ? srcMatch[1] : "",
+            alt: altMatch ? altMatch[1] : "",
+            caption: figMatch ? figMatch[1] : "",
+        };
+    };
+
+    const parsedImg = isImage ? parseImageDetails() : { src: "", alt: "", caption: "" };
+
+    const effectiveImageSrc = getDisplayUrl(
+        fileUrl ||
+        content?.externalUrl ||
+        content?.data?.url ||
+        content?.data?.fileUrl ||
+        parsedImg.src
+    );
+
+    const effectiveImageAlt = content?.title || parsedImg.alt || "Lesson image";
+    const effectiveImageCaption = parsedImg.caption || (fileUrl ? htmlContent : "");
+
+    const isTextLike = (type === "TEXT" || type === "HTML") && !isImage;
     const isPresentationLike = type === "PRESENTATION" || type === "SLIDE";
     const isHtmlLike = isTextLike || isPresentationLike;
 
@@ -304,8 +395,42 @@ const VideoPlayer = forwardRef(function VideoPlayer(
     // Player Frame in the learn page) can actually scroll to the rest of it.
     const fillsFrame = type === "VIDEO";
 
+    // Height ownership below xl, matching the learn page's player modes.
+    // Literal strings only — Tailwind emits nothing it cannot see verbatim.
+    //   VIDEO     -> h-auto; the 16:9 box below decides the height.
+    //   file-like -> fill the bounded frame so the viewer's canvas scrolls.
+    //   otherwise -> no min-height floor, so text sizes to its own content
+    //                instead of being padded out to the frame.
+    // Height ownership below xl, matching the learn page's player modes.
+    //   VIDEO      -> h-auto; the 16:9 box below decides the height.
+    //   ASSIGNMENT -> natural: sizes to its own form content.
+    //   everything else (text/HTML, documents) -> fill the bounded player so
+    //      the scroll happens INSIDE it, never by growing the page.
+    const isNaturalFlow = type === "ASSIGNMENT";
+    const rootSizing = fillsFrame
+        ? "h-full max-xl:h-auto"
+        : isNaturalFlow
+        ? "min-h-full max-xl:min-h-0"
+        : "min-h-full max-xl:h-full max-xl:min-h-0";
+
+    // A flex-1 child inside an auto-height column collapses to zero, so the
+    // content area stays flexible only where the root has a definite height.
+    //
+    // Reading flow (text/HTML) is the one case where THIS element owns the
+    // vertical scroll below xl. It sits under the title bar, which is
+    // shrink-0, so the header stays pinned while the prose scrolls — the
+    // learn page's player body is set to overflow-y-hidden for this mode, so
+    // there is exactly one scrollbar, not a nested pair. Documents keep their
+    // own viewer canvas as the scroller; desktop is untouched in every case.
+    const isReadingFlow = !fillsFrame && !isFileLike && !isNaturalFlow;
+    const contentAreaSizing = isNaturalFlow
+        ? "flex-1 max-xl:flex-none"
+        : isReadingFlow
+        ? "flex-1 max-xl:min-h-0 max-xl:overflow-y-auto"
+        : "flex-1 max-xl:min-h-0";
+
     return (
-        <div className={`bg-background flex flex-col w-full ${fillsFrame ? "h-full" : "min-h-full"}`}>
+        <div className={`bg-background flex flex-col w-full ${rootSizing}`}>
             {/* Header — skipped for VIDEO: the lesson title already shows above the
                 player, and the video's own thumbnail/embed carries its title too,
                 so this bar was just a third repeat of the same text. Also skipped
@@ -313,8 +438,8 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                 (e.g. a merged document block from an import with no block title) —
                 an icon-only bar with nothing next to it isn't useful, and we don't
                 invent a fake title just to fill it. */}
-            {type !== "VIDEO" && (content.title || isSlideShow || viewerControls) && (
-            <div className="border-b border-border px-4 sm:px-6 py-3.5 flex items-center justify-between bg-background min-h-[52px]">
+            {type !== "VIDEO" && (content.title || isSlideShow || pdfPage || viewerControls) && (
+            <div className="shrink-0 border-b border-border px-4 sm:px-6 py-3.5 flex items-center justify-between bg-background min-h-[52px] max-xl:py-2.5 max-xl:min-h-0">
                 <h2 className="text-sm sm:text-base font-semibold text-foreground flex items-center gap-2 truncate pr-2">
                     {isSlideShow && <Presentation className="h-4 w-4 text-primary shrink-0" />}
                     {isTextLike && !isSlideShow && <BookOpen className="h-4 w-4 text-primary shrink-0" />}
@@ -326,19 +451,61 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                         Slide {slideIndex + 1} / {slideCount}
                     </span>
                 )}
+                {/* The document's own page control, in its own header: the
+                    viewer renders one page at a time, so without this a
+                    multi-page document could not be read past page 1. It is
+                    NOT a second Previous/Next pair below the player — that
+                    page-level row was removed as redundant with the lesson's
+                    Previous/Next content controls. This moves the document
+                    between its own pages only and never touches which lesson
+                    content is open. */}
+                {pdfPage && (
+                    <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+                        <button
+                            type="button"
+                            onClick={pdfPage.goToPreviousPage}
+                            disabled={pdfPage.page <= 1}
+                            aria-label="Previous document page"
+                            title="Previous document page"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-card/90 text-foreground transition hover:border-primary hover:text-primary disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                        >
+                            <ChevronLeft size={15} />
+                        </button>
+
+                        <span className="px-1 text-[11px] font-bold tabular-nums text-muted-foreground whitespace-nowrap">
+                            <span className="sm:hidden">
+                                {pdfPage.page} / {pdfPage.total}
+                            </span>
+                            <span className="hidden sm:inline">
+                                Page {pdfPage.page} of {pdfPage.total}
+                            </span>
+                        </span>
+
+                        <button
+                            type="button"
+                            onClick={pdfPage.goToNextPage}
+                            disabled={pdfPage.page >= pdfPage.total}
+                            aria-label="Next document page"
+                            title="Next document page"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-card/90 text-foreground transition hover:border-primary hover:text-primary disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                        >
+                            <ChevronRight size={15} />
+                        </button>
+                    </div>
+                )}
 
                 {viewerControls}
             </div>
             )}
 
             {/* Content Area with fluid aspect ratio */}
-            <div className="relative w-full flex-1 flex flex-col bg-background">
+            <div className={`relative w-full flex flex-col bg-background ${contentAreaSizing}`}>
                 {/* VIDEO */}
                 {type === "VIDEO" && (
                     isYoutube ? (
                         <div
                             ref={containerRef}
-                            className="relative w-full h-full bg-black overflow-hidden [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full"
+                            className="relative w-full h-full bg-black overflow-hidden max-xl:h-auto max-xl:aspect-video [&>iframe]:absolute [&>iframe]:inset-0 [&>iframe]:h-full [&>iframe]:w-full"
                         />
                     ) : displayVideoUrl ? (
                         <video
@@ -352,7 +519,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                             onTimeUpdate={(event) =>
                                 onTimeUpdate?.(Math.floor(event.currentTarget.currentTime))
                             }
-                            className="w-full h-full bg-black object-contain"
+                            className="w-full h-full bg-black object-contain max-xl:h-auto max-xl:aspect-video"
                         />
                     ) : (
                         <div className="flex h-80 w-full flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-[#0B101D] p-6 text-center">
@@ -367,10 +534,15 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
                 {/* FILE / DOCUMENT / PDF (PDFs / PPTs / Docs / Resources) */}
                 {isFileLike && (
-                    <div className="w-full">
-                        {displayFileUrl && (displayFileUrl.toLowerCase().includes(".pdf") || displayFileUrl.toLowerCase().includes("/pdf")) ? (
-                            <PdfViewer fileUrl={displayFileUrl} title={content?.title} hideToolbar />
-                        ) : displayFileUrl && (displayFileUrl.toLowerCase().includes(".ppt") || displayFileUrl.toLowerCase().includes(".pptx")) ? (
+                    /* Below xl this is the link in the chain that lets the
+                       viewer fill: a flex column that takes the content
+                       area's remaining height, so PdfViewer's own canvas —
+                       not the player frame, and not the page — is what
+                       scrolls. */
+                    <div className="w-full flex-1 min-h-0 flex flex-col">
+                        {isPdfUrl(displayFileUrl) ? (
+                            <PdfViewer fileUrl={displayFileUrl} title={content?.title} hideToolbar fillHeight onPageStateChange={reportPdfPage} />
+                        ) : isPptUrl(displayFileUrl) ? (
                             <PptViewer
                                 fileUrl={displayFileUrl}
                                 title={content?.title}
@@ -389,15 +561,15 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                                render the file at all. */
                             <DocxViewer
                                 fileUrl={displayFileUrl}
-                                title={content?.title}
+                                title={content?.title} fillHeight
                                 hideToolbar
                                 showDownload={false}
                                 onControlsRender={setViewerControls}
                             />
                         ) : displayFileUrl ? (
-                            <ExternalDocumentViewer fileUrl={displayFileUrl} title={content?.title} />
+                            <ExternalDocumentViewer fileUrl={displayFileUrl} title={content?.title} fillHeight />
                         ) : htmlContent ? (
-                            <div className="p-4 sm:p-8 select-text">
+                            <div className="p-4 sm:p-8 select-text min-w-0 max-w-full">
                                 <MarkdownRenderer
                                     source={unescapeFromContentApi(htmlContent || "")}
                                     emptyText="No document content provided."
@@ -405,7 +577,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                                 />
                             </div>
                         ) : (
-                            <ExternalDocumentViewer fileUrl={displayFileUrl} title={content?.title} />
+                            <ExternalDocumentViewer fileUrl={displayFileUrl} title={content?.title} fillHeight />
                         )}
                     </div>
                 )}
@@ -416,7 +588,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     reusing the same SlideColumnsView renderer so a deck looks
                     identical for the student and the instructor. */}
                 {hasSlideDeck && !isFileLike && (
-                    <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px]">
+                    <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px] max-xl:flex-none max-xl:min-h-0">
                         <div
                             onClick={handleSlideAreaClick}
                             className={slideDeck.length > 1 ? "cursor-pointer" : undefined}
@@ -428,6 +600,9 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                             />
                         </div>
 
+                        {/* Slide navigation — moves within THIS deck only
+                            (slideIndex), never between lesson content items.
+                            Labelled with its unit for that reason. */}
                         {slideDeck.length > 1 && (
                             <div className="mt-6 pt-4 border-t border-border flex items-center justify-between gap-2">
                                 <button
@@ -436,7 +611,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                                     disabled={slideIndex === 0}
                                     className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] bg-muted text-foreground rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-muted transition"
                                 >
-                                    <ChevronLeft className="h-4 w-4" /> Previous
+                                    <ChevronLeft className="h-4 w-4" /> Prev slide
                                 </button>
 
                                 <div className="flex gap-1.5 overflow-x-auto py-1">
@@ -458,7 +633,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                                     disabled={slideIndex === slideDeck.length - 1}
                                     className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] bg-muted text-foreground rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-muted transition"
                                 >
-                                    Next <ChevronRight className="h-4 w-4" />
+                                    Next slide <ChevronRight className="h-4 w-4" />
                                 </button>
                             </div>
                         )}
@@ -466,17 +641,21 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                 )}
 
                 {/* IMAGE */}
-                {type === "IMAGE" && (
-                    <div className="flex flex-col items-center gap-3 p-4 sm:p-8">
-                        <img
-                            src={fileUrl}
-                            alt={content.title || "Lesson image"}
-                            className="max-w-full max-h-[520px] rounded-xl shadow-sm mx-auto"
-                        />
-                        {htmlContent && (
+                {isImage && (
+                    <div className="w-full flex-1 min-h-0 flex flex-col items-center justify-center p-3 sm:p-6 overflow-hidden">
+                        {effectiveImageSrc ? (
+                            <div className="relative w-full flex-1 min-h-0 flex items-center justify-center">
+                                <img
+                                    src={effectiveImageSrc}
+                                    alt={effectiveImageAlt}
+                                    className="w-full h-full object-contain object-center rounded-xl shadow-sm"
+                                />
+                            </div>
+                        ) : null}
+                        {effectiveImageCaption && (
                             <div
-                                className="prose prose-invert prose-sm max-w-none text-center select-text"
-                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }}
+                                className="shrink-0 mt-3 prose prose-invert prose-sm max-w-none text-center select-text"
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(effectiveImageCaption) }}
                             />
                         )}
                     </div>
@@ -500,28 +679,42 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     </pre>
                 )}
 
-                {/* INTERACTIVE_LAB (genuine embedded widgets/tools, not video) */}
-                {type === "INTERACTIVE_LAB" && (
-                    externalUrl ? (
-                        <iframe
-                            src={externalUrl}
-                            className="h-[320px] sm:h-[420px] md:h-[520px] w-full border-none bg-white"
-                            title={content.title}
-                        />
-                    ) : (
-                        <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">No embed URL set</div>
-                    )
-                )}
-
-                {/* EMBED (quiz block preview — the graded quiz itself lives under Quizzes) */}
-                {type === "EMBED" && (
-                    <div className="p-4 sm:p-8 space-y-3">
-                        <div
-                            className="prose prose-invert prose-sm max-w-none select-text"
-                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent || "") }}
-                        />
-                        <p className="text-xs text-muted-foreground">This is a quiz question preview — take the graded quiz from the Quizzes section.</p>
-                    </div>
+                {/* INTERACTIVE_LAB / EMBED (interactive widgets, simulations, embedded content) */}
+                {(type === "EMBED" || type === "INTERACTIVE_LAB") && (
+                    (() => {
+                        const embedSrc = externalUrl || fileUrl || htmlContent?.match(/src=["']([^"']+)["']/i)?.[1];
+                        if (embedSrc) {
+                            return (
+                                <div className="w-full h-full min-h-[420px] sm:min-h-[520px] rounded-xl overflow-hidden bg-white">
+                                    <iframe
+                                        src={embedSrc}
+                                        className="w-full h-full min-h-[420px] sm:min-h-[520px] border-0"
+                                        title={content?.title || "Interactive Content"}
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    />
+                                </div>
+                            );
+                        }
+                        if (htmlContent) {
+                            return (
+                                <div
+                                    className="p-4 sm:p-8 prose prose-invert prose-sm max-w-none select-text"
+                                    dangerouslySetInnerHTML={{
+                                        __html: DOMPurify.sanitize(htmlContent, {
+                                            ADD_TAGS: ["iframe"],
+                                            ADD_ATTR: ["src", "width", "height", "frameborder", "allow", "allowfullscreen", "scrolling", "style", "class"],
+                                        }),
+                                    }}
+                                />
+                            );
+                        }
+                        return (
+                            <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">
+                                No embed URL configured
+                            </div>
+                        );
+                    })()
                 )}
 
                 {/* HTML / TEXT / legacy pre-Composer-v2 PRESENTATION / SLIDE
@@ -529,7 +722,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     deck — that's handled by the "PRESENTATION" block above) */}
                 {isHtmlLike && !isFileLike && !hasSlideDeck && (
                     isLegacySlideShow ? (
-                        <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px]">
+                        <div className="flex-1 flex flex-col justify-between p-4 sm:p-8 min-h-[320px] max-xl:flex-none max-xl:min-h-0">
                             <div
                                 onClick={handleSlideAreaClick}
                                 className={`prose prose-invert max-w-none text-foreground text-base sm:text-lg leading-relaxed flex-1 flex flex-col justify-center select-text ${
@@ -538,6 +731,9 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(legacySlides[slideIndex] || "") }}
                             />
 
+                            {/* Slide navigation — moves within THIS deck only
+                                (slideIndex), never between lesson content
+                                items. Labelled with its unit for that reason. */}
                             <div className="mt-6 pt-4 border-t border-border flex items-center justify-between gap-2">
                                 <button
                                     type="button"
@@ -545,7 +741,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                                     disabled={slideIndex === 0}
                                     className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] bg-muted text-foreground rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-muted transition"
                                 >
-                                    <ChevronLeft className="h-4 w-4" /> Previous
+                                    <ChevronLeft className="h-4 w-4" /> Prev slide
                                 </button>
 
                                 <div className="flex gap-1.5 overflow-x-auto py-1">
@@ -567,16 +763,16 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                                     disabled={slideIndex === legacySlides.length - 1}
                                     className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] bg-muted text-foreground rounded-xl text-xs font-bold disabled:opacity-50 hover:bg-muted transition"
                                 >
-                                    Next <ChevronRight className="h-4 w-4" />
+                                    Next slide <ChevronRight className="h-4 w-4" />
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <div className="p-4 sm:p-8 select-text">
+                        <div className="p-4 sm:p-8 select-text min-w-0 max-w-full w-full">
                             <MarkdownRenderer
                                 source={unescapeFromContentApi(htmlContent || "")}
                                 emptyText="No content yet."
-                                className="max-w-4xl mx-auto"
+                                className="max-w-4xl mx-auto w-full min-w-0"
                             />
                         </div>
                     )

@@ -50,6 +50,11 @@ export default function AssignmentSubmissionPanel({
   // floating Prev/Next controls (which AssignmentWorkspacePanel's caller
   // handles separately). Omitted entirely when the caller has no next step.
   onNextContent,
+  // Fires after a successful submit/resubmit — lets the assignment detail
+  // page leave "resubmitting" mode and return to the read-only result view
+  // once the fresh submission has actually been recorded, rather than
+  // guessing from a fixed delay.
+  onSubmitted,
 }) {
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -120,6 +125,7 @@ export default function AssignmentSubmissionPanel({
       onSuccess: () => {
         clearFile();
         showToast("Assignment submitted.", "success");
+        onSubmitted?.();
       },
       onError: (error) => {
         showToast(

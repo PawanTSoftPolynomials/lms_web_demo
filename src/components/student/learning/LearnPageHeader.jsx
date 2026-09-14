@@ -32,7 +32,7 @@ export default function LearnPageHeader({
   const percent = unitProgress?.progressPercent ?? 0;
 
   return (
-    <header className="sticky top-0 bg-[#07080f]/80 backdrop-blur-md border-b border-border py-3 px-4 sm:px-6 flex items-center justify-between z-30 select-none">
+    <header className="max-sm:hidden sticky top-0 bg-[#07080f]/80 backdrop-blur-md border-b border-border py-3 max-xl:py-2 px-4 sm:px-6 flex items-center justify-between z-30 select-none">
       <div className="flex items-center gap-3 min-w-0 flex-1">
         {!courseSidebarOpen && (
           <button
@@ -45,7 +45,7 @@ export default function LearnPageHeader({
             <PanelLeftOpen size={16} />
           </button>
         )}
-        <div className="min-w-0">
+        <div className="hidden xl:block min-w-0">
           <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground truncate block">
             LEARNING WORKSPACE
           </span>
@@ -102,7 +102,7 @@ export default function LearnPageHeader({
         onClick={onToggleStickyNotes}
         aria-pressed={isStickyNotesOpen}
         style={{ borderRadius: 9999, transition: "transform 150ms ease" }}
-        className="group relative shrink-0 p-px cursor-pointer bg-gradient-to-br from-primary/80 via-border to-accent/60 motion-safe:active:scale-95"
+        className="group relative shrink-0 p-px cursor-pointer bg-gradient-to-br from-primary/80 via-border to-accent/60 motion-safe:active:scale-95 max-xl:hidden"
         title={isStickyNotesOpen ? "Hide side panel" : "Show side panel"}
         aria-label={isStickyNotesOpen ? "Hide side panel" : "Show side panel"}
       >

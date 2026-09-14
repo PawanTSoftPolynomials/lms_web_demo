@@ -19,6 +19,7 @@ function FeedbackPageContent() {
 
   const [rating, setRating] = useState(5);
   const [satisfaction, setSatisfaction] = useState("satisfied");
+  const [evaluations, setEvaluations] = useState({});
   const [comment, setComment] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -155,15 +156,23 @@ function FeedbackPageContent() {
                   <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-background/20 rounded-xl border border-border/60">
                     <span className="text-xs font-semibold text-foreground">{question}</span>
                     <div className="flex gap-2.5">
-                      {["Disagree", "Neutral", "Agree"].map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          className="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg border border-transparent bg-background hover:border-transparent text-muted-foreground hover:text-foreground cursor-pointer transition"
-                        >
-                          {opt}
-                        </button>
-                      ))}
+                      {["Disagree", "Neutral", "Agree"].map((opt) => {
+                        const isSelected = evaluations[idx] === opt;
+                        return (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => setEvaluations((prev) => ({ ...prev, [idx]: opt }))}
+                            className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider rounded-lg border cursor-pointer transition ${
+                              isSelected
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-transparent bg-background hover:border-transparent text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
