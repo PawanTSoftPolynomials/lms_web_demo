@@ -105,7 +105,6 @@ const FALLBACK_TEMPLATE = {
   },
   content: [
     {
-      order: 1,
       type: "HTML",
       title: "What is Physics?",
       htmlContent: "<p>Physics is the study of matter, energy, motion and forces.</p>",
@@ -116,20 +115,17 @@ const FALLBACK_TEMPLATE = {
       courseId: "course_physics_1",
       title: "Units and Measurements",
       description: "How physical quantities are measured.",
-      order: 1,
       content: [],
       lessons: [
         {
           moduleId: "physics_mod_1",
           title: "Physical Quantities and SI Units",
-          order: 1,
           isPublished: false,
           content: [],
           topics: [
             {
               lessonId: "physics_lesson_1",
               title: "SI Base Units",
-              order: 1,
               isPublished: false,
               content: [],
               quiz: {
@@ -1615,14 +1611,14 @@ export default function CourseImportPage() {
                   <div className="p-3 bg-background rounded-xl">
                     <span className="font-bold text-emerald-400 font-mono block">modules [ ] → lessons [ ] → topics [ ]</span>
                     <span className="text-muted-foreground block mt-0.5">
-                      Each has title (required), description, order and isPublished. order must be unique among siblings; without it, array position is used.
+                      Each has title (required), description and isPublished. There is no order field: items appear in the order you list them, and a level&apos;s quiz comes after its content and children.
                     </span>
                   </div>
 
                   <div className="p-3 bg-background rounded-xl">
                     <span className="font-bold text-sky-400 font-mono block">content [ ]</span>
                     <span className="text-muted-foreground block mt-0.5">
-                      On any level. Each item has type (HTML, VIDEO, DOCUMENT, PRESENTATION, CODE, LINK, IMAGE, AUDIO…), title, order, and htmlContent, videoUrl, fileUrl or externalUrl as the type needs.
+                      On any level. Each item has type (HTML, VIDEO, DOCUMENT, PRESENTATION, CODE, LINK, IMAGE, AUDIO…), title, and htmlContent, videoUrl, fileUrl or externalUrl as the type needs.
                     </span>
                   </div>
 

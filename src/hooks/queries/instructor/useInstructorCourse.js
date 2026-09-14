@@ -21,15 +21,18 @@ import { defaultQueryOptions } from "@/lib/queryOptions";
  *   needs the tree (the Composer) is never handed a metadata-only course.
  */
 export function useInstructorCourse(courseId, options = {}) {
-    const { shallow = false, ...queryOptions } = options;
+    const { shallow = false, enabled = true, ...queryOptions } = options;
+    // "draft" and "new" are Composer routes, not courses. A caller's own
+    // `enabled` (the navbar passes one) narrows this guard, never replaces it.
+    const isSavedCourse = !!courseId && courseId !== "draft" && courseId !== "new";
 
     return useQuery({
         queryKey: shallow
             ? [QUERY_KEYS.COURSE, courseId, "meta"]
             : [QUERY_KEYS.COURSE, courseId],
         queryFn: () => getCourseById(courseId, { shallow }),
-        enabled: !!courseId && courseId !== "draft" && courseId !== "new",
         ...defaultQueryOptions,
         ...queryOptions,
+        enabled: isSavedCourse && enabled,
     });
 }
