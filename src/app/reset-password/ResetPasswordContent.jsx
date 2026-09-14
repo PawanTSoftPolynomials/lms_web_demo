@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { HiOutlineKey } from "react-icons/hi2";
+import { HiOutlineKey } from "@/components/ui/reactIcons";
 
 import { resetPassword } from "@/services/auth.service";
 

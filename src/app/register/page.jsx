@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { HiOutlineUserPlus } from "react-icons/hi2";
+import { HiOutlineUserPlus } from "@/components/ui/reactIcons";
 
 import useAuth from "@/hooks/useAuth";
 

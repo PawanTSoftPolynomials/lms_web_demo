@@ -4,7 +4,7 @@ import {
   FaCheckCircle,
   FaClock,
   FaArchive,
-} from "react-icons/fa";
+} from "@/components/ui/reactIcons";
 
 const statusConfig = {
   PUBLISHED: {

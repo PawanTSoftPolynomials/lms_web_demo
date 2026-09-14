@@ -6,7 +6,7 @@ import {
     FaQuestionCircle,
     FaCheckCircle,
     FaStar,
-} from "react-icons/fa";
+} from "@/components/ui/reactIcons";
 
 import ActionMenu from "@/components/menus/ActionMenu";
 

@@ -18,7 +18,7 @@ import {
   FaCalendarAlt,
   FaList,
   FaUsers
-} from "react-icons/fa";
+} from "@/components/ui/reactIcons";
 
 const toLocalDateString = (date) => {
   if (!date) return "";

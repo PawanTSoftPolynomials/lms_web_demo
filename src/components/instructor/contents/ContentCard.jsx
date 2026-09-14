@@ -8,7 +8,7 @@ import {
     FaLink,
     FaCode,
     FaFileAlt,
-} from "react-icons/fa";
+} from "@/components/ui/reactIcons";
 
 import ActionMenu from "@/components/menus/ActionMenu";
 

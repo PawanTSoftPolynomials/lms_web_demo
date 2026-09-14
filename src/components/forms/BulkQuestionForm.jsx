@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FaPlus, FaTrash, FaCode, FaListUl, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaPlus, FaTrash, FaCode, FaListUl, FaChevronDown, FaChevronUp } from "@/components/ui/reactIcons";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";

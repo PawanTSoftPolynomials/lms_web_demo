@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaBars } from 'react-icons/fa';
-import { PiOrangeDuotone } from 'react-icons/pi';
+import { FaBars } from '@/components/ui/reactIcons';
+import { PiOrangeDuotone } from '@/components/ui/reactIcons';
 import { X, ChevronRight, ChevronDown } from 'lucide-react';
 
 import { SIDEBAR_ITEMS } from '@/constants/sidebar';

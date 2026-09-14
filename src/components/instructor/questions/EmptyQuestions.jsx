@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FaPlus, FaLayerGroup, FaCloudUploadAlt } from "react-icons/fa";
+import { FaPlus, FaLayerGroup, FaCloudUploadAlt } from "@/components/ui/reactIcons";
 import Card from "@/components/ui/Card";
 
 export default function EmptyQuestions({ quizId, onImport }) {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PiOrangeDuotone } from "react-icons/pi";
+import { PiOrangeDuotone } from "@/components/ui/reactIcons";
 import { ThemeSwitcher } from "@/components/ui/shadcn/theme-switcher";
 
 export default function LandingNavbar() {

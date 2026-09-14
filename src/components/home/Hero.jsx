@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { PiOrangeDuotone } from "react-icons/pi";
+import { PiOrangeDuotone } from "@/components/ui/reactIcons";
 import {
   ArrowRight,
   Award,

@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
     FaFileAlt,
     FaPlus,
-} from "react-icons/fa";
+} from "@/components/ui/reactIcons";
 
 export default function EmptyContents({
                                           topicId,

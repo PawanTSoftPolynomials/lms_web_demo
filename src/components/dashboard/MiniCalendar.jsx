@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getCalendarEvents } from "@/services/calendar.service";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import Card from "@/components/ui/Card";
-import { FaChevronLeft, FaChevronRight, FaCalendarAlt } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaCalendarAlt } from "@/components/ui/reactIcons";
 
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
