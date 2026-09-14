@@ -29,6 +29,7 @@ import {
   useDeleteRepositoryQuestion,
 } from "@/hooks/queries/instructor/useQuestionRepository";
 import { useToast } from "@/components/ui/ToastProvider";
+import { QUESTION_TYPE_OPTIONS } from "@/lib/questionType";
 
 /**
  * The Question Repository list/search/CRUD view — rendered by both the
@@ -276,11 +277,9 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
               className="bg-background border border-border rounded-xl px-3 py-2 text-xs text-foreground focus:border-amber-500 focus:outline-none"
             >
               <option value="">All Types</option>
-              <option value="MCQ_SINGLE">Single Choice (MCQ)</option>
-              <option value="MCQ_MULTI">Multiple Select</option>
-              <option value="TRUE_FALSE">True / False</option>
-              <option value="SHORT_ANSWER">Short Answer</option>
-              <option value="LONG_ANSWER">Long Answer</option>
+              {QUESTION_TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
             </select>
 
             {/* Status Filter */}
@@ -548,12 +547,12 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
                       key={idx}
                       className={`p-3 rounded-xl border text-xs flex items-center justify-between ${
                         opt.isCorrect
-                          ? "bg-emerald-950/40 border-emerald-500/60 text-emerald-200"
+                          ? "bg-success/10 border-success/50 text-success"
                           : "bg-background/40 border-border text-foreground"
                       }`}
                     >
                       <span>{opt.optionText || String(opt)}</span>
-                      {opt.isCorrect && <Check className="w-4 h-4 text-emerald-400" />}
+                      {opt.isCorrect && <Check className="w-4 h-4 text-success" />}
                     </div>
                   ))}
                 </div>
@@ -561,7 +560,11 @@ export default function QuestionRepositoryView({ showImportShortcuts = false }) 
             )}
 
             {previewQuestion.explanation && (
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200">
+              /* The warning token, not a fixed amber shade: it carries a value
+                 per theme (a dark amber on light, a bright one on dark), where
+                 text-amber-200 is a pale tint chosen for a dark panel and is
+                 all but invisible on the light one. */
+              <div className="p-3 rounded-xl bg-warning/10 border border-warning/30 text-xs text-warning">
                 <span className="font-bold">Explanation: </span>
                 {previewQuestion.explanation}
               </div>

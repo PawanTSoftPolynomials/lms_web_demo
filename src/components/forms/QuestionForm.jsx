@@ -21,6 +21,7 @@ import Card from "@/components/ui/Card";
 import { useQuiz } from "@/hooks/queries/instructor/useQuiz";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
 import ImportQuestionsModal from "@/components/instructor/questions/ImportQuestionsModal";
+import { QUESTION_TYPE_OPTIONS, RETIRED_QUESTION_TYPES } from "@/lib/questionType";
 
 const INITIAL_FORM = {
   type: "MCQ_SINGLE",
@@ -376,11 +377,16 @@ export default function QuestionForm({
                       onChange={(e) => handleTypeChange(e.target.value)}
                       className="w-full bg-background border border-border text-foreground rounded-xl focus:border-primary outline-none transition px-4 py-3.5 text-sm cursor-pointer"
                     >
-                      <option value="MCQ_SINGLE">Single Choice</option>
-                      <option value="MCQ_MULTI">Multiple Choice</option>
-                      <option value="ARRANGE_TOKENS">Arrange Tokens</option>
-                      <option value="MATCH_PAIRS">Match Pairs</option>
-                      <option value="SELF_ASSESSMENT">Self Assessment</option>
+                      {QUESTION_TYPE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                      {/* Only for a question that already is one — see
+                          RETIRED_QUESTION_TYPES. */}
+                      {RETIRED_QUESTION_TYPES[formData.type] && (
+                        <option value={formData.type}>
+                          {RETIRED_QUESTION_TYPES[formData.type]}
+                        </option>
+                      )}
                     </select>
                   </div>
 

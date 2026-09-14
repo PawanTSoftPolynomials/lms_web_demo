@@ -13,6 +13,7 @@ import {
 import { useInstructorCourses } from "@/hooks/queries/instructor/useInstructorCourses";
 import { useModules } from "@/hooks/queries/instructor/useModules";
 import { useCreateRepositoryQuestion } from "@/hooks/queries/instructor/useQuestionRepository";
+import { QUESTION_TYPE_OPTIONS } from "@/lib/questionType";
 
 export default function CreateQuestionPage() {
   const router = useRouter();
@@ -44,7 +45,43 @@ export default function CreateQuestionPage() {
     { id: "opt-4", optionText: "", isCorrect: false },
   ]);
 
+  // Arrange Tokens: the tokens in their correct order — the student is shown
+  // them shuffled and has to rebuild this sequence.
+  const [tokens, setTokens] = useState(["", "", ""]);
+
+  // Match Pairs: each left item and the right item it matches.
+  const [pairs, setPairs] = useState([
+    { left: "", right: "" },
+    { left: "", right: "" },
+  ]);
+
   const [error, setError] = useState("");
+
+  const handleTokenChange = (idx, value) =>
+    setTokens((prev) => prev.map((t, i) => (i === idx ? value : t)));
+
+  const handleAddToken = () => setTokens((prev) => [...prev, ""]);
+
+  const handleRemoveToken = (idx) => {
+    if (tokens.length <= 2) {
+      alert("An Arrange Tokens question needs at least 2 tokens.");
+      return;
+    }
+    setTokens((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handlePairChange = (idx, field, value) =>
+    setPairs((prev) => prev.map((p, i) => (i === idx ? { ...p, [field]: value } : p)));
+
+  const handleAddPair = () => setPairs((prev) => [...prev, { left: "", right: "" }]);
+
+  const handleRemovePair = (idx) => {
+    if (pairs.length <= 2) {
+      alert("A Match Pairs question needs at least 2 pairs.");
+      return;
+    }
+    setPairs((prev) => prev.filter((_, i) => i !== idx));
+  };
 
   const handleAddOption = () => {
     setOptions((prev) => [
@@ -121,12 +158,29 @@ export default function CreateQuestionPage() {
       }
 
       correctAnswerVal = options.filter((o) => o.isCorrect).map((o) => o.optionText.trim());
-    } else if (questionType === "TRUE_FALSE") {
-      finalOptions = [
-        { id: "opt-1", optionText: "True", isCorrect: true },
-        { id: "opt-2", optionText: "False", isCorrect: false },
-      ];
-      correctAnswerVal = "True";
+    } else if (questionType === "ARRANGE_TOKENS") {
+      // Same shape QuestionForm saves: the ordered tokens are both the pool
+      // shown to the student and the answer they're graded against.
+      const validTokens = tokens.map((t) => t.trim()).filter(Boolean);
+      if (validTokens.length < 2) {
+        setError("Please enter at least 2 tokens in their correct order.");
+        return;
+      }
+      finalOptions = validTokens;
+      correctAnswerVal = validTokens;
+    } else if (questionType === "MATCH_PAIRS") {
+      const validPairs = pairs
+        .map((p) => ({ left: p.left.trim(), right: p.right.trim() }))
+        .filter((p) => p.left && p.right);
+      if (validPairs.length < 2) {
+        setError("Please complete at least 2 pairs — both sides of each are required.");
+        return;
+      }
+      finalOptions = {
+        left: validPairs.map((p) => p.left),
+        right: validPairs.map((p) => p.right),
+      };
+      correctAnswerVal = validPairs.reduce((acc, p) => ({ ...acc, [p.left]: p.right }), {});
     }
 
     setError("");
@@ -246,11 +300,9 @@ export default function CreateQuestionPage() {
                   onChange={(e) => setQuestionType(e.target.value)}
                   className="w-full bg-background border border-transparent rounded-xl px-3 py-2.5 text-xs text-foreground focus:border-amber-500 focus:outline-none"
                 >
-                  <option value="MCQ_SINGLE">Single Choice (MCQ)</option>
-                  <option value="MCQ_MULTI">Multiple Select</option>
-                  <option value="TRUE_FALSE">True / False</option>
-                  <option value="SHORT_ANSWER">Short Answer</option>
-                  <option value="LONG_ANSWER">Long Answer</option>
+                  {QUESTION_TYPE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
                 </select>
               </div>
 
@@ -356,6 +408,107 @@ export default function CreateQuestionPage() {
                       <button
                         type="button"
                         onClick={() => handleRemoveOption(idx)}
+                        className="text-muted-foreground hover:text-rose-400"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Arrange Tokens Card */}
+          {questionType === "ARRANGE_TOKENS" && (
+            <div className="p-6 rounded-3xl bg-background/90 border border-transparent space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-foreground">Tokens (Correct Order)</h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Students see these shuffled and rebuild this sequence.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddToken}
+                  className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted text-amber-400 text-xs font-semibold border border-amber-500/30 flex items-center space-x-1"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Token</span>
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {tokens.map((token, idx) => (
+                  <div key={idx} className="flex items-center space-x-3 p-3 rounded-2xl bg-background/80 border border-transparent">
+                    <span className="w-6 h-6 rounded-lg flex items-center justify-center bg-muted text-[10px] font-bold text-muted-foreground">
+                      {idx + 1}
+                    </span>
+                    <input
+                      type="text"
+                      placeholder={`Token ${idx + 1}`}
+                      value={token}
+                      onChange={(e) => handleTokenChange(idx, e.target.value)}
+                      className="flex-1 bg-transparent border-none text-xs text-foreground focus:outline-none"
+                    />
+                    {tokens.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveToken(idx)}
+                        className="text-muted-foreground hover:text-rose-400"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Match Pairs Card */}
+          {questionType === "MATCH_PAIRS" && (
+            <div className="p-6 rounded-3xl bg-background/90 border border-transparent space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-foreground">Matching Pairs</h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    The right-hand column is shuffled for students.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddPair}
+                  className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted text-amber-400 text-xs font-semibold border border-amber-500/30 flex items-center space-x-1"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Pair</span>
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {pairs.map((pair, idx) => (
+                  <div key={idx} className="flex items-center space-x-3 p-3 rounded-2xl bg-background/80 border border-transparent">
+                    <input
+                      type="text"
+                      placeholder={`Left ${idx + 1}`}
+                      value={pair.left}
+                      onChange={(e) => handlePairChange(idx, "left", e.target.value)}
+                      className="flex-1 bg-transparent border-none text-xs text-foreground focus:outline-none"
+                    />
+                    <span className="text-muted-foreground text-xs">&rarr;</span>
+                    <input
+                      type="text"
+                      placeholder={`Right ${idx + 1}`}
+                      value={pair.right}
+                      onChange={(e) => handlePairChange(idx, "right", e.target.value)}
+                      className="flex-1 bg-transparent border-none text-xs text-foreground focus:outline-none"
+                    />
+                    {pairs.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePair(idx)}
                         className="text-muted-foreground hover:text-rose-400"
                       >
                         <Trash2 className="w-4 h-4" />

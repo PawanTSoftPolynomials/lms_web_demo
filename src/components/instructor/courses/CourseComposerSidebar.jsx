@@ -142,6 +142,26 @@ function getTopicTypeMeta(title = "") {
   };
 }
 
+/**
+ * Ascending by `order` (createdAt tie-break) — matches ParentContentRows'
+ * mergedRows comparator exactly, so a lesson/topic's numeral (L{n}/tIdx)
+ * lines up with where it actually lands once mixed in with quizzes there.
+ * Without this, numerals came from each item's plain position in the raw
+ * `lesson.topics`/`module.lessons` array, which only matches the rendered
+ * order by coincidence.
+ */
+function sortByRenderOrder(items = []) {
+  return [...items].sort((a, b) => {
+    const orderA = a.order ?? 0;
+    const orderB = b.order ?? 0;
+    if (orderA !== orderB) return orderA - orderB;
+    if (a.createdAt && b.createdAt) {
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    }
+    return 0;
+  });
+}
+
 function formatTopicDisplayTitle(title = "", index = 0) {
   const trimmed = title.trim();
   if (/^(\d+\.\d+|\d+\.\d+\.\d+|mcqs?|assignment|home\s*task|revision)/i.test(trimmed)) {
@@ -446,7 +466,10 @@ function ParentContentRows({
                 <RowMenu
                   groupName="content"
                   items={[
-                    { label: "Edit Content", icon: Pencil, onSelect: () => onSelectContent?.(content) },
+                    /* No "Edit Content" here: editing happens on the right-hand
+                       composer. The row itself already opens the content on
+                       click (onSelectContent above), so the menu entry was a
+                       second door to the same place. */
                     { label: "Duplicate Content", icon: Copy, onSelect: () => handleDuplicate(content) },
                     { separator: true },
                     { label: "Move Up", icon: ArrowUp, disabled: rIdx === 0, onSelect: () => handleMove(content.id, "up") },
@@ -571,11 +594,9 @@ export function CourseComposerSidebar({
   courseId,
   onAddLesson,
   onAddQuizToCourse,
-  onAddQuizToModule,
   onAddQuizToLesson,
   onAddQuizToTopic,
   onAddAssignmentToCourse,
-  onAddAssignmentToModule,
   onAddAssignmentToLesson,
   onAddAssignmentToTopic,
   onAddModule,
@@ -667,9 +688,22 @@ export function CourseComposerSidebar({
   // they stay reachable however far down the tree you are. Everything below
   // scrolls, course-level content rows included: pinning those too was what
   // once squeezed the modules tree into a sliver on quiz-heavy courses.
+  //
+  // Height (not just max-height) matters here beyond filling the screen: the
+  // caller's wrapper div is what actually carries `sticky` (see
+  // CourseComposerSidebar's usage in the Composer page), and a sticky
+  // element only stays pinned while its OWN box is still within the
+  // viewport. Left at h-full, this panel shrank to its own tree content
+  // (often a few hundred px) in a plain flowing page with no stretched
+  // ancestor to fill — so it ran out of "stickable" height almost
+  // immediately and scrolled away with the rest of the page long before the
+  // notebook cells beside it did. An explicit viewport-tied height keeps it
+  // pinned for effectively the whole scroll instead.
   return (
     <aside className={`sidebar-panel rounded-2xl border border-border bg-background p-4 shadow-xl flex flex-col h-full max-h-full ${
-      maxHeightClassName === "max-h-full" ? "lg:max-h-full" : "lg:max-h-[calc(100vh-7rem)]"
+      maxHeightClassName === "max-h-full"
+        ? "lg:max-h-full"
+        : "lg:h-[calc(100vh-7rem)] lg:max-h-[calc(100vh-7rem)]"
     } overflow-hidden text-foreground`}>
       {/* Panel Title */}
       <div className="flex items-center justify-between gap-2 mb-1 shrink-0">
@@ -826,8 +860,6 @@ export function CourseComposerSidebar({
                         { label: "Edit Module", icon: Pencil, onSelect: () => onEditModule?.(mod) },
                         { label: "Add Lesson", icon: Plus, onSelect: () => onAddLesson?.(mod.id) },
                         { label: "Add Content", icon: Plus, onSelect: () => onAddContentToModule?.(mod) },
-                        { label: "Add Quiz", icon: HelpCircle, onSelect: () => onAddQuizToModule?.(mod) },
-                        { label: "Add Assignment", icon: ClipboardList, onSelect: () => onAddAssignmentToModule?.(mod) },
                         { separator: true },
                         { label: "Move Up", icon: ArrowUp, disabled: mIdx === 0, onSelect: () => handleMoveModule(mod, "up") },
                         { label: "Move Down", icon: ArrowDown, disabled: mIdx === modules.length - 1, onSelect: () => handleMoveModule(mod, "down") },
@@ -863,7 +895,7 @@ export function CourseComposerSidebar({
                       progress={progress}
                       isDraftMode={isDraftMode}
                       draftContents={mod.contents}
-                      extraItems={modLessons.map((lesson, lIdx) => ({ ...lesson, kind: "lesson", lIdx }))}
+                      extraItems={sortByRenderOrder(modLessons).map((lesson, lIdx) => ({ ...lesson, kind: "lesson", lIdx }))}
                       emptyMessage={modLessons.length === 0 ? "No lessons in this module." : null}
                       renderExtraItem={(lesson) => {
                         const lIdx = lesson.lIdx;
@@ -964,7 +996,7 @@ export function CourseComposerSidebar({
                                   progress={progress}
                                   isDraftMode={isDraftMode}
                                   draftContents={lesson.contents}
-                                  extraItems={lessonTopics.map((topic, tIdx) => ({ ...topic, kind: "topic", tIdx }))}
+                                  extraItems={sortByRenderOrder(lessonTopics).map((topic, tIdx) => ({ ...topic, kind: "topic", tIdx }))}
                                   emptyMessage={lessonTopics.length === 0 ? "No topics in this lesson." : null}
                                   renderExtraItem={(topic) => {
                                     const tIdx = topic.tIdx;

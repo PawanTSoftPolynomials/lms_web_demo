@@ -15,11 +15,19 @@ import {
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { defaultQueryOptions } from "@/lib/queryOptions";
 
-export function useRepositoryQuestions(filters = {}) {
+/**
+ * @param {Object} filters
+ * @param {Object} [options] - `enabled: false` holds the request until the
+ *   caller's filters are ready. Callers that scope by course use it so the
+ *   unscoped whole-repository result never flashes in before the course id
+ *   has loaded.
+ */
+export function useRepositoryQuestions(filters = {}, options = {}) {
     return useQuery({
         queryKey: [QUERY_KEYS.QUESTION_REPOSITORY, filters],
         queryFn: () => getRepositoryQuestions(filters),
         ...defaultQueryOptions,
+        ...options,
     });
 }
 

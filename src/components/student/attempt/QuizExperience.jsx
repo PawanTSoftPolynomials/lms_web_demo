@@ -7,6 +7,7 @@ import { CheckCircle2 } from "lucide-react";
 import Loader from "@/components/common/Loader";
 import Button from "@/components/ui/Button";
 import QuizHeader from "@/components/student/attempt/QuizHeader";
+import { getQuizTimerStorageKey } from "@/components/student/attempt/QuizTimer";
 import QuestionCard from "@/components/student/attempt/QuestionCard";
 import QuizNavigation from "@/components/student/attempt/QuizNavigation";
 import QuizSubmitModal from "@/components/student/attempt/QuizSubmitModal";
@@ -116,17 +117,21 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
         }));
     };
 
-    const handleTimeUp = () => {
-        setShowSubmitModal(true);
-    };
-
     const submitQuizMutation =
         useSubmitQuiz();
 
-    const handleSubmitQuiz = () => {
-        if (answeredQuestions < questions.length) {
-            return;
-        }
+    // Guards against a duplicate submit firing before submitQuizMutation.isPending
+    // has re-rendered true — e.g. two near-simultaneous timer expiry calls
+    // (React Strict Mode's double effect-invocation in dev) would otherwise
+    // both slip past a state-based check in the same tick.
+    const submitInFlightRef = useRef(false);
+
+    // Shared by the manual "Submit Quiz" confirm and the timer running out —
+    // the timeout path skips the completeness gate below since the attempt
+    // has to close regardless of how many questions got answered.
+    const performSubmit = () => {
+        if (submitInFlightRef.current) return;
+        submitInFlightRef.current = true;
 
         const startedAt = startedAtRef.current;
 
@@ -151,6 +156,13 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
             submitPayload,
             {
                 onSuccess: () => {
+                    const timerKey = getQuizTimerStorageKey(
+                        quiz?.id,
+                        quiz?.attemptStatus?.attemptsUsed ?? 0
+                    );
+                    if (timerKey) {
+                        window.sessionStorage.removeItem(timerKey);
+                    }
                     setShowSubmitModal(false);
                     setIsSubmitted(true);
                 },
@@ -160,6 +172,9 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
                         "Quiz submission failed",
                         error
                     );
+                    // A real failure (network/server) should allow retrying —
+                    // only a successful submit keeps this attempt locked.
+                    submitInFlightRef.current = false;
                     setShowSubmitModal(false);
                     // The server's message explains a refusal (e.g. no
                     // attempts left); anything else is most likely network.
@@ -170,6 +185,23 @@ export default function QuizExperience({ quizId, onBack, resultReturnTo, onNextC
                 },
             }
         );
+    };
+
+    const handleSubmitQuiz = () => {
+        if (answeredQuestions < questions.length) {
+            return;
+        }
+
+        performSubmit();
+    };
+
+    // The timer (persisted per-attempt, see QuizTimer) fires this once its
+    // deadline passes — including immediately on a refresh that lands after
+    // time was already up. Auto-submit whatever was answered so far rather
+    // than waiting on a confirmation click that may never come.
+    const handleTimeUp = () => {
+        if (isSubmitted || submitQuizMutation.isPending) return;
+        performSubmit();
     };
 
     // Fetches only once submitted — the result endpoint 404s on an

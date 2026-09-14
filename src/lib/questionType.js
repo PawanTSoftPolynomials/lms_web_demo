@@ -17,6 +17,35 @@ const QUESTION_TYPE_ALIASES = {
 };
 
 /**
+ * Types withdrawn from the authoring pickers: an instructor can no longer
+ * create one. Nothing else changes — the API enum still accepts them, and a
+ * question written before they were withdrawn keeps its type and is still
+ * delivered — so the pickers fall back to showing one of these only when the
+ * question being edited already carries it. Dropping the option outright
+ * would leave such a question displaying the first entry in the list instead
+ * of what it actually is.
+ */
+/**
+ * The only question types the UI offers, in the order every picker shows
+ * them. Type pickers and type filters alike render this list and nothing
+ * else, so the wording stays identical wherever a type is chosen.
+ */
+export const QUESTION_TYPE_OPTIONS = [
+  { value: "MCQ_SINGLE", label: "Single Choice (MCQ)" },
+  { value: "MCQ_MULTI", label: "Multiple Choice (MCQ)" },
+  { value: "ARRANGE_TOKENS", label: "Arrange Tokens" },
+  { value: "MATCH_PAIRS", label: "Match Pairs" },
+];
+
+export const RETIRED_QUESTION_TYPES = {
+  TRUE_FALSE: "True / False",
+  FILL_BLANK: "Fill in Blanks",
+  SHORT_ANSWER: "Short Answer",
+  LONG_ANSWER: "Long Answer",
+  SELF_ASSESSMENT: "Self Assessment",
+};
+
+/**
  * Resolves a question's raw `questionType` (from the API) to the UI's
  * internal type key. Missing/falsy defaults to "MCQ_SINGLE", matching every
  * call site's previous fallback.

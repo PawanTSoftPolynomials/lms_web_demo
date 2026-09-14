@@ -96,6 +96,11 @@ function withTopicIn(les, topicId, updateTopic) {
   };
 }
 
+// The workspace selections the URL is allowed to restore. Anything else in
+// `?view=` is ignored and the page opens on the course overview, so a
+// hand-edited or stale link can't drop the composer into an unknown mode.
+const COMPOSER_MODES = new Set(["course", "module", "lesson", "topic", "quiz"]);
+
 export default function CourseDetailsPage() {
   const params = useParams();
   const router = useRouter();
@@ -136,16 +141,30 @@ export default function CourseDetailsPage() {
   // Global View Mode: 'rendered' | 'edit'
 
   // Active Workspace Selection: 'course' | 'lesson' | 'module' | 'topic' | 'quiz'
-  const [composerMode, setComposerMode] = useState("course");
+  //
+  // Seeded from the query string so a refresh (or a pasted link) reopens the
+  // exact module → lesson → topic → content the instructor was looking at.
+  // The effect further down writes these back to the URL as the selection
+  // changes; `?compose=` is the older lesson-only form of `?lesson=`, still
+  // honoured so existing links keep working.
+  const initialView = searchParams.get("view");
+  const [composerMode, setComposerMode] = useState(
+    COMPOSER_MODES.has(initialView) ? initialView : "course"
+  );
+  // Deliberately always "view" on load: a refresh in the middle of creating or
+  // editing a quiz has already lost the unsaved question edits, so reopening
+  // that form empty would be a lie. The saved quiz is shown instead.
   const [quizMode, setQuizMode] = useState("view"); // "view" | "edit" | "create"
-  const [composeLessonId, setComposeLessonId] = useState(searchParams.get("compose") || null);
-  const [composeModuleId, setComposeModuleId] = useState(null);
-  const [composeTopicId, setComposeTopicId] = useState(null);
-  const [composeQuizId, setComposeQuizId] = useState(null);
+  const [composeLessonId, setComposeLessonId] = useState(
+    searchParams.get("lesson") || searchParams.get("compose") || null
+  );
+  const [composeModuleId, setComposeModuleId] = useState(searchParams.get("module") || null);
+  const [composeTopicId, setComposeTopicId] = useState(searchParams.get("topic") || null);
+  const [composeQuizId, setComposeQuizId] = useState(searchParams.get("quiz") || null);
   const [selectedQuizState, setSelectedQuizState] = useState(null);
   const [quizStartEditing, setQuizStartEditing] = useState(false);
   const [pendingQuizOrder, setPendingQuizOrder] = useState(null);
-  const [selectedCellId, setSelectedCellId] = useState(null);
+  const [selectedCellId, setSelectedCellId] = useState(searchParams.get("content") || null);
 
   // Edit Mode for Metadata Headers
   const [isEditingCourse, setIsEditingCourse] = useState(false);
@@ -697,6 +716,49 @@ export default function CourseDetailsPage() {
     return () => { document.body.style.overflow = previous; };
   }, [mobileSidebarOpen]);
 
+  // Mirrors the current workspace selection into the query string, so the page
+  // can be reopened exactly where it was left. history.replaceState rather than
+  // router.replace on purpose: this is not a navigation — it must not push a
+  // history entry per sidebar click, remount the tree, or trigger a server
+  // round trip. The URL is only read back on mount (see the state above).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // A quiz that hasn't been created yet has no id to restore, so record the
+    // level it is being added under instead of a "quiz" view that would come
+    // back as "Quiz Not Found".
+    const restorableView =
+      composerMode === "quiz" && !composeQuizId
+        ? composeTopicId
+          ? "topic"
+          : composeLessonId
+            ? "lesson"
+            : composeModuleId
+              ? "module"
+              : "course"
+        : composerMode;
+
+    const next = new URLSearchParams(window.location.search);
+    const put = (key, value) => {
+      if (value) next.set(key, String(value));
+      else next.delete(key);
+    };
+
+    put("view", restorableView === "course" ? null : restorableView);
+    put("module", composeModuleId);
+    put("lesson", composeLessonId);
+    put("topic", composeTopicId);
+    put("quiz", restorableView === "quiz" ? composeQuizId : null);
+    put("content", selectedCellId);
+    next.delete("compose"); // superseded by `lesson`
+
+    const query = next.toString();
+    const url = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+    if (url !== `${window.location.pathname}${window.location.search}`) {
+      window.history.replaceState(null, "", url);
+    }
+  }, [composerMode, composeModuleId, composeLessonId, composeTopicId, composeQuizId, selectedCellId]);
+
   // Desktop Course Map collapse state
   const [isCourseMapOpen, setIsCourseMapOpen] = useState(true);
 
@@ -1244,6 +1306,11 @@ export default function CourseDetailsPage() {
       setComposeQuizId(createdQuiz.id);
       setQuizMode("view");
       setQuizStartEditing(false);
+      // Every branch reports whether the quiz actually landed. QuizOverviewView
+      // awaits this and only raises its "Quiz Saved" confirmation on true — the
+      // failure branches below already explain themselves with an error toast,
+      // and a success dialog on top of one would be a lie.
+      return true;
     } else {
       // Saved Course Mode (via REST API)
       if (quizMode === "create" || !selectedQuizState) {
@@ -1309,9 +1376,11 @@ export default function CourseDetailsPage() {
           setComposeQuizId(resQuiz.id);
           setQuizMode("view");
           setQuizStartEditing(false);
+          return true;
         } catch (err) {
           console.error("Create Quiz Error:", err);
           showToast(err?.response?.data?.message || "Failed to create quiz.", "error");
+          return false;
         }
       } else {
         const targetId = selectedQuizState.id || selectedQuizState._id || composeQuizId;
@@ -1362,9 +1431,11 @@ export default function CourseDetailsPage() {
           setSelectedQuizState(freshQuiz);
           setQuizMode("view");
           setQuizStartEditing(false);
+          return true;
         } catch (err) {
           console.error("Update Quiz Error:", err);
           showToast(err?.response?.data?.message || "Failed to update quiz.", "error");
+          return false;
         }
       }
     }
@@ -1721,6 +1792,49 @@ export default function CourseDetailsPage() {
   const activeQuizObj = composeQuizId
     ? (quizzesById.get(String(composeQuizId)) || (selectedQuizState && (String(selectedQuizState.id) === String(composeQuizId) || String(selectedQuizState._id) === String(composeQuizId)) ? selectedQuizState : null))
     : null;
+
+  // Ids restored from the URL may name something that has since been deleted —
+  // or that belongs to a different course, if a link was edited by hand. Once
+  // the tree has actually loaded, anything that doesn't resolve is dropped and
+  // the view falls back to the nearest parent that does, instead of rendering
+  // an empty panel the instructor can't get out of. Guarded on the loading
+  // flags so a slow fetch is never mistaken for a missing entity.
+  const treeLoaded = !effectiveLoading;
+  useEffect(() => {
+    if (!treeLoaded) return;
+
+    if (composeQuizId && !activeQuizObj) {
+      setComposeQuizId(null);
+      if (composerMode === "quiz") setComposerMode(composeTopicId ? "topic" : composeLessonId ? "lesson" : composeModuleId ? "module" : "course");
+      return;
+    }
+    if (composeTopicId && !composingTopic) {
+      setComposeTopicId(null);
+      setSelectedCellId(null);
+      if (composerMode === "topic") setComposerMode(composingLesson ? "lesson" : "course");
+      return;
+    }
+    if (composeLessonId && !composingLesson) {
+      setComposeLessonId(null);
+      if (composerMode === "lesson") setComposerMode(activeModuleObj ? "module" : "course");
+      return;
+    }
+    if (selectedCellId && composingTopic && !(composingTopic.contents || []).some((c) => String(c.id || c._id) === String(selectedCellId))) {
+      setSelectedCellId(null);
+    }
+  }, [
+    treeLoaded,
+    composerMode,
+    composeQuizId,
+    activeQuizObj,
+    composeTopicId,
+    composingTopic,
+    composeLessonId,
+    composingLesson,
+    composeModuleId,
+    activeModuleObj,
+    selectedCellId,
+  ]);
 
   // Delete Handlers for structural children
   const handleDeleteModule = async (e, mod) => {
@@ -2087,33 +2201,30 @@ export default function CourseDetailsPage() {
     return fn?.(...args);
   };
   const sidebarWrapperClassName = mobileSidebarOpen
-    ? "fixed inset-y-0 left-0 z-50 w-80 bg-background p-4 shadow-2xl block shrink-0 overflow-y-auto"
-    : `hidden lg:block shrink-0 lg:sticky lg:top-24 transition-[width] duration-300 ease-in-out ${
+    ? "fixed inset-y-0 left-0 z-50 w-80 bg-background pt-4 pr-4 pb-4 pl-[1.6px] shadow-2xl block shrink-0 overflow-y-auto"
+    : `hidden lg:block shrink-0 lg:h-full transition-[width] duration-300 ease-in-out ${
         isCourseMapOpen ? "w-full lg:w-[320px]" : "w-full lg:w-0"
       }`;
 
   return (
-    // The shared dashboard shell pads its main by p-2/sm:p-6/md:p-16; the
-    // composer pulls most of that top padding back so the course header sits
-    // just under the navbar instead of below a band of empty space.
-    <div className="-mt-1 sm:-mt-4 md:-mt-12 space-y-4 pb-16 animate-fade-in duration-300">
-      {/* 1. APP HEADER */}
+    // The instructor layout gives the Composer route its own bounded-height
+    // shell (see instructor/layout.jsx's isCourseComposerPage branch) instead
+    // of DashboardLayout's normal ever-growing, p-16/pb-32-padded `main` — so
+    // this fills that shell rather than pulling back padding that isn't
+    // there any more. flex-col + min-h-0 lets the Notebook cell stack below
+    // become the one scrollable region instead of the whole page.
+    <div className="h-full flex flex-col animate-fade-in duration-300">
+      {/* 1. APP HEADER — no visible bar now; just the mobile Course Map
+          toggle (floating) and Ask OTree AI (floating). Status and the
+          Publish/Unpublish/Restore/Save actions live on the Course Header
+          cell below. */}
       <CourseComposerHeader
-        course={effectiveCourse}
-        courseId={courseId}
-        onSaveCourse={handleSaveCourse}
-        hasUnsavedChanges={hasUnsavedChanges}
-        onImportCourse={() => router.push("/instructor/courses/import")}
         onOpenAskAi={() => handleOpenAskAi()}
-        isSaving={isDraftMode ? isSavingDraft : updateCourseMutation.isPending}
-        onPublishClick={handleConfirmPublish}
-        onUnpublishClick={handleOpenUnpublishModal}
-        onRestoreClick={handleConfirmRestoreCourse}
         onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
       />
 
       {/* 2. MAIN WORKSPACE CONTAINER */}
-      <div className="relative flex flex-col lg:flex-row gap-5 items-start">
+      <div className="relative flex flex-col lg:flex-row gap-5 flex-1 min-h-0">
         {/* Drawer backdrop — sits under the drawer (z-50) and over everything
             else, so a tap outside dismisses instead of falling through to the
             workspace. lg:hidden keeps it away from the desktop rail entirely. */}
@@ -2128,6 +2239,7 @@ export default function CourseDetailsPage() {
         {/* Left Sidebar Panel */}
         <div className={sidebarWrapperClassName}>
           <CourseComposerSidebar
+            maxHeightClassName="max-h-full"
             modules={effectiveModules}
             courseQuizzes={effectiveCourseQuizzes}
             composerMode={composerMode}
@@ -2185,43 +2297,33 @@ export default function CourseDetailsPage() {
           />
         </div>
 
-        {/* Center Main Workspace Notebook Area */}
-        <main className="flex-1 min-w-0 w-full space-y-4">
-          {/* Workspace Header & Breadcrumbs */}
-          <div className="flex items-center justify-between pb-3 border-b border-transparent/80">
-            <div className="flex items-center gap-3">
-              {!isCourseMapOpen && !mobileSidebarOpen && (
-                <button
-                  type="button"
-                  onClick={() => setIsCourseMapOpen(true)}
-                  className="hidden lg:flex shrink-0 h-9 w-9 items-center justify-center rounded-full border border-primary/50 bg-background text-primary shadow-md transition hover:bg-primary/10 hover:border-primary hover:text-orange-300 cursor-pointer"
-                  aria-label="Show course map"
-                  title="Show course map"
-                >
-                  <PanelLeftOpen size={16} />
-                </button>
-              )}
-              <div>
-                <div className="text-xs font-semibold text-primary mb-0.5">
-                  {composerMode === "course" && `Course Overview`}
-                  {composerMode === "quiz" && (quizMode === "create" ? (composeTopicId ? "New Topic Quiz Creation" : composeLessonId ? "New Lesson Quiz Creation" : "New Module Quiz Creation") : `Quiz Overview`)}
-                  {composerMode === "lesson" && `Lesson: ${composingLesson?.title || "Lesson Overview"}`}
-                  {composerMode === "module" && `Module: ${activeModuleObj?.title || "Module Cells"}`}
-                  {composerMode === "topic" && `Topic: ${composingTopic?.title || "Topic Composer"}`}
-                </div>
-                <h2 className="text-lg sm:text-xl font-black text-foreground tracking-tight">
-                  {composerMode === "course" && (effectiveCourse?.title || "Course Overview Header")}
-                  {composerMode === "quiz" && (quizMode === "create" ? `Create Quiz for ${composeTopicId ? (composingTopic?.title || "Topic") : composeLessonId ? (composingLesson?.title || "Lesson") : (activeModuleObj?.title || "Module")}` : (activeQuizObj?.title || "Quiz Details"))}
-                  {composerMode === "lesson" && (composingLesson?.title || "Lesson Overview Header")}
-                  {composerMode === "module" && (activeModuleObj?.title || "Module Cells Notebook")}
-                  {composerMode === "topic" && (composingTopic?.title || "Topic Cells Notebook")}
-                </h2>
-              </div>
+        {/* Center Main Workspace Notebook Area — flex-col so only the cell
+            stack below scrolls, not this whole column (the reopen button
+            above it stays put, same as the Course Map beside it). */}
+        <main className="flex-1 min-w-0 w-full flex flex-col min-h-0">
+          {/* Workspace Header — breadcrumb/title text removed (each view
+              already shows its own title further down: the Course Header
+              cell, the lesson/module/topic composer, the quiz form). The
+              "reopen Course Map" control survives since it's the only way
+              back once the rail is collapsed on desktop. */}
+          {!isCourseMapOpen && !mobileSidebarOpen && (
+            <div className="flex items-center pb-3 border-b border-transparent/80 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsCourseMapOpen(true)}
+                className="hidden lg:flex shrink-0 h-9 w-9 items-center justify-center rounded-full border border-primary/50 bg-background text-primary shadow-md transition hover:bg-primary/10 hover:border-primary hover:text-orange-300 cursor-pointer"
+                aria-label="Show course map"
+                title="Show course map"
+              >
+                <PanelLeftOpen size={16} />
+              </button>
             </div>
-          </div>
+          )}
 
-          {/* Notebook Workspace Dynamic View */}
-          <div className="rounded-2xl border border-transparent bg-background/60 p-2 sm:p-6 shadow-xl">
+          {/* Notebook Workspace Dynamic View — the one scrollable region in
+              this page now; everything else (navbar, Course Map, this
+              reopen button) stays fixed in place while these cells scroll. */}
+          <div className="flex-1 min-h-0 overflow-y-auto rounded-2xl border border-transparent bg-background/60 p-2 sm:p-6 shadow-xl">
             {composerMode === "course" && (
               <CourseOverviewView
                 course={effectiveCourse}
@@ -2252,6 +2354,12 @@ export default function CourseDetailsPage() {
                 isDraftMode={isDraftMode}
                 contentAutoOpenSignal={courseContentAutoOpenSignal}
                 onContentAutoOpenConsumed={() => setCourseContentAutoOpenSignal(0)}
+                onPublishClick={handleConfirmPublish}
+                onUnpublishClick={handleOpenUnpublishModal}
+                onRestoreClick={handleConfirmRestoreCourse}
+                hasUnsavedChanges={hasUnsavedChanges}
+                onSaveCourse={handleSaveCourse}
+                isSavingCourse={isDraftMode ? isSavingDraft : updateCourseMutation.isPending}
               />
             )}
 
@@ -2260,6 +2368,7 @@ export default function CourseDetailsPage() {
                 key={composeQuizId || `new-quiz-${composeTopicId || composeLessonId || composeModuleId || "course"}`}
                 quiz={activeQuizObj}
                 quizMode={quizMode}
+                courseId={courseId}
                 moduleTitle={activeModuleObj?.title}
                 lessonTitle={composeLessonId ? composingLesson?.title : null}
                 topicTitle={composeTopicId ? composingTopic?.title : null}

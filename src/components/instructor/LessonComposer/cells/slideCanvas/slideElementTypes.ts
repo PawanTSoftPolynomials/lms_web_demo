@@ -120,6 +120,29 @@ export function createDefaultSlideDeck(): SlideItemV2[] {
  * (then left-to-right) order, folded into one Markdown column. The
  * instructor can re-split it into multiple columns afterward if needed.
  */
+/**
+ * Parses a Content row's `htmlContent` as a persisted slide deck (the JSON
+ * array this model is stored as — see the file header) and upgrades every
+ * slide through adaptLegacySlide. Returns [] for anything that isn't a JSON
+ * array — including the pre-Composer-v2 raw-HTML slide format, which is a
+ * plain string that never starts with "[" — so callers can tell "no slides
+ * here" apart from "old-format content" and fall back accordingly.
+ */
+export function parseSlideDeckJson(raw: string | null | undefined): SlideItemV2[] {
+  const text = raw || "";
+  try {
+    if (text.trim().startsWith("[")) {
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) {
+        return parsed.map(adaptLegacySlide);
+      }
+    }
+  } catch {
+    // fall through
+  }
+  return [];
+}
+
 export function adaptLegacySlide(slide: SlideItemV2 | LegacySlideItem): SlideItemV2 {
   const anySlide = slide as SlideItemV2 & LegacySlideItem;
   const backgroundColor = isValidHexColor(anySlide.backgroundColor || "")

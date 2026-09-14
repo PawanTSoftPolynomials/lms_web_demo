@@ -1,15 +1,18 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
+import DashboardNavbar from "@/components/layouts/DashboardNavbar";
 import { useAuth } from "@/context/AuthContext";
 import Loader from "@/components/common/Loader";
 import InstructorNavDrawer from "@/components/layouts/InstructorNavDrawer";
 import { InstructorNavDrawerProvider } from "@/context/InstructorNavDrawerContext";
+import { ChatWidget } from "@/components/chat";
 
 export default function Layout({ children }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, loading } = useAuth();
 
   useEffect(() => {
@@ -30,6 +33,31 @@ export default function Layout({ children }) {
 
   if (!user || user.role !== "INSTRUCTOR") {
     return null; // Let the useEffect redirect
+  }
+
+  // The Course Composer (/instructor/courses/<id>, not /edit or /import) owns
+  // one scrollable region — the notebook cell stack — instead of scrolling
+  // the whole page. That only works with a bounded-height shell here instead
+  // of DashboardLayout's normal p-16/pb-32-padded, ever-growing `main`; same
+  // fixed-viewport bypass the Student learn page already uses.
+  const segments = pathname?.split("/").filter(Boolean) || [];
+  const isCourseComposerPage =
+    segments[0] === "instructor" &&
+    segments[1] === "courses" &&
+    segments.length === 3 &&
+    !["edit", "import", "create"].includes(segments[2]);
+
+  if (isCourseComposerPage) {
+    return (
+      <InstructorNavDrawerProvider>
+        <div className="h-screen flex flex-col overflow-hidden">
+          <DashboardNavbar role="INSTRUCTOR" title="Course Composer" />
+          <div className="flex-1 min-h-0">{children}</div>
+        </div>
+        <ChatWidget />
+        <InstructorNavDrawer />
+      </InstructorNavDrawerProvider>
+    );
   }
 
   return (

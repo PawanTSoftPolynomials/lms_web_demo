@@ -9,7 +9,6 @@ import {
   MapPin,
   GraduationCap,
   Building,
-  Shield,
   ShieldCheck,
   Lock,
   Key,
@@ -18,19 +17,13 @@ import {
   ChevronRight,
   Camera,
   Upload,
-  Bell,
-  Monitor,
-  HelpCircle,
-  Zap,
   Trash2,
-  Smartphone,
-  Globe,
   Save,
 } from "lucide-react";
 import DatePicker from "@/components/ui/DatePicker";
 import useUpdateProfile from "@/hooks/queries/student/useUpdateProfile";
 import { changePassword } from "@/services/auth.service";
-import { uploadAvatar, removeAvatar, updateProfile } from "@/services/profile.service";
+import { uploadAvatar, removeAvatar } from "@/services/profile.service";
 
 const EDUCATION_OPTIONS = [
   "B.Tech in Artificial Intelligence & ML",
@@ -74,7 +67,12 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
   const [avatarMessage, setAvatarMessage] = useState("");
 
   // Modals state
-  const [activeModal, setActiveModal] = useState(null); // 'password' | '2fa' | 'sessions' | 'privacy' | 'notifications' | null
+  // Only the Change Password dialog remains. The Security & Privacy card,
+  // the Quick Actions list and the Privacy Settings header button were the
+  // only ways to open the 2FA / Active Sessions / Privacy / Notification
+  // dialogs, so those dialogs went with them rather than staying as markup
+  // nothing could reach.
+  const [activeModal, setActiveModal] = useState(null); // 'password' | null
   
   // Password form state
   const [passwordData, setPasswordData] = useState({
@@ -84,14 +82,6 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
   });
   const [passwordStatus, setPasswordStatus] = useState({ loading: false, error: "", success: "" });
 
-  // Security features state
-  const [is2FAEnabled, setIs2FAEnabled] = useState(false);
-  const [profileVisibility, setProfileVisibility] = useState("Public");
-  const [notificationPrefs, setNotificationPrefs] = useState({
-    emailAnnouncements: true,
-    courseUpdates: true,
-    quizReminders: true,
-  });
 
   const [saveSuccessMsg, setSaveSuccessMsg] = useState("");
   const [saveErrorMsg, setSaveErrorMsg] = useState("");
@@ -122,9 +112,6 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
 
       if (profile.avatar) {
         setAvatarPreview(profile.avatar);
-      }
-      if (student.profileVisibility) {
-        setProfileVisibility(student.profileVisibility);
       }
     }
   }, [profile]);
@@ -246,17 +233,6 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
         error: err?.response?.data?.message || "Failed to change password. Please check current password.",
         success: "",
       });
-    }
-  };
-
-  // Privacy Settings Update Handler
-  const handleTogglePrivacy = async (visibility) => {
-    setProfileVisibility(visibility);
-    try {
-      await updateProfile({ profileVisibility: visibility });
-      if (onRefresh) onRefresh();
-    } catch (err) {
-      console.error("Failed to update privacy settings:", err);
     }
   };
 
@@ -411,14 +387,6 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
               <span>Change Password</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveModal("privacy")}
-              className="flex items-center justify-center gap-2 rounded-xl bg-background hover:bg-muted border border-transparent text-foreground font-bold text-xs px-5 py-2.5 transition active:scale-95 cursor-pointer"
-            >
-              <Shield size={14} />
-              <span>Privacy Settings</span>
-            </button>
           </div>
         </div>
       </div>
@@ -670,122 +638,6 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
             </div>
           </div>
 
-          {/* C. SECURITY & PRIVACY CARD */}
-          <div className="rounded-2xl border border-border bg-background/70 p-6 md:p-7 shadow-xl space-y-6">
-            <div className="flex items-center justify-between border-b border-border/80 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
-                  <Shield size={18} />
-                </div>
-                <h2 className="text-lg font-semibold text-foreground">Security & Privacy</h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveModal("password")}
-                className="px-3.5 py-1.5 rounded-lg border border-transparent hover:border-primary text-xs font-bold text-foreground hover:text-foreground transition cursor-pointer"
-              >
-                Edit Section
-              </button>
-            </div>
-
-            {/* 5 Security Cards Grid */}
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Tile 1: Change Password */}
-              <div
-                onClick={() => setActiveModal("password")}
-                className="p-4 rounded-xl bg-background border border-border/80 hover:border-primary/50 hover:bg-background/80 transition cursor-pointer group flex items-start justify-between"
-              >
-                <div className="space-y-1.5 min-w-0 pr-2">
-                  <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center group-hover:scale-105 transition">
-                    <Lock size={14} />
-                  </div>
-                  <h3 className="text-xs font-bold text-foreground group-hover:text-primary transition truncate">
-                    Change Password
-                  </h3>
-                  <p className="text-[10px] text-muted-foreground line-clamp-2">
-                    Update your account password
-                  </p>
-                </div>
-                <ChevronRight size={14} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition shrink-0 mt-1" />
-              </div>
-
-              {/* Tile 2: Two-Factor Authentication */}
-              <div
-                onClick={() => setActiveModal("2fa")}
-                className="p-4 rounded-xl bg-background border border-border/80 hover:border-primary/50 hover:bg-background/80 transition cursor-pointer group flex items-start justify-between"
-              >
-                <div className="space-y-1.5 min-w-0 pr-2">
-                  <div className="h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-105 transition">
-                    <ShieldCheck size={14} />
-                  </div>
-                  <h3 className="text-xs font-bold text-foreground group-hover:text-primary transition truncate">
-                    Two-Factor Auth
-                  </h3>
-                  <p className="text-[10px] text-muted-foreground line-clamp-2">
-                    {is2FAEnabled ? "Enabled (Secure)" : "Disabled (Click to configure)"}
-                  </p>
-                </div>
-                <ChevronRight size={14} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition shrink-0 mt-1" />
-              </div>
-
-              {/* Tile 3: Active Sessions */}
-              <div
-                onClick={() => setActiveModal("sessions")}
-                className="p-4 rounded-xl bg-background border border-border/80 hover:border-primary/50 hover:bg-background/80 transition cursor-pointer group flex items-start justify-between"
-              >
-                <div className="space-y-1.5 min-w-0 pr-2">
-                  <div className="h-7 w-7 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center group-hover:scale-105 transition">
-                    <Monitor size={14} />
-                  </div>
-                  <h3 className="text-xs font-bold text-foreground group-hover:text-primary transition truncate">
-                    Active Sessions
-                  </h3>
-                  <p className="text-[10px] text-muted-foreground line-clamp-2">
-                    Manage current active logins
-                  </p>
-                </div>
-                <ChevronRight size={14} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition shrink-0 mt-1" />
-              </div>
-
-              {/* Tile 4: Privacy Settings */}
-              <div
-                onClick={() => setActiveModal("privacy")}
-                className="p-4 rounded-xl bg-background border border-border/80 hover:border-primary/50 hover:bg-background/80 transition cursor-pointer group flex items-start justify-between"
-              >
-                <div className="space-y-1.5 min-w-0 pr-2">
-                  <div className="h-7 w-7 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center group-hover:scale-105 transition">
-                    <Globe size={14} />
-                  </div>
-                  <h3 className="text-xs font-bold text-foreground group-hover:text-primary transition truncate">
-                    Privacy Settings
-                  </h3>
-                  <p className="text-[10px] text-muted-foreground line-clamp-2">
-                    Visibility: {profileVisibility}
-                  </p>
-                </div>
-                <ChevronRight size={14} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition shrink-0 mt-1" />
-              </div>
-
-              {/* Tile 5: Notification Preferences */}
-              <div
-                onClick={() => setActiveModal("notifications")}
-                className="p-4 rounded-xl bg-background border border-border/80 hover:border-primary/50 hover:bg-background/80 transition cursor-pointer group flex items-start justify-between"
-              >
-                <div className="space-y-1.5 min-w-0 pr-2">
-                  <div className="h-7 w-7 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center group-hover:scale-105 transition">
-                    <Bell size={14} />
-                  </div>
-                  <h3 className="text-xs font-bold text-foreground group-hover:text-primary transition truncate">
-                    Notification Prefs
-                  </h3>
-                  <p className="text-[10px] text-muted-foreground line-clamp-2">
-                    Configure alert preferences
-                  </p>
-                </div>
-                <ChevronRight size={14} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition shrink-0 mt-1" />
-              </div>
-            </div>
-          </div>
 
           {/* D. SAVE / CANCEL ACTIONS BAR */}
           <div className="flex items-center justify-between pt-2">
@@ -894,89 +746,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
             </button>
           </div>
 
-          {/* 2. QUICK ACTIONS CARD */}
-          <div className="rounded-2xl border border-border bg-background/70 p-6 shadow-xl space-y-4">
-            <div className="flex items-center gap-2 text-foreground">
-              <Zap size={16} className="text-primary fill-orange-400" />
-              <h3 className="text-sm font-bold">Quick Actions</h3>
-            </div>
 
-            <div className="divide-y divide-slate-800/80 text-xs">
-              <div
-                onClick={() => setActiveModal("password")}
-                className="py-3 flex items-center justify-between text-foreground hover:text-primary transition cursor-pointer group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Lock size={14} className="text-muted-foreground group-hover:text-primary" />
-                  <span>Change Password</span>
-                </div>
-                <ChevronRight size={13} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition" />
-              </div>
-
-              <div
-                onClick={() => setActiveModal("2fa")}
-                className="py-3 flex items-center justify-between text-foreground hover:text-primary transition cursor-pointer group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <ShieldCheck size={14} className="text-muted-foreground group-hover:text-primary" />
-                  <span>Two-Factor Auth</span>
-                </div>
-                <ChevronRight size={13} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition" />
-              </div>
-
-              <div
-                onClick={() => setActiveModal("sessions")}
-                className="py-3 flex items-center justify-between text-foreground hover:text-primary transition cursor-pointer group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Monitor size={14} className="text-muted-foreground group-hover:text-primary" />
-                  <span>Active Sessions</span>
-                </div>
-                <ChevronRight size={13} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition" />
-              </div>
-
-              <div
-                onClick={() => setActiveModal("privacy")}
-                className="py-3 flex items-center justify-between text-foreground hover:text-primary transition cursor-pointer group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Globe size={14} className="text-muted-foreground group-hover:text-primary" />
-                  <span>Privacy Settings</span>
-                </div>
-                <ChevronRight size={13} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition" />
-              </div>
-
-              <div
-                onClick={() => setActiveModal("notifications")}
-                className="py-3 flex items-center justify-between text-foreground hover:text-primary transition cursor-pointer group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Bell size={14} className="text-muted-foreground group-hover:text-primary" />
-                  <span>Notification Preferences</span>
-                </div>
-                <ChevronRight size={13} className="text-slate-600 group-hover:text-primary group-hover:translate-x-0.5 transition" />
-              </div>
-            </div>
-          </div>
-
-          {/* 3. NEED HELP? / SUPPORT CARD */}
-          <div className="rounded-2xl border border-border bg-gradient-to-b from-slate-900 to-slate-950 p-6 shadow-xl space-y-4">
-            <div className="flex items-center gap-2 text-foreground">
-              <HelpCircle size={17} className="text-primary" />
-              <h3 className="text-sm font-bold">Need Help?</h3>
-            </div>
-
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              If you need any assistance with your account or profile, our support team is available 24/7.
-            </p>
-
-            <a
-              href="mailto:support@orangetree.com"
-              className="block text-center w-full py-2.5 rounded-xl border border-primary/40 text-primary hover:bg-primary/10 font-bold text-xs transition cursor-pointer"
-            >
-              Contact Support
-            </a>
-          </div>
         </div>
       </div>
 
@@ -1080,253 +850,6 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
         </div>
       )}
 
-      {/* 2. TWO-FACTOR AUTHENTICATION MODAL */}
-      {activeModal === "2fa" && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                  <ShieldCheck size={16} />
-                </div>
-                <h3 className="text-base font-bold text-foreground">Two-Factor Authentication</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="p-1 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs text-foreground">
-              <p>
-                Two-Factor Authentication (2FA) adds an extra layer of security to your Orange Tree LMS account by requiring an OTP code during sign in.
-              </p>
-
-              <div className="p-4 rounded-xl bg-background border border-border flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-foreground">2FA Status</h4>
-                  <p className="text-[11px] text-muted-foreground">
-                    {is2FAEnabled ? "Active — Account Protected" : "Inactive — Standard Login"}
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setIs2FAEnabled(!is2FAEnabled)}
-                  className={`px-4 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer ${
-                    is2FAEnabled
-                      ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
-                      : "bg-primary text-slate-950 hover:bg-orange-400"
-                  }`}
-                >
-                  {is2FAEnabled ? "Disable 2FA" : "Enable 2FA"}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="px-5 py-2.5 rounded-xl bg-background hover:bg-muted text-foreground font-bold text-xs transition cursor-pointer"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 3. ACTIVE SESSIONS MODAL */}
-      {activeModal === "sessions" && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
-                  <Monitor size={16} />
-                </div>
-                <h3 className="text-base font-bold text-foreground">Active Sessions</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="p-1 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              <div className="p-3.5 rounded-xl bg-background border border-emerald-500/30 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Monitor size={18} className="text-emerald-400" />
-                  <div>
-                    <h4 className="font-bold text-foreground flex items-center gap-1.5">
-                      <span>Windows PC — Chrome</span>
-                      <span className="text-[10px] font-black text-emerald-400 uppercase bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">Current</span>
-                    </h4>
-                    <p className="text-[11px] text-muted-foreground">192.168.1.9 • Active now</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-background border border-border flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Smartphone size={18} className="text-muted-foreground" />
-                  <div>
-                    <h4 className="font-bold text-foreground">Android Device — Chrome Mobile</h4>
-                    <p className="text-[11px] text-muted-foreground">192.168.1.9 • Last active 2h ago</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="px-5 py-2.5 rounded-xl bg-background hover:bg-muted text-foreground font-bold text-xs transition cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 4. PRIVACY SETTINGS MODAL */}
-      {activeModal === "privacy" && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
-                  <Globe size={16} />
-                </div>
-                <h3 className="text-base font-bold text-foreground">Privacy Settings</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="p-1 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              <p className="text-muted-foreground">Control who can view your learning profile and achievements.</p>
-
-              <div className="space-y-2">
-                <label
-                  onClick={() => handleTogglePrivacy("Public")}
-                  className={`p-3.5 rounded-xl border flex items-center justify-between cursor-pointer transition ${
-                    profileVisibility === "Public"
-                      ? "bg-primary/10 border-primary text-foreground"
-                      : "bg-background border-border text-muted-foreground hover:border-transparent"
-                  }`}
-                >
-                  <div>
-                    <h4 className="font-bold text-sm">Public Profile</h4>
-                    <p className="text-[11px] text-muted-foreground">Visible to instructors, fellow students, and leaderboards</p>
-                  </div>
-                  {profileVisibility === "Public" && <Check size={16} className="text-primary stroke-[3]" />}
-                </label>
-
-                <label
-                  onClick={() => handleTogglePrivacy("Private")}
-                  className={`p-3.5 rounded-xl border flex items-center justify-between cursor-pointer transition ${
-                    profileVisibility === "Private"
-                      ? "bg-primary/10 border-primary text-foreground"
-                      : "bg-background border-border text-muted-foreground hover:border-transparent"
-                  }`}
-                >
-                  <div>
-                    <h4 className="font-bold text-sm">Private Profile</h4>
-                    <p className="text-[11px] text-muted-foreground">Only visible to administrators and system instructors</p>
-                  </div>
-                  {profileVisibility === "Private" && <Check size={16} className="text-primary stroke-[3]" />}
-                </label>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="px-5 py-2.5 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 font-black text-xs transition cursor-pointer"
-              >
-                Save Preferences
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 5. NOTIFICATION PREFERENCES MODAL */}
-      {activeModal === "notifications" && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
-                  <Bell size={16} />
-                </div>
-                <h3 className="text-base font-bold text-foreground">Notification Preferences</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="p-1 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              <div className="p-3.5 rounded-xl bg-background border border-border flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-foreground">Email Announcements</h4>
-                  <p className="text-[11px] text-muted-foreground">Receive course and platform announcements</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={notificationPrefs.emailAnnouncements}
-                  onChange={(e) => setNotificationPrefs({ ...notificationPrefs, emailAnnouncements: e.target.checked })}
-                  className="h-4 w-4 accent-orange-500 cursor-pointer"
-                />
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-background border border-border flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-foreground">Course & Assignment Reminders</h4>
-                  <p className="text-[11px] text-muted-foreground">Notifications when assignments or quizzes are due</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={notificationPrefs.courseUpdates}
-                  onChange={(e) => setNotificationPrefs({ ...notificationPrefs, courseUpdates: e.target.checked })}
-                  className="h-4 w-4 accent-orange-500 cursor-pointer"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="px-5 py-2.5 rounded-xl bg-primary hover:bg-orange-600 text-slate-950 font-black text-xs transition cursor-pointer"
-              >
-                Save Preferences
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

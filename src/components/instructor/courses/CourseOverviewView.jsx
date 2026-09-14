@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Archive } from "lucide-react";
 import { UploadButton } from "@/components/instructor/courses/UploadButton";
 import { getDisplayUrl } from "@/lib/blob";
 import { LessonComposerPanel } from "@/components/instructor/LessonComposer/LessonComposerPanel";
@@ -24,7 +25,17 @@ export function CourseOverviewView({
   isDraftMode = false,
   contentAutoOpenSignal: externalContentAutoOpenSignal = 0,
   onContentAutoOpenConsumed,
+  onPublishClick,
+  onUnpublishClick,
+  onRestoreClick,
+  hasUnsavedChanges = false,
+  onSaveCourse,
+  isSavingCourse = false,
 }) {
+  const status = course?.status || "DRAFT";
+  const isPublished = status === "PUBLISHED";
+  const isArchived = status === "ARCHIVED";
+  const isDraft = status === "DRAFT";
   const [localContentAutoOpenSignal, setContentAutoOpenSignal] = useState(0);
   const contentAutoOpenSignal = externalContentAutoOpenSignal + localContentAutoOpenSignal;
   const handleContentAutoOpenConsumed = () => {
@@ -44,15 +55,28 @@ export function CourseOverviewView({
 
       <div className="cell-main space-y-4">
         {/* Cell Header Toolbar matching PageComponents.js */}
-        <div className="cell-header flex items-center justify-between border-b border-border/80 pb-2.5 mb-3">
-          <div>
+        <div className="cell-header flex flex-wrap items-center justify-between gap-2 border-b border-border/80 pb-2.5 mb-3">
+          <div className="flex items-center gap-2.5">
             {role !== "STUDENT" && (
               <span className="cell-badge rounded bg-primary/15 border border-primary/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary">
                 Course Header
               </span>
             )}
+            {role !== "STUDENT" && (
+              <span
+                className={`rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border shrink-0 ${
+                  isPublished
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                    : isArchived
+                    ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                    : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                }`}
+              >
+                {status}
+              </span>
+            )}
           </div>
-          <div className="cell-controls flex items-center gap-2">
+          <div className="cell-controls flex flex-wrap items-center gap-2">
             {role === "STUDENT" && onStartLearning && (
               <button
                 type="button"
@@ -62,6 +86,53 @@ export function CourseOverviewView({
                 {hasProgress ? "Continue Learning" : "Start Learning"}
               </button>
             )}
+
+            {/* Save — hidden until the course actually has unsaved changes
+                (imported-draft flow), so a course sitting untouched shows no
+                dead action. */}
+            {role === "INSTRUCTOR" && !isArchived && hasUnsavedChanges && (
+              <button
+                type="button"
+                className="btn shrink-0 rounded-xl border border-border bg-background hover:bg-muted text-foreground text-xs font-bold px-3 py-1.5 transition cursor-pointer disabled:opacity-50"
+                onClick={onSaveCourse}
+                disabled={isSavingCourse}
+                title="Persist current course changes"
+              >
+                {isSavingCourse ? "Saving..." : "Save"}
+              </button>
+            )}
+
+            {role === "INSTRUCTOR" && isDraft && onPublishClick && (
+              <button
+                type="button"
+                className="btn shrink-0 rounded-xl bg-primary hover:bg-orange-600 active:scale-95 text-slate-950 font-black text-xs px-3.5 py-1.5 transition shadow-md cursor-pointer"
+                onClick={onPublishClick}
+              >
+                Publish
+              </button>
+            )}
+
+            {role === "INSTRUCTOR" && isPublished && onUnpublishClick && (
+              <button
+                type="button"
+                className="btn shrink-0 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-bold text-xs px-3.5 py-1.5 transition cursor-pointer"
+                onClick={onUnpublishClick}
+              >
+                Unpublish
+              </button>
+            )}
+
+            {role === "INSTRUCTOR" && isArchived && onRestoreClick && (
+              <button
+                type="button"
+                className="btn shrink-0 rounded-xl border border-purple-500/40 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-bold text-xs px-3.5 py-1.5 transition cursor-pointer flex items-center gap-1.5"
+                onClick={onRestoreClick}
+              >
+                <Archive size={13} />
+                <span>Restore to Draft</span>
+              </button>
+            )}
+
             {role === "INSTRUCTOR" && (
               <button
                 className={`btn ${isEditing ? "btn-primary bg-primary text-slate-950" : "btn-outline-primary border border-border text-foreground hover:text-foreground"} rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed`}

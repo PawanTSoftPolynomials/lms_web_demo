@@ -38,15 +38,30 @@ export default function ImportQuestionsToQuizPage({ params }) {
   const [selectedQuestions, setSelectedQuestions] = useState([]);
 
   const { data: quiz } = useQuiz(quizId);
-  const { data: repoData, isLoading: loading } = useRepositoryQuestions({
+  const { data: repoData, isLoading: loadingRepo } = useRepositoryQuestions({
     search,
     subject,
     topic,
     difficulty,
     questionType,
     limit: 100, // retrieve up to 100 questions for import browser
+    // Same rule as the quiz builder's picker: a quiz is only ever built from
+    // published, still-active questions, never from ones their author archived,
+    // and only from the question bank of the course the quiz belongs to.
+    status: "ACTIVE",
+    publishedOnly: true,
+    courseId: quiz?.courseId || "",
+  }, {
+    // Held until the quiz (and with it the course to scope by) has loaded,
+    // so the unscoped whole repository never renders first.
+    enabled: Boolean(quiz?.courseId),
   });
   const repositoryQuestions = repoData?.success ? repoData.data || [] : [];
+
+  // The repository request is disabled until the quiz resolves, and a
+  // disabled query doesn't report isLoading — without this the page would
+  // flash "no questions" while the quiz itself is still in flight.
+  const loading = loadingRepo || !quiz;
 
   const importMutation = useImportQuestionsToQuiz();
   const importing = importMutation.isPending;

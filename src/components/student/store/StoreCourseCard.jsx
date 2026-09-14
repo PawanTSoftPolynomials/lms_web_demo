@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, Layers, UserRound, Star, ArrowUpRight, Loader2 } from "lucide-react";
+import { BookOpen, Layers, UserRound, Star, ArrowUpRight, Loader2, Eye } from "lucide-react";
 
 import useEnrollCourse from "@/hooks/queries/student/useEnrollCourse";
 import { getPriceInfo, formatPrice } from "@/lib/pricing";
+import CoursePreviewModal from "./CoursePreviewModal";
 
 export default function StoreCourseCard({ course }) {
   const router = useRouter();
   const enrollMutation = useEnrollCourse();
   const [enrollError, setEnrollError] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
   const { isFree, effectivePrice, listPrice, currency } = getPriceInfo(course.store);
 
   const modulesTotal = course._count?.modules ?? 0;
@@ -19,7 +21,12 @@ export default function StoreCourseCard({ course }) {
   const reviewCount = course._count?.reviews || 0;
   const instructorName = course.creator?.name || "Instructor";
 
-  const goToDetails = () => router.push(`/student/courses/${course.id}`);
+  // The full module/lesson composer at /student/courses/[courseId] is
+  // enrollment-gated, so a not-yet-enrolled student (everyone the Store
+  // shows a card for) never lands there from this card. Viewing the course
+  // opens the preview popup instead; a paid course's "Buy" goes to the
+  // public marketing page, which has the real Buy Course -> Razorpay flow.
+  const openPreview = () => setShowPreview(true);
 
   // Free courses need no checkout -- enroll immediately and drop the
   // student straight into My Courses instead of detouring through the
@@ -40,7 +47,7 @@ export default function StoreCourseCard({ course }) {
 
   return (
     <div
-      onClick={goToDetails}
+      onClick={openPreview}
       className="group relative flex w-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-2xl cursor-pointer"
     >
       {/* Thumbnail */}
@@ -113,36 +120,52 @@ export default function StoreCourseCard({ course }) {
           {!isFree && listPrice && (
             <span className="text-[10px] text-muted-foreground line-through">{formatPrice(listPrice, currency)}</span>
           )}
-          <button
-            onClick={
-              isFree
-                ? handleEnrollFree
-                : (e) => {
-                    e.stopPropagation();
-                    goToDetails();
-                  }
-            }
-            disabled={isFree && enrollMutation.isPending}
-            className="ml-auto inline-flex items-center justify-center gap-1 rounded-lg bg-primary hover:bg-orange-600 disabled:opacity-60 px-2.5 py-1.5 text-[10px] font-extrabold text-slate-950 transition active:scale-95 cursor-pointer"
-          >
-            {isFree && enrollMutation.isPending ? (
-              <>
-                <Loader2 size={12} className="animate-spin" />
-                Enrolling...
-              </>
-            ) : (
-              <>
-                {isFree ? "Enroll Free" : "Buy"}
-                <ArrowUpRight size={12} />
-              </>
-            )}
-          </button>
+          <div className="ml-auto flex items-center gap-1.5">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                openPreview();
+              }}
+              className="inline-flex items-center justify-center gap-1 rounded-lg border border-border bg-background/60 hover:bg-background px-2.5 py-1.5 text-[10px] font-extrabold text-foreground transition active:scale-95 cursor-pointer"
+            >
+              <Eye size={12} />
+              View
+            </button>
+            <button
+              onClick={
+                isFree
+                  ? handleEnrollFree
+                  : (e) => {
+                      e.stopPropagation();
+                      router.push(`/courses/${course.id}`);
+                    }
+              }
+              disabled={isFree && enrollMutation.isPending}
+              className="inline-flex items-center justify-center gap-1 rounded-lg bg-primary hover:bg-orange-600 disabled:opacity-60 px-2.5 py-1.5 text-[10px] font-extrabold text-slate-950 transition active:scale-95 cursor-pointer"
+            >
+              {isFree && enrollMutation.isPending ? (
+                <>
+                  <Loader2 size={12} className="animate-spin" />
+                  Enrolling...
+                </>
+              ) : (
+                <>
+                  {isFree ? "Enroll Free" : "Buy"}
+                  <ArrowUpRight size={12} />
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {enrollError && (
           <p className="text-[11px] font-semibold text-red-400 -mt-1">{enrollError}</p>
         )}
       </div>
+
+      {showPreview && (
+        <CoursePreviewModal course={course} onClose={() => setShowPreview(false)} />
+      )}
     </div>
   );
 }

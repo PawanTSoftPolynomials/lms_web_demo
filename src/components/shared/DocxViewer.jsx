@@ -21,14 +21,27 @@ export default function DocxViewer({
   className = "",
   hideToolbar = false,
   onControlsRender,
+  // Same opt-out PptViewer takes: drops the Download button from the controls
+  // for hosts that don't want the file offered for download.
+  showDownload = true,
 }) {
   const resolvedUrl = getDisplayUrl(fileUrl);
+
+  // Whether a Download button is already on screen for this document: in this
+  // viewer's own toolbar, or in the host's header when the host takes the
+  // controls via onControlsRender. Drives the fallback card below, so the
+  // student is never shown two buttons that do the same thing — and so that
+  // with showDownload off, the card's own button comes back as the only way
+  // to reach a document the browser can't render.
+  const hasDownloadAffordance = showDownload && (!hideToolbar || Boolean(onControlsRender));
 
   const [elements, setElements] = useState([]);
   const [loadingStep, setLoadingStep] = useState("Loading document..."); // "Loading document..." | "Preparing view..." | null
   const [error, setError] = useState(null);
   const [zoomScale, setZoomScale] = useState(1.0);
   const [isMounted, setIsMounted] = useState(false);
+
+  const viewportRef = useRef(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -82,6 +95,27 @@ export default function DocxViewer({
     };
   }, [fileUrl, resolvedUrl]);
 
+  // Click-to-page on the document paper: a click on the right half of the
+  // viewport moves forward, the left half back — the same gesture PdfViewer's
+  // handleViewportClick gives a PDF. A .docx carries no page breaks of its own
+  // (the parser yields one continuous flow of paragraphs), so a "page" here is
+  // one viewport height, minus a small overlap so no line is stepped over. The
+  // handler sits on the scrollable viewport itself rather than on overlay
+  // halves, which would swallow every wheel and touch-scroll gesture before it
+  // reached the scroll area; the browser only fires "click" for a genuine tap
+  // with no drag in between.
+  const handleViewportClick = (e) => {
+    if (loadingStep || error || elements.length === 0) return;
+    // A click that finishes a text selection shouldn't also turn the page.
+    if (typeof window !== "undefined" && window.getSelection()?.toString()) return;
+    const el = viewportRef.current;
+    if (!el) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const forward = e.clientX - rect.left > rect.width / 2;
+    const step = Math.max(el.clientHeight - 80, 120);
+    el.scrollTop += forward ? step : -step;
+  };
+
   const handleZoomIn = () => setZoomScale((prev) => Math.min(prev + 0.15, 2.0));
   const handleZoomOut = () => setZoomScale((prev) => Math.max(prev - 0.15, 0.7));
   const handleResetZoom = () => setZoomScale(1.0);
@@ -129,17 +163,19 @@ export default function DocxViewer({
       </div>
 
       {/* Download Button */}
-      <a
-        href={resolvedUrl || fileUrl}
-        download
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-1.5 rounded-xl bg-primary hover:bg-orange-600 px-3 py-1.5 text-xs font-extrabold text-slate-950 transition cursor-pointer shadow-md"
-        title="Download Word Document"
-      >
-        <Download size={14} />
-        <span className="hidden sm:inline">Download</span>
-      </a>
+      {showDownload && (
+        <a
+          href={resolvedUrl || fileUrl}
+          download
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 rounded-xl bg-primary hover:bg-orange-600 px-3 py-1.5 text-xs font-extrabold text-slate-950 transition cursor-pointer shadow-md"
+          title="Download Word Document"
+        >
+          <Download size={14} />
+          <span className="hidden sm:inline">Download</span>
+        </a>
+      )}
     </div>
   );
 
@@ -152,7 +188,10 @@ export default function DocxViewer({
     if (onControlsRenderRef.current) {
       onControlsRenderRef.current(controlsNode);
     }
-  }, [zoomScale, resolvedUrl, fileUrl]);
+    // showDownload included so a host toggling it re-publishes the controls
+    // rather than leaving the previously-rendered node (with its Download)
+    // in the header.
+  }, [zoomScale, resolvedUrl, fileUrl, showDownload]);
 
   if (!isMounted) {
     return (
@@ -187,7 +226,11 @@ export default function DocxViewer({
       )}
 
       {/* DOCUMENT PAPER VIEWPORT */}
-      <div className="relative w-full h-[78vh] min-h-[520px] max-h-[900px] overflow-auto bg-[#060913] p-4 sm:p-8 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80">
+      <div
+        ref={viewportRef}
+        onClick={handleViewportClick}
+        className="relative w-full h-[78vh] min-h-[520px] max-h-[900px] overflow-auto bg-[#060913] p-4 sm:p-8 flex justify-center items-start scroll-smooth rounded-2xl"
+      >
         {/* Loading Overlay */}
         {loadingStep && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#060913]/90 z-20 rounded-2xl">
@@ -205,19 +248,28 @@ export default function DocxViewer({
             <div>
               <h4 className="text-sm font-bold text-foreground mb-1">Document preview unavailable</h4>
               <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                This Word document cannot be rendered directly in the browser preview. You can download the file to view it on your device.
+                This Word document cannot be rendered directly in the browser preview.
+                {hasDownloadAffordance
+                  ? " Use Download at the top of this document to view it on your device."
+                  : " You can download the file to view it on your device."}
               </p>
             </div>
-            <a
-              href={resolvedUrl || fileUrl}
-              download
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary hover:bg-orange-600 px-5 py-2.5 text-xs font-bold text-slate-950 transition shadow-lg"
-            >
-              <Download size={15} />
-              <span>Download Document</span>
-            </a>
+            {/* Only when nothing else on screen offers the download. With the
+                toolbar visible — or its controls hoisted into a host header —
+                this repeated the Download button sitting a few pixels above
+                it. */}
+            {!hasDownloadAffordance && (
+              <a
+                href={resolvedUrl || fileUrl}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary hover:bg-orange-600 px-5 py-2.5 text-xs font-bold text-slate-950 transition shadow-lg"
+              >
+                <Download size={15} />
+                <span>Download Document</span>
+              </a>
+            )}
           </div>
         ) : elements.length > 0 ? (
           /* Render Document Paper Container */

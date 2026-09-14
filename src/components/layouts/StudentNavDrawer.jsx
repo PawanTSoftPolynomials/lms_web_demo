@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { ChevronDown, Settings, LifeBuoy, LogOut, X } from "lucide-react";
+// `Settings` is imported by the commented-out Settings entry below only.
+import { ChevronDown, LifeBuoy, LogOut, X } from "lucide-react";
 
 import { useStudentNavDrawer } from "@/context/StudentNavDrawerContext";
 import { PRIMARY_NAV_ITEMS } from "@/components/student/NavigationStrip/navigationItems";
@@ -12,7 +13,10 @@ import Modal from "@/components/ui/Modal";
 import { ThemeModeRow } from "@/components/ui/shadcn/theme-switcher";
 
 const SECONDARY_ITEMS = [
-  { id: "settings", label: "Settings", icon: Settings, href: "/student/settings" },
+  // Settings — removed from the student drawer. The /student/settings route
+  // itself is untouched and still reachable by URL; only the way in from the
+  // nav is gone. To restore, uncomment this and the `Settings` icon import.
+  // { id: "settings", label: "Settings", icon: Settings, href: "/student/settings" },
   { id: "help", label: "Help & Support", icon: LifeBuoy, href: "/student/settings" },
 ];
 

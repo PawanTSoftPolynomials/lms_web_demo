@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, PanelLeftOpen } from "lucide-react";
 
@@ -10,6 +10,7 @@ import { CourseStructureSidebar } from "@/components/instructor/courses/CourseCo
 import { CourseOverviewView } from "@/components/instructor/courses/CourseOverviewView";
 import { LessonOverviewView } from "@/components/instructor/courses/LessonOverviewView";
 import useCourse from "@/hooks/queries/student/useCourse";
+import useMyCourses from "@/hooks/queries/student/useMyCourses";
 import { useCourseProgress } from "@/hooks/queries/student";
 import { normalizeCourseHierarchy } from "@/lib/courseMapper";
 
@@ -24,13 +25,29 @@ export default function CourseDetailsPage({ params }) {
   // attempting a quiz marks it visited too) means Start has already happened.
   const hasProgress = (progressData?.visitedItems ?? 0) > 0 || (progressData?.completedItems ?? 0) > 0;
 
+  // This page is the full module/lesson composer, complete with a "Start
+  // Learning" entry point straight into lesson content — nothing here
+  // should be reachable before enrollment. The Store card already keeps
+  // non-enrolled students from linking here, but the route itself had no
+  // guard, so a logged-in student could still reach it (and every lesson
+  // under it) just by typing the URL. Sent to the public course page
+  // instead, which already has the real description/duration/Buy flow.
+  const { data: myEnrollments, isLoading: isEnrollmentsLoading } = useMyCourses();
+  const isEnrolled = (myEnrollments || []).some((e) => (e.courseId || e.course?.id) === courseId);
+
+  useEffect(() => {
+    if (!isEnrollmentsLoading && !isEnrolled) {
+      router.replace(`/courses/${courseId}`);
+    }
+  }, [isEnrollmentsLoading, isEnrolled, courseId, router]);
+
   const [isCourseMapOpen, setIsCourseMapOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [composerMode, setComposerMode] = useState("course");
   const [composeModuleId, setComposeModuleId] = useState(null);
   const [composeLessonId, setComposeLessonId] = useState(null);
 
-  if (isLoading) {
+  if (isLoading || isEnrollmentsLoading || !isEnrolled) {
     return <Loader />;
   }
 

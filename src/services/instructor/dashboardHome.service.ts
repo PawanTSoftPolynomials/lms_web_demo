@@ -110,7 +110,6 @@ export interface RawCalendarEvent {
   startTime?: string;
   endTime?: string;
   courseName?: string;
-  batch?: string;
   type?: string;
   location?: string;
   room?: string;
@@ -476,7 +475,6 @@ export function deriveUpcomingClasses(events: RawCalendarEvent[]): {
       time: formatEventWhen(e.date ?? todayStr, e.startTime, todayStr),
       endTime: e.endTime,
       courseName: e.courseName ?? "General",
-      batch: e.batch,
       type: e.type === "live" ? "live" : e.type === "meeting" ? "meeting" : "class",
       location: e.location ?? e.room ?? (e.link ? "Online" : undefined),
       joinLink: e.link,
@@ -691,7 +689,6 @@ export function deriveEngagementAnalytics(
 export interface CourseProgressOverview {
   id: string;
   courseName: string;
-  batch: string;
   students: number;
   progress: number;
 }
@@ -700,7 +697,6 @@ export function deriveCourseProgressOverview(courses: RawCourse[]): CourseProgre
   return courses.map((c, idx) => ({
     id: c.id ?? `course-overview-${idx}`,
     courseName: c.title ?? "Untitled Course",
-    batch: `Batch ${String.fromCharCode(65 + (idx % 3))}`, // Simulated batch
     students: c._count?.enrollments ?? c.studentsCount ?? 0,
     progress: c.progress ?? c.completionRate ?? 0,
   }));

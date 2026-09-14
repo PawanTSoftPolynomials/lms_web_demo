@@ -28,6 +28,32 @@ function getFirstElement(node, tagName) {
   return list.length > 0 ? list[0] : null;
 }
 
+const SLIDE_FILE_PATTERN = /^ppt\/slides\/slide\d+\.xml$/i;
+
+/**
+ * Lightweight check for whether a file's bytes are a real OOXML PowerPoint
+ * archive (has at least one ppt/slides/slideN.xml entry), without doing the
+ * full slide parse. Lets upload flows reject non-presentation files (wrong
+ * file, renamed .zip, legacy binary .ppt) immediately instead of only
+ * failing later when a viewer tries to render them.
+ *
+ * @param {ArrayBuffer} arrayBuffer
+ * @returns {Promise<boolean>}
+ */
+export async function hasPptxSlides(arrayBuffer) {
+  if (!arrayBuffer || arrayBuffer.byteLength === 0) return false;
+  try {
+    const zip = await JSZip.loadAsync(arrayBuffer);
+    let found = false;
+    zip.forEach((relativePath) => {
+      if (SLIDE_FILE_PATTERN.test(relativePath)) found = true;
+    });
+    return found;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Pure client-side PPTX parser utility.
  * Unpacks PowerPoint OpenXML archives (.pptx) in the browser using JSZip & DOMParser.
@@ -88,7 +114,7 @@ export async function parsePptxArrayBuffer(arrayBuffer) {
   // 2. Discover and sort slide files (ppt/slides/slide1.xml, slide2.xml, etc.)
   const slideFiles = [];
   zip.forEach((relativePath) => {
-    if (/^ppt\/slides\/slide\d+\.xml$/i.test(relativePath)) {
+    if (SLIDE_FILE_PATTERN.test(relativePath)) {
       slideFiles.push(relativePath);
     }
   });
@@ -135,6 +161,54 @@ export async function parsePptxArrayBuffer(arrayBuffer) {
     })
   );
 
+  // 3b. Helpers for reaching the parts a slide inherits from.
+  //
+  // The colour a run or a background actually takes is usually not written on
+  // the shape at all: it comes from the theme's colour scheme, indirected
+  // through the master's <p:clrMap>. Parsing the slide alone is what left the
+  // overwhelming majority of runs with no colour to use, and an invented
+  // white standing in for them.
+  const xmlCache = {};
+  const readXml = async (path) => {
+    if (path in xmlCache) return xmlCache[path];
+    let doc = null;
+    const file = path ? zip.file(path) : null;
+    if (file) {
+      try {
+        doc = domParser.parseFromString(await file.async("string"), "text/xml");
+      } catch {
+        doc = null;
+      }
+    }
+    xmlCache[path] = doc;
+    return doc;
+  };
+
+  /** Resolve a relationship target ("../slideLayouts/x.xml") against its owning part. */
+  const resolvePartPath = (fromPart, target) => {
+    if (!target) return null;
+    if (target.startsWith("/")) return target.replace(/^\/+/, "");
+    const segments = fromPart.split("/").slice(0, -1);
+    target.split("/").forEach((segment) => {
+      if (segment === "..") segments.pop();
+      else if (segment && segment !== ".") segments.push(segment);
+    });
+    return segments.join("/");
+  };
+
+  /** Path of the first related part of a given relationship type. */
+  const relatedPart = async (partPath, typeSuffix) => {
+    if (!partPath) return null;
+    const segments = partPath.split("/");
+    const relsPath = `${segments.slice(0, -1).join("/")}/_rels/${segments[segments.length - 1]}.rels`;
+    const relsDoc = await readXml(relsPath);
+    if (!relsDoc) return null;
+    const match = getElements(relsDoc, "Relationship").find((rel) =>
+      (rel.getAttribute("Type") || "").endsWith(typeSuffix)
+    );
+    return match ? resolvePartPath(partPath, match.getAttribute("Target")) : null;
+  };
+
   // 4. Parse each slide
   const slides = [];
 
@@ -165,6 +239,35 @@ export async function parsePptxArrayBuffer(arrayBuffer) {
       }
     }
 
+    // Colour inheritance chain: slide -> layout -> master -> theme.
+    const layoutPath = await relatedPart(slidePath, "slideLayout");
+    const layoutDoc = await readXml(layoutPath);
+    const masterPath = await relatedPart(layoutPath, "slideMaster");
+    const masterDoc = await readXml(masterPath);
+    const themeDoc = await readXml(await relatedPart(masterPath, "theme"));
+
+    // <a:clrScheme> is the deck's named palette (dk1, lt1, accent1…). dk1/lt1
+    // are often written as a system colour, which carries its resolved value
+    // in lastClr.
+    const themeColors = {};
+    const clrScheme = themeDoc ? getFirstElement(themeDoc, "a:clrScheme") : null;
+    Array.from(clrScheme?.childNodes || []).forEach((node) => {
+      if (node.nodeType !== 1) return;
+      const name = (node.nodeName || "").split(":").pop();
+      const value =
+        getFirstElement(node, "a:srgbClr")?.getAttribute("val") ||
+        getFirstElement(node, "a:sysClr")?.getAttribute("lastClr");
+      if (name && value) themeColors[name] = `#${value}`;
+    });
+
+    // <p:clrMap> maps the "background/text" slots onto that palette — bg1
+    // normally means lt1, tx1 normally means dk1.
+    const clrMapNode = masterDoc ? getFirstElement(masterDoc, "p:clrMap") : null;
+    const clrMap = {};
+    Array.from(clrMapNode?.attributes || []).forEach((attr) => {
+      clrMap[attr.name] = attr.value;
+    });
+
     const elements = [];
 
     // Helper to extract transform position/size percentages
@@ -187,16 +290,63 @@ export async function parsePptxArrayBuffer(arrayBuffer) {
       };
     };
 
-    // Helper to extract color string
-    const parseColor = (node) => {
-      if (!node) return null;
-      const srgb = getFirstElement(node, "a:srgbClr");
-      if (srgb) {
-        const val = srgb.getAttribute("val");
-        if (val) return `#${val}`;
+    /**
+     * Direct-child lookup. A colour holder nests others — <a:rPr> can carry an
+     * outline with its own fill, <p:spPr> always carries <a:ln> — and those
+     * come first in document order, so a descendant search returns a border
+     * colour and paints the shape or the text with it.
+     */
+    const directChild = (node, tagName) => {
+      const local = tagName.split(":").pop();
+      const children = node?.childNodes || [];
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        if (child.nodeType === 1 && (child.nodeName || "").split(":").pop() === local) {
+          return child;
+        }
       }
       return null;
     };
+
+    /** The colour a holder such as <a:solidFill> or <a:fontRef> resolves to. */
+    const colorFrom = (holder) => {
+      if (!holder) return null;
+      const srgb = getFirstElement(holder, "a:srgbClr")?.getAttribute("val");
+      if (srgb) return `#${srgb}`;
+      const sys = getFirstElement(holder, "a:sysClr")?.getAttribute("lastClr");
+      if (sys) return `#${sys}`;
+      const scheme = getFirstElement(holder, "a:schemeClr")?.getAttribute("val");
+      if (!scheme) return null;
+      return themeColors[clrMap[scheme] || scheme] || themeColors[scheme] || null;
+    };
+
+    /** A node's own <a:solidFill>, ignoring fills belonging to its children. */
+    const fillColor = (node) => colorFrom(directChild(node, "a:solidFill"));
+
+    // What unstyled text is: the theme's text colour, black in a default deck.
+    const defaultTextColor = themeColors[clrMap.tx1 || "dk1"] || "#000000";
+
+    /** A slide's own background, else the one it inherits. */
+    const backgroundFrom = (doc) => {
+      const bg = doc ? getFirstElement(doc, "p:bg") : null;
+      if (!bg) return null;
+      const bgPr = getFirstElement(bg, "p:bgPr");
+      const direct = bgPr ? fillColor(bgPr) : null;
+      if (direct) return direct;
+      // <p:bgRef> names one of the theme's background fill styles together
+      // with the colour it is built from. The first style is a plain solid
+      // fill, so that colour is the background; the gradient styles degrade to
+      // their base colour rather than being reproduced.
+      const bgRef = getFirstElement(bg, "p:bgRef");
+      return bgRef ? colorFrom(bgRef) : null;
+    };
+
+    const background =
+      backgroundFrom(slideDoc) ||
+      backgroundFrom(layoutDoc) ||
+      backgroundFrom(masterDoc) ||
+      // PowerPoint's own default for a deck that names no background at all.
+      "#FFFFFF";
 
     // A. Parse Pictures (<p:pic>)
     const picNodes = getElements(slideDoc, "p:pic");
@@ -221,6 +371,11 @@ export async function parsePptxArrayBuffer(arrayBuffer) {
       const transform = parseTransform(sp);
       if (!transform) return;
 
+      // <p:style><a:fontRef> sets the text colour for everything in the shape,
+      // and it is how a filled shape gets legible type without any run saying
+      // so: a banner sets lt1 (white) here and leaves its runs unstyled.
+      const shapeTextColor = colorFrom(getFirstElement(sp, "a:fontRef"));
+
       const pNodes = getElements(sp, "a:p");
       const paragraphs = [];
 
@@ -240,17 +395,22 @@ export async function parsePptxArrayBuffer(arrayBuffer) {
           if (!text) return;
 
           const rPr = getFirstElement(r, "a:rPr");
-          const sz = rPr?.getAttribute("sz");
-          const bold = rPr?.getAttribute("b") === "1";
-          const italic = rPr?.getAttribute("i") === "1";
-          const color = parseColor(rPr);
+          const defRPr = getFirstElement(p, "a:defRPr");
+          const sz = rPr?.getAttribute("sz") || defRPr?.getAttribute("sz");
+          const bold = (rPr || defRPr)?.getAttribute("b") === "1";
+          const italic = (rPr || defRPr)?.getAttribute("i") === "1";
 
           runs.push({
             text,
             fontSize: sz ? Math.max(12, Math.round(parseInt(sz, 10) / 100)) : 16,
             bold,
             italic,
-            color: color || "#FFFFFF",
+            // Resolved, never invented: the run's own fill, else the
+            // paragraph's default, else the shape's, else the theme's text
+            // colour. Defaulting to white instead made unstyled text — which
+            // is most of it — invisible on the light background these decks
+            // actually have.
+            color: fillColor(rPr) || fillColor(defRPr) || shapeTextColor || defaultTextColor,
           });
         });
 
@@ -260,7 +420,7 @@ export async function parsePptxArrayBuffer(arrayBuffer) {
       });
 
       const spPr = getFirstElement(sp, "p:spPr");
-      const bgColor = parseColor(spPr);
+      const bgColor = fillColor(spPr);
 
       if (paragraphs.length > 0 || bgColor) {
         elements.push({
@@ -273,28 +433,77 @@ export async function parsePptxArrayBuffer(arrayBuffer) {
       }
     });
 
-    // C. Parse Tables (<a:tbl>)
-    const tblNodes = getElements(slideDoc, "a:tbl");
-    tblNodes.forEach((tbl) => {
-      const transform = parseTransform(tbl);
+    // C. Parse Tables (a <a:tbl> inside a <p:graphicFrame>)
+    //
+    // The geometry is on the *frame*, never on <a:tbl> — a table element
+    // carries no <a:off>/<a:ext> of its own at all. Reading the transform off
+    // the table node therefore always returned null, and every table on every
+    // slide was dropped before it could be rendered.
+    const frameNodes = getElements(slideDoc, "p:graphicFrame");
+    frameNodes.forEach((frame) => {
+      const tbl = getFirstElement(frame, "a:tbl");
+      // A graphic frame also hosts charts, SmartArt and embedded objects;
+      // those aren't tables and aren't handled here.
+      if (!tbl) return;
+
+      const transform = parseTransform(frame);
       if (!transform) return;
 
-      const rows = [];
-      const trNodes = getElements(tbl, "a:tr");
-      trNodes.forEach((tr) => {
-        const cells = [];
-        const tcNodes = getElements(tr, "a:tc");
-        tcNodes.forEach((tc) => {
-          const text = tc.textContent?.trim() || "";
-          cells.push(text);
-        });
-        rows.push(cells);
-      });
+      // Column widths are authored in EMU. Kept as percentages so the rendered
+      // table keeps the proportions the slide was designed with instead of
+      // letting the browser size columns by their text.
+      const gridWidths = getElements(tbl, "a:gridCol").map((col) =>
+        parseInt(col.getAttribute("w") || "0", 10)
+      );
+      const totalGridWidth = gridWidths.reduce((sum, w) => sum + w, 0);
+      const columnWidths =
+        totalGridWidth > 0 ? gridWidths.map((w) => (w / totalGridWidth) * 100) : [];
+
+      const rows = getElements(tbl, "a:tr").map((tr) =>
+        getElements(tr, "a:tc")
+          // Continuation cells of a merge carry no content of their own; the
+          // origin cell spans over them via gridSpan/rowSpan below.
+          .filter((tc) => tc.getAttribute("hMerge") !== "1" && tc.getAttribute("vMerge") !== "1")
+          .map((tc) => {
+            // Cell text is styled through the paragraph's <a:defRPr> far more
+            // often than through an <a:rPr> on each run, so both are consulted
+            // — reading only <a:rPr> loses the colour, weight and size of a
+            // typical table.
+            const pNode = getFirstElement(tc, "a:p");
+            const pPr = pNode ? getFirstElement(pNode, "a:pPr") : null;
+            const styleNode = getFirstElement(tc, "a:rPr") || (pPr ? getFirstElement(pPr, "a:defRPr") : null);
+            const sz = styleNode?.getAttribute("sz");
+            const algn = pPr?.getAttribute("algn");
+            const colSpan = parseInt(tc.getAttribute("gridSpan") || "1", 10);
+            const rowSpan = parseInt(tc.getAttribute("rowSpan") || "1", 10);
+
+            let textAlign = "left";
+            if (algn === "ctr") textAlign = "center";
+            if (algn === "r") textAlign = "right";
+            if (algn === "j") textAlign = "justify";
+
+            return {
+              text: getElements(tc, "a:t")
+                .map((t) => t.textContent || "")
+                .join("")
+                .trim(),
+              bgColor: fillColor(getFirstElement(tc, "a:tcPr")),
+              color: fillColor(styleNode) || defaultTextColor,
+              bold: styleNode?.getAttribute("b") === "1",
+              italic: styleNode?.getAttribute("i") === "1",
+              fontSize: sz ? Math.max(8, Math.round(parseInt(sz, 10) / 100)) : 14,
+              textAlign,
+              colSpan: colSpan > 1 ? colSpan : undefined,
+              rowSpan: rowSpan > 1 ? rowSpan : undefined,
+            };
+          })
+      );
 
       elements.push({
         type: "table",
         id: `tbl_${elements.length}`,
         ...transform,
+        columnWidths,
         rows,
       });
     });
@@ -313,7 +522,7 @@ export async function parsePptxArrayBuffer(arrayBuffer) {
           paragraphs: [
             {
               textAlign: "left",
-              runs: [{ text: rawText, fontSize: 18, color: "#FFFFFF" }],
+              runs: [{ text: rawText, fontSize: 18, color: defaultTextColor }],
             },
           ],
         });
@@ -324,7 +533,8 @@ export async function parsePptxArrayBuffer(arrayBuffer) {
       slideNumber: index + 1,
       width: slideWidthPx,
       height: slideHeightPx,
-      background: "#0D1021",
+      background,
+      defaultTextColor,
       elements,
     });
   }

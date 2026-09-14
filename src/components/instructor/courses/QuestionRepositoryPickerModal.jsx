@@ -7,14 +7,16 @@ import Modal from "@/components/ui/Modal";
 import { getRepositoryQuestions } from "@/services/questionRepository.service";
 
 /**
- * Lets an instructor pull existing questions from the shared Question
+ * Lets an instructor pull their own existing questions from the Question
  * Repository into whatever quiz they're currently editing, instead of only
- * being able to type brand-new ones. Selection is local to the modal —
+ * being able to type brand-new ones. The repository is scoped per author by
+ * the API, and this picker additionally asks for published, active questions
+ * belonging to the course the quiz is in. Selection is local to the modal —
  * nothing is attached to the quiz until "Add Selected" hands the picked
  * questions back to the caller, which merges them into the quiz's own
  * (unsaved-until-Save-Changes) question list.
  */
-export default function QuestionRepositoryPickerModal({ open, onClose, onAddQuestions, excludeIds = [] }) {
+export default function QuestionRepositoryPickerModal({ open, onClose, onAddQuestions, excludeIds = [], courseId = null }) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [items, setItems] = useState([]);
@@ -38,7 +40,15 @@ export default function QuestionRepositoryPickerModal({ open, onClose, onAddQues
     setIsLoading(true);
     setError("");
 
-    getRepositoryQuestions({ search, page, limit: 10 })
+    // A quiz may only be built out of questions that are published and still
+    // active. Without these the picker inherited the endpoint's default, which
+    // is "anything not deleted" — so archived questions, withdrawn on purpose,
+    // were still offered here and could be pulled into a live quiz.
+    // Scoped to the course this quiz belongs to: a quiz is built from that
+    // course's own question bank, not from every question the instructor has
+    // ever written. Without courseId the endpoint returns the whole
+    // repository, which is what made unrelated questions show up here.
+    getRepositoryQuestions({ search, page, limit: 10, status: "ACTIVE", publishedOnly: true, ...(courseId ? { courseId } : {}) })
       .then((res) => {
         if (cancelled) return;
         setItems(res?.data || []);
@@ -56,7 +66,7 @@ export default function QuestionRepositoryPickerModal({ open, onClose, onAddQues
     return () => {
       cancelled = true;
     };
-  }, [open, search, page]);
+  }, [open, search, page, courseId]);
 
   const toggleSelect = (id) => {
     setSelectedIds((prev) => {
@@ -100,7 +110,11 @@ export default function QuestionRepositoryPickerModal({ open, onClose, onAddQues
             <div className="py-10 text-center text-xs text-red-400">{error}</div>
           ) : items.length === 0 ? (
             <div className="py-10 text-center text-xs text-muted-foreground italic">
-              {search ? "No questions match your search." : "No repository questions yet."}
+              {search
+                ? "No questions match your search."
+                : courseId
+                  ? "No repository questions are assigned to this course yet."
+                  : "No repository questions yet."}
             </div>
           ) : (
             items.map((q) => {

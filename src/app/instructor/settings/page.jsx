@@ -1,8 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Save, Bell, User, Globe, Loader2 } from 'lucide-react';
 import { useInstructorProfile, useUpdateInstructorProfile } from '@/hooks/queries/instructor/useProfile';
@@ -27,14 +25,6 @@ function InstructorSettingsContent() {
   const { user } = useAuth();
   const { data: profile, isLoading } = useInstructorProfile();
   const updateProfile = useUpdateInstructorProfile();
-
-  // Where the back link goes depends on how the user got here. Only the
-  // profile page passes ?from=profile; every other entry point falls back to
-  // the dashboard.
-  const searchParams = useSearchParams();
-  const cameFromProfile = searchParams.get('from') === 'profile';
-  const backHref = cameFromProfile ? '/instructor/profile' : '/instructor/dashboard';
-  const backLabel = cameFromProfile ? 'Back to Profile' : 'Back to Dashboard';
 
   const [successMsg, setSuccessMsg] = useState('');
   const [notifications, setNotifications] = useState(DEFAULT_NOTIFICATIONS);
@@ -68,20 +58,12 @@ function InstructorSettingsContent() {
   return (
     <div className="min-h-screen text-foreground flex flex-col bg-background pb-10">
 
-      {/* HEADER */}
-      <div className="flex items-center justify-between border-b border-border pb-4">
-        <div>
-          <h1 className="sr-only">
-            Instructor Settings
-          </h1>
-          <p className="sr-only">
-            Configure your workspace and notification preferences
-          </p>
-        </div>
-        <Link href={backHref} className="text-[10px] font-black text-muted-foreground hover:text-slate-350 flex items-center gap-1">
-          &larr; {backLabel}
-        </Link>
-      </div>
+      {/* HEADER — the back link that lived here is gone; the nav bar is how
+          you leave this page. Only the screen-reader title remains, so the
+          page still announces itself without drawing a divider across an
+          otherwise empty row. */}
+      <h1 className="sr-only">Instructor Settings</h1>
+      <p className="sr-only">Configure your workspace and notification preferences</p>
 
       {isLoading ? (
         <div className="flex justify-center py-16">
@@ -214,15 +196,8 @@ function InstructorSettingsContent() {
 }
 
 export default function InstructorSettingsPage() {
-  // useSearchParams above needs a Suspense boundary, same as the Student
-  // Directory page.
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen text-foreground flex items-center justify-center bg-background">
-        <Loader2 className="animate-spin text-muted-foreground" size={24} />
-      </div>
-    }>
-      <InstructorSettingsContent />
-    </Suspense>
-  );
+  // The Suspense boundary that used to wrap this existed only for the
+  // useSearchParams call behind the back link's ?from= check. With that gone
+  // the page reads no search params and needs no boundary.
+  return <InstructorSettingsContent />;
 }
