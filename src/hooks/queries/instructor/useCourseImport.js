@@ -10,7 +10,7 @@ export const useUploadZipPackage = () => {
       const formData = new FormData();
       formData.append("package", file);
       const response = await api.post("/course-import/jobs", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { "Content-Type": undefined },
       });
       return response.data?.data;
     },
@@ -39,7 +39,7 @@ export const useProcessJsonCourse = () => {
         const formData = new FormData();
         formData.append("package", file);
         const response = await api.post("/course-import/json", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: { "Content-Type": undefined },
         });
         return response.data?.data;
       } else {
