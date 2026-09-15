@@ -25,17 +25,17 @@ const FAIL_TEXT = "text-red-600 dark:text-red-400";
 // Both actions navigate, so they're links: tinted with an arrow/icon rather
 // than styled like the page's buttons (the tabs and "Clear filters").
 const LINK_BASE =
-  "inline-flex min-h-[44px] items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "inline-flex min-h-[42px] sm:min-h-[44px] items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-4 text-xs sm:text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 function Fact({ label, value, detail, valueClassName = "text-foreground" }) {
   return (
     // Fixed width from tablet up so each column lines up from row to row.
     <div className="min-w-0 md:w-[6.75rem]">
-      <dt className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className={`mt-0.5 text-[13px] font-semibold leading-snug tabular-nums md:truncate md:text-sm ${valueClassName}`}>
+      <dt className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground sm:text-[11px]">{label}</dt>
+      <dd className={`mt-0.5 text-xs font-semibold leading-snug tabular-nums sm:text-[13px] md:truncate md:text-sm ${valueClassName}`}>
         {value}
       </dd>
-      {detail && <dd className="text-xs leading-snug tabular-nums text-muted-foreground md:truncate">{detail}</dd>}
+      {detail && <dd className="text-[10px] leading-tight tabular-nums text-muted-foreground sm:text-xs md:truncate">{detail}</dd>}
     </div>
   );
 }
@@ -104,23 +104,35 @@ export default function SubmissionListItem({ record }) {
   const showRetake = record.type === "quiz" && record.canRetake;
 
   return (
-    <article className="relative rounded-2xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-primary/40 sm:p-5">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:gap-6">
+    <article className="relative rounded-2xl border border-border bg-card p-3.5 shadow-sm transition-colors hover:border-primary/40 sm:p-5">
+      <div className="flex flex-col gap-3.5 sm:gap-4 xl:flex-row xl:items-center xl:gap-6">
         {/* Identity */}
         <div className="flex min-w-0 flex-1 items-start gap-3">
-          <span aria-hidden className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${meta.chip}`}>
+          <span aria-hidden className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl ${meta.chip}`}>
             <Icon size={18} />
           </span>
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-3">
-              <h3 className="min-w-0 break-words text-[15px] font-semibold leading-snug text-foreground line-clamp-2">
+            <div className="flex items-start justify-between gap-2.5">
+              <h3 className="min-w-0 break-words text-sm font-semibold leading-snug text-foreground sm:text-[15px] line-clamp-2">
                 {record.title}
               </h3>
               <SubmissionStatusBadge status={record.status} className="shrink-0 xl:hidden" />
             </div>
 
-            <p className="mt-1 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
+            {/* Mobile Metadata */}
+            <div className="mt-1 flex flex-col gap-0.5 text-xs text-muted-foreground sm:hidden">
+              <span className={`font-semibold ${meta.text}`}>{meta.label}</span>
+              {record.courseTitle && (
+                <span className="truncate">Course: {record.courseTitle}</span>
+              )}
+              {record.moduleTitle && (
+                <span className="truncate">Module: {record.moduleTitle}</span>
+              )}
+            </div>
+
+            {/* Tablet / Desktop Metadata */}
+            <p className="mt-1 hidden min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground sm:flex">
               <span className={`font-semibold ${meta.text}`}>{meta.label}</span>
               {[record.courseTitle, record.moduleTitle].filter(Boolean).map((part, i) => (
                 <span key={`${i}-${part}`} className="flex min-w-0 items-center gap-1.5">
@@ -146,7 +158,7 @@ export default function SubmissionListItem({ record }) {
 
         {/* Facts + actions */}
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between xl:shrink-0 xl:gap-6">
-          <dl className="grid grid-cols-3 gap-3 rounded-xl bg-muted/50 px-3 py-2.5 md:flex md:gap-4 md:bg-transparent md:p-0">
+          <dl className="grid grid-cols-3 gap-1.5 rounded-xl bg-muted/50 px-2.5 py-2 sm:gap-3 sm:px-3 sm:py-2.5 md:flex md:gap-4 md:bg-transparent md:p-0">
             {facts.map((fact) => (
               <Fact key={fact.label} {...fact} />
             ))}

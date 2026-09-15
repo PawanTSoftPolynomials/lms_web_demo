@@ -1,9 +1,9 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, Inbox, Search, SearchX, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Inbox, Search, SearchX, X } from "lucide-react";
 
 import PageHeader from "@/components/layouts/PageHeader";
 import SubmissionListItem from "@/components/student/submissions/SubmissionListItem";
@@ -19,7 +19,16 @@ import {
 } from "@/features/student/constants/submissionsConfig";
 
 const SELECT_CLASS =
-  "h-11 min-w-0 cursor-pointer rounded-xl border border-border bg-card px-3 text-sm text-foreground outline-none transition-colors focus:border-primary sm:w-40";
+  "h-10 sm:h-11 min-w-0 w-full cursor-pointer rounded-xl border border-border bg-card px-3 text-xs sm:text-sm text-foreground outline-none transition-colors focus:border-primary sm:w-40";
+
+const QUIZZES_PER_PAGE = 5;
+
+function getPageNumbers(current, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  if (current <= 4) return [1, 2, 3, 4, 5, "...", total];
+  if (current >= total - 3) return [1, "...", total - 4, total - 3, total - 2, total - 1, total];
+  return [1, "...", current - 1, current, current + 1, "...", total];
+}
 
 function SubmissionsSkeleton() {
   return (
@@ -72,6 +81,7 @@ function SubmissionsPageContent() {
   const [quizType, setQuizType] = useState("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("newest");
+  const [quizPage, setQuizPage] = useState(1);
 
   const assignmentsQuery = useAssignments();
   const quizzesQuery = useQuizSubmissions();
@@ -93,6 +103,19 @@ function SubmissionsPageContent() {
     () => filterAndSortSubmissions(records, { type, status, quizType, query, sort }),
     [records, type, status, quizType, query, sort]
   );
+
+  useEffect(() => {
+    setQuizPage(1);
+  }, [type, status, quizType, query, sort]);
+
+  const totalPages = type === "quiz" ? Math.max(1, Math.ceil(visible.length / QUIZZES_PER_PAGE)) : 1;
+
+  const displayedRecords = useMemo(() => {
+    if (type !== "quiz") return visible;
+    const safePage = Math.min(quizPage, totalPages);
+    const start = (safePage - 1) * QUIZZES_PER_PAGE;
+    return visible.slice(start, start + QUIZZES_PER_PAGE);
+  }, [visible, type, quizPage, totalPages]);
 
   // Search and status narrow the current tab; switching tabs isn't a filter.
   const filtered = status !== "all" || (type === "quiz" && quizType !== "all") || query.trim() !== "";
@@ -200,10 +223,10 @@ function SubmissionsPageContent() {
                   aria-label="Search assignments and quizzes by name"
                   // !pl/!pr: globals.css pads bare inputs from outside any
                   // layer, which would otherwise slide text under the icon.
-                  className="h-11 w-full rounded-xl border border-border bg-card !pl-10 !pr-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
+                  className="h-10 sm:h-11 w-full rounded-xl border border-border bg-card !pl-10 !pr-3 text-xs sm:text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-2 sm:flex">
+              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-2 sm:flex">
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
@@ -259,8 +282,16 @@ function SubmissionsPageContent() {
           {typeCounts[type] > 0 && (
             <div className="mb-3 flex min-h-[36px] items-center justify-between gap-3 text-sm text-muted-foreground">
               <p aria-live="polite">
-                Showing <span className="font-semibold tabular-nums text-foreground">{visible.length}</span> of{" "}
-                <span className="tabular-nums">{typeCounts[type]}</span> {type === "quiz" ? "quizzes" : "assignments"}
+                Showing{" "}
+                <span className="font-semibold tabular-nums text-foreground">
+                  {type === "quiz" ? displayedRecords.length : visible.length}
+                </span>{" "}
+                of <span className="tabular-nums">{visible.length}</span> {type === "quiz" ? "quizzes" : "assignments"}
+                {type === "quiz" && totalPages > 1 && (
+                  <span className="ml-1.5 text-xs text-muted-foreground">
+                    (Page {quizPage} of {totalPages})
+                  </span>
+                )}
               </p>
               {filtered && (
                 <button
@@ -314,13 +345,69 @@ function SubmissionsPageContent() {
               </button>
             </div>
           ) : (
-            <ul className="space-y-3" aria-label="Submissions">
-              {visible.map((record) => (
-                <li key={record.key}>
-                  <SubmissionListItem record={record} />
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="space-y-3" aria-label="Submissions">
+                {displayedRecords.map((record) => (
+                  <li key={record.key}>
+                    <SubmissionListItem record={record} />
+                  </li>
+                ))}
+              </ul>
+
+              {type === "quiz" && totalPages > 1 && (
+                <nav aria-label="Quiz pagination" className="mt-6 flex items-center justify-center gap-1 sm:gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setQuizPage((p) => Math.max(1, p - 1))}
+                    disabled={quizPage === 1}
+                    aria-label="Previous page"
+                    className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-border bg-card text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40 sm:h-10 sm:w-10"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+
+                  {getPageNumbers(quizPage, totalPages).map((item, index) => {
+                    if (item === "...") {
+                      return (
+                        <span
+                          key={`ellipsis-${index}`}
+                          className="flex h-9 w-7 items-center justify-center text-xs text-muted-foreground sm:h-10 sm:w-8"
+                        >
+                          …
+                        </span>
+                      );
+                    }
+                    const active = item === quizPage;
+                    return (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => setQuizPage(item)}
+                        aria-current={active ? "page" : undefined}
+                        aria-label={`Page ${item}`}
+                        className={`inline-flex h-9 min-w-[36px] cursor-pointer items-center justify-center rounded-xl px-2.5 text-xs font-semibold transition-colors sm:h-10 sm:min-w-[40px] sm:px-3 sm:text-sm ${
+                          active
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "border border-border bg-card text-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    type="button"
+                    onClick={() => setQuizPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={quizPage === totalPages}
+                    aria-label="Next page"
+                    className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-border bg-card text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40 sm:h-10 sm:w-10"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </nav>
+              )}
+            </>
           )}
         </>
       )}
