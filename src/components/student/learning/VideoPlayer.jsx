@@ -19,6 +19,9 @@ import MarkdownRenderer from "@/components/ui/MarkdownEditor/MarkdownRenderer";
 import { unescapeFromContentApi, highlightCode } from "@/lib/markdown";
 import { PdfViewer, PptViewer, DocxViewer, ExternalDocumentViewer } from "@/components/shared/LazyDocumentViewers";
 import ContentAssignmentPanel from "@/components/student/learning/ContentAssignmentPanel";
+import SpeechControls from "@/components/student/tts/SpeechControls";
+import useLessonReadAloud from "@/hooks/useLessonReadAloud";
+import { resolveSpeechLang } from "@/lib/textToSpeech";
 import { SlideColumnsView } from "@/components/instructor/LessonComposer/cells/slideCanvas/SlideColumnsLayout";
 import { parseSlideDeckJson } from "@/components/instructor/LessonComposer/cells/slideCanvas/slideElementTypes";
 
@@ -85,7 +88,7 @@ const parseSlides = (html) => {
 };
 
 const VideoPlayer = forwardRef(function VideoPlayer(
-    { content, onTimeUpdate, onEnded, onDurationChange, initialTime = 0 },
+    { content, onTimeUpdate, onEnded, onDurationChange, initialTime = 0, speechLanguage, lessonTitle },
     ref
 ) {
     const containerRef = useRef(null);
@@ -276,6 +279,23 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         setViewerControls(null);
     }, [content]);
 
+    // Read aloud (browser speech synthesis) — only for a written text/HTML
+    // block, the one content type whose words are the lesson itself. Video,
+    // documents, slides, images and assignments keep their own UI. Same
+    // image test as isImage below, which can't be used here because hooks
+    // must run before the empty-content early return.
+    const isTextBlock =
+        (type === "TEXT" || type === "HTML") &&
+        !(htmlContent?.includes("cc-image-block") || /<img\s+/i.test(htmlContent || ""));
+    const readAloud = useLessonReadAloud({
+        enabled: isTextBlock && Boolean(htmlContent),
+        contentId: content?.id,
+        title: content?.title || lessonTitle,
+        source: htmlContent ? unescapeFromContentApi(htmlContent) : "",
+        lang: resolveSpeechLang(speechLanguage),
+    });
+    const showReadAloud = isTextBlock && readAloud.hasText && readAloud.speech.supported;
+
     if (!content) {
         return (
             <div className="flex aspect-video min-h-[220px] max-h-[520px] w-full items-center justify-center rounded-2xl border border-border bg-background p-6 text-center">
@@ -427,7 +447,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
         : "flex-1 max-xl:min-h-0";
 
     return (
-        <div className={`bg-background flex flex-col w-full ${rootSizing}`}>
+        <div ref={readAloud.scopeRef} className={`bg-background flex flex-col w-full ${rootSizing}`}>
             {/* Header — skipped for VIDEO: the lesson title already shows above the
                 player, and the video's own thumbnail/embed carries its title too,
                 so this bar was just a third repeat of the same text. Also skipped
@@ -441,7 +461,14 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                     {isSlideShow && <Presentation className="h-4 w-4 text-primary shrink-0" />}
                     {isTextLike && !isSlideShow && <BookOpen className="h-4 w-4 text-primary shrink-0" />}
                     {isFileLike && <FileText className="h-4 w-4 text-primary shrink-0" />}
-                    {content.title && <span className="truncate">{content.title}</span>}
+                    {content.title && (
+                        <span
+                            className={`truncate${showReadAloud && readAloud.readsTitle ? " tts-chunk" : ""}`}
+                            data-tts-chunk={showReadAloud && readAloud.readsTitle ? 0 : undefined}
+                        >
+                            {content.title}
+                        </span>
+                    )}
                 </h2>
                 {isSlideShow && slideCount > 1 && (
                     <span className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full shrink-0">
@@ -493,6 +520,18 @@ const VideoPlayer = forwardRef(function VideoPlayer(
 
                 {viewerControls}
             </div>
+            )}
+
+            {/* Read-aloud player — a compact bar between the title and the text.
+                Outside the scrolling text below xl, so it stays pinned there;
+                sticky at xl, where the player frame scrolls this whole block. */}
+            {showReadAloud && (
+                <SpeechControls
+                    speech={readAloud.speech}
+                    onListen={readAloud.listen}
+                    lang={resolveSpeechLang(speechLanguage)}
+                    className="shrink-0 xl:sticky xl:top-0 z-10"
+                />
             )}
 
             {/* Content Area with fluid aspect ratio */}
@@ -769,6 +808,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                         <div className="p-4 sm:p-8 select-text min-w-0 max-w-full w-full">
                             <MarkdownRenderer
                                 source={unescapeFromContentApi(htmlContent || "")}
+                                renderedHtml={showReadAloud ? readAloud.html : undefined}
                                 emptyText="No content yet."
                                 className="max-w-4xl mx-auto w-full min-w-0"
                             />

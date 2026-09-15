@@ -1456,6 +1456,7 @@ export default function LearnPage() {
                         onBack={goToPreviousBlock}
                         resultReturnTo={resultReturnTo}
                         onNextContent={goToNextBlock}
+                        speechLanguage={course?.language}
                       />
                     </div>
                   ) : (
@@ -1466,6 +1467,8 @@ export default function LearnPage() {
                       onDurationChange={setVideoDuration}
                       onEnded={handleVideoEnded}
                       initialTime={!extraUnit && blockIndex === 0 ? initialTime : 0}
+                      speechLanguage={course?.language}
+                      lessonTitle={selectedLesson?.title}
                     />
                   )}
                 </div>
