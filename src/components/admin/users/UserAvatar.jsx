@@ -1,3 +1,5 @@
+import { getDisplayUrl } from "@/lib/blob";
+
 export default function UserAvatar({
                                        name,
                                        avatar,
@@ -25,7 +27,7 @@ export default function UserAvatar({
     if (avatar) {
         return (
             <img
-                src={avatar}
+                src={getDisplayUrl(avatar)}
                 alt={name}
                 className={`${sizeClass} rounded-full object-cover border border-white/10`}
 

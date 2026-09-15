@@ -23,6 +23,7 @@ import DatePicker from "@/components/ui/DatePicker";
 import useUpdateProfile from "@/hooks/queries/student/useUpdateProfile";
 import { changePassword } from "@/services/auth.service";
 import { uploadAvatar, removeAvatar } from "@/services/profile.service";
+import { getDisplayUrl } from "@/lib/blob";
 
 const EDUCATION_OPTIONS = [
   "B.Tech in Artificial Intelligence & ML",
@@ -110,7 +111,7 @@ export default function DesktopEditProfileView({ profile, onRefresh }) {
       });
 
       if (profile.avatar) {
-        setAvatarPreview(profile.avatar);
+        setAvatarPreview(getDisplayUrl(profile.avatar));
       }
     }
   }, [profile]);
