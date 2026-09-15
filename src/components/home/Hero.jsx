@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
 import { PiOrangeDuotone } from "@/components/ui/reactIcons";
 import {
   ArrowRight,
@@ -22,7 +21,6 @@ import Eyebrow from "@/components/ui/Eyebrow";
 import { useLandingData } from "@/hooks/queries/useLandingData";
 import { getDisplayUrl } from "@/lib/blob";
 
-const EASE = [0.16, 1, 0.3, 1];
 const TABS = ["Overview", "Notes", "Resources", "Discuss"];
 
 // Orange Tree's own secondary accents, reused exactly as they're already
@@ -52,10 +50,12 @@ const CALLOUTS = [
   },
 ];
 
-function reveal(shouldReduceMotion, delay) {
-  return shouldReduceMotion
-    ? {}
-    : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.55, delay, ease: EASE } };
+// Fade-up via the .hero-reveal keyframe in globals.css (same 0.55s curve,
+// reduced motion handled there). This used framer-motion, which served the
+// hero - headline included - at opacity 0 until the JS bundle had downloaded
+// and hydrated; the CSS animation starts at first paint instead.
+function reveal(delay) {
+  return { className: "hero-reveal", style: { animationDelay: `${delay}s` } };
 }
 
 // Real, live counts only. Average rating is a genuine derived value (the
@@ -134,7 +134,7 @@ function buildContentList(course) {
   return rows;
 }
 
-function CourseDashboardPanel({ course, shouldReduceMotion }) {
+function CourseDashboardPanel({ course }) {
   if (!course) return null;
 
   const contentRows = buildContentList(course);
@@ -166,9 +166,9 @@ function CourseDashboardPanel({ course, shouldReduceMotion }) {
         </svg>
       </div>
 
-      <motion.div
-        {...reveal(shouldReduceMotion, 0.15)}
-        className="relative z-10 overflow-hidden rounded-2xl sm:rounded-3xl border border-border bg-card shadow-xl shadow-black/10"
+      <div
+        {...reveal(0.15)}
+        className="hero-reveal relative z-10 overflow-hidden rounded-2xl sm:rounded-3xl border border-border bg-card shadow-xl shadow-black/10"
       >
         {/* App chrome — reuses the real Orange Tree mark */}
         <div className="flex items-center gap-3 border-b border-border bg-surface/60 px-3.5 sm:px-4 py-2.5">
@@ -277,17 +277,17 @@ function CourseDashboardPanel({ course, shouldReduceMotion }) {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Callouts — desktop/tablet: sit in the gutter, clear of panel content */}
       {CALLOUTS.slice(0, 2).map((c, i) => (
-        <motion.div key={c.key} {...reveal(shouldReduceMotion, 0.3 + i * 0.1)} className="hidden lg:block">
+        <div key={c.key} {...reveal(0.3 + i * 0.1)} className="hero-reveal hidden lg:block">
           <CalloutCard callout={c} className={`absolute z-20 w-36 -left-10 ${i === 0 ? "top-[24%]" : "top-[46%]"}`} />
-        </motion.div>
+        </div>
       ))}
-      <motion.div {...reveal(shouldReduceMotion, 0.5)} className="hidden lg:block">
+      <div {...reveal(0.5)} className="hero-reveal hidden lg:block">
         <CalloutCard callout={CALLOUTS[2]} className="absolute z-20 w-36 -bottom-5 -right-4" />
-      </motion.div>
+      </div>
 
       {/* Same three signals, inline on mobile */}
       <div className="mt-3 grid grid-cols-3 gap-2 lg:hidden">
@@ -302,7 +302,6 @@ function CourseDashboardPanel({ course, shouldReduceMotion }) {
 export default function Hero() {
   const { data, isLoading } = useLandingData();
   const spotlightCourse = data?.courses?.[0];
-  const shouldReduceMotion = useReducedMotion();
 
   return (
     <section className="relative isolate overflow-hidden">
@@ -317,32 +316,32 @@ export default function Hero() {
         <div className="grid gap-y-10 lg:grid-cols-12 lg:gap-x-20 lg:gap-y-14">
           {/* Text: order 1 everywhere */}
           <div className="lg:col-start-1 lg:col-span-5 lg:row-start-1 flex flex-col justify-center">
-            <motion.div {...reveal(shouldReduceMotion, 0)}>
+            <div {...reveal(0)}>
               <Eyebrow>Modern Learning Platform</Eyebrow>
-            </motion.div>
+            </div>
 
-            <motion.h1
-              {...reveal(shouldReduceMotion, 0.08)}
-              className="mt-4 font-display text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight text-foreground"
+            <h1
+              {...reveal(0.08)}
+              className="hero-reveal mt-4 font-display text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight text-foreground"
             >
               Learn.
               <br />
               Practice.
               <br />
               <span className="text-primary">Prove Your Progress.</span>
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              {...reveal(shouldReduceMotion, 0.16)}
-              className="mt-5 max-w-md text-sm sm:text-base text-muted-foreground leading-relaxed"
+            <p
+              {...reveal(0.16)}
+              className="hero-reveal mt-5 max-w-md text-sm sm:text-base text-muted-foreground leading-relaxed"
             >
               Structured courses, interactive quizzes, real assessments, and clear
               progress tracking — everything you need to learn and achieve your goals.
-            </motion.p>
+            </p>
 
-            <motion.div
-              {...reveal(shouldReduceMotion, 0.24)}
-              className="mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
+            <div
+              {...reveal(0.24)}
+              className="hero-reveal mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
             >
               <Button asChild size="lg" className="w-full sm:w-auto font-bold shadow-xs hover:shadow-sm active:scale-[0.99] transition-all inline-flex items-center justify-center">
                 <Link href="#courses">
@@ -358,7 +357,7 @@ export default function Hero() {
               >
                 <Link href="/register">Start Learning</Link>
               </Button>
-            </motion.div>
+            </div>
           </div>
 
           {/* Visual: order 2 on mobile. On desktop it spans both rows and is
@@ -368,23 +367,23 @@ export default function Hero() {
             {isLoading ? (
               <div className="w-full rounded-2xl sm:rounded-3xl border border-border bg-card h-[380px] sm:h-[440px] animate-pulse" />
             ) : (
-              <CourseDashboardPanel course={spotlightCourse} shouldReduceMotion={shouldReduceMotion} />
+              <CourseDashboardPanel course={spotlightCourse} />
             )}
           </div>
 
           {/* Stats + tagline: order 3 on mobile, back under the text on desktop */}
           <div className="lg:col-start-1 lg:col-span-5 lg:row-start-2">
             {!isLoading && (
-              <motion.div {...reveal(shouldReduceMotion, 0.32)}>
+              <div {...reveal(0.32)}>
                 <HeroStats stats={data?.stats} courses={data?.courses} />
-              </motion.div>
+              </div>
             )}
-            <motion.p
-              {...reveal(shouldReduceMotion, 0.4)}
-              className="mt-6 text-2xs font-bold uppercase tracking-[0.15em] text-muted-foreground/70"
+            <p
+              {...reveal(0.4)}
+              className="hero-reveal mt-6 text-2xs font-bold uppercase tracking-[0.15em] text-muted-foreground/70"
             >
               Learn today. A brighter tomorrow awaits.
-            </motion.p>
+            </p>
           </div>
         </div>
       </div>

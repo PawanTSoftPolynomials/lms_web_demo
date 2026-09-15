@@ -17,10 +17,7 @@ import { getYouTubeVideoId, isYouTubeUrl as isYoutubeUrl } from "@/lib/youtube";
 import { getDisplayUrl } from "@/lib/blob";
 import MarkdownRenderer from "@/components/ui/MarkdownEditor/MarkdownRenderer";
 import { unescapeFromContentApi, highlightCode } from "@/lib/markdown";
-import PdfViewer from "@/components/student/learn/PdfViewer";
-import PptViewer from "@/components/shared/PptViewer";
-import DocxViewer from "@/components/shared/DocxViewer";
-import ExternalDocumentViewer from "@/components/shared/ExternalDocumentViewer";
+import { PdfViewer, PptViewer, DocxViewer, ExternalDocumentViewer } from "@/components/shared/LazyDocumentViewers";
 import ContentAssignmentPanel from "@/components/student/learning/ContentAssignmentPanel";
 import { SlideColumnsView } from "@/components/instructor/LessonComposer/cells/slideCanvas/SlideColumnsLayout";
 import { parseSlideDeckJson } from "@/components/instructor/LessonComposer/cells/slideCanvas/slideElementTypes";
@@ -547,6 +544,7 @@ const VideoPlayer = forwardRef(function VideoPlayer(
                                 fileUrl={displayFileUrl}
                                 title={content?.title}
                                 hideToolbar
+                                fillHeight
                                 showDownload={false}
                                 onControlsRender={setViewerControls}
                             />

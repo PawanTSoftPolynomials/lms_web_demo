@@ -25,16 +25,21 @@ const instrumentSans = Instrument_Sans({
   display: "swap",
 });
 
+// Serif (font-serif) and mono (code) are secondary faces that most pages never
+// render, so they load on use instead of being preloaded on every page (~73KB
+// of high-priority font downloads competing with the page's own content).
 const sourceSerif4 = Source_Serif_4({
   variable: "--font-source-serif-4",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
+  preload: false,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  preload: false,
 });
 
 export const metadata: Metadata = {

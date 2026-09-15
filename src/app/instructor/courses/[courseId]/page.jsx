@@ -42,6 +42,7 @@ import { CourseOverviewView } from "@/components/instructor/courses/CourseOvervi
 import { ModuleOverviewView } from "@/components/instructor/courses/ModuleOverviewView";
 import { LessonOverviewView } from "@/components/instructor/courses/LessonOverviewView";
 import { QuizOverviewView } from "@/components/instructor/courses/QuizOverviewView";
+import { AssignmentOverviewView } from "@/components/instructor/courses/AssignmentOverviewView";
 import { EntityFormModal } from "@/components/instructor/courses/EntityFormModal";
 import { UnpublishModal } from "@/components/instructor/courses/UnpublishModal";
 import { DeleteCourseModal } from "@/components/instructor/courses/DeleteCourseModal";
@@ -167,6 +168,8 @@ export default function CourseDetailsPage() {
   const [composeModuleId, setComposeModuleId] = useState(searchParams.get("module") || null);
   const [composeTopicId, setComposeTopicId] = useState(searchParams.get("topic") || null);
   const [composeQuizId, setComposeQuizId] = useState(searchParams.get("quiz") || null);
+  const [composeAssignmentId, setComposeAssignmentId] = useState(null);
+  const [assignmentStartEditing, setAssignmentStartEditing] = useState(false);
   const [selectedQuizState, setSelectedQuizState] = useState(null);
   const [quizStartEditing, setQuizStartEditing] = useState(false);
   const [pendingQuizOrder, setPendingQuizOrder] = useState(null);
@@ -732,9 +735,10 @@ export default function CourseDetailsPage() {
 
     // A quiz that hasn't been created yet has no id to restore, so record the
     // level it is being added under instead of a "quiz" view that would come
-    // back as "Quiz Not Found".
+    // back as "Quiz Not Found". An open assignment does the same: it lives
+    // only in the import draft, so its level is what a reload can reopen.
     const restorableView =
-      composerMode === "quiz" && !composeQuizId
+      (composerMode === "quiz" && !composeQuizId) || composerMode === "assignment"
         ? composeTopicId
           ? "topic"
           : composeLessonId
@@ -1057,6 +1061,22 @@ export default function CourseDetailsPage() {
     setQuizMode(startEdit ? "edit" : "view");
     setComposerMode("quiz");
     setQuizStartEditing(startEdit);
+    setMobileSidebarOpen(false);
+  };
+
+  // The course map passes (assignment, module, lesson, topic, options) — the
+  // levels above the assignment are null for a course-level one.
+  const handleSelectAssignment = (assignment, mod = null, lesson = null, topic = null, options = {}) => {
+    if (!assignment) return;
+    setComposeAssignmentId(assignment.id);
+    setComposeModuleId(mod?.id || null);
+    setComposeLessonId(lesson?.id || null);
+    setComposeTopicId(topic?.id || null);
+    setComposeQuizId(null);
+    setSelectedQuizState(null);
+    setSelectedCellId(null);
+    setAssignmentStartEditing(Boolean(options?.startEditing));
+    setComposerMode("assignment");
     setMobileSidebarOpen(false);
   };
 
@@ -1822,6 +1842,75 @@ export default function CourseDetailsPage() {
     ? (quizzesById.get(String(composeQuizId)) || (selectedQuizState && (String(selectedQuizState.id) === String(composeQuizId) || String(selectedQuizState._id) === String(composeQuizId)) ? selectedQuizState : null))
     : null;
 
+  // Assignments only exist in the Composer for import drafts: on the course
+  // itself and on any module, lesson or topic.
+  const draftAssignmentLists = isDraftMode
+    ? [
+        draftData?.canonicalJson?.assignments,
+        ...draftModules.flatMap((m) => [
+          m.assignments,
+          ...(m.lessons || []).flatMap((l) => [l.assignments, ...(l.topics || []).map((t) => t.assignments)]),
+        ]),
+      ]
+    : [];
+  const activeAssignmentObj = composeAssignmentId
+    ? draftAssignmentLists.flatMap((list) => list || []).find((a) => String(a.id) === String(composeAssignmentId)) || null
+    : null;
+
+  // Applies `updateList` to whichever draft list holds the assignment, then
+  // persists the draft like every other draft edit on this page.
+  const updateDraftAssignments = (updateList) => {
+    const nextModules = draftModules.map((m) => ({
+      ...m,
+      assignments: updateList(m.assignments || []),
+      lessons: (m.lessons || []).map((l) => ({
+        ...l,
+        assignments: updateList(l.assignments || []),
+        topics: (l.topics || []).map((t) => ({ ...t, assignments: updateList(t.assignments || []) })),
+      })),
+    }));
+    const canonical = draftData?.canonicalJson || {};
+    const updatedDraft = {
+      ...draftData,
+      modules: nextModules,
+      canonicalJson: { ...canonical, assignments: updateList(canonical.assignments || []) },
+    };
+    setDraftModules(nextModules);
+    setDraftData(updatedDraft);
+    sessionStorage.setItem("imported_course_draft", JSON.stringify(updatedDraft));
+  };
+
+  const handleSaveDraftAssignment = (payload) => {
+    const current = activeAssignmentObj;
+    if (!current) return;
+    // AssessmentForm edits the due date by day; keep the original time of day
+    // when the day itself was left unchanged.
+    const sameDay = current.dueDate && new Date(current.dueDate).toISOString().slice(0, 10) === payload.dueDate;
+    const edited = {
+      ...current,
+      title: payload.title,
+      description: payload.description,
+      assessmentType: payload.assessmentType,
+      marks: payload.marks,
+      dueDate: sameDay ? current.dueDate : payload.dueDate,
+      attachments: payload.attachments,
+      isPublished: payload.isPublished,
+    };
+    updateDraftAssignments((list) => list.map((a) => (String(a.id) === String(current.id) ? edited : a)));
+    showToast("Draft assignment updated locally!", "success", "Saved");
+  };
+
+  const handleDeleteAssignment = (e, assignment) => {
+    if (e) e.stopPropagation();
+    if (!assignment || !window.confirm(`Are you sure you want to delete "${assignment.title || "this assignment"}"?`)) return;
+    updateDraftAssignments((list) => list.filter((a) => String(a.id) !== String(assignment.id)));
+    if (composerMode === "assignment" && String(composeAssignmentId) === String(assignment.id)) {
+      setComposerMode(composeTopicId ? "topic" : composeLessonId ? "lesson" : composeModuleId ? "module" : "course");
+      setComposeAssignmentId(null);
+    }
+    showToast("Assignment removed from the draft", "success");
+  };
+
   // Ids restored from the URL may name something that has since been deleted —
   // or that belongs to a different course, if a link was edited by hand. Once
   // the tree has actually loaded, anything that doesn't resolve is dropped and
@@ -2275,6 +2364,9 @@ export default function CourseDetailsPage() {
             // itself (and on modules/lessons, which travel inside effectiveModules).
             courseContents={isDraftMode ? draftData?.canonicalJson?.contents : undefined}
             courseAssignments={isDraftMode ? draftData?.canonicalJson?.assignments || [] : undefined}
+            composeAssignmentId={composeAssignmentId}
+            onSelectAssignment={isDraftMode ? closingDrawer(handleSelectAssignment) : undefined}
+            onDeleteAssignment={isDraftMode ? handleDeleteAssignment : undefined}
             composerMode={composerMode}
             composeModuleId={composeModuleId}
             composeLessonId={composeLessonId}
@@ -2408,6 +2500,22 @@ export default function CourseDetailsPage() {
                 onSaveQuiz={handleSaveQuiz}
                 onCancel={handleCancelQuizEdit}
                 startEditing={quizStartEditing}
+              />
+            )}
+
+            {composerMode === "assignment" && (
+              <AssignmentOverviewView
+                key={`${composeAssignmentId}-${assignmentStartEditing}`}
+                assignment={activeAssignmentObj}
+                scopeLabel={
+                  composeTopicId ? `Topic Assignment — ${composingTopic?.title || ""}`
+                    : composeLessonId ? `Lesson Assignment — ${composingLesson?.title || ""}`
+                    : composeModuleId ? `Module Assignment — ${activeModuleObj?.title || ""}`
+                    : "Course-Level Assignment"
+                }
+                startEditing={assignmentStartEditing}
+                onSave={isDraftMode ? handleSaveDraftAssignment : undefined}
+                onDelete={isDraftMode ? () => handleDeleteAssignment(null, activeAssignmentObj) : undefined}
               />
             )}
 

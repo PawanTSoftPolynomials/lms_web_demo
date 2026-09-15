@@ -29,6 +29,12 @@ export default function PptViewer({
   onControlsRender,
   /** Hosts that shouldn't hand the source deck to the viewer pass false. */
   showDownload = true,
+  /**
+   * The learn player's contract, same as PdfViewer and DocxViewer: below xl
+   * the slide area takes the height its parent column leaves. Every other
+   * host (and the player at xl) gets a slide area sized by the deck itself.
+   */
+  fillHeight = false,
 }) {
   const resolvedUrl = getDisplayUrl(fileUrl);
 
@@ -232,8 +238,8 @@ export default function PptViewer({
   );
 
   const effectiveScale = isFit ? fitScale : fitScale * zoomScale;
-  // Floored, not rounded: the viewport now carries the slide's own aspect
-  // ratio, so a fitted slide is exactly as big as its box — rounding a
+  // Floored, not rounded: the viewport carries the slide's own aspect ratio
+  // (see its style below), so a fitted slide is as big as its box — rounding a
   // sub-pixel remainder up would overflow it by 1px and raise a scrollbar over
   // a slide that actually fits.
   const renderedWidth = Math.floor(baseSlideWidth * effectiveScale);
@@ -357,11 +363,11 @@ export default function PptViewer({
 
   return (
     <div
-      className={`flex flex-col w-full h-full flex-1 min-h-0 ${
+      className={`flex flex-col w-full ${
         !hideToolbar
           ? "rounded-2xl border border-border bg-[#0B101D] shadow-2xl overflow-hidden"
           : ""
-      } ${className}`}
+      } ${fillHeight ? "max-xl:h-full max-xl:flex-1 max-xl:min-h-0" : ""} ${className}`}
     >
       {/* Standalone Header Toolbar */}
       {!hideToolbar && (
@@ -380,12 +386,17 @@ export default function PptViewer({
       )}
 
       {/* SLIDE CANVAS VIEWPORT CONTAINER */}
+      {/* The slide scale is measured from this box, so it must never depend on
+          a parent having a definite height: the deck's aspect ratio sizes it
+          from its width (capped by max-h). Only the learn player, below xl,
+          stretches it to fill instead — the one host whose column is sized. */}
       <div
         ref={viewportRef}
         onClick={handleViewportClick}
-        className={`relative w-full flex-1 min-h-0 overflow-auto bg-[#060913] p-2 sm:p-4 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80 ${
-          totalSlides > 1 ? "cursor-pointer" : ""
-        }`}
+        style={{ aspectRatio: `${baseSlideWidth} / ${baseSlideHeight}` }}
+        className={`relative w-full overflow-auto bg-[#060913] p-2 sm:p-4 flex justify-center items-start scroll-smooth rounded-2xl border border-border/80 ${
+          fillHeight ? "max-xl:flex-1 max-xl:min-h-0 xl:max-h-[88vh]" : "max-h-[88vh]"
+        } ${totalSlides > 1 ? "cursor-pointer" : ""}`}
       >
         {/* Loading Overlay */}
         {loadingStep && (

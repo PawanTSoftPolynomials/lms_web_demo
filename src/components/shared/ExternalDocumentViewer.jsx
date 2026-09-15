@@ -3,9 +3,7 @@
 import { useState, useEffect } from "react";
 import { FileText, ExternalLink, AlertCircle, Loader2 } from "lucide-react";
 import { resolveExternalFile } from "@/lib/external/resolveExternalFile";
-import PdfViewer from "@/components/student/learn/PdfViewer";
-import PptViewer from "@/components/shared/PptViewer";
-import DocxViewer from "@/components/shared/DocxViewer";
+import { PdfViewer, PptViewer, DocxViewer } from "@/components/shared/LazyDocumentViewers";
 
 /**
  * ExternalDocumentViewer component.

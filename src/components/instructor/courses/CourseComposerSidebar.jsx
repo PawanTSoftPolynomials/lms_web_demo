@@ -504,9 +504,11 @@ function AssignmentRows({
               className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition border-l-2 ${
                 isSelectable ? "cursor-pointer" : ""
               } ${
+                // Yellow, not amber: globals.css maps amber-* onto the grey
+                // --secondary token, which made these rows look disabled.
                 isAsgnActive
-                  ? "bg-amber-500/15 border-amber-500 text-amber-600 dark:text-amber-400 font-bold"
-                  : `border-transparent text-amber-600/90 dark:text-amber-400/90 ${isSelectable ? "hover:bg-background/60" : ""}`
+                  ? "bg-yellow-500/15 border-yellow-500 text-yellow-700 dark:text-yellow-400 font-bold"
+                  : `border-transparent text-yellow-700 dark:text-yellow-400 ${isSelectable ? "hover:bg-background/60" : ""}`
               }`}
               onClick={isSelectable ? () => onSelectAssignment(asgn, mod, lesson, topic) : undefined}
             >
@@ -514,13 +516,13 @@ function AssignmentRows({
                 {asgn.completed ? (
                   <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
                 ) : (
-                  <ClipboardList size={13} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                  <ClipboardList size={13} className="text-yellow-700 dark:text-yellow-400 shrink-0" />
                 )}
-                <span className="truncate text-caption font-semibold">{asgn.title || "Assignment"}</span>
+                <span className="truncate text-[12.5px] leading-snug font-semibold">{asgn.title || "Assignment"}</span>
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 {asgn.marks ? (
-                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 shrink-0">
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 shrink-0">
                     {asgn.marks} Marks
                   </span>
                 ) : null}
