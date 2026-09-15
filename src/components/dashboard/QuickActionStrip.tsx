@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { LazyMotion, m } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -18,6 +18,11 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/shadcn/dropdown-menu";
 import type { NavItem, NavSubItem } from "@/components/instructor/NavigationStrip/navigationItems";
+
+// This strip is in every dashboard's navbar. Loading framer-motion's features
+// lazily keeps them out of every dashboard page's initial JS; until they
+// arrive the active pill simply renders in place without the slide.
+const loadMotionFeatures = () => import("./motionFeatures").then((mod) => mod.default);
 
 // The floating "quick action" strip used by both the Instructor and Student
 // dashboards. Layout, styling, responsiveness, and animations live here once;
@@ -43,9 +48,11 @@ export function QuickActionStrip({ items, ariaLabel, bare = false }: { items: Na
             : "flex flex-wrap justify-center items-center gap-1.5 p-1"
         }
       >
-        {items.map((item) => (
-          <NavPill key={item.label} item={item} active={isItemActive(pathname, item)} pathname={pathname} ariaLabel={ariaLabel} />
-        ))}
+        <LazyMotion features={loadMotionFeatures}>
+          {items.map((item) => (
+            <NavPill key={item.label} item={item} active={isItemActive(pathname, item)} pathname={pathname} ariaLabel={ariaLabel} />
+          ))}
+        </LazyMotion>
       </div>
     </nav>
   );
@@ -156,7 +163,7 @@ function NavPill({
             onClick={hover.onTriggerClick}
           >
             {active && !mobile && (
-              <motion.span
+              <m.span
                 layoutId={layoutId}
                 className="absolute inset-0 rounded-xl shadow-sm bg-primary"
                 transition={{ type: "spring", stiffness: 400, damping: 32 }}
@@ -191,7 +198,7 @@ function NavPill({
   return (
     <Link href={item.href!} aria-current={active ? "page" : undefined} className={pillClass}>
       {active && !mobile && (
-        <motion.span
+        <m.span
           layoutId={layoutId}
           className="absolute inset-0 rounded-xl bg-primary shadow-sm"
           transition={{ type: "spring", stiffness: 400, damping: 32 }}

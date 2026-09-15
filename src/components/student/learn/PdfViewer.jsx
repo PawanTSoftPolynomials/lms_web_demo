@@ -16,9 +16,12 @@ import {
 
 import { getDisplayUrl } from "@/lib/blob";
 
-// Configure PDF.js worker using unpkg CDN matching the installed pdfjs version
+// Serve the PDF.js worker from this app's own static assets (bundled from the
+// installed pdfjs-dist, so its version always matches the API) rather than
+// unpkg.com: no extra third-party connection before the first PDF page can
+// render, and no dependency on that CDN being up.
 if (typeof window !== "undefined") {
-  pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+  pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 }
 
 const MIN_ZOOM = 0.5; // 50%

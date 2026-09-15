@@ -39,10 +39,20 @@ export default function AssessmentForm({
   lockedCourseId = null,
   loading = false,
   submitError = "",
+  // Replaces the Publish / Save Draft wording where submitting only saves edits.
+  submitLabel = null,
   onSubmit,
 }) {
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [uploading, setUploading] = useState(false);
+
+  // An assignment authored elsewhere (course JSON import, the API) can carry a
+  // type outside the presets; list it rather than showing the first preset
+  // while a different value is actually selected.
+  const assessmentTypeOptions =
+    formData.assessmentType && !ASSESSMENT_TYPES.includes(formData.assessmentType)
+      ? [formData.assessmentType, ...ASSESSMENT_TYPES]
+      : ASSESSMENT_TYPES;
 
   useEffect(() => {
     if (initialValues) {
@@ -161,7 +171,7 @@ export default function AssessmentForm({
             onChange={handleChange}
             className="w-full rounded-lg border border-transparent bg-background px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-primary"
           >
-            {ASSESSMENT_TYPES.map((t) => (
+            {assessmentTypeOptions.map((t) => (
               <option key={t} value={t}>{t}</option>
             ))}
           </select>
@@ -217,7 +227,7 @@ export default function AssessmentForm({
 
       <div className="flex justify-end gap-3 pt-3 border-t border-slate-850">
         <Button type="submit" disabled={loading || uploading}>
-          {loading ? "Saving..." : formData.isPublished ? "Publish" : "Save Draft"}
+          {loading ? "Saving..." : submitLabel || (formData.isPublished ? "Publish" : "Save Draft")}
         </Button>
       </div>
     </form>

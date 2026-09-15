@@ -35,9 +35,7 @@ import { useModule } from "@/hooks/queries/instructor/useModule";
 import { useContents } from "@/hooks/queries/instructor/useContents";
 import { useInstructorCourse } from "@/hooks/queries/instructor/useInstructorCourse";
 import LessonStickySidebar from "@/components/instructor/lessons/LessonStickySidebar";
-import PdfViewer from "@/components/student/learn/PdfViewer";
-import PptViewer from "@/components/shared/PptViewer";
-import ExternalDocumentViewer from "@/components/shared/ExternalDocumentViewer";
+import { PdfViewer, PptViewer, ExternalDocumentViewer } from "@/components/shared/LazyDocumentViewers";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

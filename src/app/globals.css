@@ -16,6 +16,29 @@ body {
   overflow-x: clip;
 }
 
+/* Landing hero fade-up (Hero.jsx sets a per-element animation-delay). Plain
+   CSS so it starts at first paint instead of waiting for JS to hydrate. */
+@keyframes hero-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero-reveal {
+  animation: hero-reveal 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-reveal {
+    animation: none;
+  }
+}
+
 .learning-content,
 .prose,
 .md-prose,

@@ -18,9 +18,7 @@ import { useToast } from "@/components/ui/ToastProvider";
 import { useConfirm } from "@/context/ConfirmContext";
 import { getDisplayUrl } from "@/lib/blob";
 import { uploadFileToVercelBlob } from "@/services/content.service";
-import PdfViewer from "@/components/student/learn/PdfViewer";
-import PptViewer from "@/components/shared/PptViewer";
-import ExternalDocumentViewer from "@/components/shared/ExternalDocumentViewer";
+import { PdfViewer, PptViewer, ExternalDocumentViewer } from "@/components/shared/LazyDocumentViewers";
 
 import { useCreateContent, useUpdateContent, useDeleteContent } from "../contentMutations";
 import { CellShell } from "../CellShell";
