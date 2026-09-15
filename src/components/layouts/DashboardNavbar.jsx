@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { FaBars } from "react-icons/fa";
+import { FaBars } from "@/components/ui/reactIcons";
 import { ChevronRight, Menu } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";

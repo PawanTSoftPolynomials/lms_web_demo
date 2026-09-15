@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import {
     FaQuestionCircle, FaPlus, FaArrowLeft, FaLayerGroup, FaCloudUploadAlt,
-} from "react-icons/fa";
+} from "@/components/ui/reactIcons";
 
 import Card from "@/components/ui/Card";
 

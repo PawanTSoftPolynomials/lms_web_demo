@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { FaCloudUploadAlt, FaTimes, FaCheckCircle, FaExclamationCircle, FaFileAlt, FaDownload } from "react-icons/fa";
+import { FaCloudUploadAlt, FaTimes, FaCheckCircle, FaExclamationCircle, FaFileAlt, FaDownload } from "@/components/ui/reactIcons";
 import { useImportQuestions } from "@/hooks/queries/instructor/useImportQuestions";
 
 const ACCEPTED_FORMATS = ".csv,.xlsx,.xls,.json,.txt,.docx,.pdf";

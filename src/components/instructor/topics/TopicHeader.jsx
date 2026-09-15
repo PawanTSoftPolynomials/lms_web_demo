@@ -8,7 +8,7 @@ import {
     FaFileAlt,
     FaRocket,
     FaUndo,
-} from "react-icons/fa";
+} from "@/components/ui/reactIcons";
 
 export default function TopicHeader({
                                          topic,

@@ -5,7 +5,7 @@ import {
   FaBookOpen,
   FaClipboardList,
   FaCheckCircle,
-} from "react-icons/fa";
+} from "@/components/ui/reactIcons";
 
 import DashboardStatCard from "@/components/dashboard/common/DashboardStatCard";
 

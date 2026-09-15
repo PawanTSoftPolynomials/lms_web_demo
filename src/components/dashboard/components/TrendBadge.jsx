@@ -1,5 +1,5 @@
-import { FaArrowTrendDown, FaArrowTrendUp } from "react-icons/fa6";
-import { FaMinus } from "react-icons/fa";
+import { FaArrowTrendDown, FaArrowTrendUp } from "@/components/ui/reactIcons";
+import { FaMinus } from "@/components/ui/reactIcons";
 
 export default function TrendBadge({
   value = 0,

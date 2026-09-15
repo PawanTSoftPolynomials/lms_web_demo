@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import JSZip from "jszip";
 import {
   ArrowLeft,
   Sparkles,
@@ -85,106 +84,82 @@ const STAGED_STEPS = [
   { id: 4, label: "Creating assessments", desc: "Building module quizzes and question sets" },
 ];
 
-/** Fallback Orange Tree LMS Course JSON Template */
+/**
+ * Fallback course JSON template, used only when GET /course-import/template is
+ * unreachable. Same conventions as the backend's reference template: it shows
+ * HOW course JSON is written, and every element in it is optional.
+ */
 const FALLBACK_TEMPLATE = {
-  metadata: {
-    title: "C Programming Fundamentals",
-    description: "Master C programming concepts from basic syntax to memory pointers.",
-    category: "Computer Science",
-    level: "BEGINNER",
-    language: "English",
-    tags: ["c", "programming", "coding"],
-    estimatedLearningHours: 10,
-    price: 0,
-  },
-  settings: {
+  course: {
+    title: "Introduction to Physics",
+    description: "A beginner-friendly introduction to measurement and motion.",
+    category: "Physics",
+    level: "Beginner",
+    status: "DRAFT",
     visibility: "PUBLIC",
-    certificatesEnabled: true,
+    language: "English",
+    tags: ["physics", "beginner"],
+    certificatesEnabled: false,
     discussionEnabled: true,
+    estimatedLearningHours: 15,
   },
-  quizzes: [
+  content: [
     {
-      title: "C Programming Final Assessment",
-      description: "Comprehensive course-level assessment covering C fundamentals.",
-      passingScore: 60,
-      timeLimit: 30,
-      isPublished: true,
-      questions: [
-        {
-          question: "Which header file is required for printf()?",
-          questionType: "MCQ_SINGLE",
-          options: ["<stdio.h>", "<stdlib.h>", "<string.h>", "<math.h>"],
-          correctAnswer: "<stdio.h>",
-          explanation: "printf() is declared in stdio.h.",
-          marks: 1,
-          negativeMarks: 0,
-          difficulty: "EASY",
-        },
-        {
-          question: "Is C a compiled programming language?",
-          questionType: "MCQ_SINGLE",
-          options: ["Yes, it compiles to machine code", "No, it is interpreted"],
-          correctAnswer: "Yes, it compiles to machine code",
-          explanation: "C code is directly compiled into machine executable binaries.",
-          marks: 1,
-          difficulty: "EASY",
-        },
-      ],
+      type: "HTML",
+      title: "What is Physics?",
+      htmlContent: "<p>Physics is the study of matter, energy, motion and forces.</p>",
     },
   ],
   modules: [
     {
-      title: "C Fundamentals",
-      description: "First steps in writing C programs.",
-      order: 1,
-      isPublished: true,
-      quizzes: [
-        {
-          title: "Module 1 Quick Check",
-          description: "Check understanding of basic C concepts.",
-          passingScore: 60,
-          timeLimit: 15,
-          isPublished: true,
-          questions: [
-            {
-              question: "What is the entry point of a C program?",
-              questionType: "MCQ_SINGLE",
-              options: ["start()", "main()", "run()", "execute()"],
-              correctAnswer: "main()",
-              explanation: "Execution of a C program always begins from main().",
-              marks: 1,
-              difficulty: "EASY",
-            },
-          ],
-        },
-      ],
+      courseId: "course_physics_1",
+      title: "Units and Measurements",
+      description: "How physical quantities are measured.",
+      content: [],
       lessons: [
         {
-          title: "Introduction to C",
-          description: "Understanding compilation and basic structure.",
-          order: 1,
-          isPublished: true,
+          moduleId: "physics_mod_1",
+          title: "Physical Quantities and SI Units",
+          isPublished: false,
+          content: [],
           topics: [
             {
-              title: "What is C?",
-              description: "Overview of procedural programming.",
-              order: 1,
-              isPublished: true,
-              contents: [
-                {
-                  type: "HTML",
-                  title: "Introduction to C Language",
-                  order: 1,
-                  htmlContent: "<h2>What is C?</h2><p>C is a low-level, high-efficiency compiled programming language.</p>",
-                },
-                {
-                  type: "VIDEO",
-                  title: "Writing Your First Hello World",
-                  order: 2,
-                  duration: 300,
-                  videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-                },
-              ],
+              lessonId: "physics_lesson_1",
+              title: "SI Base Units",
+              isPublished: false,
+              content: [],
+              quiz: {
+                title: "SI Units Quick Check",
+                courseId: "course_physics_1",
+                moduleId: "physics_mod_1",
+                lessonId: "physics_lesson_1",
+                topicId: "physics_topic_1",
+                quizTag: "SELF_TEST",
+                passingScore: 50,
+                questions: [
+                  {
+                    question: "What is the SI unit of length?",
+                    questionType: "MCQ_SINGLE",
+                    options: ["Kilogram", "Metre", "Second", "Newton"],
+                    correctAnswer: "Metre",
+                    marks: 1,
+                    difficulty: "EASY",
+                    explanation: "The metre is the SI base unit of length.",
+                  },
+                ],
+              },
+              assignment: {
+                title: "Identify Physical Units",
+                courseId: "course_physics_1",
+                moduleId: "physics_mod_1",
+                lessonId: "physics_lesson_1",
+                topicId: "physics_topic_1",
+                dueDate: "2026-11-15T23:59:00.000Z",
+                marks: 10,
+                assessmentType: "EXERCISE",
+                estimatedTime: 15,
+                description: "Identify the SI units for different physical quantities.",
+              },
             },
           ],
         },
@@ -376,13 +351,16 @@ export default function CourseImportPage() {
   /** Saves temporary draft payload to sessionStorage and opens Course Composer */
   const prepareDraftAndNavigate = (canonical, jobId = null) => {
     try {
-      const metadata = canonical.metadata || canonical || {};
-      const settings = canonical.settings || {};
-      const { modules, quizzes } = withDraftIds(
-        Array.isArray(canonical.modules) ? canonical.modules : [],
-        Array.isArray(canonical.quizzes) ? canonical.quizzes : []
-      );
-      const assetMap = canonical.assetMap || {};
+      const targetObj = canonical?.metadata || canonical?.modules ? canonical : (canonical?.course || canonical || {});
+      const metadata = targetObj.metadata || targetObj || {};
+      const settings = targetObj.settings || {};
+      const rawModules = Array.isArray(targetObj.modules) ? targetObj.modules : [];
+      const rawQuizzes = Array.isArray(targetObj.quizzes) ? targetObj.quizzes : [];
+
+      const { modules, quizzes } = withDraftIds(rawModules, rawQuizzes);
+      const assetMap = canonical?.assetMap || targetObj?.assetMap || {};
+
+      const thumbnailRef = metadata.thumbnailUrl || metadata.thumbnail;
 
       const draftPayload = {
         jobId: jobId || `draft-${crypto.randomUUID()}`,
@@ -392,7 +370,7 @@ export default function CourseImportPage() {
           description: metadata.description || "",
           category: metadata.category || "General",
           level: metadata.level || "BEGINNER",
-          thumbnailUrl: metadata.thumbnail ? assetMap[metadata.thumbnail] || metadata.thumbnail : null,
+          thumbnailUrl: thumbnailRef ? assetMap[thumbnailRef] || thumbnailRef : null,
           language: metadata.language || "English",
           tags: Array.isArray(metadata.tags) ? metadata.tags : [],
           estimatedLearningHours: metadata.estimatedLearningHours || null,
@@ -649,14 +627,10 @@ export default function CourseImportPage() {
         throw new Error(`Invalid JSON syntax in file '${file.name}': ${parseErr.message}`);
       }
 
-      // Basic Schema Checks
+      // Basic Schema Checks — everything past this (which levels exist, what
+      // each element needs) is validated by the backend, which reports it by path.
       if (!parsedJson || typeof parsedJson !== "object") {
         throw new Error("JSON file must contain a valid course object.");
-      }
-
-      const hasMetadataTitle = parsedJson.metadata?.title || parsedJson.title;
-      if (!hasMetadataTitle) {
-        throw new Error("Invalid course JSON: course title is missing (expected 'metadata.title' or 'title').");
       }
 
       // Process JSON with backend validator/parser
@@ -698,12 +672,6 @@ export default function CourseImportPage() {
 
     if (!parsedJson || typeof parsedJson !== "object") {
       setPasteValidationErrors(["Root JSON element must be an object."]);
-      return;
-    }
-
-    const hasTitle = parsedJson.metadata?.title || parsedJson.title;
-    if (!hasTitle) {
-      setPasteValidationErrors(["Invalid course JSON: course title is missing (expected 'metadata.title' or 'title')."]);
       return;
     }
 
@@ -781,14 +749,28 @@ export default function CourseImportPage() {
   const modulesList = Array.isArray(canonicalData?.modules) ? canonicalData.modules : [];
   const quizzesList = Array.isArray(canonicalData?.quizzes) ? canonicalData.quizzes : [];
 
-  const totalModulesCount = modulesList.length;
-  const totalLessonsCount = modulesList.reduce(
+  // The backend's validation summary counts every level — quizzes, content and
+  // assignments can sit on the course, a module, a lesson or a topic.
+  const previewSummary = generatedDraft?.validationReport?.summary;
+  const previewWarnings = generatedDraft?.validationReport?.warnings || [];
+
+  const totalModulesCount = previewSummary?.modules ?? modulesList.length;
+  const totalLessonsCount = previewSummary?.lessons ?? modulesList.reduce(
     (acc, m) => acc + (Array.isArray(m.lessons) ? m.lessons.length : 0),
     0
   );
-  const totalQuizzesCount =
-    modulesList.reduce((acc, m) => acc + (Array.isArray(m.quizzes) ? m.quizzes.length : 0), 0) +
-    quizzesList.length;
+  const totalQuizzesCount = previewSummary?.quizzes ??
+    (modulesList.reduce((acc, m) => acc + (Array.isArray(m.quizzes) ? m.quizzes.length : 0), 0) +
+      quizzesList.length);
+  const previewExtras = previewSummary
+    ? [
+        [previewSummary.topics, "topic"],
+        [previewSummary.contents, "content item"],
+        [previewSummary.assignments, "assignment"],
+      ]
+        .filter(([count]) => count > 0)
+        .map(([count, label]) => `${count} ${label}${count === 1 ? "" : "s"}`)
+    : [];
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 md:p-8 lg:p-10 font-sans pb-32">
@@ -1074,17 +1056,6 @@ export default function CourseImportPage() {
                     <span>Select ZIP Package</span>
                   </button>
                   <p className="text-[11px] text-muted-foreground text-center font-mono">.zip file up to 2GB</p>
-
-                  <div className="flex items-center justify-center pt-1">
-                    <button
-                      type="button"
-                      onClick={handleDownloadSampleZip}
-                      className="text-xs text-sky-400 hover:text-sky-300 font-semibold transition flex items-center space-x-1.5 cursor-pointer"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Download Sample ZIP</span>
-                    </button>
-                  </div>
                 </div>
               </div>
 
@@ -1216,7 +1187,7 @@ export default function CourseImportPage() {
                         </span>
                       </h2>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Describe your course goals in plain text. The AI Agent will generate a structured draft with modules, lessons, topics, and quizzes.
+                        Describe your course goals in plain text. The AI Agent builds only the structure you ask for — modules, lessons, topics, quizzes and assignments as needed. To match a specific format, paste a course JSON template into your prompt.
                       </p>
                     </div>
                   </div>
@@ -1442,7 +1413,26 @@ export default function CourseImportPage() {
                       <span>•</span>
                       <span>Category: {targetMetadata?.category || "General"}</span>
                     </div>
+                    {previewExtras.length > 0 && (
+                      <p className="text-[11px] font-mono text-sky-400 mt-1">
+                        Also includes {previewExtras.join(" · ")}
+                      </p>
+                    )}
                   </div>
+
+                  {previewWarnings.length > 0 && (
+                    <div className="p-3 rounded-xl bg-amber-500/10 text-xs space-y-1">
+                      <div className="flex items-center space-x-1.5 font-semibold text-amber-600 dark:text-amber-400">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span>Review before creating the course</span>
+                      </div>
+                      <ul className="list-disc pl-5 space-y-0.5 text-foreground/80">
+                        {previewWarnings.map((warning, idx) => (
+                          <li key={idx}>{warning}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                   {modulesList.length > 0 && (
                     <div className="space-y-3 pt-3 border-t border-transparent">
@@ -1542,7 +1532,7 @@ export default function CourseImportPage() {
               <textarea
                 value={pastedJsonText}
                 onChange={(e) => setPastedJsonText(e.target.value)}
-                placeholder='{\n  "metadata": {\n    "title": "My Custom Course",\n    "category": "Computer Science"\n  },\n  "modules": [...]\n}'
+                placeholder='{\n  "course": {\n    "title": "My Custom Course",\n    "category": "Computer Science"\n  },\n  "content": [...],\n  "modules": [...]\n}'
                 rows={10}
                 className="w-full bg-background border border-transparent rounded-2xl p-4 text-xs text-foreground font-mono focus:outline-none focus:border-indigo-500 transition resize-y"
               />
@@ -1578,7 +1568,7 @@ export default function CourseImportPage() {
             <div className="flex items-center justify-between border-b border-transparent pb-4">
               <div className="flex items-center space-x-2">
                 <FileJson className="w-5 h-5 text-indigo-400" />
-                <h3 className="text-lg font-bold text-foreground">Orange Tree LMS Course JSON Format Guide (v2)</h3>
+                <h3 className="text-lg font-bold text-foreground">Orange Tree LMS Course JSON Format Guide</h3>
               </div>
               <button
                 type="button"
@@ -1591,55 +1581,65 @@ export default function CourseImportPage() {
 
             {/* Hierarchy Explanation */}
             <div className="space-y-4 text-xs text-foreground leading-relaxed">
-              <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-800/40 space-y-2">
+              <div className="p-4 rounded-2xl bg-indigo-950/40 space-y-2">
                 <h4 className="font-bold text-indigo-300 uppercase tracking-wider text-[11px]">
-                  Course Structure Hierarchy
+                  Flexible Course Structure
                 </h4>
                 <p className="text-foreground">
-                  Orange Tree LMS organizes courses using a 5-level nested structure:
+                  The template shows <strong>how</strong> course JSON is written, not <strong>what</strong> every course must contain. Every level and element below is optional — include only what your course needs.
                 </p>
-                <div className="p-2.5 bg-background border border-transparent rounded-xl font-mono text-[11px] text-amber-300 flex items-center space-x-2 flex-wrap">
-                  <span className="font-bold">Course</span> → <span>Module</span> → <span>Lesson</span> → <span>Topic</span> → <span className="text-emerald-400">Content / Quiz</span>
+                <div className="p-2.5 bg-background rounded-xl font-mono text-[11px] text-amber-300 flex items-center space-x-2 flex-wrap">
+                  <span className="font-bold">Course</span> → <span>Module</span> → <span>Lesson</span> → <span>Topic</span>
                 </div>
+                <p className="text-muted-foreground">
+                  Each of these four levels can carry its own <span className="font-mono text-sky-400">content</span>, <span className="font-mono text-purple-400">quiz</span> and <span className="font-mono text-rose-400">assignment</span>. A module can have content without lessons, a lesson can have content without topics, and modules in one course can be structured differently.
+                </p>
               </div>
 
               {/* Schema Fields Breakdown */}
               <div className="space-y-3">
-                <h4 className="font-bold text-foreground text-sm">Supported Top-Level Fields</h4>
+                <h4 className="font-bold text-foreground text-sm">Fields</h4>
 
                 <div className="space-y-2">
-                  <div className="p-3 bg-background border border-transparent rounded-xl">
-                    <span className="font-bold text-amber-400 font-mono block">metadata</span>
+                  <div className="p-3 bg-background rounded-xl">
+                    <span className="font-bold text-amber-400 font-mono block">course</span>
                     <span className="text-muted-foreground block mt-0.5">
-                      Contains course title, description, category, difficulty level (BEGINNER | INTERMEDIATE | ADVANCED), language, estimatedLearningHours, price, and tags array.
+                      title (required), description, category, level, thumbnailUrl, visibility (PUBLIC | PRIVATE | UNLISTED), language, tags, certificatesEnabled, discussionEnabled, estimatedLearningHours. Imported courses are always created as DRAFT.
                     </span>
                   </div>
 
-                  <div className="p-3 bg-background border border-transparent rounded-xl">
-                    <span className="font-bold text-indigo-400 font-mono block">settings</span>
+                  <div className="p-3 bg-background rounded-xl">
+                    <span className="font-bold text-emerald-400 font-mono block">modules [ ] → lessons [ ] → topics [ ]</span>
                     <span className="text-muted-foreground block mt-0.5">
-                      visibility (PUBLIC | PRIVATE), certificatesEnabled (boolean), discussionEnabled (boolean).
+                      Each has title (required), description and isPublished. There is no order field: items appear in the order you list them, and a level&apos;s quiz comes after its content and children.
                     </span>
                   </div>
 
-                  <div className="p-3 bg-background border border-transparent rounded-xl">
-                    <span className="font-bold text-emerald-400 font-mono block">modules [ ]</span>
+                  <div className="p-3 bg-background rounded-xl">
+                    <span className="font-bold text-sky-400 font-mono block">content [ ]</span>
                     <span className="text-muted-foreground block mt-0.5">
-                      Array of module objects. Each module has title, description, order, and nested lessons array.
+                      On any level. Each item has type (HTML, VIDEO, DOCUMENT, PRESENTATION, CODE, LINK, IMAGE, AUDIO…), title, and htmlContent, videoUrl, fileUrl or externalUrl as the type needs.
                     </span>
                   </div>
 
-                  <div className="p-3 bg-background border border-transparent rounded-xl">
-                    <span className="font-bold text-sky-400 font-mono block">contents [ ] (Topic Content Items)</span>
+                  <div className="p-3 bg-background rounded-xl">
+                    <span className="font-bold text-purple-400 font-mono block">quiz</span>
                     <span className="text-muted-foreground block mt-0.5">
-                      Supported types: HTML (rich text / markdown), VIDEO (videoUrl), DOCUMENT (fileUrl), PRESENTATION (fileUrl).
+                      On any level: title, quizTag (SELF_TEST, LESSON_ASSESSMENT, MODULE_ASSESSMENT, COURSE_ASSESSMENT), passingScore and questions. MCQ questions need options and a correctAnswer that matches one of them.
                     </span>
                   </div>
 
-                  <div className="p-3 bg-background border border-transparent rounded-xl">
-                    <span className="font-bold text-purple-400 font-mono block">quizzes [ ]</span>
+                  <div className="p-3 bg-background rounded-xl">
+                    <span className="font-bold text-rose-400 font-mono block">assignment</span>
                     <span className="text-muted-foreground block mt-0.5">
-                      Course or module level assessment quizzes with passingScore, timeLimit, and questions array (MCQ_SINGLE, MCQ_MULTI, ARRANGE_TOKENS, MATCH_PAIRS).
+                      On any level: title, description, dueDate (required by the LMS, ISO 8601), marks, assessmentType and estimatedTime in minutes.
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-background rounded-xl">
+                    <span className="font-bold text-foreground font-mono block">courseId · moduleId · lessonId · topicId</span>
+                    <span className="text-muted-foreground block mt-0.5">
+                      Optional references, as in the template (a lesson&apos;s moduleId names its module). When given, they must agree with where the item is nested.
                     </span>
                   </div>
                 </div>

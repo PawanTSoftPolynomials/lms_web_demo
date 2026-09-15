@@ -10,7 +10,7 @@ import { createPortal } from "react-dom";
 
 import {
   FaEllipsisV,
-} from "react-icons/fa";
+} from "@/components/ui/reactIcons";
 
 export default function ActionMenu({
   items,

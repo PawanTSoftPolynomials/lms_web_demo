@@ -9,7 +9,7 @@ import {
     FaPlayCircle,
     FaFileAlt,
     FaLink,
-} from "react-icons/fa";
+} from "@/components/ui/reactIcons";
 
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";

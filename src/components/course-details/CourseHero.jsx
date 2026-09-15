@@ -1,7 +1,7 @@
 "use client";
 
-import { FaArrowLeft, FaLayerGroup, FaSignal } from "react-icons/fa";
-import { MdOutlineSchool } from "react-icons/md";
+import { FaArrowLeft, FaLayerGroup, FaSignal } from "@/components/ui/reactIcons";
+import { MdOutlineSchool } from "@/components/ui/reactIcons";
 
 import Button from "@/components/ui/Button";
 import StatusBadge from "@/components/courses/CourseStatusBadge";

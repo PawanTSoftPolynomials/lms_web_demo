@@ -14,9 +14,9 @@ import {
     FaCog,
     FaChartBar,
     FaStore
-} from "react-icons/fa";
-import {FcGraduationCap} from "react-icons/fc";
-import {FaCertificate} from "react-icons/fa6";
+} from "@/components/ui/reactIcons";
+import {FcGraduationCap} from "@/components/ui/reactIcons";
+import {FaCertificate} from "@/components/ui/reactIcons";
 
 export const SIDEBAR_ITEMS = {
     ADMIN: [

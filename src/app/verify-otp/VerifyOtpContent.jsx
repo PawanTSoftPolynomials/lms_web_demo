@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { HiOutlineShieldCheck } from "react-icons/hi2";
+import { HiOutlineShieldCheck } from "@/components/ui/reactIcons";
 
 import { verifyOtp, resendVerificationOtp } from "@/services/auth.service";
 

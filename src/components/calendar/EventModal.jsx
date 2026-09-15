@@ -7,7 +7,7 @@ import Input from "@/components/ui/Input";
 import { getCourses } from "@/services/course.service";
 import { getInstructors } from "@/services/instructor.service";
 import { createCalendarEvent, deleteCalendarEvent } from "@/services/calendar.service";
-import { FaTrash, FaVideo, FaClipboardList, FaBookOpen, FaClock, FaUsers } from "react-icons/fa";
+import { FaTrash, FaVideo, FaClipboardList, FaBookOpen, FaClock, FaUsers } from "@/components/ui/reactIcons";
 import { useNotification } from "@/context/NotificationContext";
 
 export default function EventModal({

@@ -4,7 +4,7 @@ import {
     FaQuestionCircle,
     FaCheckCircle,
     FaStar,
-} from "react-icons/fa";
+} from "@/components/ui/reactIcons";
 
 export default function QuestionPreview({
                                             question,

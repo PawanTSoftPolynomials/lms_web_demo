@@ -445,7 +445,9 @@ function ParentContentRows({
                 </span>
               </div>
 
-              {role === "INSTRUCTOR" && (
+              {/* Course/module/lesson content in an import draft has no draft
+                  move/delete path (only topic content does), so no menu there. */}
+              {role === "INSTRUCTOR" && !(isDraftMode && parent?.parentType !== "topic") && (
                 <RowMenu
                   groupName="content"
                   items={[
@@ -486,6 +488,11 @@ function AssignmentRows({
 }) {
   if (!assignments || assignments.length === 0) return null;
 
+  // Without handlers (the Composer's import draft) a row is a read-only
+  // listing: it neither looks clickable nor offers menu actions that do nothing.
+  const isSelectable = Boolean(onSelectAssignment);
+  const hasActions = role === "INSTRUCTOR" && Boolean(onSelectAssignment || onDeleteAssignment);
+
   return (
     <div className="mb-1 space-y-0.5">
       {assignments.map((asgn, aIdx) => {
@@ -494,12 +501,14 @@ function AssignmentRows({
         return (
           <div key={asgn.id || `asgn-${aIdx}`}>
             <div
-              className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition cursor-pointer border-l-2 ${
+              className={`flex items-center justify-between gap-1.5 pl-1.5 pr-1 py-1.5 rounded-lg transition border-l-2 ${
+                isSelectable ? "cursor-pointer" : ""
+              } ${
                 isAsgnActive
                   ? "bg-amber-500/15 border-amber-500 text-amber-600 dark:text-amber-400 font-bold"
-                  : "border-transparent text-amber-600/90 dark:text-amber-400/90 hover:bg-background/60"
+                  : `border-transparent text-amber-600/90 dark:text-amber-400/90 ${isSelectable ? "hover:bg-background/60" : ""}`
               }`}
-              onClick={() => onSelectAssignment?.(asgn, mod, lesson, topic)}
+              onClick={isSelectable ? () => onSelectAssignment(asgn, mod, lesson, topic) : undefined}
             >
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                 {asgn.completed ? (
@@ -515,7 +524,7 @@ function AssignmentRows({
                     {asgn.marks} Marks
                   </span>
                 ) : null}
-                {role === "INSTRUCTOR" && (
+                {hasActions && (
                   <RowMenu
                     groupName="quiz"
                     items={[
@@ -547,6 +556,8 @@ export function CourseComposerSidebar({
   modules = [],
   courseQuizzes = [],
   courseAssignments = [],
+  // Course-level content of an import draft; live courses load theirs by parent.
+  courseContents,
   composerMode,
   composeModuleId,
   composeLessonId,
@@ -765,6 +776,7 @@ export function CourseComposerSidebar({
           role={role}
           progress={progress}
           isDraftMode={isDraftMode}
+          draftContents={courseContents}
         />
       )}
 
@@ -856,6 +868,16 @@ export function CourseComposerSidebar({
                 {/* Module Children: Module Content + Module Quizzes + Module Assignments + Lessons */}
                 <Collapsible open={moduleOpen}>
                   <div className="ml-3.5 pl-3 py-0.5 space-y-0.5 border-l border-border/70">
+                    {/* Module Assignments (when present) */}
+                    <AssignmentRows
+                      assignments={mod.assignments}
+                      composerMode={composerMode}
+                      composeAssignmentId={composeAssignmentId}
+                      onSelectAssignment={onSelectAssignment}
+                      onDeleteAssignment={onDeleteAssignment}
+                      role={role}
+                      mod={mod}
+                    />
                     {/* Unified Module Items (contents, quizzes, and lessons sorted by creation/order) */}
                     <ParentContentRows
                       parent={{ parentType: "module", parentId: mod.id }}
@@ -955,6 +977,17 @@ export function CourseComposerSidebar({
                             {/* Lesson Content + Lesson Quizzes + Lesson Assignments + Topics */}
                             <Collapsible open={lessonOpen}>
                               <div className="ml-3 pl-3 py-0.5 space-y-0.5 border-l border-border/60">
+                                {/* Lesson Assignments (when present) */}
+                                <AssignmentRows
+                                  assignments={lesson.assignments}
+                                  composerMode={composerMode}
+                                  composeAssignmentId={composeAssignmentId}
+                                  onSelectAssignment={onSelectAssignment}
+                                  onDeleteAssignment={onDeleteAssignment}
+                                  role={role}
+                                  mod={mod}
+                                  lesson={lesson}
+                                />
                                 {/* Unified Lesson Items (contents, quizzes, and topics sorted by creation/order) */}
                                 <ParentContentRows
                                   parent={{ parentType: "lesson", parentId: lesson.id }}

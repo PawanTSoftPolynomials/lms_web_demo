@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { HiOutlineLockClosed } from "react-icons/hi2";
+import { HiOutlineLockClosed } from "@/components/ui/reactIcons";
 
 import useAuth from "@/hooks/useAuth";
 

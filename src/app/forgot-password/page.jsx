@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { HiOutlineLockClosed } from "react-icons/hi2";
+import { HiOutlineLockClosed } from "@/components/ui/reactIcons";
 
 import { forgotPassword } from "@/services/auth.service";
 

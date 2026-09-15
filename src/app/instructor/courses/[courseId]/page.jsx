@@ -97,6 +97,11 @@ function withTopicIn(les, topicId, updateTopic) {
   };
 }
 
+/** Content and assignments can sit on any level of an import draft; each needs an ID to be keyed and selected in the course map. */
+function withDraftItemIds(items, prefix) {
+  return (items || []).map((item, idx) => ({ ...item, id: item.id || `${prefix}-${idx + 1}` }));
+}
+
 // The workspace selections the URL is allowed to restore. Anything else in
 // `?view=` is ignored and the page opens on the course overview, so a
 // hand-edited or stale link can't drop the composer into an unknown mode.
@@ -799,6 +804,8 @@ export default function CourseDetailsPage() {
       return {
         ...mod,
         id: modId,
+        contents: withDraftItemIds(mod.contents, `draft-cnt-mod-${mIdx + 1}`),
+        assignments: withDraftItemIds(mod.assignments, `draft-asg-mod-${mIdx + 1}`),
         quizzes: (mod.quizzes || []).map((quiz, qIdx) => {
           const qzId = quiz.id || `draft-quiz-mod-${mIdx + 1}-${qIdx + 1}`;
           return {
@@ -816,6 +823,8 @@ export default function CourseDetailsPage() {
           return {
             ...les,
             id: lesId,
+            contents: withDraftItemIds(les.contents, `draft-cnt-les-${mIdx + 1}-${lIdx + 1}`),
+            assignments: withDraftItemIds(les.assignments, `draft-asg-les-${mIdx + 1}-${lIdx + 1}`),
             quizzes: (les.quizzes || []).map((quiz, qIdx) => {
               const qzId = quiz.id || `draft-quiz-les-${mIdx + 1}-${lIdx + 1}-${qIdx + 1}`;
               return {
@@ -835,6 +844,7 @@ export default function CourseDetailsPage() {
               return {
                 ...top,
                 id: topId,
+                assignments: withDraftItemIds(top.assignments, `draft-asg-top-${mIdx + 1}-${lIdx + 1}-${tIdx + 1}`),
                 quizzes: topQuizzes.map((quiz, qIdx) => {
                   const qzId = quiz.id || `draft-quiz-top-${mIdx + 1}-${lIdx + 1}-${tIdx + 1}-${qIdx + 1}`;
                   return {
@@ -870,7 +880,15 @@ export default function CourseDetailsPage() {
         const raw = sessionStorage.getItem("imported_course_draft");
         if (raw) {
           const parsed = JSON.parse(raw);
-          setDraftData(parsed);
+          const canonical = parsed.canonicalJson || {};
+          setDraftData({
+            ...parsed,
+            canonicalJson: {
+              ...canonical,
+              contents: withDraftItemIds(canonical.contents, "draft-cnt-course"),
+              assignments: withDraftItemIds(canonical.assignments, "draft-asg-course"),
+            },
+          });
           const inputModules = parsed.modules || parsed.canonicalJson?.modules || [];
           const inputQuizzes = parsed.quizzes || parsed.canonicalJson?.quizzes || [];
           const { modules: mappedMods, quizzes: mappedQuiz } = ensureDraftIds(inputModules, inputQuizzes);
@@ -2253,6 +2271,10 @@ export default function CourseDetailsPage() {
             maxHeightClassName="max-h-full"
             modules={effectiveModules}
             courseQuizzes={effectiveCourseQuizzes}
+            // An import draft can carry content and assignments on the course
+            // itself (and on modules/lessons, which travel inside effectiveModules).
+            courseContents={isDraftMode ? draftData?.canonicalJson?.contents : undefined}
+            courseAssignments={isDraftMode ? draftData?.canonicalJson?.assignments || [] : undefined}
             composerMode={composerMode}
             composeModuleId={composeModuleId}
             composeLessonId={composeLessonId}
