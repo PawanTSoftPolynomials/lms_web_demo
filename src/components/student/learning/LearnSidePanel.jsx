@@ -40,16 +40,16 @@ export default function LearnSidePanel({
               onClick={() => toggle(id)}
               aria-expanded={isOpen}
               aria-controls={`learn-side-${id}`}
-              className={`flex min-h-[44px] items-center gap-2 rounded-xl border px-3 text-left text-sm font-semibold transition-colors cursor-pointer ${
+              className={`flex h-10 sm:h-11 min-h-[40px] items-center gap-1.5 sm:gap-2 rounded-xl border px-2.5 sm:px-3 text-left text-xs sm:text-sm font-semibold transition-colors cursor-pointer ${
                 isOpen
-                  ? "border-primary/60 bg-primary/10 text-primary"
+                  ? "border-primary/60 bg-primary/10 text-primary shadow-xs"
                   : "border-border bg-card text-foreground hover:border-primary/40 hover:text-primary"
               }`}
             >
-              <Icon size={16} className="shrink-0" aria-hidden />
+              <Icon size={15} className="shrink-0" aria-hidden />
               <span className="min-w-0 flex-1 truncate">{label}</span>
               <ChevronDown
-                size={14}
+                size={13}
                 aria-hidden
                 className={`shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
               />

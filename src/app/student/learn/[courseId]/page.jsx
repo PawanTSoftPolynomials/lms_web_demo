@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ListTree, X } from "lucide-react";
+import { ListTree, MoreHorizontal, X } from "lucide-react";
 
 import LessonContentBlock from "@/components/student/learning/LessonContentBlock";
 import ContentCompletionBar from "@/components/student/learning/ContentCompletionBar";
@@ -1324,13 +1324,10 @@ export default function LearnPage() {
               {/* LESSON CONTEXT — below xl only. Where the learner is, then what
                   they are reading. Bookmark / more / back-to-module are gone: the
                   lesson is what this screen is for. */}
-              <div className="xl:hidden">
+              <div className="xl:hidden relative">
                 {/* Course Map on the left, lesson identity centred on the ROW,
-                    not on the space left over beside the button: the first and
-                    third grid cells are the same 44px, so the middle cell's
-                    centre is the row's centre. The third cell is inert spacing,
-                    not a second control. Same courseMapOpen state and drawer as
-                    before — only the trigger's size and position changed. */}
+                    and More options button on the right. The first and third grid
+                    cells are both 44px, preserving exact center alignment for the title. */}
                 <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
                   <button
                     type="button"
@@ -1351,8 +1348,35 @@ export default function LearnPage() {
                     )}
                   </div>
 
-                  <div aria-hidden="true" className="h-11 w-11 shrink-0" />
+                  <button
+                    type="button"
+                    onClick={() => setRightPanelOpen((prev) => !prev)}
+                    aria-expanded={rightPanelOpen}
+                    style={{ borderRadius: 9999 }}
+                    className={`shrink-0 inline-flex h-9 w-9 items-center justify-center !rounded-full border transition cursor-pointer ${
+                      rightPanelOpen
+                        ? "border-primary bg-primary/20 text-primary shadow-xs"
+                        : "border-primary/40 bg-primary/5 text-primary hover:bg-primary/10"
+                    }`}
+                    aria-label="More options"
+                    title="More options"
+                  >
+                    <MoreHorizontal size={15} aria-hidden="true" />
+                  </button>
                 </div>
+
+                {/* MOBILE MORE MENU / SIDE PANEL POPOVER — floats over page without pushing content down */}
+                {rightPanelOpen && (
+                  <div className="xl:hidden relative z-40 mt-3">
+                    <div
+                      className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs"
+                      onClick={() => setRightPanelOpen(false)}
+                    />
+                    <div className="relative z-50 w-full rounded-2xl border border-border bg-card p-3 sm:p-4 shadow-2xl">
+                      {sidePanel}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* CONTENT PLAYER FRAME — a bounded box at every width, so the
